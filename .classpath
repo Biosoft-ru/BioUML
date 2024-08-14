@@ -177,10 +177,6 @@
 	<classpathentry kind="lib" path="plugins/org.apache.poi_3.17/poi-ooxml-3.17.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.poi_3.17/poi-ooxml-schemas-3.17.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.poi_3.17/poi-scratchpad-3.17.jar"/>
-	<classpathentry kind="lib" path="plugins/org.apache.axis_1.1.0/axis.jar"/>
-	<classpathentry kind="lib" path="plugins/org.apache.axis_1.1.0/commons-discovery.jar"/>
-	<classpathentry kind="lib" path="plugins/org.apache.axis_1.1.0/saaj.jar"/>
-	<classpathentry kind="lib" path="plugins/org.apache.axis_1.1.0/wsdl4j.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.http_4.5/fluent-hc-4.5.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.http_4.5/httpclient-4.5.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.http_4.5/httpclient-cache-4.5.jar"/>
@@ -200,5 +196,13 @@
 	<classpathentry kind="lib" path="plugconfig/biouml.plugins.sabiork/sabioclient.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jlibsedml_2.2.1/jlibsedml.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jlibsedml_2.2.1/jmathml.jar"/>
+	<classpathentry kind="lib" path="plugins/org.jlibsedml_2.2.1/jdom-1.1.3.jar"/>
+	<classpathentry kind="lib" path="plugconfig/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar"/>
+	<classpathentry kind="lib" path="build/bin/javacc.jar"/>
+	<classpathentry kind="lib" path="build/bin/ant-contrib.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.axis_1.1.0/jaxrpc.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.batik_1.7/batik-all.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
