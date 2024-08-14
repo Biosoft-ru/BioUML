@@ -4,3 +4,6 @@
 /com.developmentontheedge.server*.jar
 !biouml.plugins.cwl-1.0.0-SNAPSHOT.jar
 !ru.biosoft.physicell_0.9.10.jar
+!ru.biosoft.exception*.jar
+!ru.biosoft.jobcontrol*.jar
+!ru.biosoft.rtree*.jar
