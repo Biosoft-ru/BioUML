@@ -166,11 +166,11 @@
 	<classpathentry kind="lib" path="plugins/org.openscience.jmol_12.2.4.jar"/>
 	<classpathentry kind="lib" path="plugins/org.ensembl.ensj_39.2/ensj-39.2.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-analysis-common-9.11.1.jar"/>
-    <classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-core-9.11.1.jar"/>
-    <classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-highlighter-9.11.1.jar"/>
-    <classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-memory-9.11.1.jar"/>
-    <classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-queries-9.11.1.jar"/>
-    <classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-queryparser-9.11.1.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-core-9.11.1.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-highlighter-9.11.1.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-memory-9.11.1.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-queries-9.11.1.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-queryparser-9.11.1.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.poi_3.17/poi-3.17.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.poi_3.17/poi-examples-3.17.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.poi_3.17/poi-excelant-3.17.jar"/>
@@ -196,6 +196,9 @@
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.server.servlets/docker-java-transport-httpclient5-3.2.13.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.bcel_6.10.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.lang3_3.16.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="/BioUML/plugins/javax.mail_1.4.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="plugins/javax.mail_1.4.3.jar"/>
+	<classpathentry kind="lib" path="plugconfig/biouml.plugins.sabiork/sabioclient.jar"/>
+	<classpathentry kind="lib" path="plugins/org.jlibsedml_2.2.1/jlibsedml.jar"/>
+	<classpathentry kind="lib" path="plugins/org.jlibsedml_2.2.1/jmathml.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
