@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<project name="biouml.plugins.virtualcell package test" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.virtualcell"/>
+
+    <target name="test">
+        <ant target="rtest5">
+            <property name="test" value="${package}._test.TestCore"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

@@ -1179,9 +1179,9 @@
         </javac>
     </target>
 
-    <target name="rtest5" depends="ctest">
+    <target name="rtest5" depends="ctest5">
         <echo message="Running tests in ${test}..." />
-        <java classname="junit.${testui}.TestRunner" fork="yes">
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="yes">
             <classpath>
                 <pathelement path="${RUN_CLASSPATH};${JUNIT5};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR}" />
             </classpath>
