@@ -68,6 +68,7 @@ public class PhysicellImporter implements DataElementImporter
     {
         this.dc = dc;
         Diagram result = new PhysicellDiagramType().createDiagram( dc, name, new DiagramInfo( name ) );
+        result.setNotificationEnabled(false);
         ModelReader reader = new ModelReader();
         reader.setFunctionsReader( functionsReader );
         BioUMLIntraReader intracellularReader = new BioUMLIntraReader();
@@ -87,6 +88,7 @@ public class PhysicellImporter implements DataElementImporter
         convertReport(model, result);
         convertVisualizer(model, result);
         layout( result );
+        result.setNotificationEnabled(true);
         return result;
     }
     
