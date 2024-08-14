@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="ProteomeCollection" point="ru.biosoft.access.virtualCollection">
+  	<folder name="Proteome">
+  	  <link name="Proteome database" target="databases/Proteome"/>
+  	  <link name="User data" target="data/Collaboration"/>
+  	</folder>
+  </extension>
+  
+  <extension id="Proteome perspective" point="biouml.workbench.perspective.disabled">
+  	<perspective name="Proteome" priority="20" intro="intro-proteome">
+  		<repository>
+  			<tab title="Proteome" path="Proteome"/>
+  		</repository>
+  		<viewparts>
+  			<deny id="*"/>
+  			<allow id="table.*"/>
+  			<allow id="common.log"/>
+  			<allow id="common.description"/>
+  		</viewparts>
+  		<importers>
+            <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+        </importers>
+  	</perspective>
+  </extension>
+  
+  <extension id="PDBReferenceType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.proteome.PDBReferenceType"/>
+  </extension>
+  
+  <extension id="UniprotReferenceType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.proteome.UniprotReferenceType"/>
+  </extension>
+  
+  <extension id="Proteomehub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Proteome hub" class="ru.biosoft.proteome.ProteomeHub">
+        <property name="modulePath" value="%modulePath"/>
+     </hubItem> 
+  </extension>
+  
+  <extension id="sructure" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="ru.biosoft.proteome.table.StructuresViewPart"
+        id="table.structure" 
+        Name="Structure"
+        ShortDescription="Structure view"
+        Priority = "1.5"
+      /> 
+  </extension>
+  
+  <extension point="ru.biosoft.table.dataType">
+      <dataType class="ru.biosoft.proteome.table.StructureDataType"/> 
+  </extension>
+  
+  <extension point="ru.biosoft.server.servlets.controlCodeGenerator" id="StructureCodeGenerator">
+	<exporter prefix="Structure" class="ru.biosoft.proteome.table.StructureCodeGenerator"/>
+  </extension>
+
+</plugin>

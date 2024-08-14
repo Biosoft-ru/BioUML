@@ -1,0 +1,81 @@
+<tool id="varscan_copyNumber" name="VarScan - CopyNumber" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>
+		<param name="pileup1" type="data" format="pileup" label="mPileup file for normal (or combined)" 
+		      help="samtools mpileup generated file. if pileup was generated from one file than two are required otherwise only one. See help for more information"/>
+		<param name="pileup2" type="data" format="pileup" label="mPileup file for tumor" 
+ 		      help="samtools mpileup generated file. if pileup was generated from one file than two are required otherwise only one. See help for more information"/>
+   
+      <param name="min_base_qual" type="integer" label="Minimum base quality to count for coverage [20]" value="20" 
+            help="Minimum base quality to count for coverage [20]"/>
+      <param name="min-map-qual" type="integer" label="Minimum read mapping quality to count for coverage [20]" value="20" 
+            help="Minimum read mapping quality to count for coverage [20]"/>
+      <param name="min-coverage" type="integer" label="Minimum coverage threshold for copynumber segments [20]" value="20" 
+            help="Minimum coverage threshold for copynumber segments [20]"/>
+      <param name="min-segment-size" type="integer" label="Minimum number of consecutive bases to report a segment [10]" value="10" 
+            help="Minimum number of consecutive bases to report a segment [10]"/>
+      <param name="max-segment-size" type="integer" label="Max size before a new segment is made [100]" value="100" 
+            help="Max size before a new segment is made [100]"/>
+
+       <param name="p-value" type="float" label="P-value threshold for significant copynumber change-point [0.01]" value="0.01" 
+            help="P-value threshold for significant copynumber change-point [0.01]"/>
+        <param name="data-ratio" type="float" label="The normal/tumor input data ratio for copynumber adjustment [1.0]" value="1" 
+            help="The normal/tumor input data ratio for copynumber adjustment [1.0]"/>
+        
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data format="txt" name="out" label="Output" />
+	</outputs>
+
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  DEST=`dirname $log`
+cd \$DEST
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/err.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'rm "\$err"  "\$out"' EXIT
+tee $log.err &lt; "\$err" &gt;&amp;2 &amp;
+tee $log.out &lt; "\$out" &gt;&amp;1 &amp;
+
+java "-Xmx$memoryUsage" -jar "${GALAXY_DATA_INDEX_DIR}/shared/jars/varscan.jar" copynumber  \
+  "$pileup1" \
+  "$pileup2" \
+#if $pileup1 == "":
+  --mpileup 1 \
+#end if
+#if $pileup2 == "":
+  --mpileup 1 \
+#end if
+  $out \
+  --min-base-qual $min_base_qual --min-map-qual $min_map_qual --min-coverage min_coverage \
+  --min-segment-size $min_segment_size --max-segment-size $max_segment_size  \
+  --p-value $p_value --data-ratio $data_ratio \
+  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "varscan finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+cat $log.err $log.out &gt;&gt; $log
+  </configfile>
+  </configfiles>
+
+<help>
+
+Citing VarScan
+Please note the version number, and cite the publications below with URL to cite VarScan:
+
+VarScan 2: Koboldt, D., Zhang, Q., Larson, D., Shen, D., McLellan, M., Lin, L., Miller, C., Mardis, E., Ding, L., &amp; Wilson, R. (2012). VarScan 2: Somatic mutation and copy number alteration discovery in cancer by exome sequencing Genome Research DOI: 10.1101/gr.129684.111 
+URL: http://varscan.sourceforge.net
+
+manual: http://varscan.sourceforge.net/using-varscan.html#v2.3_somatic
+</help>
+
+
+</tool>

@@ -1,0 +1,14 @@
+<html>
+#setMathJax()
+	<body>
+		#set( $orderNumber = 0)
+		#set( $isTitleSet = false)
+		#set( $case = "ReactionTemplate")
+		#processReactions ($de, $de, $formatter, $resolver, $orderNumber, $isTitleSet, $case)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+#setMathJaxUpdate()
+	</body>
+</html>

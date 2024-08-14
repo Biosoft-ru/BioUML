@@ -1,0 +1,373 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables features
+ */
+.dataTables_wrapper {
+    position: relative;
+    min-height: 302px;
+    _height: 302px;
+    clear: both;
+}
+
+.dataTables_processing {
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    width: 250px;
+    margin-left: -125px;
+    border: 1px solid #ddd;
+    text-align: center;
+    color: #999;
+    font-size: 11px;
+    padding: 2px 0;
+}
+
+.dataTables_length {
+    width: 25%;
+    float: right;
+    text-align: right;
+    margin-top: 3px;
+}
+
+.dataTables_filter {
+    width: 50%;
+    float: right;
+    text-align: right;
+}
+
+.dataTables_info {
+    width: 25%;
+    max-width: 300px;
+    float: left;
+    margin-top: 5px;
+    margin-right: 10px;	
+}
+
+.dataTables_paginate {
+    width: 44px;*
+	width: 50px;
+	float:left;
+	text-align:left;
+}
+
+/* Pagination nested */
+.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next {
+    height: 19px;
+    width: 19px;
+    margin-left: 3px;
+    float: left;
+}
+
+.paginate_disabled_previous {
+    background-image: url('images/back_disabled.jpg');
+}
+
+.paginate_enabled_previous {
+    background-image: url('images/back_enabled.jpg');
+}
+
+.paginate_disabled_next {
+    background-image: url('images/forward_disabled.jpg');
+}
+
+.paginate_enabled_next {
+    background-image: url('images/forward_enabled.jpg');
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables display
+ */
+table.display {
+    margin: 0 auto;
+    width: 100%;
+    clear: both;
+    min-width: 650px;
+}
+
+.ui-dialog-content table.display {
+	min-width: unset;
+}
+
+table.display thead th {
+    padding: 3px 18px 3px 10px;
+    border-bottom: 1px solid black;
+    font-weight: bold;
+    cursor: pointer;*
+
+cursor:hand;
+}
+
+table.display tfoot th {
+    padding: 3px 10px;
+    border-top: 1px solid black;
+    font-weight: bold;
+}
+
+table.display tr.heading2 td {
+    border-bottom: 1px solid #aaa;
+}
+
+table.display td {
+    padding: 0px 10px;
+}
+
+table.display td.center {
+    text-align: center;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables sorting
+ */
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc,
+table.dataTable thead .sorting_asc_disabled,
+table.dataTable thead .sorting_desc_disabled {
+  cursor: pointer;
+  *cursor: hand;
+  background-repeat: no-repeat;
+  background-position: center right;
+}
+
+table.dataTable thead .sorting {
+  background-image: url("images/sort_both.png");
+}
+table.dataTable thead .sorting_asc {
+  background-image: url("images/sort_asc.png") !important;
+}
+table.dataTable thead .sorting_desc {
+  background-image: url("images/sort_desc.png") !important;
+}
+table.dataTable thead .sorting_asc_disabled {
+  background-image: url("images/sort_asc_disabled.png");
+}
+table.dataTable thead .sorting_desc_disabled {
+  background-image: url("images/sort_desc_disabled.png");
+}
+
+tr.odd {
+    background-color: #eeeeee;
+}
+
+tr.even {
+    background-color: white;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Misc
+ */
+.top, .bottom {
+    padding: 15px;
+    background-color: #F5F5F5;
+    border: 1px solid #CCCCCC;
+}
+
+.top .dataTables_info {
+    float: none;
+}
+
+.clear {
+    clear: both;
+}
+
+.dataTables_empty {
+    text-align: center;
+}
+
+tfoot input {
+    margin: 0.5em 0;
+    width: 100%;
+    color: #444;
+}
+
+tfoot input.search_init {
+    color: #999;
+}
+
+td.group {
+    background-color: #d1cfd0;
+    border-bottom: 2px solid #A19B9E;
+    border-top: 2px solid #A19B9E;
+}
+
+td.details {
+    background-color: #d1cfd0;
+    border: 2px solid #A19B9E;
+}
+
+.example_alt_pagination div.dataTables_info {
+    width: 40%;
+}
+
+.paging_full_numbers {
+    width: 320px;
+    height: 22px;
+    line-height: 22px;
+}
+
+.paging_full_numbers span.paginate_button, .paging_full_numbers span.paginate_active {
+    border: 1px solid #aaa;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    padding: 2px 5px;
+    margin: 0 3px;
+    cursor: pointer;*
+
+cursor:hand;
+}
+
+.paging_full_numbers span.paginate_button {
+    background-color: #ddd;
+}
+
+.paging_full_numbers span.paginate_button:hover {
+    background-color: #ccc;
+}
+
+.paging_full_numbers span.paginate_active {
+    background-color: #99B3FF;
+}
+
+.paging_full_numbers a.paginate_button, .paging_full_numbers a.paginate_active {
+    border: 1px solid #aaa;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    padding: 2px 5px;
+    margin: 0 3px;
+    cursor: pointer;*
+	cursor:hand;
+}
+
+.paging_full_numbers a.paginate_button {
+    background-color: #ddd;
+}
+
+.paging_full_numbers a.paginate_button:hover {
+    background-color: #ccc;
+}
+
+.paging_full_numbers a.paginate_active {
+    background-color: #99B3FF;
+}
+
+.paging_full_numbers a.current {
+    background-color: #99B3FF;
+}
+
+.paging_full_numbers_no_ellipses {
+    width: 320px;
+    height: 22px;
+    line-height: 22px;
+}
+.paging_full_numbers_no_ellipses a.paginate_button, .paging_full_numbers_no_ellipses a.paginate_active {
+    border: 1px solid #aaa;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    padding: 2px 5px;
+    margin: 0 3px;
+    cursor: pointer;*
+	cursor:hand;
+}
+
+.paging_full_numbers_no_ellipses a.paginate_button {
+    background-color: #ddd;
+}
+
+.paging_full_numbers_no_ellipses a.paginate_button:hover {
+    background-color: #ccc;
+}
+
+.paging_full_numbers_no_ellipses a.paginate_active {
+    background-color: #99B3FF;
+}
+
+.paging_full_numbers_no_ellipses a.current {
+    background-color: #99B3FF;
+}
+
+.paging_input {
+    width: 300px;
+    height: 22px;
+    line-height: 22px;
+}
+
+.paging_input span.paginate_button, .paging_input span.paginate_active {
+    border: 1px solid #aaa;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    padding: 2px 5px;
+    margin: 0 3px;
+    cursor: pointer;*
+
+cursor:hand;
+}
+
+.paging_input span.paginate_button {
+    background-color: #ddd;
+}
+
+.paging_input span.paginate_button:hover {
+    background-color: #ccc;
+}
+
+.paging_input span.paginate_active {
+    background-color: #99B3FF;
+}
+
+table.display tr.even.row_selected td {
+    background-color: #BBCCFF;
+}
+
+table.display tr.odd.row_selected td {
+    background-color: #99B3FF;
+}
+
+#table_sites_container.rightPaneContainer td p {
+	height: 46px;
+	overflow: hidden;
+}
+
+/*
+ * Sorting classes for columns
+ */
+/* For the standard odd/even */
+tr.odd td.sorting_1 {
+    background-color: #dddddd;
+}
+
+tr.odd td.sorting_2 {
+    background-color: #DADCFF;
+}
+
+tr.odd td.sorting_3 {
+    background-color: #E0E2FF;
+}
+
+tr.even td.sorting_1 {
+    background-color: #eeeeee;
+}
+
+tr.even td.sorting_2 {
+    background-color: #F2F3FF;
+}
+
+tr.even td.sorting_3 {
+    background-color: #F9F9FF;
+}
+
+tr.odd td.highlighted {
+	background-color: #DDDD60;
+}
+
+tr.even td.highlighted {
+	background-color: #EEEE80;
+}
+/*
+ * Row highlighting example
+ */
+.ex_highlight #example tbody tr.even:hover, #example tbody tr.even td.highlighted {
+    background-color: #ECFFB3;
+}
+
+.ex_highlight #example tbody tr.odd:hover, #example tbody tr.odd td.highlighted {
+    background-color: #E6FF99;
+}

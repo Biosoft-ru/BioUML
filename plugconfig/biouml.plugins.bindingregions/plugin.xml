@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="Analysis of Cis-Regulatory Modules" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.bindingregions.cisregmodule.CisRegModule"
+                   group="Binding regions"
+                   name="Analysis of Cis-Regulatory Modules"
+                   description=""
+                   />
+  </extension>
+
+  <extension point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.bindingregions.analysis.IPSInSNP"
+                   group="Binding regions"
+                   name="IPS-scores in SNPs"
+                   description="This analysis calculates IPS-scores in SNPs"
+                   />
+  </extension>
+
+  <extension point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.bindingregions.analysis.SNPInBindingRegions"
+                   group="Binding regions"
+                   name="SNPs in binding regions"
+                   description="This analysis calculates SNPs in binding regions"
+                   />
+  </extension>
+
+  <extension point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.bindingregions.analysis.SNPRegionsInGenome"
+                   group="Binding regions"
+                   name="SNP regions in genome"
+                   description="This analysis finds SNP regions in genome"
+                   />
+  </extension>
+
+   <extension id="Analysis of Binding Regions" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.bindingregions.analysis.BindingRegions"
+                   group="Binding regions"
+                   name="Analysis of Binding Regions"
+                   description=""
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.GatheringGenomeStatistics"
+                   group="Binding regions"
+                   name="Gathering genome statistics"
+                   description="Preliminary identification of the auxiliary information about genome (creation of tracks: '_chromosomeGaps', '_chromosomeLengths', '_genes', 'summaryOfGenes')"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.FantomAnalysis"
+                   group="Binding regions"
+                   name="Fantom analysis"
+                   description="Analysis of FANTOM expression values by using GTRD peaks"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.RnaSeqAnalysis"
+                   group="Binding regions"
+                   name="RNA-Seq analysis"
+                   description="Analysis of RNA-Seq data. Correspondence between expression levels and GTRD ChIP-Seq peaks"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.GtrdAnalysis"
+                   group="Binding regions"
+                   name="GTRD analysis"
+                   description="Analysis of GTRD peaks"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.GtrdAnalysisAdvanced"
+                   group="Binding regions"
+                   name="GTRD analysis advanced"
+                   description="Analysis of GTRD peaks"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.MergeCellLineBindingRegions"
+                   group="Binding regions"
+                   name="Merge binding regions for cell-lines"
+                   description="Create cell-specific tracks with merged binding regions (creation of tables: 'bindingRegions_in_[CellLine*]')"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.ConvertFilesToTracks"
+                   group="Binding regions"
+                   name="Convert files to tracks"
+                   description="Convert fixed files in given folder to tracks and write them into another folder"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.MatrixComparison"
+                   group="Binding regions"
+                   name="Matrix comparison"
+                   description="Comparison of matrices by given site model type"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.ROCcurvesInOverlappedChipSeqPeaks"
+                   group="Binding regions"
+                   name="ROC-curves in overlapped ChIP-Seq peaks"
+                   description="Create ROC-curves in overlapped ChIP-Seq peaks (when there are several peaks sets for given Tf-class)"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.PeakFindersComparison"
+                   group="Binding regions"
+                   name="Peak finders comparison"
+                   description="Comparison of two peak finders (for example, MACS and SISSRs): lengths and numbers of TF-binding regions are compared"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.BindingRegionsSummary"
+                   group="Binding regions"
+                   name="Binding regions summary"
+                   description="Summary of binding regions, density of overlaps (creation of tables: 'summaryOfBindingRegions', 'densityOfBindingRegionOverlaps', 'chart_densityOfBindingRegionOverlaps')"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.NormalComponentsMixture"
+                   group="Binding regions"
+                   name="Mixture of normal components"
+                   description="Mixture of normal components for maximal IPS scores predicted in binding regions (singleTrack) of given tfClass (charts table is created)"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CreateMatrixByMixture"
+                   group="Binding regions"
+                   name="Create matrix by mixture of normal components"
+                   description="Calculation of matrix by using mixture of normal components for maximal IPS scores"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CistromeConstructionByMt"
+                   group="Binding regions"
+                   name="Cistrome construction by MT"
+                   description="Cistrome construction using master-track"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CistromConstruction"
+                   group="Binding regions"
+                   name="Cistrom construction"
+                   description="Cistrom construction"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CistromConstructionAdvanced"
+                   group="Binding regions"
+                   name="Cistrom construction advanced"
+                   description="Cistrom construction advanced"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.MatrixDerivation"
+                   group="Binding regions"
+                   name="Matrix derivation"
+                   description="Calculation of matrices by using mixture of normal components for scores of best sites in given sequence sample"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.MatrixDerivationAdvanced"
+                   group="Binding regions"
+                   name="Matrix derivation advanced"
+                   description="Calculation of matrices by using mixture of normal components for RA-scores of best sites in given sequence sample"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.TransformTrackToTable"
+                   group="Binding regions"
+                   name="Transform track to table"
+                   description="Create data matrix with sequence sample and/or values of variables that are dynamic properties of sites in track"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CisModuleIdentification"
+                   group="Binding regions"
+                   name="Cis-module identification"
+                   description="Cis-module identification (type-1 and type-2)"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CountOligoFrequencies"
+                   group="Binding regions"
+                   name="Count olig frequencies"
+                   description="Count olig frequencies in binding regions"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.SummaryOnAUCs"
+                   group="Binding regions"
+                   name="Summary on AUCs"
+                   description="Generate summary on AUCs: multiple comparison of ROC curves"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.IPSPredictionAnalysis"
+                   group="Binding regions"
+                   name="IPS prediction"
+                   description="IPS-prediction and tag density"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.IPSROCCurve"
+                   group="Binding regions"
+                   name="IPS ROC-curves"
+                   description="ROC-curves: influence of common score threshold on IPSSiteModel (or logIPSSiteModel) in merged binding regions"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.ChIPSeqCharacteristicsDistribution"
+                   group="Binding regions"
+                   name="ChIP-Seq characteristics distribution"
+                   description="Distribution of ChIP-Seq characteristics using peak-finder (MACS or SISSRs) result as the input"
+                   />
+   </extension>
+   
+   <!--extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CommonAndIPSCorrelation"
+                   group="Binding regions"
+                   name="Common and IPS scores correlation"
+                   description="Correlation between common score and IPS-score for best IPS-sites in single Chip-Seq track"
+                   />
+   </extension-->
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CisModuleWithGivenPatternIdentification"
+                   group="Binding regions"
+                   name="Identification of cis-regulatory modules with given pattern of TF-classes"
+                   description="Identification of cis-regulatory modules with given pattern of TF-classes"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CisModuleSetsNearGenes"
+                   group="Binding regions"
+                   name="Cis-module sets near given genes"
+                   description="Frequencies of TF-classes in two sets of cis-regulatory modules that locate near given genes"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.SitePredictionInGenome"
+                   group="TF binding site search"
+                   name="TF binding sites prediction in genome or track"
+                   description="Prediction of TF-binding sites of given TF in whole genome or in given chromosome fragment or in ChIP-Seq dataset. Sites are predicted by different PWM-methods"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.SiteFiltration"
+                   group="Binding regions"
+                   name="Filtration of predicted sites by filters"
+                   description="Filtration of predicted sites by filters (such as histone modifications)"
+                   />
+   </extension>
+   
+
+   <extension point="ru.biosoft.analysis.method">
+   <analysisClass class="biouml.plugins.bindingregions.analysis.CompositeElementIdentificationByFiltration"
+                   group="Binding regions"
+                   name="Identification of composite elements by filters"
+                   description="Identification of composite elements by filters (such as histone modifications)"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.fiveSiteModels.BestSitesUnionROCCurves"
+                   group="Binding regions"
+                   name="ROC curves for best sites union"
+                   description="Best sites: ROC-curves; union of best sites in single chip-seq track; summit(yes/no); filtration (yes/no); matrix derivation."
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.fiveSiteModels.BestSiteLocations"
+                   group="Binding regions"
+                   name="Locations of best sites"
+                   description="Best sites: location of best sites in single chip-seq track; summit(yes/no)"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.fiveSiteModels.BestSiteCorrelations"
+                   group="Binding regions"
+                   name="Correlations of best sites"
+                   description="Best sites: correlation between best sites and characteristics of single chip-seq track; summit(yes/no)"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.fiveSiteModels.ROCCurvesInGrouped"
+                   group="Binding regions"
+                   name="ROC-curves in grouped peaks"
+                   description="ROC-curves: To sort and to group (by ChIP-Seq characteristics)  peaks from one track; summit(yes/no)"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.fiveSiteModels.ROCCurvesInClusterizedPeaks"
+                   group="Binding regions"
+                   name="ROC-curves in clusterized peaks"
+                   description="ROC-curves in clusterized peaks"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.fiveSiteModels.IdenticalBestSiteROCCurves"
+                   group="Binding regions"
+                   name="Identical best site ROC-curves"
+                   description="Best sites: ROC-curves; union of best sites in single chip-seq track; massive applications to different tracks; summit(yes/no); filtration (yes/no); matrix derivation"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.mrnaanalysis.RiboSeqAndMrnaFeaturesForming"
+                   group="Binding regions"
+                   name="Ribo-Seq and mRNA features forming"
+                   description="Create data matrix with Ribo-Seq and mRNA features and write it as TableDataCollection"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.mrnaanalysis.LincRNAandMrnaFeatures"
+                   group="Binding regions"
+                   name="lincRNA and mRNA features"
+                   description="lincRNA and mRNA features"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.mrnaanalysis.OligsInSequenceSamples"
+                   group="Binding regions"
+                   name="Oligonucleotides in sequence samples"
+                   description="Calculation of olig frequencies in sequence samples and compare them"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.TwoMultivariateSampleAnalysis"
+                   group="Binding regions"
+                   name="Two multivariate sample analysis"
+                   description="Two multivariate sample analysis"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.RegressionAnalysis"
+                   group="Binding regions"
+                   name="Regression analysis"
+                   description="Create and save regression model or load regression model for prediction of response or cross-validation of regression model"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.LSregressionAnalysis"
+                   group="Binding regions"
+                   name="LS-regression analysis"
+                   description="Extended LS-regression analysis"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.MultivariateRegressionAnalysis"
+                   group="Binding regions"
+                   name="Multivariate regression analysis"
+                   description="Create and save regression model or load regression model for prediction of response or cross-validation of regression model"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.ClusterAnalysis"
+                   group="Binding regions"
+                   name="Cluster analysis"
+                   description="Implement cluster analysis for given data matrix"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.ClassificationAnalysis"
+                   group="Binding regions"
+                   name="Classification analysis"
+                   description="Create and save classification model or load classification model for prediction of classes or cross-validation of classification model"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.MultivariateSampleAnalysis"
+                   group="Binding regions"
+                   name="Multivariate sample analysis"
+                   description="Analysis of multivariate sample represented by given data matrix"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.UnivariateSamplesAnalysis"
+                   group="Binding regions"
+                   name="Univariate samples analysis"
+                   description="Analysis of univariate samples"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.UnivariateSampleAnalysis"
+                   group="Binding regions"
+                   name="Univariate sample analysis"
+                   description="Analysis of univariate sample"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.bindingregions.statistics.DataMatrixOperations"
+                   group="Binding regions"
+                   name="Data matrix operations"
+                   description="Operations with data Matrices"
+                   />
+   </extension>
+   
+  <extension-point name="siteModelFactory"  id="siteModelFactory"/>
+  <extension point="biouml.plugins.bindingregions.siteModelFactory">
+    <factory name="Common additive model" class="biouml.plugins.bindingregions.model.WeightMatrixModelFactory"/>
+    <factory name="Common multiplicative model" class="biouml.plugins.bindingregions.model.LogWeightMatrixModelFactory"/>
+    <factory name="MATCH model" class="biouml.plugins.bindingregions.model.MatchModelFactory"/>
+    <factory name="IPS model" class="biouml.plugins.bindingregions.model.IPSModelFactory"/>
+    <factory name="Multiplicative IPS model" class="biouml.plugins.bindingregions.model.LogIPSModelFactory"/>
+  </extension>
+</plugin>

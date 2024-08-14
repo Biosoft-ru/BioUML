@@ -1,0 +1,60 @@
+<tool id="cnvnator_tree" name="CNVnator Tree" version="0.2.5">
+    <requirements>
+        <requirement type='package'>cnvnator</requirement>
+    </requirements>
+    <description></description>
+    <parallelism method="basic"></parallelism>
+
+  <command>
+    cnvnator            
+        -root "$outputROOT"
+    #if str( $restChrom.condValue1 ) == "Select"
+       -chrom $restChrom.chrom
+    #end if
+    -tree "$bamsamFile"
+    2> "$log"
+  </command>
+
+    <inputs>
+        <param name="bamsamFile" type="data"
+                    format="BAM,SAM" label="input BAM or SAM file"
+                    help="Coordinate sorted BAM or SAM file" />
+        
+        <conditional name="restChrom">
+            <param name="condValue" type="select" label="Run for chromosomes">
+                <option value="All">All</option>
+                <option value="Select">Select</option>                
+                <when value="All"/>                
+                <when value="Select">
+                    <param name="chrom" type="text" label="Chromosomes to analyse"
+                            default=""  help="Run only for specified chromosomes. (chr1 chr2 chr3) or (1 2 3)"/>
+                </when>
+            </param>
+                
+        </conditional>
+        
+    </inputs>
+
+    <outputs>
+        <data format="data" name="outputROOT" label="Output Root file"/>
+            <data format="txt" name="log" label="Log file"/>
+    </outputs>
+
+    <tests>
+    </tests>
+
+    <help>
+The first step of analysis:
+>>>EXTRACTING READ MAPPING FROM BAM/SAM FILES
+Chromosome names can be specifyed by name, e.g., X, or together with
+prefix chr, e.g., chrX. One can specify multiple chromosomes separated by
+space. If no chromosome specified, read mapping is extracted for all
+in sam/bam file.
+
+Chromosome format: 
+chr1 chr2 chr3
+is equivalent to
+1 2 3
+    </help>
+</tool>
+

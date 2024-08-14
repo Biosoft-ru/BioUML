@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model id="SBGNtest" name="SBGNtest">
+    <annotation>
+      <sbgn xmlns:biouml="http://www.biouml.org/ns" notation="databases/Utils/Diagrams/graphic notations/sbml_sbgn.xml">
+        <nodes>
+          <node clone="" id="MacroMolecule" multimer="0" parent="" ref="MacroMolecule" type="macromolecule">
+            <nodeLayout height="0" width="0" x="386" y="5"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="NucleicAcid" multimer="0" parent="" ref="NucleicAcid" type="nucleic acid feature">
+            <nodeLayout height="0" width="0" x="231" y="5"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="SimpleChemical" multimer="0" parent="" ref="SimpleChemical" type="simple chemical">
+            <nodeLayout height="0" width="0" x="536" y="410"/>
+          </node>
+          <node clone="" id="Unspecified" multimer="0" parent="" ref="Unspecified" type="unspecified">
+            <nodeLayout height="0" width="0" x="40" y="20"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node id="algebraic" parent="" type="equation">
+            <nodeLayout x="479" y="105"/>
+          </node>
+          <node id="as" parent="" type="event">
+            <nodeLayout x="506" y="242"/>
+          </node>
+          <node closeup="" compartmentType="" id="compartment" parent="" ref="compartment" type="compartment">
+            <nodeLayout height="575" width="438" x="33" y="140"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="PerturbingAgent" multimer="0" parent="compartment" ref="compartment_PerturbingAgent" type="perturbing agent">
+            <nodeLayout height="0" width="0" x="65" y="170"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="SimpleChemical" multimer="0" parent="compartment" ref="compartment_SimpleChemical" type="simple chemical">
+            <nodeLayout height="0" width="0" x="96" y="235"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node id="complex1" parent="compartment" ref="compartment_complex1" type="complex">
+            <nodeLayout height="75" width="100" x="61" y="340"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="inner1" multimer="0" parent="compartment.complex1" type="macromolecule">
+            <nodeLayout height="0" width="0" x="76" y="350"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node id="nestedComp" parent="compartment" ref="compartment_nestedComp" type="compartment">
+            <nodeLayout height="230" width="290" x="71" y="455"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node id="complex2" parent="compartment.nestedComp" ref="compartment_nestedComp_complex2" type="complex">
+            <nodeLayout height="159" width="133" x="153" y="485"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="inner1" multimer="2" parent="compartment.nestedComp.complex2" type="macromolecule">
+            <nodeLayout height="0" width="0" x="179" y="494"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node clone="" id="inner2" multimer="3" parent="compartment.nestedComp.complex2" type="macromolecule">
+            <nodeLayout height="0" width="0" x="179" y="559"/>
+            <nodePaint color="0,0,0,0"/>
+          </node>
+          <node id="reaction_2" parent="compartment" reactionType="association" ref="reaction_2" title="Unspecified -&gt; SimpleChemical" type="reaction">
+            <nodeLayout height="11" width="9" x="256" y="181"/>
+          </node>
+          <node id="reaction_6" parent="compartment" reactionType="process" ref="reaction_6" title="complex1 -&gt; complex2" type="reaction">
+            <nodeLayout x="266" y="375"/>
+          </node>
+          <node id="reaction_7" parent="compartment" reactionType="process" ref="reaction_7" title="complex2 -&gt;" type="reaction">
+            <nodeLayout height="136" width="24" x="396" y="605"/>
+          </node>
+          <node id="initial" parent="" type="equation">
+            <nodeLayout x="475" y="210"/>
+          </node>
+          <node id="rate" parent="" type="equation">
+            <nodeLayout x="480" y="145"/>
+          </node>
+          <node id="reaction" parent="" reactionType="omitted process" ref="reaction" title="NucleicAcid -&gt; MacroMolecule" type="reaction">
+            <nodeLayout x="330" y="15"/>
+          </node>
+          <node id="reaction_1" parent="" reactionType="uncertain process" ref="reaction_1" title="SimpleChemical -&gt; NucleicAcid" type="reaction">
+            <nodeLayout height="1" width="10" x="241" y="85"/>
+          </node>
+          <node id="reaction_3" parent="" reactionType="dissociation" ref="reaction_3" title="PerturbingAgent -&gt; Unspecified" type="reaction">
+            <nodeLayout x="82" y="97"/>
+          </node>
+          <node id="reaction_4" parent="" reactionType="process" ref="reaction_4" title="MacroMolecule -&gt;" type="reaction">
+            <nodeLayout x="490" y="10"/>
+          </node>
+          <node id="reaction_4_empty_product" parent="" type="source-sink">
+            <nodeLayout x="555" y="10"/>
+          </node>
+          <node id="reaction_5" parent="" reactionType="association" ref="reaction_5" title="-&gt; PerturbingAgent" type="reaction">
+            <nodeLayout x="-4" y="185"/>
+          </node>
+          <node id="reaction_5_empty_reactant" parent="" type="source-sink">
+            <nodeLayout x="-64" y="185"/>
+          </node>
+          <node id="reaction_7_empty_product" parent="" type="source-sink">
+            <nodeLayout x="536" y="599"/>
+          </node>
+          <node id="scalar" parent="" type="equation">
+            <nodeLayout x="480" y="73"/>
+          </node>
+        </nodes>
+        <edges>
+          <edge from="compartment.reaction_2" id="reaction_2: SimpleChemical as product" kernelType="relation-chemical" ref="reaction_2: SimpleChemical as product" to="compartment.SimpleChemical" type="reaction"/>
+          <edge from="compartment.complex1" id="reaction_6: complex1 as reactant" kernelType="relation-chemical" ref="reaction_6: complex1 as reactant" to="compartment.reaction_6" type="reaction"/>
+          <edge from="compartment.reaction_6" id="reaction_6: complex2 as product" kernelType="relation-chemical" ref="reaction_6: complex2 as product" to="compartment.nestedComp.complex2" type="reaction"/>
+          <edge from="compartment.nestedComp.complex2" id="reaction_7: complex2 as reactant" kernelType="relation-chemical" ref="reaction_7: complex2 as reactant" to="compartment.reaction_7" type="reaction"/>
+          <edge from="reaction" id="reaction: MacroMolecule as product" kernelType="relation-chemical" ref="reaction: MacroMolecule as product" to="MacroMolecule" type="reaction"/>
+          <edge from="NucleicAcid" id="reaction: NucleicAcid as reactant" kernelType="relation-chemical" ref="reaction: NucleicAcid as reactant" to="reaction" type="reaction"/>
+          <edge from="reaction_1" id="reaction_1: NucleicAcid as product" kernelType="relation-chemical" ref="reaction_1: NucleicAcid as product" to="NucleicAcid" type="reaction"/>
+          <edge from="compartment.SimpleChemical" id="reaction_1: SimpleChemical as reactant" kernelType="relation-chemical" ref="reaction_1: SimpleChemical as reactant" to="reaction_1" type="reaction"/>
+          <edge from="Unspecified" id="reaction_2: Unspecified as reactant" kernelType="relation-chemical" ref="reaction_2: Unspecified as reactant" to="compartment.reaction_2" type="reaction">
+            <path>
+              <segment segmentType="lineTo" x0="111" y0="57"/>
+              <segment segmentType="quadTo" x0="173" y0="57"/>
+              <segment segmentType="lineTo" x0="260" y0="178"/>
+            </path>
+          </edge>
+          <edge from="compartment.PerturbingAgent" id="reaction_3: PerturbingAgent as reactant" kernelType="relation-chemical" ref="reaction_3: PerturbingAgent as reactant" to="reaction_3" type="reaction"/>
+          <edge from="reaction_3" id="reaction_3: Unspecified as product" kernelType="relation-chemical" ref="reaction_3: Unspecified as product" to="Unspecified" type="reaction"/>
+          <edge from="MacroMolecule" id="reaction_4: MacroMolecule as reactant" kernelType="relation-chemical" ref="reaction_4: MacroMolecule as reactant" to="reaction_4" type="reaction"/>
+          <edge from="reaction_4" id="reaction_4_empty_product_egde" kernelType="production" ref="reaction_4_empty_product_egde" to="reaction_4_empty_product" type="reaction"/>
+          <edge from="reaction_5" id="reaction_5: PerturbingAgent as product" kernelType="relation-chemical" ref="reaction_5: PerturbingAgent as product" to="compartment.PerturbingAgent" type="reaction">
+            <path>
+              <segment segmentType="lineTo" x0="0" y0="184"/>
+              <segment segmentType="lineTo" x0="-41" y0="117"/>
+              <segment segmentType="cubicTo" x0="-2" y0="95"/>
+              <segment segmentType="cubicTo" x0="14" y0="101"/>
+              <segment segmentType="lineTo" x0="95" y0="167"/>
+            </path>
+          </edge>
+          <edge from="reaction_5_empty_reactant" id="reaction_5_empty_reactant_egde" kernelType="consumption" ref="reaction_5_empty_reactant_egde" to="reaction_5" type="reaction"/>
+          <edge from="compartment.reaction_7" id="reaction_7_empty_product_egde" kernelType="production" ref="reaction_7_empty_product_egde" to="reaction_7_empty_product" type="reaction"/>
+        </edges>
+      </sbgn>
+    </annotation>
+    <listOfCompartments>
+      <compartment constant="false" id="SBGNtest" name="SBGNtest" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo color="0,0,0,0" height="715" isDefault="true" shape="0" title="SBGNtest" width="540" x="0" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment constant="false" id="compartment" name="compartment" size="4.0" spatialDimensions="3" units="litre">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo color="0,0,0,0" height="575" shape="0" title="compartment" width="438" x="33" y="140"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment constant="false" id="compartment_nestedComp" name="nestedComp" size="0.0" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo color="0,0,0,0" height="230" shape="0" title="nestedComp" width="290" x="71" y="455"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="SBGNtest" constant="false" hasOnlySubstanceUnits="false" id="MacroMolecule" initialAmount="1.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="0" title="MacroMolecule" width="0" x="386" y="5">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="SBGNtest" constant="false" hasOnlySubstanceUnits="false" id="NucleicAcid" initialAmount="2.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="0" title="NucleicAcid" width="0" x="231" y="5">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="SBGNtest" constant="false" hasOnlySubstanceUnits="false" id="SimpleChemical" initialAmount="0.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="0" title="SimpleChemical" width="0" x="536" y="410">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="SBGNtest" constant="true" hasOnlySubstanceUnits="false" id="Unspecified" initialAmount="3.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="0" title="Unspecified" width="0" x="40" y="20">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="true" compartment="compartment" constant="false" hasOnlySubstanceUnits="false" id="compartment_PerturbingAgent" initialConcentration="5.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="0" title="PerturbingAgent" width="0" x="65" y="170">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="compartment" constant="false" hasOnlySubstanceUnits="false" id="compartment_SimpleChemical" initialAmount="6.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="0" title="SimpleChemical" width="0" x="96" y="235">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="compartment" constant="false" hasOnlySubstanceUnits="false" id="compartment_complex1" initialAmount="0.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="75" title="complex1" width="100" x="61" y="340">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="compartment_nestedComp" constant="false" hasOnlySubstanceUnits="false" id="compartment_nestedComp_complex2" initialAmount="0.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="159" title="complex2" width="133" x="153" y="485">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="k1" value="0.0"/>
+      <parameter constant="false" id="k2" value="0.0"/>
+      <parameter constant="false" id="m" value="0.0"/>
+      <parameter constant="false" id="null" value="0.0"/>
+      <parameter constant="false" id="param1" value="0.0"/>
+      <parameter constant="false" id="param2" value="0.0"/>
+      <parameter constant="false" id="unknown" value="0.0"/>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment metaid="initial" symbol="MacroMolecule">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="initial" x="475" y="210">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn>1.0</cn>
+        </math>
+      </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <algebraicRule metaid="algebraic">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="algebraic" x="479" y="105">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>param2</ci>
+              <ci>param1</ci>
+            </apply>
+            <ci>Unspecified</ci>
+          </apply>
+        </math>
+      </algebraicRule>
+      <rateRule metaid="rate" variable="compartment_PerturbingAgent">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="rate" x="480" y="145">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci>param2</ci>
+        </math>
+      </rateRule>
+      <assignmentRule metaid="scalar" variable="param1">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="scalar" x="480" y="73">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <sin/>
+              <ci>NucleicAcid</ci>
+            </apply>
+            <apply>
+              <power/>
+              <ci>MacroMolecule</ci>
+              <cn>3.0</cn>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction fast="false" id="reaction_2" name="Unspecified -&gt; SimpleChemical" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="Unspecified -&gt; SimpleChemical" x="256" y="181"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="true" species="Unspecified" stoichiometry="2">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=111,y=57]" outPort="java.awt.Point[x=260,y=178]" title="Unspecified -&gt; SimpleChemical">
+                  <path>
+                    <segment segmentType="moveTo" x0="111" y0="57"/>
+                    <segment segmentType="quadric" x0="173" y0="57"/>
+                    <segment segmentType="lineTo" x0="260" y0="178"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="compartment_SimpleChemical" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=259,y=192]" outPort="java.awt.Point[x=129,y=232]" title="Unspecified -&gt; SimpleChemical">
+                  <path>
+                    <segment segmentType="moveTo" x0="259" y0="192"/>
+                    <segment segmentType="lineTo" x0="129" y0="232"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_6" name="complex1 -&gt; complex2" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="complex1 -&gt; complex2" x="266" y="375"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="compartment_complex1" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=162,y=380]" outPort="java.awt.Point[x=263,y=380]" title="complex1 as reactant">
+                  <path>
+                    <segment segmentType="moveTo" x0="162" y0="380"/>
+                    <segment segmentType="lineTo" x0="263" y0="380"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="compartment_nestedComp_complex2" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=271,y=386]" outPort="java.awt.Point[x=271,y=482]" title="complex2 as product">
+                  <path>
+                    <segment segmentType="moveTo" x0="271" y0="386"/>
+                    <segment segmentType="lineTo" x0="271" y0="482"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <ci>param2</ci>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_7" name="complex2 -&gt;" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="complex2 -&gt;" x="396" y="605"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="compartment_nestedComp_complex2" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=287,y=610]" outPort="java.awt.Point[x=393,y=610]" title="complex2 as reactant">
+                  <path>
+                    <segment segmentType="moveTo" x0="287" y0="610"/>
+                    <segment segmentType="lineTo" x0="393" y0="610"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction" name="NucleicAcid -&gt; MacroMolecule" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="NucleicAcid -&gt; MacroMolecule" x="330" y="15"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="NucleicAcid" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=302,y=21]" outPort="java.awt.Point[x=327,y=21]" title="NucleicAcid -&gt; MacroMolecule">
+                  <path>
+                    <segment segmentType="moveTo" x0="302" y0="21"/>
+                    <segment segmentType="lineTo" x0="327" y0="21"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="MacroMolecule" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=344,y=21]" outPort="java.awt.Point[x=383,y=21]" title="NucleicAcid -&gt; MacroMolecule">
+                  <path>
+                    <segment segmentType="moveTo" x0="344" y0="21"/>
+                    <segment segmentType="lineTo" x0="383" y0="21"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>k2</ci>
+              <ci>NucleicAcid</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_1" name="SimpleChemical -&gt; NucleicAcid" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="SimpleChemical -&gt; NucleicAcid" x="241" y="85"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="compartment_SimpleChemical" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=129,y=234]" outPort="java.awt.Point[x=244,y=98]" title="SimpleChemical -&gt; NucleicAcid">
+                  <path>
+                    <segment segmentType="moveTo" x0="129" y0="234"/>
+                    <segment segmentType="lineTo" x0="244" y0="98"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="NucleicAcid" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=246,y=84]" outPort="java.awt.Point[x=246,y=48]" title="SimpleChemical -&gt; NucleicAcid">
+                  <path>
+                    <segment segmentType="moveTo" x0="246" y0="84"/>
+                    <segment segmentType="lineTo" x0="246" y0="48"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_3" name="PerturbingAgent -&gt; Unspecified" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="PerturbingAgent -&gt; Unspecified" x="82" y="97"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="compartment_PerturbingAgent" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=87,y=169]" outPort="java.awt.Point[x=87,y=110]" title="PerturbingAgent -&gt; Unspecified">
+                  <path>
+                    <segment segmentType="moveTo" x0="87" y0="169"/>
+                    <segment segmentType="lineTo" x0="87" y0="110"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="true" species="Unspecified" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=87,y=96]" outPort="java.awt.Point[x=87,y=63]" title="PerturbingAgent -&gt; Unspecified">
+                  <path>
+                    <segment segmentType="moveTo" x0="87" y0="96"/>
+                    <segment segmentType="lineTo" x0="87" y0="63"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_4" name="MacroMolecule -&gt;" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="MacroMolecule -&gt;" x="490" y="10"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="MacroMolecule" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=457,y=15]" outPort="java.awt.Point[x=487,y=15]" title="MacroMolecule -&gt;">
+                  <path>
+                    <segment segmentType="moveTo" x0="457" y0="15"/>
+                    <segment segmentType="lineTo" x0="487" y0="15"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>k1</ci>
+              <ci>MacroMolecule</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_5" name="-&gt; PerturbingAgent" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="-&gt; PerturbingAgent" x="-4" y="185"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference constant="false" species="compartment_PerturbingAgent" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo outPort="java.awt.Point[x=95,y=167]" title="-&gt; PerturbingAgent">
+                  <path>
+                    <segment segmentType="moveTo" x0="0" y0="184"/>
+                    <segment segmentType="lineTo" x0="-41" y0="117"/>
+                    <segment segmentType="cubic" x0="-2" y0="95"/>
+                    <segment segmentType="cubic" x0="14" y0="101"/>
+                    <segment segmentType="lineTo" x0="95" y0="167"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <listOfEvents>
+      <event id="as" useValuesFromTriggerTime="true">
+        <trigger initialValue="true" persistent="true">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <geq/>
+              <ci>param1</ci>
+              <cn>10.0</cn>
+            </apply>
+          </math>
+        </trigger>
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo title="as" x="506" y="242">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfEventAssignments>
+          <eventAssignment variable="null">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <cn>1.0</cn>
+            </math>
+          </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>

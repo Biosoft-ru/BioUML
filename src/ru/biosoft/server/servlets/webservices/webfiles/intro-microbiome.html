@@ -1,0 +1,42 @@
+<table>
+<tr><td colspan="2"><h1>Microbiome in BioUML</h1>
+<td><h1><a href="#" onclick='setPerspectiveName("Default")'><b>&larr;</b>Back</a></h1></td>
+<tr><td valign="top"><h3>Project</h3>Load data
+<ul>
+        <li><big><a href="#" onclick="createNewProjectChecked()">Create project</a></big><br>
+        Create project to organise your data<br><br>
+	You will need to login using your <a href="https://new.bio-store.org" target="_blank">BioStore</a> account<br><br>
+	Don't have a BioStore account? <a href="https://new.bio-store.org/#!form/users/All%20records/Registration" target="_blank">Register now</a><br>
+	<a target="_blank" href="http://wiki.biouml.org/index.php/New_BioStore">Learn more...</a><br><br></li>
+        <li><big><a href="#" onclick="doImportMultiple(constructSelectedProjectPath())">Import data</a></big><br>
+        You may download your fastq files via web browser or ftp<br><br></li>
+</ul>
+<h3>Methods</h3>Try BioUML analyses for microbiome directly:
+<ul>
+	<li><big><a href="#de=analyses/Methods/NGS%20utils/Track%20statistics&docOnly=true">Quality Control of NGS data</a> [<a href="http://wiki.biouml.org/index.php/Track_statistics_(analysis)" target="_blank">?</a>]</big><br>
+	Perform quality control on your data<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/fasta_manipulation/fastq_mcf">EA Utils trim and clip</a> [<a href="http://wiki.biouml.org/index.php/Fastq_mcf" target="_blank">?</a>]</big><br>
+	Detects levels of adapter presence, computes likelihoods and locations (start, end) of the adapters.<br>
+        Removes the adapter sequences from the fastq file(s)<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/NGS_QC/cshl_fastx_clipper&docOnly=true">FastX clip</a> [<a href="http://wiki.biouml.org/index.php/Fastx_clip" target="_blank">?</a>]</big><br>
+        Clips adapters from the 3'-end of the sequences in a FASTA/FASTQ file
+	<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/hybrid/spades&docOnly=true">De-novo assembly with SPAdes</a> [<a href="http://wiki.biouml.org/index.php/SPAdes" target="_blank">?</a>]</big><br>
+	SPAdes (St. Petersburg genome assembler) is intended for both standard isolates and single-cell MDA bacteria assemblies<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/hybrid/filter_spades_output">Filter SPAdes output</a> [<a target="_blank" href="http://wiki.biouml.org/index.php/Filter_SPAdes_output">?</a>]</big><br>
+	Filter out short or low covered contigs/scaffolds<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/hybrid/plot_spades_stats">SPAdes stats</a> [<a target="_blank" href="http://wiki.biouml.org/index.php/SPAdes_stats">?</a>]</big><br>
+	Display length-coverage scatter plots of contigs and scaffolds<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/NGS_QC/quast">QUAST</a> [<a target="_blank" href="http:wiki.biouml.org/index.php/QUAST">?</a>]</big><br>
+	Quality Assessment Tool for Genome Assemblies<br><br></li>
+	<li><big><a href="#de=analyses/Galaxy/hybrid/ragout">RAGOUT</a> [<a target="_blank" href="http:wiki.biouml.org/index.php/RAGOUT">?</a>]</big><br>
+	Ragout (Reference-Assisted Genome Ordering UTility) is a tool for chromosome-level scaffolding using multiple references<br><br></li>
+</ul>
+<td valign="top"><h3>Workflows</h3>Try a workflow with few parameters:
+<ul>
+	<li><big><a href="#de=analyses/Workflows/Microbiome/Assembly%20basic&docOnly=true">Basic assembly workflow</a></big><br>
+	Reads are supplied as FASTQ files<br>
+	Adapters are supplied as FASTA<br><br></li>
+</ul>
+</table>
+

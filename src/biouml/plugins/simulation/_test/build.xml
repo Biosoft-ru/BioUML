@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.10 2010/10/26 08:46:32 tolstyh Exp $  -->
+
+<project name="biouml.simulation package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="biouml.plugins.simulation"/>
+
+  <target name="transformer">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.ResultTransformerTest"/>
+    </ant>
+  </target>
+
+  <target name="transformer.sql">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.ResultSqlTransformerTest"/>
+    </ant>
+  </target>
+	
+  <target name="composite">
+	<ant target="rtest">
+	  <property name="test" value="${package}._test.CompositeSimulationTest"/>
+	</ant>
+  </target>
+	
+  <target name="span">
+	<ant target="rtest">
+	  <property name="test" value="${package}._test.SpanTest"/>
+	</ant>
+  </target>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

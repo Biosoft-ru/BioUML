@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.agentmodeling.AgentModelSimulationEngine" 
+	  displayName="Agent Model Simulation Engine" 
+	  emodelType="Agent EModel,ODE EModel"
+	  priority="1,0.2"
+	  />
+  </extension>
+  
+  <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.agentmodeling.covid19.AgentPopulationSimulationEngine" 
+	  displayName="Covid-19 Simulation" 
+	  emodelType="ODE EModel"
+	  priority="0.01"
+	  />
+  </extension>
+  
+  <extension id="SolverType" point="biouml.plugins.simulation.solver"> 
+     <solver class="biouml.plugins.agentmodeling.Scheduler" 
+	displayName="Default Scheduler" type="AGENT_SIMULATOR"/>
+  </extension>
+  
+  <extension point="biouml.workbench.diagramType">
+     <diagramType class="biouml.plugins.agentmodeling.AgentModelDiagramType"/>
+  </extension>
+
+   <!--<extension id="Modular simulation" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.agentmodeling.simulation.ModularSimulationViewPart" 
+        id="simulation.pane"
+        Name="Modular Simulation"
+        ShortDescription="Control to simulate modular (and usual) models"
+        Priority = "3.5"
+      /> 
+  </extension>--> 
+  
+</plugin>

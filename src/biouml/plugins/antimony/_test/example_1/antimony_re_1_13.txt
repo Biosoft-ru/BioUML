@@ -1,0 +1,7 @@
+model diagramTest
+   species s1, s2;
+   compartment default;
+   r1: s1 =>; 1;
+   r1__s2_as_modifier: s2-o r1;
+   @sbgn r1__s2_as_modifier.edgeType = "catalysis";
+end

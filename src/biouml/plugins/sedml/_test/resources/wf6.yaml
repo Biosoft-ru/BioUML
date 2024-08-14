@@ -1,0 +1,22 @@
+name: wf6
+expressions:
+  model1: {type: Data element}
+  model2: {type: Data element}
+  model3: {type: Data element}
+tasks:
+  Change diagram:
+    in: {Diagram: $model1$}
+    out: {Output diagram: $model2$}
+    param:
+      Changes:
+      - {Property: role/vars/J0_v0/initialValue, Value: '8'}
+  Change diagram(2):
+    in: {Diagram: $model1$}
+    out: {Output diagram: $model3$}
+    param:
+      Changes:
+      - {Property: role/vars/J0_v1/initialValue, Value: '9'}
+  Download model:
+    out: {outputPath: $model1$}
+    param: {source: 'urn:miriam:biomodels.db:BIOMD0000000140'}
+

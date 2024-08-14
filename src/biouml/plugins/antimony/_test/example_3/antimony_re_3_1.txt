@@ -1,0 +1,7 @@
+model diagramTest
+   compartment compartment_, compartment__;
+   species species_;
+   species_ is "species";
+   r1: species_ =>; species_*2;
+   species_ '= species_*3;
+end

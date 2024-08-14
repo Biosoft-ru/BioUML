@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension id="MiRProm promoter temaplate" point="ru.biosoft.templates.template">
+        <template name="MiRProm promoter" file="biouml/plugins/mirprom/resources/promoter.vm" description="Template for MiRProm promoter" isBrief="no" order="0">
+            <filter class="biouml.plugins.mirprom.MiRNAPromoter" subclasses="yes"/>
+        </template>
+    </extension>
+    <extension id="Create miRNA promoters" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.mirprom.CreateMiRNAPromoters"
+                group="MicroRNA" name="Create miRNA promoters"
+                description="Create track with miRNA promoters."/>
+    </extension>
+</plugin>

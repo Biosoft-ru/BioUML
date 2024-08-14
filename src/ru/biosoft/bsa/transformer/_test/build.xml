@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.5 2009/03/02 10:56:01 tolstyh Exp $  -->
+
+<project name="ru.biosoft.bsa.transformer package test" default="autotest" basedir="../../../../..">
+
+  <property name="package" value="ru.biosoft.bsa.transformer"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="ru.biosoft.bsa.transformer._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

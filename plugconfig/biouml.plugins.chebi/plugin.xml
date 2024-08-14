@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.access.referenceType">
+    <type typeClass="biouml.plugins.chebi.ChebiSubstanceType" urlTemplate="MIR:00000002"/>
+    <type typeClass="biouml.plugins.chebi.KeggSubstanceType" urlTemplate="MIR:00000013"/>
+    <type typeClass="biouml.plugins.chebi.CasSubstanceType" urlTemplate="MIR:00000237"/>
+    <type typeClass="biouml.plugins.chebi.DrugBankSubstanceType" urlTemplate="MIR:00000102"/>
+  </extension>
+</plugin>

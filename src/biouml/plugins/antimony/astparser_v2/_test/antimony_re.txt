@@ -1,0 +1,21 @@
+//------------------------------------------
+//Bistable Switch
+//Two genes down-regulate one another. Hill coefficient = 2
+//input x can be used to upregulate one of the genes
+//------------------------------------------
+
+model bistable
+   species g1, g2;
+   species s1, s2;
+   r1: -> s1; k1*(1 + x)/(1 + k2*s2^2) //gene 1 makes protein s1 at this rate
+   r2: s1 -> ; k0*s1                       //protein 1 degrades
+   r3: -> s2; k3/(1 + k4*s1^2)         //gene 2 makes protein s2
+   r4: s2 -> ; k0*s2                       //protein s2 degrades
+
+   k0 = 0.1         //parameters in the model
+   k1 = 1
+   k2 = 1
+   k3 = 1
+   k4 = 1
+   s2 = 1.0;
+end

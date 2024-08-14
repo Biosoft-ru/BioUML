@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <!-- JUnit test runner application-->
+  <extension id="testrunner" point="org.eclipse.core.runtime.applications"> 
+      <application> 
+         <run class="biouml.plugins.junittest.TestRunner"> 
+         </run> 
+      </application> 
+  </extension>
+
+</plugin>

@@ -1,0 +1,24 @@
+#Software: BreakDancerMax-1.1r112
+#Command: /home/biouml/tmp/breakdancer/breakdancer-1.1_2011_02_21/cpp/breakdancer_max -o chr1 -d breakdancer/5173N-chr1 5173N-breakdancer.cfg 
+#Library Statistics:
+#5173N_sorted_dedup_rg_dd2_kar.bam	mean:191.2	std:113.86	uppercutoff:768.03	lowercutoff:0	readlen:93.54	library:library	reflen:249230587	seqcov:45.1282	phycov:46.1221	1:1468	2:37164	4:38838	8:1501	32:41667
+#Chr1	Pos1	Orientation1	Chr2	Pos2	Orientation2	Type	Size	Score	num_Reads	num_Reads_lib	5173N_sorted_dedup_rg_dd2_kar.bam
+chr1	10016	338+7-	chr1	10533	338+7-	ITX	-100	94	6	5173N_sorted_dedup_rg_dd2_kar.bam|6	NA
+chr1	567433	666+3-	chr1	567579	666+3-	ITX	-138	36	2	5173N_sorted_dedup_rg_dd2_kar.bam|2	NA
+chr1	724076	176+11-	chr1	724557	176+11-	ITX	-141	99	9	5173N_sorted_dedup_rg_dd2_kar.bam|9	NA
+chr1	724857	207+16-	chr1	725407	207+16-	ITX	-136	57	4	5173N_sorted_dedup_rg_dd2_kar.bam|4	NA
+chr1	725632	298+12-	chr1	726571	298+12-	ITX	-130	48	4	5173N_sorted_dedup_rg_dd2_kar.bam|4	NA
+chr1	726641	441+50-	chr1	727205	441+50-	ITX	-114	99	15	5173N_sorted_dedup_rg_dd2_kar.bam|15	NA
+chr1	869429	37+0-	chr1	870301	32+4-	DEL	903	35	3	5173N_sorted_dedup_rg_dd2_kar.bam|3	0.07
+chr1	965279	157+4-	chr1	965905	157+4-	ITX	-147	38	3	5173N_sorted_dedup_rg_dd2_kar.bam|3	NA
+chr1	966044	140+3-	chr1	966836	140+3-	ITX	-129	35	3	5173N_sorted_dedup_rg_dd2_kar.bam|3	NA
+chr1	1034032	206+18-	chr1	1035540	206+18-	ITX	-76	99	13	5173N_sorted_dedup_rg_dd2_kar.bam|13	NA
+chr1	1131021	51+3-	chr1	1131384	51+3-	ITX	-148	45	3	5173N_sorted_dedup_rg_dd2_kar.bam|3	NA
+chr1	1317242	185+10-	chr1	1318406	185+10-	ITX	-4	74	6	5173N_sorted_dedup_rg_dd2_kar.bam|6	NA
+chr1	1530030	180+9-	chr1	1531020	180+9-	ITX	-129	62	5	5173N_sorted_dedup_rg_dd2_kar.bam|5	NA
+chr1	1531074	178+7-	chr1	1532396	178+7-	ITX	55	71	6	5173N_sorted_dedup_rg_dd2_kar.bam|6	NA
+chr1	1581275	24+1-	chr1	1644710	12+2-	DEL	63481	31	2	5173N_sorted_dedup_rg_dd2_kar.bam|2	1.47
+chr1	1588602	6+8-	chr1	1653784	46+0-	ITX	64762	74	5	5173N_sorted_dedup_rg_dd2_kar.bam|5	1.44
+chr1	46802857	2+0-	chr2	2539702	2+0-	CTX	-190	42	2	5173N_sorted_dedup_rg_dd2_kar.bam|2
+chr1	59096790	13+0-	chr2	32048522	0+11-	CTX	-190	99	11	5173N_sorted_dedup_rg_dd2_kar.bam|11
+chr1	59096790	2+0-	chr2	32048733	0+2-	CTX	-190	39	2	5173N_sorted_dedup_rg_dd2_kar.bam|2

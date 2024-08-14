@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: BioUML workbench
+Bundle-SymbolicName: biouml.plugins.state;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.workbench,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.access,
+ ru.biosoft.analysis;resolution:=optional,
+ ru.biosoft.analysiscore;resolution:=optional,
+ ru.biosoft.workbench
+Export-Package: biouml.plugins.state,
+ biouml.plugins.state.analyses,
+ biouml.plugins.state.resources

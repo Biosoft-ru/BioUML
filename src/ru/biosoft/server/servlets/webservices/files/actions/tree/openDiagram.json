@@ -1,0 +1,26 @@
+/*
+ * Open diagram action
+ */
+{
+    id: "open_diagram_2",
+    label: "Open diagram",
+	icon: "icons/open_diagram.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.model.Diagram')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		openDiagram(path);
+    }"
+}

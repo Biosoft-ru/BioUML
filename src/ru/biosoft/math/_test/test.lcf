@@ -1,0 +1,18 @@
+log4j.rootCategory=INFO,A1
+
+# Appender A1 writes to the file "testFormulaView.log".
+log4j.appender.A1=org.apache.log4j.FileAppender
+log4j.appender.A1.File=testFormulaView.log
+log4j.appender.A1.Append=false
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-5r %-5p [%t] %-17c (%13F:%L) %3x - %m%n
+
+#java.util.logging logger settings
+handlers= java.util.logging.FileHandler
+.level= INFO
+java.util.logging.FileHandler.pattern = testFormulaView.log
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+java.util.logging.FileHandler.append = false
+java.util.logging.SimpleFormatter.format =%1$-5tL %4$-7s %2$s - %5$s%n
+
+

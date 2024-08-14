@@ -1,0 +1,7 @@
+begin model
+
+begin parameters
+    P1:    k3    0.0
+end parameters
+
+end model

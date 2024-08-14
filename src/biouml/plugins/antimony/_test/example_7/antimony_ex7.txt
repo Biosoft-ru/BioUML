@@ -1,0 +1,11 @@
+@import sbgn="antimony/yaml/sbgn.yaml";
+model diagramTest
+   species s1, s2, s3;
+   r1: s1 -> s2; 1;
+   r1_mod: s3-( r1;
+   @sbgn s1.type = "unspecified";
+   @sbgn r1_mod.edgeType = "stimulation";
+   @sbgn r1.reactionType = "association";
+   @sbgn s2.structure = "s2{val}";
+   @sbgn s3.multimer = "3";
+end

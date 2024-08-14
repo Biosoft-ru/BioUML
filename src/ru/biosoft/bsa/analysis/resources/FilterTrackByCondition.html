@@ -1,0 +1,20 @@
+<h2>Filter track by condition</h2>
+This analysis leaves only those sites which satisfy a given JavaScript condition. Each site from the track is tested against the condition.
+
+<ul class="analysis-parameters">
+<li data-property="inputTrack"><b>Input track</b> &ndash; track you want to filter
+<li data-property="condition"><b>Condition</b> &ndash; JavaScript expression which must return true if condition passed or false otherwise.
+The following variables are available:
+<ul>
+<li><b>seq</b> &ndash; sequence or chromosome name,
+<li><b>from</b> &ndash; site start position,
+<li><b>to</b> &ndash; site end position,
+<li><b>length</b> &ndash; site length,
+<li><b>strand</b> &ndash; site strand (0 = unknown, 1 = n/a, 2 = +, 3 = &minus;, 4 = both),
+<li><b>type</b> &ndash; site type,
+<li><b>properties</b> &ndash; additional track-specific properties
+</ul> 
+<li data-property="outputTrack"><b>Output track</b> &ndash; specify the path where to store the result
+</ul>
+Track-specific properties will be accessible as JavaScript object <b>properties</b> and should be referred to as <b>properties.*</b> in expressions. 
+For example, if track sites have numerical <b>score</b> property, one can use <b>properties.score > 0.9</b> expression to filter sites with <b>score</b>>0.9.

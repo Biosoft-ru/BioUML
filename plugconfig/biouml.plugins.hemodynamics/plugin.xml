@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="hemodynamics view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.hemodynamics.VesselTabularEditor"
+        id="hemodynamics.main"
+        Name="Vessels"
+        ShortDescription="Vessels parameters."
+      /> 
+  </extension>
+  
+  <extension id="hemodynamics.service" point="ru.biosoft.server.service"> 
+      <service name="hemodynamics.service" class="biouml.plugins.hemodynamics.server.HemodynamicsService"/>
+  </extension>
+  
+    <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.hemodynamics.HemodynamicsSimulationEngine" 
+	    displayName="Hemodynamics Simulation Engine"
+		emodelType="Hemodynamics EModel"
+		priority="1.0"
+		/>
+    </extension> 
+
+  <extension id="SolverType" point="biouml.plugins.simulation.solver"> 
+       
+	<solver class="biouml.plugins.hemodynamics.HemodynamicsModelSolver" 
+	displayName="Hemodynamics solver"
+	type="Hemodynamics" 
+      />
+</extension>
+
+<extension id="HemodynamicsImporter" point="ru.biosoft.access.import">
+		<import format="Hemodynamics model" importer="biouml.plugins.hemodynamics.HemodynamicsImporter"
+		 description="Import hemodynamics model." />
+</extension>
+
+<extension point="biouml.workbench.diagramType">
+       <diagramType class="biouml.plugins.hemodynamics.HemodynamicsDiagramType"/>
+  </extension>
+
+</plugin>

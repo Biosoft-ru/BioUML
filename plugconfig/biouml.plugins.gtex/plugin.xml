@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="GTEX Mutation effect on sites" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtex.meos.GTEXMutationEffectOnSites"
+                   group="GTEX"
+                   name="GTEX Mutation effect on sites"
+                   description=""
+                   />
+  </extension>
+
+</plugin>

@@ -1,0 +1,36 @@
+<h2>Filter table</h2>
+
+<p>
+  This analysis filters a table (that is, to remove rows which don't fulfill given condition).
+  It doesn't modify the original table. The analysis is functionally equivalent to the 'Filters' tab which you can find under the
+  opened table document. 
+</p>
+
+%parameters%
+
+<p>
+	Expression must be written in JavaScript language to sort out filtered and non-filtered rows.
+  	Inside it you may use column names and various operations supported by JavaScript. Note that non-alphanumeric symbols in
+  	column names should be replaced with underscores ('_'). To determine exactly how to refer to columns in your table, you may
+  	open the table as the document, select 'Filters' tab below and check 'Columns' list.
+  	Alternatively you may use $ object to access columns by original name. For example, if you have the column named "Fold change",
+  	you may refer to it either as Fold_change or as $["Fold change"].
+  	Some of useful JavaScript operations are listed below:
+</p>
+  	<ul>
+  		<li>== &ndash; check equality (don't mix with single '=').
+  		<li>!= &ndash; check inequality.
+  		<li>&gt;; &lt;; &gt;=; &lt;=; greater than, lesser than, greater or equal, lesser or equal.
+  		<li>+; &minus;; *; / &ndash; standard math operations.
+  		<li>&amp;&amp;; || &ndash; logical 'and' and 'or' operations.
+  		<li>Math.sqrt(x); Math.sin(x); Math.pow(x,y); etc. &ndash; math functions.
+  		<li>Math.min(x,y); Math.max(x,y) &ndash; minimal and maximal value of two arguments.  
+  	</ul>
+<p>
+Simple condition example (select all rows where value in column Log(Fold Change) is greater than 2):
+</p>
+<pre>Log_Fold_Change_ &gt; 2</pre>
+<p>
+Complex condition example (select all rows where either Score1 or Score2 has absolute value more than 10 and non-empty GeneSymbol):
+</p>
+<pre>Math.max(Math.abs(Score1),Math.abs(Score2)) &gt; 10 &amp;&amp; GeneSymbol != ""</pre>

@@ -1,0 +1,24 @@
+/*
+ * Page backward
+ */
+{
+    id: "page backward",
+    label: "Page backward",
+    icon: "icons/page_backward.gif",
+    visible: "function(doc)
+    {
+    	if ((doc != null) && (doc instanceof SequenceDocument)) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = opennedDocuments[activeDocumentId];
+        if (activeDocument instanceof SequenceDocument) 
+        {
+            activeDocument.pageBackward();
+        }
+    }"
+}

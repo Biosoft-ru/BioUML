@@ -1,0 +1,191 @@
+#macro( getDataCollectionProperties $dc )
+	#set($properties= $propertieswriter.getWorkflowDescription($dc))
+	#if (($properties!="")&&($properties!=$null)) 
+		$properties
+	#end
+	#set($properties= $propertieswriter.getParametersDescription($dc))
+	#if (($properties!="")&&($properties!=$null)) 
+		$properties
+	#end
+	#set($properties = $matchinpathwriter.getMatchingPath($dc))
+	#if (($properties!="")&&($properties!=$null))
+	    $properties
+	#end
+#end
+
+#macro( showInfo $de $deLinkPath)
+	#if($deLinkPath)
+		
+		<b>ID</b>: <a href="de:$deLinkPath">$de.getName()</a><br>
+	#else
+		<b>ID</b>: $de.getName()<br>
+	#end
+	#strField($de.getDate(), "Date")
+	#showDate()
+	#strFieldJustified($de.getTitle(), "Title")
+	#strFieldJustified($de.getClassName(), "Title")
+	#strFieldJustified($de.getComment(), "Comment")
+	#strFieldJustified($de.getSynonyms(), "Synonyms")
+	#getDBRefListCollapsible($resolver, $de, $DBRef, "false")
+	$DBRef
+	#strFieldJustified($de.getSize(), "Size")
+	#set($desc = $de.getOrigin().getDescriptor($de.getName()))
+	#if($desc)
+		#set($elementSize = $desc.getValue("elementSize"))
+		#if($elementSize)
+			#strField($utils.formatSize($elementSize), "Size on disk")
+	    #end
+	#end
+	#set($quota = $de.getInfo().getProperty("diskQuota"))
+	#if($quota)
+		#strField($utils.formatSize($quota), "Disk quota")
+	#end
+
+	#strField($de.getInfo().getProperty("genomeId"), "Genome build")
+	#strField($de.getInfo().getProperty("genomeBuild"), "Genome build")
+	#strField($de.getFunction(), "Function")
+	#getDataCollectionProperties($de)
+	#strField($de.getInfo().getProperty("Value Function"), "Objective function value")
+	#if($de.getFrom() && !$de.getFrom().equals(""))
+    	#strField($de.getType(), "Type")
+    	#strField($de.getSequence().getName(), "Sequence")
+		<b>Position</b>: $de.getFrom() - $de.getTo() <br>
+	#end
+	#if($de.getElements() && $de.getElements().size() > 0)
+		<b>Elements</b>:
+		<ul>
+		#foreach( $el in $de.getElements() )
+    		<li><b>Name: </b>: $el.name <b>Role</b>: $el.role</li>
+    	#end
+    	</ul>
+		<br>
+	#end
+	#if($de.getImageSize())
+	    <img src="image:///$utils.escapeHtml($utils.getPath($de))"><br>
+	#end
+	#strArrayField($de.getStructureReferences(), "Structure references")
+	#strField($de.getChromosome(), "Chromosome")
+	#strField($de.getSource(), "Source")
+	#strArrayField($de.getLiteratureReferences(), "Literature references")
+	#strField($de.getRegulation(), "Regulation")
+	#strField($de.getCasRegistryNumber(), "CAS")
+	#set($formula = $de.getFormula())
+	#if($formula && !$formula.equals(""))
+		<b>Formula</b>:<br><center><img src="formula:///$utils.escapeHtml($formula)"></center><br>
+	#end
+	#strField($de.getValue(), "Value")
+	#strField($de.getUnit(), "Unit")
+	#strField($de.getQueryById(), "QID")
+	#strField($de.getQueryByAc(), "QAC")
+	#strField($de.getPlatform(), "Platform")
+	#boolField($de.isReversible(), "Reversible")
+	#boolField($de.isFast(), "Fast")
+	#set( $kl = $de.getKineticLaw() )
+	#if($kl)
+    	<b>Kinetic law</b>:<br>
+    	<b>&nbsp;Formula</b>:
+    	#if( $kl.formula )
+    	$kl.formula
+    	#end
+    	<br>
+    	<b>&nbsp;Time units</b>:
+    	#if( $kl.timeUnits )
+    	$kl.timeUnits
+    	#end
+    	<br>
+    	<b>&nbsp;Substance inits</b>:
+    	#if( $kl.substanceUnits )
+        $kl.substanceUnits
+        #end
+        <br>
+    	<b>&nbsp;Comment</b>:
+    	#if( $kl.comment )
+        $kl.comment
+        #end
+        <br>
+    	<br>
+	#end
+	#strField($de.getActionType(), "Action type")
+	#strField($de.getActionMechanism(), "Action mechanism")
+	#strField($de.getRelationType(), "Relation type")
+	#strField($de.getParticipation(), "Participation")
+	#strField($de.getData(), "Data")
+	#strField($de.getFormat(), "Format")
+	#strArrayField($de.getMoleculeReferences(), "Molecule references")
+	#strField($de.getSpecie(), "Specie")
+	#strField($de.getRole(), "Role")
+	#strField($de.getStoichiometry(), "Stoichiometry")
+	#strField($de.getModifierAction(), "Modifier action")
+	#if($de.getSpecieReferences())
+		<b>Specie references</b>:
+		<ul>
+        #foreach( $sr in $de.specieReferences )
+	        <li>$sr.name 
+	        #set( $srPath = $utils.createSRPath($de,$sr.specie) )
+	        #if( $srPath.exists() )
+	           (<a href="de:$srPath.toString()">$srPath.getDataElement().title</a>)
+	        #else
+	           ($sr.specie)
+	        #end
+	        </li>
+        #end
+    	</ul>
+		<br>
+	#end
+	#if($de.getProperties() && $de.getProperties().size() > 0)
+		<b>Properties</b>: <br>
+		#displayAttributes($de.getProperties())
+	#end
+	#set($deKernel = $de.Kernel)
+	#if($de.getAttributes() && (!$deKernel || !$deKernel.Type.startsWith("analysis-")))
+		#if ($de.attributes.size() > 0)
+			<b>Attributes</b>: <br>
+			#displayAttributesCollapsible($de.attributes)
+		#end
+	#end
+	<b>Complete name</b>: $utils.getPath($de)<br>
+	#set($htmlDescr = $de.getDescriptionHTML())
+	#if($htmlDescr)
+	    <b>Description:</b> $htmlDescr
+	#else
+	    #set($formattedDescr = $deKernel && $deKernel.Class.SimpleName == "DiagramInfo")
+	    #if($de.getDescription())
+	    	#strFieldJustified($de.getDescription(), "Description", $formattedDescr)
+	    #end
+	#end
+	#strFieldJustified($de.getLogInfo(), "Log info")
+#end
+
+<html>
+    #addScript()
+	<body>
+    	#set($kernel = $de.getKernel())
+    	#if(!$kernel || $kernel.Class.SimpleName == "Stub")
+			#set( $kernelName = $de.getAttributes().getProperty("completeName"))
+			#if( $kernelName && !$kernelName.getValue().equals(""))
+				#set( $kernel = $resolver.getDataElement($kernelName.getValue()))
+			#end
+    	#end
+    	#if($kernel && $kernel != $de && $kernel.Class.SimpleName != "Stub" && $kernel.Class.SimpleName != "Note" && $kernel.Class.SimpleName != "DiagramInfo")
+    		#showInfo($de, false)
+    		#set($module = $resolver.getModule($kernel))
+    		#if($module)
+        		<br><h3>Kernel (database: $module.Name):</h3><br>
+    		#else
+	    		<br><h3>Kernel:</h3><br>
+    		#end
+    		
+    		#set( $linkPath = $utils.getPath($kernel) )
+			#if($kernel.getAttributes())
+			#set( $originalPath = $kernel.getAttributes().getProperty("originalPath"))
+			#if( $originalPath && !$originalPath.getValue().equals(""))
+				#set($linkPath = $originalPath.getValue())
+			#end
+		#end
+    		#showInfo($kernel, $linkPath)
+    	#else
+    		#set( $deLinkPath = $utils.getPath($de) )
+    		#showInfo($de, $deLinkPath)
+		#end
+	</body>
+</html>

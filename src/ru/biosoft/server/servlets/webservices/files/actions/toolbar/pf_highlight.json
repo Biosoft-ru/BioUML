@@ -1,0 +1,24 @@
+/*
+ * Highlight originally loaded nodes on diagram
+ */
+{
+    id: "pf_highlight",
+    label: "Highlight/dehighlight originally loaded nodes",
+    icon: "icons/pf_highlight.png",    
+    visible: "function(doc)
+    {
+        if( perspective && perspective.name && 'PathFinder' === perspective.name && (doc != null) && doc instanceof Diagram )
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function()
+    {
+        var activeDocument = getActiveDocument();
+        if (activeDocument instanceof Diagram) 
+        {
+            highlightOriginalNodes(activeDocument.getDiagram());
+        }
+    }"
+}

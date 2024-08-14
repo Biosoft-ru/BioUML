@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.sabiork;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ one.util.streamex,
+ biouml.plugins.sbgn,
+ biouml.workbench,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.jobcontrol,
+ org.apache.axis,
+ ru.biosoft.access,
+ ru.biosoft.graphics
+Export-Package: biouml.plugins.sabiork

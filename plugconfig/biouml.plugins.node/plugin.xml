@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+	<extension id="launcher" point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="biouml.plugins.node.BioUMLNode">
+			</run>
+		</application>
+	</extension>
+
+  <extension id="node" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="node" class="biouml.plugins.node.JavaScriptNode">
+	    <doc description="Facade for BioUML node">
+	        <function name="run" description="Launch given JavaScript in BioUML node.">
+	            <argument name="path" description="Path to script element"/> 
+	            <argument name="input" obligatory="false" description="Script parameters. Will be accessible inside script in Input object."/> 
+	            <argument name="background" obligatory="false" description="If true, then the process will run in background. In this case process monitor object is returned and you can wait for process finish calling join method on it."/>
+	            <returns type="ProcessMonitor" description="ProcessMonitor object if process was launched in background; null otherwise."/> 
+	        </function>
+	        <function name="analyze" description="Launch given analysis in BioUML node.">
+	            <argument name="analysis" description="Analysis name"/> 
+	            <argument name="parameters" obligatory="false" description="Parameters object"/> 
+	            <argument name="background" obligatory="false" description="If true, then the process will run in background. In this case process monitor object is returned and you can wait for process finish calling join method on it."/> 
+	            <returns type="ProcessMonitor" description="ProcessMonitor object if process was launched in background; null otherwise."/> 
+	        </function>
+	    </doc>
+	</hostObject>
+  </extension>
+
+</plugin>

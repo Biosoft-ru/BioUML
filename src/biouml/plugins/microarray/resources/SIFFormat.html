@@ -1,0 +1,136 @@
+<h2>SIF format</h2>
+
+<p>
+  The Simple Interaction Format (SIF) was originally created for use with Cytoscape<span class="ref">1,2</span>,
+  the open source bioinformatics software platform for visualizing molecular interaction networks.
+</p>
+
+<p>
+  SIF is convenient for building a graph from a list of interactions
+  and makes it easy to combine different interaction sets into a larger network,
+  or add new interactions to an existing data set. The main disadvantage is that this format
+  does not include any layout information, forcing Cytoscape to re-compute a new layout of the network
+  each time it is loaded.
+</p>
+
+<p>
+  Lines in the SIF file specify a source node, a relationship type (or edge type), and one or more target nodes:
+</p>
+
+<pre>
+nodeA <relationship type> nodeB
+nodeC <relationship type> nodeA
+nodeD <relationship type> nodeE nodeF nodeB
+nodeG
+...
+nodeY <relationship type> nodeZ
+</pre>
+
+<p>
+A more specific example is:
+</p>
+
+<pre>
+node1 typeA node2
+node2 typeB node3 node4 node5
+node0
+</pre>
+
+<p>
+  The first line identifies two nodes, called <tt>node1</tt> and <tt>node2</tt>, and a single relationship between
+  <tt>node1</tt> and <tt>node2</tt> of type <tt>typeA</tt>. The second line specifies three new nodes,
+  <tt>node3</tt>, <tt>node4</tt>, and <tt>node5</tt>; here "<tt>node2</tt>" refers to the same node as in the first line.
+  The second line also specifies three relationships, all of type <tt>typeB</tt> and with <tt>node2</tt> as the source,
+  with <tt>node3</tt>, <tt>node4</tt>, and <tt>node5</tt> as the targets.
+  This second form is simply shorthand for specifying multiple relationships of the same type with the same source node.
+  The third line indicates how to specify a node that has no relationships with other nodes.
+  This form is not needed for nodes that do have relationships, since the specification of the relationship
+  implicitly identifies the nodes as well.
+</p>
+
+<p>
+  Duplicate entries are ignored. Multiple edges between the same nodes must have different edge types.
+  For example, the following specifies two edges between the same pair of nodes, one of type <tt>xx</tt>
+  and one of type <tt>yy</tt>:
+</p>
+
+<pre>
+node1 xx node2
+node1 xx node2
+node1 yy node2
+</pre>
+
+<p>
+  Edges connecting a node to itself (self-edges) are also allowed:
+</p>
+
+<pre>
+node1 xx node1
+</pre>
+
+<p>
+  Every node and edge in Cytoscape has an identifying name, most commonly used with the node and
+  edge data attribute structures. Node names must be unique, as identically named nodes will be treated
+  as identical nodes. The name of each node will be the name in this file by default
+  (unless another string is mapped to display on the node using the visual mapper).
+  This is discussed in the section on visual styles. The name of each edge will be formed from the name
+  of the source and target nodes plus the interaction type: for example, sourceName (edgeType) targetName.
+</p>
+
+<p>
+  The tag <tt><relationship type></tt> can be any string.
+  Whole words or concatenated words may be used to define types of relationships, e.g. geneFusion,
+  cogInference, pullsDown, activates, degrades, inactivates, inhibits, phosphorylates, upRegulates, etc.
+</p>
+
+<p>
+  Some common interaction types used in the Systems Biology community are as follows:
+</p>
+
+<pre>
+pp .................. protein – protein interaction
+pd .................. protein -> DNA   
+(e.g. transcription factor binding upstream of a regulating gene.)
+</pre>
+
+<p>
+  Some less common interaction types used are:
+</p>
+
+<pre>
+pr .................. protein -> reaction
+rc .................. reaction -> compound
+cr .................. compound -> reaction
+gl .................. genetic lethal relationship
+pm .................. protein-metabolite interaction
+mp .................. metabolite-protein interaction
+</pre>
+
+<h3>Delimiters</h3>
+
+<p>
+  Whitespace (space or tab) is used to delimit the names in the simple interaction file format.
+  However, in some cases spaces are desired in a node name or edge type. The standard is that,
+  if the file contains any tab characters, then tabs are used to delimit the fields and spaces are
+  considered part of the name. If the file contains no tabs, then any spaces are delimiters that separate names
+  (and names cannot contain spaces).
+</p>
+
+<p>
+  If your network unexpectedly contains no edges and node names that look like edge names,
+  it probably means your file contains a stray tab that's fooling the parser. On the other hand,
+  if your network has nodes whose names are half of a full name, then you probably meant to use tabs
+  to separate node names with spaces.
+</p>
+
+<p>
+  Networks in simple interactions format are often stored in files with a .sif extension,
+  and Cytoscape recognizes this extension when browsing a directory for files of this type. 
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://www.cytoscape.org">http://www.cytoscape.org</a>
+  <li><a href="http://www.cytoscape.org/manual/Cytoscape2_5Manual.html#SIF%20Format">http://www.cytoscape.org/manual/Cytoscape2_5Manual.html#SIF%20Format</a>
+</ol>

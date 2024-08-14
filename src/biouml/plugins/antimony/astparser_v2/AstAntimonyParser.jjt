@@ -1,0 +1,1436 @@
+/***************************************************************
+                   OPTIONS
+***************************************************************/
+options
+{
+  MULTI = true;
+  NODE_DEFAULT_VOID = true;
+  STATIC = false;
+  NODE_PREFIX = "Ast";
+  DEBUG_PARSER = false;
+  TRACK_TOKENS=true;
+}
+
+/***************************************************************
+                   PARSER BEGIN
+***************************************************************/
+PARSER_BEGIN(AntimonyNotationParser)
+package biouml.plugins.antimony.astparser_v2;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import biouml.plugins.antimony.AntimonyAnnotationImporter;
+import java.util.Stack;
+
+public class AntimonyNotationParser extends Parser
+{
+	protected Logger log = Logger.getLogger(AntimonyNotationParser.class.getName());
+    private int algEqCount = 0;
+    /** Default constructor. */
+    public AntimonyNotationParser()
+    {
+        this (new StringReader("0"));
+    }
+
+    public AstStart parse(Reader reader) throws ParseException
+    {
+        ReInit(reader);
+        AstStart astStart = Start();
+        //postprocess for case when declarations are kept in outside model
+        postprocess(astStart);
+        return astStart;
+    }
+
+    private void postprocess(AstStart astStart)
+    {
+        if(astStart.hasOutsideModel())
+            astStart.createOutsideModelNode();
+    }
+
+    public AstEquation parseFormule(Reader reader) throws ParseException
+    {
+        ReInit(reader);
+        AstEquation equation = parseFormule();
+        return equation;
+    }
+
+    public AstUnitFormula parseUnitFormule(Reader reader) throws ParseException
+    {
+        ReInit(reader);
+        AstUnitFormula equation = parseUnitFormule();
+        return equation;
+    }
+    
+    private void parseAnnotation(AstImportAnnotation node) 
+    {
+    	try
+    	{
+        	AntimonyAnnotationImporter.addAnnotation(node);
+        }
+        catch (Exception e)
+        {
+        	log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+    
+    private void error_skipto(int kind) {
+	  ParseException e = generateParseException();  
+	  log.log(Level.WARNING, e.toString());
+	  Token t;
+	  
+	  do {
+	    t = getNextToken();
+	  }
+	  while (t.kind != kind);
+	}
+	
+}
+
+
+PARSER_END(AntimonyNotationParser)
+
+/***************************************************************
+                       SKIP & TOKENS
+***************************************************************/
+
+TOKEN_MGR_DECLS : {
+Stack lexicalStateStack = new Stack();
+}
+
+SPECIAL_TOKEN : /* instead of SKIP */
+{
+  <([" ", "\t"])+>
+| <"///" (~["\n","\r"])* >
+| <("//" | "#") (~["\n","\r"])* >
+| <"/*"> : ML_COMMENT
+}
+<ML_COMMENT> SPECIAL_TOKEN :
+{
+  <"*/"> : DEFAULT
+| <~[]>
+}
+
+< DEFAULT >TOKEN :
+{
+  < EOL :   ("\n" | "\r"  | "\r\n" ) >
+}
+
+TOKEN : /* RESERVED WORDS */
+{
+  < IMPORT : "import" >
+  
+| < MODEL : ( "model" | "module" ) >
+
+| < FUNCTION : "function" >
+
+| < GLOBAL : ("Global" | "GLOBAL" | "global") >
+
+| < AS : "as" >
+
+| < SYMBOL_TYPE : ( "species" | "gene")>
+
+| < COMPARTMENT : "compartment" >
+
+| < UNIT : "unit" >
+
+| < SUBTYPE : "subtype" >
+
+| < STANDART_FUNCTION :("abs" | "annotation" | "annotation-xml" | "apply"
+                | "arccos" | "arccosh" | "arccot" | "arccoth" | "arccsc"
+                | "arccsch" | "arcsec" | "arcsech" | "arcsin" | "arcsinh"
+                | "arctan" | "arctanh" | "bvar" | "ceiling" | "ci" | "cn"
+                | "cos" | "cosh" | "cot" | "coth" | "csc" | "csch" | "csymbol"
+                | "degree" | "divide" | "eq" | "exp" | "exponentiale"
+                | "factorial" | "floor" | "gt" | "infinity"
+                | "lambda" | "ln" | "log" | "logbase" | "lt" | "math"
+                | "minus" | "neq" | "notanumber" | "otherwise"
+                | "pi" | "piece" | "plus" | "root" | "sec"
+                | "sech" | "semantics" | "sep" | "sin" | "sinh" | "tan" | "tanh"
+                | "times" | "xor" | "acos" | "asin" | "atan" | "ceil"
+                | "delay" | "log10" | "sqr" | "sqrt") >
+                
+| <RELATIONSHIP_TYPE : ("identity" | "biological_entity_is" | "hasPart" | "part"
+				| "isPartOf" | "parthood" | "isVersionOf" | "hypernym" | "hasVersion" 
+				| "version" | "isHomologTo" | "homolog" | "isDescribedBy" 
+				| "description" | "isEncodedBy" | "encoder" | "encodes" 
+				| "encodement" | "occursIn" | "container" | "hasProperty" 
+				| "property" | "isPropertyOf" | "propertyBearer" | "hasTaxon" 
+				| "taxon") >			
+
+| < POWER : "power"|"pow" >
+
+| < GEQ : "geq" >
+
+| < LEQ : "leq" >
+
+| < AND_WORD : "and" >
+
+| < OR_WORD  : "or" >
+
+| < AND: "&">
+
+| < OR : "|">
+
+| < PIECEWISE : "piecewise" >
+
+| < DELETE : "delete" >
+
+| < TRUE_OR_FALSE : ("true"|"false") >
+
+| < END : "end">
+
+| < CONST : "const" >
+
+| < VAR : "var" >
+
+| < IN : "in" >
+
+| < $ : "$" >
+
+| < ASSERT : "assert">
+
+| < SUBSTANCE_ONLY : "substanceOnly">
+
+| < ELSE : "else">
+
+| < IS : "is" >
+
+| < HAS : "has" >
+
+| < COLON : ":">
+
+| < RATE_EQUAL : "'" (" ")* "=" >
+
+| < NOT_EQUAL : "!" (" ")* "=" >
+
+| < EQUAL_ZERO : "0" (" ")* "=" >
+
+| < AT : "at" >
+
+| < AFTER : "after">
+
+| < PRIORITY : "priority">
+
+| < FROM_TRIGGER : "fromTrigger">
+
+| < PERSISTENT : "persistent">
+
+| < TRIGGER_INITIAL_VALUE : "t0">
+
+| < PLUS : "+">
+
+| < MINUS : "-">
+
+| < NOT : "not">
+
+| < SEMICOLON : ";">
+
+| < ARROW : ("=" (" ")* ">")>
+
+| < BRAKET_R : ")">
+
+| < BRAKET_L : "(">
+
+}
+
+/* PROPERTY */
+< DEFAULT > TOKEN: {
+<AT_SYM:"@">:ANNOTATION
+}
+
+< ANNOTATION > TOKEN: {
+< PROPERTY_TYPE : ("sbgn" | "glycan" | "smiles" | "rdf" | "layout" | "biouml" ) > : PROPERTY
+| < ANNOTATION_IMPORT : < IMPORT > > : PROPERTY}
+
+< PROPERTY, LOCATE, LIST > SPECIAL_TOKEN: {
+  <([" ", "\t"])+> }
+  
+< PROPERTY> TOKEN: {
+< DECLARATION : ("Annotation" | "Table")  >
+| < PROP_EOL : < EOL >> : DEFAULT 
+| < PROP_SEMICOLON : < SEMICOLON >> : DEFAULT }
+
+
+< CONTAINER > TOKEN: {
+< BRACE_R: "}" > {SwitchTo((int)lexicalStateStack.pop());}
+}
+
+< CONTAINER > SPECIAL_TOKEN: {
+  <([" ", "\t", "\n", "\r"])+>
+}
+  
+< PROPERTY, CONTAINER > TOKEN: {
+< SQUARE_BRACKET_L : "[" > { lexicalStateStack.push(curLexState); } : LIST
+| < BRACE_L: "{" > { lexicalStateStack.push(curLexState); } : CONTAINER 
+}
+
+
+< LIST > TOKEN: 
+{
+< SQUARE_BRACKET_R : "]" > {SwitchTo((int)lexicalStateStack.pop());}
+}
+
+< DEFAULT, PROPERTY, CONTAINER > TOKEN: 
+{
+  < EQUAL : "=" >
+| < LOCATE_FUNCTION : "locate" >  { lexicalStateStack.push(curLexState); }: LOCATE
+}
+
+< DEFAULT, LOCATE, LIST > TOKEN: 
+{
+  < SUBSYMBOL : < SYMBOL > ("." < SYMBOL >)+ > 
+}
+
+< LOCATE > TOKEN: 
+{
+  < LOCATE_BRAKET_L: < BRAKET_L > > 
+  |
+  < LOCATE_BRAKET_R: < BRAKET_R > > {SwitchTo((int)lexicalStateStack.pop());}
+}
+
+< DEFAULT, PROPERTY, LOCATE, LIST, CONTAINER > TOKEN: 
+{
+  < COMMA : "," > 
+
+| < SYMBOL : ( < LETTER > | "_" ) ( < LETTER > | < DIGIT > | "_" )* >
+}
+
+< DEFAULT, PROPERTY, LOCATE, CONTAINER > TOKEN: 
+{
+  < DOT : "." >
+| < TEXT_STRING : "\""  ( ~[ "\"", "\n", "\r" ] )* "\"" >
+}
+
+< PROPERTY > TOKEN: 
+{
+  < SUBCOMPLEX : ("__sub" ("_" )* (< DIGIT >)+ "__") >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < #LETTER : [ "a"-"z", "A"-"Z" ] >
+| < #DIGIT : [ "0"-"9" ] >
+| < TRIANGULAR_BRACKET_L : "<" >
+| < TRIANGULAR_BRACKET_R : ">" >
+| < OPERATOR : [ "/", "^"] >
+| < STAR : "*" >
+| < #EXPONENT: ["e","E"] (< PLUS > | < MINUS >)? (["0"-"9"])+ >
+| < FLOATING_POINT_LITERAL:
+            (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)?
+            | "." (["0"-"9"])+ (<EXPONENT>)?
+            | (["0"-"9"])+ (<EXPONENT>)?
+    >
+}
+
+
+/***************************************************************
+                   GRAMMAR START
+***************************************************************/
+AstStart Start() #Start:
+{}
+{
+    ( astElement() )*
+
+    <EOF> 
+    {
+        algEqCount = 0;
+        return jjtThis;
+    }
+}
+
+void astElement(): 
+{AstImportAnnotation imp;}
+{
+	try {	
+	    ( 
+	    LOOKAHEAD(2) importModel() | 
+	    LOOKAHEAD(2) imp = importAnnotation() {parseAnnotation(imp);} | 
+	    LOOKAHEAD(3) unit()| 
+	    LOOKAHEAD(3) model() | 
+	    function()  | 
+	    LOOKAHEAD(3) declaration() | 
+	    globalVariable() )
+    } catch (ParseException e) {
+    	error_skipto(EOL);
+    }
+
+}
+
+void importModel() #Import:
+{
+}
+{
+    < IMPORT >
+    text()
+    end()
+}
+
+void text() #Text:
+{
+}
+{
+    < TEXT_STRING >
+    {jjtThis.setText(token.image);}
+}
+
+void function() #Function:
+{}
+{
+    < FUNCTION >
+
+    functionSignature()
+
+    (< EOL > #EOL )*
+    equation()
+    (< SEMICOLON > #Semicolon)?
+    (< EOL > #EOL )*
+    < END >
+}
+
+void functionSignature() #Symbol:
+{}
+{
+    symbolName(){jjtThis.setName(token.image); }
+    (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+    (
+        ( symbolName() {jjtThis.setName(token.image);} #Symbol)
+        ("," #Comma   symbolName() {jjtThis.setName(token.image);} #Symbol)*
+    )?
+    < BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement
+}
+
+void modelSignature() #Symbol:
+{
+}
+{
+    symbolName()
+    {
+        jjtThis.setName(token.image);
+    }
+    ( modelParameters() )?
+}
+
+void mainModelSignature() #Symbol:
+{
+}
+{
+    < STAR >
+    symbolName()
+    {
+            jjtThis.setName("*" + token.image);
+    }
+    ( modelParameters() )?
+}
+
+void subModelSignature() #Symbol:
+{
+}
+{
+    symbolName()
+    {
+        jjtThis.setName(token.image);
+    }
+    modelParameters()
+}
+
+void modelParameters():
+{}
+{
+    (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+
+    (
+        parametr()
+        ( "," #Comma parametr() )*
+    )?
+
+    (< BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+
+}
+
+void parametr() #Symbol:
+{
+  String portType = "";
+}
+{
+  ( ( < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R > ) {portType = token.image;})?
+  symbolName()
+  {
+    jjtThis.setName(portType + token.image);
+    portType = "";
+  }
+}
+
+void model() #Model:
+{
+}
+{	
+	try {	
+		< MODEL >
+
+	    (
+	        modelSignature()
+	        | mainModelSignature(){jjtThis.setTypeModel(AstModel.ModelType.MainModel);}
+	    )
+		(declaration())*
+    	< END >
+    	
+    } catch (ParseException e) {
+    	error_skipto(EOL);
+    }
+}   
+
+
+void globalVariable() #Global:
+{}
+{
+    < GLOBAL >
+    {jjtThis.setFormat(token.image);}
+    (
+        (
+            symbolName() {jjtThis.setName(token.image);}
+            (as())?
+        ) #Symbol
+    )
+
+    end()
+}
+
+void as() #As:
+{}
+{
+    < AS >
+    ((symbolName() {jjtThis.setName(token.image);}) #Symbol)
+}
+
+void declaration():
+{}
+{
+		try {
+		( LOOKAHEAD(3) model()
+		| LOOKAHEAD(3) reactionDefinitionsNoName() 
+        | LOOKAHEAD(3) eventNoName()  
+        | LOOKAHEAD(3) symbol() | algebraicEquation() | varOrConst() | symbolType() | substanceOnly() | compartment()
+        | (< EOL > #EOL)
+        | delete()
+        | LOOKAHEAD(4) property()
+        | propertyWithDeclaration()
+        | < SEMICOLON > #Semicolon)
+    		
+    	} catch (ParseException e) {
+    		error_skipto(EOL);
+    	}
+        
+}
+
+AstImportAnnotation importAnnotation() #ImportAnnotation:
+{}
+{
+	< AT_SYM >
+	< ANNOTATION_IMPORT >
+	< SYMBOL > 
+	{jjtThis.setAnnotationType(token.image);}
+	
+	(< EQUAL> #Equal)
+	text()
+	propertyEnd()
+	
+	{
+		return jjtThis;
+	}
+}
+
+void property() #Property:
+{
+	String notationType = null;
+}
+{
+	(
+	< AT_SYM >
+	< PROPERTY_TYPE > 
+	{
+		jjtThis.setNotationType(token.image);
+		notationType = jjtThis.getNotationType();	
+	} 
+	)
+	
+	(
+	locateFunction()
+	|
+	(symbolName() {jjtThis.addChainName(token.image);} 
+		(
+			LOOKAHEAD(2, 
+			{	
+				(getToken(2).kind == SYMBOL || getToken(2).kind == SUBCOMPLEX ) &&
+				!AntimonyAnnotationImporter.isPropertyImported(notationType, getToken(2).image)
+				
+			})
+			< DOT > (<SYMBOL> | < SUBCOMPLEX >) {jjtThis.addChainName(token.image);}
+		)*
+	)
+
+	)
+	
+	(
+	singleProperty(true, notationType, true)		
+	|
+	multipleProperty(false, notationType, true)
+	)
+	
+    propertyEnd()
+}
+
+void propertyWithDeclaration() #Property:
+{}
+{
+	(
+	< AT_SYM >
+	< PROPERTY_TYPE > 
+	{
+		jjtThis.setNotationType(token.image);
+		String notationType = jjtThis.getNotationType();
+		
+		if (!AntimonyAnnotationImporter.isAnnotationImported(notationType))	
+			throw new ParseException("Notation type " + notationType + " was not imported");
+	} 
+	)
+	(< DECLARATION > 
+	{
+		jjtThis.setDeclarationType(token.image);
+	})
+	
+	(symbolName() {jjtThis.addChainName(token.image);} )
+
+    (
+	singleProperty(true, notationType, false)		
+	|
+	multipleProperty(false, notationType, false)
+	)
+	
+    propertyEnd()
+}
+
+void singleProperty(boolean dotNeeded, String notationType, boolean checkNeeded) #SingleProperty:
+{}
+{
+	(< DOT > 
+	{
+		if (dotNeeded) 
+			jjtThis.setDotNeeded(dotNeeded);
+		else 
+			throw new ParseException("< DOT > was not expected");
+	})? 
+	(
+		< SYMBOL > 
+		{ 
+			jjtThis.setPropertyName(token.image); 
+			if (checkNeeded)
+			{
+				try
+				{
+					AntimonyAnnotationImporter.checkPropertyImport(notationType, token.image);
+				}
+				catch (Exception e) {
+					log.log(Level.SEVERE, e.getMessage());
+				}
+			}
+	})
+	(< EQUAL> #Equal)
+    (text() | listOfVals() | LOOKAHEAD(2) mapOfVals() | setOfVals())
+}
+
+
+void multipleProperty(boolean dotNeeded, String notationType, boolean checkNeeded):
+{}
+{
+	(< EQUAL > #Equal)
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(
+		singleProperty(false, notationType, checkNeeded)
+		( (< COMMA > #Comma) singleProperty(false, notationType, checkNeeded) )*
+	)
+	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void listOfVals() #List:
+{
+}
+{
+	((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(propertyName())?    
+    (
+        < COMMA > #Comma
+        propertyName()
+    )*
+	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	
+}
+
+void mapOfVals() #Map:
+{
+}
+{
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(
+		keyVal() 
+		( (< COMMA > #Comma) keyVal() )*
+	)
+	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	
+}
+
+void setOfVals() #Set:
+{
+}
+{
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(
+		( listOfVals() | mapOfVals() )
+		( (< COMMA > #Comma) ( listOfVals() | mapOfVals() ) )*
+	)
+	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	
+}
+
+void keyVal() #SingleProperty:
+{
+}
+{ 
+	(
+		< SYMBOL > 
+		{ jjtThis.setPropertyName(token.image); 
+		
+	})
+	(< EQUAL> #Equal)
+    (text() | listOfVals() | propertyName())
+}
+
+
+void propertyName() #Symbol :
+{}
+{
+	(< SYMBOL > | < SUBSYMBOL >)
+	{jjtThis.setName(token.image);} 
+}
+
+void propertyEnd():
+{}
+{
+    (< PROP_SEMICOLON > #Semicolon | < PROP_EOL > #EOL | < EOF >)
+}
+
+void unit() #Unit:
+{}
+{
+    < UNIT >
+    symbolElement()
+    (unitFormula())?
+    end()
+}
+
+
+void unitFormula():
+{}
+{
+	(< EQUAL > #Equal)
+    (algebraicExpression() #UnitFormula )
+}
+
+
+
+
+void delete() #Delete:
+{}
+{
+    < DELETE >
+    subSymbolElement()
+    end()
+}
+
+void symbolType() #SymbolType:
+{
+}
+{
+    < SYMBOL_TYPE >  {jjtThis.setType(token.image);}
+    listOfSymbols()
+    end()
+}
+
+void compartment() #SymbolType:
+{
+}
+{
+    < COMPARTMENT > {jjtThis.setType(token.image);}
+    listOfSymbols()
+    end()
+}
+
+void substanceOnly() #SubstanceOnly:
+{
+}
+{
+	< SUBSTANCE_ONLY >
+    symbolType()
+}
+
+void varOrConst() #VarOrConst:
+{
+}
+{
+    (< VAR > |< CONST >){jjtThis.setType(token.image);}
+    (
+    LOOKAHEAD(2) symbolType()
+    | LOOKAHEAD(3) compartment()
+    | listOfSymbols())
+    end()
+}
+
+void listOfSymbols():
+{
+}
+{
+    symbolElementWithIn()
+    (
+        "," #Comma
+        symbolElementWithIn()
+    )*
+}
+
+void in() #In:
+{
+}
+{
+        < IN >
+        symbolElement()
+}
+
+void algebraicEquation()  #Symbol:
+{
+ algEqCount++;
+ jjtThis.setName("A" + algEqCount);
+}
+{
+    (< EQUAL_ZERO > #EqualZero)
+	(algebraicExpression()  #Equation {jjtThis.setTypeDeclaration(AstSymbol.ALGEBRAIC);})
+	end()
+
+}
+
+void algebraicExpression():
+{}
+{
+    ( algebraicFormulaElement() | algebraicExpressionInBrackets())*
+}
+
+void algebraicExpressionInBrackets():
+{
+}
+{
+    ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+    (
+        algebraicExpressionInBrackets() | algebraicFormulaElement()
+    )*
+
+    ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void algebraicFormulaElement() #RegularFormulaElement:
+{}
+{
+   (
+               symbolName() {jjtThis.setString(true);} | < STAR > | < OPERATOR >
+               | <AND> | <OR>
+               | < PLUS > | < MINUS >
+               | < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
+   ){jjtThis.setElement(token.image);}
+
+}
+
+void symbol():
+{
+}
+{
+  (
+        subSymbolSynchronization()
+        | LOOKAHEAD(3)symbolWithoutConstantPrefix()
+        | symbolWithConstantPrefix()
+  )
+}
+
+void subSymbolSynchronization()#SubSymbol:
+{}
+{
+    < SUBSYMBOL >
+    {
+        jjtThis.setTypeDeclaration(AstSymbol.SYNCHRONIZATIONS);
+        jjtThis.setName(token.image);
+    }
+    (connectionConversionFactor())?
+    synchronizations()
+    end()
+}
+
+void connectionConversionFactor() #ConnectionConversionFactor:
+{}
+{
+    < STAR >
+    symbolElement()
+}
+
+void symbolWithoutConstantPrefix() #Symbol:
+{
+}
+{
+    symbolName() {jjtThis.setName(token.image); }
+
+    (
+        LOOKAHEAD(2) < COLON > #Colon event() {jjtThis.setTypeDeclaration(AstSymbol.EVENT);}
+        | LOOKAHEAD(2) < COLON > #Colon constraint() {jjtThis.setTypeDeclaration(AstSymbol.CONSTRAINT);}
+        |LOOKAHEAD(3)( < COLON > #Colon reactionDefinitions((AstSymbol)jjtThis))
+        | LOOKAHEAD(2) assignmentRules() {jjtThis.setTypeDeclaration(AstSymbol.RULE);}
+        | LOOKAHEAD(2) locateAssignment() {jjtThis.setTypeDeclaration(AstSymbol.FUNCTION_RETURN_ASSIGNMENT);}
+        | LOOKAHEAD(2) < COLON > #Colon subDiagram() {jjtThis.setTypeDeclaration(AstSymbol.SUBDIAGRAM);}
+        | assignmentRate() {jjtThis.setTypeDeclaration(AstSymbol.RATE);}
+        | LOOKAHEAD(2) fullName() {jjtThis.setTypeDeclaration(AstSymbol.DISPLAY_NAME);}
+        | subType() {jjtThis.setTypeDeclaration(AstSymbol.SUBTYPE);}
+        | hasUnit() {jjtThis.setTypeDeclaration(AstSymbol.SET_UNIT);}
+        | databaseReference() {jjtThis.setTypeDeclaration(AstSymbol.DATABASE_REFERENCE);}
+        | (connectionConversionFactor())? synchronizations() {jjtThis.setTypeDeclaration(AstSymbol.SYNCHRONIZATIONS);}
+    )
+    end()
+}
+
+void locateAssignment():
+{}
+{
+    < EQUAL > #Equal
+    locateFunction()
+}
+
+
+void symbolWithConstantPrefix() #Symbol:
+{
+}
+{
+    (< $ >{ jjtThis.setConstantPrefix(true);})?
+    symbolName() {jjtThis.setName(token.image); }
+
+    (
+        symbolDeclarations() {jjtThis.setTypeDeclaration(AstSymbol.PARENT_DECLARATION);}
+        | initializations() {jjtThis.setTypeDeclaration(AstSymbol.INIT);}
+    )
+    end()
+}
+
+void symbolDeclarations():
+{}
+{
+    in()
+}
+
+void reactionDefinitions(AstSymbol declaration):
+{}
+{
+    reactionTitle(declaration)
+    (
+        (< SEMICOLON > #Semicolon)
+        equation()
+    )?
+}
+
+void reactionDefinitionsNoName() #Symbol:
+{}
+{
+    reactionDefinitions((AstSymbol)jjtThis)
+    end()
+}
+
+void initializations():
+{}
+{
+    < EQUAL > #Equal
+    equation()
+}
+
+void assignmentRules():
+{}
+{
+    colonEqual()
+    equation()
+}
+
+void colonEqual() #ColonEqual:
+{
+}
+{
+  < COLON > <EQUAL > {jjtThis.setTokenEqual(token);}
+}
+
+void assignmentRate():
+{}
+{
+    rateEqual()
+    equation()
+}
+
+void rateEqual() #RateEqual:
+{}
+{
+  < RATE_EQUAL > {jjtThis.setView(token.image);}
+}
+
+void event():
+{}
+{
+  at()
+  (
+    ( < COMMA > #Comma )
+    ( priority() | useValuesFromTriggerTime() | persistent() | triggerInitialValue())
+  )*
+  (
+    (< COLON > #Colon )
+    (< EOL > #EOL)*
+    eventAssignment()
+  )+
+}
+
+void at() #At:
+{}
+{
+    < AT >
+    equation()
+    (
+      < AFTER > #After
+      equation()
+    )?
+}
+
+
+void constraint():
+{}
+{	
+	assert_()
+	(
+	(< ELSE >	#Else)
+	        
+		text()
+	)?
+
+}
+
+void assert_() #Assert:
+{}
+{
+	< ASSERT >
+	equation()
+}
+
+void priority() #Priority:
+{}
+{
+    < PRIORITY >
+    < EQUAL > #Equal
+    equation()
+}
+
+void useValuesFromTriggerTime() #UseValuesFromTriggerTime:
+{}
+{
+    < FROM_TRIGGER >
+    < EQUAL > #Equal
+    < TRUE_OR_FALSE > {jjtThis.setElement(token.image);} #RegularFormulaElement
+}
+
+void persistent() #Persistent:
+{}
+{
+    < PERSISTENT >
+    < EQUAL > #Equal
+    < TRUE_OR_FALSE > {jjtThis.setElement(token.image);} #RegularFormulaElement
+}
+
+void triggerInitialValue() #TriggerInitialValue:
+{}
+{
+    < TRIGGER_INITIAL_VALUE >
+    < EQUAL > #Equal
+    < TRUE_OR_FALSE > {jjtThis.setElement(token.image);} #RegularFormulaElement
+}
+
+void eventNoName()  #Symbol:
+{jjtThis.setTypeDeclaration(AstSymbol.EVENT);}
+{
+	event()
+	end()
+}
+
+void eventAssignment() #Symbol:
+{}
+{
+  symbolName() {jjtThis.setTypeDeclaration(AstSymbol.INIT);
+  jjtThis.setName(token.image);}
+  initializations()
+}
+
+void fullName() #Is:
+{}
+{
+  < IS >
+  text()
+}
+
+void subType() #Subtype:
+{}
+{
+  < SUBTYPE > 
+  symbolElement()
+}
+
+void hasUnit() #Has:
+{}
+{
+	(< HAS >  )
+	symbolElement()
+}
+
+void databaseReference():
+{}
+{
+	relationshipType()
+	text()
+	(
+        "," #Comma
+        text()
+    )*
+}
+
+void relationshipType() #RelationshipType:
+{}
+{
+	<RELATIONSHIP_TYPE>	{jjtThis.setName(token.image);}
+}
+void synchronizations() #Is:
+{}
+{
+  < IS >
+  ( LOOKAHEAD(2) subSymbolElement()  | symbolElement() )
+}
+
+void reactionTitle(AstSymbol declaration) #ReactionTitle:
+{
+}
+{
+    (reactionReactant())?
+    (
+        (
+        < PLUS > #Plus {jjtThis.initType(AstReactionTitle.STANDARD_REACTION);}
+        | < AND > #And {jjtThis.initType(AstReactionTitle.MOD_AND_REACTION);}
+        | < OR > #Or {jjtThis.initType(AstReactionTitle.MOD_OR_REACTION);}
+        | < NOT > #Not {jjtThis.initType(AstReactionTitle.MOD_NOT_REACTION);}
+        )
+        reactionReactant()  
+    )* 
+    reactionType(declaration)
+    (reactionProduct())?
+    (
+        < PLUS > #Plus
+        reactionProduct()
+    )*
+}
+
+void reactionReactant() #Reactant:
+{
+}
+{
+    (stoichiometry())?
+    symbolElement()
+}
+
+void reactionProduct() #Product:
+{
+}
+{
+    (stoichiometry())?
+    symbolElement()
+}
+
+void stoichiometry() #Stoichiometry :
+{
+}
+{
+  < FLOATING_POINT_LITERAL >{jjtThis.setStoichiometry(token.image);}
+}
+
+void symbolElement() #Symbol:
+{
+}
+{
+	(< $ >{ jjtThis.setConstantPrefix(true);})?
+	symbolName() {jjtThis.setName(token.image); }
+}
+
+void subSymbolElement() #SubSymbol:
+{
+}
+{
+	(< $ >{ jjtThis.setConstantPrefix(true);})?
+	< SUBSYMBOL >{jjtThis.setName(token.image); }
+}
+
+void symbolElementWithIn() #Symbol:
+{
+}
+{
+    (< $ >{ jjtThis.setConstantPrefix(true);})?
+    symbolName() {jjtThis.setName(token.image); }
+    (
+        (
+            in()
+        )
+    )?
+}
+
+void reactionType(AstSymbol declaration) #ReactionType:
+{
+}
+{
+  (
+  < ARROW >
+  { jjtThis.setType(token.image);
+  declaration.setTypeDeclaration(AstSymbol.REACTION_DEFINITION);}
+  |
+  < MINUS >
+                (   < TRIANGULAR_BRACKET_R >
+                { jjtThis.setType(token);
+                declaration.setTypeDeclaration(AstSymbol.REACTION_DEFINITION);}
+                |
+                < BRAKET_L >
+                { jjtThis.setType(token);
+                declaration.setTypeDeclaration(AstSymbol.REACTION_UNKNOWN_MODIFIER);}
+                |
+                < OR >
+                { jjtThis.setType(token);
+                declaration.setTypeDeclaration(AstSymbol.REACTION_INHIBITOR);}
+                |
+                symbolName()
+                { jjtThis.setType(token);
+                declaration.setTypeDeclaration(AstSymbol.REACTION_ACTIVATOR);}
+                )
+  )
+}
+
+void subDiagram():
+{}
+{
+	subModelSignature()
+	(
+    	< COMMA > #Comma
+    	conversionFactor()
+    )*
+}
+
+void conversionFactor() #ConversionFactor:
+{}
+{
+    symbolName() {jjtThis.setFactor(token.image);}
+    < EQUAL > #Equal
+    symbolElement()
+}
+
+void equation() #Equation:
+{
+}
+{
+	formula()
+}
+
+void formula():
+{}
+{
+    (
+        regularFormulaElement()
+        | formulaInBrackets()
+        | specialFunction()
+        | piecewiseAntimonyFormat()
+    )*
+}
+
+void regularFormulaElement() #RegularFormulaElement:
+{
+}
+{
+    (
+            symbolName() {jjtThis.setString(true);}| < TRUE_OR_FALSE >
+            | < STAR >
+            | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
+            | < STANDART_FUNCTION > | < NOT > | < EQUAL > | < NOT_EQUAL >
+            | < PLUS > | < MINUS > | <AND> | <OR>
+            | < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
+    ){jjtThis.setElement(token.image);}
+}
+
+void formulaInBrackets():
+{
+}
+{
+    ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+    (
+        formulaInBrackets() | regularFormulaElement()
+        |specialFunction()
+        | piecewiseAntimonyFormat()
+        | ((< COMMA > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    )*
+
+    ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void specialFunction() #SpecialFormula:
+{
+}
+{
+    (
+        ((< POWER > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        {jjtThis.setType(AstSpecialFormula.POWER);}
+
+        |((< AND_WORD > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        {jjtThis.setType(AstSpecialFormula.AND);}
+
+        |((< OR_WORD > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        {jjtThis.setType(AstSpecialFormula.OR);}
+
+        |((< GEQ > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        {jjtThis.setType(AstSpecialFormula.GEQ);}
+
+        |((< LEQ > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        {jjtThis.setType(AstSpecialFormula.LEQ);}
+    )
+
+    ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+    (formula() #SpecialFormula)
+    ((< COMMA > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (formula() #SpecialFormula)
+
+    ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void piecewiseAntimonyFormat() #SpecialFormula:
+{
+}
+{
+    ((< PIECEWISE > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    {jjtThis.setType(AstSpecialFormula.PIECEWISE);}
+    ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+    (formula() #SpecialFormula)
+    (
+        ((< COMMA > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        (formula() #SpecialFormula)
+    )*
+
+    ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void end():
+{}
+{
+    (< SEMICOLON > #Semicolon | < EOL > #EOL | < EOF >)
+}
+
+
+/******************************************************* PARSE FORMULE *************************************************/
+
+
+AstEquation parseFormule() #Equation:
+{}
+{
+    (
+        regularFormulaElement()
+        | formulaInBrackets()
+        | piecewiseStandartFormat()
+    )*
+    {
+        return jjtThis;
+    }
+}
+
+AstUnitFormula parseUnitFormule() #UnitFormula:
+{}
+{
+    (
+        algebraicFormulaElement()
+        | algebraicExpressionInBrackets() 
+    )*
+    {
+        return jjtThis;
+    }
+}
+
+void piecewiseStandartFormat() #SpecialFormula:
+{
+}
+{
+    ((< PIECEWISE > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    {jjtThis.setType(AstSpecialFormula.PIECEWISE);}
+    ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+    (formula() #SpecialFormula)
+    ((< ARROW > {jjtThis.setElement(AstSpecialFormula.PIECEWISE_ARROW);}) #RegularFormulaElement)
+    (formula() #SpecialFormula)
+    (
+        ((< SEMICOLON > {jjtThis.setElement(",");}) #RegularFormulaElement)
+        (formula() #SpecialFormula)
+
+        (
+            ((< ARROW > {jjtThis.setElement(AstSpecialFormula.PIECEWISE_ARROW);}) #RegularFormulaElement)
+            (formula() #SpecialFormula)
+        )?
+
+    )*
+    ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void locateFunction() #LocateFunction:
+{}
+{
+	< LOCATE_FUNCTION >
+	((< LOCATE_BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(
+        (( symbolName() {jjtThis.setName(token.image);} #Symbol)
+        | subSymbolElement())
+        {jjtThis.addProperty("name", token.image);}
+        (< COMMA > #Comma   text() )
+        {jjtThis.addProperty("type", token.image.replaceAll("\"", ""));}
+        ((< COMMA > #Comma   symbolName() {jjtThis.setName(token.image);} #Symbol)
+        {jjtThis.addProperty("parent", token.image);})?
+    )
+	((< LOCATE_BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+Token symbolName():
+{Token t;}
+{
+    (
+    t = < SYMBOL > |
+    t = <SYMBOL_TYPE> | 
+    t = < COMPARTMENT > |
+    t = < VAR > | 
+    t = < CONST > | 
+    t = < MODEL > |
+    t = < AS > |
+    t = < IMPORT > |
+    t = < AT > |
+    t = < IN > |
+    t = < GLOBAL > |
+    t = < SUBTYPE > |
+    t = < PRIORITY > |
+    t = < FROM_TRIGGER > |
+    t = < IS > |
+    t = < HAS > |
+    t = < UNIT > |
+    t = <RELATIONSHIP_TYPE > |
+    t = < TRIGGER_INITIAL_VALUE >)
+    {return t ;}
+}

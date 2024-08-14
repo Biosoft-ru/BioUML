@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.plugins.visiblePlugin">
+     <visiblePlugin name="Docker" class="ru.biosoft.plugins.docker.DockerVisiblePlugin" displayName="docker" description="" /> 
+  </extension>
+
+  <extension point="ru.biosoft.plugins.visiblePlugin">
+     <visiblePlugin name="Jupyter" class="ru.biosoft.plugins.docker.DockerVisiblePlugin" displayName="jupyter" description="" /> 
+  </extension>
+
+  <extension point="ru.biosoft.access.beans">
+        <provider class="ru.biosoft.plugins.docker.CWLDockeredAnalysisParametersBeanProvider" 
+               prefix="Docker"/>
+  </extension>
+
+  <extension id="RunCWLInContainer" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.plugins.docker.CWLDockeredAnalysis" group="Unclassified" 
+         name="Run CWL in Container"
+         shortDescription="Run CWL in Container" description="Creates Docker container and runs CWL inside it" /> 
+  </extension>
+
+</plugin>

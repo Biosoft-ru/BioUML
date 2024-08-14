@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2010/01/29 03:02:53 tolstyh Exp $  -->
+
+<project name="biouml.workbench.graph package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.workbench.graph"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.workbench.graph._test.AutoTest"/>
+        </ant>
+    </target>
+	
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

@@ -1,0 +1,98 @@
+#set ($br = "
+")
+#set ($dq = '"')
+#set ($spaces = "    ")
+#set ($model = $engine.getExecutableModel())
+#set ($modelName = $engine.normalize($model.getDiagramElement().getName()))
+#set ($variables = $model.getVariables())
+#set ($plotInfos = $engine.getPlotInfos())
+#set ($equations = $model.getOrderedScalarEquations())
+import java.util.HashMap;
+import java.util.Map;
+import ru.biosoft.math.MathRoutines;
+
+import biouml.plugins.hemodynamics.ArterialBinaryTreeModel;
+import biouml.plugins.hemodynamics.SimpleVessel;
+
+public class $modelName extends ArterialBinaryTreeModel
+{
+#foreach ($variable in $variables)
+#if ($engine.isCustomVariable($variable))
+    double $variable.getName();
+#end
+#end
+#set ($tempVarToIndex =  $engine.getTempVars())
+#foreach ($tempVar in $tempVarToIndex.keySet())
+    double $tempVar = 0;
+#end
+
+    @Override
+    public void calculateParameters(double time)
+    {
+#set ($maxSegment = $model.getVariable("vesselSegments").getInitialValue())
+#foreach( $plotInfo in $plotInfos )
+#set( $segment = $plotInfo.getSegment())
+#if ($segment > $maxSegment) #set($segment = "(int)$maxSegment") #end
+#if( $plotInfo.type ==  0)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).getPressure()[$segment];
+#elseif ( $plotInfo.type ==  2)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).getFlow()[$segment];
+#elseif ( $plotInfo.type ==  1)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).getArea()[$segment];
+#elseif ( $plotInfo.type ==  3)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).resistance;
+#elseif ( $plotInfo.type ==  4)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).velocity[$segment];
+#elseif ( $plotInfo.type ==  5)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).fullPressure[$segment];
+#elseif ( $plotInfo.type ==  6)
+        $plotInfo.getVariable() = vessels.get($plotInfo.getVesselIndex()).pulseWave[$segment];
+#end
+#end
+
+#foreach ($equation in $equations)
+#set ($varName = $equation.getVariable())
+#set ($variable = $model.getVariable($varName))
+#if (!$variable.isConstant())
+#set( $statement = $engine.formatEquation($equation))
+#if ($statement.get(0) != "")
+         $statement.get(0)
+#end         
+         $equation.getVariable() = $statement.get(1);
+#end
+#end
+    }
+
+    @Override
+    public double[] getCurrentValues()
+    {
+#set ($varToIndex =  $engine.getVarIndexMapping())
+#set( $length = $varToIndex.size())
+        double[] result = new double[$length];
+#foreach ($variable in $varToIndex.keySet())   
+        result[$varToIndex.get($variable)] = $variable;
+#end
+        return result;
+    }
+    
+    @Override
+    public void setCurrentValues(double[] values)
+    {
+#set ($varToIndex =  $engine.getVarIndexMapping())
+#foreach ($variable in $varToIndex.keySet())   
+        $variable = values[$varToIndex.get($variable)];
+#end
+    }
+    
+    @Override
+    public void init()
+    {
+#set ($varToIndex =  $engine.getVarIndexMapping())
+#foreach ($variable in $varToIndex.keySet())   
+#set ($val = $model.getVariable($variable).getInitialValue())
+#if (!$val) #set($val = "0") #end
+        $variable = $val;
+#end
+        isInit = true;
+    }
+}

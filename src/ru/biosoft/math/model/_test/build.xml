@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.6 2007/08/30 08:36:07 puz Exp $
+-->
+
+<project name="ru.biosoft.math.model package test" default="autotest" basedir="../../../../..">
+
+  <property name="package" value="ru.biosoft.math.model"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="ru.biosoft.math.model._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="piecewise">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.PiecewiseTest"/>
+    </ant>
+  </target>
+
+  <target name="utils">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.UtilsTest"/>
+    </ant>
+  </target>
+
+  <!--
+     Delete all *.class files.
+  -->
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

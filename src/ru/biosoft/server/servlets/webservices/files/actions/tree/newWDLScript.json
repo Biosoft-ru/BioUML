@@ -1,0 +1,26 @@
+/*
+ * New WDL script action
+ */
+{
+    id: "new_wdl_script",
+    label: "New WDL script",
+	icon: "icons/wdl-script.gif",
+	visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || 
+        	getDataCollection(completePath).getChildClass() == 'biouml.plugins.wdl.WDLScript') 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createScript(path, 'WDL');
+    }"
+}

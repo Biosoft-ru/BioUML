@@ -1,0 +1,25 @@
+/*
+ * Open file action
+ */
+{
+    id: "download_file",
+    label: "Download file",
+	icon: "icons/export.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.FileDataElement') || instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+    	window.open(appInfo.serverPath+'web/content/'+path);
+    }"
+}

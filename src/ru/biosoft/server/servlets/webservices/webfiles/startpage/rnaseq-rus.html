@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="../css/intro.css" rel="stylesheet" />
+  <style>
+    ol.main-list>li {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    
+    ul>li {
+	font-weight: normal;
+    }
+
+    ul.sub-list>li {
+      margin: 10px 0;
+    }
+    
+    .column {
+      float: left;
+      width: 50%;
+    }
+    /* Clear floats after the columns */
+    
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  </style>
+
+</head>
+
+<body class="intro-styles">
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+  <h2>Анализ транскриптомных данных (RNA-seq)</h2>
+  <div class="row">
+    <div class="column">
+      <ol class="main-list">
+        <li>Контроль качества и предварительная обработка RNA-seq данных
+          <ul class="sub-list">
+            <li>
+              <a href="#" onclick="window.parent.doImportMultiple(window.parent.constructSelectedProjectPath())">Загрузка RNA-seq данных</a>
+              <br>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/sra_toolkit/fastq-dump">Конвертация SRA в FASTQ</a>
+              <br>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/sra_toolkit/fastq-dump-paired">Конвертация SRA в FASTQ paired</a>
+              <br>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs:_qc/FastQC">FASTQC</a>
+              <br>
+              <small>Контроль качества FASTQ файлов</small>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs:_qc/Cutadapt">Cutadapt</a>
+              <br>
+              <small>Удаление адаптерных последовательностей, обрезание концов прочтений,<br/> фильтрация прочтений низкого качества и недостаточной длины</small>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs:_qc/Trim Galore!">Trim Galore!</a>
+              <br>
+              <small>Удаление адаптерных последовательностей, обрезание концов прочтений,<br/> фильтрация прочтений низкого качества и недостато$
+            </li>
+          </ul>
+        </li>
+        <li>Выравнивание прочтений на референсный геном
+          <ul class="sub-list">
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/alignment_tools/Map with BWA-MEM">BWA-MEM</a>
+              <br>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/alignment_tools/HISAT2">HISAT2</a>
+              <br>
+            </li>
+          </ul>
+        </li>
+        <li>Оценка качества выравнивания
+          <ul class="sub-list">
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/samtools/samtools_flagstat">SAMTools Flagstat</a>
+              <br>
+              <small>Базовые статистики выравнивания</small>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs:_picard/MarkDuplicates">Picard: MarkDuplicates</a>
+              <br>
+              <small>Идентификация и удаление ПЦР-дупликатов</small>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs:_picard/CollectRnaSeqMetrics">Picard: CollectRnaSeqMetrics</a>
+              <br>
+              <small>Сбор разных метрик качества выравнивания RNA-seq данных</small>
+            </li>
+
+          </ul>
+
+        </li>
+      </ul>
+    </div>
+    <div class="column">
+
+      <h3>Сценарии</h3>
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=data/Collaboration/RNA-seq analysis/Data/Workflows/Full RNAseq analysis with HISAT2, featureCounts and limma">HISAT2 - featureCounts - limma</a>
+            <br>
+            <small>Анализ RNA-seq данных при помощи HISAT2, featureCounts и limma</small>
+          </li>
+        </ul>
+
+      <hr/>
+      </br/> 
+
+      <ol class="main-list" start=4>
+      <li>Количественная оценка выравненных прочтений на гены</li>
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/featurecount_16/featureCounts">featureCounts</a>
+            <br>
+          </li>
+        </ul>
+      <li>Идентификация дифференциально экспрессирующихся генов (ДЭГ)
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/differential_expression_analysis/limma">limma-voom</a>
+            <br>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/differential_expression_analysis/edgeR">edgeR</a>
+            <br>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/deseq2/DESeq2">DESeq2</a>
+            <br>
+          </li>
+        </ul>
+      </li>
+      <li>Функциональная аннотация ДЭГ
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/functional_annotation/goseq">GOSeq: GeneOntology и KEGG pathways</a>
+            <br>
+            <small>Анализ обогащения по функциональной принадлежности (GeneOntology; KEGG pathways)</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Gene set analysis/Enrichment analysis">Enrichment analysis (GSEA)</a>
+            <br>
+            <small>Анализ обогащения по функциональной принадлежности (GeneOntology)</small>
+          </li>
+
+         <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Gene set analysis/Functional classification">Functional Classification</a>
+            <br>
+            <small></small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Gene set analysis/TreeMap on Functional classification">TreeMap on Functional classification</a>
+            <br>
+            <small>Визуализация результатов Functional Classification</small>
+          </li>
+
+        </ul>
+      </li>
+     </ul>
+    </div>
+  </div>
+  <script>
+//Fix iframe resize
+var bubbleIframeMouseMove = function( iframe ){
+
+    iframe.contentWindow.addEventListener('mousemove', function( event ) {
+        var boundingClientRect = iframe.getBoundingClientRect();
+
+        var evt = new CustomEvent( 'mousemove', {bubbles: true, cancelable: false})
+        evt.clientX = event.clientX + boundingClientRect.left;
+        evt.clientY = event.clientY + boundingClientRect.top;
+
+        iframe.dispatchEvent( evt );
+    });
+
+};
+// Get the iframe element we want to track mouse movements on
+var myIframe = window.parent.document.getElementById("intro_iframe");
+
+// Run it through the function to setup bubbling
+bubbleIframeMouseMove(myIframe);
+</script>
+</body>
+
+</html>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.5 2007/08/05 09:03:48 fedor Exp $
+  Run batch test for com.developmentontheedge.application package
+-->
+
+<project name="com.developmentontheedge.application Package" default="autotest" basedir="../../../..">
+
+  <property name="package" value="com.developmentontheedge.application"/>
+
+  <target name="test">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.Test"/>
+    </ant>
+  </target>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="com.developmentontheedge.application._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

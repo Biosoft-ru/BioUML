@@ -1,0 +1,49 @@
+#macro( strField $name $label )
+    #if ($name && !$name.equals(""))
+    	<b>$label</b>: $name<br>
+	#end
+#end
+
+<html>
+	<body>
+	<div align="justify">
+	    #strField($de.getName(), "ID")
+	    #strField($de.getTitle(), "Name")
+	    #strField($de.getComment(), "Comment")
+	    #if($de.getBaseUnits() && $de.getBaseUnits().size() > 0)
+	        <b>Unit</b>:
+	       	#set($expression = "")
+	       	#set($isFirst = true)
+			#foreach( $unit in $de.getBaseUnits() )
+				#if($unit.getMultiplier() == 1)
+					#set($multiplier = "")
+				#else
+					#set($multiplier = "${unit.getMultiplier()}&middot;")
+				#end
+				#if($unit.getScale() == 0)
+					#set($scale = "")
+				#else
+					#set($scale = "10<sup>${unit.getScale()}</sup>&middot;")
+				#end
+				#if($unit.getExponent() == 1)
+					#set($exponent = "")
+				#else
+					#set($exponent = "$unit.getExponent()")
+				#end
+				#if( $de.getBaseUnits().size() > 1 && (!$multiplier.equals("") || !$scale.equals("")))
+					#set($factor = "(${multiplier}${scale}${unit.getType()}<sup>${exponent}</sup>)")
+				#else
+					#set($factor = "${multiplier}${scale}${unit.getType()}<sup>${exponent}</sup>")
+				#end
+				#if($isFirst)
+					#set($expression = $factor)
+					#set($isFirst = false)
+				#else
+					#set( $expression = "${expression} &middot; ${factor}")
+				#end
+       		#end
+       		$expression
+	    #end
+	</div>
+	</body>
+</html>

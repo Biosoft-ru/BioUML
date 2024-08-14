@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.6 2007/11/20 09:22:54 tolstyh Exp $  -->
+
+<project name="biouml.standard package test" default="autotest" basedir="../../..">
+
+	<property name="package" value="biouml.standard" />
+
+	<target name="test">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.LiteratureReferenceTest" />
+		</ant>
+	</target>
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="test" value="biouml.standard._test.AutoTest" />
+		</ant>
+	</target>
+
+	<target name="sql">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.SqlModuleTest" />
+		</ant>
+	</target>
+
+	<target name="re">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.DatabaseReferenceEditorTest" />
+		</ant>
+	</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

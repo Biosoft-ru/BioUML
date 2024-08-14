@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+    <extension id="Create database from diagram" point="ru.biosoft.analysiscore.method"> 
+        <analysisClass class="biouml.plugins.metabolics.analysis.DiagramToDatabase" group="Admin" name="Create database from diagram" description="Create database from diagram."/> 
+    </extension>
+
+    <extension id="Match genes and metabolites" point="ru.biosoft.analysiscore.method"> 
+        <analysisClass class="biouml.plugins.metabolics.analysis.MatchMetabolitesAndGenes" group="Molecular networks" name="Match genes and metabolites" description="Returns metabolites (genes) connected to given gene (metabolites) list."/> 
+    </extension>
+
+</plugin>

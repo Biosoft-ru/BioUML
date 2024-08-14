@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension-point name="aboutDialog" id="aboutDialog"/>
+
+  <extension-point name="look and feel"             id="lookAndFeel"/>
+
+  <extension-point name="document factory" id="documentFactory"/>
+  <extension-point name="wizardPage" id="wizardPage" />
+  
+  <extension-point name="journalList" id="journalList"/>
+  
+  <extension point="ru.biosoft.access.beans">
+  	<provider class="ru.biosoft.journal.ProjectPropertiesBeanProvider" prefix="properties/project"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.beans">
+  	<provider class="ru.biosoft.tasks.TaskBeanProvider" prefix="task/userTasks"/>
+  </extension>
+
+  <extension id="workbench" point="org.eclipse.core.runtime.applications"> 
+    <application> 
+       <run class="ru.biosoft.workbench.Workbench"/> 
+    </application> 
+  </extension> 
+
+  <!-- ============================================================== -->
+  <!-- Test issues                                                    --> 
+  <!-- ============================================================== -->
+
+  <extension point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="ru.biosoft.workbench.documents.ImageDocument"
+        key="ru.biosoft.access.ImageElement"
+      /> 
+      <documentFactory 
+        documentClass="ru.biosoft.workbench.documents.TextDocument"
+        key="ru.biosoft.access.TextDataElement"
+      />
+      <documentFactory 
+        documentClass="ru.biosoft.workbench.documents.HtmlDocument"
+        key="ru.biosoft.access.HtmlDataElement"
+      /> 
+      <documentFactory 
+        documentClass="ru.biosoft.workbench.script.ScriptDocument"
+        key="ru.biosoft.access.script.ScriptDataElement"
+      /> 
+  </extension>
+
+  <extension id="JavaScript" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="ru.biosoft.workbench.script.ScriptConsole"
+        id="script.console" 
+        Name="Script"
+        ShortDescription="JavaScript console"
+        Priority = "4.1"
+      /> 
+  </extension> 
+
+  <extension id="Output" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="ru.biosoft.workbench.script.OutputViewPart" 
+        id="script.output"
+        Name="Output"
+        ShortDescription="JavaScript context"
+        Priority = "1.1"
+      /> 
+  </extension>
+
+    <extension id="Proxy wizard page" point="ru.biosoft.workbench.wizardPage"> 
+      <wizardPage 
+      	name="Proxy settings" 
+      	description="Type proxy properties if necessary" 
+      	position="0" 
+      	page="ru.biosoft.gui.setupwizard.ProxySettingsWizardPage"
+      /> 
+    </extension> 
+</plugin>

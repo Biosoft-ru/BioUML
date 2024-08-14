@@ -1,0 +1,77 @@
+﻿<head>
+<meta charset="utf-8">
+<title>Отчет о моделировании лечения антигипертензивными препаратами</title>
+</head>
+<body>
+
+<h2>Данные пациента</h2>
+
+<table border="1">
+<tbody>
+ <tr valign="top">
+ <th align="center" valign="middle">Характеристика</th>
+      <th valign="middle">Значение</th>
+  <tr valign="top">
+<td>Возраст<td>$patient.getGeneralData().getAge()</tr>
+<tr><td>Рост<td>$patient.getGeneralData().getHeight()</tr>
+<tr><td>Вес<td>$patient.getGeneralData().getWeight()</tr>
+
+<tr><td>Систолическое давление<td>$patient.getPressure().getPs()</tr>
+<tr><td>Диастолическое давление<td>$patient.getPressure().getPd()</tr>
+
+<tr><td>Частота сердечных сокращений<td>$patient.getEcg().getHr()</tr>
+
+<tr><td>Сердечный выброс<td>$patient.getHeartUltrasound().getCo()</tr>
+<tr><td>Фракция выброса<td>$patient.getHeartUltrasound().getEF()</tr>
+
+<tr><td>Гемоглобин<td>$patient.getBloodTest().getHe()</tr>
+<tr><td>Гематокрит<td>$patient.getBloodTest().getHematocrit()</tr>
+
+<tr><td>Глюкоза<td>$patient.getBiochemistry().getGlu()</tr>
+<tr><td>Холестерин ЛПНП<td>$patient.getBiochemistry().getChol()</tr>
+<tr><td>Холестерин ЛПВП<td>$patient.getBiochemistry().getChol2()</tr>
+<tr><td>Натрий<td>$patient.getBiochemistry().getSodium()</tr>
+<tr><td>Калий<td>$patient.getBiochemistry().getPotassium()</tr>
+</tbody>
+</table>
+
+Размер созданной популяции: $patient.getPopulationSize() 
+<h2>Результаты лечения</h2>
+
+##set($dropTitles = "")
+#set ($stat0 = $analysis.getResults().get(0))
+##foreach( $drop in $stat.getDrops())
+  ##set(${dropTitles} = "${dropTitles}<th>${drop}</th>")
+##end
+
+<table border="1">
+<tbody>
+ <tr valign="top">
+  <th align="center" valign="middle">Препарат</th>
+  #foreach( $drop in $stat0.getDrops())
+  <th>$drop</th>
+  #end
+  <th>Успешно вылечено</th>
+  <th>Слабый эффект (<10 мм рт. ст.)</th>
+  <th>Увеличение давления</th>
+  <th>Некорректные показатели</th>
+ </tr>
+  
+#foreach( $stat in $analysis.getResults())
+
+<tr>
+<td>$stat.getDrug()</td>
+
+#foreach( $drop in $stat.getDrops())
+  <td>$stat.getAverage($drop)&plusmn$stat.getSD($drop) мм рт. ст.</td>
+#end
+
+<td>$stat.getSuccess() %</td><td>$stat.getWeakEffect() %</td><td>$stat.getNegativeEffect() %</td><td>$stat.getIncorrect() %</td></tr>
+#end
+</tbody>
+</table>
+
+<h2>Распределение эффекта лечения по популяции</h2>
+<img src="$figure" alt="Density">
+
+</body

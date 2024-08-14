@@ -1,0 +1,61 @@
+<h2>Multi-objective particle swarm optimization (MOPSO)</h2>
+
+<p>
+  The particle swarm optimization (PSO) algorithm, initially proposed by Kennedy and Eberhart<span class="ref">1</span>,
+  is a direct search algorithm based on the simulation of the social behavior of birds within a flock.
+  The swarm is typically modeled by particles in the multidimensional space that have a position and a velocity. These particles fly through
+  hyperspace and have two essential reasoning capabilities: their memory of their own best position and knowledge of the global or their
+  neighborhood's best.
+</p>
+
+<p>
+  Let <i>x<sub>i</sub></i>(<i>t</i>) denote the position of particle <i>p<sub>i</sub></i> at time step <i>t</i>.
+  The position of <i>p<sub>i</sub></i> is then changed by adding a velocity <i>v<sub>i</sub></i>(<i>t</i>)
+  to its current position, i.e.
+
+  <table class="formula">
+    <tr>
+      <td class="formula-text"><i>x<sub>i</sub></i>(<i>t</i>) = <i>x<sub>i</sub></i>(<i>t</i> &minus; 1) + <i>v<sub>i</sub></i>(<i>t</i>).</td>
+    </tr>
+  </table>
+ 
+  Let <i>gbest</i> is the position of the best particle from the entire swarm and <i>pbest</i>
+  is the position of the neighborhood best that the particle obtained by communicating with a subset of the swarm.
+  In this case, velocity equation is given by
+
+  <table class="formula">
+    <tr>
+      <td class="formula-text">
+        <i>v<sub>i</sub></i>(<i>t</i>) = <i>W&middot;v<sub>i</sub></i>(<i>t</i> &minus; 1) +
+        <i>C</i><sub>1</sub><i>r</i><sub>1</sub>(<i>x<sub>pbest</sub> &minus; x<sub>i</sub></i>(<i>t</i>)) +
+        <i>C</i><sub>2</sub><i>r</i><sub>2</sub>(<i>x<sub>gbest</sub> &minus; x<sub>i</sub></i>(<i>t</i>)),
+      </td>
+    </tr>
+  </table>
+
+  where <i>W</i> is the inertia weight, <i>C</i><sub>1</sub> and <i>C</i><sub>2</sub> are the learning factors (usually defined as
+  constants), and <i>r</i><sub>1</sub>, <i>r</i><sub>2</sub> &isin; [0,1] are random values.
+</p>
+
+<p>
+  Here we used a multiple-objective particle swarm optimizers based on the paper of Sierra and Coello<span class="ref">2</span>.
+  This optimizer allows to take into account parametric constraints and uses a crowding factor for the leaders selection as well as
+  the following mutation operators: an uniform mutation operator, where the variability range allowed for each decision variable is constant over generations,
+  and a non-uniform mutation operator, where such range decreases over time. These operators modify the values of the particle decision variables
+  with a certain probability.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li>J Kennedy, RC Eberhart.
+    "Particle Swarm Optimization".
+    Proceedings of the 1995 IEEE International Conference on Neural Networks,
+    Piscataway, New Jersey, IEEE Service Center, 1995, 1942-1948.
+  </li>
+  
+  <li>MR Sierra and CA Coello Coello
+    "Improving PSO-Based Multi-objective Optimization Using Crowding, Mutation and e-Dominance."
+    Evolutionary Multi-Criterion Optimization, 3410/2005: 505-519, Springer Berlin/Heidelberg.
+  </li>
+</ol>

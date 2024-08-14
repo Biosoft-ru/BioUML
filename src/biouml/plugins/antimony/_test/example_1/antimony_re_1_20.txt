@@ -1,0 +1,5 @@
+model diagramTest
+   var a;
+   compartment default;
+   math_constraint: assert a>100;
+end

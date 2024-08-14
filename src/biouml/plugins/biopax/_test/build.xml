@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.7 2011/07/06 03:30:26 anna Exp $  -->
+
+<project name="biouml.plugins.biopax package test" default="autotest" basedir="../../../..">
+
+  	<property name="package" value="biouml.plugins.biopax"/>
+
+  	<target name="autotest">
+    	<ant target="rtest">
+    		<property name="testui" value="swingui"/>
+    		<property name="test" value="biouml.plugins.biopax._test.AutoTest"/>
+    	</ant>
+  	</target>
+
+  	<target name="owlapi.read">
+    	<ant target="rtest">
+    		<property name="testui" value="swingui"/>
+    		<property name="test" value="${package}._test.OwlApiReaderTest"/>
+    	</ant>
+  	</target>
+	
+	<target name="reader.test">
+    	<ant target="rtest">
+    		<property name="testui" value="swingui"/>
+    		<property name="test" value="${package}._test.BioPAXReaderTest"/>
+    	</ant>
+  	</target>
+
+  	<target name="clean">
+    	<ant target="clean"/>
+  	</target>
+
+</project>

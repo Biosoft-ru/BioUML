@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: Core workbench plugins package
+Bundle-SymbolicName: ru.biosoft.plugins;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ org.eclipse.equinox.registry,
+ com.developmentontheedge.util,
+ ru.biosoft.access
+Export-Package: ru.biosoft.plugins

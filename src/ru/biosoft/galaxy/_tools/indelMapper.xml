@@ -1,0 +1,16 @@
+<tool id="vat_indelMapper" name="VAT:Indel Mapper">
+  <command>cat "$input" | indelMapper "${annotationSource.fields.path}.interval" "${annotationSource.fields.path}.fa" > "$output" 2> "$log"</command>
+  <inputs>
+    <param name="input" type="data" format="vcf" label="Indels to annotate" help="Indels to annotate"/>
+    <param name="annotationSource" type="select" label="Annotation source">
+      <options from_data_table="vat_files">
+        <filter type="sort_by" column="2" />
+      </options>
+    </param>
+  </inputs>
+  <outputs>
+    <data format="txt" name="log" label="Execution Log" />
+    <data format="vcf" name="output" label="Annotated indels" />
+  </outputs>
+<help>indelMapper is a program to annotate a set of indels in VCF format. The program determines the effect of an indel on the coding potential (frameshift insertion, non-frameshift insertion, frameshift deletion, non-frameshift deletion, spliceOverlap, startOverlap, endOverlap) of each transcript of a gene.</help>
+</tool>

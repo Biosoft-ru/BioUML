@@ -1,0 +1,121 @@
+<tool name="Count covariates" id="count_covariates" version="1.5-11">
+  <command>/bin/bash -v "$bashScript"</command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file" />
+    
+    <param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="gatk_picard_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+	<param name="knownSites" type="select" multiple="True" label="Known sites" help="A database of known polymorphic sites to skip over in the recalibration algorithm" >
+	  <options from_data_table="gatk_vcf_files">
+	    <filter type="sort_by" column="1" />
+        <validator type="no_options" message="No genomes are available for GATK" />
+	  </options>
+	</param>
+
+    <param name="covariates" type="select" multiple="True" display="checkboxes" label="Covariates to be used in the recalibration" >
+      <option value="ReadGroupCovariate" selected="True">ReadGroupCovariate</option>
+      <option value="QualityScoreCovariate" selected="True">QualityScoreCovariate</option>
+      <option value="CycleCovariate" selected="True">CycleCovariate</option>
+      <option value="DinucCovariate" selected="True">DinucCovariate</option>
+      <option value="HomopolymerCovariate">HomopolymerCovariate</option>
+      <option value="GCContentCovariate">GCContentCovariate</option>
+      <option value="MappingQualityCovariate">MappingQualityCovariate</option>
+      <option value="MinimumNQSCovariate">MinimumNQSCovariate</option>
+      <option value="PositionCovariate">PositionCovariate</option>
+      <option value="PrimerRoundCovariate">PrimerRoundCovariate</option>
+      <option value="ContextCovariate">ContextCovariate</option>
+    </param>
+    
+    <param name="interval" type="text" default="" label="Process only this genomic interval (chr1:50000000-80000000)" />
+    
+    <param name="defaultPlatform" type="select" label="Sequencing platform" help="If a read has no platform then default to the provided String.">
+      <option value="illumina" selected="True">illumina</option>
+      <option value="solid">solid</option>
+      <option value="454">454</option>
+    </param>
+	
+	<param name="numThreads" type="integer" label="Number of threads" value="60" />
+	<param name="memoryUsage" type="integer" label="Max memory usage in gigabytes per thread" value="4" />
+	<param name="tmpFolder" type="text" label="TMP folder" value="/tmp" />
+    
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="log" label="Log file" />
+    <data format="data" name="recalFile" label="Recalibration table" />
+  </outputs>
+<configfiles>
+<configfile name="script">
+import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.sting.queue.extensions.gatk._
+
+class QIndelRealigner extends QScript {
+  def script() {
+	val countcovariates = new CountCovariates
+	countcovariates.scatterCount = $numThreads
+	countcovariates.recal_file =  new File("$recalFile")
+	countcovariates.input_file :+=  new File("$input_bam")
+	countcovariates.dP = "$defaultPlatform"
+	countcovariates.memoryLimit = $memoryUsage
+	countcovariates.log = new File("$log"+".tmp")
+	countcovariates.reference_sequence = new File("${ refGenome.fields.path }")
+	countcovariates.logging_level="INFO"
+	countcovariates.covariate = (		
+  #if str( $covariates ) != "None":
+    #for $cov in str( $covariates ).split( ',' ):
+		"${cov}"::
+    #end for
+  #end if
+		Nil)
+
+	countcovariates.knownSites = (
+  #for $vcf in $knownSites.fields.path:
+	"$vcf"::
+  #end for
+	Nil)
+
+  #if str( $interval ) != "":
+	countcovariates.intervalsString = ("$interval")    
+  #end if
+
+    add(countcovariates)
+  }
+}
+    </configfile>
+
+<configfile name="bashScript">#!/bin/bash -v
+DEST=`dirname $log`
+cd \$DEST
+
+runqueue "$tmpFolder" "$script" "\$DEST"
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "runqueue finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+cd \$DEST
+
+cat *.jobreport.txt "$log".tmp > $log
+
+# sudo rm -Rf "$tmpFolder"
+    </configfile>
+  </configfiles>  
+  <help>
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

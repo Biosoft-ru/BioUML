@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.5 2007/05/05 05:20:39 alexander Exp $  -->
+
+<project name="biouml.plugins.cellml package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.cellml"/>
+
+    <target name="rdf">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.RdfTest"/>
+        </ant>
+    </target>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.cellml._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

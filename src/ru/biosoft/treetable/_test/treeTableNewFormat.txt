@@ -1,0 +1,6 @@
+[TreeTable]
+TreePath = databases/Test
+TablePath = databases/Test/Table
+HideAbsentBranches = false
+
+

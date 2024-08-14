@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+	<extension id="Evolution strategy (SRES)" point="biouml.plugins.optimization.method">
+		<analysisClass class="ru.biosoft.analysis.optimization.methods.SRESOptMethod" name="Evolution strategy (SRES)" description="ru/biosoft/analysis/optimization/resources/sres.html" />
+	</extension>
+
+	<extension id="GLBSOLVE" point="biouml.plugins.optimization.method">
+		<analysisClass class="ru.biosoft.analysis.optimization.methods.GlbSolveOptMethod" name="GLBSOLVE" description="ru/biosoft/analysis/optimization/resources/glbsolve.html" />
+	</extension>
+
+	<extension id="Quadratic Hill-climbing" point="biouml.plugins.optimization.method">
+		<analysisClass class="ru.biosoft.analysis.optimization.methods.GoldfeldOptMethod" name="Quadratic Hill-climbing" description="ru/biosoft/analysis/optimization/resources/goldfeld.html" />
+	</extension>
+
+	<extension id="MOPSO" point="biouml.plugins.optimization.method">
+		<analysisClass class="ru.biosoft.analysis.optimization.methods.MOPSOOptMethod" name="Particle swarm optimization" description="ru/biosoft/analysis/optimization/resources/mopso.html" />
+	</extension>
+	
+	<extension id="MOCell" point="biouml.plugins.optimization.method">
+		<analysisClass class="ru.biosoft.analysis.optimization.methods.MOCellOptMethod" name="Cellular genetic algorithm" description="ru/biosoft/analysis/optimization/resources/mocell.html" />
+	</extension>
+	
+	<extension id="Adaptive simulated annealing" point="biouml.plugins.optimization.method">
+	  <analysisClass class="ru.biosoft.analysis.optimization.methods.ASAOptMethod" name="Adaptive simulated annealing" description="ru/biosoft/analysis/optimization/resources/asa.html" />
+    </extension>
+
+</plugin>

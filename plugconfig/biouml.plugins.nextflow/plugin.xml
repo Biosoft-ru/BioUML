@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="Nextflow script" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.plugins.nextflow.NextflowScript" transformerClass="biouml.plugins.nextflow.NextflowScriptTransformer"/> 
+      <!--transformer name="WDL diagram" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.wdl.diagram.WDLDiagramTransformer"/--> 
+  </extension>
+
+  <extension point="ru.biosoft.access.scriptType">
+  	<scriptType type="Nextflow" title="Nextflow script" product="Nextflow" class="biouml.plugins.nextflow.NextflowScript" lexer="com.Ostermiller.Syntax.Lexer.JavaScriptLexer" />
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction">
+      
+     <action name="New nextflow script" class="biouml.plugins.nextflow.NewNextflowScriptAction" priority="10">
+        <property name="Name" value="New nextflow script"/>
+        <property name="ShortDescription" value="Create a new nextflow script document"/>
+        <property name="LongDescription" value="Create a new nextflow script document"/>
+        <property name="SmallIcon" value="nextflow-script.gif"/>
+        <property name="ActionCommandKey" value="cmd-new-nextflowscript"/>
+     </action>
+  </extension>
+
+  <!--extension id="RunWDL" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.wdl.RunWDLAnalysis" group="Unclassified" name="Run WDL"
+         shortDescription="Run WDL script" description="Run WDL script" /> 
+  </extension-->
+
+  <!--extension point="ru.biosoft.server.servlets.webProvider">
+    <provider prefix="wdl" class="biouml.plugins.wdl.WDLWebProvider"/>
+  </extension-->
+
+  
+</plugin>
+

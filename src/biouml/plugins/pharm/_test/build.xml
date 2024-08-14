@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2013/12/24 11:00:05 axec Exp $  -->
+
+<project name="biouml.plugins.pharm package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="biouml.plugins.pharm"/>
+    
+	<target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.pharm._test.AutoTest"/>
+        </ant>
+    </target>
+	
+	<target name="test.population">
+	   <ant target="rtest">
+	     <property name="test" value="${package}._test.TestPopulationComplex"/>
+	   </ant>
+	 </target>
+
+	<target name="test.treatment">
+	   <ant target="rtest">
+		  <property name="test" value="${package}._test.TestSimulateComplex"/>
+	   </ant>
+    </target>
+	
+</project>

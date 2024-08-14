@@ -1,0 +1,57 @@
+<h2>Score based FBC table builder</h2>
+
+<p>
+This analysis constructs FBC data table using data about enzymes (reaction modifiers) from the specified tables.
+</p>
+%parameters%
+
+<h3>Method description:</h3>
+<p>
+This analysis constructs FBC data table for <b>Flux Balance Constraint</b> analysis. Such table contains information about fluxes (reactions):
+lower and upper bound, objective function coefficients. Unlike <b>Building Flux Balance DataTable</b> analysis, this one constructs FBC data table
+using data about enzymes (reaction modifiers) from the specified tables. So if one want to use, e.g., enzymes expression or other data about enzymes
+as in [1], [2], this analysis is recommended.
+<br><br>
+<b>Upper bound</b><br>
+Upper bound of reaction is constructed in a following way. If <b>Enzymes table</b> or <b>Max column</b> is not specified '1.0'
+is selected as upper bound. Else we select values from <b>Max column</b> for all enzymes which are reaction modifiers and choose 
+the smallest in absolute value. If no enzymes were found, then the smallest absolute value from <b>Max column</b> will be used.
+<br><br>
+<b>Lower bound</b><br>
+Lower bound will be '-upperBound' for reversible reaction and '0.0' for irreversible.
+<br><br>
+<b>Objective function coefficient</b><br>
+Three different ways can be used to obtain objective function coefficient. For this purpose 4 parameters are used:
+<b>Enzymes table</b>, <b>Score column</b>, <b>Objective function table</b> and <b>Objective column</b>, and must be specified at least one:
+<b>Objective function table</b> or (<b>Enzymes table</b> and <b>Score column</b>).<br>
+<ol>
+    <li>
+        <b>Objective function table</b> is not specified. In this case <b>Enzymes table</b> and <b>Score column</b> must be specified.
+        Coefficient is evaluated in the same way as upper bound, but will be selected the max value from <b>Score column</b>
+        for all enzymes which are reaction modifiers.
+    </li>
+    <li>
+        <b>Enzymes table</b> or <b>Score column</b> is not specified.
+        For all reactions, which name is in IDs of <b>Objective function table</b> table, coefficient will be equal value from
+        <b>Objective column</b> (if this parameter is specified) and '1.0' (if not). And '0.0' for others.
+    </li>
+    <li>
+        <b>Objective function table</b>, <b>Enzymes table</b> and <b>Score column</b> are specified. In this case coefficient will be equal to
+        multiplication of the values obtained by items 1. and 2.
+    </li>
+</ol>
+<br><br>
+<b>References:</b>
+<ol class="references">
+    <li>
+        Caroline Colijn, Aaron Brandes, Jeremy Zucker, Desmond S. Lun, Brian Weiner, Maha R. Farhat, Tan-Yun Cheng, D. Branch Moody, Megan Murray, James E. Galagan.
+        <i>"Interpreting Expression Data with Metabolic Flux Models: Predicting Mycobacterium tuberculosis Mycolic Acid Production."</i>
+        PLoS Comput Biol. 2009 August; 5(8): e1000489. doi: <a href="http://dx.doi.org/10.1371/journal.pcbi.1000489">10.1371/journal.pcbi.1000489</a>
+    </li>
+    <li>
+        Rasmus Agren, Sergio Bordel, Adil Mardinoglu, Natapol Pornputtapong, Intawat Nookaew, Jens Nielsen.
+        <i>"Reconstruction of Genome-Scale Active Metabolic Networks for 69 Human Cell Types and 16 Cancer Types Using INIT."</i>
+        PLoS Comput Biol. 2012 May; 8(5): e1002518. doi: <a href="http://dx.doi.org/10.1371/journal.pcbi.1002518">10.1371/journal.pcbi.1002518</a>
+    </li>
+</ol>
+</p>

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2012/10/23 10:36:34 buharov Exp $  -->
+
+<project name="biouml.plugins.proteinmodel package test" default="proteinModel" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.proteinmodel"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="proteinModel">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.ProteinModelTest"/>
+        </ant>
+    </target>
+
+	<target name="clean">
+        <ant target="clean"/>
+    </target>
+</project>

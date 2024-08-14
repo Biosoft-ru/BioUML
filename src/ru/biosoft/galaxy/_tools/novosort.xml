@@ -1,0 +1,32 @@
+<tool id="novosort" name="Sort and merge BAM files" version="1.0beta">
+   <command>/bin/bash -v "$script"</command>
+	<inputs>
+		<param name="bamFiles" type="data-multi" format="bam" label="Input BAM files"/>
+		<param name="nThreads" type="integer" label="Number of threads" value="1" />
+		<param name="memoryUsage" type="text" label="Max memory usage" value="1G" />
+		<param name="tmpFolder" type="text" label="TMP folder" value="/tmp" />
+		<param name="compressionLevel" type="integer" label="Compression level for output bam" value="6" />
+	</inputs>
+	<outputs>
+		<data format="txt" name="log" label="Log file"/>
+        	<data format="bam" name="Result" />
+	</outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+# novosort -c $nThreads -m $memoryUsage -t $tmpFolder -$compressionLevel $bamFiles &gt; $Result 2&gt; &gt;(tee stderr.log &gt;&amp;2)
+err="`dirname $log`/err.pipe"
+echo \$err
+
+mkfifo "\$err"
+tmp="${tmpFolder}/novosort-\$RANDOM"
+mkdir -p \$tmp
+trap 'rm -Rf "\$err" "\$tmp' EXIT
+tee $log &lt; "\$err" &gt;&amp;2 &amp;
+novosort -c $nThreads -m $memoryUsage -t \$tmp -$compressionLevel $bamFiles &gt; $Result  2>"\$err"
+
+  </configfile>
+  </configfiles>
+
+	<help>
+	</help>
+</tool>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="IPythonImporter" point="ru.biosoft.access.import">
+    <export
+      format="IPython format (*.ipynb)"
+      importer="biouml.plugins.jupyter.IPythonFileImporter"
+      description="Imports IPython file"
+    />
+  </extension>
+
+  <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
+    <class class="biouml.plugins.jupyter.access.IPythonElement"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.transformer"> 
+    <transformer name="IPython" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="biouml.plugins.jupyter.access.IPythonElement" transformerClass="biouml.plugins.jupyter.IPythonFileTransformer"/>
+  </extension>
+
+  <extension point="ru.biosoft.server.servlets.webProvider">
+      <provider prefix="biouml_jupyter" class="biouml.plugins.jupyter.server.JupyterProvider"/>
+  </extension>
+
+</plugin>

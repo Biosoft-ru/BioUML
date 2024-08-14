@@ -1,0 +1,48 @@
+<tool id="cnvnator_eval" name="Evaluate ROOT File for a BIN" version="0.2.5">
+    <requirements>
+        <requirement type='package'>cnvnator</requirement>
+    </requirements>
+    <description></description>
+    <parallelism method="basic"></parallelism>
+
+  <command>
+    cnvnator     
+    -root "$inputROOTFile"    
+    -eval 
+    $binSize | tee "$log" | grep "(1-22)" | awk '{print $10}'> "$cnvs"
+  </command>
+
+    <inputs>
+        <param name="inputROOTFile" type="data"
+                    format="CNVnatorRoot" label="Input Root file."
+                    help="Input ROOT file" />
+
+        <param name="binSize" type="integer" value="100"
+                    label="Bin Size for calculation" help="Bin Size should be the same as was used for histogram calculation" />        
+    </inputs>
+
+    <outputs>
+        <data format="txt" name="log" label="Text output"/>        
+        <data format="data" name="cnvs" label="Text file with CNVs"/>        
+    </outputs>
+
+    <tests>
+    </tests>
+
+    <help>
+The output is as follows:
+
+Results looks like: 
+File XXXX.root
+Average RD per bin (1-22) is 28.5322 +- 9.82289 2.90466
+Average RD per bin (X,Y)  is 23.4938 +- 8.2996 2.83071
+
+Where (for the first row) 28.5322 is a mean 
+9.82289 is sd 
+and 2.90466 is meand/sd
+
+mean/sd is optimal in the range 4-5
+(but from my experience mean/sd > 3.5 - Comment from Alex Abyzov).
+    </help>
+</tool>
+

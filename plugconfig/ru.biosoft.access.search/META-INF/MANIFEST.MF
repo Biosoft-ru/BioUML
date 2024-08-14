@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: ru.biosoft.access.search;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.jobcontrol,
+ ru.biosoft.access,
+ ru.biosoft.exception,
+ ru.biosoft.workbench
+Export-Package: ru.biosoft.access.search,
+ ru.biosoft.access.search.resources

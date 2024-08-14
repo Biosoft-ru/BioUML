@@ -1,0 +1,102 @@
+<script type="text/javascript">
+  var search = new Lucene("riboseq_experiment_search")
+  var dc = getDataCollection("databases/RiboSeqDB/Data/experiments");
+  search.setCollection(dc);
+
+  search = new Lucene("mRNAseq_experiment_search")
+  dc = getDataCollection("databases/RiboSeqDB/Data/mRNA experiments");
+  search.setCollection(dc);
+</script>
+
+<center><h1>RiboSeqDB</h1></center>
+
+<table style="border-spacing:20px 20px; float: left">
+  <tr>
+    <td>
+      <a href="#de=databases/RiboSeqDB/Data/experiments">Browse table of riboseq experiments</a>
+    </td>
+  </tr>
+  <tr id="riboseq_experiment_search">
+    <td>Search for ribo-seq experiments:</td>
+    <td width="400px">
+      <input type="text" id="search_string" />
+    </td>
+    <td width="20px">
+      <a id="search_button" href="#" class="fg-button ui-state-default fg-button-icon-solo  ui-corner-all" title="Search">
+        <img class="fg-button-icon-span" src="icons/search.gif"></img>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="#de=databases/RiboSeqDB/Data/mRNA experiments">Browse table of mRNA experiments</a>
+    </td>
+  </tr>
+  <tr id="mRNAseq_experiment_search">
+    <td>Search for mRNA-seq experiments:</td>
+    <td width="400px">
+      <input type="text" id="search_string" />
+    </td>
+    <td width="20px">
+      <a id="search_button" href="#" class="fg-button ui-state-default fg-button-icon-solo  ui-corner-all" title="Search">
+        <img class="fg-button-icon-span" src="icons/search.gif"></img>
+      </a>
+    </td>
+  </tr>
+</table>
+<div style="float: left; margin: 20px; border: 1px solid">
+  <b>Statistics</b>
+  <table>
+    <tbody>
+      <tr><th></th><th>Count</th></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/experiments">RiboSeq experiments</a>:</td><td>364</td></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/experiments">RiboSeq data sets</a>:</td><td>38</td></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/cells">Distinct cells</a>:</td><td>38</td></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/conditions">Distinct experimental conditions</a>:</td><td>135</td></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/sequencing%20platforms">Sequencing platforms</a>:</td><td>7</td></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/mRNA%20experiments">mRNA-seq experiments</a>:</td><td>251</td></tr>
+      <tr><td><a href="#de=databases/RiboSeqDB/Data/mRNA%20experiments">mRNA-seq data sets</a>:</td><td>31</td></tr>
+      <tr><td>Total data sets:</td><td>69</td></tr>
+    </tbody>
+  </table>
+</div>
+<div style="clear: both;"></div>
+<div style="margin: 20px">
+	<b>Processed data:</b>
+	<ul>
+	  <li><a href="#de=databases/RiboSeqDB/results/Ribo-seq read counts">Ribo-seq read counts</a></li>
+	  <li><a href="#de=databases/RiboSeqDB/results/Ribo-seq translation start sites">Ribo-seq translation start sites</a></li>
+	  <li><a href="#de=databases/RiboSeqDB/results/mRNA-seq read counts">mRNA-seq read counts</a></li>
+	</ul>
+	<b>Workflows used to build RiboSeqDB:</b>
+	<ul>
+	  <li><a href="#de=analyses/Workflows/Ribo-Seq preprocessing">Ribo-Seq processing (Illumina)</a>: Compute footprint counts for each transcript starting from raw Illumina sequencing data.</li>
+	  <li><a href="#de=analyses/Workflows/Ribo-Seq preprocessing SOLiD">Ribo-Seq processing (SOLiD)</a>: Compute footprint counts for each transcript starting from raw SOLiD sequencing data.</li>
+	  <li><a href="#de=analyses/Workflows/mRNA-seq processing">mRNA-seq processing</a>: Compute mRNA-seq read counts for each transcript starting from raw sequencing data.</li>
+	</ul>
+	<b>Methods for the identification of translation start sites from harringtonine/lactimidomycin treated riboseq samples:</b>
+	<ul>
+	  <li><a href="#de=analyses/Methods/Ribosome profiling/BuildASiteOffsetTable">Build A-site offset table</a>: Identify offset of ribosome A-site in riboseq footprints using well known translation initiation sites.</li>
+	  <li><a href="#de=analyses/Methods/Ribosome profiling/BuildProfileModel">Build profile model</a>: Learn support vector machine model from the one part of known translation initialtion sites and test it using other part.</li>
+	  <li><a href="#de=analyses/Methods/Ribosome profiling/PredictStartSites">Predict start sites</a>: Predict translation initiation sites using trained support vector machine.</li>
+	</ul>
+	<b>Toolkit for the analysis of riboseq data:</b>
+	<ul>
+	  <li><a href="#de=analyses/Methods/Binding regions/Ribo-Seq and mRNA features forming">Ribo-Seq and mRNA features forming</a>: Create data matrix with Ribo-Seq and mRNA features and write it as TableDataCollection.</li>
+	  <li><a href="#de=analyses/Methods/Binding regions/Regression analysis">Regression analysis</a>: Create and save regression model or load regression model for prediction of response or cross-validation of regression model.</li>
+	  <li><a href="#de=analyses/Methods/Binding regions/Classification analysis">Classification analysis</a>: Create and save classification model or load classification model for prediction of classes or cross-validation of classification model.</li>
+	  <li><a href="#de=data/Public/Data sets/Data/Ribo-Seq/Ribo_Seq_project/">Supporing data</a>: Example data that can be used with above analyses.</li>
+	</ul>
+	<b>Browse other supporting tables:</b>
+	<ul>
+	  <li><a href="#de=databases/RiboSeqDB/Data/conditions">Experimental conditions</a></li>
+	  <li><a href="#de=databases/RiboSeqDB/Data/sequencing platforms">Sequencing platforms</a></li>
+	  <li><a href="#de=databases/RiboSeqDB/Data/adapters">Sequencing adapters</a></li>
+	  <li><a href="#de=databases/RiboSeqDB/Data/cells">Cells</a></li>
+	  <li><a href="#de=databases/RiboSeqDB/Data/species">Species</a></li>
+	</ul>
+</div>
+
+<div style="clear: both;"></div>
+
+

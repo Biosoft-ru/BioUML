@@ -1,0 +1,18 @@
+/*
+ * About action
+ */
+{
+    id: "home",
+    label: "Start page",
+    icon: "icons/home.gif",
+    visible: "function()
+    {
+        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+            return -1;
+        return $('div#documentTabs div#intro').length == 1 ? true : -1;
+    }",
+    action: "function()
+    {
+    	documentTabs.tabs('option', 'active', getTabIndex('#intro'));
+    }"
+}

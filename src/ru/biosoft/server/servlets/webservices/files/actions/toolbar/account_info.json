@@ -1,0 +1,29 @@
+/*
+ * Open account info action
+ */
+{
+    id: "account_info",
+    label: "Account info",
+    icon: "icons/account_info.gif",
+    visible: "function(doc)
+    {
+        if( currentUser ) return true;
+        return false; 
+    }",
+    action: "function(event)
+    {
+        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        {
+            window.open(appInfo.userAccountLink);
+            return;
+        }
+        openNonTreeDocument('account_info_div', 'account_info', 'Account info');
+        $('#account_info_div').load('account_info.html?'+appInfo.build, function(response, status, xhr) 
+		{
+			if (status == 'error') 
+			{
+				documentTabs.tabs('remove', '#account_info');
+			}
+		});   
+    }"
+}

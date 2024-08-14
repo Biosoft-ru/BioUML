@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<project name="biouml.standard.state._test" default="autotest" basedir="../../../..">
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="test" value="biouml.standard.state._test.AutoTest" />
+		</ant>
+	</target>
+
+  <target name="stateTest">
+    <ant target="rtest">
+      <property name="test" value="biouml.standard.state._test.StateTest"/>
+    </ant>
+  </target>
+
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

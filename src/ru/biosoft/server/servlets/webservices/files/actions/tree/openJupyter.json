@@ -1,0 +1,27 @@
+/*
+ * Open ipython file action
+ */
+{
+    id: "open_ipython",
+    label: "Open file in Jupyter",
+    icon: "icons/open.gif",
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.plugins.jupyter.access.IPythonElement'))
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createJupyterDocument(path, function (document){
+            openDocumentTab(document);
+        });
+    }"
+}

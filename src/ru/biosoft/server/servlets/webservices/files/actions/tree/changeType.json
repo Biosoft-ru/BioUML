@@ -1,0 +1,33 @@
+/*
+ * Change type of element inside FolderDataCollection
+ */
+{
+    id: "change_type_fdc",
+    label: "Change type",
+    icon: "icons/edit.gif",
+    visible: "function(completePath)
+    {
+      if(!completePath) return -1;
+      //console.log('changeType.json: visible()');
+      var parentPath = getElementPath(completePath);
+      var parentName = getElementName(parentPath);
+      var parParPath = getElementPath(parentPath);
+      if(!parParPath)
+      	return -1;
+      var parPar = getDataCollection(parParPath);
+      if(parPar == null)
+        return -1;
+      var parentType = parPar.getChildClass(parentName);
+      //console.log('Parent collection type: ' + parentType );
+      if (instanceOf(parentType,'ru.biosoft.access.file.FileDataCollection')) 
+        return true;
+      return -1;
+    }",
+    action: "function(completePath)
+    {
+       var name = getElementName(completePath);
+       createBeanEditorDialog('Edit ' + name, 'properties/fdc/' + completePath, function() {
+         refreshTreeBranch(getElementPath(completePath));
+       }, true);     
+    }"
+}

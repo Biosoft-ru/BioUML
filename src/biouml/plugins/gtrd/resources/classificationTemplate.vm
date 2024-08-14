@@ -1,0 +1,25 @@
+#macro( strTD $value)
+	#if($value)
+		$value
+	#else
+		&nbsp;
+	#end
+#end
+
+<html>
+	<body>
+		<h1>$de.name</h1>
+		<p>#strTD($de.className)</p>
+		<p>#strTD($de.description)</p>
+		#set( $parent = $de.getOrigin())
+		<h2>Parents</h2>
+		#set( $parentLevel = 1)
+		#foreach($boo in [1..5])
+			#if($parent.getOrigin().getClass().getName().contains("ClassificationUnit"))
+				<p><b>($parentLevel)$parent.name</b> - $parent.description</p>
+				#set( $parentLevel = $parentLevel+1)
+				#set( $parent = $parent.getOrigin())
+			#end
+		#end
+	</body>
+</html>

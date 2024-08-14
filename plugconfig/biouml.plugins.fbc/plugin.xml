@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="FBCPackage" point="biouml.plugins.sbml.package">
+     <package
+        name="fbc"
+        reader="biouml.plugins.fbc.SbmlModelFBCReader2"
+        writer="biouml.plugins.fbc.SbmlModelFBCWriter2"
+     />
+  </extension>
+
+  <extension id="EngineType" point="biouml.plugins.simulation.engine">
+    <engine class="biouml.plugins.fbc.FbcSimulationEngine"
+      displayName="FBA Simulation Engine"
+      emodelType="ODE EModel"
+      priority="0.3"
+    />
+  </extension>
+
+  <extension id="SolverType" point="biouml.plugins.simulation.solver">
+    <solver
+      class="biouml.plugins.fbc.FbcSolver"
+      displayName="Apache solver"
+      type="FBA"
+    />
+  </extension>
+
+  <extension id="Building Flux Balance DataTable" point="ru.biosoft.analysiscore.method">
+      <analysisClass
+        class="biouml.plugins.fbc.table.FbcBuilderDataTableAnalysis"
+        group="Differential algebraic equations"
+        name="Building Flux Balance DataTable"
+        shortDescription="Construct FBC data table to be used in Flux Balance Constraint analysis."
+        description="biouml/plugins/fbc/table/resources/FluxBalanceDataTable.html"
+      />
+  </extension>
+
+  <extension id="Score based FBC table builder" point="ru.biosoft.analysiscore.method">
+      <analysisClass
+        class="biouml.plugins.fbc.table.ScoreBasedFbcTableBuilder"
+        group="Differential algebraic equations"
+        name="Score based FBC table builder"
+        shortDescription="Constructs FBC data table using data about enzymes (reaction modifiers) from the specified tables."
+        description="biouml/plugins/fbc/table/resources/FluxBalanceDataTableScore.html"
+      />
+  </extension>
+
+  <extension id="Flux Balance Constraint" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.fbc.analysis.FbcAnalysis"
+         group="Differential algebraic equations"
+         name="Flux Balance Constraint"
+         shortDescription="Analyze the flow of metabolites through a metabolic network."
+         description="biouml/plugins/fbc/resources/fbc.html"/>
+  </extension>
+
+  <extension id="FBC table" point="biouml.workbench.diagramViewPart">
+      <diagramViewPart editor="true" class="biouml.plugins.fbc.FbcReactionsEditor" id="diagram.fbcTable" Name="FBC table" ShortDescription="Table of parameters used in the FBC model" Priority="3" />
+  </extension>
+
+  <extension id="Recon transformer" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.fbc.analysis.ReconTransformerAnalysis" group="Unclassified" name="Recon transformer"  description="Transforms diagram to sbml-diagram l3v1 with fbc properties"/>
+  </extension>
+  
+</plugin>

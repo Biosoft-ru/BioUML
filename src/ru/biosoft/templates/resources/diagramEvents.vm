@@ -1,0 +1,14 @@
+<html>
+#setMathJax()
+	<body>
+		#if(!$de.getRole().getEvents().isEmpty())
+			<font size = 6>Events</font><br><br>
+			<table border="0">
+			#updateEventTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Trigger</b>", "<b>Delay</b>", "<b>Assignments</b>", "<b>Comment</b>")
+			#processEvents($de)
+			</table>
+			<br><br>
+		#end
+#setMathJaxUpdate() 		
+	</body>
+</html>

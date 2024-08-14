@@ -1,0 +1,184 @@
+<tool id="joint-snv-mix-classify-snv" name="JointSNVmix classify snv" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>	
+		<param name="nBam" type="data" format="bam" label="Normal BAM" 
+		      help="BAM file for the normal sample"/>
+		<param name="tBam" type="data" format="bam" label="Tumor BAM" 
+ 		      help="BAM file for the tumor sample"/>
+		<param name="param" type="data" format="txt" label="File with parameters" 
+ 		      help="File with parameters for the model. It is recommended to get this file by training with JointSVNmix-train"/>
+
+       <param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+      <conditional name="method_selector">
+   		      <param name="method" type="select" label="Method to run" 
+                        help="Select output format">
+                                <option value="snv_mix_one">snv_mix_one</option>
+                                <option value="snv_mix_two">snv_mix_two</option>
+                                <option value="joint_snv_mix_one">joint_snv_mix_one</option>
+                                <option value="joint_snv_mix_two">joint_snv_mix_two</option>
+            </param>
+             <when value="snv_mix_one">
+                  <param name="min_base_qual" type="integer" value="10" label="Remove bases with base quality lower than this. [10]"/>
+                  <param name="min_map_qual" type="integer" value="10" label="Remove bases with mapping quality lower than this. [10]"/>
+              </when>
+              <when value="snv_mix_two" />
+              <when value="joint_snv_mix_one">
+                  <param name="min_base_qual" type="integer" value="10" label="Remove bases with base quality lower than this. [10]"/>
+                  <param name="min_map_qual" type="integer" value="10" label="Remove bases with mapping quality lower than this. [10]"/>
+              </when>
+              <when value="joint_snv_mix_two" />
+       </conditional>
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data name="output_bz2" label="Output text file compressed by bz2" help="Output file is text file compressed to bz2"/>
+	</outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  DEST=`dirname $log`
+cd \$DEST
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/out.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'rm "\$err"  "\$out"' EXIT
+tee ${log}.err &lt; "\$err" &gt;&amp;2 &amp;
+tee ${log}.out &lt; "\$out" &gt;&amp;1 &amp;
+###this program require to have indexes in the format bamfile.bai (example for file.bam index should be file.bam.bai galaxy usually provides it as file.bai)
+filename=\$(basename "$nBam")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+if [ "\$?" != "0" ] ; then
+   echo "index file for BAM was not found" 
+   exit 1
+fi
+
+filename=\$(basename "$tBam")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+if [ "\$?" != "0" ] ; then
+   echo "index file for BAM was not found"
+   exit 1
+fi
+
+
+jsm.py  classify $method_selector.method \
+#if str( $method_selector.method ) == "snv_mix_one":
+--min_base_qual $method_selector.min_base_qual \
+--min_map_qual $method_selector.min_map_qual \
+#end if 
+#if str( $method_selector.method ) == "joint_snv_mix_one":
+--min_base_qual $method_selector.min_base_qual \
+--min_map_qual $method_selector.min_map_qual \
+#end if 
+"${ refGenome.fields.path }"  \
+"$nBam" \
+"$tBam" \
+"$param" \
+output.tmp \
+  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "jsvn-classify finished with error. All temproary files stored \$DEST";  exit \$STATUS
+fi
+
+pbzip2 -9 -m900 output.tmp
+mv output.tmp.bz2 "${output_bz2}"
+cat ${log}.err ${log}.out &gt;&gt;  $log
+  </configfile>
+  </configfiles>
+<help>
+JointSNVMix
+
+Usage: pileup_to_jcnt.py NORMAL_PILEUP_FILE TUMOUR_PILEUP_FILE OUTPUT_FILE 
+
+Options:-h, –help            show this help message and exit-b                    Set this flag if file is in bz2 format.–bpil                Set this flag if files are already in bpil format.–min_base_qual=MIN_BASE_QUALMinimum base quality to use, value is inclusive.Default is 5.–min_map_qual=MIN_MAP_QUALMinimum mapping quality to use, value is inclusive.Default is 30.
+
+
+Description
+JointSNVMix implements a probabilistic graphical model to analyse sequence data from tumour/normal pairs. The model draws statistical strength by analysing both genome jointly to more accurately classify germline and somatic mutations.
+
+Overview
+The JointSnvMix software package consists of a number of tools for calling somatic mutations in tumour/normal paired NGS data.
+
+After installation the jsm.py command should be available on your system.
+
+There are two subcommands jsm.py classify and jsm.py train. If you type these in a list of models available for use with each command will be presented.
+
+Classifiy
+The classify command is used for analysing tumour/normal paired data and computing the posterior probability for each of the nine joint genotypes for a pair of diploid genomes.
+
+For more information on the output of this command see output page.
+
+Currently the following models are available.
+
+snv_mix_one - Runs two separate SnvMix1 analysis and multiplies the resulting genotypes together to get joint genotype probabilities.
+snv_mix_two - Runs two separate SnvMix2 analysis and multiplies the resulting genotypes together to get joint genotype probabilities.
+joint_snv_mix_one - Runs a JointSnvMix1 analysis.
+joint_snv_mix_two - Runs a JointSnvMix2 analysis
+independent_fisher - Runs a heuristic method using fisher exact tests on each sample and joins the results post-hoc.
+joint_fisher - Runs and independent Fisher analysis with a final step where the count data of putative somatic sites is compared to see if differs significantly. If not these sites are relabeled as wild type positions.
+threshold - Runs a heuristic method based on thresholding variant allele frequencies in the tumour and normal separately and joins the results post-hoc.
+Note that running jsm.py classify MODEL -h will show the help command for the given model.
+
+I recommend using the train to learn the model parameters for models in the SnvMix family and then using these parameters for the classify command.
+
+snv_mix_one
+This is a re-implementation of the SnvMix1 model published by Goya et. al. in 2010. The original model was designed for single samples so and additional step of multiplying the resultant genotype probabilities from the two samples is to get joint genotype probabilities.
+
+snv_mix_two
+This is a re-implementation of the SnvMix2 model published by Goya et. al. in 2010. This model makes use of base and mapping qualities so no threshold needs to be set on these. The original model was designed for single samples so and additional step of multiplying the resultant genotype probabilities from the two samples is to get joint genotype probabilities.
+
+joint_snv_mix_one
+This is the JointSnvMix1 model which jointly analyses the tumour and normal sample.
+
+  joint_snv_mix_two
+This is the JointSnvMix2 model which jointly analyses the tumour and normal sample. This model incorporates probabilistic modelling of base and mapping qualities in the same way as SnvMix2.
+
+All subcommands of classify produce a file with a standard format. This is a tab delimited file with a header for each column.
+
+The file will look like the following
+
+chrom   position        ref_base        var_base        normal_counts_a normal_counts_b tumour_counts_a tumour_counts_b p_AA_AA p_AA_AB p_AA_BB p_AB_AA p_AB_AB p_AB_BB p_BB_AA p_BB_AB p_BB_BB
+1       1299268 T       C       26      25      3       17      0.0000  0.0000  0.0000  0.0000  0.0000  1.0000  0.0000  0.0000  0.0000
+The last nine columns of the file list the posterior probability of each of the joint genotypes. They have the form p_gN_gT where gN is the normal genotype and gT is the tumour genotype. For deterministic methods only one of these columns will be non-zero and will have a value of 1.
+
+The rows of the file correspond to genomic positions. The columns are as follows
+
+chrom - Chromosome the site is on.
+position - 1-based position on the chromosome
+ref_base - Base found in reference genome at this position.
+var_base - Variant base found at this position. If no variant base is found this will be N.
+normal_counts_a - Number of read matching ref_base in the normal at this position
+normal_counts_b - Number of reads matching var_base in the normal at this position.
+tumour_counts_a - Number of read matching ref_base in the tumour at this position
+tumour_counts_b - Number of reads matching var_base in the tumour at this position.
+p_AA_AA - Probability of joint genotype AA_AA
+p_AA_AB - Probability of joint genotype AA_AB
+p_AA_BB - Probability of joint genotype AA_BB
+p_AB_AA - Probability of joint genotype AB_AA
+p_AB_AB - Probability of joint genotype AB_AB
+p_AB_BB - Probability of joint genotype AB_BB
+p_AB_AA - Probability of joint genotype BB_AA
+p_AB_AB - Probability of joint genotype BB_AB
+p_AB_BB - Probability of joint genotype BB_BB
+To extract somatic positions from this file I suggest adding p_AA_AB + p_AA_BB together to get the somatic genotype probability. You can then choose to threshold at whatever level is appropriate.
+
+This file format can easily be manipulated using Python and the csv library which is installed by default. The csv.DictReader class will be especially useful.
+
+JOINTSNVMIX PAPER PUBLISHED: A STATISTICAL MODEL FOR SOMATIC POINT MUTATION DETECTION
+ 
+Andrew Roth, Ryan Morin, Jiarui Ding, Anamaria Crisan, Gavin Ha, Ryan Giuliany, Ali Bashashati, Martin Hirst, Gulisa Turashvili, Arusha Oloumi, Marco A. Marra, Samuel Aparicio and Sohrab P. Shah. JointSNVMix : A Probabilistic Model For Accurate Detection Of Somatic Mutations In Normal/Tumour Paired Next Generation Sequencing Data. Bioinformatics. 2012 doi: 10.1093/bioinformatics/bts053 SOFTWARE
+</help>
+
+
+
+</tool>

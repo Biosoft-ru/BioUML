@@ -1,0 +1,7 @@
+model diagramTest
+   var k;
+   compartment default;
+   k '= 9;
+   k := 9;
+   k = 9;
+end

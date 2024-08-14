@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.2 2011/10/28 05:11:41 ivan Exp $
+-->
+
+<project name="biouml.plugins.gtrd test package" default="autotest" basedir="../../../..">
+
+  <!-- Run batch of auto test for mgl3.core package. -->
+  <target name="testEncodeImport">
+    <ant target="rtest">
+      <property name="testui" value="textui"/>
+      <property name="test" value="biouml.plugins.gtrd._test.ImportEncodeTest"/>
+    </ant>
+  </target>
+
+  <target name="testUniprobeImport">
+    <ant target="rtest">
+      <property name="testui" value="textui"/>
+      <property name="test" value="biouml.plugins.gtrd._test.ImportUniprobeTest"/>
+    </ant>
+  </target>
+
+  <!--
+     Delete all *.class files.
+  -->
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

@@ -1,0 +1,16 @@
+<tool id="vat_snpMapper" name="VAT: SNP Mapper">
+  <command>cat "$input" | snpMapper "${annotationSource.fields.path}.interval" "${annotationSource.fields.path}.fa" > "$output" 2> "$log"</command>
+  <inputs>
+    <param name="input" type="data" format="vcf" label="SNPs to annotate" help="SNPs to annotate"/>
+    <param name="annotationSource" type="select" label="Annotation source">
+      <options from_data_table="vat_files">
+        <filter type="sort_by" column="2" />
+      </options>
+    </param>
+  </inputs>
+  <outputs>
+    <data format="txt" name="log" label="Execution Log" />
+    <data format="vcf" name="output" label="Annotated SNPs" />
+  </outputs>
+<help>snpMapper is a program to annotate a set of SNPs in VCF format. The program determines the effect of a SNP on the coding potential (synonymous, nonsynonymous, prematureStop, removedStop, spliceOverlap) of each transcript of a gene.</help>
+</tool>

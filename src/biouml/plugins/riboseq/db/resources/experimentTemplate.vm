@@ -1,0 +1,47 @@
+#macro( strField $name $label )
+    #if ($name && !$name.equals(""))
+    	<b>$label</b>: $name<br>
+	#end
+#end
+
+#macro( link $label $url $name)
+  #if ($name && !$name.equals(""))
+    <b>$label</b>: <a href="$url">$name</a><br>
+  #end
+#end
+
+<html>
+  <body>
+     <h1>$de.name</h1>
+     #strField( $de.title, "Title" )
+     #strField( $de.description, "Description" )
+     #strField( $de.species, "Species" )
+     #strField( $de.cellSource, "Cell source" )
+     #strField( $de.translationInhibition, "Translation inhibition" )
+     #strField( $de.minimalFragmentSize, "Minimaml fragment size" )
+     #strField( $de.maximalFragmentSize, "Maximal fragment size" )
+     #strField( $de.digestion, "Digestion" )
+     #strField( $de.sequenceAdapter, "Sequence adapter" )
+     #strField( $de.sequencingPlatform, "Sequencing platform" )
+
+     #foreach( $e in $de.conditions )
+       <b>Condition</b>:$e<br>
+     #end
+     
+      
+     #foreach( $e in $de.sequenceData )
+       #set( $name = $e.url.replaceAll(".*/", "") )
+       <b>Sequence data</b>:<a href="$e.url">$name</a> (format $e.format)<br>
+     #end
+     
+     #link("SRA project", "http://www.ncbi.nlm.nih.gov/Traces/sra/?study=$de.sraProjectId", $de.sraProjectId)
+     #link("SRA experiment", "http://www.ncbi.nlm.nih.gov/sra/$de.sraExperimentId", $de.sraExperimentId)
+     #link("GEO series", "http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=$de.geoSeriesId", $de.geoSeriesId)
+     #link("GEO sample", "http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=$de.geoSampleId", $de.geoSampleId)
+     
+     <b>PubMed references</b>:
+     #foreach( $e in $de.pubMedIds )
+       <a href="http://www.ncbi.nlm.nih.gov/pubmed/$e">$e</a>
+     #end
+  </body>
+</html>

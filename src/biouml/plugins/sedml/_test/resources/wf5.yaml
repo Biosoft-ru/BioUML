@@ -1,0 +1,18 @@
+name: wf5
+expressions:
+  model1: {type: Data element, expression: data/model}
+  model3: {type: Data element}
+tasks:
+  Change diagram:
+    in: {Diagram: $model1$}
+    out: {Output diagram: $Change diagram(2)/diagramPath$}
+    param:
+      Changes:
+      - {Property: role/vars/J0_v0/initialValue, Value: '8'}
+  Change diagram(2):
+    in: {Diagram: $Change diagram/outputDiagram$}
+    out: {Output diagram: $model3$}
+    param:
+      Changes:
+      - {Property: role/vars/J0_v1/initialValue, Value: '9'}
+

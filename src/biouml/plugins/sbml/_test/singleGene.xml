@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by JDesigner 1.51b on 01.05.2003 -->
+<sbml xmlns="http://www.sbml.org/sbml/level1" level="1" version="1"
+  xmlns:jd="http://www.sys-bio.org/sbml">
+
+  <model name="untitled">
+
+   <listOfCompartments>
+     <compartment name="uVol" volume="1"/>
+   </listOfCompartments>
+
+   <listOfSpecies>
+     <specie name="Src" boundaryCondition="true"  initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="51" y="93" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="RNAP" boundaryCondition="false" initialAmount="0,66" compartment="uVol">
+       <annotations> 
+          <jd:display x="242" y="46" iconIndex="0" />
+       </annotations> 
+     </specie>
+     <specie name="Waste" boundaryCondition="true"  initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="396" y="58" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="RNAnuc" boundaryCondition="false" initialAmount="96" compartment="uVol">
+       <annotations> 
+          <jd:display x="258" y="135" iconIndex="1" />
+       </annotations> 
+     </specie>
+     <specie name="mRNAnuc" boundaryCondition="false" initialAmount="0,003" compartment="uVol">
+       <annotations> 
+          <jd:display x="435" y="136" iconIndex="2" />
+       </annotations> 
+     </specie>
+     <specie name="mRNAcyt" boundaryCondition="false" initialAmount="3,8" compartment="uVol">
+       <annotations> 
+          <jd:display x="359" y="242" iconIndex="2" />
+       </annotations> 
+     </specie>
+     <specie name="RNAcyt" boundaryCondition="false" initialAmount="0,005" compartment="uVol">
+       <annotations> 
+          <jd:display x="205" y="244" iconIndex="1" />
+       </annotations> 
+     </specie>
+     <specie name="AA" boundaryCondition="false" initialAmount="90,465" compartment="uVol">
+       <annotations> 
+          <jd:display x="474" y="337" iconIndex="3" />
+       </annotations> 
+     </specie>
+     <specie name="P" boundaryCondition="false" initialAmount="20" compartment="uVol">
+       <annotations> 
+          <jd:display x="220" y="332" iconIndex="4" />
+       </annotations> 
+     </specie>
+   </listOfSpecies>
+
+   <listOfReactions>
+   <reaction name="J0" reversible="false">
+     <listOfReactants>
+       <specieReference specie="Src" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="RNAP" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="150" y="70" />
+             <pt x="151" y="70" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="Vi/(1 + P/Ki)">
+       <listOfParameters>
+         <parameter name = "Vi" value = "10"/>
+         <parameter name = "Ki" value = "0,6"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J1" reversible="false">
+     <listOfReactants>
+       <specieReference specie="RNAP" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="Waste" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="333" y="46" />
+             <pt x="338" y="48" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="Vkd*RNAP">
+       <listOfParameters>
+         <parameter name = "Vkd" value = "1"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J2" reversible="false">
+     <listOfReactants>
+       <specieReference specie="RNAnuc" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="mRNAnuc" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="369" y="152" />
+             <pt x="375" y="149" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="Vm1*RNAnuc*RNAP/(Km1 + RNAnuc)">
+       <listOfParameters>
+         <parameter name = "Vm1" value = "50"/>
+         <parameter name = "Km1" value = "1"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J3" reversible="false">
+     <listOfReactants>
+       <specieReference specie="mRNAnuc" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="mRNAcyt" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="439" y="213" />
+             <pt x="438" y="221" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="k1*mRNAnuc">
+       <listOfParameters>
+         <parameter name = "k1" value = "100"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J4" reversible="false">
+     <listOfReactants>
+       <specieReference specie="mRNAcyt" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="RNAcyt" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="305" y="255" />
+             <pt x="307" y="256" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="Vm2*mRNAcyt/(mRNAcyt + Km2)">
+       <listOfParameters>
+         <parameter name = "Vm2" value = "50"/>
+         <parameter name = "Km2" value = "0,5"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J5" reversible="false">
+     <listOfReactants>
+       <specieReference specie="RNAcyt" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="RNAnuc" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="227" y="214" />
+             <pt x="215" y="191" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="k2*RNAcyt">
+       <listOfParameters>
+         <parameter name = "k2" value = "100"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J6" reversible="false">
+     <listOfReactants>
+       <specieReference specie="AA" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="P" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="355" y="370" />
+             <pt x="348" y="367" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="Vm3*mRNAcyt*AA/(AA + Km3)">
+       <listOfParameters>
+         <parameter name = "Vm3" value = "50"/>
+         <parameter name = "Km3" value = "80"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J7" reversible="false">
+     <listOfReactants>
+       <specieReference specie="P" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="AA" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="337" y="309" />
+             <pt x="346" y="304" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="Vm4*P/(P + Km4)">
+       <listOfParameters>
+         <parameter name = "Vm4" value = "50"/>
+         <parameter name = "Km4" value = "1"/>
+       </listOfParameters>
+     </kineticLaw>
+   </reaction>
+
+   </listOfReactions>
+  </model>
+</sbml>

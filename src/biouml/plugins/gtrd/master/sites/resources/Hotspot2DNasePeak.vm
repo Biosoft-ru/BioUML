@@ -1,0 +1,26 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $utils.formatHtml( $name ) <br>
+	#end
+#end
+
+#macro( deRef $path $label )
+  #if ( $path && !$path.toString().isEmpty() )
+    #set( $name = $path.toString().replaceAll(".*/", "") )
+    <b>$label</b>: <a href="de:$path">$name</a><br>
+  #end
+#end
+
+<b>DNase-seq peak</b><br>
+
+#strField($de.getStableId(), "Stable ID")
+#strField("$de.getChr():$de.getFrom()-$de.getTo()", "Location")
+
+#strField("$de.getExp().getCell().getTitle()", "Cell")
+#strField($de.getExp().getTreatment(), "Treatment")
+#deRef("databases/GTRD/Data/DNase experiments/$de.getExp().getName()", "Experiment")
+
+#strField("$de.getPeakCaller()", "Peak caller")
+
+#strField("$de.score1", "Score1")
+#strField($de.score2, "Score2")

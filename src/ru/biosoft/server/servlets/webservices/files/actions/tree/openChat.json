@@ -1,0 +1,26 @@
+/*
+ * Open chat action
+ */
+{
+    id: "open_chat",
+    label: "Start chat",
+    icon: "icons/users.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.users.UserInfo')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+    	var name = getElementName(path);
+        openChatDialog(name, chatPreferences.serverName);
+    }"
+}

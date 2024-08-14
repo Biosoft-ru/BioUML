@@ -1,0 +1,20 @@
+<html>
+<head>
+<script type="text/javascript">
+   function updateMathContent(s) {
+       var math = MathJax.Hub.getAllJax("mathdiv")[0];
+       MathJax.Hub.Queue(["Text", math, s]);
+   }
+</script>
+#setMathJax()
+</head>
+	<body>
+		#set( $isTitleSet = false)
+		#processODEEquations($de, $de, $formatter, $isTitleSet)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+#setMathJaxUpdate()
+	</body>
+</html>

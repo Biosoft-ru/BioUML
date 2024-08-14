@@ -1,0 +1,58 @@
+<tool name="Realigner Target Creator" id="realigner_target_creator" version="1.5-11">
+  <command>/bin/bash -v "$script"</command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file" />
+    
+    <param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="gatk_picard_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+	<param name="windowSize" type="integer"  value="10" label="Window size" help="Any two SNP calls and/or high entropy positions are considered clustered when they occur no more than this many basepairs apart." />
+	<param name="mismatchFraction" type="float" value="0.0" label="Mismatch fraction" help="Fraction of base qualities needing to mismatch for a position to have high entropy. This feature is really only necessary when using an ungapped aligner and should be used in conjunction with '--model USE_SW' in the IndelRealigner." />
+	<param name="minReadsAtLocus" type="integer" value="4" label="Min reads at locus" help="Minimum reads at a locus to enable using the entropy calculation"/>
+	<param name="maxIntervalSize" type="integer" value="500" label="Max interval size" help="Because the realignment algorithm is N^2, allowing too large an interval might take too long to completely realign." />
+	
+	<param name="numThreads" type="integer" label="Number of threads" value="60" />
+	<param name="memoryUsage" type="text" label="Max memory usage" value="16G" />
+    
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="logFile" label="Log file" />
+    <data format="data" name="targetIntervals" label="Intervals for realignment" />
+  </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+DEST=`dirname $logFile`
+cd \$DEST
+
+### intervals="\${targetIntervals%.data}.intervals"
+### ln "$targetIntervals" "\$intervals"
+rungatk $memoryUsage -T RealignerTargetCreator \
+-R "${ refGenome.fields.path }" \
+-I "$input_bam" \
+-o "new.intervals" \
+-l INFO -log "$logFile" \
+-nt $numThreads \
+-window $windowSize -mismatch $mismatchFraction -minReads $minReadsAtLocus -maxInterval $maxIntervalSize
+ 
+mv new.intervals $targetIntervals
+  </configfile>
+  </configfiles>  
+  <help>
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

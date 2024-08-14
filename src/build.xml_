@@ -1,0 +1,1662 @@
+<?xml version="1.0"?>
+
+<project name="BioUML" default="usage" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+
+    <target name="usage">
+        <echo>
+    ant clean   - clean OUTDIR, RELEASEDIR, JAVADOC_OUTDIR.
+
+    ant be      - build BeanExplorer release directory.
+                  This target should be called explicitly,
+                  when BeanExplorer is changed.
+
+    ant graph   - build graph.jar.
+                  This target should be called explicitly,
+                  when ru.biosoft.graph is changed.
+
+    ant ctest   - compile all test cases (**/_test/*.java).
+
+    ant rtest   - run the test (-Dtest testName)
+        </echo>
+    </target>
+
+    <!-- ant-contrib support is required for testing -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="../build/bin/ant-contrib.jar" />
+
+    <property name="PROJECT_NAME" value="${ant.project.name}" />
+    <property name="COMMONDIR" value="../build" />
+    <property name="TOOLSDIR" value="../../Tools" />
+    <property name="PLUGIN_CONFIG_DIR" value="../plugconfig" />
+    <property name="DEFAULT_DATABASE_SERVER" value="lachesis.developmentontheedge.com"/>
+    <property name="RUN_JACOCO" value="true"/>
+    <property name="RUN_HUNTBUGS" value="true"/>
+    <property name="USE_LARGE_ICONS" value="false"/>
+
+    <target name="deploy.server" depends="clean,plugin.all.plus" 
+        description="deploys tomcat application, server files and data repository">
+
+        <if>
+            <istrue value="${DOCKER}"/>
+            <then>
+                 <echo message="Will build version for Docker." />
+            </then>
+        </if>
+
+        <property name="SERVER_PATH" value="C:/BioUML_Server_0.8.3" />
+        <property name="TOMCAT_PROJECT_PATH" value="${DEPLOY_DIR}" />
+
+        <ant antfile="build_bdk.xml" target="server" />
+
+    </target>
+
+    <target name="biouml.war" depends="plugin.all.plus">
+        <ant antfile="build_bdk.xml" target="biouml.just.war"/>
+    </target>
+
+    <target name="deploy.plugins" depends="plugin.all.plus">
+        <ant antfile="build_bdk.xml" target="deploy.plugins.no.build"/>
+    </target>
+
+    <target name="deploy.plugins.min" depends="plugin.all">
+        <ant antfile="build_bdk.xml" target="deploy.plugins.no.build"/>
+    </target>
+
+    <target name="biouml.webserver" depends="prepare">
+        <property name="WAR_PATH" value="${DEPLOY_DIR}/../bioumlweb.war" />
+        <echo message="Deploying BioUML web server to ${WAR_PATH}" />
+        <property name="SERVER_SOURCE_PATH" value="${SRCDIR}/ru/biosoft/server/servlets/webservices/webfiles" />
+
+        <echo message="Copying classes for war..." />
+        <copy todir="${SERVER_SOURCE_PATH}/WEB-INF/classes">
+            <fileset dir="${OUTDIR}">
+                <include name="ru/biosoft/server/tomcat/CacheControlFilter.class" />
+                <include name="ru/biosoft/server/tomcat/DataElementServlet.class" />
+            </fileset>
+        </copy>
+
+        <if>
+            <equals arg1="${USE_LARGE_ICONS}" arg2="true"/>
+            <then>
+                <war warfile="${WAR_PATH}" webxml="${SERVER_SOURCE_PATH}/WEB-INF/web.xml">
+                    <fileset dir="${SERVER_SOURCE_PATH}">
+                        <exclude name="WEB-INF/web.xml" />
+                        <exclude name="icons/large/**"/>
+                        <exclude name="css/large/**"/>
+                    </fileset>
+                    <zipfileset dir="${SERVER_SOURCE_PATH}/icons/large"  prefix="icons"/>
+                    <zipfileset dir="${SERVER_SOURCE_PATH}/css/large"  prefix="css"/>
+                </war>
+            </then>
+            <else>
+                <war warfile="${WAR_PATH}" webxml  ="${SERVER_SOURCE_PATH}/WEB-INF/web.xml">
+                    <fileset dir="${SERVER_SOURCE_PATH}">
+                        <exclude name="WEB-INF/web.xml" />
+                        <exclude name="icons/large/**"/>
+                        <exclude name="css/large/**"/>
+                    </fileset>
+                </war>
+            </else>
+        </if>
+    </target>
+
+    <target name="update.server" depends="prepare" description="create ZIP file with server updates">
+        <ant target="deploy.server">
+            <property name="DEFAULT_DATABASE_SERVER" value="localhost"/>
+        </ant>
+        <echo message="Preparing update to the server" />
+        <property name="TARGET_PATH" value="C:/update" />
+
+        <delete dir="${TARGET_PATH}" />
+        <delete dir="${TARGET_PATH}.zip" />
+        <mkdir dir="${TARGET_PATH}" />
+
+        <echo message=" 1) preparing plugins" />
+        <copy todir="${TARGET_PATH}/plugins">
+            <fileset dir="${PLUGIN_DIR}">
+                <exclude name="*.cmd" />
+                <exclude name="com.genexplain*/**" />
+                <exclude name="biouml.plugins.wiki_*"/>
+            </fileset>
+        </copy>
+
+        <echo message=" 2) preparing bioumlweb" />
+        <property name="SERVER_SOURCE_PATH" value="${SRCDIR}/ru/biosoft/server/servlets/webservices/webfiles" />
+        <copy todir="${TARGET_PATH}/bioumlweb">
+            <fileset dir="${SERVER_SOURCE_PATH}">
+                <exclude name="_test/**" />
+                <exclude name="images/**" />
+                <exclude name="css/ui/**" />
+                <exclude name="*.html" />
+                <exclude name="stat.js" />
+            </fileset>
+        </copy>
+        <copy todir="${TARGET_PATH}">
+            <fileset dir="${DEPLOY_DIR}/..">
+                <include name="biouml.war" />
+            </fileset>
+        </copy>
+
+        <echo message=" 3) preparing graphic notations" />
+        <copy todir="${TARGET_PATH}/graphic notations">
+            <fileset dir="${TOPDIR}/data/Utils/Diagrams/graphic notations">
+                <include name="kegg.xml" />
+                <include name="lipidomic.xml" />
+                <include name="sbgn_simulation.xml" />
+                <include name="sbml_sbgn.xml" />
+                <include name="sbml_sbgn_composite.xml" />
+            </fileset>
+        </copy>
+
+        <echo message=" 4) pack to ZIP" />
+        <zip destfile="${TARGET_PATH}.zip" basedir="${TARGET_PATH}" update="true" />
+        <delete dir="${TARGET_PATH}" />
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Duplicate tasks from build_bdk                                      -->
+    <!-- =================================================================== -->
+
+    <target name="local_settings">
+        <ant antfile="build_bdk.xml" target="local_settings_tofile" />
+        <property file=".local.properties" />
+        <taskdef resource="build-tasks.xml" classpath="${SRCDIR}"/>
+    </target>
+
+    <target name="local_settings_tofile">
+        <ant antfile="build_bdk.xml" target="local_settings_tofile" />
+    </target>
+
+    <target name="compile" depends="local_settings" description="compiles all the project">
+        <ant antfile="build_bdk.xml" target="compile" />
+    </target>
+    
+    <target name="plugin.all.plus" description="creates all the plugins" depends="plugin.all,
+      plugin.keynodes,
+      plugin.genomeenhancer,
+      plugin.covid19,
+      plugin.pass,
+      plugin.reactome_biohub,
+      plugin.metabolics,
+      plugin.softberry,
+      plugin.transfac,
+      plugin.transpath,
+      plugin.ccsignature,
+      plugin.cytoscape,
+      plugin.seek,
+      plugin.pathfinder,
+      plugin.jupyter,
+      plugin.beakerx"/>
+
+    <target name="plugin.all" description="creates all the plugins except some rarely used and server-only" depends="compile,
+        just.plugin.simulation_test,
+        plugin.affymetrix,
+        plugin.agilent,
+        plugin.antimony,
+        plugin.bindingregions,
+        plugin.machinelearning,
+        plugin.bionetgen,
+        plugin.biosoft.graph,
+        plugin.bkl,
+        plugin.bowtie,
+        plugin.chipmunk,
+        plugin.cma,
+        plugin.dropbox,
+        plugin.googledrive,
+        plugin.galaxy,
+        plugin.genemodels,
+    	plugin.geneways,
+        plugin.glycan,
+        plugin.gtrd,
+        plugin.gtex,
+        plugin.hemodynamics,
+        plugin.illumina,
+        plugin.mirbase,
+        plugin.mirprom,
+        plugin.node,
+        plugin.perfectosape,
+        plugin.proteinmodel,
+        plugin.proteome,
+        plugin.sedml,
+        plugin.users,
+        plugin.works,
+    	plugin.bpmn">
+        <ant antfile="build_bdk.xml" target="plugin.all" />
+    </target>
+
+    <target name="run">
+        <ant antfile="build_bdk.xml" target="run" />
+    </target>
+
+    <target name="run.debug">
+        <ant antfile="build_bdk.xml" target="run.debug" />
+    </target>
+
+    <target name="crun">
+        <ant antfile="build_bdk.xml" target="crun" />
+    </target>
+
+    <target name="javadoc">
+        <ant antfile="build_bdk.xml" target="javadoc" />
+    </target>
+
+    <target name="plugin.biouml.graph">
+        <ant antfile="build_bdk.xml" target="plugin.biouml.graph" />
+    </target>
+
+    <target name="plugin.workbench">
+        <ant antfile="build_bdk.xml" target="plugin.workbench" />
+    </target>
+
+    <target name="plugin.state">
+        <ant antfile="build_bdk.xml" target="plugin.state" />
+    </target>
+    
+    <target name="plugin.helpgen">
+        <ant antfile="build_bdk.xml" target="plugin.helpgen" />
+    </target>
+
+    <target name="plugin.dote">
+        <ant antfile="build_bdk.xml" target="plugin.dote" />
+    </target>
+
+    <target name="plugin.doteserver">
+        <ant antfile="build_bdk.xml" target="plugin.doteserver" />
+    </target>
+
+    <target name="plugin.biosoft">
+        <ant antfile="build_bdk.xml" target="plugin.biosoft" />
+    </target>
+
+    <target name="biosoft.workbench.plugins">
+        <ant antfile="build_bdk.xml" target="biosoft.workbench.plugins" />
+    </target>
+
+    <target name="plugin.workbench.editors">
+        <ant antfile="build_bdk.xml" target="plugin.workbench.editors" />
+    </target>
+
+    <target name="plugin.graphics">
+        <ant antfile="build_bdk.xml" target="plugin.graphics" />
+    </target>
+
+    <target name="plugin.fs">
+        <ant antfile="build_bdk.xml" target="plugin.fs" />
+    </target>
+
+    <target name="plugin.graph">
+        <ant antfile="build_bdk.xml" target="plugin.graph" />
+    </target>
+
+    <target name="plugin.access">
+        <ant antfile="build_bdk.xml" target="plugin.access" />
+    </target>
+	
+	<target name="plugin.core">
+	        <ant antfile="build_bdk.xml" target="plugin.access.core" />
+    </target>
+	<target name="plugin.core2">
+	        <ant antfile="build_bdk.xml" target="plugin.access.core.part2" />
+    </target>
+
+    <target name="plugin.datasearch">
+        <ant antfile="build_bdk.xml" target="plugin.datasearch" />
+    </target>
+
+    <target name="plugin.lucene">
+        <ant antfile="build_bdk.xml" target="plugin.lucene" />
+    </target>
+
+    <target name="plugin.test">
+        <ant antfile="build_bdk.xml" target="plugin.test" />
+    </target>
+
+    <target name="plugin.junittest">
+        <ant antfile="build_bdk.xml" target="plugin.junittest" />
+    </target>
+
+    <target name="plugin.server">
+        <ant antfile="build_bdk.xml" target="plugin.server" />
+    </target>
+
+    <target name="plugin.tomcat">
+        <ant antfile="build_bdk.xml" target="plugin.tomcat" />
+    </target>
+
+    <target name="plugin.bioserver">
+        <ant antfile="build_bdk.xml" target="plugin.bioserver" />
+    </target>
+
+    <target name="plugin.download">
+        <ant antfile="build_bdk.xml" target="plugin.download" />
+    </target>
+
+    <target name="plugin.downloadext">
+        <ant antfile="build_bdk.xml" target="plugin.downloadext" />
+    </target>
+
+    <target name="plugin.cellml">
+        <ant antfile="build_bdk.xml" target="plugin.cellml" />
+    </target>
+
+    <target name="plugin.sbml">
+        <ant antfile="build_bdk.xml" target="plugin.sbml" />
+    </target>
+
+    <target name="plugin.pharm">
+        <ant antfile="build_bdk.xml" target="plugin.pharm" />
+    </target>
+
+    <target name="plugin.gxl">
+        <ant antfile="build_bdk.xml" target="plugin.gxl" />
+    </target>
+
+    <target name="plugin.svg">
+        <ant antfile="build_bdk.xml" target="plugin.svg" />
+    </target>
+
+    <target name="plugin.js">
+        <ant antfile="build_bdk.xml" target="plugin.js" />
+    </target>
+
+    <target name="plugin.simulation">
+        <ant antfile="build_bdk.xml" target="plugin.simulation" />
+    </target>
+
+    <target name="plugin.biosoft.math" description="Builds math plugin">
+        <ant antfile="build_bdk.xml" target="plugin.biosoft.math" />
+    </target>
+
+    <target name="plugin.themes">
+        <ant antfile="build_bdk.xml" target="plugin.themes" />
+    </target>
+
+    <target name="plugin.ensembl">
+        <ant antfile="build_bdk.xml" target="plugin.ensembl" />
+    </target>
+
+    <target name="plugin.services">
+        <ant antfile="build_bdk.xml" target="plugin.services" />
+    </target>
+
+    <target name="plugin.biopax">
+        <ant antfile="build_bdk.xml" target="plugin.biopax" />
+    </target>
+
+    <target name="plugin.gne">
+        <ant antfile="build_bdk.xml" target="plugin.gne" />
+    </target>
+
+    <target name="plugin.fbc">
+        <ant antfile="build_bdk.xml" target="plugin.fbc" />
+    </target>
+
+    <target name="plugin.uniprot">
+        <ant antfile="build_bdk.xml" target="plugin.uniprot" />
+    </target>
+
+    <target name="plugin.treetable">
+        <ant antfile="build_bdk.xml" target="plugin.treetable" />
+    </target>
+
+    <target name="plugin.miriam">
+        <ant antfile="build_bdk.xml" target="plugin.miriam" />
+    </target>
+
+    <target name="plugin.obo">
+        <ant antfile="build_bdk.xml" target="plugin.obo" />
+    </target>
+
+    <target name="plugin.microarray">
+        <ant antfile="build_bdk.xml" target="plugin.microarray" />
+    </target>
+
+    <target name="plugin.modelreduction">
+        <ant antfile="build_bdk.xml" target="plugin.modelreduction" />
+    </target>
+
+    <target name="plugin.chebi">
+        <ant antfile="build_bdk.xml" target="plugin.chebi" />
+    </target>
+
+    <target name="plugin.psimi">
+        <ant antfile="build_bdk.xml" target="plugin.psimi" />
+    </target>
+
+    <target name="plugin.bsa">
+        <ant antfile="build_bdk.xml" target="plugin.bsa" />
+    </target>
+
+    <target name="plugin.bsastats">
+        <ant antfile="build_bdk.xml" target="plugin.bsastats" />
+    </target>
+
+    <target name="plugin.bsa.server">
+        <ant antfile="build_bdk.xml" target="plugin.bsa.server" />
+    </target>
+    
+    <target name="plugin.fbc.server">
+            <ant antfile="build_bdk.xml" target="plugin.fbc.server" />
+        </target>
+
+    <target name="plugin.kegg">
+        <ant antfile="build_bdk.xml" target="plugin.kegg" />
+    </target>
+
+    <target name="plugin.analysis">
+        <ant antfile="build_bdk.xml" target="plugin.analysis" />
+    </target>
+
+    <target name="plugin.analysiscore">
+        <ant antfile="build_bdk.xml" target="plugin.analysiscore" />
+    </target>
+
+    <target name="plugin.optimization">
+        <ant antfile="build_bdk.xml" target="plugin.optimization" />
+    </target>
+
+    <target name="plugin.optimization.biouml">
+        <ant antfile="build_bdk.xml" target="plugin.optimization.biouml" />
+    </target>
+
+    <target name="plugin.jri">
+        <ant antfile="build_bdk.xml" target="plugin.jri" />
+    </target>
+
+    <target name="plugin.wdl">
+        <ant antfile="build_bdk.xml" target="plugin.wdl" />
+    </target>
+
+    <target name="plugin.nextflow">
+        <ant antfile="build_bdk.xml" target="plugin.nextflow" />
+    </target>
+
+    <target name="plugin.sbgn">
+        <ant antfile="build_bdk.xml" target="plugin.sbgn" />
+    </target>
+
+    <target name="plugin.templates">
+        <ant antfile="build_bdk.xml" target="plugin.templates" />
+    </target>
+
+    <target name="plugin.das">
+        <ant antfile="build_bdk.xml" target="plugin.das" />
+    </target>
+
+    <target name="plugin.research">
+        <ant antfile="build_bdk.xml" target="plugin.research" />
+    </target>
+
+    <target name="plugin.riboseq">
+        <ant antfile="build_bdk.xml" target="plugin.riboseq" />
+    </target>
+
+    <target name="plugin.riboseq_article_result">
+        <ant antfile="build_bdk.xml" target="plugin.riboseq_article_result" />
+    </target>
+
+    <target name="plugin.reactome">
+        <ant antfile="build_bdk.xml" target="plugin.reactome" />
+    </target>
+
+    <target name="plugin.chemoinformatics">
+        <ant antfile="build_bdk.xml" target="plugin.chemoinformatics" />
+    </target>
+
+    <target name="plugin.expasy">
+        <ant antfile="build_bdk.xml" target="plugin.expasy" />
+    </target>
+
+    <target name="server.servlets">
+        <ant antfile="build_bdk.xml" target="server.servlets" />
+    </target>
+
+    <target name="plugin.expression">
+        <ant antfile="build_bdk.xml" target="plugin.expression" />
+    </target>
+
+    <target name="plugin.enrichment">
+        <ant antfile="build_bdk.xml" target="plugin.enrichment" />
+    </target>
+
+    <target name="plugin.go">
+        <ant antfile="build_bdk.xml" target="plugin.go" />
+    </target>
+
+    <target name="plugin.stochastic">
+        <ant antfile="build_bdk.xml" target="plugin.stochastic" />
+    </target>
+    
+    <target name="plugin.brain">
+        <ant antfile="build_bdk.xml" target="plugin.brain" />
+    </target>
+
+    <target name="plugin.ccsignature">
+        <ant antfile="build_bdk.xml" target="plugin.ccsignature" />
+    </target>
+
+    <target name="plugin.galaxy2">
+        <ant antfile="build_bdk.xml" target="plugin.galaxy2" />
+    </target>
+
+    <target name="plugin.nbgi">
+        <ant antfile="build_bdk.xml" target="plugin.nbgi" />
+    </target>
+
+    <target name="plugin.splash">
+        <ant antfile="build_bdk.xml" target="plugin.splash" />
+    </target>
+	
+    <target name="plugin.bpmn" depends="compile">
+        <ant antfile="build_bdk.xml" target="plugin.bpmn" />
+    </target>
+    
+	<target name="plugin.physicell">
+        <ant antfile="build_bdk.xml" target="plugin.physicell" />
+    </target>
+	
+    <!--target name="plugin.s3">
+        <ant antfile="build_bdk.xml" target="plugin.s3" />
+    </target-->
+
+    <!-- =================================================================== -->
+    <!-- Math plugin issues                                                  -->
+    <!-- =================================================================== -->
+
+    <target name="math.parser" depends="local_settings">
+        <echo message="Generating math parser" />
+
+        <echo message="Remove old files" />
+        <delete>
+            <fileset dir="ru/biosoft/math/parser">
+                <include name="*.java" />
+            </fileset>
+        </delete>
+
+        <java classname="jjtree" dir="ru/biosoft/math/parser" fork="yes">
+            <jvmarg value="-Xmx256m" />
+            <classpath>
+                <pathelement path="${COMMONDIR}/bin/javacc.jar" />
+            </classpath>
+            <arg value="Parser.jjt" />
+        </java>
+
+        <java classname="javacc" dir="ru/biosoft/math/parser" fork="yes">
+            <jvmarg value="-Xmx256m" />
+            <classpath>
+                <pathelement path="${COMMONDIR}/bin/javacc.jar" />
+            </classpath>
+            <arg value="Parser.jj" />
+        </java>
+
+        <replace file="ru/biosoft/math/parser/JJTParserState.java" token="package ru.biosoft.math.parser;">
+            <replacevalue>
+                <![CDATA[package ru.biosoft.math.parser;
+
+import ru.biosoft.math.model.Node;]]>
+            </replacevalue>
+        </replace>
+
+
+        <echo message="Remove stub files" />
+        <delete>
+            <fileset dir="ru/biosoft/math/parser">
+                <include name="Ast*.java" />
+                <include name="Node.java" />
+                <include name="SimpleNode.java" />
+            </fileset>
+        </delete>
+
+    </target>
+
+    <target name="math.parser.doc" depends="local_settings">
+        <java classname="jjtree" dir="ru/biosoft/math/parser" fork="yes">
+            <jvmarg value="-Xmx256m" />
+            <classpath>
+                <pathelement path="${COMMONDIR}/bin/javacc.jar" />
+            </classpath>
+            <arg value="Parser.jjt" />
+        </java>
+
+        <java classname="jjdoc" dir="ru/biosoft/math/parser" fork="yes">
+            <jvmarg value="-Xmx256m" />
+            <classpath>
+                <pathelement path="${COMMONDIR}/bin/javacc.jar" />
+            </classpath>
+            <arg value="Parser.jj" />
+        </java>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Non public plug-ins                                                 -->
+    <!-- =================================================================== -->
+
+    <target name="plugin.genenet" depends="compile">
+        <create.plugin plugin="biouml.plugins.genenet" source="biouml/plugins/genenet"/>
+    </target>
+
+    <target name="plugin.dropbox" depends="compile">
+        <create.plugin plugin="biouml.plugins.dropbox" source="biouml/plugins/dropbox"/>
+    </target>
+    
+    <target name="plugin.googledrive" depends="compile">
+        <create.plugin plugin="biouml.plugins.googledrive" source="biouml/plugins/googledrive"/>
+    </target>
+
+    <target name="plugin.softberry" depends="prepare">
+        <create.plugin plugin="biouml.plugins.softberry" source="biouml/plugins">
+            <files>
+                <exclude name="**"/>
+            </files>
+        </create.plugin>
+    </target>
+    
+    <target name="plugin.antimony" depends="compile">
+        <create.plugin plugin="biouml.plugins.antimony" source="biouml/plugins/antimony"/>
+    </target>
+    
+    <target name="plugin.affymetrix" depends="compile">
+        <create.plugin plugin="biouml.plugins.affymetrix" source="biouml/plugins/affymetrix"/>
+    </target>
+
+    <target name="plugin.agilent" depends="compile">
+        <create.plugin plugin="biouml.plugins.agilent" source="biouml/plugins/agilent"/>
+    </target>
+
+    <target name="plugin.illumina" depends="compile">
+        <create.plugin plugin="biouml.plugins.illumina" source="biouml/plugins/illumina"/>
+    </target>
+
+    <target name="plugin.node" depends="compile">
+        <create.plugin plugin="biouml.plugins.node" source="biouml/plugins/node"/>
+    </target>
+
+    <target name="plugin.transpath" depends="compile">
+        <create.plugin plugin="biouml.plugins.transpath" source="biouml/plugins/transpath"/>
+    </target>
+
+    <target name="plugin.bkl" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.bkl" source="biouml/plugins/bkl"/>
+    </target>
+
+    <target name="plugin.bindingregions" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.bindingregions" source="biouml/plugins/bindingregions"/>
+    </target>
+
+    <target name="plugin.machinelearning" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.machinelearning" source="biouml/plugins/machinelearning"/>
+    </target>
+
+    <target name="plugin.pass" depends="compile">
+        <!-- Cannot convert to new-style now: pass executable is used -->
+        <echo message="Making biouml.plugins.pass_${VERSION}/pass.jar" />
+        <jar jarfile="${PLUGIN_DIR}/biouml.plugins.pass_${VERSION}/pass.jar" compress="true">
+            <fileset dir="${OUTDIR}">
+                <patternset>
+                    <include name="biouml/plugins/pass/**/*.class" />
+                    <exclude name="biouml/plugins/pass/**/_test/**/*.class" />
+                </patternset>
+            </fileset>
+            <fileset dir="${SRCDIR}">
+                <patternset>
+                    <include name="biouml/plugins/pass/**/*.gif" />
+                </patternset>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="plugin.sedml" depends="compile">
+        <create.plugin plugin="biouml.plugins.sedml" source="biouml/plugins/sedml"/>
+    </target>
+
+    <target name="plugin.cma" depends="compile">
+        <create.plugin plugin="biouml.plugins.cma" source="biouml/plugins/cma"/>
+    </target>
+
+    <target name="plugin.keynodes" depends="compile">
+        <create.plugin plugin="biouml.plugins.keynodes" source="biouml/plugins/keynodes"/>
+    </target>
+
+    <target name="plugin.transfac" depends="compile">
+        <create.plugin plugin="biouml.plugins.transfac" source="biouml/plugins/transfac"/>
+    </target>
+
+    <target name="plugin.reactome_biohub" depends="compile">
+        <create.plugin plugin="biouml.plugins.reactome.biohub" source="biouml/plugins/reactome/biohub"/>
+    </target>
+
+    <target name="plugin.users" depends="compile">
+        <create.plugin plugin="biouml.plugins.users" source="biouml/plugins/users"/>
+    </target>
+
+    <target name="plugin.works" depends="compile">
+        <create.plugin plugin="ru.biosoft.works" source="ru/biosoft/works"/>
+    </target>
+
+    <target name="plugin.galaxy" depends="local_settings,compile">
+        <!-- Cannot convert to new-style now: *.py scripts, etc -->
+        <echo message="Making ru.biosoft.galaxy_${VERSION}/galaxy.jar" />
+        <jar jarfile="${PLUGIN_DIR}/ru.biosoft.galaxy_${VERSION}/galaxy.jar" compress="true">
+            <fileset dir="${OUTDIR}">
+                <patternset>
+                    <include name="ru/biosoft/galaxy/**/*.class" />
+                    <exclude name="ru/biosoft/galaxy/**/_test/**/*.class" />
+                    <exclude name="ru/biosoft/galaxy/_scripts/**" />
+                </patternset>
+            </fileset>
+            <fileset dir="${SRCDIR}">
+                <patternset>
+                    <include name="ru/biosoft/galaxy/**/*.gif" />
+                    <include name="ru/biosoft/galaxy/**/*.html" />
+                </patternset>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="plugin.gtrd" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.gtrd" source="biouml/plugins/gtrd"/>
+    </target>
+
+    <target name="plugin.gtex" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.gtex" source="biouml/plugins/gtex"/>
+    </target>
+
+    <target name="plugin.bowtie" depends="local_settings,compile">
+        <!-- Cannot convert to new-style now: bowtie executable is used -->
+        <echo message="Making biouml.plugins.bowtie_${VERSION}/bowtie.jar" />
+        <jar jarfile="${PLUGIN_DIR}/biouml.plugins.bowtie_${VERSION}/bowtie.jar" compress="true">
+            <fileset dir="${OUTDIR}">
+                <patternset>
+                    <include name="biouml/plugins/bowtie/**/*.class" />
+                    <exclude name="biouml/plugins/bowtie/**/_test/**/*.class" />
+                </patternset>
+            </fileset>
+            <fileset dir="${SRCDIR}">
+                <patternset>
+                    <include name="biouml/plugins/bowtie/resources/*.gif" />
+                    <include name="biouml/plugins/bowtie/resources/*.html" />
+                </patternset>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="plugin.chipmunk" depends="compile">
+        <create.plugin plugin="biouml.plugins.chipmunk" source="biouml/plugins/chipmunk"/>
+    </target>
+
+    <target name="plugin.perfectosape" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.perfectosape" source="biouml/plugins/perfectosape"/>
+    </target>
+
+    <target name="plugin.cytoscape" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.cytoscape" source="biouml/plugins/cytoscape"/>
+    </target>
+
+    <target name="plugin.genemodels" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.genemodels" source="biouml/plugins/genemodels"/>
+    </target>
+
+    <target name="plugin.bionetgen" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.bionetgen" source="biouml/plugins/bionetgen"/>
+    </target>
+	
+	<target name="plugin.geneways" depends="local_settings,compile">
+	     <create.plugin plugin="biouml.plugins.geneways" source="biouml/plugins/geneways"/>
+	</target>
+
+    <target name="plugin.genomeenhancer" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.genomeenhancer" source="biouml/plugins/genomeenhancer"/>
+    </target>
+
+    <target name="plugin.covid19" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.covid19" source="biouml/plugins/covid19"/>
+    </target>
+
+    <target name="plugin.glycan" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.glycan" source="biouml/plugins/glycan"/>
+    </target>
+
+    <target name="plugin.proteinmodel" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.proteinmodel" source="biouml/plugins/proteinmodel"/>
+    </target>
+
+    <target name="plugin.seek" depends="local_settings,compile">
+    <create.plugin plugin="biouml.plugins.seek" source="biouml/plugins/seek"/>
+    </target>
+
+    <target name="plugin.hemodynamics" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.hemodynamics" source="biouml/plugins/hemodynamics">
+            <src>
+                <include name="biouml/plugins/hemodynamics/SimpleVessel.class" />
+                <include name="biouml/plugins/hemodynamics/ArterialBinaryTreeModel.class" />
+                <include name="biouml/plugins/hemodynamics/TreeTraversal.class" />
+                <include name="biouml/plugins/simulation/Model.class" />
+                <include name="ru/biosoft/math/MathRoutines.class" />
+            </src>
+        </create.plugin>
+    </target>
+
+    <target name="just.plugin.simulation_test" depends="compile">
+        <create.plugin plugin="biouml.plugins.simulation_test" source="biouml/plugins/simulation_test"/>
+    </target>
+
+    <target name="plugin.simulation_test" depends="plugin.simulation,just.plugin.simulation_test">
+    </target>
+
+    <target name="plugin.proteome" depends="local_settings,compile">
+        <create.plugin plugin="ru.biosoft.proteome" source="ru/biosoft/proteome"/>
+    </target>
+
+    <target name="plugin.wiki" depends="compile">
+        <create.plugin plugin="biouml.plugins.wiki" source="biouml/plugins/wiki"/>
+    </target>
+
+    <target name="plugin.metabolics" depends="compile">
+        <create.plugin plugin="biouml.plugins.metabolics" source="biouml/plugins/metabolics"/>
+    </target>
+
+    <target name="plugin.mirbase" depends="compile">
+        <create.plugin plugin="biouml.plugins.mirbase" source="biouml/plugins/mirbase"/>
+    </target>
+
+    <target name="plugin.mirprom" depends="compile">
+        <create.plugin plugin="biouml.plugins.mirprom" source="biouml/plugins/mirprom"/>
+    </target>
+    
+    <target name="plugin.pathfinder" depends="compile">
+        <create.plugin plugin="biouml.plugins.pathfinder" source="biouml/plugins/pathfinder"/>
+        <copy file="biouml/plugins/pathfinder/servlet/resources/trobber.gif"
+            tofile="ru/biosoft/server/servlets/webservices/webfiles/images/trobber.gif"/>
+    </target>
+
+    <target name="plugin.jupyter" depends="compile">
+        <create.plugin plugin="biouml.plugins.jupyter" source="biouml/plugins/jupyter"/>
+    </target>
+
+    <target name="plugin.beakerx" depends="compile">
+        <create.plugin plugin="biouml.plugins.beakerx" source="biouml/plugins/beakerx"/>
+    </target>
+	
+    <!-- =================================================================== -->
+    <!-- Graph issues                                                        -->
+    <!-- =================================================================== -->
+
+    <target name="graph.testkit" depends="compile,local_settings">
+        <echo message="Running graph TestKit ..." />
+        <java classname="ru.biosoft.plugins.graph.testkit.TestKit" fork="yes">
+            <jvmarg value="-Xmx1024m" />
+            <classpath>
+                <pathelement path="${RUN_CLASSPATH}" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="plugin.biosoft.graph" depends="compile">
+            <create.plugin plugin="ru.biosoft.graph" source="ru/biosoft/graph"/>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Project specific properties                                         -->
+    <!-- =================================================================== -->
+
+    <target name="prepare" depends="local_settings">
+        <property name="projects.java.dir" value="../.."/>
+        <property name="TEST_OPTS" value="-Dnothing"/>
+
+        <property name="RELEASEDIR" value="${projects.java.dir}/BioUML/release" />
+        <property name="BUILDSRC" value="${projects.java.dir}/BioUML/buildsrc" />
+        <property name="GRAPH_JAR" value="${projects.java.dir}/Graph/release/graph.jar" />
+        <property name="OBFUSCATE_CLASSPATH" value="${RETROGUARD};${HTTPUNIT_JAR};${QUARTZ_JAR};${JUNIT};${JUNITX};${LOG4J};${SERVLET_JAR};${ACTIVATION_JAR};${JAVAMAIL_JAR};${XSTREAM_JAR};${GRAPH_JAR};${JFREECHART};${JLIBSEDML};${CROMWELL}" />
+        <property name="CHECKLISTBV" value="com/beanexplorer/swing/clbv.dat" />
+
+        <property environment="env"/>
+        <available property="TOMCAT_HOME" value="${env.TOMCAT_HOME}"
+                   file="${env.TOMCAT_HOME}" type="dir"/>
+        <available property="TOMCAT_HOME" value="${env.CATALINA_HOME}"
+                   file="${env.CATALINA_HOME}" type="dir"/>
+        <property name="TOMCAT_HOME" value="${SRCDIR}"/>
+        
+        <available property="tomcat.is.installed" file="${TOMCAT_HOME}/webapps" type="dir" />
+        <property name="DEPLOY_DIR" value="${TOMCAT_HOME}/webapps/${PROJECT_NAME}"/>
+    </target>
+
+    <target name="clean" depends="prepare" description="cleans all the project">
+        <delete dir="../configuration/org.eclipse.core.runtime" />
+        <delete dir="../configuration/org.eclipse.osgi" />
+        <delete dir="../configuration/org.eclipse.update" />
+        <delete dir="../emma" />
+        <delete>
+            <fileset dir="../configuration">
+                <include name="*.log" />
+            </fileset>
+        </delete>
+
+        <delete>
+            <fileset dir="../.">
+                <include name="*.log" />
+            </fileset>
+        </delete>
+
+        <delete dir="${TOMCAT_SCRATCH_DIR}" failonerror="false" />
+        <delete dir="${TOPDIR}/temp" />
+
+        <delete>
+            <fileset dir="${PLUGIN_DIR}">
+                <include name="biouml.*.jar"/>
+                
+                <include name="ru.biosoft.*.jar"/>
+                <exclude name="ru.biosoft.core*.jar"/>
+                <exclude name="ru.biosoft.editor*.jar"/>
+                <exclude name="ru.biosoft.exception*.jar"/>
+                <exclude name="ru.biosoft.rtree*.jar"/>
+                <exclude name="ru.biosoft.jobcontrol*.jar"/>
+            	<exclude name="ru.biosoft.access.core*.jar"/>
+            	<exclude name="ru.biosoft.access.file*.jar"/>
+            	<exclude name="ru.biosoft.physicell*.jar"/>
+            	<exclude name="biouml.plugins.cwl*.jar"/>
+            	
+                <include name="com.developmentontheedge.server*.jar"/>
+                <include name="com.developmentontheedge.util*.jar"/>
+                
+                <include name="biouml.workbench_*/*.jar" />
+                <include name="biouml.workbench.graph_*/*.jar" />
+
+                <include name="biouml.plugins.sabiork_*/sabiork.jar" />
+                <include name="biouml.plugins.pharm_*/*.jar" />
+                <include name="biouml.plugins.simulation_*/*.jar" />
+                <include name="biouml.plugins.modelreduction_*/modelreduction.jar" />
+                <include name="biouml.plugins.stochastic_*/*.jar" />
+                <include name="biouml.plugins.brain_*/*.jar" />
+
+                <include name="ru.biosoft.access_*/access.jar" />
+                <include name="ru.biosoft.galaxy_*/*.jar" />
+                <include name="ru.biosoft.graph_*/*.jar" />
+                <include name="ru.biosoft.plugins.jri_*/*.jar" />
+                <include name="ru.biosoft.server.tomcat_*/*.jar" />
+                <include name="ru.biosoft.server.servlets_*/servlets.jar" />
+                <include name="ru.biosoft.workbench_*/*.jar" />
+            </fileset>
+        </delete>
+
+        <delete dir="${OUTDIR}" />
+        <!--delete dir="${JAVADOC_OUTDIR}" /-->
+        <delete dir="${RELEASEDIR}" />
+        <delete dir="${BUILDSRC}" />
+    </target>
+
+    <target name="cleanall" depends="clean" description="clean everthing plus BioUML server installation">
+        <delete includeEmptyDirs="true">
+            <fileset dir="${SERVER_PATH}">
+                <include name="**" />
+            </fileset>
+            <!--fileset dir="${SERVER_PATH}">
+              <and>
+                <size value="0"/>
+                <type type="dir"/>
+               </and>
+            </fileset-->
+        </delete>
+    </target>
+
+
+    <!-- =================================================================== -->
+    <!-- Transplorer issues                                                   -->
+    <!-- =================================================================== -->
+
+    <target name="plugin.transplorer" depends="compile, local_settings">
+        <echo message="Making transplorer.jar ..." />
+        <property name="TRANSPLORER" value="${PLUGIN_DIR}/de.biobase.transplorer_2.0.0" />
+        <jar jarfile="${TRANSPLORER}/transplorer.jar" compress="true">
+            <fileset dir="${OUTDIR}">
+                <patternset>
+                    <include name="de/biobase/transplorer/**/*.class" />
+                    <exclude name="de/biobase/transplorer/**/_test/**/*.class" />
+                </patternset>
+            </fileset>
+            <fileset dir="${SRCDIR}">
+                <patternset>
+                    <include name="de/biobase/**/*.gif" />
+                </patternset>
+            </fileset>
+        </jar>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Compiling, running and reporting regression tests                   -->
+    <!-- =================================================================== -->
+
+    <target name="ctest" depends="prepare,compile" description="Compiles all the tests">
+
+        <echo message="Building Tests..." />
+        <property name="TEST_CLASSPATH" value="${BUILD_CLASSPATH};${JUNIT};${JUNITX};${COMMON};${BCEL_JAR}" />
+
+        <javac srcdir="." destdir="${OUTDIR}" includeantruntime="false" classpath="${TEST_CLASSPATH}" debug="on" deprecation="off" optimize="off" encoding="UTF-8">
+            <include name="**/_test/*.java" />
+            <!-- exclude name="**/biosoft/microarray/**/*.java" / -->
+        </javac>
+        <copy todir="${OUTDIR}">
+            <fileset dir=".">
+                <patternset>
+                    <include name="**/_test/examples/*.xml" />
+                    <include name="**/_test/**/*.txt" />
+                    <include name="**/_test/resources/*.t" />
+                    <include name="**/_test/resources/*.html" />
+                </patternset>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="rtest" depends="ctest">
+        <echo message="Running tests in ${test}..." />
+
+        <condition property="CONSOLE" value="/dev/tty">
+             <os family="unix"/>
+        </condition>
+        <condition property="CONSOLE" value="CON">
+           <not>
+             <os family="unix"/>
+           </not>
+        </condition>
+
+        <java classname="junit.${testui}.TestRunner" fork="yes" output="${CONSOLE}">
+            <classpath>
+                <pathelement path="${RUN_CLASSPATH};${JUNIT};${JUNITX};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR};${BCEL_JAR}" />
+            </classpath>
+            <jvmarg value="-Drepository=${projects.java.dir}/${PROJECT_NAME}/data" />
+            <jvmarg line="${TEST_OPTS}"/>
+            <jvmarg value="-Xms256m" />
+            <jvmarg value="-Xmx512m" />
+            <jvmarg value="-Duser=${user}" />
+            <jvmarg value="-Dpassword=${password}" />
+            <arg value="-noloading" />
+            <arg value="${test}" />
+        </java>
+    </target>
+
+    <target name="autotest" depends="ctest, plugin.all.plus, plugin.junittest, plugin.biosoft.math, plugin.wiki" description="Project autotest performed and e-mail send to all the developpers">
+        <if>
+            <equals arg1="${RUN_LONG_TESTS}" arg2="true"/>
+            <then>
+                <property name="TEST_LIST" value="**/*bio*/**/_test/AutoTest.java,**/*bio*/**/_test/LongAutoTest.java,biouml/workbench/_test/PluginsStructureTest.java" />
+            </then>
+            <else>
+                <property name="TEST_LIST" value="**/*bio*/**/_test/AutoTest.java,biouml/workbench/_test/PluginsStructureTest.java" />
+            </else>
+        </if>
+        <echo message="autotest: ${TEST_LIST}" />
+        <property name="TESTING_CLASSPATH" value="${RUN_CLASSPATH};${JUNIT};${JUNIT};${JUNITX};${BCEL_JAR};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR};${GRAPH_CORE_JAR};${PLUGINS}/ru.biosoft.math_${VERSION}/math.jar" />
+        <property name="REPORTDIR" value="${SRCDIR}/reports" />
+        <mkdir dir="${REPORTDIR}" />
+        <delete>
+            <fileset dir="${REPORTDIR}" includes="**/*" />
+        </delete>
+        <junit fork="yes" printsummary="no" showoutput="true" outputtoformatters="false">
+            <jvmarg value="-Xmx2048m"/>
+            <classpath>
+                <pathelement path="${TESTING_CLASSPATH};${java.class.path}" />
+            </classpath>
+            <formatter type="xml" extension=".xml" />
+            <batchtest fork="yes" todir="${REPORTDIR}">
+                <fileset dir="${SRCDIR}" includes="${TEST_LIST}" />
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="autotest.coverage.jacoco" depends="ctest, plugin.biosoft.math" description="Project autotest with coverage report using JaCoCo">
+        <delete file="${SRCDIR}/jacoco.exec"/>
+        <if>
+            <equals arg1="${RUN_JACOCO}" arg2="true"/>
+            <then>
+                <property name="TEST_LIST" value="**/*bio*/**/_test/AutoTest.java" />
+                <echo message="autotest.coverage.jacoco: ${TEST_LIST}" />
+            </then>
+            <else>
+                <property name="TEST_LIST" value="biouml/plugins/bionetgen/_test/AutoTest.java" />
+                <echo message="autotest.coverage.jacoco: skipping" />
+            </else>
+        </if>
+        <property name="TESTING_CLASSPATH" value="${RUN_CLASSPATH};${JUNIT};${JUNIT};${JUNITX};${BCEL_JAR};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR};${GRAPH_CORE_JAR};${PLUGINS}/ru.biosoft.math_${VERSION}/math.jar" />
+        <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+            <classpath path="${TOOLSDIR}/jacoco/jacocoant.jar"/>
+        </taskdef>
+        <property name="jacoco.included" value="biouml.*:com.developmentontheedge.*:ru.biosoft.*"/>
+        <property name="jacoco.excluded" value="*._test.*" />
+        <path id="run.classpath">
+            <pathelement path="${TESTING_CLASSPATH}" />
+        </path>
+        <jacoco:coverage includes="${jacoco.included}" excludes="${jacoco.excluded}">
+            <junit fork="yes" printsummary="no" showoutput="true" outputtoformatters="false">
+                <jvmarg value="-Xmx2048m"/>
+                <classpath>
+                    <pathelement path="${TESTING_CLASSPATH};${java.class.path}" />
+                </classpath>
+                <batchtest fork="yes">
+                    <fileset dir="${SRCDIR}" includes="${TEST_LIST}"/>
+                </batchtest>
+            </junit>
+        </jacoco:coverage>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Import microarray data                                               -->
+    <!-- =================================================================== -->
+    <target name="import.microarray" depends="prepare">
+        <echo message="Compiling BioUML code..." />
+        <property name="MICROARRAY_BUILD_CLASSPATH" value="${DOTEBEANS};${SERVLET_JAR};${JAVAMAIL_JAR};${ACTIVATION_JAR};${LOG4J};${ECLIPSE_JARS};" />
+        <javac srcdir="${SRCDIR}" destdir="${TOPDIR}/out" classpath="${MICROARRAY_BUILD_CLASSPATH}" debug="on" deprecation="on" optimize="on" target="1.1" encoding="UTF-8">
+            <include name="ru/biosoft/microarray/**/*.java" />
+            <include name="ru/biosoft/util/TextUtil.java" />
+        </javac>
+
+        <java classname="ru.biosoft.microarray.ImportMicroarray" classpath="${TOPDIR}/out;${RUN_CLASSPATH};${DBDRIVER};${SERVLET_JAR};${JAVAMAIL_JAR};${ACTIVATION_JAR}" fork="yes">
+            <arg value="${CONNECT_STRING}" />
+            <arg value="${file}" />
+        </java>
+    </target>
+
+    <target name="import.microarray.analyses" depends="prepare">
+        <echo message="Compiling BioUML code..." />
+        <property name="MICROARRAY_BUILD_CLASSPATH" value="${SERVLET_JAR};${JAVAMAIL_JAR};${ACTIVATION_JAR};${LOG4J};${ECLIPSE_JARS};" />
+        <javac srcdir="${SRCDIR}" destdir="${TOPDIR}/out" classpath="${MICROARRAY_BUILD_CLASSPATH}" debug="on" deprecation="on" optimize="on" target="1.1" encoding="UTF-8">
+            <include name="ru/biosoft/microarray/**/*.java" />
+            <include name="ru/biosoft/util/TextUtil.java" />
+        </javac>
+
+        <java classname="ru.biosoft.microarray.ImportMicroarrayAnalyses" classpath="${TOPDIR}/out;${RUN_CLASSPATH};${DBDRIVER};${SERVLET_JAR};${JAVAMAIL_JAR};${ACTIVATION_JAR}" fork="yes">
+            <arg value="${CONNECT_STRING}" />
+            <arg value="${file}" />
+        </java>
+    </target>
+
+    <target name="import.genelist" depends="prepare">
+        <echo message="Compiling BioUML code..." />
+        <property name="MICROARRAY_BUILD_CLASSPATH" value="${SERVLET_JAR};${JAVAMAIL_JAR};${ACTIVATION_JAR};${LOG4J};${ECLIPSE_JARS};" />
+        <javac srcdir="${SRCDIR}" destdir="${TOPDIR}/out" classpath="${MICROARRAY_BUILD_CLASSPATH}" debug="on" deprecation="on" optimize="on" target="1.1" encoding="UTF-8">
+            <include name="ru/biosoft/microarray/**/*.java" />
+            <include name="ru/biosoft/util/TextUtil.java" />
+        </javac>
+
+        <java classname="ru.biosoft.microarray.ImportGeneList" classpath="${TOPDIR}/out;${RUN_CLASSPATH};${DBDRIVER};${SERVLET_JAR};${JAVAMAIL_JAR};${ACTIVATION_JAR}" fork="yes">
+            <arg value="${CONNECT_STRING}" />
+            <arg value="${file}" />
+        </java>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- BioUML development kit                                              -->
+    <!-- =================================================================== -->
+
+    <property name="PLUGINS" value="../plugins" />
+    <property name="CONFIGURATION" value="../configuration" />
+    <property name="REPOSITORYDIR" value="../data" />
+    <property name="RESOURCESDIR" value="../data_resources" />
+    <property name="EXAMPLESDIR" value="../examples" />
+    <property name="DOCDIR" value="../doc" />
+
+    <property name="BDK" value="../bdk" />
+    <property name="BDK_SRC" value="../bdk/src" />
+    <property name="BDK_DATA" value="../bdk/data" />
+    <property name="BDK_DATA_RESOURCES" value="../bdk/data_resources" />
+    <property name="BDK_PLUGINS" value="../bdk/plugins" />
+    <property name="BDK_CONFIGURATION" value="../bdk/configuration" />
+    <property name="BDK_EXAMPLES" value="../bdk/examples" />
+    <property name="BDK_DOC" value="../bdk/doc" />
+
+    <target name="bdk" depends="prepare" description="creates BioUML Development Kit">
+        <echo>Remove old files...</echo>
+        <delete dir="${BDK}" />
+        <mkdir dir="${BDK}" />
+
+        <echo>Copy source files ... ${SRCDIR}</echo>
+        <mkdir dir="${BDK_SRC}" />
+        <copy todir="${BDK_SRC}">
+            <fileset dir="${SRCDIR}">
+                <include name="biouml/**" />
+                <include name="com/**" />
+                <include name="ru/**" />
+                <include name="build_bdk.xml" />
+                <include name="biouml.lcf" />
+
+                <exclude name="**/_test/" />
+
+                <exclude name="biouml/plugins/antimony/**" />
+                <exclude name="biouml/plugins/bkl/**" />
+                <exclude name="biouml/plugins/bowtie/**" />
+                <exclude name="biouml/plugins/bindingregions/**" />
+                <exclude name="biouml/plugins/machinelearning/**" />
+                <exclude name="biouml/plugins/chipmunk/**" />
+                <exclude name="biouml/plugins/cma/**" />
+                <exclude name="biouml/plugins/creasemarks/**" />
+                <exclude name="biouml/plugins/genemodels/**" />
+                <exclude name="biouml/plugins/genenet/**" />
+                <exclude name="biouml/plugins/geneways/**" />
+                <exclude name="biouml/plugins/ginsim/**" />
+                <exclude name="biouml/plugins/illumina/**" />
+                <exclude name="biouml/plugins/keynodes/**" />
+                <exclude name="biouml/plugins/lipidmap/**" />
+                <exclude name="biouml/plugins/pass/**" />
+                <exclude name="biouml/plugins/pathfinder/**" />
+                <exclude name="biouml/plugins/perfectosape/**" />
+                <exclude name="biouml/plugins/reactome/biohub/**" />
+                <!--<exclude name="biouml/plugins/simulation_test/**" />-->
+                <exclude name="biouml/plugins/transfac/**" />
+                <exclude name="biouml/plugins/transpath/**" />
+                <exclude name="biouml/plugins/wiki/**" />
+
+                <exclude name="ru/biosoft/graph/**" />
+                <exclude name="ru/biosoft/galaxy/GalaxyImportServlet.java" />
+                <exclude name="ru/biosoft/server/servlets/webservices/webfiles/**" />
+                <exclude name="ru/biosoft/math/doc/**" />
+                <exclude name="ru/biosoft/proteome/**" />
+                <exclude name="ru/biosoft/works/**" />
+            </fileset>
+        </copy>
+
+        <mkdir dir="${BDK_SRC}/biouml/plugins/simulation_test/_test" />
+        <copy todir="${BDK_SRC}/biouml/plugins/simulation_test/_test">
+            <fileset dir="${SRCDIR}/biouml/plugins/simulation_test/_test"/>
+        </copy>
+
+        <move file="${BDK_SRC}/build_bdk.xml" tofile="${BDK_SRC}/build.xml" />
+
+        <echo>Copy plugins ...</echo>
+        <mkdir dir="${BDK_PLUGINS}" />
+        <copy todir="${BDK_PLUGINS}">
+            <fileset dir="${PLUGINS}">
+                <exclude name="biouml.plugins.antimony_${VERSION}/**" />
+                <exclude name="biouml.plugins.bindingregions_${VERSION}/**" />
+                <exclude name="biouml.plugins.machinelearning_${VERSION}/**" />
+                <exclude name="biouml.plugins.bkl_${VERSION}/**" />
+                <exclude name="biouml.plugins.bowtie_${VERSION}/**" />
+                <exclude name="biouml.plugins.chipmunk_${VERSION}/**" />
+                <exclude name="biouml.plugins.cma_${VERSION}/**" />
+                <exclude name="biouml.plugins.creasemarks_${VERSION}/**" />
+                <exclude name="biouml.plugins.genenet_${VERSION}/**" />
+                <exclude name="biouml.plugins.geneways_${VERSION}/**" />
+                <exclude name="biouml.plugins.ginsim_${VERSION}/**" />
+                <exclude name="biouml.plugins.illumina_${VERSION}/**" />
+                <exclude name="biouml.plugins.keynodes_${VERSION}/**" />
+                <exclude name="biouml.plugins.lipidmap_${VERSION}/**" />
+                <exclude name="biouml.plugins.pass_${VERSION}/**" />
+                <exclude name="biouml.plugins.pathfinder_${VERSION}/**" />
+                <exclude name="biouml.plugins.perfectosape_${VERSION}/**" />
+                <exclude name="biouml.plugins.reactome.biohub_${VERSION}/**" />
+                <!--<exclude name="biouml.plugins.simulation_test_${VERSION}/**" />-->
+                <exclude name="biouml.plugins.transfac_${VERSION}/**" />
+                <exclude name="biouml.plugins.transpath_${VERSION}/**" />
+                <exclude name="biouml.plugins.wiki_${VERSION}/**" />
+
+                <exclude name="ru.biosoft.proteome_${VERSION}/**" />
+                <exclude name="ru.biosoft.works_${VERSION}/**" />
+            </fileset>
+        </copy>
+
+        <copy todir="${BDK_CONFIGURATION}">
+            <fileset dir="${CONFIGURATION}">
+                <include name="*.ini" />
+            </fileset>
+        </copy>
+
+        <echo>Copy repository data (examples) ...</echo>
+        <mkdir dir="${BDK_DATA}" />
+        <copy todir="${BDK_DATA}">
+            <fileset dir="${REPOSITORYDIR}">
+                <exclude name="**/CVS/" />
+                <include name="default.config" />
+                <include name="repository.gif" />
+                <include name="SBML model repository/**" />
+                <include name="Utils/**" />
+            </fileset>
+        </copy>
+
+        <echo>Copy resource (examples) ...</echo>
+        <mkdir dir="${BDK_DATA_RESOURCES}" />
+        <copy todir="${BDK_DATA_RESOURCES}">
+            <fileset dir="${RESOURCESDIR}">
+                <exclude name="**/CVS/" />
+                <include name="default.config" />
+                <include name="repository.gif" />
+                <include name="Collaboration/default.config" />
+            </fileset>
+        </copy>
+
+        <echo>Copy examples ...</echo>
+        <mkdir dir="${BDK_EXAMPLES}" />
+        <copy todir="${BDK_EXAMPLES}">
+            <fileset dir="${EXAMPLESDIR}">
+                <include name="databases/sql/**" />
+            </fileset>
+        </copy>
+
+        <echo>Copy startup files ...</echo>
+        <copy todir="${BDK}">
+            <fileset dir="../">
+                <include name=".eclipseproduct" />
+                <include name="biouml.lcf" />
+                <include name="install.ini" />
+                <include name="startup.jar" />
+                <include name="web.xml" />
+                <include name="server.lcf" />
+                <include name="run.bat" />
+                <include name="run.sh" />
+                <include name="shell.bat" />
+                <include name="workbench.lcf" />
+            </fileset>
+            <fileset dir="../installer(IzPack)">
+                <include name="preferences.xml" />
+            </fileset>
+        </copy>
+
+        <echo>Generating documentation ...</echo>
+        <mkdir dir="${BDK_DOC}" />
+        <copy todir="${BDK_DOC}">
+            <fileset dir="${DOCDIR}">
+                <include name="*.chm" />
+                <include name="*.pdf" />
+            </fileset>
+        </copy>
+        <echo>Licensing issues ... </echo>
+        <replaceregexp flags="s">
+            <!-- Use \1 in substitution (1st capturing group) 
+            to keep cvs header and any other comments before package declaration -->
+
+            <!-- NB: works fine only if there's no comment having "package " string before package declaration -->
+
+            <regexp pattern="(.*)(package (biouml\.|ru\.).*;)" />
+            <substitution expression="
+/*
+&#13; * This library is free software; you can redistribute it and/or modify it
+&#13; * under the terms of the GNU Lesser General Public License as published
+&#13; * by the Free Software Foundation; either version 2.1 of the License, or
+&#13; * any later version.
+&#13; *
+&#13; * This library is distributed in the hope that it will be useful, but
+&#13; * WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF
+&#13; * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+&#13; * See the GNU Lesser General Public License for more details.
+&#13; *
+&#13; * Copyright 2001-2015 Institute of Systems Biology (http://www.systemsbiology.ru).
+&#13; */
+&#13;\2" />
+            <fileset dir="${BDK_SRC}">
+                <include name="biouml/**/*.java" />
+                <include name="ru/**/*.java" />
+            </fileset>
+        </replaceregexp>
+    </target>
+
+    <target name="-check.cluster.jar">
+        <uptodate property="cluster.jar.uptodate" targetfile="${cluster.jar.filename}">
+            <srcfiles dir= "${cluster.jar.dir}" includes="**"/>
+        </uptodate>
+        <if><equals arg1="${cluster.jar.uptodate}" arg2="true"/>
+            <then>
+                <echo message="${cluster.jar.filename}: up-to-date, skipping"/>
+            </then>
+            <else>
+                <echo message="${cluster.jar.filename}: creating..."/>
+            </else>
+        </if>
+    </target>
+
+    <target name="-add.cluster.jar" depends="-check.cluster.jar" unless="cluster.jar.uptodate">
+        <property name="tmpfile" value="${CLUSTER_DIR}/tmp.jar"/>
+        <delete file="${cluster.jar.filename}" quiet="true" failonerror="false"/>
+        <delete file="${tmpfile}" quiet="true" failonerror="false"/>
+        <jar destfile="${tmpfile}" manifest="${cluster.jar.dir}/META-INF/MANIFEST.MF">
+            <fileset dir="${cluster.jar.dir}">
+                <include name="**"/>
+                <exclude name="**/*.jar"/>
+                <exclude name="META-INF/MANIFEST.MF"/>
+            </fileset>
+            <manifest>
+                <attribute name="Require-Bundle" value="org.eclipse.osgi"/>
+            </manifest>
+        </jar>
+        <for param="jar">
+            <path>
+                <fileset dir="${cluster.jar.dir}" includes="**/*.jar"/>
+            </path>
+            <sequential>
+                <jar update="true" destfile="${tmpfile}">
+                    <zipfileset src="@{jar}">
+                        <include name="**"/>
+                        <exclude name="META-INF/*.RSA"/>
+                        <exclude name="META-INF/*.SF"/>
+                    </zipfileset>
+                    <manifest>
+                        <attribute name="Bundle-Classpath" value="."/>
+                    </manifest>
+                </jar>
+            </sequential>
+        </for>
+        <move file="${tmpfile}" tofile="${cluster.jar.filename}"/>
+    </target>
+
+    <target name="just.cluster.xml">
+        <echo message="Generating XML..."/>
+        <delete dir="${CLUSTER_DIR}/config/Modules" includes="*.xml" failonerror="false"/>
+        <for param="jar">
+            <path>
+                <fileset dir="${CLUSTER_DIR}" includes="*.jar"/>
+            </path>
+            <sequential>
+                <local name="cluster.jar.basename"/>
+                <local name="cluster.modulename"/>
+                <local name="cluster.modulefile"/>
+                <basename property="cluster.jar.basename" file="@{jar}"/>
+                <propertyregex property="cluster.modulename" input="${cluster.jar.basename}" regexp="^(.+?)(_\d.+|).jar$" select="\1"/>
+                <propertyregex property="cluster.modulefile" input="${cluster.modulename}" regexp="\." replace="-"/>
+                <property name="cluster.modulefile" value="${cluster.modulename}"/>
+                <echo file="${CLUSTER_DIR}/config/Modules/${cluster.modulefile}.xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//NetBeans//DTD Module Status 1.0//EN"
+                        "http://www.netbeans.org/dtds/module-status-1_0.dtd">
+<module name="${cluster.modulename}">
+    <param name="autoload">false</param>
+    <param name="eager">false</param>
+    <param name="enabled">true</param>
+    <param name="jar">${cluster.jar.basename}</param>
+    <param name="reloadable">false</param>
+</module>]]></echo>
+                <fixcrlf file="${CLUSTER_DIR}/config/Modules/${cluster.modulefile}.xml"/>
+            </sequential>
+        </for>
+    </target>
+
+    <target name="just.cluster" depends="prepare">
+        <property name="CLUSTER_DIR" value="../nb/cluster"/>
+        <copy todir="${CLUSTER_DIR}">
+            <fileset dir="${PLUGIN_DIR}">
+                <include name="*.jar"/>
+                <exclude name="org.eclipse.*.jar"/>
+                <exclude name="org.apache.commons.logging_*.jar"/>
+                <exclude name="org.apache.commons.lang_*.jar"/>
+                <exclude name="org.apache.commons.codec_*.jar"/>
+                <exclude name="commons-lang3-3.12.0/commons-lang3*.jar"/>
+                <exclude name="biouml.plugins.wiki_*.jar"/>
+            </fileset>
+        </copy>
+        <for param="dir">
+            <path>
+                <dirset dir="${PLUGIN_DIR}">
+                    <include name="*"/>
+                    <exclude name="com.genexplain.*"/>
+                    <exclude name="de.bwaldvogel.*"/>
+                </dirset>
+            </path>
+            <sequential>
+                <local name="jar.filename"/>
+                <basename property="jar.filename" file="@{dir}"/>
+                <ant target="-add.cluster.jar">
+                    <property name="cluster.jar.dir" value="@{dir}"/>
+                    <property name="cluster.jar.filename" value="${CLUSTER_DIR}/${jar.filename}.jar"/>
+                </ant>
+            </sequential>
+        </for>
+        <ant target="just.cluster.xml"/>
+    </target>
+
+    <target name="installer" depends="plugin.all">
+        <property name="INSTALLER_DIR" location="${TOPDIR}/installer(IzPack)"/>
+        <copy file="${INSTALLER_DIR}/install.xml" todir="${OUTDIR}">
+            <filterchain>
+                <tokenfilter>
+                    <replacestring from="$PUBLIC_VERSION$" to="${PUBLIC_VERSION}" />
+                    <replacestring from="$VERSION$" to="${VERSION}" />
+                </tokenfilter>
+            </filterchain>
+        </copy>
+        <taskdef name="IzPack" classpath="${INSTALLER_DIR}/izpack-standalone-compiler-4.3.5.jar" classname="com.izforge.izpack.ant.IzPackTask"/> 
+        <IzPack input="${OUTDIR}/install.xml"
+                output="${INSTALLER_DIR}/BioUML-install.jar"
+                installerType="standard"
+                basedir="${INSTALLER_DIR}"
+                IzPackDir="${INSTALLER_DIR}"/>
+    </target>
+
+    <target name="findbugs" depends="compile">
+        <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" classpath="${TOOLSDIR}/findbugs/findbugs-ant.jar"/>
+        <findbugs classpath="${TOOLSDIR}/findbugs/findbugs.jar" output="xml:withMessages" outputFile="findbugs.xml" excludeFilter="findbugsExclude.xml">
+            <auxClasspath path="${BUILD_CLASSPATH}" />
+            <sourcePath path="${SRCDIR}" />
+            <class location="${OUTDIR}" />
+        </findbugs>
+    </target>
+
+    <target name="huntbugs" depends="compile" description="Find bugs using HuntBugs">
+        <if>
+            <equals arg1="${RUN_HUNTBUGS}" arg2="true"/>
+            <then>
+                <mkdir dir="huntbugs"/>
+                <taskdef resource="one/util/huntbugs/ant/antlib.xml">
+                    <classpath path="${TOOLSDIR}/huntbugs/huntbugs-ant.jar"/>
+                </taskdef>
+                <huntbugs classPath="${OUTDIR}" auxClassPath="${BUILD_CLASSPATH}" 
+                          html="huntbugs/huntbugs.html" xml="huntbugs/huntbugs.xml" diff="huntbugs/huntbugs.xml"/>
+            </then>
+            <else>
+                <echo message="HuntBugs is skipped"/>
+            </else>
+        </if>
+    </target>
+
+    <macrodef name="mavenDeploy">
+        <attribute name="file"/>
+        <attribute name="groupId"/>
+        <attribute name="artifactId"/>
+        <attribute name="version"/>
+        <sequential>
+            <if>
+                <matches string="@{version}" pattern="^.+-SNAPSHOT$"/>
+                <then>
+                    <property name="deployNexusUrl" value="http://nexus.dote.ru/nexus/content/repositories/snapshots/"/>
+                </then>
+                <else>
+                    <property name="deployNexusUrl" value="http://nexus.dote.ru/nexus/content/repositories/releases/"/>
+                </else>
+            </if>
+            <echo message="deploy @{file}"/>
+            <exec executable="mvn">
+                <arg value="deploy:deploy-file"/>
+                <arg value="-Dfile=@{file}"/>
+                <arg value="-DgroupId=@{groupId}"/>
+                <arg value="-DartifactId=@{artifactId}"/>
+                <arg value="-Dversion=@{version}"/>
+                <arg value="-Dpackaging=jar"/>
+                <arg value="-Durl=${deployNexusUrl}"/>
+                <arg value="-DrepositoryId=dote"/>
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <target name="deploy.plugin.base">
+        <property name="VERSION" value="0.9.10" />
+        <for list="
+                biouml.splash,
+                biouml.workbench,
+                biouml.workbench.graph,
+                biouml.plugins.download,
+                biouml.plugins.downloadext,
+                biouml.plugins.lucene,
+                biouml.plugins.research,
+                biouml.plugins.server,
+                biouml.plugins.simulation,
+                biouml.plugins.state,
+                biouml.plugins.jupyter,
+                biouml.plugins.microarray,
+                com.developmentontheedge.util,
+                com.developmentontheedge.server,
+                ru.biosoft.access,
+                ru.biosoft.access.search,
+                ru.biosoft.analysiscore,
+                ru.biosoft.analysis,
+                ru.biosoft.analysis.optimization,
+                ru.biosoft.bsa.server,
+                ru.biosoft.bsa,
+                ru.biosoft.bsastats,
+                ru.biosoft.fs,
+                ru.biosoft.graph,
+                ru.biosoft.graphics,
+                ru.biosoft.math,
+                ru.biosoft.plugins,
+                ru.biosoft.plugins.docker,
+                ru.biosoft.plugins.graph,
+                ru.biosoft.plugins.javascript,
+                ru.biosoft.plugins.jsconsistent,
+                ru.biosoft.plugins.jsreport,
+                ru.biosoft.plugins.jri,
+                ru.biosoft.proteome,
+                ru.biosoft.server.servlets,
+                ru.biosoft.server,
+                ru.biosoft.services,
+                ru.biosoft.table,
+                ru.biosoft.templates,
+                ru.biosoft.treetable,
+                ru.biosoft.workbench,
+                ru.biosoft.workbench.editors,
+                ru.biosoft.works
+            " param="plugin.name" trim="true">
+            <sequential>
+                <mavenDeploy file="../plugins/@{plugin.name}_${VERSION}.jar" groupId="org.biouml.plugins"
+                             artifactId="@{plugin.name}" version="${VERSION}-SNAPSHOT"/>
+            </sequential>
+        </for>
+    </target>
+
+    <target name="deploy.plugin.one" depends="prepare">
+        <!--<antcall target="plugin.analysis"/>-->
+        <for list="biouml.plugins.simulation" param="plugin.name" trim="true">
+            <sequential>
+                <mavenDeploy file="../plugins/@{plugin.name}_${VERSION}.jar" groupId="org.biouml.plugins"
+                             artifactId="@{plugin.name}" version="${VERSION}-SNAPSHOT" />
+            </sequential>
+        </for>
+    </target>
+
+    <target name="deploy.libs" depends="prepare">
+        <mavenDeploy file="${TROVE}" groupId="gnu.trove" artifactId="trove" version="3.0.3p1" />
+        <mavenDeploy file="${RHINO}" groupId="org.mozilla" artifactId="rhino" version="1.7.0p1" />
+        <mavenDeploy file="${PLUGIN_DIR}/com.eclipsesource.json_0.9.4.jar"
+                     groupId="com.eclipsesource.minimal-json" artifactId="minimal-json" version="0.9.4p1" />
+        <mavenDeploy file="${PLUGIN_DIR}/org.eclipse.osgi_3.12.0.v20170512-1932.jar"
+                     groupId="org.biouml.plugins" artifactId="org.eclipse.osgi_" version="3.12.0.v20170512-1932p1" />
+    </target>
+
+    <target name="deploy.libs.one" depends="prepare">
+
+    </target>
+
+    <target name="deploy.tomcat-all" depends="compile">
+        <property name="file" value="${OUTDIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat-server-all.jar"/>
+        <jar jarfile="${file}" compress="true">
+            <fileset dir="${OUTDIR}">
+                <patternset>
+                    <include name="ru/biosoft/server/tomcat/**/*.class" />
+                    <include name="biouml/launcher/**/*.class" />
+                    <exclude name="ru/biosoft/server/**/_test/**/*.class" />
+                </patternset>
+            </fileset>
+        </jar>
+        <mavenDeploy file="${file}" groupId="org.biouml"
+                     artifactId="tomcat-server-all" version="${VERSION}-SNAPSHOT" />
+    </target>
+</project>

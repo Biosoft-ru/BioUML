@@ -1,0 +1,45 @@
+<tool id="analyze_covariates" name="Analyze Covariates" version="0.0.4">
+  <command>/bin/bash -v "$script" </command>
+  <inputs>
+    <param name="input_recal" type="data" format="csv" label="Covariates table recalibration file" />
+    <conditional name="analysis_param_type">
+      <param name="analysis_param_type_selector" type="select" label="Basic or Advanced options">
+        <option value="basic" selected="True">Basic</option>
+        <option value="advanced">Advanced</option>
+      </param>
+      <when value="basic">
+        <!-- Do nothing here -->
+      </when>
+      <when value="advanced">
+        <param name="ignore_q" type="integer" value="5" label="Ignore bases with reported quality less than this number."/>
+        <param name="num_read_groups" type="integer" value="-1" label="Only process N read groups."/>
+        <param name="max_quality_score" type="integer" value="50" label="Max quality score"/>
+        <param name="max_histogram_value" type="integer" value="0" label="Max histogram value"/>
+        <param name="do_indel_quality" type="boolean" truevalue="--do_indel_quality" falsevalue="" label="Do indel quality"/>
+      </when>
+    </conditional>
+  </inputs>
+  <outputs>
+    <data format="zip" name="output" label="Output folder" />
+    <data format="txt" name="output_log" label="Log file" />
+  </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+ java -jar ${GALAXY_DATA_INDEX_DIR}/shared/jars/gatk/AnalyzeCovariates.jar \
+  -recalFile "${input_recal}" \
+  -outputDir "${output}_dir" \
+  #if $analysis_param_type.analysis_param_type_selector == "advanced":
+    --ignoreQ "${analysis_param_type.ignore_q}" \
+    --numRG "${analysis_param_type.num_read_groups}" \
+    --max_quality_score "${analysis_param_type.max_quality_score}" \
+    --max_histogram_value "${analysis_param_type.max_histogram_value}" \
+    ${analysis_param_type.do_indel_quality} \
+  #end if
+  | tee ${output_log} \
+  &amp;&amp; zip -rj ${output} "${output}_dir" 
+  </configfile>
+  </configfiles>
+
+  <help>
+  </help>
+ </tool>

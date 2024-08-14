@@ -1,0 +1,41 @@
+<h2>Correlation Analysis</h2>
+
+<b>Correlation analysis</b> uses standard statistical methods to calculate correlation between two data sets which indicates measure of statistical dependency between them. Input of the analysis are two data sets. Output is a table containing all posible correlations between them and their P-values. For example if input has two data sets one of which contains n samples and another - m samples, then result will contain n x m correlation values and n x m P-values.
+One should keep in mind that analysis may produce huge amount of data and take a long time to work, especially if <b>Calculate FDR</b> flag is set "true". 
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li><b>Experiment data</b> - experimental data for analysis.
+    <ul>
+      <li><b>Table</b> - a table data collection with experimental data stored in the BioUML repository.
+      <li><b>Columns</b> - the columns selected from the table for further analysis.
+    </ul>
+    
+    <li><b>Control data</b> - control data for analysis.
+      <ul>
+        <li><b>Table</b> - a table data collection with control data stored in BioUML repository.
+        <li><b>Columns</b> - the columns selected from the table for further analysis.
+      </ul>
+    <p>Please note that, despite their names, both experiment and control data sets has equal meaning, since correlation is a symmetric function.</p> 
+    </li>
+    
+    <li><b>Data source</b> - data source for correlations (rows or columns from tables).
+    <li><b>Result type</b> - the type of result representation: correlation matrix or triplets (id1, id2, correlation). 
+    <li><b>Correlation type</b> - the correlation method.
+    
+    <ul>
+      <li><b>Pearson</b> - Pearson correlation.
+      <li><b>Spearman</b> - Spearman rank correlation (non-parametric).
+    </ul>
+    
+    <li><b><i>P</i>-value threshold</b> - threshold for <i>P</i>-value (only elements with lower <i>P</i>-value will be included in the results).
+    
+    <li><b>Outline boundaries</b> - lower and upper boundaries for values from the input table. Outliers will be ignored.
+
+    <li>
+      <b>Output table</b> - the path in BioUML repository where the result table will be stored.
+      If a table with the specified path already exists it will be replaced.
+    </li>
+  </li>
+</ul>

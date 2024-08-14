@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+     
+   <extension id="AntimonyImporter" point="ru.biosoft.access.import">
+		<import 
+			format="Antimony" 
+			importer="biouml.plugins.antimony.AntimonyImporter" 
+			description="Antimony Importer"
+			moduleType = "biouml.plugins.sbml.SbmlModuleType"
+			 />
+	</extension>
+	
+	<extension id="AntimonyExporter" point="ru.biosoft.access.export"> 
+     <export 
+        diagramType="*"
+        format="Antimony"
+        suffix=".txt"
+        exporter="biouml.plugins.antimony.AntimonyExporter"
+        description="Antimony exporter"
+        moduleType = "biouml.plugins.sbml.SbmlModuleType"
+     /> 
+   </extension>
+   
+   <extension id="Antimony" point="biouml.workbench.diagramViewPart">
+	  <diagramViewPart
+	      editor="true"
+	      class="biouml.plugins.antimony.AntimonyEditor"
+	      id="diagram.antimony"
+	      Name="Antimony"
+	      ShortDescription="Antimony"
+	      Priority="3"
+	      ignoreInIDE="true"
+	  />
+   </extension>
+   
+     <extension id="AntimonyAnnotationExtension" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="antimony" 
+        priority="0"
+        extension_class="biouml.plugins.antimony.AntimonySbmlExtension"
+      /> 
+  </extension> 
+  
+  <extension point="ru.biosoft.server.servlets.webProvider">
+      <provider prefix="antimony" class="biouml.plugins.antimony.web.AntimonyWebProvider"/>
+  </extension>
+  
+  <extension point="biouml.workbench.diagramText">
+    <diagramText class="biouml.plugins.antimony.AntimonyTextRepresentationFactory"/>
+  </extension>
+
+  <!--extension id="ApplyAntimony" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="Apply antimony" class="biouml.plugins.antimony.AntimonyApplyAction">
+        <parameter name="numSelected" value="1"/>
+        <property name="Name" value="Apply antimony"/>
+        <property name="ShortDescription" value="Apply antimony"/>
+        <property name="LongDescription" value="Apply antimony."/>
+        <property name="SmallIcon" value="resources/updateantimony.gif" /> 
+        <property name="ActionCommandKey" value="cmd-apply-antimony"/>
+     </dynamicAction>
+  </extension-->
+
+</plugin>

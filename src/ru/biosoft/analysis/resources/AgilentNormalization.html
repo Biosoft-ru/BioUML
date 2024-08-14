@@ -1,0 +1,52 @@
+<h2>Agilent Normalization</h2>
+
+<p>
+  Normalization of Agilent files based on the functions of the
+  <a href="http://www.bioconductor.org/help/bioc-views/release/bioc/html/limma.html">Bioconductor LIMMA package</a>.
+</p>  
+
+<p>
+  Smyth and Speed<span class="ref">1</span> give an overview of the normalization techniques
+  implemented in these functions.
+</p>
+
+<p>
+  Usually data from spotted microarrays will be normalized using the function <tt>normalizeWithinArrays</tt>.
+  A minority of data will also be normalized using <tt>normalizeBetweenArrays</tt> if diagnostic plots
+  suggest a difference in scale between the arrays:
+</p>
+
+<ul>
+  <li><tt><a href="http://rss.acs.unt.edu/Rdoc/library/limma/html/normalizeWithinArrays.html">normalizeWithinArrays</a></tt> - normalize the expression log-ratios for one or more two-color
+    spotted microarray experiments so that the log-ratios average to zero within each array or sub-array;
+  <li><tt><a href="http://rss.acs.unt.edu/Rdoc/library/limma/html/normalizebetweenarrays.html">normalizeBetweenArrays</a></tt> - normalizes expression intensities so that the intensities or
+    log-ratios have similar distributions across a set of arrays.
+</ul>
+
+<p>
+  For analyzing single-channel information rather than differential expression based on log-ratios,
+  the data should be normalized using a single channel-normalization technique.
+  Single channel normalization uses further options of the
+  <tt>normalizeBetweenArrays</tt> function.
+</p>
+
+<p>
+  For the detailed description of the LIMMA functions see the
+  <a href="http://www.bioconductor.org/packages/2.7/bioc/vignettes/limma/inst/doc/usersguide.pdf">LIMMA user’s guide</a>.
+</p>
+
+<p class="workbench-only">
+  <b>Note</b>: Before the Agilent Normalization is started you need to install R and Rserve on your computer.
+  For more information on installing, please visit
+  <a href="http://www.r-project.org/">R-project website</a>.
+</p>
+
+<p>
+  <b>Note</b>: Duplicated identifiers will be modified.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li>GK Smyth and TP Speed (2003). Normalization of cDNA microarray data. <i>Methods</i> 31, 265-273.
+</ol>

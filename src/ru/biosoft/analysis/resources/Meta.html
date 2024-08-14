@@ -1,0 +1,46 @@
+<h2>Meta-analysis</h2>
+
+<p>
+  The aim of a meta-analysis is to identify up- and down-regulated genes from different independent microarray experiments. 
+  Such a meta-analysis is based on the hypergeometric analysis method.
+  Within the framework of a meta-analysis, a hypergeometric analysis is applied to
+  sets of gene profiles. The obtained results are the initial data for a subsequent meta-analysis.
+  It uses the same procedure as a hypergeometric analysis for testing the hypothesis
+  that the that score obtained in previous tests deviates from 0
+  (Boundary Value = 0) just by chance. The result is a table with
+  meta scores that indicate. 
+</p>
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li data-property="tablePaths">
+    <b>Tables</b> - tables from the input data collection to be used for the meta analysis<br>
+    Note: for proper work tables should have only one column with scores
+    obtained by Hypergeometric analysis (without fold change, details or annotations).
+  </li>
+  
+  <li data-property="outputType"><b>Output type</b> - the type of genes to be included in result:
+    <ul>
+      <li>Up- and down-regulated
+      <li>Up-regulated
+      <li>Down-regulated
+    </ul>
+  </li>
+  
+  <li data-property="pvalue"><b><i>P-value</i> threshold</b> - threshold for <i>P-value</i> (only elements with lower <i>P-value</i> will be included in the results).
+    
+  <li data-property="fdr">
+    <b>Calculate FDR</b> - the test method for calculation of False Discovery Rate (FDR) -
+    an average rate of mistakenly found up- or down-regulated genes under the given <i>P-value</i> threshold. It randomly permutates the data 50 times and applies the selected
+    meta-analysis to each randomized table. FDR is calculated separately for up- and down-regulated
+    genes according to the formula:
+
+    <div class="formula-text"><img src="fdr.png" alt="fdr"></div>
+  </li>
+  
+  <li data-property="outputTablePath">
+    <b>Output table</b> - the path in the BioUML repository where the result table will be stored.
+    If a table with the specified path already exists it will be replaced.
+  </li>
+</ul>

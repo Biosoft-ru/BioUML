@@ -1,0 +1,53 @@
+#set ($modelName = $de.getExpInfoName())
+#set ($paramNames = $de.getParameterNames())
+#set ($length = $times.size() - 1)
+#set ($dq = '"')##quotes
+#set ($br = "
+")##break line
+import java.util.Map;
+import biouml.plugins.pharm.nlme.ExperimentInfo;
+$br
+public class $modelName extends ExperimentInfo
+{
+
+$br
+    public $modelName()
+    {
+#if( $de.hasDoseColumn()  )
+         doseIndex = $de.getDoseIndex();
+#end
+         subjectIndex = $de.getSubjectIndex();
+#if( $de.hasTimeColumn()  )
+         timeIndex = $de.getTimeIndex();
+#end
+#set ($colNames = $de.getColumnNames())
+#set ($colSize = $colNames.size() - 1)
+#set ($colNameString = "columnNames = new String[]{$dq$colNames.get(0)$dq")
+#set ($paramLength = $paramNames.size() - 1)
+#foreach ($i in [1..$colSize])
+#set ($colNameString = "$colNameString,$dq$colNames.get($i)$dq")
+#end
+#if ($de.hasTimeColumn())
+        tableData = new double[$colSize+1][];
+#foreach ($i in [0..$colSize])
+#set ($colName = $colNames.get($i))
+#set ($colData = $de.getColumn($colName))
+#set ($colString = "tableData[$i] = new double[]{$colData.get(0)")
+#set ($length = $colData.size() - 1)
+#foreach ($j in [1..$length])
+#set ($colString = "$colString,$colData.get($j)")
+#end
+        $colString};
+#end
+#end
+#set ($paramNamesArray = "parameterNames = new String[]{$dq$paramNames.get(0)$dq")
+#if ($paramNames.size() > 1)
+#set ($paramLength = $paramNames.size() - 1)
+#foreach ($i in [1..$paramLength])
+#set ($paramNamesArray = "$paramNamesArray,$dq$paramNames.get($i)$dq")
+#end
+#end
+        $colNameString};
+        $paramNamesArray};
+    }
+}

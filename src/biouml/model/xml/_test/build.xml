@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2007/12/14 03:29:55 tolstyh Exp $  -->
+
+<project name="biouml.model.xml package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.model.xml"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.model._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="reader">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.XmlDiagramTypeReaderTest"/>
+        </ant>
+    </target>
+	
+    <target name="kitano">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.XmlDiagramKitanoViewTest"/>
+        </ant>
+    </target>
+
+    <target name="kitano.edges">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.XmlDiagramKitanoEdgesTest"/>
+        </ant>
+    </target>
+
+    <target name="transform">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.TransformNotationDiagram"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

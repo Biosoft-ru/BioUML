@@ -1,0 +1,773 @@
+
+
+
+/***************************************************************
+                   OPTIONS
+***************************************************************/
+
+options 
+{
+    MULTI = true;
+    NODE_DEFAULT_VOID = true;
+    STATIC = false;
+
+    NODE_PREFIX ="Ast"; 
+    DEBUG_PARSER = false;
+}
+
+
+/***************************************************************
+                   PARSER BEGIN
+***************************************************************/
+
+PARSER_BEGIN(Parser)
+package ru.biosoft.math.parser;
+
+import java.io.StringReader;
+import java.util.Vector;
+import ru.biosoft.math.model.*;
+
+public class Parser extends AbstractParser
+{
+
+
+    /** Default constructor. */
+    public Parser()
+    {    
+        this(new StringReader("0"));
+    }
+
+    public int parse(String expression)
+    {
+        reinit();
+
+        try
+        {
+            ReInit( new StringReader(expression) );
+            astStart = Start();
+        }
+        catch(Throwable t)
+        {
+            fatalError(t.toString());
+            astStart = new AstStart(JJTSTART);
+        }
+
+        astStart.setStatus(status);
+        astStart.setMessages(messages);
+
+        return status;
+    }
+
+}
+
+PARSER_END(Parser)
+
+
+/***************************************************************
+                   SKIP
+***************************************************************/
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
+}
+
+
+/***************************************************************
+                   TOKENS
+***************************************************************/
+
+TOKEN : /* RESERVED WORDS AND LITERALS */
+{
+   < FUNCTION:  "function"  >
+|  < DIFF:      "diff"      >
+|  < PIECEWISE: "piecewise" >
+|  < XOR:       "xor"       >
+}
+
+
+TOKEN : /* LITERALS */
+{
+    < INTEGER_LITERAL:
+            <DECIMAL_LITERAL>
+    >
+|
+    < #DECIMAL_LITERAL: ["0"-"9"] (["0"-"9"])* >
+|
+    < FLOATING_POINT_LITERAL:
+            (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)?
+            | "." (["0"-"9"])+ (<EXPONENT>)?
+            | (["0"-"9"])+ <EXPONENT>
+    >
+|
+    < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+    < STRING_LITERAL:
+            "\""
+            ( (~["\"","\\","\n","\r"])
+            | ("\\" ["n","t","b","r","f","\\","'","\""]     )
+            )*
+            "\""
+    >
+}
+
+
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: ( ("$" <STRING_LITERAL>) | 
+                  ( <LETTER> (<LETTER>|<DIGIT>)* ( "." <LETTER> (<LETTER>|<DIGIT>)* )* )
+                )>
+|
+  < #LETTER: ["_", "a"-"z","A"-"Z","$"] >
+|
+  < #DIGIT: ["0"-"9"] >
+}
+
+
+
+/* OPERATORS */
+TOKEN:
+{
+        < GT:   ">"  >
+|       < LT:   "<"  >
+|       < EQ:   "==" >
+|       < LE:   "<=" >
+|       < GE:   ">=" >
+|       < NE:   "!=" >
+|       < AND:  "&&" >
+|       < OR:   "||" >
+|       < PLUS: "+"  >
+|       < MINUS:"-"  >
+|       < MUL:  "*"  >
+|       < DIV:  "/"  >
+|       < NOT:  "!"  >
+|       < POWER:"^"  >
+
+|       < ASSIGNMENT:  "="  >
+}
+
+/***************************************************************
+                   GRAMMAR START
+***************************************************************/
+
+AstStart Start() #Start : {}
+{
+    (
+        FunctionDeclaration()  
+        |
+        ( 
+            DiffEquation() 
+            |    
+            (
+                LOOKAHEAD(2)
+                Assignment()
+                |
+                Expression() 
+            )
+
+        )
+    )
+
+    (";")? 
+
+    <EOF>
+    { return jjtThis; }
+
+}
+
+
+/***************************************************************
+                   ASSIGNMENT
+***************************************************************/
+
+void Assignment() : {}
+{
+    (
+        Variable()
+
+        <ASSIGNMENT>
+        {
+            setOperator(jjtThis, tokenImage[ASSIGNMENT]);
+        }
+
+        ( Expression() )
+
+    ) #FunNode(2)
+}
+
+/***************************************************************
+                   FUNCTION DECLARATION
+***************************************************************/
+
+void FunctionDeclaration() :
+{
+    String identString = "";
+    ParserContext parent = context;
+    VariableResolver oldResolver = variableResolver;
+}
+{
+        (
+            <FUNCTION>
+
+            // set up the local context
+            {
+                jjtThis.init(parent);
+                context = (ParserContext)jjtThis;
+                variableResolver = jjtThis.getVariableResolver();
+            }
+
+            identString = Identifier()
+            {
+                jjtThis.setName(identString);
+            }
+
+            "("
+                 (
+                     ArgumentDeclaration()
+                     ( "," ArgumentDeclaration() )*
+                 )?
+             ")"
+
+            <ASSIGNMENT>
+
+            Expression()
+
+            // return to global context
+            {
+                context = parent;
+                context.declareFunction( (AstFunctionDeclaration)jjtThis );
+                variableResolver = oldResolver;
+            }
+
+        ) #FunctionDeclaration
+}
+
+void ArgumentDeclaration() :
+{
+        String identString = "";
+}
+{
+        (identString = Identifier()
+            {
+                jjtThis.setName(identString);
+                context.declareVariable(identString, new Double(0));
+            }
+        ) #VarNode
+}
+
+
+/***************************************************************
+                   DIFFERENTIATION
+***************************************************************/
+
+void DiffEquation() :  {}
+{
+    (
+        <DIFF>
+        {
+            setOperator(jjtThis, "=");
+
+        }
+
+        Diff()
+
+        <ASSIGNMENT>
+
+        ( Expression() )
+
+    )#FunNode(2)
+}
+
+void Diff() :
+{
+    int reqArguments = 2;
+    String identString = "diff";
+}
+{
+    (
+        {
+            Function function = context.getFunction(identString);
+
+            if( function == null )
+            {
+                error("Unknown function '" + identString + "'.");
+                function = new UndeclaredFunction(identString, Function.FUNCTION_PRIORITY);
+            }
+
+            jjtThis.setFunction(function);
+            reqArguments = function.getNumberOfParameters();
+         }
+
+      "("ArgumentList(reqArguments, identString)")"
+
+    ) #FunNode
+}
+
+/***************************************************************
+                   PIECEWISE
+***************************************************************/
+
+void Piecewise() : {}
+{
+    (
+        <PIECEWISE>
+        "("
+            Piece()  ( ";" PieceOrOtherwise() )*
+        ")"
+    )#Piecewise
+}
+
+void Piece() :  {}
+{
+    (
+        Expression() "=>" Expression()
+    )#Piece
+}
+
+void PieceOrOtherwise() :  {}
+{
+    (
+        Expression() ("=>" Expression())?
+        {
+            // check that otherwise is last
+            Node current  = jjtree.popNode();
+            Node previous = jjtree.popNode();
+
+            if( previous.jjtGetNumChildren() == 1 )
+            {
+                error("Piecewise syntax error - incorrect otherwise_value location." +
+                      "\r\nPiecewise syntax: " +
+                      "\r\n  piecewise( logical_codition => value (; logical_codition => value)* (; otherwise_value)? )" );
+            }
+
+            jjtree.pushNode(previous);
+            jjtree.pushNode(current);
+        }
+
+    )#Piece
+}
+
+/***************************************************************
+                   EXPRESSION
+***************************************************************/
+
+void Expression() : {}
+{
+    OrExpression()
+}
+
+
+void OrExpression() :
+{
+}
+{
+        XorExpression()
+        (
+          ( <OR> XorExpression()
+                {
+                    setOperator(jjtThis, tokenImage[OR]);
+                }
+          ) #FunNode(2)
+        )*
+}
+
+
+void XorExpression() :
+{
+}
+{
+        AndExpression()
+        (
+          ( <XOR> AndExpression()
+                {
+                    setOperator(jjtThis, tokenImage[XOR]);
+                }
+          ) #FunNode(2)
+        )*
+}
+
+void AndExpression() :
+{
+}
+{
+        EqualExpression()
+        (
+          ( <AND> EqualExpression()
+                {
+                    setOperator(jjtThis, tokenImage[AND]);
+                }
+          ) #FunNode(2)
+        )*
+}
+
+
+
+void EqualExpression() :
+{
+}
+{
+        RelationalExpression()
+        (
+          ( <NE> RelationalExpression()
+            {
+                setOperator(jjtThis, tokenImage[NE]);
+            }
+          ) #FunNode(2)
+        |
+          ( <EQ> RelationalExpression()
+            {
+                 setOperator(jjtThis, tokenImage[EQ]);
+            }
+          ) #FunNode(2)
+        )*
+}
+
+
+
+void RelationalExpression() :
+{
+}
+{
+  AdditiveExpression()
+  (
+    ( <LT> AdditiveExpression()
+      {
+          setOperator(jjtThis, tokenImage[LT]);
+      }
+        ) #FunNode(2)
+        |
+    ( <GT> AdditiveExpression()
+      {
+          setOperator(jjtThis, tokenImage[GT]);
+      }
+    ) #FunNode(2)
+    |
+    ( <LE> AdditiveExpression()
+      {
+          setOperator(jjtThis, tokenImage[LE]);
+      }
+        ) #FunNode(2)
+        |
+    ( <GE> AdditiveExpression()
+      {
+          setOperator(jjtThis, tokenImage[GE]);
+      }
+    ) #FunNode(2)
+  )*
+}
+
+
+void AdditiveExpression() :
+{
+}
+{
+  MultiplicativeExpression()
+  (
+    ( <PLUS> MultiplicativeExpression()
+      {
+          setOperator(jjtThis, tokenImage[PLUS]);
+      }
+    ) #FunNode(2)
+    |
+    ( <MINUS> MultiplicativeExpression()
+      {
+          setOperator(jjtThis, tokenImage[MINUS]);
+      }
+    ) #FunNode(2)
+  )*
+}
+
+
+void MultiplicativeExpression() :
+{
+}
+{
+  UnaryExpression()
+  (
+    (
+      PowerExpression()
+      {
+        if (true) throw new ParseException(
+                "Syntax Error (implicit multiplication not enabled)");
+
+        setOperator(jjtThis, tokenImage[MUL]);
+      }
+    ) #FunNode(2)
+    |
+    ( <MUL> UnaryExpression()
+      {
+        setOperator(jjtThis, tokenImage[MUL]);
+      }
+    ) #FunNode(2)
+        |
+    ( <DIV> UnaryExpression()
+      {
+        setOperator(jjtThis, tokenImage[DIV]);
+      }
+    ) #FunNode(2)
+  )*
+}
+
+
+void UnaryExpression() :
+{
+}
+{
+  ( <PLUS> UnaryExpression())
+|
+  ( <MINUS> UnaryExpression()
+    {
+          setOperator(jjtThis, "u-"); // tokenImage[MINUS]);
+    }
+  ) #FunNode(1)
+|
+  ( <NOT> UnaryExpression()
+    {
+          setOperator(jjtThis, tokenImage[NOT]);
+    }
+  ) #FunNode(1)
+|
+  PowerExpression()
+}
+
+
+void PowerExpression() :
+{
+}
+{
+  UnaryExpressionNotPlusMinus()
+  [
+  ( <POWER> UnaryExpression()
+    {
+      setOperator(jjtThis, tokenImage[POWER]);
+    }
+  ) #FunNode(2)
+  ]
+}
+
+
+void UnaryExpressionNotPlusMinus() :
+{
+        String identString = "";
+        int type;
+}
+{
+        AnyConstant()
+|
+        ( LOOKAHEAD(2)
+                Function()
+                |
+                Piecewise()
+                |
+                VariableOrPredefinedConstant()
+        )
+        |
+        ParenthisExpression()
+}
+
+
+void ParenthisExpression() : {}
+{
+  ( "(" Expression() ")"
+    {}
+   ) // #Parenthesis
+ 
+}
+
+
+void VariableOrPredefinedConstant() : {}
+{
+    ( LOOKAHEAD( {context.containsConstant(getToken(1).image) } )
+           PredefinedConstant()
+           |
+           Variable()
+    )
+}
+
+
+void PredefinedConstant() :
+{
+        String identString = "";
+}
+{
+        (identString = Identifier()
+        {
+               jjtThis.setName(identString);
+               jjtThis.setValue( context.getConstantValue(identString) );
+        }
+        ) #Constant
+}
+
+
+void Variable() :
+{
+        String identString = "";
+}
+{
+        (identString = Identifier()
+          {
+               jjtThis.setName( processVariable(identString) );
+               jjtThis.setTitle( identString );
+          }
+        ) #VarNode
+}
+
+
+void Function() :
+{
+    int reqArguments = 0;
+    String identString = "";
+}
+{
+    ( identString = Identifier()
+        {
+            Function function = context.getFunction(identString);
+
+            if( function == null )
+            {
+                error("Unknown function '" + identString + "'.");
+                function = new UndeclaredFunction(identString, Function.FUNCTION_PRIORITY);
+            }
+
+            jjtThis.setFunction(function);
+            reqArguments = function.getNumberOfParameters();
+         }
+
+      "("ArgumentList(reqArguments, identString)")"
+
+    ) #FunNode
+}
+
+void ArgumentList(int reqArguments, String functionName) :
+{
+    int count = 0;
+    String errorStr = "";
+}
+{
+    [
+      Expression() { count++; }
+        (
+            ","
+            Expression() { count++; }
+        )*
+    ]
+    {
+        if( reqArguments != count && reqArguments != -1 )
+        {
+            errorStr = "Function \"" + functionName +"\" requires " + reqArguments + " parameter";
+            if( reqArguments!=1 )
+                errorStr += "s";
+
+            error(errorStr);
+        }
+    }
+}
+
+
+String Identifier() :
+{
+  Token t;
+}
+{
+        t=<IDENTIFIER>
+        {
+            return t.image;
+        }
+}
+
+
+void AnyConstant() #Constant:
+{
+    Token t;
+    Object value;
+}
+{
+        t=<STRING_LITERAL>
+        {
+            // strip away double quotes at end of string
+            String temp = (t.image).substring(1,t.image.length()-1);
+
+            // replace escape characters
+            // temp = replaceEscape(temp);
+
+            jjtThis.setValue(temp);
+        }
+        |
+        value = RealConstant()
+        {
+            jjtThis.setValue(value);
+        }
+        |
+        value = Array()
+        {
+            jjtThis.setValue(value);
+        }
+}
+
+
+Object RealConstant() :
+{
+  Token t;
+  Object value;
+}
+{
+        (t=<INTEGER_LITERAL>
+        {
+             try
+             {
+                 value = new Integer(t.image);
+             }
+             catch (Exception e)
+             {
+                 value = null;
+                 error("Can't parse \"" + t.image + "\"");
+             }
+
+             return value;
+        }
+        |
+        t=<FLOATING_POINT_LITERAL>)
+        {
+             try
+             {
+                 value = new Double(t.image);
+             }
+             catch (Exception e)
+             {
+                 value = null;
+                 error("Can't parse \"" + t.image + "\"");
+             }
+
+             return value;
+        }
+}
+
+Vector Array() :
+{
+    Object value;
+    Vector result = new Vector();
+}
+{
+        "["
+        value = RealConstant()
+        {
+             result.addElement(value);
+        }
+        (
+             ","
+             value = RealConstant()
+             {
+                   result.addElement(value);
+             }
+        )*
+        "]"
+        {
+             return result;
+        }
+}

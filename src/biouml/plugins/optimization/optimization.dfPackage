@@ -1,0 +1,104 @@
+package idf639fol0kkpgfol0nrxg;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.OptimizationAnalysisAction:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.OptParamsViewPart:oiref><oihard>
+@__modelType reference 
+*/
+class reference44 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.OptParamsEditorsTabbedPane:oiref><oihard>
+@__modelType reference 
+*/
+class reference45 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.FittingParameterPane:oiref><oihard>
+@__modelType reference 
+*/
+class reference46 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.MessageBundle:oiref><oihard>
+@__modelType reference 
+*/
+class reference47 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.SimulationExperimentOptimization:oiref><oihard>
+@__modelType reference 
+*/
+class reference48 {
+}/**
+@__ref <oiref:design#Class#id8zhcfol0kkpgfol0nuef.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#biouml.plugins.optimization.resources:oiref> 
+*/
+class reference49 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.MultipleExperimentOptimization:oiref><oihard>
+@__modelType reference 
+*/
+class reference50 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.OptimizationDialog:oiref><oihard>
+@__modelType reference 
+*/
+class reference51 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.SingleExperimentOptimization:oiref><oihard>
+@__modelType reference 
+*/
+class reference52 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.AddParameterGroupDialog:oiref><oihard>
+@__modelType reference 
+*/
+class reference53 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.AllParametersPane:oiref><oihard>
+@__modelType reference 
+*/
+class reference54 {
+}/**
+@__ref <oiref:java#Class#biouml.plugins.optimization.ParametersTab:oiref><oihard>
+@__modelType reference 
+*/
+class reference55 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:java#Class#biouml.plugins.optimization.AddParameterGroupDialog:oiref>=10,930,191,184,1:oigroup>
+<oigroup:<oiref:java#Extends#biouml.plugins.optimization.SingleExperimentOptimization#biouml.plugins.optimization.SimulationExperimentOptimization:oiref>=486,387,486,327:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.OptimizationDialog:oiref>=903,10,203,773,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.SimulationExperimentOptimization:oiref>=329,10,203,317,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.SingleExperimentOptimization:oiref>=441,387,203,128,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.MultipleExperimentOptimization:oiref>=218,387,203,128,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.OptParamsViewPart:oiref>=664,10,219,716,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.OptParamsEditorsTabbedPane:oiref>=63,10,199,165,1:oigroup>
+<oigroup:<oiref:java#Extends#biouml.plugins.optimization.FittingParameterPane#biouml.plugins.optimization.OptParamsEditorsTabbedPane:oiref>=94,235,94,175:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.OptimizationAnalysisAction:oiref>=10,550,173,127,1:oigroup>
+<oigroup:<oiref:java#Extends#biouml.plugins.optimization.MultipleExperimentOptimization#biouml.plugins.optimization.SimulationExperimentOptimization:oiref>=359,387,359,327:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.ParametersTab:oiref>=298,830,194,127,1:oigroup>
+<oigroup:<oiref:java#Extends#biouml.plugins.optimization.AllParametersPane#biouml.plugins.optimization.OptParamsEditorsTabbedPane:oiref>=219,235,219,175:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.FittingParameterPane:oiref>=10,235,146,62,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.AllParametersPane:oiref>=176,235,133,71,1:oigroup>
+<oigroup:<oiref:design#Class#id8zhcfol0kkpgfol0nuef.diagram:oiref>=210,770,68,63,1:oigroup>
+<oigroup:<oiref:java#Class#biouml.plugins.optimization.MessageBundle:oiref>=10,770,180,127,1:oigroup> 
+*/
+class __positions {
+}

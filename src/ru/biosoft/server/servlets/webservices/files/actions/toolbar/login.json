@@ -1,0 +1,20 @@
+/*
+ * Login action for Anonymous user
+ */
+{
+    id: "login",
+    label: "Log-in",
+    icon: "icons/login.png",
+    visible: "function(doc)
+    {
+        if(isAnonymousSession)
+           return true;
+        return -1;
+        
+    }",
+    action: "function(event)
+    {
+        var user = new User();
+        user.logout(false);    
+    }"
+}

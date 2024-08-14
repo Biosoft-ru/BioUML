@@ -1,0 +1,12 @@
+<html>
+	<body>
+		#if( $de.getRole().getParameters() && $de.getRole().getParameters().getSize() > 0)
+			<font size = 6>Variables</font><br><br>
+			<table border="0">
+			#updateParameterTable("<b>&#8470;</b>", "<b>Name</b>", "<b>Initial value</b>", "<b>Units</b>", "<b>Constant</b>", "<b>Comment</b>")
+			#processParameters($de)
+			</table>
+			<br><br>
+		#end
+	</body>
+</html>

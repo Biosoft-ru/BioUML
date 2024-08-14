@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.2 2011/01/27 11:24:58 tolstyh Exp $  -->
+
+<project name="com.developmentontheedge.server package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="com.developmentontheedge.server"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="com.developmentontheedge.server._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

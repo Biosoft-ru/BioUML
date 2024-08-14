@@ -1,0 +1,24 @@
+/*
+ * Convert diagram action
+ */
+{
+    id: "convert",
+    label: "Convert to type",
+    icon: "icons/convert.gif",
+    visible: "function(doc)
+    {
+    	if ((doc != null) && (doc instanceof Diagram)) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var doc = getActiveDocument();
+        if(doc.convert)
+        {
+        	doc.convert();
+        }
+    }"
+}

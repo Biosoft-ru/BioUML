@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.4 2009/03/04 12:43:16 tolstyh Exp $
+  Run batch test for ru.biosoft.bsa.view.colorscheme package
+-->
+
+<project name="ru.biosoft.bsa.view.colorscheme" default="autotest" basedir="../../../../../..">
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="ru.biosoft.bsa.view.colorscheme._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <!--
+     Delete all *.class files.
+  -->
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

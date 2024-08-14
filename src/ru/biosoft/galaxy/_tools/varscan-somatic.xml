@@ -1,0 +1,190 @@
+<tool id="varscan_somatic" name="VarScan - Somatic" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>
+		<param name="nBam" type="data" format="bam" label="BAM file for normal" 
+		      help="BAM file for normal sample"/>
+		<param name="tBam" type="data" format="bam" label="BAM file for tumor" 
+ 		      help="BAM file for tumor sample"/>
+	<param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+
+      <param name="min_coverage" type="integer" label="Minimum coverage in normal and tumor to call variant" value="8" 
+            help="Minimum coverage in normal and tumor to call variant [8]"/>
+       <param name="min_coverage_normal" type="integer" label="Minimum coverage in normal to call somatic" value="8" 
+            help="Minimum coverage in normal to call somatic [8]"/>
+        <param name="min_coverage_tumor" type="integer" label="Minimum coverage in tumor to call somatic" value="6" 
+            help="Minimum coverage in tumor to call somatic [6]"/>
+        <param name="min_var_freq" type="float" value="0.01" label="Minimum variant frequency to call a heterozygote"
+              help="Minimum variant frequency to call a heterozygote [0.10]" />
+        <param name="min_freq_for_hom" type="float" value="0.75" label="Minimum frequency to call homozygote"
+              help="Minimum frequency to call homozygote [0.75]" />
+        <param name="normal_purity" type="float" value="1.00" label="Estimated purity (non-tumor content) of normal sample"
+              help="Estimated purity (non-tumor content) of normal sample [1.00]. The normal and tumor purity values should be a value between 0 and 1. The default (1) implies that the normal is 100% pure with no contaminating tumor cells, and the tumor is 100% pure with no contaminating stromal or other non-malignant cells. You would change tumor-purity to something less than 1 if you have a low-purity tumor sample and thus expect lower variant allele frequencies for mutations. You would change normal-purity to something less than 1 only if it's possible that there will be some tumor content in your 'normal' sample, e.g. adjacent normal tissue for a solid tumor, malignant blood cells in the skin punch normal for some liquid tumors, etc. " />
+        <param name="tumor_purity" type="float" value="0.50" label="Estimated purity (tumor content) of tumor sample"
+              help=" Estimated purity (tumor content) of tumor sample [0.50]. The normal and tumor purity values should be a value between 0 and 1. The default (1) implies that the normal is 100% pure with no contaminating tumor cells, and the tumor is 100% pure with no contaminating stromal or other non-malignant cells. You would change tumor-purity to something less than 1 if you have a low-purity tumor sample and thus expect lower variant allele frequencies for mutations. You would change normal-purity to something less than 1 only if it's possible that there will be some tumor content in your 'normal' sample, e.g. adjacent normal tissue for a solid tumor, malignant blood cells in the skin punch normal for some liquid tumors, etc. " />
+        <param name="p_val" type="float" value="0.99" label="P-value threshold to call a heterozygote"
+              help="P-value threshold to call a heterozygote [0.99]. (p-value) is the significance threshold for the first-pass algorithm that determines, for each position, if either normal or tumor is variant at that position. " />
+        <param name="somatic_p_value" type="float" value="0.05" label=" P-value threshold to call a somatic site"
+              help="P-value threshold to call a somatic site [0.05]. (somatic-p-value) is more important; this is the threshold below which read count differences between tumor and normal are deemed significant enough to classify the sample as a somatic mutation or an LOH event. In the case of a shared (germline) variant, this p-value is used to determine if the combined normal and tumor evidence differ significantly enough from the null hypothesis (no variant with same coverage) to report the variant." />
+
+              
+      <param name="strand_filter" type="boolean" truevalue="--strand-filter 1" falsevalue="" checked="True" label="Ignore variants with &gt;90% support on one strand" 
+                                help="Ignore variants with &gt; 90% support on one strand" />
+      <param name="validation" type="boolean" truevalue="--variants 1" falsevalue="" checked="False" label="If checked, outputs all compared positions even if non-variant" 
+                                help="If checked,  outputs all compared positions even if non-variant" />
+
+
+    <param name="memoryUsage" type="integer" label="Max memory usage" value="6"  help="Max memory usage in gigabytes" />
+    <param name="tmpFolder" type="text" label="TMP folder" value="/mnt/ssd/Galaxy-tmp" />
+    <param name="nThreads" type="integer" label="Maximal number of threads" value="30" />
+
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data type="data" format="varscan" name="out_snp" label="Output-snp" />
+		<data type="data" format="varscan" name="out_indel" label="Output-indel" />
+	</outputs>
+
+<configfiles>
+<configfile name="script2">#!/bin/bash -v
+HHH=\$1
+err="`dirname $log`/err-\$HHH.pipe"
+out="`dirname $log`/out-\$HHH.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out"
+echo "Somatic varscan for chromosome \$HHH started at `date`" &gt; \$HHH.log
+trap 'rm "\$err"  "\$out"; echo "log for \$HHH chromosome" &gt;&gt; \$HHH.log; cat \$HHH.err \$HHH.out &gt;&gt; \$HHH.log; 
+	rm \$HHH.err \$HHH.out; echo "\$HHH finished at `date`" &gt;&gt; \$HHH.log' EXIT
+tee \$HHH.err &lt; "\$err" &gt;&amp;2 &amp;
+tee \$HHH.out &lt; "\$out" &gt;&amp;1 &amp;
+
+echo starting somatic varscan for \$HHH chromosome
+samtools mpileup -f "${ refGenome.fields.path }" -r \$HHH "$nBam" "$tBam" | java "-Xmx$memoryUsage"G -jar "${GALAXY_DATA_INDEX_DIR}/shared/jars/varscan.jar" somatic  \
+  --mpileup 1 \
+  --output-snp snp-\$HHH \
+  --output-indel indel-\$HHH \
+  --min-coverage $min_coverage --min-coverage-normal $min_coverage_normal --min-coverage-tumor $min_coverage_tumor \
+  --min-var-freq $min_var_freq --min-freq-for-hom $min_freq_for_hom --normal-purity $normal_purity --tumor-purity $tumor_purity \
+  --p-value $p_val --somatic-p-value $somatic_p_value $strand_filter  $validation \
+&gt; "\$out"  2&gt;"\$err"
+
+</configfile>
+    <configfile name="script">#!/bin/bash -v
+  DEST=`dirname $log`
+cd \$DEST
+
+PREFIX="somatic-varscan-\$RANDOM"
+mkdir -p $tmpFolder/\$PREFIX
+
+trap 'rm -Rf $tmpFolder/\$PREFIX/' EXIT
+mv -v * $tmpFolder/\$PREFIX/
+
+cd $tmpFolder/\$PREFIX/
+
+rm -Rf  \$DEST
+ln -s $tmpFolder/\$PREFIX/ \$DEST
+cd \$DEST
+
+chmod a+x $script2
+
+##### sleep 10000000000000000
+samtools view -H "$nBam" | grep "SN:" | awk '{print $2}'| sed -e 's/SN://' | xargs -n 1 -P $nThreads -t /bin/bash -v "$script2"
+
+STATUS=\$?
+echo "exit status of xargs for somatic varscan \$STATUS"
+#### sleep 100000000000
+
+if [[ "\$STATUS" != "0" ]]
+   then echo "varscan finished with error. All temproary files stores \$DEST . Exit status \$STATUS";  
+   #### exit \$STATUS
+fi
+
+cat *.log &gt;&gt;  log.tmp
+
+#### Combining all snp calls
+awk 'NR &gt; 1 { exit }; 1' `ls snp*| sort -n | head -1 ` &gt; final-snp.tmp   ### copy header
+awk 'FNR &gt; 1' snp* &gt;&gt; final-snp.tmp
+rm snp*
+
+
+#### Combining all indel calls
+awk 'NR &gt; 1 { exit }; 1' `ls indel*| sort -n | head -1 ` &gt; final-indel.tmp   ### copy header
+awk 'FNR &gt; 1' indel* &gt;&gt; final-indel.tmp
+rm indel*
+
+cd $tmpFolder/\$PREFIX/
+rm \$DEST ## removing soft link
+mkdir \$DEST
+
+mv log.tmp $log
+mv final-snp.tmp $out_snp
+mv final-indel.tmp $out_indel
+  </configfile>
+  </configfiles>
+
+<help>
+somatic
+This command calls variants and identifies their somatic status (Germline/LOH/Somatic) using pileup files from a matched tumor-normal pair.
+You can also give it a single mpileup file with normal and tumor data.
+
+Both formats of the command share these common options:
+	        
+	OPTIONS:
+	--output-snp - Output file for SNP calls [default: output.snp]
+	--output-indel - Output file for indel calls [default: output.indel]
+	--min-coverage - Minimum coverage in normal and tumor to call variant [8]
+	--min-coverage-normal - Minimum coverage in normal to call somatic [8]
+	--min-coverage-tumor - Minimum coverage in tumor to call somatic [6]
+	--min-var-freq - Minimum variant frequency to call a heterozygote [0.10]
+	--min-freq-for-hom	Minimum frequency to call homozygote [0.75]
+	--normal-purity - Estimated purity (non-tumor content) of normal sample [1.00]
+	--tumor-purity - Estimated purity (tumor content) of tumor sample [1.00]
+	--p-value - P-value threshold to call a heterozygote [0.99]
+	--somatic-p-value - P-value threshold to call a somatic site [0.05]
+	--strand-filter - If set to 1, removes variants with >90% strand bias
+	--validation - If set to 1, outputs all compared positions even if non-variant
+Note that more specific options (e.g. min-coverage-normal) will override the default or specificied value of less specific options (e.g. min-coverage). 
+
+The normal and tumor purity values should be a value between 0 and 1. The default (1) implies that the normal is 100% pure with no contaminating tumor cells, and the tumor is 100% pure with no contaminating stromal or other non-malignant cells. You would change tumor-purity to something less than 1 if you have a low-purity tumor sample and thus expect lower variant allele frequencies for mutations. You would change normal-purity to something less than 1 only if it's possible that there will be some tumor content in your "normal" sample, e.g. adjacent normal tissue for a solid tumor, malignant blood cells in the skin punch normal for some liquid tumors, etc. 
+
+There are two p-value options. One (p-value) is the significance threshold for the first-pass algorithm that determines, for each position, if either normal or tumor is variant at that position. The second (somatic-p-value) is more important; this is the threshold below which read count differences between tumor and normal are deemed significant enough to classify the sample as a somatic mutation or an LOH event. In the case of a shared (germline) variant, this p-value is used to determine if the combined normal and tumor evidence differ significantly enough from the null hypothesis (no variant with same coverage) to report the variant. See the somatic mutation calling section for details.
+	 
+	OUTPUT
+	Two tab-delimited files (SNPs and Indels) with the following columns:
+	chrom					chromosome name
+	position				position (1-based from the pileup)
+	ref						reference allele at this position
+	var						variant allele at this position
+	normal_reads1			reads supporting reference allele
+	normal_reads2			reads supporting variant allele
+	normal_var_freq			frequency of variant allele by read count
+	normal_gt				genotype call for Normal sample
+	tumor_reads1			reads supporting reference allele
+	tumor_reads2			reads supporting variant allele
+	tumor_var_freq			frequency of variant allele by read count
+	tumor_gt				genotype call for Tumor sample
+	somatic_status			status of variant (Germline, Somatic, or LOH)	
+	variant_p_value			Significance of variant read count vs. baseline error rate
+	somatic_p_value			Significance of tumor read count vs. normal read count
+	tumor_reads1_plus       Ref-supporting reads from + strand in tumor
+	tumor_reads1_minus      Ref-supporting reads from - strand in tumor
+	tumor_reads2_plus       Var-supporting reads from + strand in tumor
+	tumor_reads2_minus		Var-supporting reads from - strand in tumor
+
+Citing VarScan
+Please note the version number, and cite the publications below with URL to cite VarScan:
+
+VarScan 2: Koboldt, D., Zhang, Q., Larson, D., Shen, D., McLellan, M., Lin, L., Miller, C., Mardis, E., Ding, L., &amp; Wilson, R. (2012). VarScan 2: Somatic mutation and copy number alteration discovery in cancer by exome sequencing Genome Research DOI: 10.1101/gr.129684.111 
+URL: http://varscan.sourceforge.net
+
+manual: http://varscan.sourceforge.net/using-varscan.html#v2.3_somatic
+</help>
+
+
+</tool>

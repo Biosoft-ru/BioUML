@@ -1,0 +1,20 @@
+/*
+ * Logout action
+ */
+{
+    id: "logout",
+    label: "Log out",
+    icon: "icons/logout.gif",
+    visible: "function(doc)
+    {
+        if(isAnonymousSession)
+    	   return -1;
+	   return true;
+    	
+    }",
+    action: "function(event)
+    {
+        var user = new User();
+        user.logout(false);    
+    }"
+}

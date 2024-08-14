@@ -1,0 +1,27 @@
+/*
+ * Creates new jupyter notebook by click on kernel
+ */
+{
+    id: "new_notebook",
+    label: "New Notebook",
+    icon: "icons/plot.gif",
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if( ( instanceOf(type,'ru.biosoft.plugins.docker.JupyterKernelDataElement') /*&& dc.isJournal()*/ ) ) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        newJupyterNotebookFromAnalyses(path, function (document){
+           openDocumentTab(document);
+        });
+    }"
+}

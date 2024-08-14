@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<project name="ru.biosoft.bsa.chipseqprofile package test" default="autotest" basedir="../../../../../../">
+
+    <property name="package" value="ru.biosoft.analysis"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="ru.biosoft.bsa.analysis.chipseqprofile._test.AutoTest"/>
+        </ant>
+    </target>
+	
+</project>

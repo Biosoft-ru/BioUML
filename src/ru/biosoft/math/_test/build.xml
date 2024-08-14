@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.11 2007/05/03 09:40:50 alexander Exp $
+-->
+
+<project name="ru.biosoft.math._test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="ru.biosoft.math"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="ru.biosoft.math._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="view">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.FormulaViewTest"/>
+    </ant>
+  </target>
+
+  <target name="mmlf">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.MathMLFormatterTest"/>
+    </ant>
+  </target>
+
+  <target name="mmlp">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.MathMLParserTest"/>
+    </ant>
+  </target>
+
+  <target name="ctest">
+    <ant target="ctest"/>
+  </target>
+
+  <target name="parser">
+    <java classname="${package}._test.LinearParserTest">
+      <classpath>
+        <pathelement path="../out;../../common/bin/junit.jar"/>
+      </classpath>
+      <arg value="${expr}"/>
+     </java>
+  </target>
+
+  <target name="linear">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.LinearFormatterTest"/>
+    </ant>
+  </target>
+
+  <target name="editor">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.ExpressionEditorTest"/>
+    </ant>
+  </target>
+
+
+  <!--
+     Delete all *.class files.
+  -->
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

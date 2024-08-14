@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<project name="biouml.plugins.research._test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.research"/>
+
+    <target name="autotest">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.AutoTest" />
+		</ant>
+	</target>
+    
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

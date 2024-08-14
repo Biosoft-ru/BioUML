@@ -1,0 +1,7 @@
+model diagramTest
+   var z;
+   compartment default;
+   z has voltage;
+end
+unit voltage = 1000.0 gram * metre^2 / second^3 / ampere;
+unit foo = 100.0 mole / 5.0 litre;

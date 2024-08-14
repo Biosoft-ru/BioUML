@@ -1,0 +1,25 @@
+/*
+ * Save a copy... folder action
+ */
+{
+    id: "save_folder_as",
+    label: "Copy folder",
+    icon: "icons/saveas.gif",
+    visible: "function(completePath)
+    {
+        var clazz = getElementClass(completePath);
+        if(instanceOf(clazz,'ru.biosoft.access.core.FolderCollection'))
+            return true;
+        return -1; 
+    }",
+    action: "function(completePath)
+    {
+         $.chainclude(
+            {
+                'lib/copy.js':function(){
+                    copyFolder(completePath);
+                }
+            }
+        );
+    }"
+}

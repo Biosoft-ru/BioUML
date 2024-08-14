@@ -1,0 +1,20 @@
+/*
+ * Edit diagram element view options
+ */
+{
+    id: "de_view_options",
+    label: "Edit diagram element appearance",
+    icon: "icons/de_options.png",
+    visible: "function(doc)
+    {
+    	if (doc != null && !doc.readOnly && doc.isAnnotation) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+    	getActiveDocument().editElementViewOptions();
+    }"
+}

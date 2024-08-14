@@ -1,0 +1,22 @@
+<tool id="email" name="Send E-Mail" version="1.0">
+   <command>/bin/bash -v "$script"</command>
+	<inputs>
+		<param name="addresses" type="text" label="e-mail adresses" help="space separated e-mails"/>
+		<param name="subject" type="text" label="Subject" value="Message from BioDatomics server" help="could be any text"/>
+		<param name="message" type="text" label="Message" value="Message from BioDatomics server" help="could be any text"/>
+		<param name="files" type="data" format="txt" label="attachments"
+					help="attached file" />
+	</inputs>
+	<outputs>
+		<data format="txt" name="log" label="Log file"/>
+	</outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+	echo "this e-mail from S0 in manual mode" | mutt -s "$subject" -a $files -- $addresses
+	echo "The message $subject was sent to $addresses at `date`"&gt; $log
+  </configfile>
+  </configfiles>
+
+	<help>
+	</help>
+</tool>

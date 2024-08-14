@@ -1,0 +1,24 @@
+/*
+ * Open linked components dialog for pathfinder perspective
+ */
+{
+    id: "pf_shortestpath",
+    label: "Find shortes path betweeen nodes",
+    icon: "icons/pf_shortestpath.png",    
+    visible: "function(doc)
+    {
+        if( perspective && perspective.name && 'PathFinder' === perspective.name && doc != null && doc instanceof Diagram )
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function()
+    {
+        var activeDocument = getActiveDocument();
+        if (activeDocument instanceof Diagram) 
+        {
+            ShortestPathDialog(activeDocument);
+        }
+    }"
+}

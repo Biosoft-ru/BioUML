@@ -1,0 +1,904 @@
+package id4etoad4ydeymgd4ydkuxy;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id7qy05f14nul1tf14nv1he.diagram:oiref><oihard>
+@automatic 
+*/
+class link1672 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idawuc1f14nul1tf14nv127.diagram:oiref><oihard>
+@automatic 
+*/
+class link1673 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id6xwcwll1900cwll50aw.diagram:oiref><oihard>
+@automatic 
+*/
+class link1674 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id7lwleezyfe93cezyffqu9.diagram:oiref><oihard>
+@automatic 
+*/
+class link1675 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#iddvcxvezyfe93cezyffp6c.diagram:oiref><oihard>
+@automatic 
+*/
+class link1676 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id272e7cwll1900cwll3in8.diagram:oiref><oihard>
+@automatic 
+*/
+class link1677 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idh4mscf14nul1tf14nuzw3.diagram:oiref><oihard>
+@automatic 
+*/
+class link1678 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idfige0f14nul1tf14nv10w.diagram:oiref><oihard>
+@automatic 
+*/
+class link1679 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id2il1tf14nul1tf14nv1cm.diagram:oiref><oihard>
+@automatic 
+*/
+class link1680 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idfr6nff14nul1tf14nv00g.diagram:oiref><oihard>
+@automatic 
+*/
+class link1681 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idcf8ddf14nul1tf14nuzus.diagram:oiref><oihard>
+@automatic 
+*/
+class link1682 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id8zwftezyfe93cezyffo5w.diagram:oiref><oihard>
+@automatic 
+*/
+class link1683 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idin442f14nul1tf14nv14d.diagram:oiref><oihard>
+@automatic 
+*/
+class link1684 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id8wytmf14nul1tf14nv19l.diagram:oiref><oihard>
+@automatic 
+*/
+class link1685 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idaja2wezyfe93cezyffp52.diagram:oiref><oihard>
+@automatic 
+*/
+class link1686 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id1a602d0ewcqljd0ewgdl7.diagram:oiref><oihard>
+@automatic 
+*/
+class link1687 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id5znadf14nul1tf14nv026.diagram:oiref><oihard>
+@automatic 
+*/
+class link1688 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id6hfsbf14nul1tf14nuztx.diagram:oiref><oihard>
+@automatic 
+*/
+class link1689 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id9ayozf14nul1tf14nv1av.diagram:oiref><oihard>
+@automatic 
+*/
+class link1690 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id1kwtrf14nul1tf14nuzyp.diagram:oiref><oihard>
+@automatic 
+*/
+class link1691 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idb1b1eezyfe93cezyffp9t.diagram:oiref><oihard>
+@automatic 
+*/
+class link1692 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id4j55aczz6pfesd00za17r.diagram:oiref><oihard>
+@automatic 
+*/
+class link1693 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id9vzpmf14nul1tf14nv18p.diagram:oiref><oihard>
+@automatic 
+*/
+class link1694 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idep2fwf14nul1tf14nv132.diagram:oiref><oihard>
+@automatic 
+*/
+class link1695 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id1gdt1f14nul1tf14numa3.diagram:oiref><oihard>
+@automatic 
+*/
+class link1696 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idio0f5f14nul1tf14nv158.diagram:oiref><oihard>
+@automatic 
+*/
+class link1697 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idaw42fezyfe93cezyffp78.diagram:oiref><oihard>
+@automatic 
+*/
+class link1698 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id9tsv8eytoxek3eytpb71d.diagram:oiref><oihard>
+@automatic 
+*/
+class link1699 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idhq3z6ezyfe93cezyffp8y.diagram:oiref><oihard>
+@automatic 
+*/
+class link1700 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id3gg5aczz6pfesd00xio5y.diagram:oiref><oihard>
+@automatic 
+*/
+class link1701 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idb2wcef14nul1tf14nv0er.diagram:oiref><oihard>
+@automatic 
+*/
+class link1702 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id5f4spf14nul1tf14nv17e.diagram:oiref><oihard>
+@automatic 
+*/
+class link1703 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Basis:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SiteType:oiref><oihard>
+@__modelType reference 
+*/
+class reference1 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.LongSequence:oiref><oihard>
+@__modelType reference 
+*/
+class reference3 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Site:oiref><oihard>
+@__modelType reference 
+*/
+class reference4 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SiteImpl:oiref><oihard>
+@__modelType reference 
+*/
+class reference5 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.StrandType:oiref><oihard>
+@__modelType reference 
+*/
+class reference7 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.LinearSequence:oiref><oihard>
+@__modelType reference 
+*/
+class reference8 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Nucleotide15LetterAlphabet:oiref><oihard>
+@__modelType reference 
+*/
+class reference10 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.ErrorLetterPolicy:oiref><oihard>
+@__modelType reference 
+*/
+class reference11 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.DefaultAlphabet:oiref><oihard>
+@__modelType reference 
+*/
+class reference12 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Precision:oiref><oihard>
+@__modelType reference 
+*/
+class reference17 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Nucleotide5LetterAlphabetEx:oiref><oihard>
+@__modelType reference 
+*/
+class reference18 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MapAsVectorWithLazyFTInit:oiref><oihard>
+@__modelType reference 
+*/
+class reference21 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SequenceRegion:oiref><oihard>
+@__modelType reference 
+*/
+class reference23 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Alphabet:oiref><oihard>
+@__modelType reference 
+*/
+class reference24 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.ErrorLetterException:oiref><oihard>
+@__modelType reference 
+*/
+class reference29 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SequenceFactory:oiref><oihard>
+@__modelType reference 
+*/
+class reference33 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.CircularSequence:oiref><oihard>
+@__modelType reference 
+*/
+class reference34 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MapAsVector:oiref><oihard>
+@__modelType reference 
+*/
+class reference36 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.NucleotideAlphabet:oiref><oihard>
+@__modelType reference 
+*/
+class reference37 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Nucleotide5LetterAlphabet:oiref><oihard>
+@__modelType reference 
+*/
+class reference40 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SiteFactory:oiref><oihard>
+@__modelType reference 
+@foregroundColor 0,51,51
+@backgroundColor 255,204,204
+*/
+class reference43 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TrackImpl:oiref><oihard>
+@__modelType reference 
+*/
+class reference52 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TranscriptionFactor:oiref><oihard>
+@__modelType reference
+@backgroundColor 255,204,204 
+*/
+class reference6 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.StrandEditor:oiref><oihard>
+@__modelType reference 
+*/
+class reference9 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.BasisEditor:oiref><oihard>
+@__modelType reference 
+*/
+class reference13 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SiteProperties:oiref><oihard>
+@__modelType reference 
+@backgroundColor 255,204,204
+*/
+class reference14 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MapAsVectorWithLazyFTInitBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference16 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Const:oiref><oihard>
+@__modelType reference 
+*/
+class reference19 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MethodInfo:oiref><oihard>
+@__modelType reference
+@backgroundColor 255,204,204 
+*/
+class reference20 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.BindingElement:oiref><oihard>
+@__modelType reference 
+@backgroundColor 255,204,204
+*/
+class reference22 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MessageBundle:oiref><oihard>
+@__modelType reference 
+*/
+class reference30 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Slice:oiref><oihard>
+@__modelType reference 
+*/
+class reference39 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SlicedTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference44 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MapAsVectorBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference45 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SlicedSequence:oiref><oihard>
+@__modelType reference 
+*/
+class reference46 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SiteImplBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference48 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MergedTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference2 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TracksSQLTransformer:oiref><oihard>
+@__modelType reference 
+*/
+class reference25 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SqlTrackBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference31 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TrackRegion:oiref><oihard>
+@__modelType reference 
+*/
+class reference35 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TrackExporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference51 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.DefaultTrackExporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference53 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SequenceSupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference54 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SubSequence:oiref><oihard>
+@__modelType reference 
+*/
+class reference55 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TrackImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference56 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.WholeSequenceTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference57 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SqlTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference58 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.WritableTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference59 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.BSAMessageBundle:oiref><oihard>
+@__modelType reference 
+*/
+class reference60 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.BindingElementBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference61 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TrackOnSequences:oiref><oihard>
+@__modelType reference 
+*/
+class reference161 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacTranscriptionFactor:oiref><oihard>
+@__modelType reference 
+*/
+class reference162 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacProteinType:oiref><oihard>
+@__modelType reference 
+*/
+class reference163 {
+}/**
+@__ref <oiref:design#Class#idjly1ogtoh0gzjgtoh27aw.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.analysis:oiref> 
+*/
+class reference164 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.FastaExporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference165 {
+}/**
+@__ref <oiref:design#Class#id4w18kgtoh0gzjgtoh27br.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.macs14:oiref> 
+*/
+class reference166 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Interval:oiref><oihard>
+@__modelType reference 
+*/
+class reference167 {
+}/**
+@__ref <oiref:design#Class#iddgjlwgtoh0gzjgtoh27br.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.server:oiref> 
+*/
+class reference168 {
+}/**
+@__ref <oiref:design#Class#idjcw4vgtoh0gzjgtoh27c7.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.transformer:oiref> 
+*/
+class reference169 {
+}/**
+@__ref <oiref:design#Class#idd0iupgtoh0gzjgtoh27bb.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.classification:oiref> 
+*/
+class reference170 {
+}/**
+@__ref <oiref:design#Class#idjypx1gtoh0gzjgtoh27bb.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.filter:oiref> 
+*/
+class reference171 {
+}/**
+@__ref <oiref:design#Class#id2cgv5gtoh0gzjgtoh27c7.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.snp:oiref> 
+*/
+class reference172 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransformedTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference173 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacTranscriptionFactorBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference174 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.ResizedTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference175 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SequenceImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference176 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MatchResultsExporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference177 {
+}/**
+@__ref <oiref:design#Class#idhvkmwgtoh0gzjgtoh27br.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.macs:oiref> 
+*/
+class reference178 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacMatrixLibraryImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference179 {
+}/**
+@__ref <oiref:design#Class#idf19n8gtoh0gzjgtoh27c7.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.view:oiref> 
+*/
+class reference180 {
+}/**
+@__ref <oiref:design#Class#id63596gtoh0gzjgtoh27aw.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa._test:oiref> 
+*/
+class reference181 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference182 {
+}/**
+@__ref <oiref:design#Class#idgvbkkgtoh0gzjgtoh27br.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.resources:oiref> 
+*/
+class reference183 {
+}/**
+@__ref <oiref:design#Class#id9a79tgtoh0gzjgtoh27br.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.project:oiref> 
+*/
+class reference184 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacMatrixTableType:oiref><oihard>
+@__modelType reference 
+*/
+class reference185 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.VariationElement:oiref><oihard>
+@__modelType reference 
+*/
+class reference186 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.TransfacProfileImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference187 {
+}/**
+@__ref <oiref:design#Class#id4ovtcgtoh0gzjgtoh27bb.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.bsa.gui:oiref> 
+*/
+class reference188 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.ShrinkedTrack:oiref><oihard>
+@__modelType reference 
+*/
+class reference189 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Track:oiref><oihard>
+@__modelType reference 
+*/
+class reference368 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Sequence:oiref><oihard>
+@__modelType reference 
+*/
+class reference369 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.MatrixTableType:oiref><oihard>
+@__modelType reference 
+*/
+class reference370 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.Map:oiref><oihard>
+@__modelType reference 
+*/
+class reference371 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.bsa.SiteModel:oiref><oihard>
+@__modelType reference 
+*/
+class reference372 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options option.detail = Design 
+*/
+class __options {
+}/**
+@__positions 
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.LongSequence#alphabet:oiref>=-371,423,-371,546:oigroup>
+<oigroup:<oiref:design#Class#id2dsfyd4ydeymgd4ydkv1a.diagram:oiref>=1311,-159,203,205,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Site:oiref>=-1776,-191,203,293,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.LinearSequence#alphabet:oiref>=-8,297,-227,546:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.LongSequence#ru.biosoft.bsa.Sequence:oiref>=707,746,707,694:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Alphabet#instance:oiref>=1290,1019,1290,1060,1362,1060,1362,988,1321,988:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.LinearSequenceBeanInfo#ru.biosoft.bsa.SequenceBeanInfo:oiref>=963,1411,730,1450:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.LongSequenceBeanInfo#ru.biosoft.bsa.SequenceBeanInfo:oiref>=883,1555,801,1555:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.TrackOnSequences#ru.biosoft.bsa.Track:oiref>=-817,1398,-1276,1140:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SubSequence#sequenceRegion:oiref>=-814,249,-772,249:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.NucleotideAlphabet#ru.biosoft.bsa.DefaultAlphabet:oiref>=-75,913,-75,851:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.LinearSequence#ru.biosoft.bsa.Sequence:oiref>=900,741,739,694:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.ProjectAsLists#ru.biosoft.bsa.Project:oiref>=1044,-168,1044,-225:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacMatrixTableType:oiref>=1248,1003,154,59,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacTranscriptionFactorBeanInfo:oiref>=1016,1466,203,95,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Nucleotide5LetterAlphabetEx#ru.biosoft.bsa.NucleotideAlphabet:oiref>=-290,1181,-125,1126:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.ResizedTrack#ru.biosoft.bsa.TransformedTrack:oiref>=-1203,1626,-1100,1541:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.method.MatrixImpl#ru.biosoft.bsa.method.WeighMatrix:oiref>=1601,700,1797,534:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TrackInfo#track:oiref>=673,56,502,169:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.VariationElement#chromosome:oiref>=-843,-209,-946,-209:oigroup>
+<oigroup:<oiref:design#Class#idf19n8gtoh0gzjgtoh27c7.diagram:oiref>=808,-551,203,647,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SubSequence:oiref>=-1033,107,219,285,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.ErrorLetterPolicy:oiref>=59,670,150,119,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Site#ru.biosoft.bsa.StrandType:oiref>=-1683,-191,-1683,-280:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TrackRegion#track:oiref>=-1163,1056,-1265,1056:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TranscriptionFactor#DNABindingDomain:oiref>=-97,1583,-97,1774:oigroup>
+<oigroup:<oiref:design#Class#id9vzpmf14nul1tf14nv18p.diagram.link1836:oiref>=2121,-4,1972,-4:oigroup>
+<oigroup:<oiref:design#Class#idhvkmwgtoh0gzjgtoh27br.diagram:oiref>=578,-563,203,197,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.LongSequence:oiref>=-504,30,176,393,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.SlicedSequence#ru.biosoft.bsa.SequenceSupport:oiref>=-199,30,-329,-62:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.TrackImpl#ru.biosoft.bsa.WritableTrack:oiref>=-1745,1178,-1745,1115:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SlicedSequence:oiref>=-286,30,175,231,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.SlicedSequence#ru.biosoft.bsa.Sequence:oiref>=1151,748,756,694:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Nucleotide5LetterAlphabet#instance:oiref>=277,1263,277,1290,321,1290,321,1246,294,1246:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MethodInfo:oiref>=733,702,152,77,1:oigroup>
+<oigroup:<oiref:design#Class#id4ovtcgtoh0gzjgtoh27bb.diagram:oiref>=805,124,170,179,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Map#ru.biosoft.bsa.Site:oiref>=93,745,93,509:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TrackRegion#seq:oiref>=-1065,863,-1065,67,-1007,-22:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.ErrorLetterPolicy#THROW_EXCEPTION:oiref>=531,485,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SequenceSupport:oiref>=-410,-213,153,151,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#properties:oiref>=-70,1181,-70,1351:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.BindingElement:oiref>=489,1119,190,113,1:oigroup>
+<oigroup:<oiref:design#Class#id26vtjd4ydeymgd4ydkuxy.diagram:oiref>=888,-159,203,148,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Nucleotide5LetterAlphabetEx:oiref>=-391,1181,203,123,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SequenceFactory#isIgnoreGap#(##)#:oiref>=797,292,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TranscriptionFactor#activationDomain:oiref>=-227,1533,-320,1533:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.WritableTrack:oiref>=-1852,1020,137,95,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.TransformedTrack#ru.biosoft.bsa.Track:oiref>=-1065,1402,-1315,1140:oigroup>
+<oigroup:<oiref:design#Class#id63596gtoh0gzjgtoh27aw.diagram:oiref>=1298,58,149,215,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SequenceFactory:oiref>=-1103,-560,197,285,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.method.MatrixImpl#ru.biosoft.bsa.BioObjectImpl:oiref>=267,227,130,269:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.DefaultAlphabet:oiref>=-178,548,203,303,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacTranscriptionFactor:oiref>=1004,1131,219,321,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Site#ru.biosoft.bsa.Precision:oiref>=-1628,-191,-1474,-281:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.BasisEditor:oiref>=-2009,-537,105,77,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.BindingElementBeanInfo:oiref>=492,1244,163,95,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MergedTrack:oiref>=-1318,1403,160,121,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Nucleotide5LetterAlphabetEx#instance:oiref>=-212,1304,-212,1338,-154,1338,-154,1280,-188,1280:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacProteinType:oiref>=1248,1336,128,75,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TranscriptionFactor#generalClass:oiref>=-62,1583,-62,1774:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SiteModel:oiref>=479,702,219,247,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TrackImporter:oiref>=-1315,1892,203,301,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Basis:oiref>=-2012,-418,196,137,1:oigroup>
+<oigroup:<oiref:java#Extends#mgl3.access.DataCollection#mgl3.access.DataElement:oiref>=24,177,24,139:oigroup>
+<oigroup:<oiref:design#Class#id9a79tgtoh0gzjgtoh27br.diagram:oiref>=1303,-374,162,341,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#canonicSequenceRegion:oiref>=-1648,142,-1075,-22:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TrackOnSequences:oiref>=-910,1398,187,121,1:oigroup>
+<oigroup:<oiref:design#Class#iddvcxvezyfe93cezyffp6c.diagram.link1724:oiref>=1942,34,1942,63:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.StrandType:oiref>=-1799,-435,202,155,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.DefaultAlphabet#ru.biosoft.bsa.Alphabet:oiref>=-178,698,-207,698:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SequenceRegion:oiref>=-772,30,219,429,1:oigroup>
+<oigroup:BeanProperty#<oiref:java#Member#ru.biosoft.bsa.DefaultAlphabet#isNucleotide#(##)#:oiref>=1216,1224,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.MergedTrack#source:oiref>=-1212,1403,-1337,1140:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.LinearSequence:oiref>=-61,30,176,267,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Site#ru.biosoft.bsa.Region:oiref>=423,561,423,414:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.StrandEditor:oiref>=-1785,-541,105,77,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TrackImpl:oiref>=-1775,1178,180,157,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.ResizedTrack:oiref>=-1256,1626,106,87,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.MapAsVector#ru.biosoft.bsa.SiteImpl:oiref>=170,1301,230,960:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.ErrorLetterException:oiref>=62,546,137,95,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.util.classification.ClassificationUnit:oiref>=-167,1774,140,118,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.MergedTrack#ru.biosoft.bsa.Track:oiref>=-1265,1403,-1370,1140:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#sequenceRegion:oiref>=-1621,142,-1058,-22:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.ErrorLetterPolicy#IGNORE:oiref>=528,439,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.TransfacTranscriptionFactor#ru.biosoft.bsa.TranscriptionFactor:oiref>=1004,1194,848,1194:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.SequenceRegion#ru.biosoft.bsa.Sequence:oiref>=433,745,644,694:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Nucleotide15LetterAlphabet:oiref>=-151,1183,203,87,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.LinearSequence#ru.biosoft.bsa.SequenceSupport:oiref>=27,30,-293,-62:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.SiteImpl#ru.biosoft.bsa.Site:oiref>=-1675,142,-1675,102:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.method.MatrixImpl:oiref>=1757,418,76,77,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SiteImplBeanInfo:oiref>=-1919,624,124,95,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Site#ru.biosoft.bsa.Basis:oiref>=-1730,-191,-1914,-281:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Nucleotide5LetterAlphabet#ru.biosoft.bsa.NucleotideAlphabet:oiref>=192,1176,-23,1126:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Nucleotide15LetterAlphabet#ru.biosoft.bsa.NucleotideAlphabet:oiref>=-74,1183,-74,1126:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Map:oiref>=-1470,135,203,121,1:oigroup>
+<oigroup:<oiref:design#Class#id9vzpmf14nul1tf14nv18p.diagram.link1828:oiref>=2721,-193,2772,-193:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TrackRegion:oiref>=-1163,863,187,319,1:oigroup>
+<oigroup:<oiref:design#Class#idjly1ogtoh0gzjgtoh27aw.diagram:oiref>=363,-560,203,1115,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Site#mgl3.access.DataElement:oiref>=114,238,114,139:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SequenceFactory#setErrorCharPolicy#(#int#)#:oiref>=811,296,0,0,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.MapAsTransformedCollection#ru.biosoft.bsa.Map:oiref>=113,953,113,907:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SequenceFactory#error#(##)#:oiref>=817,160,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TranscriptionFactor:oiref>=697,1127,151,131,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SubSequence#sequence:oiref>=-992,107,-992,-22:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TranscriptionFactor#taxon:oiref>=-132,1583,-132,1774:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.DefaultTrackExporter:oiref>=-1559,2056,203,195,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TracksSQLTransformer:oiref>=-1815,1914,174,75,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SlicedSequence#alphabet:oiref>=-247,261,-247,546:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Nucleotide5LetterAlphabet#ru.biosoft.bsa.DefaultAlphabet:oiref>=1196,1444,1340,1266:oigroup>
+<oigroup:<oiref:design#Class#idd0iupgtoh0gzjgtoh27bb.diagram:oiref>=1300,-558,203,161,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SequenceRegion#equals#(#java.lang.Object#)#:oiref>=568,866,0,0,1:oigroup>
+<oigroup:<oiref:design#Class#idjcw4vgtoh0gzjgtoh27c7.diagram:oiref>=1042,-558,203,359,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SiteProperties#getBasis#(##)#:oiref>=511,342,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.MapAsTransformedCollection#sequence:oiref>=184,953,848,770:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SiteFactory:oiref>=-1542,-195,203,177,1:oigroup>
+<oigroup:<oiref:design#Class#idaw42fezyfe93cezyffp78.diagram.link1790:oiref>=2873,-47,2873,-85:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.MapAsVector#$$constructor$$#(#java.lang.String#int#int#int#ru.biosoft.bsa.Sequence#)#:oiref>=167,1307,0,0,1:oigroup>
+<oigroup:<oiref:design#Class#id9vzpmf14nul1tf14nv18p.diagram.link1834:oiref>=2604,433,2604,483:oigroup>
+<oigroup:<oiref:design#Class#id3y9vmd4ydeymgd4ydkv10.diagram:oiref>=1125,-162,144,205,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.ShrinkedTrack:oiref>=-1126,1621,168,177,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacProfileImporter:oiref>=1248,1511,203,137,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.LongSequence#ru.biosoft.bsa.SequenceSupport:oiref>=-365,30,-365,-62:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransformedTrack:oiref>=-1132,1402,203,139,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Site#lnkSequence:oiref>=253,516,789,576:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.Sequence#convert#(#int#)#:oiref>=791,341,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.SequenceRegionBeanInfo#ru.biosoft.bsa.SequenceBeanInfo:oiref>=880,1468,801,1468:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.MapAsVector#sequence:oiref>=-1203,293,-999,-22:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#sequence:oiref>=-1593,142,-1040,-22:oigroup>
+<oigroup:<oiref:design#Class#id4w18kgtoh0gzjgtoh27br.diagram:oiref>=578,-348,203,161,1:oigroup>
+<oigroup:<oiref:design#Class#id21qeod4ydeymgd4ydkuxy.diagram:oiref>=1545,-160,203,300,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacMatrixLibraryImporter:oiref>=1250,1418,185,75,1:oigroup>
+<oigroup:<oiref:design#Class#id2cgv5gtoh0gzjgtoh27c7.diagram:oiref>=580,-171,203,125,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.LinearSequence#ru.biosoft.bsa.Sequence:oiref>=755,863,755,825:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.SiteImpl#ru.biosoft.bsa.RegionImpl:oiref>=234,488,600,435:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.Alphabet#compliment#(#char#)#:oiref>=726,-119,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.WholeSequenceTrack:oiref>=-1736,1400,180,85,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Track:oiref>=-1468,973,203,167,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Region#sequence:oiref>=838,95,686,462:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Sequence:oiref>=-1092,-243,146,221,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SlicedTrack:oiref>=-1523,1404,187,211,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SequenceRegion#parent:oiref>=-711,30,-959,-22:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.CircularSequence:oiref>=-25,367,141,133,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TrackExporter:oiref>=-1528,1895,127,113,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.Site#getStart#(##)#:oiref>=429,611,0,0,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.SequenceSupport#ru.biosoft.bsa.Sequence:oiref>=-410,-138,-946,-138:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.DBURLReference#ru.biosoft.bsa.URLReference:oiref>=-311,1848,-311,1806:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SiteProperties#getPrecision#(##)#:oiref>=488,348,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.TransformedTrack#source:oiref>=-997,1402,-1292,1140:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MatchResultsExporter:oiref>=1479,1133,149,149,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.Site#getOrientation#(##)#:oiref>=436,594,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MapAsVectorWithLazyFTInit:oiref>=-1311,478,219,285,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.NucleotideAlphabet:oiref>=-175,913,203,213,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SqlTrack:oiref>=-2044,1173,219,931,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.SiteImpl#ru.biosoft.bsa.BioObjectImpl:oiref>=222,482,108,328:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#parentCollection:oiref>=242,784,15,696:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.method.WeighMatrix:oiref>=1724,416,146,118,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.DefaultTrackExporter#ru.biosoft.bsa.TrackExporter:oiref>=-1465,2056,-1465,2008:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.CircularSequence#ru.biosoft.bsa.LinearSequence:oiref>=45,367,45,297:oigroup>
+<oigroup:BeanProperty#<oiref:java#Member#ru.biosoft.bsa.SequenceFactory#getErrorCharPolicy#(##)#:oiref>=856,171,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Precision:oiref>=-1570,-436,193,155,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#lnkSequence:oiref>=184,562,591,562:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.Site#getLength#(##)#:oiref>=438,595,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SubSequence#originalSequence:oiref>=-975,107,-975,-22:oigroup>
+<oigroup:<oiref:design#Class#id9vzpmf14nul1tf14nv18p.diagram.link1826:oiref>=2721,107,2772,107:oigroup>
+<oigroup:<oiref:design#Class#iddgjlwgtoh0gzjgtoh27br.diagram:oiref>=591,332,184,215,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.WritableTrack#ru.biosoft.bsa.Track:oiref>=-1715,1067,-1468,1067:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Slice:oiref>=-1524,1639,81,121,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.MapAsTransformedCollection#properties:oiref>=64,1327,64,1351:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SiteProperties:oiref>=-2012,141,219,355,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MessageBundle:oiref>=1040,287,164,173,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Alphabet:oiref>=-413,546,206,303,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MapAsVectorWithLazyFTInitBeanInfo:oiref>=-1526,659,203,95,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SiteImpl#siteProperties:oiref>=395,637,395,344:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.TransfacImporter:oiref>=1240,1131,203,177,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Site#ru.biosoft.bsa.SiteType:oiref>=-1776,-47,-2065,-47:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MatrixTableType:oiref>=1025,996,135,75,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.SequenceRegion#ru.biosoft.bsa.Sequence:oiref>=852,593,796,593:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.SqlTrack#ru.biosoft.bsa.WritableTrack:oiref>=-1842,1173,-1842,1115:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.SlicedTrack#ru.biosoft.bsa.Track:oiref>=-1402,1404,-1402,1140:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.MapAsVector#ru.biosoft.bsa.Map:oiref>=-1299,293,-1299,256:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SequenceRegion#toString#(##)#:oiref>=535,873,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MapAsVector:oiref>=-1315,293,208,149,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Nucleotide15LetterAlphabet#instance:oiref>=35,1270,35,1297,79,1297,79,1253,52,1253:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Const:oiref>=59,-554,203,481,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.Map#mgl3.access.DataCollection:oiref>=25,636,25,228:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.TransfacMatrixTableType#ru.biosoft.bsa.MatrixTableType:oiref>=1248,1032,1160,1032:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.MapAsVector#properties:oiref>=323,1319,90,1351:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.Alphabet#compliment#(#byte#)#:oiref>=687,-118,0,0,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.WholeSequenceTrack#ru.biosoft.bsa.Track:oiref>=-1646,1400,-1430,1140:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SequenceImporter:oiref>=-280,-553,184,85,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.BSAMessageBundle:oiref>=1047,472,140,93,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.Site#lnkZeroPoint:oiref>=565,501,565,441:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.LinearSequence#parent:oiref>=775,797,775,759:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.ShrinkedTrack#ru.biosoft.bsa.TransformedTrack:oiref>=-1042,1621,-1042,1541:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.FastaExporter:oiref>=-280,-458,203,119,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SequenceRegion#region:oiref>=785,485,637,435:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.ErrorLetterPolicy#REPLACE_BY_N:oiref>=570,452,0,0,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.bsa.SiteProperties#getType#(##)#:oiref>=544,350,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.MapAsVectorWithLazyFTInit#ru.biosoft.bsa.MapAsVector:oiref>=-1209,478,-1209,442:oigroup>
+<oigroup:<oiref:design#Class#idgvbkkgtoh0gzjgtoh27br.diagram:oiref>=953,414,68,63,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.bsa.TrackImpl#ru.biosoft.bsa.Track:oiref>=693,30,693,-2:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SiteType:oiref>=-2268,-441,203,1181,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Nucleotide5LetterAlphabet:oiref>=91,1176,203,87,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.CircularSequenceBeanInfo#ru.biosoft.bsa.SequenceBeanInfo:oiref>=975,1618,730,1587:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.bsa.SequenceRegion#ru.biosoft.bsa.SequenceSupport:oiref>=-649,30,-385,-62:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SqlTrackBeanInfo:oiref>=-1814,2023,123,77,1:oigroup>
+<oigroup:<oiref:design#Class#idjypx1gtoh0gzjgtoh27bb.diagram:oiref>=1041,-170,203,341,1:oigroup>
+<oigroup:<oiref:design#Class#idf8rpd4ydeymgd4ydkv7z.diagram:oiref>=1802,-160,203,889,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.MapAsVectorBeanInfo:oiref>=-1473,346,146,95,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.VariationElement:oiref>=-843,-403,178,229,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.bsa.SequenceRegion#sequence:oiref>=1072,476,847,476:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.Interval:oiref>=-66,-551,79,75,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.bsa.SiteImpl:oiref>=-1784,142,219,589,1:oigroup>
+
+*/
+class __positions {
+}

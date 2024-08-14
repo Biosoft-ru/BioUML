@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.server.servlets.webTableResolver">
+    <tableResolver type="structures" class="biouml.plugins.chemoinformatics.web.StructuresTableResolver"/>
+  </extension>
+  
+  <extension id="Import SDF file" point="ru.biosoft.access.import"> 
+     <export 
+        format="SDF file"
+        importer="biouml.plugins.chemoinformatics.SDFImporter"
+        description="biouml/plugins/chemoinformatics/resources/SDFFormat.html"
+     />
+  </extension>
+  
+  <extension id="Export structures in SDF format" point="ru.biosoft.access.export"> 
+     <export 
+        format="SDF file (*.sdf)"
+        suffix="txt"
+        contentType="text/plain"
+        exporter="biouml.plugins.chemoinformatics.SDFExporter"
+        description=""
+     />
+  </extension>
+  
+  <extension id="cdk" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="cdk" class="biouml.plugins.chemoinformatics.JavaScriptCDK" >
+        <doc description="Provides CDK-derived functionality">
+
+        <function name="addExplicitHydrogens" description="Adds explicit hydrogens to this molecule">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>            
+            <returns type="Structure" description="Molecule with added hydrogens"/>
+        </function>
+        
+        <function name="addImplicitHydrogens" description="Adds implicit hydrogens to this molecule">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>            
+            <returns type="Structure" description="Molecule with added implicit hydrogens"/>
+        </function>
+        
+        <function name="areIsomorphic" description="Returns true if the parameter named molecule1 and the paramater named molecule2 are isomorph.  (Performs an isomophism test without checking fingerprints) ">
+            <argument name="molecule1" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="molecule2" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if isomorphic"/>
+        </function>
+        
+        <function name="calculateMass" description="Calculate and return the molecular weight for the molecule">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="double" description="molecule mass"/>
+        </function>
+        
+        <function name="calculateRMSD" description="Calculate similarities between all molecules in the list based on the RMSD between the the Kabsch-aligned MCSSs. ">
+            <argument name="molecules" type="Structure[]" obligatory="true" description="List of structures"/>
+            <returns type="String" description="similarities matrix"/>
+        </function>
+        
+        <function name="calculateSMILES" description="Returns the SMILES for a molecule ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="String" description="SMILES string"/>
+        </function>
+        
+        <function name="calculateTanimoto" description="Calculate tanimoto similarity of a list of molecules (calculateFor) to another molecule (reference) via CDK fingerprint. ">
+            <argument name="calculateFor" type="Structure[]" obligatory="true" description="List of structures"/>
+            <argument name="reference" type="Structure" obligatory="true" description="Structure"/>
+            <returns type="Float[]" description="tanimoto similarities"/>
+        </function>
+        
+        <function name="calculateTanimoto" description="Calculate tanimoto similarity between two fingerprints ">
+            <argument name="fingerprint1" type="BitSet" obligatory="true" description="BitSet"/>
+            <argument name="fingerprint2" type="BitSet" obligatory="true" description="BitSet"/>
+            <returns type="Float" description="tanimoto similarity"/>
+        </function>
+        
+        <function name="calculateTanimoto" description="Calculate tanimoto similarity of a molecule (calculateFor) to a BitSet (reference) via CDK fingerprint. ">
+            <argument name="calculateFor" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="reference" type="BitSet" obligatory="true" description="BitSet"/>
+            <returns type="Float" description="tanimoto similarity"/>
+        </function>
+        
+        <function name="calculateTanimoto" description="Calculate tanimoto similarity of calculateFor and reference via CDK fingerprint. ">
+            <argument name="calculateFor" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="reference" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Float" description="tanimoto similarity"/>
+        </function>
+        
+        <function name="calculateTanimoto" description="Calculate tanimoto similarities between all molecule in the list using CDK fingerprints.">
+            <argument name="calculateFor" type="Structure[]" obligatory="true" description="List of structures"/>
+            <returns type="String" description="tanimoto similarity matrix"/>
+        </function>
+        
+        <function name="determineFormat" description="Determines the file format if the file, if chemical">
+            <argument name="path" type="String" obligatory="true" description="Data element path"/>
+            <returns type="String" description="Format name"/>
+        </function>
+        
+        <function name="determineIChemFormat" description="Determines the file format if the file, if chemical">
+            <argument name="path" type="String" obligatory="true" description="File data element path"/>
+            <returns type="org.openscience.cdk.io.formats.IChemFormat" description="Format"/>
+        </function>
+        
+        <function name="determineIChemFormatOfString" description="Determines the file format of the file in the String">
+            <argument name="content" type="String" obligatory="true" description="File data element path"/>
+            <returns type="org.openscience.cdk.io.formats.IChemFormat" description="Format"/>
+        </function>
+        
+        <function name="fingerPrintMatches" description="Returns true if the fingerprint of the subStructure is a subset of the fingerprint for the molecule ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="subStructure" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if matches"/>
+        </function>
+
+        <function name="fromCml" description="Creates a cdk molecule from a CML String ">
+            <argument name="cml" type="String" obligatory="true" description="String"/>
+            <argument name="name" type="String" obligatory="true" description="Molecule name"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+        
+        <function name="fromCml" description="Creates a cdk molecule from a CML String ">
+            <argument name="cml" type="String" obligatory="true" description="String"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+        
+        <function name="fromSMILES" description="Creates a cdk molecule from SMILES ">
+            <argument name="SMILES" type="String" obligatory="true" description="String"/>
+            <argument name="name" type="String" obligatory="true" description="Molecule name"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+        
+        <function name="fromSMILES" description="Creates a cdk molecule from SMILES ">
+            <argument name="SMILES" type="String" obligatory="true" description="String"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+
+        <function name="fromString" description="Creates a cdk molecule from a String. Guessing the format of the String ">
+            <argument name="molstring" type="String" obligatory="true" description="String"/>
+            <argument name="name" type="String" obligatory="true" description="Molecule name"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+        
+        <function name="fromString" description="Creates a cdk molecule from a String. Guessing the format of the String ">
+            <argument name="molstring" type="String" obligatory="true" description="String"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+
+        <function name="generate2dCoordinates" description="Create 2D coordinates for the given molecule ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure" description="Molecule structure with 2D coordinates"/>
+        </function>
+
+        <function name="generate2dCoordinates" description="Create 2D coordinates for the given molecules ">
+            <argument name="molecules" type="Structure[]" obligatory="true" description="Molecule list"/>
+            <returns type="Structure[]" description="List of molecules with 2D coordinates"/>
+        </function>
+        
+        <!--function name="generate3dCoordinates" description="Create 3D coordinates for the given molecules ">
+            <argument name="molecules" type="Structure[]" obligatory="true" description="Molecule list"/>
+            <returns type="Structure[]" description="List of molecules with 2D structures"/>
+        </function>
+
+        <function name="generate3dCoordinates" description="Create 3D coordinates for the given molecule ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule"/>
+            <returns type="Structure" description="Molecule"/>
+        </function-->
+        
+        <function name="getFormat" description="Returns the IChemFormat for the given type">
+            <argument name="type" type="String" obligatory="true" description="String"/>
+            <returns type="org.openscience.cdk.io.formats.IChemFormat" description="Format"/>
+        </function>
+        
+        <function name="getFormats" description="Returns all available IChemFormats">
+            <returns type="String" description="Formats list"/>
+        </function>
+        
+        <function name="getInfo" description="Returns information about molecules in file. ">
+            <argument name="path" type="String" obligatory="true" description="String"/>
+            <returns type="MoleculesInfo" description="Info"/>
+        </function>
+        
+        <function name="getMDLMolfileString" description="Returns a MDL V2000 molfile serialization ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="String" description="output string"/>
+        </function>
+        
+        <function name="getNoMolecules" description="Returns number of molecules in file. ">
+            <argument name="path" type="String" obligatory="true" description="String"/>
+            <returns type="int" description="number of molecules"/>
+        </function>
+
+        <function name="getProperty" description="Returns the property value for the given property name ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="property" type="String" obligatory="true" description="Property name"/>
+            <returns type="Object" description="property"/>
+        </function>
+        
+        <function name="getSmartsMatches" description="Query a molecule for a SMARTS string and return a list of IAtomContainers with the matches. ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="smarts" type="String" obligatory="true" description="String"/>
+            <returns type="Structure[]" description="matches list"/>
+        </function>
+        
+        <function name="getSubstructures" description="Returns the substructure matches in the molecule for the given substructure ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="substructure" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure[]" description="matches list"/>
+        </function>
+        
+        <function name="guessFormatFromExtension" description="Makes an educated guess if the file format based on the file extension alone and returns a IChemFormat object. ">
+            <argument name="type" type="String" obligatory="true" description="File name"/>
+            <returns type="IChemFormat" description="File format"/>
+        </function>
+        
+        <function name="has2d" description="Returns true if molecule has 2D coordinates, false otherwise. ">
+            <argument name="mol" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if molecule as 2D"/>
+        </function>
+
+        <function name="has3d" description="Returns true if molecule has 3D coordinates, false otherwise. ">
+            <argument name="mol" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if molecule has 3D"/>
+        </function>
+        
+        <function name="isConnected" description="Returns true if the given atom container is fully connected. Use partition directly if that is the antipicated next action, to no repeat to same computation. ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if connected"/>
+        </function>
+        
+        <function name="isValidSmarts" description="Determines if a SMARTS string can be interpreted by CDK. ">
+            <argument name="SMARTS" type="String" obligatory="true" description="String"/>
+            <returns type="boolean" description="true if string is SMARTS"/>
+        </function>
+        
+        <function name="kabsch" description="Aligns the molecular geometries to the molecule based on their MCSS. ">
+            <argument name="Structure[]" type="molecules" obligatory="true" description="molecules"/>
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure[]" description="Aligned structures"/>
+        </function>
+        
+        <function name="loadConformers" description="Reads file and extracts conformers if available. Currently only reads SDFiles. ">
+            <argument name="path" type="String" obligatory="true" description="String"/>
+            <returns type="Structure[]" description="conformers"/>
+        </function>
+        
+        <function name="loadMolecule" description="Loads a molecule from file. Does not do aromaticity detection (use perceiveAromaticity). Returns the first if multiple molecules exists in the file  ">
+            <argument name="path" type="String" obligatory="true" description="String"/>
+            <returns type="Structure" description="Molecule structure"/>
+        </function>
+        
+        <function name="loadMolecules" description="Loads molecules from a file at a given path into a list of molecules ">
+            <argument name="path" type="String" obligatory="true" description="String"/>
+            <returns type="Structure[]" description="List of molecules"/>
+        </function>
+        
+        <function name="loadSMILESFile" description="Loads molecules from a SMILES file at a given path into a list of molecules ">
+            <argument name="path" type="String" obligatory="true" description="String"/>
+            <returns type="Structure[]" description="List of molecules"/>
+        </function>
+
+        <function name="mcss" description="Determines the Maximal Common SubStructure (MCSS) for the list of molecules. ">
+            <argument name="Structure[]" type="molecules" obligatory="true" description="molecules"/>
+            <returns type="Structure" description="Maximal Common SubStructure"/>
+        </function>
+        
+        <function name="molecularFormula" description="Gives the molecular formula as a String ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="String" description="chemical formula"/>
+        </function>
+        
+        <function name="partition" description="Splits up an atom container into a List of IAtomContainer's with fully connected molecules ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure[]" description="List of partitioned"/>
+        </function>
+        
+        <function name="perceiveAromaticity" description="Perceives aromaticity on a Structure. Returns true if molecule is aromatic. Uses the CDKHueckelAromaticityDetector class from CDK. ">
+            <argument name="mol" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if aromatic"/>
+        </function>
+        
+        <function name="removeExplicitHydrogens" description="Removes explicit hydrogens ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure" description="Molecule structure with no hydrogens"/>
+        </function>
+        
+        <function name="removeImplicitHydrogens" description="Removes implicit hydrogens ">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure" description="Molecule structure with no implicit hydrogens"/>
+        </function>
+        
+        <function name="smartsMatches" description="Returns true if the given SMARTS matches the given molecule">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule"/>
+            <argument name="smarts" type="Strung" obligatory="true" description="SMARTS string"/>
+            <returns type="boolean" description="true if matches"/>
+        </function>
+        
+        <function name="subStructureMatches" description="Returns all molecules in the given list which have a given subStructure as subgraph. (Performs an isomophism test without checking fingerprints)">
+            <argument name="molecules" type="Structure[]" obligatory="true" description="List of Molecule"/>
+            <argument name="subStructure" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="Structure[]" description="List of substructures"/>
+        </function>
+        
+        <function name="subStructureMatches" description="Returns true if the paramater named subStructure is a substructure of the paramater named molecule.  (Performs an isomophism test without checking fingerprints)">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <argument name="subStructure" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="boolean" description="true if substructure"/>
+        </function>
+        
+        <function name="totalFormalCharge" description="Calculates the total formal charge.">
+            <argument name="molecule" type="Structure" obligatory="true" description="Molecule structure"/>
+            <returns type="int" description="formal charge"/>
+        </function>
+        
+        </doc>
+      </hostObject>
+  </extension>
+  
+  <extension id="SmilesViewBuilder" point="biouml.workbench.nodeViewBuilder"> 
+     <builder
+        name="smiles"
+        class="biouml.plugins.chemoinformatics.SmilesViewBuilder"
+     /> 
+  </extension>
+
+  <extension id="ChemoinformaticsRepositoryAction" point="ru.biosoft.access.repositoryActionsProvider"> 
+      <repositoryActionsProvider class="biouml.plugins.chemoinformatics.access.RepositoryActionsProvider"/> 
+  </extension>
+  
+  <extension id="structure document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="biouml.plugins.chemoinformatics.document.StructureDocument"
+        key="biouml.standard.type.Structure"
+      /> 
+  </extension>
+</plugin>

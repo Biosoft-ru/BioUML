@@ -1,0 +1,362 @@
+<tool id="tophat_color2" name="Tophat2 for SOLiD" version="2.0.0-1">
+  <requirements>
+    <requirement type='package'>tophat</requirement>
+  </requirements>
+  <description></description>
+  <parallelism method="basic"></parallelism>
+<command>/bin/bash -v "$script"</command>
+  <inputs>
+    <param format="csfasta" name="input1" type="data" label="RNA-Seq csfasta file" 
+	help="Color-space: Must have Sanger-scaled quality values with ASCII offset 33. Can be gz or bz2 compressed" />
+    <param format="qual" name="input1qual" type="data" label="RNA-Seq qual file" help="qual file for the first file. Can be gz or bz2 compressed" />
+    <param format="csfasta" name="input2" type="data" label="RNA-Seq csfasta file" help="Color-space: Must have Sanger-scaled quality values with ASCII offset 33. Can be gz or bz2 compressed" />
+    <param format="qual" name="input2qual" type="data" label="RNA-Seq qual file" help="qual file for the first file. Can be gz or bz2 compressed" />
+    
+	<param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+	
+	<conditional name="junctions">
+		<param name="condValue" type="select" label="Supply TopHat with a list of raw junctions" 
+			help="Supply TopHat with a list of raw junctions.">
+			<option value="no">No</option>
+        		<option value="yes">Yes</option>
+		</param>
+		<when value="no"/>
+		<when value="yes">
+			<param name="raw_juncs" format="txt" type="data" label="raw-juncs file" 
+				help="Supply TopHat with a list of raw junctions. Junctions are specified one per line, in a tab-delimited format. Records look like:
+
+	                        &lt;chrom&gt; &lt;left&gt; &lt;right&gt; &lt;+/-&gt;
+
+	                        left and right are zero-based coordinates, and specify the last character of the left sequenced to be spliced to the first characterof the right sequence, inclusive. That is, the last and the first positions of the flanking exons. Users can convert junctions.bed (one of the TopHat outputs) to this format using bed_to_juncs &lt;  junctions.bed &gt;  new_list.juncs where bed_to_juncs can be found under the same folder as tophat" />
+			<param name="no_novel_juncs"  type="boolean" checked="False" truevalue="--no-novel-juncs" falsevalue="" 
+				label="no-novel-juncs" help ="Only look for reads across junctions indicated in the supplied GFF or junctions file." />
+		</when>
+        </conditional>
+	<conditional name="gtf">
+		<param name="condValue" type="select" label="gene model annotations and/or known transcripts" 
+                        help="Supply TopHat with a set of gene model annotations and/or known transcripts">
+                        <option value="no">No</option>
+			<option value="from_file_gtf">GTF from File</option>
+                        <option value="from_system_gtf">GTF from System</option>
+			<option value="from_transcriptome_index">Transcriptome-indexes from System</option>
+                </param>
+		<when value="no"/>
+		<when value="from_file_gtf">
+			<param name="file_gtf" format="txt" type="data" label="GTF File"
+				help="Supply TopHat with a set of gene model annotations and/or known transcripts, as a GTF 2.2 or GFF3 formatted file. If this option is provided, TopHat will first extract the transcript sequences and use Bowtie to align reads to this virtual transcriptome first. Only the reads that do not fully map to the transcriptome will then be mapped on the genome. The reads that did map on the transcriptome will be converted to genomic mappings (spliced as needed) and merged with the novel mappings and junctions in the final tophat output.
+
+Please note that the values in the first column of the provided GTF/GFF file (column which indicates the chromosome or contig on which the feature is located), must match the name of the reference sequence in the Bowtie index you are using with TopHat. " />
+			<param name="no_novel_juncs"  type="boolean" checked="False" truevalue="--no-novel-juncs" falsevalue="" 
+                                label="no-novel-juncs" help ="Only look for reads across junctions indicated in the supplied GFF or junctions file." />
+			<param name="transcriptome_only"  type="boolean" checked="False" truevalue="--transcriptome-only" falsevalue="" 
+                                label="transcriptome-only" help="Only align the reads to the transcriptome and report only those mappings as genomic mappings. [Unchecked]" />
+			<param name="transcriptome_max_hits" type="integer" value="60"
+				label="transcriptome-max-hits" help="Maximum number of mappings allowed for a read, when aligned to the transcriptome 
+(any reads found with more then this number of mappings will be discarded). [60]"/>
+			<param name="prefilter_multihits" type="boolean" checked="False" truevalue="--prefilter-multihits"  falsevalue=""                      
+                                label="prefilter-multihits" help="When mapping reads on the transcriptome, some repetitive or low complexity reads that would be discarded in 
+the context of the genome may appear to align to the transcript sequences and thus may end up reported as mapped to those genes only. 
+This option directs TopHat to first align the reads to the whole genome in order to determine and exclude such multi-mapped reads (according to the value of the -g/--max-multihits option)."/>
+		</when>
+		<when value="from_system_gtf"> <!-- Need to add Illumina GTF's here -->
+			<param name="refGTF" type="select" label="Reference GTF">
+	                        <options from_data_table="reference_gtf">
+        	                        <filter type="sort_by" column="2" />
+                	                <validator type="no_options" message="No GTF are available for TopHat/Cufflink" />
+                        	</options>
+		        </param>
+			<param name="no_novel_juncs"  type="boolean" checked="False" truevalue="--no-novel-juncs" falsevalue="" 
+                                label="no-novel-juncs" help ="Only look for reads across junctions indicated in the supplied GFF or junctions file." />
+                        <param name="transcriptome_only"  type="boolean" checked="False" truevalue="--transcriptome-only" falsevalue="" 
+                                label="transcriptome-only" help="Only align the reads to the transcriptome and report only those mappings as genomic mappings. [Unchecked]" />
+                        <param name="transcriptome_max_hits" type="integer" value="60"
+                                label="transcriptome-max-hits" help="Maximum number of mappings allowed for a read, when aligned to the transcriptome 
+(any reads found with more then this number of mappings will be discarded). [60]"/>
+                        <param name="prefilter_multihits" type="boolean" checked="False" truevalue="--prefilter-multihits"  falsevalue=""
+                                label="prefilter-multihits" help="When mapping reads on the transcriptome, some repetitive or low complexity reads that would be discarded in 
+the context of the genome may appear to align to the transcript sequences and thus may end up reported as mapped to those genes only. 
+This option directs TopHat to first align the reads to the whole genome in order to determine and exclude such multi-mapped reads (according to the value of the -g/--max-multihits option)."/>
+                </when>
+		<when value="from_transcriptome_index"> <!-- Need to add Indexes here GTF's here -->
+			<param name="refGTF" type="select" label="Reference GTF Indexes">
+                                <options from_data_table="tophat_indexes">
+                                        <filter type="sort_by" column="2" />
+                                        <validator type="no_options" message="No GTF indexes are available for TopHat/Cufflink" />
+                                </options>
+                        </param>
+			<param name="no_novel_juncs"  type="boolean" checked="False" truevalue="--no-novel-juncs" falsevalue="" 
+                                label="no-novel-juncs" help ="Only look for reads across junctions indicated in the supplied GFF or junctions file." />
+                        <param name="transcriptome_only"  type="boolean" checked="False" truevalue="--transcriptome-only" falsevalue="" 
+                                label="transcriptome-only" help="Only align the reads to the transcriptome and report only those mappings as genomic mappings. [Unchecked]" />
+                        <param name="transcriptome_max_hits" type="integer" value="60"
+                                label="transcriptome-max-hits" help="Maximum number of mappings allowed for a read, when aligned to the transcriptome 
+(any reads found with more then this number of mappings will be discarded). [60]"/>
+                        <param name="prefilter_multihits" type="boolean" checked="False" truevalue="--prefilter-multihits"  falsevalue=""
+                                label="prefilter-multihits" help="When mapping reads on the transcriptome, some repetitive or low complexity reads that would be discarded in 
+the context of the genome may appear to align to the transcript sequences and thus may end up reported as mapped to those genes only. 
+This option directs TopHat to first align the reads to the whole genome in order to determine and exclude such multi-mapped reads (according to the value of the -g/--max-multihits option)."/>
+                </when>
+        </conditional>
+
+	<conditional name="indels">
+                <param name="condValue" type="select" label="Supplying insertions/deletions:" 
+                        help="Supply TopHat with a list of raw junctions.">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                </param>
+                <when value="no"/>
+                <when value="yes">
+			<param name="insertions" format="txt" type="data" label="insertions/deletions File"
+                                help="Supply TopHat with a list of insertions or deletions with respect to the reference. Indels are specified one per line, in a tab-delimited format, identical to that of junctions. Records look like:
+
+				&lt; chrom &gt; &lt; left &gt; &lt; right &gt; &lt; +/- &gt;
+
+left and right are zero-based coordinates, and specify the last character of the left sequenced to be spliced to the first character of the right sequence, inclusive."/>
+			<param name="no_novel_indels" type="boolean" checked="False" truevalue="--no-novel-indels" falsevalue=""
+                                label="no-novel-indels"  help="Only look for reads across indels in the supplied indel file, or disable indel detection when no file has been provided."/>
+                </when>
+        </conditional>
+    <param name="mate_inner_dist" type="integer" value="200"
+         label="mate inner distance" help="This is the expected (mean) inner distance between mate pairs. For, example, for paired end runs with fragments selected at 300bp, where each end is 50bp, you should set -r to be 200. There is no default, and this parameter is required for paired end runs." />
+    <param name="mate_std_dev" type="integer" value="20"
+         label="mate std deviation" help="The standard deviation for the distribution on inner distances between mate pairs. The default is 20bp." />
+    <param name="rg_id" type="text" value="ID" label="RG ID group" help="RG ID group. Required for compatibility with GATK tools" />
+    <param name="rg_sample" type="text" value="Sample" label="RG Sample " help="RG Sample. Required for compatibility with GATK tools" />
+    <param name="rg_library" type="text" value="Library" label="RG Library" help="RG Library. Required for compatibility with GATK tools" />
+    <param name="rg_platform" type="text" value="Platform" label="RG Platform" help="RG Platform. Required for compatibility with GATK tools" />
+    <param name="rg_description" type="text" value="" label="RG Description" help="RG Description. Optional" />
+    <param name="rg_platform_unit" type="text" value="" label="RG Pltatform Unit" help="RG Platform Unit. Optional" />
+    <param name="rg_center" type="text" value="" label="RG Centert" help="RG Center. Optional" />
+    <param name="rg_date" type="text" value="" label="RG date" help="RG date. Optional" />
+
+    <conditional name="advanced">
+      <param name="condValue" type="select" label="Mode">
+        <option value="Simple">Simple</option>
+        <option value="Advance">Advance</option>
+      </param>
+      <when value="Simple"/>
+      <when value="Advance">
+        <param name="threads" type="integer" value="30"
+                      label="Threads number" help="Threads number for parllel execution. (from my test 30 was better than 60)" />
+
+        <param name="secondary_alingments" type="boolean" checked="True"
+          truevalue="--report-secondary-alignments" falsevalue=" "
+          label="Report Secondary Alingments" help="Enables/Disable the search of secondary alignments by bowtie"  />
+
+
+        <param name="min_anchor_length" type="integer" value="8"
+                         label="min anchor length" help="The 'anchor length'. TopHat will report junctions spanned by reads with at least this many bases on each side of the junction. Note that individual spliced alignments may span a junction with fewer than this many bases on one side. However, every junction involved in spliced alignments is supported by at least one read with this many bases on each side. This must be at least 3 and the default is 8." />
+        
+        <param name="splice_mismatches" type="integer" value="0"
+                         label="splice mismatches" help="The maximum number of mismatches that may appear in the 'anchor' region of a spliced alignment. The default is 0." />
+    
+        <param name="min_intron_length" type="integer" value="70"
+                         label="min intron length" help="The minimum intron length. TopHat will ignore donor/acceptor pairs closer than this many bases apart. The default is 70." />
+                
+        <param name="max_intron_length" type="integer" value="500000"
+                         label="max intron length" help="The maximum intron length. When searching for junctions ab initio, TopHat will ignore donor/acceptor pairs farther than this many bases apart, except when such a pair is supported by a split segment alignment of a long read. The default is 500000." />
+                
+        <param name="max_insertion_length" type="integer" value="3"
+                         label="max insertion length" help="The maximum insertion length. The default is 3." />
+                
+        <param name="max_deletion_length" type="integer" value="3"
+                         label="max deletion length" help="The maximum deletion length. The default is 3." />
+                
+        <param name="max_multihits" type="integer" value="20"
+                         label="max multihits" help="Instructs TopHat to allow up to this many alignments to the reference for a given read, and suppresses all alignments for reads with more than this many alignments. The default is 20 for read mapping." />
+	
+        <param name="report_discordant_pair_alignments" type="boolean" checked="True"
+          truevalue="--report-discordant-pair-alignments" falsevalue="--no-discordant"
+          label="report discordant pair alignments"
+          help="This option will allow mate pairs to map to different chromosomes, distant places on the same chromosome, or on the same strand."
+        />
+        <!--param name="report_discordant_pair_alignments" type="boolean" checked="True"
+          truevalue="" falsevalue="no-discordant"
+          label="report discordant pair alignments"
+          help="This option will allow mate pairs to map to different chromosomes, distant places on the same chromosome, or on the same strand."
+        /-->
+	<param name="mixed"  type="boolean" checked="True" truevalue=""  falsevalue="--no-mixed" 
+		label="find alignments for each read separately"  help="In case TopHat cannot find a concordant or discordant pair alignment, it will then try to find alignments for each read separately.[Checked]" />
+
+        <param name="coverage_search" type="boolean" checked="True"
+          truevalue="--coverage-search" falsevalue="--no-coverage-search"
+          label="coverage search" help="Enables/Disable the coverage based search for junctions. Use when coverage search is disabled by default (such as for reads 75bp or longer), for maximum sensitivity."
+        />
+                
+        <param name="microexon_search" type="boolean" checked="True"          truevalue="--microexon-search" falsevalue=""
+          label="microexon search" help="With this option, the pipeline will attempt to find alignments incident to microexons. Works only for reads 50bp or longer."
+        />
+                  
+        <param name="library_type" type="select" label="library type" help="TopHat will treat the reads as strand specific. Every read alignment will have an XS attribute tag. Consider supplying library type options below to select the correct RNA-seq protocol. fr-secondstrand is a standard for SOLID. check an additional help">
+          <option value="fr-secondstrand">fr-secondstrand</option>
+          <option value="fr-unstranded">fr-unstranded</option>
+          <option value="fr-firststrand">fr-firststrand</option>
+        </param>
+        
+        <param name="transcriptome_only" type="boolean" checked="False"
+          truevalue="--transcriptome-only" falsevalue=""
+          label="transcriptome only" help="Only align the reads to the transcriptome and report only those mappings as genomic mappings. only used when the transcriptome search was activated"
+        />
+        <param name="transcriptome_mismatches"  type="integer" value="2" label="transcriptome mismatches" 
+		help="Maximum number of mismatches allowed when reads are aligned to the transcriptome. The default is 2. When Bowtie2 is used, this number is also used to decide whether or not to further re-align some of the transcriptome-mapped reads to the genome. If the alignment score of the best alignment among multiple candidates for a read is lower than 'bowtie2-min-score', which is internally defined as (max_penalty - 1) * max_mismatches, then the reads will be kept for re-alignment through the rest of the pipeline.  You can specify max_penalty via '--b2-mp' option. --transcriptome-mismatches"/>
+	<param name="genome_read_mismatches"  type="integer" value="2" label="genome-read-mismatches"
+		help="When whole reads are first mapped on the genome, this many mismatches in each read alignment are allowed. The default is 2. This number is also used to decide whether to further re-align some of the reads (by splitting them into segments) with a similar scoring threshold scheme as described for transcriptome-mismatches option above. --genome-read-mismatches" />
+	<param name="read_mismatches"  type="integer" value="2" label="read-mismatches" 
+                help="Final read alignments having more than these many mismatches are discarded. The default is 2. --read-mismatches" />
+	<param name="bowtie_n" type="boolean" checked="False"
+          truevalue="--bowtie_n" falsevalue=""  label="bowtie-n"  help="TopHat uses '-v' in Bowtie for initial read mapping (the default), but with this option, '-n' is used instead. Read segments are always mapped using '-v' option." />
+	<param name="segment_mismatches"  type="integer" value="2" label="segment-mismatches" 
+                help="Read segments are mapped independently, allowing up to this many mismatches in each segment alignment. [--segment-mismatches 2]"/>
+	<param name="segment_length"  type="integer" value="25" label="segment-lengths" 
+                help="Each read is cut up into segments, each at least this long. These segments are mapped independently. [--segment-lengths 25]"/>	
+	<param name="min_coverage_intron"  type="integer" value="50" label="min-coverage-intron" 
+                help="The minimum intron length that may be found during coverage search. [--min-coverage-intron 50]"/>
+	<param name="max_coverage_intron"  type="integer" value="20000" label="max-coverage-intron"
+		help="The maximum intron length that may be found during coverage search. [--max-coverage-intron 20000]" />
+	<param name="min_segment_intron	"  type="integer" value="50" label="min-segment-intron" 
+		help="The minimum intron length that may be found during split-segment search. [--min-segment-intron 50]" />
+	<param name="max_segment_intron"  type="integer" value="500000" label="max-segment-intron"
+                help="The maximum intron length that may be found during split-segment search. [--max-segment-intron 500000]" />
+	
+	<!-- Fusion Search options -->
+	<conditional name="fusion">
+	      <param name="condValue" type="select" label="Fusion Search">
+	        <option value="off">OFF</option>
+        	<option value="on">ON</option>
+	      </param>
+      		<when value="off"/>
+      		<when value="on">
+			<param name="fusion_anchor_length"  type="integer" value="20" label="fusion-anchor-length"
+				help="A 'supporting' read must map to both sides of a fusion by at least this many bases. [--fusion-anchor-length 20"/>
+			<param name="fusion_min_dist"  type="integer" value="10000000"  label="fusion-min-dist"
+				help="For intra-chromosomal fusions, TopHat-Fusion tries to find fusions separated by at least this distance.[--fusion-min-dist 10000000]"/>
+			<param name="fusion_read_mismatches"  type="integer" value="2" label="fusion-read-mismatche"
+                                help="Reads support fusions if they map across fusion with at most this many mismatches.[--fusion-read-mismatches 2]"/>
+			<param name="fusion_multireads"  type="integer" value="2" label="fusion-multireadse"
+                                help="Reads that map to more than this many places will be ignored. It may be possible that a fusion is supported by reads (or pairs) that map to multiple places. [--fusion-multireads]"/>
+                        <param name="fusion_multipairs"  type="integer" value="2" label="fusion-multipairs"
+                                help="Pairs that map to more than this many places will be ignored. [--fusion-multipairs 2]"/>
+                        <param name="fusion-ignore-chromosomes"  type="text" value="M" label="fusion-ignore-chromosomes"
+                                help="Ignore some chromosomes such as chrM when detecting fusion break points. Please check the correct names for chromosomes, that is, mitochondrial DNA is represented as chrM or M depending on the annotation you use. Comma separated list"/>
+		</when>
+	</conditional>
+
+
+<!-- finished checking here. Need to add all Advanced Options-->
+        <param name="prefilter_multihits" type="boolean" checked="False"
+          truevalue="--prefilter-multihits" falsevalue=""
+          label="prefilter-multihits" help="When mapping reads on the transcriptome, some repetitive or low complexity reads that would be discarded in the context of the genome may appear to align to the transcript sequences and thus may end up reported as mapped to those genes only. This option directs TopHat to first align the reads to the whole genome in order to determine and exclude such multi-mapped reads (according to the value of the -g/--max-multihits option). Only used when the transcriptome search was activated."
+        />
+         
+         <param name="keep_tmp" type="boolean" checked="False"  truevalue="--keep-tmp" falsevalue=""
+          label="keep tmp files" help="for debug only"  />
+        
+        <param name="bashBefore" type="text" label="Bash before tophat"
+          default="" help="any bash command immideately before tophat execution. Tophat has issue with recognizing mate read names. it could be fixed through this option and sed command"/>
+        
+        <param name="extraArg" type="text" label="additional tophat argument"
+          default="" help="any tophat arguments which are not supported by script "/>
+          
+        <param name="bashAfter" type="text" label="Bash After tophat"
+          default="" help="any bash command after tophat execution."/>
+      </when>
+    </conditional>
+    </inputs>
+
+    <outputs>
+      <data format="txt" name="exec_log" label="Execution Log" />
+	<data format="zip" name="output" label="Output folder" />
+      <!--data format="bam" name="accepted_hits" label="Accepted Hits" />
+      <data format="bed" name="junctions" label="Junctions" />
+      <data format="bed" name="insertions" label="Insertions" />
+      <data format="bed" name="deletions" label="Deletions" />
+      <data format="bam" name="unmapped" label="Unmapped reads" /-->
+    </outputs>
+<configfiles>
+	<configfile name="script">#!/bin/bash -v
+echo "decompress input files. supported: gz and bz2";
+
+ls -1 | grep .gz | xargs --no-run-if-empty -n 1 -P 10 -t pigz -d ;
+ls -1 | grep .bz2 | xargs --no-run-if-empty -n 1 -P 10 -t pbzip2 -d -m900 ;
+
+OUTDIR="${ accepted_hits }_outdir";
+mkdir -p "\$OUTDIR";
+
+$bashBefore
+
+echo "Launching tophat";
+tophat -o "\$OUTDIR" \
+    --bowtie1 -C -Q --mate-inner-dist $mate_inner_dist --mate-std-dev $mate_std_dev \
+    #if str( $annotation ) != ""
+       --GTF "$annotation" \
+    #end if
+    #if str( $advanced.condValue ) == "Simple"
+      -p 30 --report-secondary-alignments --min-anchor-length 8 --splice-mismatches 0 \
+      --min-intron-length 70 --max-intron-length 500000 --max-insertion-length 3 \
+      --max-deletion-length 3 --max-multihits 20 --report_discordant_pair_alignments \
+      --coverage-search --microexon_search --library-type fr-secondstrand \
+    #else:
+      -p $advanced.threads --min-anchor-length $advanced.min_anchor_length \
+      --splice-mismatches $advanced.splice_mismatches --min-intron-length $advanced.min_intron_length \
+      --max-intron-length $advanced.max_intron_length --max-insertion-length $advanced.max_insertion_length \
+      --max-deletion-length $advanced.max_deletion_length --max-multihits $advanced.max_multihits \
+      $advanced.report_discordant_pair_alignments $advanced.coverage_search \
+      $advanced.microexon_search $advanced.secondary_alingments \
+      $advanced.transcriptome_only $advanced.prefilter_multihits \
+      --library-type $advanced.library_type $advanced.mixed \
+      --transcriptome-mismatches $transcriptome_mismatches --genome-read-mismatches $genome_read_mismatches \
+      --read-mismatches $read_mismatches $bowtie_n --segment-mismatches $segment_mismatches\
+      --segment-lengths $segment_lengths --min-coverage-intron $min_coverage_intron --max-coverage-intron $max_coverage_intron \
+      --min-segment-intron $min_segment_intron --max-segment-intron $max_segment_intron \
+	#if str( $advanced.fusion.condValue ) == "on"
+		--fusion-search --fusion-anchor-length $fusion_anchor_length --fusion-min-dist $fusion_min_dist \
+		--fusion-read-mismatches $fusion_read_mismatches --fusion-multireads $fusion_multireads --fusion-multipairs $fusion_multipairs \
+		#if str( $advanced.fusion.fusion_ignore_chromosomes ) != "" 
+			--fusion-ignore-chromosomes $fusion_ignore_chromosomes \
+		#end if
+	#end if
+    #end if
+    $keep_tmp $extraArg -z0 \
+    "${ refGenome.fields.path }" \
+    "$input1" \
+    "$input2" \
+    "$input1qual" \
+    "$input2qual" 2&gt;1 | tee "\$OUTDIR/tophat_log.log";
+
+    exitCode=$?;
+if [ /$exitCode -ne 0 ];
+    then echo "Tophat terminated with error. stoping execution. All temproarry files stored in $OUTDIR ";
+    exit /$exitCode;
+fi;
+
+$bashAfter
+
+mv "\$OUTDIR/tophat_log.log" "$exec_log";
+zip -rj ${output} "\$OUTDIR"
+
+# mv "\$OUTDIR/accepted_hits.bam" "$accepted_hits";
+# mv "\$OUTDIR/junctions.bed"  "$junctions";
+# mv "\$OUTDIR/insertions.bed" "$insertions";
+# mv "\$OUTDIR/deletions.bed"  "$deletions";
+# mv "\$OUTDIR/unmapped.bam"  "$unmapped";
+rm -rf "\$OUTDIR";
+
+	</configfile>
+</configfiles>
+
+    <tests>
+    </tests>
+
+    <help>
+Library Type    Examples    Description
+fr-unstranded    Standard Illumina    Reads from the left-most end of the fragment (in transcript coordinates) map to the transcript strand, and the right-most end maps to the opposite strand.
+fr-firststrand    dUTP, NSR, NNSR    Same as above except we enforce the rule that the right-most end of the fragment (in transcript coordinates) is the first sequenced (or only sequenced for single-end reads). Equivalently, it is assumed that only the strand generated during first strand synthesis is sequenced.
+fr-secondstrand    Ligation, Standard SOLiD    Same as above except we enforce the rule that the left-most end of the fragment (in transcript coordinates) is the first sequenced (or only sequenced for single-end reads). Equivalently, it is assumed that only the strand generated during second strand synthesis is sequenced.
+
+    </help>
+</tool>

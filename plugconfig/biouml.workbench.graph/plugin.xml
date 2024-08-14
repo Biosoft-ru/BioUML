@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+  <extension id="Graph search" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.workbench.graphsearch.GraphSearchViewPart"
+        id="search.graph" 
+        Name="Search linked"
+        ShortDescription="Graph linked search."
+        Priority = "4.2"
+      /> 
+  </extension> 
+
+  <extension id="Layouter pane" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.workbench.graph.LayouterViewPart"
+        id="diagram.layout" 
+        Name="Layout"
+        ShortDescription="Apply layout to selected nodes."
+        Priority = "2.6"
+      /> 
+  </extension> 
+  
+  <!-- Layouter application-->
+  <extension id="layouter" point="org.eclipse.core.runtime.applications"> 
+      <application> 
+         <run class="biouml.workbench.graph.layouter.DiagramLayouterApplication"> 
+         </run> 
+      </application> 
+  </extension>
+</plugin>

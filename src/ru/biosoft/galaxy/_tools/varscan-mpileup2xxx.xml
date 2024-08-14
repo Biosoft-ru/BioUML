@@ -1,0 +1,137 @@
+<tool id="varscan_mpileup2xxx" name="VarScan for Multi-Sample" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>
+		<param name="pileup" type="data" format="pileup" label="Pileup file" help="samtools mpileup generated file. See help for more information"/>
+		
+		 <param name="method" type="select" label="Method to run" 
+                              help="Select output format">
+                                <option value="mpileup2cns">mpileup2cns</option>
+                                <option value="mpileup2snp">mpileup2snp</option>
+                                <option value="mpileup2indel">mpileup2indel</option>
+                        </param>
+   
+      <param name="min_coverage" type="integer" label=" Minimum read depth" value="8" 
+            help="Minimum read depth at a position to make a call [8]"/>
+      <param name="min_support" type="integer" label="Minimum supporting reads" value="2" 
+            help="Minimum supporting reads at a position to call variants [2]"/>
+      <param name="min_qual" type="integer" label="Minimum base quality" value="15" 
+            help="Minimum base quality at a position to count a read [15]"/>
+      <param name="allel_freq" type="float" value="0.01" label="Minimum variant allele frequency"
+              help="Minimum variant allele frequency threshold [0.01]" />
+      <param name="p_val" type="float" value="99e-02" label="p-value threshold"
+              help="Default p-value threshold for calling variants [99e-02]" />
+       
+        <param name="homoz_freq" type="float" value="0.01" label="Minimum frequency to call homozygote"
+              help="Minimum frequency to call homozygote [0.75]" />
+              
+      <param name="strand_filter" type="boolean" truevalue="--strand-filter 1" falsevalue="" checked="True" label="Ignore variants with >90% support on one strand" 
+                                help="Ignore variants with >90% support on one strand" />
+      <param name="output_vcf" type="boolean" truevalue="--output-vcf 1" falsevalue="" checked="False" label="If checked, outputs in VCF format" 
+                                help="If checked, outputs in VCF format" />
+      <param name="variants" type="boolean" truevalue="--variants 1" falsevalue="" checked="False" label="If checked, Report only variant (SNP/indel) positions (mpileup2cns only)" 
+                                help="If checked, Report only variant (SNP/indel) positions (mpileup2cns only)" />
+
+
+    <param name="memoryUsage" type="text" label="Max memory usage" value="6G"  help="Max memory usage" />
+
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data format="txt" name="results" label="Output" />
+	</outputs>
+
+
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  cd `dirname $outMetrics`
+  DEST=`dirname $log`
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/err.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'rm "\$err"  "\$out"' EXIT
+tee $log.err &lt; "\$err" &gt;&amp;2 &amp;
+tee $log.out &lt; "\$out" &gt;&amp;1 &amp;
+
+java "-Xmx$memoryUsage" -jar "${GALAXY_DATA_INDEX_DIR}/shared/jars/varscan.jar" \
+  $method "$pileup" \
+  --min-coverage $min_coverage --min-reads2 $min_support --min-avg-qual $min_qual \
+  --min-var-freq $allel_freq --min-freq-for-hom $homoz_freq $strand_filter $output_vcf  $variants   \
+  --p-value $p_val  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "varscan finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+cat $log.err $log.out >> $log
+  </configfile>
+  </configfiles>
+<help>
+mpileup2snp
+This command calls SNPs from a mpileup file 
+mpileup2indel
+This command calls indels from a mpileup file
+mpileup2cns
+This command makes consensus calls (SNP/Indel/Reference) from a mpileup file
+
+	OPTIONS:
+	--min-coverage	Minimum read depth at a position to make a call [8]
+	--min-reads2	Minimum supporting reads at a position to call variants [2]
+	--min-avg-qual	Minimum base quality at a position to count a read [15]
+	--min-var-freq	Minimum variant allele frequency threshold [0.01]
+	--min-freq-for-hom	Minimum frequency to call homozygote [0.75]
+	--p-value	Default p-value threshold for calling variants [99e-02]
+	--strand-filter	Ignore variants with >90% support on one strand [1]
+	--output-vcf	If set to 1, outputs in VCF format
+	--variants	Report only variant (SNP/indel) positions (mpileup2cns only) [0]
+
+		
+	OUTPUT
+	Tab-delimited SNP calls with the following columns:
+	Chrom		chromosome name
+	Position	position (1-based)
+	Ref			reference allele at this position
+	Var			variant allele observed
+	PoolCall	Cross-sample call using all data (Cons:Cov:Reads1:Reads2:Freq:P-value)
+			Cons - consensus genotype in IUPAC format
+			Cov - total depth of coverage
+			Reads1 - number of reads supporting reference
+			Reads2 - number of reads supporting variant
+			Freq - the variant allele frequency by read count
+			P-value - FET p-value of observed reads vs expected non-variant
+	StrandFilt	Information to look for strand bias using all reads (R1+:R1-:R2+:R2-:pval)
+			R1+ = reference supporting reads on forward strand
+			R1- = reference supporting reads on reverse strand
+			R2+ = variant supporting reads on forward strand
+			R2- = variant supporting reads on reverse strand
+			pval = FET p-value for strand distribution, R1 versus R2
+	SamplesRef	Number of samples called reference (wildtype)
+	SamplesHet	Number of samples called heterozygous-variant
+	SamplesHom	Number of samples called homozygous-variant
+	SamplesNC	Number of samples not covered / not called
+	SampleCalls	The calls for each sample in the mpileup, space-delimited
+    			Each sample has six values separated by colons:
+			Cons - consensus genotype in IUPAC format
+			Cov - total depth of coverage
+			Reads1 - number of reads supporting reference
+			Reads2 - number of reads supporting variant
+			Freq - the variant allele frequency by read count
+			P-value - FET p-value of observed reads vs expected non-variant	
+
+
+
+
+Citing VarScan
+Please note the version number, and cite the publications below with URL to cite VarScan:
+
+VarScan 1: Koboldt DC, Chen K, Wylie T, Larson DE, McLellan MD, Mardis ER, Weinstock GM, Wilson RK, &amp; Ding L (2009). VarScan: variant detection in massively parallel sequencing of individual and pooled samples. Bioinformatics (Oxford, England), 25 (17), 2283-5 PMID: 19542151
+VarScan 2: Koboldt, D., Zhang, Q., Larson, D., Shen, D., McLellan, M., Lin, L., Miller, C., Mardis, E., Ding, L., &amp; Wilson, R. (2012). VarScan 2: Somatic mutation and copy number alteration discovery in cancer by exome sequencing Genome Research DOI: 10.1101/gr.129684.111 
+URL: http://varscan.sourceforge.net
+</help>
+
+
+</tool>
+

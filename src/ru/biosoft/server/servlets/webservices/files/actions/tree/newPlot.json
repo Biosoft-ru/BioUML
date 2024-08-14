@@ -1,0 +1,36 @@
+/*
+ * New plot from simulation result action
+ */
+{
+    id: "new_plot",
+    label: "New plot",
+    icon: "icons/open.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.standard.simulation.SimulationResult')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+    	var parentPath = getElementPath(path);
+    	createSaveElementDialog(resources.dlgPlotEditorPlotPath, 'biouml.standard.simulation.plot.Plot', parentPath + '/New plot', function(plotPath)
+    	{
+    		queryBioUML('web/plot/savenew', {de:plotPath}, function(data)
+            {
+        		refreshTreeBranch(getElementPath(plotPath));
+        		createPlotDocument( plotPath, function(plot) {
+        			plot.setAdditionalPath(path);
+            		openDocumentTab(plot);
+        		});
+            });
+        });
+    }"
+}

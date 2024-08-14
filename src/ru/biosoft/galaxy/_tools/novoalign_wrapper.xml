@@ -1,0 +1,335 @@
+<tool id="novoalign_wrapper" name="Map with novoalign" version="2.0.7.18">
+	<requirements>
+		<requirement type='package'>novoalign</requirement>
+	</requirements>
+	<description></description>
+	<parallelism method="basic"></parallelism>
+
+  <command>
+/bin/bash -v "$script"
+  </command>
+
+	<inputs>
+		<conditional name="isPaired">
+			<param name="condValue" type="select" label="Is this library mate-paired?">
+				<option value="single">Single-end</option>
+				<option value="paired">Paired-end</option>
+			</param>
+			<when value="single">
+				<param name="singleInput" type="data"
+					format="fastqsanger,fastqillumina,fastqsolexa" label="FASTQ file"
+					needs_metadata="False"
+					help="Must have ASCII encoded quality scores" />
+				<conditional name="stripAdapter">
+					<param name="condValue" type="select"
+						label="Strip adapters before alignment">
+						<option value="no">No</option>
+						<option value="yes">Yes</option>
+					</param>
+					<when value="yes">
+						<param name="adapterSequence" type="text" label="Adapter sequence"
+							default="TCGTATGCCGTCTTCTGCTTG" />
+					</when>
+					<when value="no" />
+				</conditional>
+			</when>
+			<when value="paired">
+				<param name="pairedInput1" type="data"
+					format="fastqsanger,fastqillumina,fastqsolexa" label="Forward FASTQ file"
+					needs_metadata="False"
+					help="Must have ASCII encoded quality scores" />
+				<param name="pairedInput2" type="data"
+					format="fastqsanger,fastqillumina,fastqsolexa" label="Reverse FASTQ file"
+					needs_metadata="False"
+					help="File format must match the Forward FASTQ file">
+					<options options_filter_attribute="ext"
+						from_parameter="tool.app.datatypes_registry.datatypes_by_extension"
+						transform_lines="obj.keys()">
+						<column name="name" index="0" />
+						<column name="value" index="0" />
+						<filter type="param_value" ref="pairedInput1"
+							ref_attribute="ext" column="0" />
+					</options>
+				</param>
+				<param name="meanFragmentLength" type="integer" label="Mean fragment length"
+					value="250" />
+				<param name="devFragmentLength" type="integer"
+					label="Standard deviation for fragment length" value="50" />
+				<param name="orientation" type="select"
+					label="Orientation of the reads in a proper pair">
+					<option value="PE">Forward-Reverse</option>
+					<option value="MP">Forward-Forward (for ABI SOLiD mate pairs)
+					</option>
+				</param>
+				<conditional name="stripAdapter">
+					<param name="condValue" type="select"
+						label="Strip adapters before alignment">
+						<option value="no">No</option>
+						<option value="yes">Yes</option>
+					</param>
+					<when value="yes">
+						<param name="adapterSequence1" type="text" label="Adapter sequence1"
+							default="AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG" />
+						<param name="adapterSequence2" type="text" label="Adapter sequence2"
+							default="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA" />
+					</when>
+					<when value="no" />
+				</conditional>
+			</when>
+		</conditional>
+		<param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="novoalign_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No indexes are available" />
+			</options>
+		</param>
+
+		<conditional name="options">
+			<param name="default" type="select" label="Novoalign settings to use">
+				<option value="yes">Commonly used</option>
+				<option value="no">Full parameter list</option>
+			</param>
+			<when value="yes" />
+			<when value="no">
+				<param name="inputFileFormat" type="select" label="Format of input files">
+					<option value="auto">Auto</option>
+					<option value="FA">Fasta</option>
+					<option value="SLXFQ">Fastq Solexa 10*log10(P/(1 -­P)) + '@'</option>
+					<option value="STDFQ">Fastq Sanger 10*log10(P) + '!'</option>
+					<option value="ILMFQ">Fastq Illumina­10*log10(P) + '@'</option>
+					<option value="ILM1.8">Illumina Casava V1.8 10*log10(P) + '!'</option>
+				</param>
+				<conditional name="alignScoreThreshold">
+					<param name="auto" type="select" label="Alignment score threshold"
+						help="The maximum alignment score acceptable for the best alignment. In automatic mode the threshold is set based on read length, genome size and other factors. For pairs the threshold applies to the fragment and includes both ends and the length penalty.">
+						<option value="yes">Automatic</option>
+						<option value="no">Manual</option>
+					</param>
+					<when value="yes" />
+					<when value="no">
+						<param name="threshold" type="integer"
+							label="Alignment score threshold value" />
+					</when>
+				</conditional>
+
+				<param name="gapOpenPenalty" type="integer" label="Gap opening penalty"
+					value="40" />
+
+				<param name="gapExtendPenalty" type="integer" label="Gap extend penalty"
+					value="6" />
+
+				<param name="minimalScoreDifference" type="integer"
+					label="Minimal score difference" value="5"
+					help="Score difference between best and second best alignment for calling a repeat." />
+
+				<conditional name="repeatReporting">
+					<param name="strategy" type="select" label="Strategy for reporting repeats">
+						<option value="None">None</option>
+						<option value="Random">Random</option>
+						<option value="All">All</option>
+						<option value="Exhaustive">Exhaustive</option>
+					</param>
+					<when value="None" />
+					<when value="Random" />
+					<when value="All">
+						<param name="maxAlignmentsPerRead" type="integer" value="-1"
+							label="Maximum number of alignments per read" help="Set to -1 for unlimited" />
+					</when>
+					<when value="Exhaustive">
+						<param name="maxAlignmentsPerRead" type="integer" value="-1"
+							label="Maximum number of alignments per read" help="Set to -1 for unlimited" />
+					</when>
+				</conditional>
+
+				<param name="alignQualThreshold" type="integer"
+					label="Lower limit on alignment quality for reporting" value="0" />
+					
+				<conditional name="rgHeader">
+					<param name="condValue" type="select" label="Set read group header">
+						<option value="Yes">Yes</option>
+						<option value="No">No</option>
+					</param>
+					<when value="Yes">
+						<param name="id" type="text" label="Read group ID" value="readgroup" />
+						<param name="sample" type="text" label="Sample ID" value="sample" />
+						<param name="platform" type="text" label="Platform unit"
+							value="platform" />
+						<param name="library" type="text" label="Library" value="library" />
+					</when>
+					<when value="No" />
+				</conditional>
+				
+				<param name="qualRecalibration" type="boolean" truevalue="-k" falsevalue="" checked="False" label="Quality calibration" 
+					help="Enables quality calibration. The quality calibration data (mismatch counts) are accumulated from actual alignments."/>
+
+				<param name="collectMismatchStatistics" type="boolean" truevalue="-K" falsevalue="" checked="False" label="Collect mismatch statistics" 
+					help="Collect mismatch statistics"/>
+
+				<param name="collectIndelStatistics" type="boolean" truevalue="--hpstats" falsevalue="" checked="False" label="Collect indel statistics" 
+					help="Collect indel statistics"/>
+
+				<param name="lowQualityReads" type="select" label="Handle reads flagged as low quality">
+				  <option value="--ILQ_SKIP">Do not align</option>
+				  <option value="--ILQ_USE">Align</option>
+				  <option value="--ILQ_QC">Do not align but include in report with QC flag</option>
+				</param>
+				
+				<param name="hardClip" type="boolean" truevalue="-H" falsevalue="" checked="False" label="Hard clip" 
+					help="Hard clip trailing bases with quality &lt;= 2" />
+
+				
+				<param name="q2off" type="boolean" truevalue="--Q2Off" falsevalue="" checked="False" label="treating Q=2 bases" 
+					help="Turns off treating Q=2 bases as 'Illumina Read Segment Quality Control Indicator'" />
+				
+				<param name="truncateReads" type="integer" value="150" label="Truncate reads" 
+					help="Truncate reads to the specified length before alignment (maximum is 300)."/>
+				
+                <param name="missingDNA" type="text" value="default"
+                       label="Number of DNA bp that are not in the reference sequence"
+                       help="Sets the number of bp of source DNA that are not represented in the reference sequences (index). This value is used in calculation of prior probability that the read originated in sequence that we cannot align to because it is not in the reference sequence set. By default we use the number of bases coded as N's in the reference genome. Set to zero to disable inclusion of this in quality calculations."
+                 />
+                 
+                 <param name="softClip" type="boolean" truevalue="-o SoftClip" falsevalue="-o FullNW" checked="True" label="Soft clipping" 
+				help="Soft clipping of alignments." />
+
+		<param name="compress" type="boolean" truevalue="-bS" falsevalue="-buS" checked="True" label="Compress BAM" 
+				help="Compressing BAM. It reduce 2-3 folds file size but make slower reading by other tools" />
+
+				<param name="bashBefore" type="text" label="Bash before novoalign"
+			          default="" help="any bash command immideately before novoalign execution."/>
+        
+			        <param name="extraArg" type="text" label="additional novoalign argument"
+			          default="" help="any novoalign arguments which are not supported by script "/>
+          
+			        <param name="bashAfter" type="text" label="Bash After novoalign"
+			          default="" help="any bash command after tophat execution."/>
+
+			</when>
+		</conditional>
+	</inputs>
+
+	<outputs>
+		<data format="bam" name="output"
+			label="${tool.name} on ${on_string}: mapped reads">
+			<actions>
+				<action type="metadata" name="dbkey">
+					<option type="from_data_table" name="novoalign_indexes"
+						column="1" offset="0">
+						<filter type="param_value" column="0" value="#" compare="startswith"
+							keep="False" />
+						<filter type="param_value" ref="refGenome" column="0" />
+					</option>
+				</action>
+			</actions>
+		</data>
+		<data format="txt" name="log" label="Log file"/>
+		<data format="txt" name="mismatchStatistics" label="Mismatch statistics table">
+                     <filter> (options["default"] == "no") and options["collectMismatchStatistics"]</filter>
+                </data>
+		<data format="pdf" name="mismatchStatisticsChart" label="Mismatch statistics chart">
+                     <filter> (options["default"] == "no") and options["collectMismatchStatistics"]</filter>
+                </data>
+		<data format="txt" name="indelStatistics" label="Indel statistics table">
+                     <filter> (options["default"] == "no") and options["collectIndelStatistics"]</filter>
+                </data>
+		<data format="pdf" name="indelStatisticsChart" label="Indel statistics chart">
+                     <filter> (options["default"] == "no") and options["collectIndelStatistics"]</filter>
+                </data>
+	</outputs>
+
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+#if $options.default == "no":
+  if [[ "$extraArg" != "None" ]] 
+  then exArg="$extraArg"
+  fi
+$bashBefore
+#end if
+
+novoalign -o SAM \
+      #if $options.default == "no" and $options.rgHeader.condValue == "Yes":
+        "@RG\tID:$options.rgHeader.id\tSM:$options.rgHeader.sample\tPU:$options.rgHeader.platform\tLB:$options.rgHeader.library" \
+      #end if
+      -d "${ refGenome.fields.path }" \
+      #if $isPaired.condValue == "single":
+        -f "${isPaired.singleInput}" \
+        #if $isPaired.stripAdapter.condValue == "yes":
+          -a "${isPaired.stripAdapter.adapterSequence}" \
+        #end if
+      #else:
+        -f "${isPaired.pairedInput1}" "${isPaired.pairedInput2}" -i $isPaired.orientation $isPaired.meanFragmentLength,$isPaired.devFragmentLength \
+        #if $isPaired.stripAdapter.condValue == "yes":
+          -a "${isPaired.stripAdapter.adapterSequence1}" "${isPaired.stripAdapter.adapterSequence2}" \
+        #end if
+      #end if
+      #if $options.default == "no":
+        #if $options.inputFileFormat.value != "auto":
+          -F $options.inputFileFormat \
+        #end if
+        #if $options.alignScoreThreshold.auto == "no":
+          -t $options.alignScoreThreshold.threshold \
+        #end if
+        -g $options.gapOpenPenalty -x $options.gapExtendPenalty -R $options.minimalScoreDifference -r $options.repeatReporting.strategy \$exArg\
+        #if $options.repeatReporting.strategy == "All" or $options.repeatReporting.strategy == "Exhaustive":
+          #if $options.repeatReporting.maxAlignmentsPerRead != "-1":
+            $options.repeatReporting.maxAlignmentsPerRead \
+          #end if
+        #end if
+        -Q $options.alignQualThreshold $options.lowQualityReads $options.hardClip $options.q2off -n $options.truncateReads  \
+        #if $options.missingDNA.value != "default":
+          -N $options.missingDNA \
+        #end if
+        $options.qualRecalibration \
+        #if $options.collectMismatchStatistics != "":
+           $options.collectMismatchStatistics "$mismatchStatistics" \
+        #end if
+        #if $options.collectIndelStatistics != "":
+           $options.collectIndelStatistics "$indelStatistics" \
+        #end if
+      #end if
+     2> $log | samtools view \
+#if $options.default == "no":
+       $compress \
+#else:
+      -bS \
+#end if
+      - 2>&amp;1 1> $output;
+
+EXIT_STATUS=("\${PIPESTATUS[@]}")
+NOVOALIGN_EXIST_STATUS="\${EXIT_STATUS[0]}"
+SAMTOOLS_EXIT_STATUS="\${EXIT_STATUS[1]}"
+DEST=`dirname $output`
+
+if [[ "\$NOVOALIGN_EXIST_STATUS" != "0" ]]; then
+  echo "novoalign finished with error(\${EXIT_STATUS[@]}). All temproary files stored \$DEST";
+  exit \$NOVOALIGN_EXIST_STATUS;
+fi
+
+if [[ "\$SAMTOOLS_EXIT_STATUS" != "0" ]]; then
+   echo "Samtools after Novoalign finished with error(\${EXIT_STATUS[@]}). All temproary files stored \$DEST";
+   exit \$SAMTOOLS_EXIT_STATUS;
+fi
+
+#if $options.collectMismatchStatistics != "":
+  qcalplot.R "$mismatchStatistics" "$mismatchStatisticsChart"
+#end if
+
+#if $options.collectIndelStatistics != "":
+  IONTorrent.R -f "$indelStatistics" -r "$indelStatisticsChart"
+#end if
+
+#if $options.default == "no":
+       $bashAfter
+#end if
+
+    </configfile>
+  </configfiles>
+  
+
+	<tests>
+	</tests>
+
+	<help>
+	</help>
+</tool>
+

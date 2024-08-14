@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<project name="biouml.plugins.server package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.server"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui"   value="swingui"/>
+            <property name="test"     value="${package}._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="client">
+	    <ant target="rtest">
+            <property name="testui" value="textui"/>
+	        <property name="test" value="${package}._test.ClientDataCollectionTest"/>
+       	</ant>
+    </target>
+
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

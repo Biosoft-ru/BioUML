@@ -1,0 +1,72 @@
+<h2>SBML format</h2>
+
+<p>
+  The Systems Biology Markup Language (SBML) is a representation format, based on XML,
+  for communicating and storing computational models of biological processes.
+  It is a free and open standard which can represent many different classes of biological phenomena,
+  including metabolic networks, cell-signaling pathways, regulatory networks, infectious diseases,
+  and many others.
+</p>
+
+<p>
+  BioUML allows to represent SBML models using the
+  <a href="http://www.sbgn.org/">Systems Biology Graphical Notation (SBGN)</a>.
+</p>
+
+<h3>SBML structure</h3>
+
+A model definition in SBML Levels 3 Version 1 consists of lists of the following components.
+
+<ul>
+  <li><b>Function definition</b>: A named mathematical function that may be used throughout the rest of a model.
+  <li><b>Unit definition</b>: A named definition of a new unit of measurement. Named units can be used in the
+    expression of quantities in a model.
+  <li><b>Compartment</b>: A well-stirred container of finite size where species may be located. Compartments may or
+    may not represent actual physical structures.
+  <li><b>Species</b>: A pool of entities of the same kind located in a compartment and participating in reactions
+    (processes). In biochemical network models, common examples of species include ions, proteins and
+    other molecules; however, in practice, an SBML species can be any kind of entity that makes sense in
+    the context of a given model.
+  <li><b>Parameter</b>: A quantity with a symbolic name. In SBML, the term parameter is used in a generic sense
+    to refer to named quantities regardless of whether they are constants or variables in a model. SBML
+    Level 3 provides the ability to define parameters that are global to a model as well as parameters that
+    are local to a single reaction.
+  <li><b>Initial Assignment</b>: A mathematical expression used to determine the initial conditions of a model. This
+    type of object can only be used to define how the value of a variable can be calculated from other
+    values and variables at the start of simulated time.
+  <li><b>Rule</b>: A mathematical expression added to the set of equations constructed based on the reactions defined
+    in a model. Rules can be used to define how a variable's value can be calculated from other variables,
+    or used to define the rate of change of a variable. The set of rules in a model can be used with the
+    reaction rate equations to determine the behavior of the model with respect to time. Rules constrain
+    the model for the entire duration of simulated time.
+  <li><b>Constraint</b>: A means of detecting out-of-bounds conditions during a dynamical simulation and optionally
+    issuing diagnostic messages. Constraints are defined by an arbitrary mathematical expression computing
+    a true/false value from model variables, parameters and constants. An SBML constraint applies at
+    all instants of simulated time; however, the set of constraints in model should not be used to determine
+    the behavior of the model with respect to time.
+  <li><b>Reaction</b>: A statement describing some transformation, transport or binding process that can change the
+    amount of one or more species. For example, a reaction may describe how certain entities (reactants) are
+    transformed into certain other entities (products). Reactions have associated kinetic rate expressions
+    describing how quickly they take place.
+  <li><b>Event</b>: A statement describing an instantaneous, discontinuous change in one or more variables of any type
+    (species, compartment, parameter, etc.) when a triggering condition is satisfied.
+</ul>
+
+<h3>Supported formats</h3>
+
+<ul class="parameters">
+  <li>SBML level 1 version 1
+  <li>SBML level 1 version 2
+  <li>SBML level 2 version 1
+  <li>SBML level 2 version 2
+  <li>SBML level 2 version 3
+  <li>SBML level 2 version 4
+  <li>SBML level 3 version 1
+</ul>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://sbml.org/">http://sbml.org/</a>
+  <li><a href="http://en.wikipedia.org/wiki/SBML">http://en.wikipedia.org/wiki/SBML</a>
+</ol>

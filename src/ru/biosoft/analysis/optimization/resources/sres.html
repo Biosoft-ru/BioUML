@@ -1,0 +1,69 @@
+<h2>Stochastic ranking evolution strategy (SRES)<span class="ref">1</span></h2>
+
+<p>
+  In the (&mu;, &lambda;)-ES algorithm, the individual <i>i</i> is a set of real-valued vectors
+  <span class="formula-text">(<i>x</i><sub><i>i</i></sub>, &sigma;<sub><i>i</i></sub>)</span>
+  <span class="formula-text">&forall; <i>i</i> &isin; {1,...,&lambda;}.</span>
+  The initial population of <i>x</i> is generated according to a uniform <i>n</i>-dimensional probability
+  distribution over the search space <i>S</i>. Let &delta;<i>x</i> be an approximate measure of the expected
+  distance to the global optimum, then the initial setting for the "mean step sizes" should be
+
+  <div class="formula-text"><img src="sres1.png" alt="expression"></div>
+  <div class="formula-text"><img src="sres2.png" alt="expression"></div>
+
+  where &sigma;<sub><i>i, j</i></sub> denotes the <i>j</i>th component of the vector &sigma;<sub><i>i</i></sub>.
+  We use these initial values as upper bounds on &sigma;.
+</p>
+
+<p>
+  Following the bubble-sort-like procedure is used to rank the individuals in a population, and the best (highest ranked)
+  &mu; individuals out of &lambda; are selected for the next generation. The truncation level is set at
+  <span class="formula-text">&mu; / &lambda; &asymp; 1/7.</span>
+</p>
+
+<p>
+  Variation of strategy parameters is performed before the modification of objective variables. We generate &lambda;
+  new strategy parameters from &mu; old ones so that we can use the &lambda; new strategy parameters in generating &lambda; offspring later.
+  The "mean step sizes" are updated according to the log-normal update rule:
+  <span class="formula-text"><i>i</i> = 1,...,&mu;</span>,
+  <span class="formula-text"><i>h</i> = 1,...,&lambda;</span>,
+  <span class="formula-text"><i>j</i> = 1,...,<i>n</i>,</span>
+
+  <table class="formula">
+    <tr>
+      <td class="formula-text">
+        <div class="formula-text"><img src="sres3.png" alt="expression"></div>
+      <td class="formula-number">(1)</td>
+    </tr>
+  </table>
+
+  where <i>N</i>(0,1) is a normally distributed one-dimensional random variable with an expectation of 0 and variance 1 and
+  <span class="formula-text"><i>k</i> &isin; {1,...,&mu;}</span> is an index generated at random and anew for each <i>j</i>.
+  The "learning rates" &tau; and &tau;&prime; are set equal to <span class="formula-text">(4<i>n</i>)<sup>&minus;&frac14;</sup></span>
+  and <span class="formula-text">(2<i>n</i>)<sup>&minus;&frac12;</sup></span>, respectively.
+  Recombination is performed on the self-adaptive parameters before applying the update rule given by (1).
+</p>
+ 
+<p>
+  Having varied the strategy parameters, each individual
+  <span class="formula-text">(<i>x</i><sub><i>i</i></sub>, &sigma;<sub><i>i</i></sub>),</span>
+  <span class="formula-text">&forall; <i>i</i> &isin; {1,...,&mu;}</span>
+  creates <span class="formula-text">&lambda;/&mu;</span> offspring on average, so that a total
+  of &lambda; offspring are generated
+  
+  <div class="formula-text"><img src="sres4.png" alt="expression"></div>
+
+  Recombination is not used in the variation of objective variables. When an offspring is generated outside the parametric
+  bounds defined by the problem, the mutation (variation) of the objective variable will be retried until the variable is within its
+  bounds. In order to save computation time, the mutation is retried only ten times and then ignored, learning the object variable
+  in its original state within the parameter bounds.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li>TP Runarsson, X Yao,
+    "Stochastic Ranking for Constrained Evolutionary Optimization".
+    IEEE Transactions on Evolutionary Computation, vol. 4, #3, pp. 284-294, Sept 2000.
+  </li>
+</ol>

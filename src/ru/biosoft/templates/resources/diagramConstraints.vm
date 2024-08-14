@@ -1,0 +1,13 @@
+<html>
+#setMathJax()
+	<body>
+		#if(!$de.getRole().getConstraints().isEmpty())
+			<font size = 6>Constraints</font><br><br>
+			<table border="0">
+			#updateConstraintTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Formula</b>", "<b>Message</b>", "<b>Comment</b>")
+			#processConstraints($de)
+			</table>
+		#end
+#setMathJaxUpdate()
+	</body>
+</html>

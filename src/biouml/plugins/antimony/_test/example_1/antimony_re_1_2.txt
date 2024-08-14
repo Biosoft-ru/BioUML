@@ -1,0 +1,4 @@
+model diagramTest
+   species s1;
+   compartment default;
+end

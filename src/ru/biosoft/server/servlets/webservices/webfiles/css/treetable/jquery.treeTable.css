@@ -1,0 +1,83 @@
+/* jQuery TreeTable Core 2.0 stylesheet
+ *
+ * This file contains styles that are used to display the tree table. Each tree
+ * table is assigned the +treeTable+ class.
+ * ========================================================================= */
+
+/* jquery.treeTable.collapsible
+ * ------------------------------------------------------------------------- */
+.treeTable {
+  line-height: 2;
+  margin: 0em auto;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.treeTable tr td .expander {
+  background-position: left center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  padding: 0;
+  zoom: 1; /* IE7 Hack */
+}
+
+.treeTable tbody tr td,.treeTable thead th {
+  cursor: default;
+  border: 1px solid #aaa;
+  padding: .3em 1.5em;
+  text-align: left;
+}
+
+.treeTable thead th {
+	background-color: #ddd;
+}
+
+.treeTable td {
+	white-space: nowrap;
+}
+
+.treeTable tr.collapsed td .expander {
+  background-image: url(images/toggle-expand-dark.png);
+}
+
+.treeTable tr.expanded td .expander {
+  background-image: url(images/toggle-collapse-dark.png);
+}
+
+.treeTable span.file {
+  background-image: url(../../icons/leaf.gif);
+  background-position: center left;
+  background-repeat: no-repeat;
+  padding: .2em 0 .2em 1.5em;
+}
+
+.treeTable span.folder {
+  background-image: url(../../icons/folder.png);
+  background-position: center left;
+  background-repeat: no-repeat;
+  padding: .2em 0 .2em 1.5em;
+}
+
+/* jquery.treeTable.sortable
+ * ------------------------------------------------------------------------- */
+.treeTable tr.selected, .treeTable tr.accept {
+  background-color: #3875d7;
+  color: #fff;
+}
+
+.treeTable tr.collapsed.selected td .expander, .treeTable tr.collapsed.accept td .expander {
+  background-image: url(images/toggle-expand-light.png);
+}
+
+.treeTable tr.expanded.selected td .expander, .treeTable tr.expanded.accept td .expander {
+  background-image: url(images/toggle-collapse-light.png);
+}
+
+.treeTable .ui-draggable-dragging {
+  color: #000;
+  z-index: 1;
+}
+
+.treeTable tr.row_selected td {
+    background-color: #BBCCFF;
+}

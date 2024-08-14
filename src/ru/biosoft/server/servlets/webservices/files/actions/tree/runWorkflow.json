@@ -1,0 +1,38 @@
+/*
+ * Run workflow action
+ */
+{
+    id: "run_workflow",
+    label: "Run workflow",
+	icon: "icons/run.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.model.Diagram')) 
+        {
+            var type = getDataCollection(completePath).getDiagramType();
+			if(type.match(new RegExp('WorkflowDiagramType$')) || type.match(new RegExp('SedMlDiagramType$')))
+            	return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		try
+		{
+    	    CreateWorkflowDocument ( path, function(workflow){
+				openDocumentTab(workflow)
+            });
+		}
+		catch(e)
+		{
+			logger.message(e);
+			return;
+		}
+    }"
+}

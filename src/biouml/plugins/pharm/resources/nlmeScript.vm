@@ -1,0 +1,104 @@
+#set ($br = "
+")
+#set ($dq = '"')
+#set ($emodel = $de.getDiagram().getRole())
+#set ($sourceDir = $de.getSourceDir())
+Sys.setenv("JAVA_HOME"="")
+library(rJava)
+library(nlme)
+$br
+.jinit()
+#set($plugins = $de.getPlugins())
+#foreach($plugin in $plugins)
+.jaddClassPath("$plugin")
+#end
+.jaddClassPath("$de.getAbsoluteOutputPath()")
+
+#set ($name = $de.getNLMEModelName())
+$br
+model <- new(J($dq$name$dq))
+#if ($de.hasTimeColumn())
+expInfo <- new(J($dq$de.getExpInfoName()$dq))
+#end
+modelRunner <- new(J(${dq}biouml.plugins.pharm.nlme.MixedEffectModelRunner$dq))
+modelRunner$setMixedEffectModel(model)
+modelRunner$setAtol($de.getAtol())
+modelRunner$setRtol($de.getRtol())
+
+dataPath <- $rutil.escapeString($de.generateDataPath());
+table <- read.table(dataPath, header=TRUE, stringsAsFactors=FALSE);
+
+#if ($de.hasTimeColumn())
+  #set($labels = 'list( x = "Time", y = "Concentration")')
+#else
+  #set($labels = 'list( x = "Parameters", y = "Concentration")')
+#end
+
+Data <- groupedData( $de.getDataFormula(),
+data = table,
+labels = $labels)
+
+$br
+#set ($parameters = $emodel.getFitVariables())
+#set ($parameterNames = [])
+#set ($parameterInit = [])
+#set ($parameterRandom = [])
+#set ($parameterSize = $parameters.size())
+#foreach($parameter in $parameters)
+#set ($temp = $parameterNames.add("$parameter.getName()"))
+#set ($temp = $parameterInit.add("$parameter.getName() = $parameter.getInitialValue()"))
+#if ($de.isRandom($parameter))
+#set ($temp = $parameterRandom.add("$parameter.getName()"))
+#end
+#end
+
+#set($additionalParameters = " Subject")
+#if ($de.hasTimeColumn())
+  #set($additionalParameters = "time ," + $additionalParameters)
+#else
+  #set($additionalParameters = "parameter ," + $additionalParameters)
+#end
+f = function( $de.join($parameterNames, ","), $additionalParameters)
+{
+    parametersMap <- new(J("java.util.HashMap"))
+#foreach($parameter in $parameters)
+#set ($nameInModel = $emodel.getStructuralVariableName($parameter.getName()))
+#if ($parameter.getTransformation().equals("log"))
+    parametersMap$put($dq$nameInModel$dq, exp($parameter.getName()))
+#else
+    parametersMap$put($dq$nameInModel$dq, $parameter.getName())
+#end
+#end
+#if ($de.hasTimeColumn())
+    result = modelRunner$calculate(parametersMap, .jarray(time), .jarray(Subject))
+#else
+    result = modelRunner$calculateSteadyState(parametersMap, .jarray(Subject), .jarray(parameter), $de.getEngine().getCompletionTime(), $de.getEngine().getTimeIncrement(), $de.getATolSteadyState(), $de.getRTolSteadyState())
+#end
+    return (result)
+}
+$br
+
+#set ($randomEffects = "$de.join($parameterRandom, '+')~1")
+#if($de.getRandomEffectsType() == "Diagonal")
+#set ($randomEffects = "pdDiag($de.join($parameterRandom, '+')~1)")
+#end
+
+#if ($de.hasTimeColumn())
+#set($additionalParameters = $de.getTimeColumnName()+ ", Subject")
+#else
+#set($additionalParameters = "parameter , Subject")
+#end
+
+#set ($timeColumn = $de.getTimeColumnName())
+
+nlmeModel <- nlme($de.getObservedColumnName() ~ f( $de.join($parameterNames,','), $additionalParameters),
+		data = Data, fixed=$de.join($parameterNames,'+')~1, random = $randomEffects, 
+		start=c($de.join($parameterInit,',')),
+		method = $dq$de.getMethodScript()$dq,
+		control=list(returnObject=TRUE,msVerbose=TRUE),
+		verbose=TRUE)
+		
+#if ($de.getNeedToShowPlot())
+p <- plot(augPred(nlmeModel,level=0:1))
+print(p)
+#end

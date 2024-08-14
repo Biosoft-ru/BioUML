@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="CelllMLModuleType" point="biouml.workbench.moduleType"> 
+      <moduleType 
+        class="biouml.plugins.cellml.CellMLModuleType"
+        displayName="%CellMLModule" 
+        description="%CellMLModuleDescription"
+      /> 
+  </extension> 
+
+
+  <extension id="CellMLImporter" point="ru.biosoft.access.import"> 
+     <import 
+        format="CellML"
+        importer="biouml.plugins.cellml.CellMLImporter"
+        description="biouml/plugins/cellml/resources/CellMLFormat.html"
+     /> 
+  </extension> 
+
+
+</plugin>

@@ -1,0 +1,86 @@
+<tool name="Indel Realigner" id="indel_realigner" version="1.5-11">
+  <command>/bin/bash -v "$bashScript" </command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file" />
+    <param name="targetIntervals" type="data" format="data" label="Target intervals" help="Target intervals from Realigner Target Creator"/>
+
+    <param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="gatk_picard_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+        <param name="knownSites" type="select" multiple="True" label="Known sites" help="A database of known polymorphic sites to skip over in the recalibration algorithm" >
+          <options from_data_table="gatk_vcf_files">
+            <filter type="sort_by" column="1" />
+          </options>
+        </param>
+
+	<param name="compressionLevel" type="integer" label="Compression level" value="6" help="Compression level for output bam"/>
+	<param name="maxReads" type="integer" label="Maximum Reads" value="20000" help="Regions with reads more than Maximum will not be aligned. Time required for aligning equal N^2. To align 20000 reads required around 15 minutes"/>
+	<param name="tmpFolder" type="text" label="TMP folder" value="/tmp" />
+	<param name="nThreads" type="integer" label="Number of threads" value="30" />
+	<param name="memoryUsage" type="text" label="Max memory usage" value="6"  help="Max memory usage per thread in gigabytes" />
+    
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="log" label="Log file" />
+    <data format="bam" name="output" label="Realigned BAM file" />
+  </outputs>
+  
+  <configfiles>
+    <configfile name="script">
+import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.sting.queue.extensions.gatk._
+
+class QIndelRealigner extends QScript {
+  def script() {
+    val indelrealigner = new IndelRealigner
+    indelrealigner.reference_sequence = new File("${ refGenome.fields.path }")
+    indelrealigner.input_file :+= new File("$input_bam")
+    indelrealigner.targetIntervals = new File("${ targetIntervals }.intervals")
+    indelrealigner.out = new File("$output")
+    indelrealigner.scatterCount = $nThreads
+    indelrealigner.memoryLimit = $memoryUsage
+    indelrealigner.log = new File("$log"+".tmp")
+    indelrealigner.compress=$compressionLevel
+    indelrealigner.maxReads=$maxReads
+    
+    indelrealigner.knownAlleles = (
+    #for $vcf in $knownSites.fields.path:
+      "$vcf"::
+    #end for
+    Nil)
+
+    add(indelrealigner)
+  }
+}
+    </configfile>
+
+<configfile name="bashScript">#!/bin/bash -v
+DEST=`dirname $log`
+cd \$DEST
+mv "${ targetIntervals }" "${ targetIntervals }.intervals"
+###  mv realigner_intervals.data realigner_intervals.intervals
+### sed --in-place 's/realigner_intervals.data/realigner_intervals.intervals/' "$script"
+
+runqueue "$tmpFolder" "$script" "\$DEST"
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "runqueue finished with error. All temproary files stores \$DEST";  exit \$STATUS                                                                              
+fi
+
+cd \$DEST
+
+cat *.jobreport.txt "$log".tmp > $log
+
+# sudo rm -Rf "$tmpFolder"
+    </configfile>
+
+  </configfiles>
+  
+  <help>
+  </help>
+</tool>

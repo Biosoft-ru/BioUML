@@ -1,0 +1,23 @@
+/*
+ * Expand tree branch
+ */
+{
+    id: "expand",
+    label: "Expand/collapse",
+    icon: "icons/expand.gif",
+    useOriginalPath: true,
+    multi: true,
+    visible: "function(completePath)
+    {
+		var node = getTreeNode(completePath);
+		var treeObj = getTreeObject(completePath);
+		if(!node || !treeObj) return -1;
+		if(treeObj.jstree('is_leaf', node))
+			return -1;
+		return true;
+    }",
+    action: "function(completePath)
+    {
+        getTreeObject(completePath).jstree('toggle_node',getTreeNode(completePath));
+    }"
+}

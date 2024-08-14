@@ -1,0 +1,765 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+	<extension-point name="%moduleType" id="moduleType" />
+	<extension-point name="%diagramTypeConverter" id="diagramTypeConverter" />
+	<extension-point name="%diagramViewPart" id="diagramViewPart" />
+	<extension-point name="%menuItem" id="menuItem" />
+	<extension-point name="%queryEngine" id="queryEngine" />
+	<extension-point name="perspective" id="perspective" />
+	<extension-point name="diagramText" id="diagramText" />
+	<extension-point name="nodeViewBuilder" id="nodeViewBuilder" />
+	<extension-point name="diagramType" id="diagramType" />
+
+    <extension id="SplitDiagram" point="ru.biosoft.access.dynamicAction"> 
+       <dynamicAction name="Split diagram" class="biouml.standard.diagram.SplitDiagramAction">
+          <parameter name="numSelected" value="-1"/>
+          <property name="Name" value="Split diagram"/>
+          <property name="ShortDescription" value="Split diagram"/>
+          <property name="LongDescription" value="Split diagram."/>
+          <property name="SmallIcon" value="resources/splitDiagram.gif" /> 
+          <property name="ActionCommandKey" value="cmd-split-diagram"/>
+       </dynamicAction>
+    </extension>
+    
+    <extension id="CloneNode" point="ru.biosoft.access.dynamicAction"> 
+       <dynamicAction name="Clone node" class="biouml.standard.diagram.CloneNodeAction">
+          <parameter name="numSelected" value="1"/>
+          <property name="Name" value="Clone node"/>
+          <property name="ShortDescription" value="Clone node"/>
+          <property name="LongDescription" value="Clone node."/>
+          <property name="SmallIcon" value="resources/cloneNode.gif" /> 
+          <property name="ActionCommandKey" value="cmd-clone-node"/>
+       </dynamicAction>
+    </extension>
+    
+    <extension id="ChangeSubdiagram" point="ru.biosoft.access.dynamicAction">
+       <dynamicAction name="Change Subdiagram" class="biouml.standard.diagram.ChangeSubdiagramAction">
+          <parameter name="numSelected" value="1"/>
+          <property name="Name" value="Change subdiagram"/>
+          <property name="ShortDescription" value="Change subdiagram"/>
+          <property name="LongDescription" value="Change subdiagram."/>
+          <property name="SmallIcon" value="resources/changeSubdiagram.png" />
+          <property name="ActionCommandKey" value="cmd-change-subdiagram"/>
+       </dynamicAction>
+    </extension>
+    
+     <extension id="ChangePort" point="ru.biosoft.access.dynamicAction"> 
+       <dynamicAction name="Change port" class="biouml.standard.diagram.ChangePortTypeAction">
+          <parameter name="numSelected" value="1"/>
+          <property name="Name" value="Change Port"/>
+          <property name="ShortDescription" value="Change Port"/>
+          <property name="LongDescription" value="Change Port."/>
+          <property name="SmallIcon" value="resources/changePort.gif" /> 
+          <property name="ActionCommandKey" value="cmd-change-port"/>
+       </dynamicAction>
+    </extension>
+    
+    <extension id="MergeClone" point="ru.biosoft.access.dynamicAction"> 
+       <dynamicAction name="Merge clone" class="biouml.standard.diagram.MergeCloneAction">
+          <parameter name="numSelected" value="1"/>
+          <property name="Name" value="Merge node"/>
+          <property name="ShortDescription" value="Merge node"/>
+          <property name="LongDescription" value="Merge node."/>
+          <property name="SmallIcon" value="resources/mergeclone.gif" /> 
+          <property name="ActionCommandKey" value="cmd-merge-clone"/>
+       </dynamicAction>
+    </extension>
+    
+     <extension id="UpdateSubmodel" point="ru.biosoft.access.dynamicAction"> 
+       <dynamicAction name="Update submodel" class="biouml.standard.diagram.UpdateSubModelAction">
+          <parameter name="numSelected" value="1"/>
+          <property name="Name" value="Update submodel"/>
+          <property name="ShortDescription" value="Update submodel."/>
+          <property name="LongDescription" value="Update submodel."/>
+          <property name="SmallIcon" value="resources/updateSubmodel.gif" /> 
+          <property name="ActionCommandKey" value="cmd-update-submodel"/>
+       </dynamicAction>
+    </extension>
+    
+	<!-- ================================================================ -->
+	<!-- Module and diagram type issues                                   -->
+	<!-- ================================================================ -->
+
+    <extension point="ru.biosoft.server.servlets.webTableResolver">
+        <tableResolver type="plot" class="biouml.standard.simulation.plot.web.SeriesTableResolver"/>
+        <tableResolver type="model" class="biouml.model.web.DiagramModelTableResolver"/>
+        <tableResolver type="states" class="biouml.model.web.StatesWebTableResolver"/>
+    </extension>
+
+	<extension point="ru.biosoft.server.servlets.webProvider">
+		<provider prefix="plot" class="biouml.standard.simulation.plot.web.PlotProvider"/>
+        <provider prefix="units" class="biouml.model.web.DiagramUnitsProvider"/>
+        <provider prefix="states" class="biouml.model.web.StatesWebProvider"/>
+	</extension>
+	
+	<extension id="StandardModuleType" point="biouml.workbench.moduleType">
+		<moduleType class="biouml.standard.StandardModuleType" displayName="%standardModule" description="%standardModuleDescription" priority = "100.0"/>
+	</extension>
+
+    <extension point="biouml.workbench.diagramType">
+        <diagramType class="biouml.standard.diagram.PathwayDiagramType"/>
+        <diagramType class="biouml.standard.diagram.PathwaySimulationDiagramType"/>
+        <diagramType class="biouml.standard.diagram.CompositeDiagramType"/>
+        <diagramType class="biouml.standard.diagram.MathDiagramType"/>
+    </extension>
+
+	<extension id="standardDiagramTypeConversions" point="biouml.workbench.diagramTypeConverter">
+		<conversion from="biouml.standard.diagram.SemanticNetworkDiagramType" to="biouml.standard.diagram.PathwayDiagramType" converter="biouml.model.DiagramTypeConverter$YesConverter" />
+		<conversion from="biouml.standard.diagram.MetabolicPathwayDiagramType" to="biouml.standard.diagram.GeneNetworkDiagramType" converter="biouml.model.DiagramTypeConverter$YesConverter" />
+		<conversion from="biouml.standard.diagram.MetabolicPathwayDiagramType" to="biouml.standard.diagram.PathwayDiagramType" converter="biouml.model.DiagramTypeConverter$YesConverter" />
+		<conversion from="biouml.standard.diagram.GeneNetworkDiagramType" to="biouml.standard.diagram.PathwayDiagramType" converter="biouml.model.DiagramTypeConverter$YesConverter" />
+		<conversion from="biouml.standard.diagram.PathwayDiagramType" to="biouml.standard.diagram.PathwaySimulationDiagramType" converter="biouml.model.PathwaySimulationDiagramTypeConverter" />
+		<conversion from="biouml.standard.diagram.CompositeDiagramType" to="biouml.standard.diagram.MathDiagramType" converter="biouml.standard.diagram.CompositeFlattener" />
+	    <conversion from="biouml.standard.diagram.MathDiagramType" to="biouml.standard.diagram.CompositeDiagramType" converter="biouml.standard.diagram.CompositeFlattener" />
+	</extension>
+
+	<extension id="linkResolver" point="ru.biosoft.templates.contextItem">
+		<linkResolver name="resolver" class="biouml.standard.type.LinkResolver" />
+	</extension>
+
+    <extension id="diagram factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="biouml.workbench.diagram.DiagramFactory"
+        key="biouml.model.Diagram"
+      /> 
+    </extension>
+  
+	<!-- ================================================================ -->
+	<!-- Viewers and editors                                              -->
+	<!-- ================================================================ -->
+
+	<extension id="Diagram description" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart editor="true" class="biouml.workbench.diagram.DiagramDescriptionEditor" id="common.description" Name="Description" ShortDescription="Diagram description" Priority="1.1" />
+	</extension>
+
+	<!-- extension id="legend view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.workbench.diagram.LegendView"
+        id="diagram.legend"
+        Name="Legend"
+        ShortDescription="Diagram description"
+        Priority = "2.1"
+      /> 
+  </extension -->
+
+	<extension id="Clipboard" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart class="biouml.workbench.diagram.ClipboardView" id="common.clipboard" Name="Clipboard" ShortDescription="Diagram clipboard is used to copy and paste diagram elements from one diagram to another." Priority="2.5" />
+	</extension>
+
+    <extension id="Model tab" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart editor="true" class="biouml.workbench.diagram.viewpart.ModelViewPart" id="diagram.model" Name="Model" ShortDescription="Mathematical model" Priority="1.2" />
+	</extension>
+  	
+	<extension id="Connected reactions" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart editor="true" class="biouml.standard.diagram.CompositeReactionsEditor" id="diagram.reactions" Name="Connected Reaction" ShortDescription="Table of reactions used in the model" Priority="3.2" />
+	</extension>
+
+	<extension id="Application Log" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart editor="true" class="ru.biosoft.gui.LogPane" id="common.log" Name="Application Log" ShortDescription="Application log console" Priority="2.4" />
+	</extension>
+
+	<extension id="database references view" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart class="biouml.standard.diagram.DatabaseReferencesViewPart" id="diagram.references" Name="References" ShortDescription="Database references pane" />
+	</extension>
+
+	<extension id="states view" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart class="biouml.standard.state.StatesViewPart" Name="States" id="diagram.states" ShortDescription="States pane" />
+	</extension>
+
+	<extension id="Tasks" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart editor="true" class="ru.biosoft.tasks.TasksViewPart" id="common.tasks" Name="Tasks" ShortDescription="Task control panel." Priority="6.0" />
+	</extension>
+
+	<extension point="ru.biosoft.access.transformer">
+		<transformer name="Diagram" inputClass="ru.biosoft.access.FileDataElement" 
+		  outputClass="biouml.model.Diagram" transformerClass="biouml.model.util.DiagramXmlTransformer" />
+		<transformer name="State" inputClass="ru.biosoft.access.FileDataElement"
+		  outputClass="biouml.standard.state.State" transformerClass="biouml.standard.state.StateTransformer" />
+        <transformer name="Chemical structure" inputClass="ru.biosoft.access.Entry"
+          outputClass="biouml.standard.type.Structure" transformerClass="biouml.standard.type.access.StructureTransformer"/> 
+	</extension>
+
+	<!-- ================================================================ -->
+	<!-- Import/Export                                                    -->
+	<!-- ================================================================ -->
+
+	<extension point="ru.biosoft.access.export">
+		<export diagramType="*" format="JPEG file (*.jpg)" suffix="jpg" contentType="image/jpeg" exporter="biouml.workbench.diagram.ImageExporter" description="%DiagramImport-JPG" />
+		<export diagramType="*" format="Bitmap file(*.bmp)" suffix="bmp" contentType="image/x-ms-bmp" exporter="biouml.workbench.diagram.ImageExporter" description="%DiagramImport-BMP" />
+		<export diagramType="*" format="Portable Network Graphics (*.png)" suffix="png" contentType="image/x-png" exporter="biouml.workbench.diagram.ImageExporter" description="%DiagramImport-PNG" />
+		<export diagramType="*" format="BioUML format(*.dml)" suffix="dml" contentType="text/xml" exporter="biouml.model.util.DiagramDMLExporter" description="%DiagramImport-DML" />
+		<export diagramType="*" format="BioUML state (*.xml)" suffix="xml" contentType="text/xml" exporter="biouml.standard.state.StateXmlExporter" description="Export state into BioUML format" />
+		<export diagramType="*" format="Pair graph file(*.txt)" suffix="txt" contentType="text/xml" exporter="biouml.model.util.DiagramPairGraphExporter" description="%DiagramImport-TXT" />		
+	</extension>
+
+	<extension id="DMLImporter" point="ru.biosoft.access.import">
+		<import format="BioUML format(*.dml)" importer="biouml.model.util.DiagramDMLImporter" description="biouml/model/util/resources/DMLFormat.html" />
+	</extension>
+	
+	<!-- ================================================================ -->
+	<!-- QueryEngine extensions                                           -->
+	<!-- ================================================================ -->
+
+	<extension id="StandardQueryEngine" point="biouml.workbench.queryEngine">
+		<engineItem name="StandardQueryEngine" class="biouml.standard.StandardQueryEngine" />
+	</extension>
+
+	<extension id="SQLQueryEngine" point="biouml.workbench.queryEngine">
+		<engineItem name="SqlQueryEngine" class="biouml.standard.SqlQueryEngine" />
+	</extension>
+
+	<extension id="BioHubQueryEngine" point="biouml.workbench.queryEngine">
+		<engineItem name="BioHubQueryEngine" class="biouml.standard.BioHubQueryEngine" />
+	</extension>
+
+	<!-- ================================================================ -->
+	<!-- Misc                                                             -->
+	<!-- ================================================================ -->
+
+	<extension id="launcher" point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="biouml.workbench.BioUMLLauncher">
+			</run>
+		</application>
+	</extension>
+
+	<extension id="repository actions" point="ru.biosoft.access.repositoryActionsProvider">
+		<repositoryActionsProvider class="biouml.workbench.RepositoryActionsProvider" />
+	</extension>
+
+	<extension id="aboutDialog" point="ru.biosoft.workbench.aboutDialog">
+		<size width="400" height="200" />
+		<tab name="Info" img="biouml/workbench/resources/AboutLogo.png" />
+		<tab name="Web Pages" html="biouml/workbench/resources/about_web_pages.html" />
+		<tab name="Contacts" html="biouml/workbench/resources/about_contacts.html" />
+		<tab name="Notes" html="biouml/workbench/resources/about_notes.html" />
+	</extension>
+
+	<!-- Extract actions info-->
+	<extension id="actions" point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="biouml.workbench.ActionsInfoBuilder">
+			</run>
+		</application>
+	</extension>
+
+    <extension id="plotManager" point="ru.biosoft.plugins.javascript.hostObject">
+   		<hostObject name="plotManager" class="biouml.model.javascript.JavaScriptPlot" alias="pm">
+		    <doc description="Functions for plotting simulation.">
+				<function name="createPlot" description="Creates plot.">
+					<returns type="Plot" description="plot." />
+				</function>
+				<function name="createPen" description="Creates pen.">
+					<returns type="Pen" description="Pen." />
+				</function>
+				</doc>
+		</hostObject>
+	</extension>
+
+    <extension id="barChartManager" point="ru.biosoft.plugins.javascript.hostObject">
+   		<hostObject name="barChartManager" class="biouml.model.javascript.JavaScriptBarChart" alias="bcm">
+		    <doc description="Functions for plotting bar charts.">
+				<function name="createStatisticalBarChart" description="Creates statistical bar chart.">
+					<argument name="settings" type="Object" obligatory="true" description="bar chart settings"/>
+					<returns type="StatisticalBarChart" description="Statistical bar chart." />
+				</function>
+			</doc>
+		</hostObject>
+	</extension>
+	
+	<extension id="simulationEngine" point="ru.biosoft.plugins.javascript.hostObject">
+		<hostObject name="simulationEngine" class="biouml.model.javascript.JavaScriptSimulationEngine" alias="se">
+			<doc description="Functions for the diagrams simulation.">
+				<function name="getSolvers" description="Gets available solver names.">
+					<returns type="String" description="available solver names." />
+				</function>
+				<function name="getSolver" description="Gets the current solver name.">
+					<returns type="String" description="the solver name." />
+				</function>
+				<function name="setSolver" description="Sets solver by its name.">
+					<argument name="name" type="String" obligatory="true" description="the solver name." />
+				</function>
+				<function name="getOptions" description="Gets option names for the specified solver.">
+					<argument name="solver" type="String" obligatory="false" description="the solver name." />
+					<returns type="String[]" description="options." />
+				</function>
+				<function name="getOption" description="Gets value of the option with the specified name for the current solver.">
+					<argument name="optionName" type="String" obligatory="true" description="the option name." />
+					<returns type="String" description="the option value." />
+				</function>
+				<function name="setOption" description="Sets value of the option with the specified name for the current solver.">
+					<argument name="optionName" type="String" obligatory="true" description="the option name." />
+					<argument name="value" type="Object" obligatory="true" description="the option value." />
+				</function>
+				<function name="getOptionInfo" description="Gets info of the option with the specified name for the specified solver.">
+					<argument name="optionName" type="String" obligatory="true" description="the option name." />
+					<argument name="solver" type="String" obligatory="false" description="the solver name." />
+					<returns type="String" description="the option info." />
+				</function>
+				<function name="createSpan" description="Creates span for the diagram simulation.">
+					<argument name="startTime" type="Double" obligatory="true" description="the initial time point of the simulation." />
+					<argument name="endTime" type="Double" obligatory="true" description="the completion time point of the simulation." />
+					<argument name="timeIncrement" type="Double" obligatory="true" description="the delta for time. The less increment the more calculations will be made by a solver to get values of variables, but it is time consuming." />
+					<returns type="Span" description="created UniformSpan in the case of non-zero time increment or created ArraySpan otherwise." />
+				</function>
+				<function name="compileModel" description="Compiles model from diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="The diagram to compile." />
+					<argument name="logging" type="boolean" obligatory="false" description="If true then additional information will be logged." />
+					<returns type="Model" description="Compiled model ready for simulation." />
+				</function>
+				<function name="simulateModel" description="Simulates compiled model.">
+					<argument name="model" type="Model" obligatory="true" description="Model to simulate." />
+					<argument name="span" type="Span" obligatory="true" description="The simulation span. See 'createSpan' function for further details." />
+					<argument name="logging" type="boolean" obligatory="false" description="If true then additional information will be logged." />			
+					<returns type="SimulationResult" description="Generated SimulationResult on success or null otherwise." />
+				</function>
+				<function name="simulate" description="Simulates the diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="The diagram to simulate." />
+					<argument name="span" type="Span" obligatory="false" description="The simulation span. See 'createSpan' function for further details." />
+					<argument name="logging" type="boolean" obligatory="false" description="If true then additional information will be logged." />
+					<returns type="SimulationResult" description="Generated SimulationResult on success or null otherwise." />
+				</function>
+				<function name="writeResult" description="Writes simulation result to the specified file." >
+					<argument name="result" type="SimulationResult" obligatory="true" description="Simulation result to write." />
+					<argument name="path" type="String" obligatory="true" description="Path to destination file." />
+					<argument name="delimiter" type="String" obligatory="true" description="Numeric data delimiter" />
+					<argument name="logging" type="boolean" obligatory="true" description="If true then additional information will be logged." />		
+				</function>	    
+				<function name="saveResults" description="Saves result of the diagram simulation by the specified path of DataCollection.">
+					<argument name="simulationResult" type="SimulationResult" obligatory="true" description="the simulation result to save." />
+					<argument name="dataElementPath" type="String" obligatory="true" description="the path to simulation result in repository." />
+					<argument name="description" type="String" obligatory="false" description="the simulation result description." />
+				</function>
+                <function name="saveResultsTable" description="Saves result of the diagram simulation by the specified path as TableDataCollection.">
+                    <argument name="simulationResult" type="SimulationResult" obligatory="true" description="the simulation result to save." />
+                    <argument name="dataElementPath" type="String" obligatory="true" description="the path to simulation result table in repository." />
+                    <argument name="description" type="String" obligatory="false" description="the simulation result description." />
+                </function>
+				<function name="plotResults" description="Plots result of the diagram simulation.">
+					<argument name="simulationResult" type="SimulationResult" obligatory="true" description="the simulation result to plot." />
+					<argument name="variables" type="String[]" obligatory="true" description="the identifiers of diagram variables to plot." />
+					<argument name="lineSpec" type="String[]" obligatory="false" description="the argument that defines three components used for lines specification: line style, marker symbol and color." />
+				</function>
+			</doc>
+		</hostObject>
+	</extension>
+
+
+	<extension id="model" point="ru.biosoft.plugins.javascript.hostObject">
+		<hostObject name="model" class="biouml.model.javascript.JavaScriptModel">
+			<doc description="Functions for the diagrams changing.">
+				<function name="getInitialValue" description="Gets initial value of the specified variable.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get initial value of the variable." />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable to get initial value of." />
+					<returns type="double" description="initial value of the variable." />
+				</function>
+				<function name="setInitialValue" description="Sets initial value of the specified variable.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to set initial value of the variable." />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable to set initial value of." />
+					<argument name="value" type="double" obligatory="true" description="initial value." />
+				</function>
+				<function name="getInitialValues" description="Gets initial values of the specified variables.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get initial values of variables." />
+					<argument name="variableNames" type="String[]" obligatory="true" description="an array of variables identifiers to get initial values of. If the array is null, the method returns the array of initial values of all diagram variables." />
+					<returns type="double[]" description="an array of initial variable values." />
+				</function>
+				<function name="setInitialValues" description="Sets initial values of the specified variables.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to set initial values of variables." />
+					<argument name="variableNames" type="String" obligatory="false" description="an array of variables names to set initial values of. If the array is null, the method sets initial values of all diagram variables." />
+					<argument name="values" type="double[]" obligatory="true" description="an array of initial values represented by real numbers. The array length must be equal to the length of variableNames array if it is not null or the number of diagram variables otherwise." />
+				</function>
+				<function name="getBoundaryCondition" description="Gets boundary condition of the specified variable. Note that the method returns conditions only for diagram variables and not for diagram parameters.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get boundary condition of the variable." />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable to get boundary condition of." />
+					<returns type="boolean" description="boundary condition of the variable." />
+				</function>
+				<function name="setBoundaryCondition" description="Sets boundary condition of the specified variable. The method can not be applyed to the diagram parameters.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to set boundary condition of the variable" />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable to set boundary condition of." />
+					<argument name="value" type="boolean" obligatory="true" description="the boundary condition to be set." />
+				</function>
+				<function name="getBoundaryConditions" description="Gets boundary conditions for diagram variables and 'false' for diagram parameters.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get boundary conditions of variables." />
+					<returns type="String[]" description="an array of diagram variables with boundary conditions." />
+				</function>
+				<function name="setBoundaryConditions" description="Sets boundary conditions for diagram variables. The method can not be applyed to diagram parameters.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to set boundary conditions of variables." />
+					<argument name="variableNames" type="String[]" obligatory="true" description="an array of variables identifiers to set boundary conditions." />
+				</function>
+				<function name="clearAllBoundaryConditions" description="Sets boundary conditions of all diagrams variables equal to 'false'.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to clear boundary conditions." />
+				</function>
+				<function name="isConstant" description="Specifies if the diagram variable is constant.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to specify if the variable is constant." />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable to specify is it constant or not." />
+					<returns type="boolean" description="'true' if the variable is constant or 'false' otherwise." />
+				</function>
+				<function name="setConstant" description="Sets constant property of the specified diagram variable equal to the specified value.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to set constant property of the variable." />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable to set constant property of." />
+					<argument name="value" type="boolean" obligatory="true" description="the constant property of the variable to be set." />
+				</function>
+				<function name="getConstants" description="Gets an array of constant variables names.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get constant variables of." />
+					<returns type="String[]" description="an array of constant variables identifiers." />
+				</function>
+				<function name="setConstants" description="Sets specified diagram variables to be constant.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to set variables to be constant." />
+					<argument name="variableNames" type="String[]" obligatory="true" description="an array of identifiers of diagram variables to be constant." />
+				</function>
+				<function name="clearAllConstants" description="Sets constant properties of all diagram variables equal to 'false'.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to clear variables constant properties." />
+				</function>
+				<function name="getVariableNames" description="Gets identifiers of all diagram variables.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get variables names of." />
+					<returns type="String[]" description="an array of variables identifiers." />
+				</function>
+				<function name="getVariables" description="Gets all variables (species and parameters) of the diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get variables of." />
+					<returns type="Variable[]" description="created array of diagram variables." />
+				</function>
+				<function name="getVariable" description="Gets diagram variable by its name.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get variable of." />
+					<argument name="variableName" type="String" obligatory="true" description="the name of the variable." />
+					<returns type="Variable" description="the diagram variable." />
+				</function>
+				<function name="getMath" description="Gets diagram mathematical object (equation, function or event) by name.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to get mathematical object of." />
+					<argument name="mathName" type="String" obligatory="true" description="the name of the mathematical object." />
+					<returns type="EModelRole" description="the diagram math object." />
+				</function>
+				<function name="clone" description="Clones the diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to be cloned." />
+					<argument name="name" type="String" obligatory="true" description="the name for the cloned diagram." />
+					<returns type="Diagram" description="Created clone of the diagram with new name and old origin." />
+				</function>
+				<function name="createAssignment" description="Creates assignment to perform after triggering of a diagram event.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram for which the assignment is created." />
+					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be changed after triggering of the event." />
+					<argument name="math" type="String" obligatory="true" description="the formula for calculation the new value of the variable after the event triggering." />
+					<returns type="Assignment" description="created Assignment on success or null otherwise." />
+				</function>
+				<function name="addEvent" description="Adds an event to the specified diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add an event to." />
+					<argument name="trigger" type="String" obligatory="true" description="boolean expression triggering the event." />
+					<argument name="delay" type="Double" obligatory="true" description="double number representing time of the event delay." />
+					<argument name="actions" type="Assignment[]" obligatory="true" description="array of assignments performed after the event triggering." />
+				</function>
+				<function name="addEquation" description="Adds an equation to the specified diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add equation to." />
+					<argument name="type" type="String" obligatory="true" description="the type of the equation: 'algebraic', 'rate', 'scalar' or 'initial assignment'." />
+					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be calculated by formula." />
+					<argument name="formula" type="String" obligatory="true" description="the formula for calculation of variable value." />
+				</function>
+				<function name="createSpecieReference" description="Creates a participant to produce a chemical reaction in a diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram containing the specie to create the reaction involving it." />
+					<argument name="variable" type="String" obligatory="true" description="the identifier of the specie in the diagram." />
+					<argument name="role" type="String" obligatory="true" description="the role of the specie in the reaction: 'reactant', 'product' or 'modifier'." />
+					<argument name="stoichiometry" type="Double" obligatory="false" description="the stoichiometric coefficient representing the degree to which the specie participates in the reaction, by default is equal to '1.0'." />
+					<returns type="SpecieReference" description="created SpecieReference on success or null otherwise." />
+				</function>
+				<function name="addReaction" description="Adds reaction to the diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add reaction to." />
+					<argument name="formula" type="String" obligatory="true" description="the formula of the reaction kinetic law." />
+					<argument name="faste" type="Boolean" obligatory="false" description="whether the reaction is fast or not, by default is 'false'." />
+					<argument name="specieReferences" type="Double" obligatory="true" description="an array of the reaction participants. For futher details see 'createSpecieReference' function." />
+				</function>
+				<function name="addSpecies" description="Adds new species to the diagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add specie to." />
+					<argument name="dataElementPath" type="String" obligatory="true" description="the path to the data element corresponding to some specie in BioUML repository or the name of the specie." />
+					<argument name="initialValue" type="Double" obligatory="false" description="initial value of the specie." />
+				</function>
+				<function name="split" description="Split diagram into modules.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="Diagram to split." />
+					<argument name="names" type="String[]" obligatory="true" description="Names of selected diagram elements." />
+					<argument name="result" type="String" obligatory="true" description="Result diagram name." />
+					<returns type="Diagram" description="Result module." />
+				</function>
+				<function name="addBuses" description="Add buses to subdiagram.">
+					<argument name="diagram" type="Diagram" obligatory="true" description="Diagram containing subdiagram." />
+				</function>
+				<function name="generateEvents" description="Add events to diagram based on tabular data.">
+					<argument name="table" type="TableDataCollection" obligatory="true" description="Source table." />
+					<argument name="timeName" type="String" obligatory="true" description="Name of column with time." />
+					<argument name="diagram" type="Diagram" obligatory="true" description="Target diagram." />
+				</function>
+			</doc>
+		</hostObject>
+	</extension>
+	
+	<!--extension id="ApplyState" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.standard.state.ApplyState" group="SEDML" name="Apply state to diagram"  description="Apply state to diagram."/> 
+  </extension>
+
+  <extension id="CreateState" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.standard.state.analyses.CreateStateAnalysis" group="SEDML" name="Create state"  description="Create diagram state."/> 
+  </extension>
+
+  <extension id="ChangeDiagram" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.standard.state.analyses.ChangeDiagram" group="SEDML" name="Change diagram"  description="Change diagram."/> 
+  </extension-->
+
+  <extension id="ConvertDiagramAction" point="ru.biosoft.access.dynamicAction">
+	<dynamicAction name="ConvertDiagramAction" class="biouml.model.util.ConvertDiagramAction">
+  		<property name="Name" value="Convert to type" /> 
+  		<property name="ShortDescription" value="Convert diagram to selected type" /> 
+  		<property name="LongDescription" value="Convert diagram to selected type (you will be prompted on new diagram location)" /> 
+  		<property name="SmallIcon" value="resources/convert.gif" /> 
+  </dynamicAction>
+  </extension>
+  
+  <extension point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="Remove selection.2" class="biouml.workbench.diagram.DiagramRemoveElementsAction">
+        <property name="Name" value="Remove selected"/>
+        <property name="ShortDescription" value="Remove selected elements from the diagram"/>
+        <property name="AcceleratorKey" value="VK_DELETE CTRL_MASK"/>
+        <property name="MnemonicKey" vlaue="VK_DELETE"/>
+        <property name="SmallIcon" value="resources/remove.gif"/>
+        <property name="Order" value="1-edit-1"/>
+        <property name="ActionCommandKey" value="cmd-remove-elements"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Save subset" class="biouml.workbench.diagram.action.SaveDiagramSubsetAction">
+        <property name="Name" value="Save selected subset"/>
+        <property name="ShortDescription" value="Save selected subset as new diagram"/>
+        <property name="SmallIcon" value="resources/savesubset.gif"/>
+        <property name="Order" value="1-edit-5"/>
+        <property name="ActionCommandKey" value="cmd-diagram-save-subset"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Add upstream" class="biouml.workbench.graphsearch.actions.AddFromSearchUpAction">
+        <property name="Name" value="Add upstream"/>
+        <property name="ShortDescription" value="Add elements from graph search (upstream one step)"/>
+        <property name="SmallIcon" value="resources/addup.gif"/>
+        <property name="Order" value="9-search-1"/>
+        <property name="ActionCommandKey" value="cmd-add-upstream-elements"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Add downstream" class="biouml.workbench.graphsearch.actions.AddFromSearchDownAction">
+        <property name="Name" value="Add downstream"/>
+        <property name="ShortDescription" value="Add elements from graph search (downstream one step)"/>
+        <property name="SmallIcon" value="resources/adddown.gif"/>
+        <property name="Order" value="9-search-2"/>
+        <property name="ActionCommandKey" value="cmd-add-downstream-elements"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Align up" class="biouml.workbench.diagram.action.AlignUpAction">
+        <property name="Name" value="Align up"/>
+        <property name="ShortDescription" value="Align elements to the upper border"/>
+        <property name="SmallIcon" value="resources/alignup.gif"/>
+        <property name="Order" value="2-align-1"/>
+        <property name="ActionCommandKey" value="cmd-align-up"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Align middle" class="biouml.workbench.diagram.action.AlignCenterYAction">
+        <property name="Name" value="Align middle"/>
+        <property name="ShortDescription" value="Align elements to the center (horizontally)"/>
+        <property name="SmallIcon" value="resources/aligncentery.gif"/>
+        <property name="Order" value="2-align-2"/>
+        <property name="ActionCommandKey" value="cmd-align-centery"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Align down" class="biouml.workbench.diagram.action.AlignDownAction">
+        <property name="Name" value="Align down"/>
+        <property name="ShortDescription" value="Align elements to the lower border"/>
+        <property name="SmallIcon" value="resources/aligndown.gif"/>
+        <property name="Order" value="2-align-3"/>
+        <property name="ActionCommandKey" value="cmd-align-down"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Align left" class="biouml.workbench.diagram.action.AlignLeftAction">
+        <property name="Name" value="Align left"/>
+        <property name="ShortDescription" value="Align elements to the left border"/>
+        <property name="SmallIcon" value="resources/alignleft.gif"/>
+        <property name="Order" value="2-align-4"/>
+        <property name="ActionCommandKey" value="cmd-align-left"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Align center" class="biouml.workbench.diagram.action.AlignCenterXAction">
+        <property name="Name" value="Align center"/>
+        <property name="ShortDescription" value="Align elements to the center (vertically)"/>
+        <property name="SmallIcon" value="resources/aligncenterx.gif"/>
+        <property name="Order" value="2-align-5"/>
+        <property name="ActionCommandKey" value="cmd-align-centerx"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Align right" class="biouml.workbench.diagram.action.AlignRightAction">
+        <property name="Name" value="Align right"/>
+        <property name="ShortDescription" value="Align elements to the right border"/>
+        <property name="SmallIcon" value="resources/alignright.gif"/>
+        <property name="Order" value="2-align-6"/>
+        <property name="ActionCommandKey" value="cmd-align-right"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Distribute horizontally" class="biouml.workbench.diagram.action.DistributeHorizontalAction">
+        <property name="Name" value="Distribute horizontally"/>
+        <property name="ShortDescription" value="Evenly distribute elements horizontally"/>
+        <property name="SmallIcon" value="resources/distributehor.gif"/>
+        <property name="Order" value="2-align-7"/>
+        <property name="ActionCommandKey" value="cmd-distribute-hor"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+     <dynamicAction name="Distribute vertically" class="biouml.workbench.diagram.action.DistributeVerticalAction">
+        <property name="Name" value="Distribute vertically"/>
+        <property name="ShortDescription" value="Evenly distribute elements vertically"/>
+        <property name="SmallIcon" value="resources/distributever.gif"/>
+        <property name="Order" value="2-align-8"/>
+        <property name="ActionCommandKey" value="cmd-distribute-ver"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+  </extension>
+  
+  <extension id="Default perspective" point="biouml.workbench.perspective">
+  	<perspective name="Default" priority="100">
+  		<repository>
+  			<tab title="Databases" path="databases" databases="true"/>
+  			<tab title="Data" path="data"/>
+  			<tab title="Analyses" path="analyses"/>
+  		</repository>
+  		<viewparts>
+  			<allow id="*"/>
+  			<deny id="math.editor"/>
+  			<deny id="table.microarray.main"/>
+  			<deny id="diagram.filter"/>
+  			<deny id="diagram.skin"/>
+  			<allowWithClass id="diagram.expression" class="biouml.plugins.expression.ExpressionFilter"/>
+  		</viewparts>
+  		<importers>
+  		    <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+  		</importers>
+  		<actions>
+	        <deny id="Fix in compartment"/>
+        	<deny id="Adjust reactions nodes"/>
+            <deny id="shift_forward"/>
+            <deny id="shift_backward"/>
+   		</actions>
+  	</perspective>
+  </extension>
+
+  <extension id="Single-molecule sequencing" point="biouml.workbench.perspective">
+  	<perspective name="Single-molecule sequencing" priority="99" intro="intro-single-molecule-sequencing">
+  		<repository>
+  			<tab title="Databases" path="databases" databases="true"/>
+  			<tab title="Data" path="data"/>
+  			<tab title="Analyses" path="analyses"/>
+  		</repository>
+  		<viewparts>
+  			<allow id="*"/>
+  			<deny id="math.editor"/>
+  			<deny id="table.microarray.main"/>
+  			<deny id="diagram.filter"/>
+  			<deny id="diagram.skin"/>
+  			<allowWithClass id="diagram.expression" class="biouml.plugins.expression.ExpressionFilter"/>
+  		</viewparts>
+  		<importers>
+  		    <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+  		</importers>
+  		<actions>
+	        <deny id="Fix in compartment"/>
+        	<deny id="Adjust reactions nodes"/>
+            <deny id="shift_forward"/>
+            <deny id="shift_backward"/>
+   		</actions>
+  	</perspective>
+  </extension>
+
+  <extension id="Microbiome perspective" point="biouml.workbench.perspective">
+  	<perspective name="Microbiome" priority="99" intro="intro-microbiome">
+  		<repository>
+  			<tab title="Databases" path="databases" databases="true"/>
+  			<tab title="Data" path="data"/>
+  			<tab title="Analyses" path="analyses"/>
+  		</repository>
+  		<viewparts>
+  			<allow id="*"/>
+  			<deny id="math.editor"/>
+  			<deny id="table.microarray.main"/>
+  			<deny id="diagram.filter"/>
+  			<deny id="diagram.skin"/>
+  			<allowWithClass id="diagram.expression" class="biouml.plugins.expression.ExpressionFilter"/>
+  		</viewparts>
+  		<importers>
+  		    <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+  		</importers>
+  	</perspective>
+  </extension>
+
+  <extension id="workbench.commonClasses" point="ru.biosoft.access.commonClass">
+  	<class class="biouml.model.Module"/>
+  	<class class="biouml.model.ProtectedModule"/>
+  	<class class="biouml.workbench.module.xml.XmlModule"/>
+  </extension>
+  
+  <extension point="ru.biosoft.access.diffManager">
+	<diffManager class="biouml.standard.state.DiagramDiffManager"/>
+  </extension>
+	
+  <extension point="ru.biosoft.access.beans">
+	<provider class="biouml.model.DiagramFilterBeanProvider" prefix="properties/filter"/>
+	<provider class="biouml.model.DiagramViewOptionsBeanProvider" prefix="properties/diagramViewOptions"/>
+	<provider class="biouml.model.DiagramViewOptionsBeanProvider" prefix="properties/diagramElementViewOptions"/>
+	<provider class="biouml.workbench.graphsearch.GraphSearchBeanProvider" prefix="properties/graphSearch/properties"/>
+	<provider class="biouml.standard.simulation.plot.PlotBeanProvider" prefix="plot"/>
+	<provider class="biouml.model.web.DiagramUnitsBeanProvider" prefix="diagram/units"/>
+	<provider class="biouml.model.web.StatesBeanProvider" prefix="diagram/states"/>
+  </extension>
+  
+  <extension id="Simulation result import" point="ru.biosoft.access.import"> 
+    <export format="BioUML Simulation result" importer="biouml.standard.simulation.SimulationResultImporter" description=""/>
+  </extension>
+  
+	<extension point="ru.biosoft.server.servlets.webTableResolver">
+    	<tableResolver type="plotinfo" class="biouml.plugins.simulation.web.PlotInfoTableResolver"/>
+  	</extension>
+  	
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <dynamicAction name="Open" class="biouml.workbench.OpenDocumentAction" priority="50">
+        <property name="Name" value="Open"/>
+        <property name="ShortDescription" value="Open document"/>
+        <property name="LongDescription" value="Open document"/>
+        <property name="MnemonicKey" value="VK_O"/>
+        <property name="SmallIcon" value="open.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-document"/>
+     </dynamicAction>
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <dynamicAction name="Login" class="biouml.workbench.LoginModuleAction" priority="90">
+        <property name="Name" value="Login"/>
+        <property name="ShortDescription" value="Login to access this collection"/>
+        <property name="LongDescription" value="Login to access this collection"/>
+        <property name="MnemonicKey" value="VK_L"/>
+        <property name="SmallIcon" value="login.gif"/>
+        <property name="ActionCommandKey" value="cmd-login-dc"/>
+     </dynamicAction>
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <dynamicAction name="Export" class="biouml.workbench.ExportElementAction" priority="30">
+        <property name="Name" value="Export element"/>
+        <property name="ShortDescription" value="Export element to the file"/>
+        <property name="LongDescription" value="Export element to the file"/>
+        <property name="MnemonicKey" value="VK_E"/>
+        <property name="SmallIcon" value="exportDiagram.gif"/>
+        <property name="ActionCommandKey" value="cmd-export-diagram"/>
+     </dynamicAction>
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <dynamicAction name="Reinitialize" class="biouml.workbench.ReinitializeAction" priority="100">
+        <property name="Name" value="Retry"/>
+        <property name="ShortDescription" value="Try to reinitialize this collection again"/>
+        <property name="LongDescription" value="Try to reinitialize this collection again"/>
+        <property name="MnemonicKey" value="VK_R"/>
+        <property name="SmallIcon" value="retry.gif"/>
+        <property name="ActionCommandKey" value="cmd-reinitialize-element"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
+  	<class class="biouml.model.Diagram"/>
+  </extension>
+</plugin>

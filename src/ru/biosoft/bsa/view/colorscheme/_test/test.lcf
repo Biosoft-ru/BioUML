@@ -1,0 +1,16 @@
+log4j.rootCategory=INFO,A1
+
+# Appender A1 writes to the file 
+log4j.appender.A1=org.apache.log4j.FileAppender
+log4j.appender.A1.File=test_colorscheme.log
+log4j.appender.A1.Append=false
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-5r %d{dd MM yyyy HH:mm} %-5p %-l %3x- %m%n
+
+#java.util.logging logger settings
+handlers= java.util.logging.FileHandler
+.level= INFO
+java.util.logging.FileHandler.pattern =test_colorscheme.log
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+java.util.logging.FileHandler.append = false
+java.util.logging.SimpleFormatter.format =%1$-5tL %1$td %1$tm %1$tY %1$tH:%1$tM %4$-7s %2$s - %5$s%n

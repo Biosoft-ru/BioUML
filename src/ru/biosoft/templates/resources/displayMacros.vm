@@ -1,0 +1,460 @@
+#macro( nbsp)
+	<td>&nbsp;</td>
+#end
+
+#macro( setMathJax )
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  MathML: {
+    extensions: ["content-mathml.js"]
+  }
+});
+</script>
+<script type="text/javascript"
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=MML_HTMLorMML">
+</script>
+#end
+
+#macro( setMathJaxUpdate )
+<script type="text/javascript">
+	MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+</script>   
+#end
+	
+#macro( setAlign $orderNumber $align)
+	#if($orderNumber.getClass().getName().endsWith("String"))
+		#set($align = "center")
+	#else
+		#set($align = "left")
+	#end
+#end
+
+#macro( updateOrderNumber $orderNumber)
+	<td align = "center" valign = "top">
+		<b>$orderNumber</b>
+	</td>
+	#nbsp()
+#end
+
+#macro( updateField $field $align)
+	#if( !$field || $field.equals(""))
+		<td align = "center" valign = "top">
+			&mdash;
+		</td>
+	#else
+		<td align = $align valign = "top">
+			$field
+		</td>
+	#end
+	#nbsp()
+#end
+
+#macro( updateFormula $formula $align)
+	<td align = $align valign = "top">
+		$formula
+	</td>
+	#nbsp()
+#end
+
+#macro( updateBooleanEntity $booleanEntity)
+	<td align = "center" valign = "top">
+		$booleanEntity
+	</td>
+#end
+
+#macro( updateArrayField $array)
+	#if(!$array.getClass().getName().endsWith("String"))
+		#set($size = $array.size() - 1)
+		#if( $size > -1)
+			<td align = "left" valign = "top">
+				#foreach($boo in [0..$size])
+					#if( $array.get($boo) && !$array.get($boo).equals(""))
+						<nobr>$array.get($boo)</nobr><br>
+					#else
+						&mdash;<br>
+					#end
+				#end
+			</td>
+		#else
+			<td align = "center" valign = "top">
+				&mdash;<br>
+			</td>
+		#end
+	#else
+		<td align = "center" valign = "top">
+			$array
+		</td>
+	#end
+	#nbsp()
+#end
+
+#macro( updateExpression $expressions)
+	<td align = "left" valign = "top">
+		#if(!$expressions.getClass().getName().endsWith("String"))
+			#set($size = $expressions.size() - 1)
+			#foreach($boo in [0..$size])
+				#if($boo > 2)
+					#if($boo < $size)
+						<nobr>$expressions.get($boo)</nobr>,<br>
+					#else
+						<nobr>$expressions.get($size)</nobr>
+					#end
+				#end
+			#end
+		#else
+			$expressions
+		#end
+	</td>
+#end
+
+#macro( updateEventTable $orderNumber $title $trigger $delay $expressions $comment)
+	#if($expressions)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#updateField($title, $align)
+			#updateField($trigger, $align)
+			#updateField($delay, $align)
+			#updateExpression($expressions)
+			#updateField($comment, $align)
+		</tr>
+	#end
+#end
+
+#macro( updateParametersForReactionTemplate $parameters)
+	<td align="left" valign = "top">
+		#if(!$parameters.getClass().getName().endsWith("String"))
+			#set($size = $parameters.size() - 1)
+			#foreach($foo in [0..$size])
+				#if($foo < $size)
+					<nobr>$parameters.get($foo),</nobr>&nbsp;
+				#else
+					#if($size > -1)
+						<nobr>$parameters.get($size)</nobr>
+					#end
+				#end
+			#end
+		#else
+			$parameters
+		#end
+	</td>
+#end
+
+#macro( updateCompartmentTable $orderNumber $ID $name $initialValue $units $comment $databases $DBRef)
+	#if($ID && $name && $initialValue)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateField($ID, $align)
+			#updateField($name, $align)
+			#updateField($initialValue, $align)
+			#updateField($units, $align)
+			#updateField($comment, $align)
+			#updateArrayField($databases)
+			#updateArrayField($DBRef)
+		</tr>
+	#end
+#end
+
+#macro( updateSpeciesTable $orderNumber $ID $name $compartment $initialValue $units $comment $bounds $databases $DBRef)
+	#if($ID && $name && $compartment && $initialValue)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#updateField($ID, $align)
+			#updateField($name, $align)
+			#updateField($compartment, $align)
+			#updateField($initialValue, $align)
+			#updateField($units, $align)
+			#updateBooleanEntity($bounds)
+			#updateField($comment, $align)
+			#updateArrayField($databases)
+			#updateArrayField($DBRef)
+		</tr>
+	#end
+#end
+
+#macro( updateReactionTableForOverview $orderNumber $title $reaction $law $comment $databases $DBRef)
+	#if($reaction && $law)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateField($title, $align)
+			#updateFormula($reaction, $align)
+			#updateFormula($law, $align)
+			#updateField($comment, $align)
+			#updateArrayField($databases)
+			#updateArrayField($DBRef)
+		</tr>
+	#end
+#end
+
+#macro( updateReferencesTable $orderNumber $ID $title $databases $relations $DBRef)
+	#if($ID && $DBRef)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateField($ID, $align)
+			#updateField($title, $align)
+			#updateArrayField($databases)
+			#updateArrayField($relations)
+			#updateArrayField($DBRef)
+		</tr>
+	#end
+#end
+
+#macro( updateLiteratureTable $orderNumber $ID $title $DBRef)
+	#if($ID && $DBRef)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateField($ID, $align)
+			#updateField($title, $align)
+			#updateArrayField($DBRef)
+		</tr>
+	#end
+#end
+
+#macro( updateReactionTable $orderNumber $title $reaction $law $parameters $comment $databases $DBRef)
+	#if($reaction && $law && $parameters)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateField($title, $align)
+			#updateFormula($reaction, $align)
+			#updateFormula($law, $align)
+			#updateParametersForReactionTemplate($parameters)
+			#updateField($comment, $align)
+			#updateArrayField($databases)
+			#updateArrayField($DBRef)
+		</tr>
+	#end
+#end
+
+#macro( updateParameterTable $orderNumber $name $initialValue $units $isConstant $comment)
+	#if($name && $initialValue)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateField($name, $align)
+			#updateField($initialValue, $align)
+			#updateField($units, $align)
+			##updateBooleanEntity($isConstant)
+			#updateField($comment, $align)
+		</tr>
+	#end
+#end
+
+#macro( updateFunctionTable $orderNumber $title $formula $comment)
+	#if($formula)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#updateField($title, $align)
+			#updateFormula($formula, $align)
+			#updateField($comment, $align)
+		</tr>
+	#end
+#end
+
+#macro( updateConstraintTable $orderNumber $title $formula $message $comment)
+	#if($formula)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#updateField($title, $align)
+			#updateFormula($formula, $align)
+			#updateField($message, $align)
+			#updateField($comment, $align)
+		</tr>
+	#end
+#end
+
+#macro( updateEquationTable $orderNumber $formula $comment)
+	#if($formula)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber($orderNumber)
+			#updateFormula($formula, $align)
+			#updateField($comment, $align)
+		</tr>
+	#end
+#end
+
+#macro( updateODEEquations $orderNumber $formula )
+	#if($firstPart && $secondPart)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			##updateField($firstPart, $align)
+			##<td align="center" valign = "top">
+			##	=
+			##</td>
+			##nbsp()
+			#updateFormula($formula, $align)
+		</tr>
+	#end
+#end
+
+#macro (showReferences $de)
+	#if ($de.getPublications()!=$null)
+		<b>Publications</b>: <br>
+		<ul>
+		#foreach ($ref in $de.getPublications())
+			<li>
+			#if ($ref.getPubMedId()!=$null)
+			<b>Pubmed ID</b>: <a target='_blank' href='http://www.ncbi.nlm.nih.gov/pubmed/$ref.getPubMedId()'>$ref.getPubMedId()</a><br>
+			#end
+			#if ($ref.getAuthors().length()!=0)
+			<b>Publication authors</b>: $ref.getAuthors()<br> 
+			#end
+			<b>Publication title</b>: $ref.getTitle()<br>
+			</li>
+		#end
+		</ul><br>
+	#end
+#end
+
+#macro( strField $name $label )
+	#if($name && !$name.equals(""))
+		#if($name.Class.Name.equals("java.lang.String"))
+			<b>$label</b>: $name.replaceAll("\n", "<br>")<br>
+		#else
+			<b>$label</b>: $name<br>
+		#end
+	#end
+#end
+
+#macro( strFieldJustified $name $label $formattedDescr)
+	#if($name && !$name.equals(""))
+		#if($name.Class.Name.equals("java.lang.String") && !$formattedDescr)
+			<div align="justify"><b>$label</b>: $name.replaceAll("\n", "<br>")</div>
+		#else
+			<div align="justify"><b>$label</b>: $name</div>
+		#end
+	#end
+#end
+
+#macro( boolField $name $label )
+	#if($name == "true" || $name == "false")<b>$label</b>: $name<br>#end
+#end
+
+#macro( strArrayField $name $label )
+	#if($name && $name.size() > 0)
+	<b>$label</b>:
+		<ul>
+			#foreach( $str in $name )
+				#if(!$str.nameIterator())
+           			<li>$str</li>
+       			#else
+           			#displayAttributes($str)
+       			#end
+       		#end
+		</ul>
+	#end
+#end
+
+#macro( displayAttributes $attributes)
+	<ul>
+		#set( $iterator = $attributes.nameIterator() )
+		#foreach ($foo in [1..$attributes.size()])
+    		#if ($iterator.hasNext())
+        		#set( $pName = $iterator.next() )
+        		#set( $property = $attributes.getProperty($pName) )
+        		#if ( $property )
+        			#if(!$property.getDescriptor().getValue("transientProperty")&&!$property.getDescriptor().getValue("node-hidden")&&!$property.getDescriptor().isHidden())
+		        		#if ($attributes.getValue($pName))
+			        		#set( $pValue = $attributes.getValue($pName))
+		        			#if( $pValue.getClass().getCanonicalName().endsWith("[]"))
+		        	    		<li>#strArrayField($pValue, $pName)</li>
+		        	   		#else
+		        	   			#set( $strValue = $utils.formatHtml($pValue))
+		        	   			#if($strValue)
+		        	    			<li><b>$pName</b>: $pValue</li>
+		        	    		#end
+		        	   		#end
+		        		#end
+		        	#end
+        		#end
+        	#end
+        #end
+    </ul>
+#end
+
+#macro( showDate )
+	#set($desc = $de.getOrigin().getDescriptor($de.getName()))
+	#if($desc)
+		#set($created = $desc.getValue("createdDate"))
+		#if($created)
+			#strField($utils.formatDate($created), "Created")
+		#end
+		#set($modified = $desc.getValue("modifiedDate"))
+		#if($modified)
+			#strField($utils.formatDate($modified), "Modified")
+		#end
+	#end
+#end
+
+#macro( updateUnit $orderNumber $name $expression, $title, $comment)
+	#if($name && $expression)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#updateField($name, $align)
+			#nbsp()
+			#updateFormula($expression, $align)
+			#nbsp()
+			#updateField($title, $align)
+			#updateField($comment, $align)
+		</tr>
+	#end
+#end
+#macro( displayModule $orderNumber $name $type $link $ports)
+	#if($name)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#if($link != "")
+				<td align = $align valign = "top">
+					<a href="${link}">${name}</a>
+				</td>
+			#nbsp()
+			#else
+				#updateField($name, $align)
+			#end
+			#updateField($type, $align)
+			#nbsp()
+			#updateField($ports, $align)
+		</tr>
+	#end
+#end
+
+#macro( displaySimpleTableRow $orderNumber $name $fields)
+	#if($name)
+		#set( $align = "")
+		#setAlign($orderNumber, $align)
+		<tr>
+			#updateOrderNumber( $orderNumber)
+			#updateField($name, $align)
+			#foreach($f in $fields)
+				#updateField($f, $align)
+			#end
+		</tr>
+	#end
+#end
+

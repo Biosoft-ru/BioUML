@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xmlns="http://java.sun.com/xml/ns/javaee" 
+         xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+         id="WebApp_ID" version="2.5">
+
+    <display-name>BioUMLweb</display-name>
+
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <filter>
+        <filter-name>CacheControlFilter</filter-name>
+        <filter-class>ru.biosoft.server.tomcat.CacheControlFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CacheControlFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>DataElementServlet</servlet-name>
+        <servlet-class>ru.biosoft.server.tomcat.DataElementServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DataElementServlet</servlet-name>
+        <url-pattern>/de/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DataElementServlet</servlet-name>
+        <url-pattern>/anonde/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>

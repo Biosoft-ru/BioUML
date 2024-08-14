@@ -1,0 +1,15 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $name <br>
+	#end
+#end
+
+<html>
+	<body>
+		<h1>BAM Track $de.getName()</h1>
+		#strField($de.getInfo().getProperty("SequencesCollection"), "Sequence collection")
+		#strField($de.getAlignedCount(), "Aligned reads")
+		#strField($de.getUnalignedCount(), "Not aligned reads")
+		#strField($utils.formatSize( $de.getBAMFile().length() ), "File size")
+	</body>
+</html>

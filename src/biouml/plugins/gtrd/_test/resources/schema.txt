@@ -1,0 +1,40 @@
+DROP TABLE IF EXISTS `hub`;
+CREATE TABLE `hub` (
+  `input` varchar(100) default NULL,
+  `input_type` varchar(30) default NULL,
+  `output` varchar(100) default NULL,
+  `output_type` varchar(30) default NULL,
+  `specie` varchar(50) default NULL,
+  KEY `input` (`input`,`specie`,`output_type`),
+  KEY `output` (`output`,`specie`,`input_type`)
+) ENGINE=MyISAM;
+
+DROP TABLE IF EXISTS `hub_properties`;
+CREATE TABLE `hub_properties` (
+  `name` varchar(20) NOT NULL default '',
+  `title` varchar(100) default NULL,
+  PRIMARY KEY  (`name`)
+) ENGINE=MyISAM;
+
+DROP TABLE IF EXISTS `classification`;
+CREATE TABLE `classification` (
+  `name` varchar(20) default NULL,
+  `parent` varchar(20) default NULL,
+  `title` varchar(100) default NULL,
+  `description` text,
+  `level` int(1) default NULL,
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM;
+
+DROP TABLE IF EXISTS `track_info_chip`;
+CREATE TABLE `track_info_chip` (
+  `track_id` text,
+  `track_table_id` text,
+  `tf_class_id` varchar(20) default NULL,
+  `specie` varchar(20) default NULL,
+  `antibody` text,
+  `cell_line` text,
+  `treatment` text,
+  KEY `track_id` (`track_id`(30)),
+  KEY `tf_class_id` (`tf_class_id`)
+) ENGINE=MyISAM;

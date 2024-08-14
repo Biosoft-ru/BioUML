@@ -1,0 +1,998 @@
+/***************************************************************
+                   OPTIONS
+***************************************************************/
+options 
+{
+    MULTI = true;
+    NODE_DEFAULT_VOID = true;
+    STATIC = false;
+    NODE_PREFIX = "BNG";
+    DEBUG_PARSER = false;
+    TRACK_TOKENS=true;
+}
+
+/***************************************************************
+                   PARSER BEGIN
+***************************************************************/
+PARSER_BEGIN(BionetgenParser)
+
+package biouml.plugins.bionetgen.bnglparser;
+
+import java.io.Reader;
+import java.io.StringReader;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import biouml.plugins.bionetgen.diagram.BionetgenConstants;
+import biouml.standard.type.SpecieReference;
+
+public class BionetgenParser
+{
+    protected static final String endl = "\n";//System.getProperty("line.separator");
+
+    protected static final DecimalFormat REACTION_NAME_FORMAT = new DecimalFormat("j00");
+    protected int reactionNumber = 1;
+
+    /** Default constructor. */
+    public BionetgenParser()
+    {
+        this(new StringReader("0"));
+    }
+
+    public BNGStart parse(String modelName, Reader reader)
+    {
+        BNGStart astStart = null;
+        try
+        {
+            reInitParser();
+            ReInit(reader);
+            astStart = Start();
+            astStart.setName(modelName);
+            BNGModel model = astStart.getModel();
+            if(!model.checkMoleculesTypes())
+                warning("Molecule type mismatch in " + model.getErrorMessage());
+        }
+        catch(ParseException e)
+        {
+            fatalError(e.getMessage());
+        }
+        catch(Throwable t)
+        {
+            error(t.getMessage());
+        }
+        return astStart;
+    }
+
+    public BNGExpression parseFormula(String formula)
+    {
+        BNGExpression expression = null;
+        try
+        {
+            reInitParser();
+            Reader reader = new StringReader(formula);
+            ReInit(reader);
+            expression = readSingleExpression();
+        }
+        catch(ParseException e)
+        {
+            fatalError(e.getMessage());
+        }
+        catch(Throwable t)
+        {
+            error(t.getMessage());
+        }
+        return expression;
+    }
+
+    public BNGSpecies parseSpecies(String graph)
+    {
+        BNGSpecies species = null;
+        try
+        {
+            reInitParser();
+            Reader reader = new StringReader(graph);
+            ReInit(reader);
+            species = readSingleBNGSpecies();
+        }
+        catch(ParseException e)
+        {
+            fatalError(e.getMessage());
+        }
+        catch(Throwable t)
+        {
+            error(t.getMessage());
+        }
+        return species;
+    }
+
+    private void reInitParser()
+    {
+        messages = new ArrayList<String>();
+        status = 0;
+        reactionNumber = 1;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+    // Error processing issues
+    //
+    /** The expression was parsed successfully without any errors or warnings. */
+    public static final int STATUS_OK           = 0;
+
+    /** There were some warnings during expression parser. */
+    public static final int STATUS_WARNING      = 1;
+
+    /** There were some errors during expression parser. */
+    public static final int STATUS_ERROR        = 2;
+
+    /** Some fatal errors have occurred during the parser. */
+    public static final int STATUS_FATAL_ERROR  = 4;
+
+    protected int status;
+    public int getStatus()
+    {
+        return status;
+    }
+
+    protected List<String> messages = new ArrayList<String>();
+    public List<String> getMessages()
+    {
+        return messages;
+    }
+
+    public void warning(String warningStr)
+    {
+        messages.add("Warning: " + warningStr + ".");
+        status |= STATUS_WARNING;
+    }
+
+    public void error(String errorStr)
+    {
+        messages.add("Error: " + errorStr + ".");
+        status |= STATUS_ERROR;
+    }
+
+    public void fatalError(String errorStr)
+    {
+        messages.add("Syntax error: " + errorStr + ".");
+        status |= STATUS_FATAL_ERROR;
+    }
+}
+
+PARSER_END(BionetgenParser)
+
+/***************************************************************
+                       SKIP & TOKENS
+***************************************************************/
+SPECIAL_TOKEN : /* instead of SKIP */
+{
+  " " 
+| "\t"
+| <"#" ~[" ","\n","\r"] (~["\n","\r"])*>
+| <"\\" ("\n"|"\r"|"\r\n")>
+}
+
+TOKEN :
+{
+  <EOL : ("\n"|"\r"|"\r\n") >
+|
+  < COMMENT : "# " (~["\n","\r"])* >
+}
+
+TOKEN : /* RESERVED WORDS */
+{
+    <PARAMETERS  : "parameters">
+|   <SEED_SPECIES     : ("seed species"|"species")>
+|   <REACTIONS   : "reaction rules">
+|   <OBSERVABLES : "observables">
+|   <MOLECULE_TYPES : "molecule types">
+|   <MODEL : "model">
+|   <BEGIN : "begin">
+|   <GENERATE : "generate_network" >
+|   <SIMULATE : "simulate" >
+|   <SIMULATE_ODE : <SIMULATE>"_ode" >
+|   <SIMULATE_SSA : <SIMULATE>"_ssa" >
+|   <END   : "end" >
+|   <MM : "MM" >
+|   <SAT : "Sat" >
+|   <SPECIES       : "Species" >
+|   <MOLECULES     : "Molecules" >
+|   <SAMPLE_TIMES  : "sample_times" >
+|   <GENERATION_PARAM :("max_agg"|"max_iter"|"max_stoich"|"overwrite"|"print_iter"|"prefix"|"suffix") >
+|   <ODE_PARAM : ("atol"|"rtol"|"steady_state"|"sparse") >
+|   <SSA_PARAM : ("t_end"|"t_start"|"n_steps"|"n_output_steps"|"netfile") >
+|   <COMMA : ",">
+|   <BUILT_IN_CONST : "_pi" | "pi" | "_e" >
+|   <UNARY_FUNCTION : "exp" | "abs" | "log" | "sqrt" | "ln" | "cos" | "sin" | "tan" | "cosh" | "sinh" | 
+    "tanh" | "floor" | "asin" | "arcsin" | "acos" | "arccos" | "atan" | "arctan" | "asinh" | "arcsinh" | "acosh" | "arccosh" | "atanh" | "arctanh" | "log2" | "log10" | "rint" | "sign" >
+|   <BINARY_FUNCTION : "root" >
+|   <MULTIARG_FUNCTION : "min" | "max" | "avg" | "sum" >
+
+}
+
+TOKEN : /* LITERALS */
+{
+    < INTEGER_LITERAL:
+            <DECIMAL_LITERAL>
+    >
+|
+    < #DECIMAL_LITERAL: ["0"-"9"] (["0"-"9"])* >
+|
+    < FLOATING_POINT_LITERAL:
+            (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)?
+            | "." (["0"-"9"])+ (<EXPONENT>)?
+            | (["0"-"9"])+ <EXPONENT>
+    >
+|
+    < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+    < STRING_LITERAL:
+            "\""
+            ( (~["\"","\\","\n","\r"])
+            | ("\\" ["n","t","b","r","f","\\","'","\""] )
+            )*
+            "\""
+    >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  <ADDITION: (<INCLUDE>|<EXCLUDE>) > 
+|  < #INCLUDE : <INC_REACTANT>|<INC_PRODUCT> >
+|  < #EXCLUDE : <EXC_REACTANT>|<EXC_PRODUCT> >
+|  < #INC_REACTANT : "include_reactants" >
+|  < #INC_PRODUCT : "include_products" >
+|  < #EXC_REACTANT : "exclude_reactants" >
+|  < #EXC_PRODUCT : "exclude_products" >
+|  < LABEL : <IDENTIFIER> ":" >
+|
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < SITE: (<STATE>|"!"((<DIGIT>|<LETTER>)+|"+"|"?"))+ >
+|
+  < #STATE : ["%","~","@"](<LETTER>|<DIGIT>)+ (["%","~","@"](<LETTER>|<DIGIT>)+)* >
+|
+  < #LETTER: ["_", "a"-"z","A"-"Z"] >
+|
+  < #DIGIT: ["0"-"9"] >
+}
+
+/***************************************************************
+                   GRAMMAR START
+***************************************************************/
+BNGStart Start() #Start :
+{}
+{
+    (description(jjtThis))
+
+    ( ( <EOL> #EOL | comment() )* )
+
+    (model())
+
+    (actions(jjtThis))
+
+    <EOF>
+    {
+        return jjtThis;
+    }
+}
+
+void begin() #SimpleElement:
+{}
+{
+    <BEGIN> {jjtThis.setName(token.image);}
+}
+
+void end() #SimpleElement:
+{}
+{
+    <END> {jjtThis.setName(token.image);}
+}
+
+BNGExpression readSingleExpression() :
+{BNGExpression expr;}
+{
+    expr = expression() 
+    <EOF>
+    {return expr;}
+}
+
+BNGSpecies readSingleBNGSpecies() :
+{BNGSpecies species;}
+{
+    species = readBNGSpecies()
+    <EOF>
+    {return species;}
+}
+
+/***************************************************************
+                   BIONETGEN SPECIES
+***************************************************************/
+BNGSpecies readBNGSpecies() #Species:
+{
+    StringBuilder sb = new StringBuilder();
+    BNGSpecies bngs = jjtThis;
+}
+{
+(
+    (multiStateSpecie(sb))
+    ( ( ( ( "." {sb.append("."); jjtThis.setName(".");} ) #SimpleElement )
+    multiStateSpecie(sb) )* )
+)
+{bngs.setName(sb.toString()); return bngs;}
+}
+
+void multiStateSpecie(StringBuilder sb) :
+{}
+{
+    ((<IDENTIFIER> {sb.append(token.image); jjtThis.setName(token.image);}) #SimpleElement)
+    ( (
+    (state(sb))?
+    (lBracket() {sb.append("(");})
+    ((moleculeComponent(sb))
+    ((comma() {sb.append(","); } )
+    (moleculeComponent(sb))
+    )* )?
+    (rBraket() {sb.append(")"); })
+    (state(sb))?
+    )? )
+
+}
+
+void moleculeComponent(StringBuilder sb) :
+{}
+{
+    ((<IDENTIFIER> {sb.append(token.image); jjtThis.setName(token.image);}) #SimpleElement)
+    ((<SITE> {sb.append(token.image); jjtThis.setName(token.image);}) #SimpleElement)?
+}
+
+void state(StringBuilder sb) #SimpleElement:
+{}
+{
+    (<SITE> {sb.append(token.image); jjtThis.setName(token.image);}) 
+}
+
+/***************************************************************
+                   COMMENT
+***************************************************************/
+void comment() #Comment:
+{}
+{
+    <COMMENT> {jjtThis.setName(token.image);} (<EOL> #EOL)
+}
+
+/***************************************************************
+                   DESCRIPTION
+***************************************************************/
+void description(BNGStart start) #Description:
+{
+    StringBuffer buf = new StringBuffer();
+    boolean exists = false;
+}
+{
+    (
+        (<COMMENT> {jjtThis.setName(token.image);}) #Comment
+        {
+            if( token.image != null && token.image.length() > 1 )
+            {
+                if( buf.length() > 1 )
+                    buf.append(endl);
+                buf.append(token.image.substring(2));
+            }
+            exists = true;
+        }
+        <EOL> #EOL
+    )*
+    {
+        jjtThis.setName(buf.toString());
+        if(exists)
+            start.addChild(jjtThis, 0);
+    }
+}
+
+
+/***************************************************************
+                   MODEL
+***************************************************************/
+void model() #Model:
+{
+    int[] usage = new int[5];
+}
+{
+    begin()
+    ((<MODEL> {jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+
+    ( (
+    comment()
+    |
+    LOOKAHEAD(2)
+    {if(usage[0]!=0) error("Multiple parameters block");}
+    parameters()
+    {usage[0]=1;}
+    |
+    LOOKAHEAD(2)
+    {if(usage[1]!=0) error("Multiple molecule types block");}
+    moleculeTypes()
+    {usage[1]=1;}
+    |
+    LOOKAHEAD(2)
+    {if(usage[2]!=0) error("Multiple seed species block");}
+    species()
+    {usage[2]=1;}
+    |
+    LOOKAHEAD(2)
+    {if(usage[3]!=0) error("Multiple observables block");}
+    observables()
+    {usage[3]=1;}
+    |
+    LOOKAHEAD(2)
+    {if(usage[4]!=0) error("Multiple reactions block");}
+    reactions()
+    {usage[4]=1;}
+    |
+    <EOL> #EOL
+    )* )
+
+    end()
+    ((<MODEL> {jjtThis.setName(token.image);}) #SimpleElement)
+    ((<EOL> #EOL)?)
+}
+
+/***************************************************************
+                   PARAMETERS
+
+@pending - validate parameter name
+@pending - recovery after error
+
+***************************************************************/
+void parameters() #List:
+{ BNGList list = jjtThis; }
+{
+    (begin())
+    ((<PARAMETERS> {list.setType(BNGList.PARAMETER); jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+    ( ( LOOKAHEAD(2) parameter() | comment() | <EOL> #EOL )* )
+    (end())
+    ((<PARAMETERS> {jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+}
+
+void parameter() #Parameter:
+{ BNGParameter parameter = jjtThis;}
+{
+    (label())?
+    ((<IDENTIFIER> {parameter.setName(token.image); jjtThis.setName(token.image);}) #SimpleElement)
+    ( ( ("=" {jjtThis.setName(token.image);}) #SimpleElement )? )
+    expression()
+    (comment() | <EOL> #EOL)
+}
+
+/***************************************************************
+                   MOLECULE TYPES
+ ***************************************************************/
+void moleculeTypes() #List:
+{ BNGList list = jjtThis; }
+{
+    (begin())
+    ((<MOLECULE_TYPES> {list.setType(BNGList.MOLECULETYPE); jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+    ( <EOL> #EOL | moleculeType() | comment() )*
+    (end())
+    ((<MOLECULE_TYPES> {jjtThis.setName(token.image);}) #SimpleElement)
+    <EOL> #EOL
+}
+
+void moleculeType() #MoleculeType :
+{}
+{
+    (label())?
+    (readBNGSpecies())
+    (comment() | <EOL> #EOL)
+}
+
+/***************************************************************
+                   SPECIES
+
+@pending validate species name
+@pending special class/type for Bionetgen species and molecules
+
+***************************************************************/
+void species() #List:
+{ BNGList list = jjtThis; String blockName; }
+{
+    (begin())
+    ((<SEED_SPECIES> {list.setType(BNGList.SPECIES);  jjtThis.setName(token.image); blockName=token.image;}) #SimpleElement)
+    (<EOL> #EOL)
+    ( <EOL> #EOL | LOOKAHEAD(2) specie() | comment() )*
+    (end())
+    ((<SEED_SPECIES> 
+    {jjtThis.setName(token.image);
+    if(!blockName.equals(token.image))
+    error("Doesn't match seed species block names in the beginning and in the end");
+    }) #SimpleElement)
+    (<EOL> #EOL)
+}
+
+void specie() #SeedSpecie:
+{BNGSeedSpecie seedSpecie = jjtThis;}
+{
+    (label())?
+    ( ( ( "$" {jjtThis.setName(token.image); seedSpecie.setConstant(true);} ) #SimpleElement )? )
+    (readBNGSpecies())
+    (expression())
+    (comment() | <EOL> #EOL)
+}
+
+/***************************************************************
+                   OBSERVABLES
+***************************************************************/
+void observables() #List:
+{ BNGList list = jjtThis; }
+{
+    (begin())
+    ((<OBSERVABLES> {list.setType(BNGList.OBSERVABLES); jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+    ( <EOL> #EOL | LOOKAHEAD(2)observable() | comment() )*
+    (end())
+    ((<OBSERVABLES> {jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+}
+
+void observable() #Observable:
+{ BNGObservable observable = jjtThis;  }
+{
+    (label())?
+    ((
+    ( <SPECIES> {observable.setMatchOnce(true);} | <MOLECULES> {observable.setMatchOnce(false);} ) 
+    {jjtThis.setName(token.image);}) #SimpleElement)
+    ((<IDENTIFIER> {observable.setName(token.image); jjtThis.setName(token.image);}) #SimpleElement)
+    (contents())
+    (comment() | <EOL> #EOL)
+}
+
+void contents() #List:
+{}
+{
+    {jjtThis.setType(BNGList.OBSERVABLECONTENT);}
+    (
+        (readBNGSpecies())
+        (comma())?
+    )+
+}
+
+/***************************************************************
+                   REACTIONS
+
+@pending reaction subclass
+@pending stoichiometry
+@pending equation
+
+***************************************************************/
+void reactions() #List:
+{ BNGList list = jjtThis; }
+{
+    (begin())
+    ((<REACTIONS> {list.setType(BNGList.REACTIONS); jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+    ( <EOL> #EOL | LOOKAHEAD(2) reaction() | comment() )*
+    (end())
+    ((<REACTIONS> {jjtThis.setName(token.image);}) #SimpleElement)
+    (<EOL> #EOL)
+}
+
+void reaction() #Reaction:
+{ BNGReaction reaction = jjtThis;}
+{
+    (label())?
+    {reaction.setName(REACTION_NAME_FORMAT.format(reactionNumber++));}
+    reactionComponents(SpecieReference.REACTANT)
+    ( ( ( "->" {reaction.setReversible(false);} | "<->" {reaction.setReversible(true);} ) {jjtThis.setName(token.image);}) #SimpleElement )
+    reactionComponents(SpecieReference.PRODUCT)
+    rateLaw()
+    ( ( reactionApp() )? )
+    (comment() | <EOL> #EOL)
+}
+
+void reactionComponents(String type) #List:
+{}
+{
+    {jjtThis.setName(type); jjtThis.setType(BNGList.REACTIONCOMPONENT);}
+    readBNGSpecies()
+    ( ( plus() readBNGSpecies() )* )
+}
+
+void rateLaw() #RateLaw:
+{}
+{
+    ( mmLaw(jjtThis) | saturationLaw(jjtThis) | defaultLaw(jjtThis) )
+}
+
+void mmLaw(BNGRateLaw rateLaw) :
+{}
+{
+    ((<MM> {rateLaw.setType(BionetgenConstants.MM); jjtThis.setName(token.image);}) #SimpleElement)
+    lBracket()
+    expression()
+    comma()
+    expression()
+    rBraket()
+}
+
+void saturationLaw(BNGRateLaw rateLaw) :
+{}
+{
+    ((<SAT> {rateLaw.setType(BionetgenConstants.SATURATION); jjtThis.setName(token.image);}) #SimpleElement)
+    lBracket()
+    expression()
+    comma()
+    expression()
+    rBraket()
+}
+
+void defaultLaw(BNGRateLaw rateLaw) :
+{}
+{
+    {rateLaw.setType(BionetgenConstants.DEFAULT);}
+    expression()
+    ( ( comma()  expression() )? )
+}
+
+void reactionApp() #List:
+{}
+{
+    {jjtThis.setType(BNGList.ADDITIONCOMPONENT);}
+    (
+    addition()
+    )+
+}
+
+void addition() #Addition:
+{}
+{
+    <ADDITION> {jjtThis.setName(token.image);}
+    lBracket()
+    ((<INTEGER_LITERAL>  {jjtThis.setName(token.image);})  #SimpleElement)
+    ((comma() readBNGSpecies() )+ )
+    rBraket()
+}
+
+/***************************************************************
+                   ACTIONS
+***************************************************************/
+void actions(BNGStart start) #List :
+{
+    boolean exists = false;
+}
+{
+    {jjtThis.setType(BNGList.ACTION);}
+    ( (generateNetwork() | simulate() | unsupportedAction() | <EOL> #EOL | comment()) {exists = true;} )*
+    {
+        if(exists)
+            start.addAsLast(jjtThis);
+    }
+}
+
+void unsupportedAction() #Action :
+{}
+{
+    <IDENTIFIER> {jjtThis.setName(token.image);}
+    lBracket() ( ( lBrace() )? )
+    ( ( ( unsupportedActionParam() |simulationParameter() | constant() )
+    (comma()   ( unsupportedActionParam() |simulationParameter() | constant()) )* )? )
+    ( ( rBrace() )? ) rBraket()
+}
+
+void unsupportedActionParam() #SimpleElement:
+{}
+{
+    <STRING_LITERAL> {jjtThis.setName(token.image);}
+}
+
+void generateNetwork() #Action :
+{}
+{
+    <GENERATE> {jjtThis.setName(token.image);}
+    lBracket() lBrace()
+    ( ( generateParameter() ( comma() generateParameter() )*  )? )
+    rBrace() rBraket()
+}
+
+void generateParameter() #ActionParameter :
+{}
+{
+    <GENERATION_PARAM> {jjtThis.setName(token.image);}
+    hashArrow()
+    value()
+}
+
+void simulate() #Action :
+{}
+{
+    simulateODE(jjtThis)
+    |
+    simulateSSA(jjtThis)
+    |
+    (<SIMULATE> {jjtThis.setName(token.image);}
+    lBracket() lBrace()
+    ( ( simulationParameter()
+    ( comma()   simulationParameter() )* )? )
+    rBrace() rBraket()
+    )
+}
+
+void simulateODE(BNGAction action) :
+{}
+{
+    <SIMULATE_ODE> {action.setName(token.image);}
+    lBracket() lBrace()
+    ( ( (simulateODEParameter()|sampleTimes())
+    ( comma()  (simulateODEParameter()|sampleTimes()) )* )?)
+    rBrace() rBraket()
+}
+
+void simulateSSA(BNGAction action) :
+{}
+{
+    <SIMULATE_SSA> {action.setName(token.image);}
+    lBracket() lBrace()
+    ( ( (simulateSSAParameter()|sampleTimes())
+    ( comma() (simulateSSAParameter()|sampleTimes()) )* )? )
+    rBrace() rBraket()
+}
+
+void simulateODEParameter() #ActionParameter:
+{}
+{
+    ((<ODE_PARAM>|<SSA_PARAM>) {jjtThis.setName(token.image);})
+    hashArrow()
+    value()
+}
+
+void simulateSSAParameter() #ActionParameter :
+{}
+{
+    <SSA_PARAM> {jjtThis.setName(token.image);}
+    hashArrow()
+    value()
+}
+
+void simulationParameter() :
+{}
+{
+    simulateODEParameter()
+    |
+    generateParameter()
+    |
+    sampleTimes()
+    |
+    hashParameter()
+}
+
+void value() :
+{}
+{
+    (hash() | constant())
+}
+
+void hash() #Hash:
+{}
+{
+    lBrace()
+    hashParameter()
+    (((comma()) hashParameter())*)
+    rBrace()
+}
+
+void hashParameter() #ActionParameter :
+{}
+{
+    <IDENTIFIER> {jjtThis.setName(token.image);}
+    hashArrow()
+    constant()
+}
+
+void sampleTimes() #ActionParameter:
+{}
+{
+    <SAMPLE_TIMES> {jjtThis.setName(token.image);}
+    lArrayBr()
+    constant()
+    ((
+    comma()
+    constant()
+    )+)
+    rArrayBr()
+}
+
+/***************************************************************
+                   EXPRESSIONS
+***************************************************************/
+BNGExpression expression() #Expression:
+{}
+{
+    term()
+    ( additiveOperation() expression() )?
+    {return jjtThis;}
+}
+
+void term() :
+{}
+{
+    element()
+    ( multiplicativeOperation()  element() )*
+}
+
+void element() :
+{}
+{
+    ( plus() element()
+    |
+    minus() element()
+    |
+    powerExpression()
+    )
+}
+
+void powerExpression() :
+{}
+{
+    unaryExpression()
+    ( power() element() )?
+}
+
+void unaryExpression() :
+{}
+{
+    ( function() | constant() | brExpression() )
+}
+
+void function() :
+{}
+{
+    ( builtInConst() | unaryFunction() | binaryFunction() | multiargFunction() )
+}
+
+void builtInConst() #Function:
+{}
+{
+    <BUILT_IN_CONST> {jjtThis.setName(token.image);jjtThis.setArgumentNumber(0);}
+}
+
+void unaryFunction() #Function:
+{}
+{
+    <UNARY_FUNCTION> {jjtThis.setName(token.image);jjtThis.setArgumentNumber(1);}
+    lBracket()
+    expression()
+    rBraket()
+}
+
+void binaryFunction() #Function:
+{}
+{
+    <BINARY_FUNCTION> {jjtThis.setName(token.image); jjtThis.setArgumentNumber(2);}
+    lBracket()
+    expression()
+    comma()
+    expression()
+    rBraket()
+}
+
+void multiargFunction() #Function:
+{
+    BNGFunction func = jjtThis;
+    int i = 1;
+}
+{
+    <MULTIARG_FUNCTION> {func.setName(token.image);}
+    lBracket()
+    expression()
+    ( ( comma() {++i;} expression() )+ )
+    rBraket()
+    { func.setArgumentNumber(i); }
+}
+
+void constant() #Constant:
+{}
+{
+    (<INTEGER_LITERAL> | <FLOATING_POINT_LITERAL> | <IDENTIFIER>)
+    {jjtThis.setName(token.image);}
+}
+
+void brExpression() :
+{}
+{
+    lBracket()
+    expression()
+    rBraket()
+}
+
+/***************************************************************
+                   UTILITY
+***************************************************************/
+void additiveOperation() :
+{}
+{
+    ( plus() | minus() )
+}
+
+void plus() #SimpleElement:
+{}
+{
+    "+" {jjtThis.setName(token.image);}
+}
+
+void minus() #SimpleElement:
+{}
+{
+    "-" {jjtThis.setName(token.image);}
+}
+
+void multiplicativeOperation() #SimpleElement:
+{}
+{
+    ("*" {jjtThis.setName(token.image);}
+    |
+    "/" {jjtThis.setName(token.image);})
+}
+
+void power() #SimpleElement:
+{}
+{
+    "^" {jjtThis.setName(token.image);}
+}
+
+void lBracket() #SimpleElement:
+{}
+{
+    "(" {jjtThis.setName(token.image);}
+}
+
+void rBraket() #SimpleElement:
+{}
+{
+    ")" {jjtThis.setName(token.image);}
+}
+
+void lBrace() #SimpleElement:
+{}
+{
+    "{" {jjtThis.setName(token.image);}
+}
+
+void rBrace() #SimpleElement:
+{}
+{
+    "}" {jjtThis.setName(token.image);}
+}
+
+void lArrayBr() #SimpleElement:
+{}
+{
+    "[" {jjtThis.setName(token.image);}
+}
+
+void rArrayBr() #SimpleElement:
+{}
+{
+    "]" {jjtThis.setName(token.image);}
+}
+
+void comma() #SimpleElement:
+{}
+{
+    <COMMA> {jjtThis.setName(token.image);}
+}
+
+void label() #Label:
+{}
+{
+    <LABEL> {jjtThis.setName(token.image);}
+}
+
+void hashArrow() #SimpleElement:
+{}
+{
+    "=>" {jjtThis.setName(token.image);}
+}

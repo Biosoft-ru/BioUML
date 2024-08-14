@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.gtex;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ com.mysql.cj,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.bsa,
+ ru.biosoft.table
+Export-Package: biouml.plugins.gtex.meos

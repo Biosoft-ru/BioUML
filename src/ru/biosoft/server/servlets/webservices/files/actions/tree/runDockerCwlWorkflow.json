@@ -1,0 +1,65 @@
+/*
+ * Run un Container
+ */
+{
+    id: "run_cwl_workflow",
+    label: "Run in Container",
+    icon: "icons/run.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.plugins.docker.CwlScriptDataElement')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        try
+        {
+            var beanPath = path.substring( 9 );
+            loadBioUMLModules(['analysis'], function() {}, function()
+            {
+                var adoc = new AnalysisDocument( path );
+                adoc.openProperties = function()
+                {
+                    console.log( beanPath ); 
+                    queryBean(beanPath, {useCache: 'no'}, function(data)
+                    {
+                        adoc.initPropertyInspectorFromJSON(data);
+                        if(data.attributes.expertOptions)
+                            adoc.modeButton.show();
+                    });
+                };
+                adoc.setProperties = function(successCallback, control)
+                {
+                    disableDPI(this.propertyInspector);
+                    adoc.propertyPane.updateModel();
+                    var json = convertDPSToJSON(this.propertyPane.getModel(), control);
+                    var requestParameters =  {
+                        de: beanPath,
+                        json: json
+                    };
+                    if(adoc.expertMode)
+                        requestParameters['showMode'] = SHOW_EXPERT;
+                            
+                    queryBioUML('web/bean/set', requestParameters, successCallback);    
+                };
+
+
+                openDocumentTab( adoc );
+            });
+        }
+        catch(e)
+        {
+            logger.message(e);
+            return;
+        }
+    }"
+}

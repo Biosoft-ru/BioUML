@@ -1,0 +1,94 @@
+<h2>Polynomial regression analysis.</h2>
+
+<p>
+  Regression analysis is performed for each row in experimental data independently.
+  Consider:
+
+  <ul class="parameters">
+    <li><i>Y</i> = &#123;<i>Y</i><sub>1</sub>...<i>Y</i><sub><i>m</i></sub>&#125; &#8212; gene expression values.
+    <li><i>X</i> = &#123;<i>X</i><sub>1</sub>...<i>X</i><sub><i>m</i></sub>&#125; &#8212; corresponding time poins.
+  </ul>
+
+  Value <i>Y</i><sub><i>i</i></sub> is measured at the time point <i>X</i><sub><i>i</i></sub>.
+  Analysis constructs polynomial regression:
+  
+  <div class="formula-text"><img src="r1.png" alt="regression"></div>
+  
+  For each estimated regression coefficient, the <i>P-value</i> will be calculated, but <i>P-value</i>
+  threshold will be applied only on the last coefficient (with largest power).
+</p>
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li data-property="experimentData"><b>Experiment</b> - experimental data for analysis.
+    <ul>
+      <li><b>Table</b> - a table data collection stored in the BioUML repository.
+      <li>
+        <b>Columns</b> - the columns from the table which should be taken into account for futher analysis.
+        Note that in order to ensure correct analysis you should specify the corresponding time point for each column.
+        Time points also should ascend!
+      </li>
+    </ul>
+  </li>
+  
+  <li data-property="regressionPower"><b>Regression power</b> - the positive value representing power to construct regression.
+  <li data-property="pvalue"><b><i>P-value</i> threshold</b> - thresold for <i>P-value</i> (only elements with lower
+    <i>P-value</i> will be included in the result table).
+  <li data-property="threshold"><b>Outline boundaries</b> - lower and upper boundaries for values from the input table. Outliers will be ignored.
+  
+  <li data-property="fdr">
+    <b>Calculate FDR</b> - the test method for calculation of False Discovery Rate (FDR) -
+    an average rate of mistakenly builded regressions with the given <i>P-value</i> threshold. It randomly permutates the data 50 times and applies 
+    regression analysis to each randomized test. FDR is calculated according to the formula:
+    
+    <div class="formula-text"><img src="fdr.png" alt="fdr up"></div>
+  </li>
+  
+  <li data-property="outputTablePath">
+    <b>Output table</b> - the path in BioUML repository where the result table will be stored.
+    If a table with the specified path already exists it will be replaced.
+    The table will contain the sum of square errors, coefficients with their scores (log10(<i>P-value</i>))
+    and graphics for original and approximated profiles.
+  </li>
+</ul>
+
+<h3>Details</h3>
+
+<p>
+  In matrix form building regression could be described as:
+
+  <div class="formula-text"><img src="r2.png" alt="system"></div>
+
+  where e is distributed like N(0,&#963;<sup>2</sup>).
+</p>
+
+<p>
+  Let us consider:
+
+  <div class="formula-text"><img src="r3.png" alt="LSM"></div>
+  
+  We will find &#946;<sub><i>i</i></sub> &#8704;<i>i</i> out of condition <i>S</i> &#8594; min, i.e. we should solve the equation system:
+
+  <div class="formula-text"><img src="r4.png" alt="LSMsystem"></div>
+  
+  We also need to estimate the dispersion of the coefficients, which we can derive from the equation:
+
+  <div class="formula-text"><img src="r5.png" alt="dispersion"></div>
+
+  Approximation for &#963;<sup>2</sup> is:
+
+  <div class="formula-text"><img src="r6.png" alt="dispAppr"></div>
+
+  To test the hypothesis <i>H</i><sub>0</sub>: &#123;<i>b</i><sub><i>i</i></sub>=0&#125;, we shall use the statistic:
+
+  <div class="formula-text"><img src="r7.png" alt="statistic"></div>
+
+  In the case that <i>H</i><sub>0</sub> is true this statistic is distributed like Student's random
+  value with <i>n</i> &minus; <i>p</i> &minus; 1 degrees of freedom. So we estimate <i>P-value</i>:
+
+  <div class="formula-text"><img src="r8.png" alt="Pvalue"></div>
+
+  where:
+
+  <div class="formula-text"><img src="r9.png" alt="D"></div>

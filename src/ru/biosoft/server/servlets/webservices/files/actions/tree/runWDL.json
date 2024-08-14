@@ -1,0 +1,46 @@
+/*
+ * Run WDL
+ */
+{
+    id: "run_wdl",
+    label: "Run WDL",
+    icon: "icons/run.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.plugins.wdl.WDLScript')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        try
+        {
+            CreateAnalysisDocument ( 'analyses/Methods/Unclassified/Run WDL', function(analysis) {
+                openDocumentTab(analysis);
+
+                var params = [
+                  { 'name' : 'wdlScriptPath', 'value' : path }
+                ];
+
+                analysis.setParameters(params,  function(){
+                    updateViewParts(true);
+                    selectViewPart('wdl.diagram');
+                });
+                
+            });
+        }
+        catch(e)
+        {
+            logger.message(e);
+            return;
+        }
+    }"
+}

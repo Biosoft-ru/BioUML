@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2007/05/02 12:39:10 sintetik Exp $  -->
+
+<project name="biouml.workbench.module package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="biouml.workbench.module"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

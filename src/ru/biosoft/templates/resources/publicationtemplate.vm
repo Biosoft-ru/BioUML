@@ -1,0 +1,18 @@
+#macro( strField $name $label )
+    #if ($name && !$name.equals(""))
+    	<b>$label</b>: $name<br>
+	#end
+#end
+
+<html>
+	<body>
+		<div align="justify">
+	    	#strField($de.getPubMedId(), "PMID")
+	    	#set($ref = $de.getAuthors() + ". " + $de.getTitle() + " " + $de.getSource() + ".")
+	    	#strField($ref, "Source")
+	    	#strField($de.getKeywords(), "Keywords")
+	    	#strField($de.getPublicationAbstract(), "Abstract")
+	    	#strField($de.getFullTextURL(), "URL")
+	    </div>
+	</body>
+</html>

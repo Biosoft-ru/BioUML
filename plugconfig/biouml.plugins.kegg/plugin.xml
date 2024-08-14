@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="KeggEnzymeType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.kegg.hub.KeggEnzymeType"/>
+  </extension>
+
+  <extension id="KeggPathwayType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.kegg.hub.KeggPathwayType"/>
+  </extension>
+
+  <extension point="ru.biosoft.plugins.graph.layout">
+    <graphLayouter title="KEGG layout" class="biouml.plugins.kegg.KeggPathwayLayouter" description="Edge layouter for KEGG graphic notation" public="false"/>
+  </extension>
+</plugin>

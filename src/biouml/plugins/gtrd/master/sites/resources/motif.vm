@@ -1,0 +1,40 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $utils.formatHtml( $name ) <br>
+	#end
+#end
+
+#macro( displayMatrix $matr )
+	#set($name = $utils.getPath($matr))
+	#set($width = $matr.getLength()*30)
+	#strField($matr.getName(), "Matrix")
+	#strField($matr.getLength(), "Matrix length")
+	<img src="image:///$name" height="70" width="$width">
+#end
+
+#macro( displaySiteModel $model )
+	<h3>Model $model.getName()</h3>
+	#strField($model.getBindingElement(), "Binding element")
+	#strField($model.getThreshold(), "Threshold")
+	#strField($model.getDistMin(), "Minimal distance")
+	#strField($model.getWindow(), "Window")
+	#set($matr = $model.getFrequencyMatrix())
+	#if($matr)
+		#displayMatrix($matr)
+	#end
+	#set($matrs = $model.getMatrices())
+	#if($matrs)
+		#foreach( $matr in $matrs )
+			#displayMatrix($matr.getFrequencyMatrix())
+		#end
+	#end
+#end
+
+<b>Motif</b><br>
+
+#strField($de.getStableId(), "Stable ID")
+#set($strand = "#if($de.isForwardStrand())+#{else}-#end")
+#strField("$de.getChr():$de.getFrom()-$de.getTo():$strand", "Location")
+#strField($utils.format("%.3f", $de.getScore()), "Score")
+#strField($de.Sequence.toString(), "Sequence")
+#displaySiteModel($de.getSiteModel())

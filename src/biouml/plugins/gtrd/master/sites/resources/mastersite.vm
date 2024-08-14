@@ -1,0 +1,31 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $utils.formatHtml( $name ) <br>
+	#end
+#end
+
+<b>Master site</b><br>
+
+#if($de.getStatus().toString().equals("RETIRED"))
+  <b>RETIRED</b> (not in this release) <br>
+#end
+#strField($de.getStableId(), "Stable ID")
+#strField("$de.getChr():$de.getFrom()-$de.getTo()", "Location")
+#strField("$de.summit", "Summit")
+#strField($de.reliabilityLevel, "Reliability level")
+#strField("$de.reliabilityScore", "Reliability score")
+
+
+<b>Found in</b>:<br>
+<ul>
+#foreach( $line in $gtrdMaster.getCellTreatmentList($de) )
+  <li>$line</li>
+#end
+</ul>
+
+<b>Supported by</b>:<br>
+<ul>
+#foreach( $line in $gtrdMaster.getSupportedByList($de) )
+  <li>$line</li>
+#end
+</ul>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="Import SED-ML" point="ru.biosoft.access.import"> 
+     <export 
+        format="SED-ML file"
+        importer="biouml.plugins.sedml.SedmlImporter"
+        description="biouml/plugins/sedml/resources/SedMlFileFormat.html"
+     />
+  </extension>
+
+  <extension id="Import SEDX archive" point="ru.biosoft.access.import"> 
+     <export 
+        format="SEDX archive"
+        importer="biouml.plugins.sedml.SedxImporter"
+        description="SEDX file is a ZIP archive containing SED-ML files and corresponding SBML models."
+     />
+  </extension>
+
+  <extension id="Export SED-ML" point="ru.biosoft.access.export"> 
+     <export 
+        format="SED-ML file"
+        suffix="sedml"
+        contentType="text/xml"
+        exporter="biouml.plugins.sedml.SedmlExporter"
+        description=""
+        priority="0"
+     />
+  </extension>
+
+
+  <extension id="Report" point="ru.biosoft.analysiscore.method"> 
+    <analysisClass class="biouml.plugins.sedml.analyses.Report" group="SEDML" name="Report"  description="Generate table report from simulation results."/> 
+  </extension>
+
+  <extension id="Plot2D" point="ru.biosoft.analysiscore.method"> 
+    <analysisClass class="biouml.plugins.sedml.analyses.Plot2D" group="SEDML" name="Plot2D"  description="Generate 2D plot from simulation results."/> 
+  </extension>
+
+  <extension id="MergeSimulationResults" point="ru.biosoft.analysiscore.method"> 
+    <analysisClass class="biouml.plugins.sedml.analyses.MergeSimulationResults" group="SEDML" name="Merge simulation results"  description="Merge several simulation results into one."/> 
+  </extension>
+
+  <extension id="SetInitialValuesFromSimulationResult" point="ru.biosoft.analysiscore.method"> 
+    <analysisClass class="biouml.plugins.sedml.analyses.SetInitialValuesFromSimulationResult" group="SEDML" name="Set initial values from simulation result"  description="Set all initial values of model to the last values from simulation result."/> 
+  </extension>
+
+  <extension id="DownloadModel" point="ru.biosoft.analysiscore.method"> 
+    <analysisClass class="biouml.plugins.sedml.analyses.DownloadModel" group="SEDML" name="Download model"  description="Download model from given URL."/> 
+  </extension>
+</plugin>

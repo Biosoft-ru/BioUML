@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="chart file transformer" point="ru.biosoft.access.transformer"> 
+      <transformer name="Chart" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="ru.biosoft.graphics.access.ChartDataElement" transformerClass="ru.biosoft.graphics.access.FileChartTransformer"/> 
+      <transformer name="BioUML drawing" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="ru.biosoft.graphics.access.ViewDataElement" transformerClass="ru.biosoft.graphics.access.FileViewElementTransformer"/> 
+  </extension>
+</plugin>

@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: BioUML splash
+Bundle-SymbolicName: biouml.splash;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi
+Export-Package: biouml.splash

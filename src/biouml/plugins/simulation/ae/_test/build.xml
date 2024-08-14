@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<project name="biouml.plugins.simulation.ae package test" default="autotest" basedir="../../../../..">
+
+    <property name="package" value="biouml.plugins.simulation.ae"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.simulation.ae._test.AutoTest"/>
+        </ant>
+    </target>
+
+	  <target name="testAlgebraic">
+	    <ant target="rtest">
+	      <property name="test" value="biouml.plugins.simulation.ae._test.AlgebraicSolverTest"/>
+	    </ant>
+	  </target>
+	
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

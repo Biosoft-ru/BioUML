@@ -1,0 +1,8 @@
+model diagramTest
+   species s1, s2;
+   compartment default;
+   r1: s1 => s2; 1;
+   default identity "http://identifiers.org/go/GO%3A0031594";
+   s1 isVersionOf "http://identifiers.org/interpro/IPR002394", "http://identifiers.org/go/GO%3A0005892";
+   r1 isVersionOf "http://identifiers.org/go/GO%3A0042166";
+end

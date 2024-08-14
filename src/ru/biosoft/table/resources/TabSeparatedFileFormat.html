@@ -1,0 +1,24 @@
+<h2>Tabular file formats</h2>
+
+<p>
+	Tabular file format represents the table. Several formats are supported including tab-separated (*.txt, *.tab), comma-separated (*.csv), and
+	Microsoft Excel Workbooks (*.xls, *.xlsx). During the import additional parameters can be specified. Some parameters may appear only after file upload as they depends on the file structure.
+	Most of parameters will be auto-detected by the system, but you should review them carefully as auto-detection may not work for some specific files.
+</p>
+<b>Parameters:</b>
+<ul class="analysis-parameters">
+<li data-property="properties/sheet"><b>Sheet name</b> (for MS Excel only) &ndash; which workbook sheet you want to import. Only one sheet may be imported at once.
+<li data-property="properties/delimiterType"><b>Column delimiter</b> (n/a for MS Excel) &ndash; specify which symbol separates the columns.
+<li data-property="properties/processQuotes"><b>Process quotes</b> &ndash; if checked, then column delimiter inside "quoted" values will be ignored. The quote symbols themselves will be removed.
+<li data-property="properties/headerRow"><b>Header row index</b> &ndash; number of row (starting from 1) at which column headers are located. If there are no column headers in your file, please specify 0. In this case
+table columns will be named as "Column#1", "Column#2" and so on. You will be able to rename them later.
+<li data-property="properties/dataRow"><b>First data row index</b> &ndash; number of row (starting from 1) at which actual data starts. All rows from this till the end of the file will be loaded.
+<li data-property="properties/columnForID"><b>Column for ID</b> &ndash; select the column which will be used as row ID. In the system each table row must have unique identifier (key) which will be used in many analyses.
+If you have genes list, then column containing Entrez gene ID or Ensembl gene ID will be fine. If you have Affymetrix probes, then Probe ID column should be selected.
+You may also use "Generate unique ID" option to generate incrementing numbers and use them as row IDs.
+<li data-property="properties/addSuffix"><b>Add suffixes to repeated ID</b> &ndash; if checked and repeated entries encountered in the ID column, then suffixes will be added to keep row IDs unique.
+If not checked, then rows with repeated IDs will be ignored.
+<li data-property="properties/tableType"><b>Type of the table</b> &ndash; select the type of identifiers in the ID column. Usually it's detected automatically. It's very important option as many analyses require
+tables of the specific type.
+<li data-property="properties/species"><b>Species</b> &ndash; select the species the data in the table is associated with or "Unspecified" if it's not associated with any species.  
+</ul>

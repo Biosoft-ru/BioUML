@@ -1,0 +1,50 @@
+<h2>Chinese Restaurant Cluster analysis</h2>
+
+<h3>Goal:</h3>
+Genes are grouped into clusters so that those in one cluster exhibit maximal similarity, whereas those of different clusters are
+maximally dissimilar. Different to the K-means algorithm, the number of clusters will be determined by the program.
+
+<h3>Input:</h3>
+A table of genes or probes with their expression values or fold change calculated. Depending on the algorithm, input of 
+certain parameters may be required.
+
+<h3>Output:</h3>
+A table with the same genes grouped into clusters.
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li><b>Experiment data</b> - experimental data for analysis.
+    <ul>
+      <li><b>Table</b> - a table with experimental data stored in repository.
+      <li><b>Columns</b> - the columns from the table which should be taken for the clustering analysis.
+    </ul>
+  </li>
+  <li><b>Cluster process number</b> - number of independent clustering processes to be launched. More processes render the results more reliable, but also enhance the required computation.</li>
+  <li><b>Cycles per clustering process</b> - the number of cycles to be executed for each process.</li>
+  <li><b>Allow inversion</b> - whether to consider inverted profiles as similar or not.</li>
+  <li><b>Maximum shift</b> - maximum shift of data allowed to still classify them as similar; most useful in the analysis of
+	time-course data. The shift is measured in profile positions.</li>
+  <li><b>Outline boundaries</b> - lower and upper boundaries for values from the input table. Outliers will be ignored.
+  <li><b>Output table</b> - name and path in the repository under which the result table will be saved. If a table with the specified name and path already exists, it will be overwritten.</li>
+</ul>
+
+<h3>Further details:</h3>
+The CRC analysis divides an input set of elements (table) into clusters so that the elements (genes, probes) of one cluster have similar profiles, but elements of different clusters do not. Unlike K-means this algorithm finds the optimal number of clusters by itself. It also permits to consider as "similar" not only coexpressed genes but also genes with inverted and shifted profiles.
+A user-specified number of independent clustering processes is launched, each consisting of a user-defined number of iterations (cycles).
+Each cycle comprises:
+<ol>
+<li>Choosing a gene</li>
+<li>Removing it from its current cluster</li>
+<li>Finding the best cluster assignment for the gene</li>
+<li>Repeating steps 1 - 3 for all genes in the input table</li>
+</ol>
+
+<h3>References:</h3>
+
+<ol class="references">
+  <li>
+    Z.S.Qin. (2006) Clustering microarray gene expression data using weighted Chinese restaurant process.
+    Bioinformatics, 22:1988-1997.
+  </li>
+</ol>

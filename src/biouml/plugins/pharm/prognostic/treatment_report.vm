@@ -1,0 +1,173 @@
+﻿<head>
+  <h1>$analysis.getMessage("REPORT_TITLE")</h1>
+</head>
+<body>
+
+#if ($generationInfo)
+  <h2>$analysis.getMessage("GENERATION_ANALYSIS_SETTINGS")</h2>
+  
+  <table border="1">
+  	<tbody>
+   	  <tr valign="top">
+        <th align="center" valign="middle">$analysis.getMessage("CHARACTERISTICS")</th>
+        <th valign="middle">$analysis.getMessage("VALUES")</th>
+      </tr>
+      
+      <tr><td>$analysis.getMessage("AGE")<td>$generationInfo.getPatientPhysiology().getGeneralData().getAge()</tr>
+      <tr><td>$analysis.getMessage("HEIGHT")<td>$generationInfo.getPatientPhysiology().getGeneralData().getHeight()</tr>
+      <tr><td>$analysis.getMessage("WEIGHT")<td>$generationInfo.getPatientPhysiology().getGeneralData().getWeight()</tr>
+      <tr><td>$analysis.getMessage("SEX")<td>$generationInfo.getPatientPhysiology().getGeneralData().getSex()</tr>
+      <tr><td>$analysis.getMessage("RACE")<td>$generationInfo.getPatientPhysiology().getGeneralData().getRace()</tr>
+      
+      <tr><td>$analysis.getMessage("PS")<td>$generationInfo.getPatientPhysiology().getPressure().getPs()</tr>
+      <tr><td>$analysis.getMessage("PD")<td>$generationInfo.getPatientPhysiology().getPressure().getPd()</tr>
+      
+      <tr><td>$analysis.getMessage("HR")<td>$generationInfo.getPatientPhysiology().getEcg().getHr()</tr>
+      
+      <tr><td>$analysis.getMessage("SV")<td>$generationInfo.getPatientPhysiology().getHeartUltrasound().getSv()</tr>
+      <tr><td>$analysis.getMessage("EF")<td>$generationInfo.getPatientPhysiology().getHeartUltrasound().getEf()</tr>
+      
+      <tr><td>$analysis.getMessage("HE")<td>$generationInfo.getPatientPhysiology().getBloodTest().getHe()</tr>
+      <tr><td>$analysis.getMessage("HCT")<td>$generationInfo.getPatientPhysiology().getBloodTest().getHct()</tr>
+      
+      <tr><td>$analysis.getMessage("TP")<td>$generationInfo.getPatientPhysiology().getBiochemistry().getTp()</tr>
+      <tr><td>$analysis.getMessage("GLUCOSE")<td>$generationInfo.getPatientPhysiology().getBiochemistry().getGlucose()</tr>
+      <tr><td>$analysis.getMessage("UREA")<td>$generationInfo.getPatientPhysiology().getBiochemistry().getUrea()</tr>
+      <tr><td>$analysis.getMessage("CREATININE")<td>$generationInfo.getPatientPhysiology().getBiochemistry().getCreatinine()</tr>
+      <tr><td>$analysis.getMessage("POTASSIUM")<td>$generationInfo.getPatientPhysiology().getBiochemistry().getPotassium()</tr>
+      <tr><td>$analysis.getMessage("SODIUM")<td>$generationInfo.getPatientPhysiology().getBiochemistry().getSodium()</tr>
+      
+      <tr><td>$analysis.getMessage("HYPERTENSION")<td>$generationInfo.getPatientPhysiology().getDiseases().getHypertension()</tr>
+      
+      <tr><td>$analysis.getMessage("CHF")<td>$generationInfo.getPatientPhysiology().getDiseases().getChf()</tr>
+      #if (!$generationInfo.getPatientPhysiology().getDiseases().isChfTypeHidden())
+        <tr><td>$analysis.getMessage("CHF_CLASS")<td>$generationInfo.getPatientPhysiology().getDiseases().getChfType()</tr>
+      #end
+      
+      <tr><td>$analysis.getMessage("PH")<td>$generationInfo.getPatientPhysiology().getDiseases().getPh()</tr>
+      <tr><td>$analysis.getMessage("LVDD")<td>$generationInfo.getPatientPhysiology().getDiseases().getLvdd()</tr>
+      <tr><td>$analysis.getMessage("LVH")<td>$generationInfo.getPatientPhysiology().getDiseases().getLvh()</tr>
+      <tr><td>$analysis.getMessage("CRF")<td>$generationInfo.getPatientPhysiology().getDiseases().getCrf()</tr>
+      <tr><td>$analysis.getMessage("ATHEROSCLEROSIS")<td>$generationInfo.getPatientPhysiology().getDiseases().getAtherosclerosis()</tr>
+      
+      <tr><td>$analysis.getMessage("MR")<td>$generationInfo.getPatientPhysiology().getDiseases().getMr()</tr>
+      #if (!$generationInfo.getPatientPhysiology().getDiseases().isMrTypeHidden())
+        <tr><td>$analysis.getMessage("MR_STAGE")<td>$generationInfo.getPatientPhysiology().getDiseases().getMrType()</tr>
+      #end
+      
+      <tr><td>$analysis.getMessage("TR")<td>$generationInfo.getPatientPhysiology().getDiseases().getTr()</tr>
+      #if (!$generationInfo.getPatientPhysiology().getDiseases().isTrTypeHidden())
+        <tr><td>$analysis.getMessage("TR_STAGE")<td>$generationInfo.getPatientPhysiology().getDiseases().getTrType()</tr>
+      #end
+      
+      <tr><td>$analysis.getMessage("AR")<td>$generationInfo.getPatientPhysiology().getDiseases().getAr()</tr>
+      #if (!$generationInfo.getPatientPhysiology().getDiseases().isArTypeHidden())
+        <tr><td>$analysis.getMessage("AR_STAGE")<td>$generationInfo.getPatientPhysiology().getDiseases().getArType()</tr>
+      #end
+      
+      <tr><td>$analysis.getMessage("PR")<td>$generationInfo.getPatientPhysiology().getDiseases().getPr()</tr>
+      #if (!$generationInfo.getPatientPhysiology().getDiseases().isPrTypeHidden())
+        <tr><td>$analysis.getMessage("PR_STAGE")<td>$generationInfo.getPatientPhysiology().getDiseases().getPrType()</tr>
+      #end
+      
+    </tbody>
+  </table>
+#end
+   
+<h2>$analysis.getMessage("BASELINE_CHARACTERISTICS")</h2>
+
+<table border="1">
+  <tbody>
+  	<tr valign="top">
+      <th align="center" valign="middle">$analysis.getMessage("CHARACTERISTICS")</th>
+      <th valign="middle">$analysis.getMessage("VALUES")</th>
+   </tr>
+
+   #set ($age = $analysis.getStatistics($population, "Age", "#0.0"))
+   #if (!$age.equals(""))
+     <tr><td>$analysis.getMessage("AGE")<td>$age</tr>
+   #end
+
+   #set ($height = $analysis.getStatistics($population, "Height", "#0.0"))
+   #if (!$height.equals(""))
+     <tr><td>$analysis.getMessage("HEIGHT")<td>$height</tr>
+   #end
+
+   <tr><td>$analysis.getMessage("WEIGHT")<td>$analysis.getStatistics($population, "FastModel_m", "#0.0")</tr>
+
+   #set ($bmi = $analysis.getStatistics($population, "BMI", "#0.0"))
+   #if (!$bmi.equals(""))
+     <tr><td>$analysis.getMessage("BMI")<td>$bmi</tr>
+   #end
+
+   #set ($sex = $analysis.getStatistics($population, "Sex", ""))
+   #if (!$sex.equals(""))
+     <tr><td>$analysis.getMessage("SEX_DISTRIBUTION")<td>$sex</tr>
+   #end
+
+   #set ($race = $analysis.getStatistics($population, "Race", ""))
+   #if (!$race.equals(""))
+     <tr><td>$analysis.getMessage("RACE_DISTRIBUTION")<td>$race</tr>
+   #end
+
+   <tr><td>$analysis.getMessage("PS")<td>$analysis.getStatistics($population, "FastModel_" + $paramMapping.get("SBP").getValue("Designation"), "#0.0")</tr>
+   <tr><td>$analysis.getMessage("PD")<td>$analysis.getStatistics($population, "FastModel_" + $paramMapping.get("DBP").getValue("Designation"), "#0.0")</tr>
+   <tr><td>$analysis.getMessage("MAP")<td>$analysis.getStatistics($population, "FastModel_MAP", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("HR")<td>$analysis.getStatistics($population, "FastModel_" + $paramMapping.get("Heart rate").getValue("Designation"), "#0.0")</tr>
+
+   <tr><td>$analysis.getMessage("SV")<td>$analysis.getStatistics($population, "FastModel_SV", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("CO")<td>$analysis.getStatistics($population, "FastModel_CO", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("EF")<td>$analysis.getStatistics($population, "FastModel_EF", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("LVEDV")<td>$analysis.getStatistics($population, "FastModel_" + $paramMapping.get("LV EDV").getValue("Designation"), "#0.0")</tr>
+   <tr><td>$analysis.getMessage("LVESV")<td>$analysis.getStatistics($population, "FastModel_" + $paramMapping.get("LV ESV").getValue("Designation"), "#0.0")</tr>
+
+   <tr><td>$analysis.getMessage("HE")<td>$analysis.getStatistics($population, "FastModel_" + $paramMapping.get("Hemoglobin").getValue("Designation"), "#0.0")</tr>
+   <tr><td>$analysis.getMessage("HCT")<td>$analysis.getStatistics($population, "FastModel_Hct", "#0.0")</tr>
+
+   <tr><td>$analysis.getMessage("TP")<td>$analysis.getStatistics($population, "SlowModel_TP", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("GLUCOSE")<td>$analysis.getStatistics($population, "SlowModel_glucose", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("UREA")<td>$analysis.getStatistics($population, "SlowModel_urea", "#0.0")</tr>
+
+   #set ($creatinine = $analysis.getStatistics($population, "Creatinine", "#0.0"))
+   #if (!$creatinine.equals(""))
+     <tr><td>$analysis.getMessage("CREATININE")<td>$creatinine</tr>
+   #end
+
+   <tr><td>$analysis.getMessage("POTASSIUM")<td>$analysis.getStatistics($population, "SlowModel_C_K", "#0.0")</tr>
+   <tr><td>$analysis.getMessage("SODIUM")<td>$analysis.getStatistics($population, "SlowModel_C_sod", "#0.0")</tr>
+
+   <tr><td>$analysis.getMessage("GFR")<td>$analysis.getStatistics($population, "SlowModel_GFR", "#0.000")</tr>
+
+  </tbody>
+</table>
+
+$analysis.getMessage("POPULATION_SIZE"): $population.getSize() 
+
+<h2>$analysis.getMessage("TREATMENT_RESULTS")</h2>
+
+<table border="1">
+<tbody>
+ <tr valign="top">
+   <th align="center" valign="middle">$analysis.getMessage("REGIMENS")</th>
+   #foreach( $column in $statistics.columns() )
+     <th>$column.getName()</th>
+   #end
+ </tr>
+  
+#foreach( $row in $statistics)
+  <tr>
+    <td>$row.getName()</td>
+    #foreach( $column in $statistics.columns() )
+      <td>$row.getValue( $column.getName() )</td>
+    #end
+  </tr>
+#end
+</tbody>
+</table>
+
+<br>
+<br>
+
+<img src=$imagePath>
+
+</body>

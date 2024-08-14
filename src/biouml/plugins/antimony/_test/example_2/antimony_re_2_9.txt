@@ -1,0 +1,11 @@
+model diagramTest
+   var x, w, y, z;
+   compartment default;
+   species s1, s2, s3;
+   k = 0.0;
+   r1: s1 -> s2; 1;
+   math_event: at k<5 : k = k/7;
+   math_constraint: assert a>100 else "a must be > 100";
+   s1 := 5.0;
+   s1 '= piecewise(y,x>sin(4.0)&&w<5.0&&x<8.0,z);
+end

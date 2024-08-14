@@ -1,0 +1,138 @@
+[ {
+  "numberVerification" : [ {
+    "longNumber" : 281474976710655
+  } ]
+}, {
+  "nodes" : [ {
+    "@id" : 68,
+    "n" : "Node 3"
+  }, {
+    "@id" : 66,
+    "n" : "Node 2"
+  }, {
+    "@id" : 64,
+    "n" : "Node 1"
+  } ]
+}, {
+  "edges" : [ {
+    "@id" : 85,
+    "s" : 66,
+    "t" : 68,
+    "i" : "interacts with"
+  }, {
+    "@id" : 83,
+    "s" : 64,
+    "t" : 66,
+    "i" : "interacts with"
+  } ]
+}, {
+  "networkAttributes" : [ {
+    "n" : "name",
+    "v" : "Network"
+  }, {
+    "n" : "selected",
+    "v" : "true",
+    "d" : "boolean"
+  } ]
+}, {
+  "nodeAttributes" : [ {
+    "s" : 52,
+    "po" : 68,
+    "n" : "name",
+    "v" : "Node 3"
+  }, {
+    "s" : 52,
+    "po" : 68,
+    "n" : "selected",
+    "v" : "false",
+    "d" : "boolean"
+  }, {
+    "s" : 52,
+    "po" : 66,
+    "n" : "name",
+    "v" : "Node 2"
+  }, {
+    "s" : 52,
+    "po" : 66,
+    "n" : "selected",
+    "v" : "false",
+    "d" : "boolean"
+  }, {
+    "s" : 52,
+    "po" : 64,
+    "n" : "name",
+    "v" : "Node 1"
+  }, {
+    "po" : 64,
+    "n" : "test",
+    "v" : ["1.3", "2.5"],
+    "d" : "list_of_double"
+  }, {
+    "s" : 52,
+    "po" : 64,
+    "n" : "selected",
+    "v" : "false",
+    "d" : "boolean"
+  } ]
+}, {
+  "edgeAttributes" : [ {
+    "s" : 52,
+    "po" : 85,
+    "n" : "shared name",
+    "v" : "Node 2 (interacts with) Node 3"
+  }, {
+    "s" : 52,
+    "po" : 85,
+    "n" : "name",
+    "v" : "Node 2 (interacts with) Node 3"
+  }, {
+    "s" : 52,
+    "po" : 85,
+    "n" : "interaction",
+    "v" : "interacts with"
+  }, {
+    "s" : 52,
+    "po" : 85,
+    "n" : "selected",
+    "v" : "false",
+    "d" : "boolean"
+  }, {
+    "s" : 52,
+    "po" : 83,
+    "n" : "shared name",
+    "v" : "Node 1 (interacts with) Node 2"
+  }, {
+    "s" : 52,
+    "po" : 83,
+    "n" : "name",
+    "v" : "Node 1 (interacts with) Node 2"
+  }, {
+    "s" : 52,
+    "po" : 83,
+    "n" : "interaction",
+    "v" : "interacts with"
+  }, {
+    "s" : 52,
+    "po" : 83,
+    "n" : "selected",
+    "v" : "false",
+    "d" : "boolean"
+  } ]
+}, {
+  "cartesianLayout" : [ {
+    "node" : 68,
+    "view" : 62,
+    "x" : -151.0,
+    "y" : 85.0
+  }, {
+    "node" : 66,
+    "view" : 62,
+    "x" : -83.0,
+    "y" : -65.0
+  }, {
+    "node" : 64,
+    "view" : 62,
+    "x" : -264.0,
+    "y" : -51.0
+  } ]
+} ]

@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="normalize" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="normalize" class="ru.biosoft.analysis.javascript.JavaScriptNormalization" />
+  </extension>
+
+  <extension id="transform" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="transform" class="ru.biosoft.analysis.javascript.JavaScriptDataManipulation" />
+  </extension>
+
+  <extension id="microarray" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="microarray" class="ru.biosoft.analysis.javascript.JavaScriptAnalysis" >
+        <doc description="Facade for data-manipulations">
+        
+        <function name="hypergeom" description="Performs hypergeometrical analysis of TableDataCollection.">
+            <argument name="experiment"/> 
+            <argument name="control" obligatory="false"/> 
+            <argument name="experimentColumns"/> 
+            <argument name="controlColumns" obligatory="false"/>       
+            <argument name="outputType"/> 
+            <argument name="pvalue"/> 
+            <argument name="thresholdDown"/>
+            <argument name="thresholdUp"/>
+            <argument name="bv"/> 
+            <argument name="fdr"/>           
+            <argument name="isControlAveraged"/>
+            <argument name="isDetailed"/>                               
+            <argument name="matchingCollection" obligatory="false"/> 
+            <argument name="keySource" obligatory="false"/> 
+            <argument name="outputTablePath"/> 
+            <returns type="TableDataCollection" description="TableDataCollection with scores (log(pvalue)) for genes (positive scores means up regulated genes, negative - down)." /> 
+         </function>
+         
+         <function name="updown" description="Performs up and down identification analysis of TableDataCollection.">
+            <argument name="experiment"/> 
+            <argument name="control"/> 
+            <argument name="experimentColumns" /> 
+            <argument name="controlColumns"/>       
+             <argument name="method"/> 
+            <argument name="outputType"/> 
+            <argument name="pvalue"/> 
+            <argument name="thresholdDown"/>
+            <argument name="thresholdUp"/>
+            <argument name="fdr"/>                   
+            <argument name="outputTablePath"/> 
+            <returns type="TableDataCollection" description="TableDataCollection with scores (log(pvalue)) for genes (positive scores means up regulated genes, negative - down)." /> 
+         </function>
+         
+          <function name="foldchange" description="Performs foldchange analysis of TableDataCollection.">
+            <argument name="experiment"/> 
+            <argument name="control"/> 
+            <argument name="experimentColumns" /> 
+            <argument name="controlColumns"/>       
+            <argument name="type"/> 
+            <argument name="logarithmBase"/> 
+            <argument name="thresholdDown"/>
+            <argument name="thresholdUp"/>                  
+            <argument name="outputTablePath"/> 
+            <returns type="TableDataCollection" description="TableDataCollection with scores (log(pvalue)) for genes (positive scores means up regulated genes, negative - down)." /> 
+         </function>
+
+        <function name="meta" description="Performs meta-analysis of list of TableDataCollections (results of hypergeometric analysis).">           
+            <argument name="outputType"/> 
+            <argument name="pvalue"/>
+            <argument name="thresholdDown"/>
+            <argument name="thresholdUp"/>
+            <argument name="outputTablePath"/> 
+            <argument name="tableDataCollections" type="TableDataCollection..." obligatory="true" description="list of tables for analysis can be of any length. Example: Table1,Table2,Table3." />          
+            <returns type="TableDataCollection" description="TableDataCollection which contains metascores." /> 
+         </function>
+
+         <function name="regression" description="Performs polynomial regression analysis of TableDataCollection.">
+            <argument name="experiment"/> 
+            <argument name="experimentColumns"/> 
+             <argument name="timePoints"/>           
+            <argument name="regressionPower"/> 
+            <argument name="pvalue"/>  
+            <argument name="thresholdDown"/>
+            <argument name="thresholdUp"/>
+            <argument name="fdr"/> 
+            <argument name="outputTablePath"/> 
+            <returns type="TableDataCollection" description="TableDataCollection with scores and regression parameters." /> 
+         </function>
+
+        <function name="correlation" description="Calculates simple statistics such as mean value, variance and correlation of columns.">
+             <argument name="experiment"/>           
+             <argument name="control"/> 
+             <argument name="experimentColumns"/> 
+             <argument name="controlColumns"/>          
+             <argument name="dataSource"/> 
+             <argument name="resultType"/> 
+             <argument name="correlationType"/> 
+             <argument name="cutoff"/> 
+             <argument name="thresholdDown"/>
+             <argument name="thresholdUp"/>
+             <argument name="fdr"/> 
+             <argument name="outputTablePath"/>             
+            <returns type="TableDataCollection" description="Contains calculated statistics." /> 
+         </function>
+         
+
+         <!--Next 6 functions probably shouldn't be here-->
+         
+          <function name="cluster" description="Performs cluster analysis on R engine.">
+             <argument name="experiment"/> 
+             <argument name="columns"/> 
+             <argument name="method" /> 
+             <argument name="clusterCount"/> 
+             <argument name="outputTablePath"/> 
+            <returns type="TableDataCollection" description="Contains input columns and cluster ID." /> 
+         </function>
+                  
+          <function name="crc" description="Performs Chinese Restaurant Cluster analysis.">
+             <argument name="experiment"/> 
+             <argument name="columns"/> 
+             <argument name="cutoff"/> 
+             <argument name="chainsCount"/> 
+             <argument name="cycleCount" /> 
+             <argument name="invert"/> 
+             <argument name="outputTablePath"/> 
+            <returns type="TableDataCollection" description="Contains input columns and cluster ID." /> 
+         </function>
+         
+         <function name="venn" description="Venn diagrams building. Note: at least one table is needed.">
+             <argument name="table1"/>            
+             <argument name="table2"/>           
+             <argument name="table3"/>         
+             <argument name="simple"/>         
+             <argument name="outputPath"/>         
+         </function>
+        </doc>
+      </hostObject>
+  </extension>
+ 
+  <extension id="RandomNumberAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.RandomNumberAnalysis" group="Statistics" name="Random number generator" description="Generates random numbers to result table"/> 
+  </extension>
+  
+  <extension id="CleanUpSqlDatabase" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.admin.CleanUpSqlDatabase" group="Admin" name="Clean up SQL database" description="This analysis checks project SQL database for not used tables and removes them. Please be careful and make sure that the database is used for the specified project only and not for anything else!"/> 
+  </extension>
+  
+  <extension id="QuotaCheck" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.admin.QuotaCheck" group="Admin" name="Check quotas" description="This analysis checks project disk space usage and corrects it if necessary."/> 
+  </extension>
+  
+  <extension id="HypergeometricAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.HypergeometricAnalysis" group="Statistics" name="Hypergeometric analysis"
+        shortDescription="Identify up and down regulated genes using hypergeometric distribution."
+        description="ru/biosoft/analysis/resources/Hypergeometric.html"/> 
+  </extension>
+  
+  <extension id="Meta analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.MetaAnalysis" group="Statistics" name="Meta analysis" 
+         shortDescription="Identify up and down regulated genes from different independent microarray experiments."
+         description="ru/biosoft/analysis/resources/Meta.html"/> 
+  </extension>  
+  <extension id="Polynomial Regression analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.PolynomialRegressionAnalysis" group="Statistics" name="Polynomial Regression analysis"  description="ru/biosoft/analysis/resources/Regression.html"/> 
+  </extension>
+   
+  <extension id="Up and down identification" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.UpDownIdentification" group="Statistics" name="Up and Down Identification"
+         shortDescription="Standard methods to identify up- and down-regulated genes."
+         description="ru/biosoft/analysis/resources/UpDownIdentification.html"/> 
+  </extension>
+  
+    <extension id="Fold-Change" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.FoldChange" group="Statistics" name="Fold-Change calculation"  description="Calculates fold-change values."/> 
+  </extension>
+  
+  <extension id="Correlation analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CorrelationAnalysis" group="Statistics" name="Correlation Analysis" shortDescription="Calculate correlation between two data sets." description="ru/biosoft/analysis/resources/Correlation.html"/> 
+  </extension>
+   
+  <extension id="Join two tables" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.JoinTable" group="Table manipulation" name="Join two tables"
+         shortDescription="Combine two tables into a new one."
+         description="ru/biosoft/analysis/resources/Join.html" js="transform.join"> 
+        <old name="Join table" />
+      </analysisClass>
+  </extension>
+  
+  <extension id="Annotate table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.Annotate" group="Table manipulation" name="Annotate table"
+        shortDescription="Annotates table with additional fields from database or another table."
+        description="ru/biosoft/analysis/resources/Annotate.html" js="transform.annotate"/> 
+  </extension>
+  
+  <extension id="Super annotate table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.SuperAnnotateTable" group="Table manipulation" name="Super annotate table"
+        description="Annotate table with additional fields from another table."/> 
+  </extension>
+  
+  <extension id="Table converter" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.TableConverter" group="Table manipulation" name="Convert table"
+         shortDescription="Convert identifiers from one type to another."
+         description="ru/biosoft/analysis/resources/ConvertTable.html" js="transform.convert"/> 
+  </extension>
+   
+  <extension id="Filter table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.FilterTable" group="Table manipulation" name="Filter table" 
+          shortDescription="Filter table rows that do not satisfy given condition."
+          description="ru/biosoft/analysis/resources/FilterTable.html" js="transform.filter"/> 
+  </extension>
+  
+  <extension id="Cluster analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.ClusterAnalysis" group="Statistics" name="Cluster analysis by K-means"  description="ru/biosoft/analysis/resources/Cluster.html"/> 
+  </extension> 
+  
+    <extension id="CRCluster analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CRClusterAnalysis" group="Statistics" name="CRC Analysis" shortDescription="Chinese Restaurant Cluster analysis."  description="ru/biosoft/analysis/resources/CRC.html"/> 
+  </extension> 
+
+  <extension id="CR cluster selector" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CRClusterSelector" group="Statistics" name="CR cluster selector" description="Select clusters from the results of CRCCluster analysis." /> 
+  </extension> 
+  
+  <extension id="Illumina normalization" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.IlluminaNormalization" group="Microarray normalization" name="Illumina normalization"
+         shortDescription="Normalization of Illumina microarray files."
+         description="ru/biosoft/analysis/resources/IlluminaNormalization.html" js="normalize.illumina"/> 
+  </extension>
+  
+  <extension id="Rename table columns" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.RenameTableColumnsAnalysis" group="Table manipulation" name="Rename table columns"  description="Rename table columns in analysis"/> 
+  </extension>
+  
+  <extension id="Select table columns" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.SelectColumns" group="Table manipulation" name="Select table columns"  description="Create table containing selected columns." js="transform.columns"/> 
+  </extension>
+  
+  <extension id="Share molecules" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.diagram.ShareComplexMolecule" group="Unclassified" name="Share molecules"  description="Comment" js=""/> 
+  </extension>
+  
+  <extension id="Remove unobservable molecules" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.diagram.RemoveUnobservableMolecules" group="Unclassified" name="Remove unobservable molecules"  description="Removes molecules which are unnecessary during observeble values evaluating." js=""/> 
+  </extension>
+  
+  <extension id="Diagram graph compare analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.diagram.DiagramGraphCompareAnalysis" group="Unclassified" name="Diagram graph compare analysis"  description="Compares structures of 2 given diagrams' graphs." js=""/> 
+  </extension>
+  
+  <extension id="Annotate diagram" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.diagram.DiagramAnnotationAnalysis" group="Unclassified" name="Annotate diagram"  description="Adds annotation to the specified diagram from the table." js=""/> 
+  </extension>
+  
+  <extension id="Create folder" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CreateFolderAnalysis" group="Workflow utils" name="Create folder"  description="Create folder with specified name." js="transform.createFolder"/> 
+  </extension>
+  
+  <extension id="Copy folder" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CopyFolderAnalysis" group="Workflow utils" name="Copy folder"  description="Copy folder with all its contents." js="transform.copyFolder"/> 
+  </extension>
+
+  <extension id="Copy data element" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CopyDataElement" group="Workflow utils" name="Copy data element"  description="Copy single data element." js="transform.copyDataElement"/> 
+  </extension>
+  
+  <extension id="Export element" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.ExportAnalysis" group="Admin" name="Export element"  description="Export element to the file on the server." js="transform.exportElement"/> 
+  </extension>
+  
+  <extension id="Join several tables" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.MultipleTableJoin" group="Table manipulation" name="Join several tables"  description="Intersect or join two and more tables. All column will be taken to the result." js="transform.multiJoin"/> 
+  </extension>
+  
+  <extension id="Venn diagrams" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.VennAnalysis" group="Plots and charts" name="Venn diagrams" shortDescription=""  description="ru/biosoft/analysis/resources/Venn.html"/> 
+  </extension>
+   
+  <extension id="DiagramExtension analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.diagram.DiagramExtensionAnalysis" group="Molecular networks" name="Extend network"  description="This analysis allows you to enrich a specified diagram with specified number of extension steps."/> 
+  </extension>
+  
+  <extension id="Join diagrams analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.diagram.JoinDiagramAnalysis" group="Molecular networks" name="Join diagrams"  description="Create a new diagram containing all the nodes and the reactions of the selected input diagrams. All input diagrams must have the same type. The resulting diagram will be re-layouted automatically using the selected layouter algorithm."/> 
+  </extension>
+  
+  <extension id="Filter duplicate rows" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.FilterDuplicateRows" group="Table manipulation" name="Filter duplicate rows"  description="Filter duplicate rows."/> 
+  </extension>
+
+  <extension id="Group table rows" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.GroupTableRows" group="Table manipulation" name="Group table rows"  description="Group table rows with identical values in specified column."/> 
+  </extension>
+
+  <extension id="Differential expression with DESeq" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.DESeq" group="RNA-seq" name="Differential expression with DESeq"  description="Differential expression with DESeq."/> 
+  </extension>
+
+  <extension id="Merge table columns" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.MergeTableColumns" group="Table manipulation" name="Merge table columns"  description="Merge several columns of a table into one column."/> 
+  </extension>
+
+  <extension id="Select top rows" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.SelectTopRows" group="Table manipulation" name="Select top rows"  description="Select top/bottom/middle rows from table based on values from column."/> 
+  </extension>
+
+  <extension id="Select random rows" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.SelectRandomRows" group="Table manipulation" name="Select random rows"  description="Select a number of rows randomly."/> 
+  </extension>
+
+  <extension id="Table imputation" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.TableImputation" group="Statistics" name="Table imputation"  description="Replace undefined values in a table with row means."/> 
+  </extension>
+
+  <extension id="Quantile normalization" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.QuantileNormalization" group="Statistics" name="Quantile normalization"  shortDescription="Make distributions of values in columns identical." 
+      description="ru/biosoft/analysis/resources/QuantileNormalization.html"/> 
+  </extension>
+
+  <extension id="Transform table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.TableTransform" group="Table manipulation" name="Transform table"  description="Transform table values using simple math functions." /> 
+  </extension>
+
+  <extension id="Sign test" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.SignTest" group="Statistics" name="Sign test"  description="Locaton sign test; Test one sample against the population." /> 
+  </extension>
+
+  <extension id="Plot pie chart" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.PlotPieChartAnalysis" group="Plots and charts" name="Plot pie chart"  shortDescription="" description="Plot pie chart" /> 
+  </extension>
+
+  <extension id="Plot bar chart" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.PlotBarChartAnalysis" group="Plots and charts" name="Plot bar chart"  shortDescription="" description="Plot bar chart" /> 
+  </extension>
+
+  <extension id="Plot scatter chart" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.ScatterPlot" group="Plots and charts" name="Plot scatter chart"  shortDescription="" description="Plot scatter chart" /> 
+  </extension>
+  
+  <extension id="Add calculated column" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.AddCalculatedColumnAnalysis" group="Table manipulation" name="Add calculated column"  
+      description="ru/biosoft/analysis/resources/AddCalculatedColumn.html"/> 
+  </extension>
+  
+  <extension id="Select files from folder" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.SelectFiles" group="Unclassified" name="Select files from folder"  description="Select files from folder with names matching to pattern."/> 
+  </extension>
+  
+  <extension id="Stub File Analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.StubAnalysis" group="Unclassified" name="Stub process file"  description="Log out input file name."/> 
+  </extension>
+  
+  <extension id="Generate Table From JSON" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.GenerateTableFromJSON" group="Unclassified" name="Generate Table From JSON"  description="Generate Table From JSON."/> 
+  </extension> 
+  
+  <extension id="Run Analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.RunAnalysis" group="Unclassified" name="Run analysis"  description="Run another analysis with parameter values from table."/> 
+  </extension> 
+  
+  <extension id="Genes table type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.analysis.type.GeneTableType"/>
+  	<type typeClass="ru.biosoft.analysis.type.TranscriptTableType"/>
+  	<type typeClass="ru.biosoft.analysis.type.ProteinTableType"/>
+  	<type typeClass="ru.biosoft.analysis.type.ProbeTableType"/>
+  	<type typeClass="ru.biosoft.analysis.type.PathwayType"/>
+  	<type typeClass="ru.biosoft.analysis.type.SubstanceType"/>
+  	<type typeClass="ru.biosoft.analysis.type.CategoryType"/>
+  </extension>
+  
+	<extension point="ru.biosoft.access.beans">
+		<provider class="ru.biosoft.analysis.AnalysisRelaunchBeanProvider" prefix="analysis/relaunch"/>
+	</extension>
+	
+  <extension point="ru.biosoft.workbench.documentFactory">
+      <documentFactory 
+        documentClass="ru.biosoft.analysis.document.AnalysisDocument"
+        key="ru.biosoft.analysiscore.AnalysisMethodInfo"
+      />
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="Repeat analysis" class="ru.biosoft.analysis.gui.RepeatAnalysisAction" priority="20">
+        <property name="Name" value="Repeat analysis"/>
+        <property name="ShortDescription" value="Open analysis which was used to create this element"/>
+        <property name="LongDescription" value="Open analysis which was used to create this element"/>
+        <property name="MnemonicKey" value="VK_R"/>
+        <property name="SmallIcon" value="repeat.gif"/>
+        <property name="ActionCommandKey" value="cmd-repeat-analysis"/>
+     </action>
+  </extension>
+
+  <extension point="ru.biosoft.analysiscore.group">
+    <group name="Admin" description="&lt;center&gt;Methods for BioUML server administration.&lt;/center&gt;" related="GTRD build;Workflow utils" />
+  </extension>
+</plugin>

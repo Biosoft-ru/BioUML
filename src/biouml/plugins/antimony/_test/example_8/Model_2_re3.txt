@@ -1,0 +1,5 @@
+@import biouml = "databases/Utils/Antimony/biouml.yaml";
+model diagramTest
+   species X, Y, Z;
+   @biouml Table table_1 = {argColumn ={variable = "X",name = "X_coordinate"},path = "tables/test_table"};
+end

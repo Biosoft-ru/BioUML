@@ -1,0 +1,11 @@
+model diagramTest
+   compartment default;
+   species s1, s2, s3;
+   k = 0.0;
+   s2 = 5.0;
+   r1: s1 -> s2; 1;
+   math_event: at k<5 : k = k/7;
+   math_constraint: assert a>100 else "a must be > 100";
+   k := 0.0;
+   k '= 0.0;
+end

@@ -1,0 +1,262 @@
+<h2>Standard methods to identify up- and down-regulated genes</h2>
+
+<p>
+  All methods consider two samples derived from some population:
+  
+  <div class="formula-text"><img src="s5.png" alt="samples"></div>
+
+  One sample is the experiment and the other is control. The aim is to check whether the experiment sample
+  is different from the control and what is the statistical significance of this difference.
+  As input we have two tables with names of genes as keys and rows
+  that contains expression values.
+</p>
+
+<p>
+  <b>Note:</b> The result will be calculated only for elements which are present
+  in both experiment and control tables!
+</p>
+
+<p>
+  For each element we independently test the null hypothesis and
+  calculate a <b>score</b> which accumulates all the information obtained for the element: The sign of score
+  indicates whether gene is found to be up- or down-regulated, its absolute value is equal to
+  log10(<i>P-value</i>) where the <i>P-value</i> is the probability of mistakenly consider the element as dysregulated
+  (a lower <i>P-value</i> (hence higher absolute score value) means a more reliable result).
+</p>
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li data-property="experimentData"><b>Experiment</b> - experimental data for analysis.
+    <ul>
+      <li><b>Table</b> - a table data collection with experimental data stored in the BioUML repository.
+      <li><b>Columns</b> - the columns from the table which are selected to be taken for the analysis.
+    </ul>
+  </li>
+  
+  <li data-property="controlData"><b>Control</b> - control data for analysis.
+    <ul>
+      <li><b>Table</b> - a table data collection with control data stored in the BioUML repository.
+      <li><b>Columns</b> - the columns from the table which are selected to be taken for the analysis.
+    </ul>
+  </li>
+  
+  <li data-property="method"><b>Statistical test</b> - available statistical tests:
+    <ul>
+      <li><a href = "#student">Student's <i>t</i>-test</a>
+      <li><a href = "#wilcoxon">Wilcoxon test</a>
+      <li><a href = "#lehman">Lehman-Rosenblatt <i>t</i>-test</a>
+      <li><a href = "#kolmogorov">Kolmogorov-Smirnov</a>
+    </ul>
+  </li>
+  
+  <li data-property="outputType"><b>Output type</b> - the genes to be included in result:
+    <ul>
+      <li>Up- and Down-regulated
+      <li>Up-regulated
+      <li>Down-regulated
+    </ul>
+  </li>
+
+  <li data-property="pvalue"><b><i>P-value</i> threshold</b> - threshold for <i>P-value</i> (only elements with a lower <i>P-value</i> will be included in the result).
+  <li data-property="threshold"><b>Outline boundaries</b> - lower and upper boundaries for values the from input table. Outliers will be ignored.
+
+  <li data-property="fdr">
+    <b>Calculate FDR</b> - the test method for calculation of False Discovery Rate (FDR) -
+    an average rate of mistakenly found up- or down-regulated genes under the given <i>P-value</i> threshold. It randomly permutates the data 50 times and applies the selected
+    up- down-identification procedure to each randomized table. FDR is calculated separately for up- and down-regulated
+    genes according to the formula:
+
+    <div class="formula-text"><img src="fdr.png" alt="fdr up"></div>
+  </li>
+
+  <li data-property="outputTablePath">
+    <b>Output table</b> - the path in the BioUML repository where the result table will be stored.
+      If a table with the specified path already exists it will be replaced.
+  </li>
+</ul>
+
+<a name="student"></a>
+<h3>Student's test</h3>
+
+<p>
+  This criterion is assigned to test mean values homogeneity &#40;<i>a</i><sub><i>x</i></sub> &#61; <i>a</i><sub><i>y</i></sub>&#41;
+  of two normal-distributed samples with equal &#40;but unknown&#41; dispersion &#963;<sup>2</sup>.
+  &#40;Note, that to apply this test both samples should have three or more values&#41;.
+  As a critical statistic in this method we use&#58;
+
+  <div class="formula-text"><img src="s1.png" alt="t-statistic"></div>
+
+  where:
+
+  <div class="formula-text"><img src="s2.png" alt="subsideary"></div>
+
+  Corresponding sample means are&#58;
+
+  <div class="formula-text"><img src="s3.png" alt="mean"></div>
+
+  Corresponding sample dispersions are&#58;
+
+  <div class="formula-text"><img src="s4.png" alt="dispersion"></div>
+
+  If the hypothesis <i>H</i><sub>0</sub> is true, this statistic should obey <i>t</i>-distribution with <i>m</i>+<i>n</i>-2
+  degrees of freedom.
+</p>
+
+<p>
+  Using double-sided criterion, we estimate <i>P-value</i> as&#58;
+
+  <div class="formula-text"><img src="s6.png" alt="Pvalue"></div>
+</p>
+
+<a name="wilcoxon"></a>
+<h3>Wilcoxon test</h3>
+
+<p>
+  Distribution independent rank criterion for testing the hypothesis that a certain treatment had no effect.
+  Let us denote&#58;
+
+  <div class="formula-text"><img src="w4.png" alt=""></div>
+
+  where <i>x</i><sub><i>i</i></sub> and <i>y</i><sub><i>j</i></sub> &#8212; appreciable values,
+  <i>e</i><sub><i>m</i>+1</sub>,...,<i>e</i><sub><i>m</i>+<i>n</i></sub> &#8212;
+  unappreciable random values.
+  Parameter &#916 is of interest to us, it is unknown shift resulting from some kind of treatment.
+  To use this method we must assume:
+
+  <ul>
+    <li>all <i>N</i> random values <i>e</i> are mutually independent.
+    <li>all <i>e</i> are derived from common population.
+  </ul>
+
+  The method tests the hypothesis <i>H</i><sub>0</sub>: &#916=0. The algorithm is described below.
+</p>  
+
+<p>
+  Join two samples into one and sort it in ascending order, assign to each value in joint sample its own rank. 
+  Let <i>R</i><sub><i>j</i></sub> be the rank of the j-th element. As a critical statistic in this criterion we use:
+  
+  <div class="formula-text"><img src="w1.png" alt="Wilkokson stat"></div>
+
+  Suppose that we test our hypothesis facing the hypothesis <i>H</i><sub>1</sub>: &#916&#8800;0.
+</p>
+
+<p>
+  Evaluate all possible variants of rank grouping wherein statistic <i>W</i> is lesser
+  or equal to obervated one (denote it <i>K</i>), after which we calculate amount of all
+  possible distributions of ranks obtained by two samples, which is equal to <i>C</i><sup><i>m</i></sup><sub><i>N</i></sub>.
+</p>
+
+<p>
+  We estimate temporary <i>P-value</i> as&#58;
+
+  <div class="formula-text"><img src="w2.png" alt="tempPvalue"></div>
+
+  If our temporary <i>P-value</i> &#8804; 0.5 we take as resulting <i>P-value</i> 2&sdot;(temporary <i>P-value</i>). 
+  If temporary <i>P-value</i> &#62; 0.5, then we evaluate all possible variants of rank grouping
+  wherein statistic <i>W</i> is  greater or equal to obervated one (denote it <i>L</i>),
+  and take:
+
+  <div class="formula-text"><img src="w3.png" alt="pvalue"></div>
+
+  For next two methods we suppose that:
+  <ol>
+    <li>All <i>N</i> observations <i>X</i> and <i>Y</i> are mutually independent.
+    <li>All <i>X</i> derived from the entire assembly &#928;<sub>1</sub>.
+    <li>All <i>Y</i> derived from the entire assembly &#928;<sub>2</sub>.
+  </ol>
+</p>
+
+<a name="lehman"></a>
+<h3>Lehmann-Rosenblatt test</h3>
+
+<p>
+  The Lehmann-Rosenblatt test is an &#969;<sup>2</sup>-type distribution-independent criterion for homogeneity testing.
+  It tests the hypothesis that both populations &#928;<sub>1</sub> and &#928;<sub>2</sub> are identical, i.e. both samples
+  were derived from a single population.
+  It can be rewritten:
+  
+  <div class="formula-text">
+    <i>H</i><sub>0</sub>: <i>F</i>(<i>x</i>) = <i>G</i>(<i>x</i>) &#8704;<i>x</i>.
+  </div>
+  
+  To test our hypothesis we:
+  <ol>
+    <li>
+      Arrange our observations <i>X</i> and <i>Y</i>:
+      
+      <div class="formula-text"><img src="lr6.png" alt="arrangement"></div>
+    </li>
+
+  <li>
+    Evaluate criterion statistic:
+    
+    <div class="formula-text"><img src="lr1.png" alt="Lehmann-rosenblatt stat"></div>
+    
+    where <i>r</i><sub><i>i</i></sub>&#8212;index number (rank) of
+    <i>y</i><sub><i>i</i></sub>, <i>s</i><sub><i>j</i></sub>&#8212;index number (rank) of <i>x</i><sub><i>j</i></sub>
+    in the joint static series.
+  </li>
+  
+  <li>
+    When <i>m</i> and <i>n</i> tend to &infin;, the distribution of the statistic <i>T</i> under the condition that the <i>H</i><sub>0</sub>
+    hypothesis is true, tends to an <i>a</i>1(<i>t</i>) distribution function:
+
+    <div class="formula-text"><img src="lr2.png" alt="a1(t)"></div>
+
+    where:
+
+    <div class="formula-text"><img src="lr3.png" alt="besel"></div>
+
+    are modified Bessel functions.
+  </li>
+
+  <li>
+    And at last calculate <i>P-value</i> as:
+    
+    <div class="formula-text"><img src="lr4.png" alt="pval"></div>
+  </li>
+</ol>
+
+<a name="kolmogorov"></a>
+<h3>Kolmogorov-Smirnov test.</h3>
+
+<p>
+  This is distribution-indepedent criterion for homogeneity testing.
+  It tests the hypothesis that both populations &#928;<sub>1</sub> and &#928;<sub>2</sub> are identical, i.e.
+  both samples were derived from a single population.
+  It can be rewritten:
+  
+  <div class="formula-text">
+    <i>H</i><sub>0</sub>: <i>F</i>(<i>x</i>) = <i>G</i>(<i>x</i>) &#8704;x.
+  </div>
+
+  To test our hypothesis we:
+  <ol>
+    <li>
+      Arrange our observations <i>X</i> and <i>Y</i>:
+      <span class="formula-text"><i>x</i><sub>1</sub> &lt; <i>x</i><sub>2</sub> &lt; &hellip; &lt; <i>x</i><sub><i>m</i></sub>;</span>
+      <span class="formula-text"><i>y</i><sub>1</sub> &lt; <i>y</i><sub>2</sub> &lt; &hellip; &lt; <i>y</i><sub><i>n</i></sub>.</span>
+    </li>
+
+    <li>
+      Evaluate the Kolmogorov-Smirnov statistic, which measures the difference
+      between the empirical distribution functions, obtained with respect to
+      samples <i>X</i> and <i>Y</i>:
+
+      <div class="formula-text"><img src="ks1.png" alt="Kolmogorov stat"></div>
+
+      where <i>D</i><sub><i>m</i>,<i>n</i></sub>=max&#124;<i>F</i><sub><i>n</i></sub>(<i>x</i>)&minus;
+      <i>G</i>(<i>x</i>)<sub><i>m</i></sub>&#124;
+    </li>
+
+    <li>
+      When <i>m</i> and <i>n</i> tend to &infin;, the distribution of this statistic under the condition
+      that the <i>H</i><sub>0</sub> hypothesis is true tends to the Kolmogorov distribution function:
+
+      <div class="formula-text"><img src="ks2.png" alt="Kolmogorov distr"></div>
+    </li>
+
+    <li>So <i>P-value</i> = 1 &minus; <i>K</i>(<i>S</i><sub><i>CM</i></sub>).
+  </ol>
+</p>

@@ -1,0 +1,212 @@
+<tool id="novoalignCS_wrapper" name="Map with novoalignCS" version="2.0.7.18">
+	<requirements>
+		<requirement type='package'>novoalign</requirement>
+	</requirements>
+	<description></description>
+	<parallelism method="basic"></parallelism>
+
+  <command>
+    novoalignCS
+      -o SAM
+      #if $options.default == "no" and $options.rgHeader.condValue == "Yes":
+        "@RG	ID:$options.rgHeader.id	SM:$options.rgHeader.sample	PU:$options.rgHeader.platform	LB:$options.rgHeader.library"
+      #end if
+      -d "${ refGenome.fields.path }"
+      
+      #if $isPaired.condValue == "single":
+        -f "${isPaired.singleInput}"
+      #else:
+        -f "${isPaired.pairedInput1}" "${isPaired.pairedInput2}"
+        -i $isPaired.orientation $isPaired.meanFragmentLength,$isPaired.devFragmentLength
+      #end if
+      
+      #if $options.default == "no":
+
+        #if $options.alignScoreThreshold.auto == "no":
+          -t $options.alignScoreThreshold.threshold
+        #end if
+        
+        -g $options.gapOpenPenalty
+        -x $options.gapExtendPenalty
+        -R $options.minimalScoreDifference
+        
+        -r $options.repeatReporting.strategy
+        #if $options.repeatReporting.strategy == "All" or $options.repeatReporting.strategy == "Exhaustive":
+          #if $options.repeatReporting.maxAlignmentsPerRead != "-1":
+            $options.repeatReporting.maxAlignmentsPerRead
+          #end if
+        #end if
+        
+        -Q $options.alignQualThreshold
+        
+        $options.hardClip
+        
+        -n $options.truncateReads
+        
+        #if $options.missingDNA.value != "default":
+          -N $options.missingDNA
+        #end if
+        
+        $options.qualRecalibration
+        
+      #end if
+      
+     2> $log | samtools view -buS - 1> $output
+  </command>
+
+	<inputs>
+		<conditional name="isPaired">
+			<param name="condValue" type="select" label="Is this library mate-paired?">
+				<option value="single">Single-end</option>
+				<option value="paired">Paired-end</option>
+			</param>
+			<when value="single">
+				<param name="singleInput" type="data"
+					format="csfasta" label="CSFASTA file"
+					needs_metadata="False" />
+				<param name="singleInputQual" type="data"
+				    format="qualsolid" label="QUAL file"
+				    need_metadata="False" />
+			</when>
+			<when value="paired">
+				<param name="pairedInput1" type="data"
+					format="csfasta" label="Forward CSFASTA file"
+					needs_metadata="False" />
+				<param name="pairedInputQual1" type="data"
+				    format="qualsolid" label="Forward QUAL file"
+				    needs_metadata="False" />
+				<param name="pairedInput2" type="data"
+					format="csfasta" label="Reverse FASTQ file"
+					needs_metadata="False" />
+				<param name="pairedInputQual2" type="data"
+				    format="qualsolid" label="Reverse QUAL file"
+				    needs_metadata="False" />
+				<param name="meanFragmentLength" type="integer" label="Mean fragment length"
+					value="2500" />
+				<param name="devFragmentLength" type="integer"
+					label="Standard deviation for fragment length" value="500" />
+				<param name="orientation" type="select"
+					label="Orientation of the reads in a proper pair">
+					<option value="PE">Forward-Reverse</option>
+					<option value="MP">Forward-Forward (for ABI SOLiD mate pairs)
+					</option>
+				</param>
+			</when>
+		</conditional>
+		<param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="novoalignCS_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No indexes are available" />
+			</options>
+		</param>
+
+		<conditional name="options">
+			<param name="default" type="select" label="Novoalign settings to use">
+				<option value="yes">Commonly used</option>
+				<option value="no">Full parameter list</option>
+			</param>
+			<when value="yes" />
+			<when value="no">
+				<conditional name="alignScoreThreshold">
+					<param name="auto" type="select" label="Alignment score threshold"
+						help="The maximum alignment score acceptable for the best alignment. In automatic mode the threshold is set based on read length, genome size and other factors. For pairs the threshold applies to the fragment and includes both ends and the length penalty.">
+						<option value="yes">Automatic</option>
+						<option value="no">Manual</option>
+					</param>
+					<when value="yes" />
+					<when value="no">
+						<param name="threshold" type="integer"
+							label="Alignment score threshold value" />
+					</when>
+				</conditional>
+
+				<param name="gapOpenPenalty" type="integer" label="Gap opening penalty"
+					value="40" />
+
+				<param name="gapExtendPenalty" type="integer" label="Gap extend penalty"
+					value="6" />
+
+				<param name="minimalScoreDifference" type="integer"
+					label="Minimal score difference" value="5"
+					help="Score difference between best and second best alignment for calling a repeat." />
+
+				<conditional name="repeatReporting">
+					<param name="strategy" type="select" label="Strategy for reporting repeats">
+						<option value="None">None</option>
+						<option value="Random">Random</option>
+						<option value="All">All</option>
+						<option value="Exhaustive">Exhaustive</option>
+					</param>
+					<when value="None" />
+					<when value="Random" />
+					<when value="All">
+						<param name="maxAlignmentsPerRead" type="integer" value="-1"
+							label="Maximum number of alignments per read" help="Set to -1 for unlimited" />
+					</when>
+					<when value="Exhaustive">
+						<param name="maxAlignmentsPerRead" type="integer" value="-1"
+							label="Maximum number of alignments per read" help="Set to -1 for unlimited" />
+					</when>
+				</conditional>
+
+				<param name="alignQualThreshold" type="integer"
+					label="Lower limit on alignment quality for reporting" value="0" />
+					
+				<conditional name="rgHeader">
+					<param name="condValue" type="select" label="Set read group header">
+						<option value="Yes">Yes</option>
+						<option value="No">No</option>
+					</param>
+					<when value="Yes">
+						<param name="id" type="text" label="Read group ID" value="readgroup" />
+						<param name="sample" type="text" label="Sample ID" value="sample" />
+						<param name="platform" type="text" label="Platform unit"
+							value="platform" />
+						<param name="library" type="text" label="Library" value="library" />
+					</when>
+					<when value="No" />
+				</conditional>
+				
+				<param name="qualRecalibration" type="boolean" truevalue="-k" falsevalue="" checked="False" label="Quality calibration" help="Enables quality calibration. The quality calibration data (mismatch counts) are accumulated from actual alignments."/>
+				
+				<param name="hardClip" type="select" label="Hard clip trailing bases with quality &lt;= 2">
+				  <option value="">No</option>
+				  <option value="-H">Yes</option>
+				</param>
+				
+				<param name="truncateReads" type="integer" value="150" label="Truncate reads to the specified length before alignment (maximum is 300)."/>
+				
+                <param name="missingDNA" type="text" value="default"
+                       label="Number of DNA bp that are not in the reference sequence"
+                       help="Sets the number of bp of source DNA that are not represented in the reference sequences (index). This value is used in calculation of prior probability that the read originated in sequence that we cannot align to because it is not in the reference sequence set. By default we use the number of bases coded as N's in the reference genome. Set to zero to disable inclusion of this in quality calculations."
+                 />
+                 
+                 <param name="softClip" type="boolean" truevalue="-o SoftClip" falsevalue="-o FullNW" checked="True" label="Soft clipping" help="Soft clipping of alignments." />
+			</when>
+		</conditional>
+	</inputs>
+
+	<outputs>
+		<data format="bam" name="output"
+			label="${tool.name} on ${on_string}: mapped reads">
+			<actions>
+				<action type="metadata" name="dbkey">
+					<option type="from_data_table" name="novoalign_indexes"
+						column="1" offset="0">
+						<filter type="param_value" column="0" value="#" compare="startswith"
+							keep="False" />
+						<filter type="param_value" ref="refGenome" column="0" />
+					</option>
+				</action>
+			</actions>
+		</data>
+		<data format="txt" name="log" label="Log file"/>
+	</outputs>
+
+	<tests>
+	</tests>
+
+	<help>
+	</help>
+</tool>
+

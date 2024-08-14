@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by JDesigner 1.51b on 01.05.2003 -->
+<sbml xmlns="http://www.sbml.org/sbml/level1" level="1" version="1"
+  xmlns:jd="http://www.sys-bio.org/sbml">
+
+  <model name="untitled">
+
+   <listOfCompartments>
+     <compartment name="uVol" volume="1"/>
+   </listOfCompartments>
+
+   <listOfSpecies>
+     <specie name="Glucose" boundaryCondition="false" initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="63" y="106" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="Glucose-6-Phosphate" boundaryCondition="false" initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="170" y="117" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="PEP" boundaryCondition="false" initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="326" y="198" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="Pyruvate" boundaryCondition="false" initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="398" y="277" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="ATP" boundaryCondition="false" initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="192" y="281" iconIndex="-1" />
+       </annotations> 
+     </specie>
+     <specie name="ADP" boundaryCondition="false" initialAmount="0" compartment="uVol">
+       <annotations> 
+          <jd:display x="238" y="221" iconIndex="-1" />
+       </annotations> 
+     </specie>
+   </listOfSpecies>
+
+   <listOfReactions>
+   <reaction name="J0" reversible="false">
+     <listOfReactants>
+       <specieReference specie="ATP" stoichiometry="1" />
+       <specieReference specie="Glucose" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="ADP" stoichiometry="1"/>
+       <specieReference specie="Glucose-6-Phosphate" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="142" y="158" />
+        
+             <pt x="107" y="185" />
+             <pt x="103" y="156" />
+        
+             <pt x="108" y="150" />
+             <pt x="103" y="156" />
+        
+             <pt x="181" y="160" />
+             <pt x="192" y="185" />
+        
+             <pt x="181" y="160" />
+             <pt x="171" y="166" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="v">
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J1" reversible="false">
+     <listOfReactants>
+       <specieReference specie="Glucose-6-Phosphate" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="PEP" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="0" y="0" />
+        
+             <pt x="283" y="168" />
+             <pt x="283" y="168" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="v">
+     </kineticLaw>
+   </reaction>
+
+   <reaction name="J2" reversible="false">
+     <listOfReactants>
+       <specieReference specie="ADP" stoichiometry="1" />
+       <specieReference specie="PEP" stoichiometry="1" />
+     </listOfReactants>
+     <listOfProducts>
+       <specieReference specie="Pyruvate" stoichiometry="1"/>
+       <specieReference specie="ATP" stoichiometry="1"/>
+     </listOfProducts>
+
+     <annotations> 
+       <jd:arcSeg >
+             <pt x="333" y="280" />
+        
+             <pt x="289" y="254" />
+             <pt x="313" y="265" />
+        
+             <pt x="297" y="240" />
+             <pt x="313" y="265" />
+        
+             <pt x="353" y="295" />
+             <pt x="347" y="293" />
+        
+             <pt x="353" y="295" />
+             <pt x="371" y="356" />
+       </jd:arcSeg>
+     </annotations> 
+
+     <kineticLaw formula="v">
+     </kineticLaw>
+   </reaction>
+
+   </listOfReactions>
+  </model>
+</sbml>

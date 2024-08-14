@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2009/05/27 09:49:50 tolstyh Exp $  -->
+
+<project name="biouml.plugins.stochastic package test" default="autotest" basedir="../../../..">
+
+	<property name="package" value="biouml.plugins.stochastic" />
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="${package}._test.AutoTest" />
+		</ant>
+	</target>
+
+	<target name="generate">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.ModelGeneratorTest" />
+		</ant>
+	</target>
+
+	<target name="local_settings">
+		<ant antfile="build_bdk.xml" target="local_settings_tofile" />
+		<property file="${basedir}/.local.properties" />
+		<property file="${basedir}/.global.properties" />
+		<echo>SRCDIR=${SRCDIR}</echo>
+	</target>
+
+</project>

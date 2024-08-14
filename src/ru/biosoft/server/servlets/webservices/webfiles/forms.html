@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>Demo for user forms</title>
+	<script type="text/javascript" src="lib/jquery/jquery-1.4.2.min.js">
+    </script>
+	<script type="text/javascript">
+    $(document).ready(function()
+	{
+		//load countries
+		$.getJSON("http://localhost:8080/biouml/trial/dictionary?name=countries&callback=?", function(data)
+		{
+		   		if(data.type=='ok')
+           		{
+           			var countriesElement = $('#form1').find('#countryID');
+           			var countriesElement2 = $('#form2').find('#countryID');
+           			for (id in data.value)
+           			{
+           				countriesElement.append('<option value="' + data.value[id].id + '">' + data.value[id].name + '</option>');
+           				countriesElement2.append('<option value="' + data.value[id].id + '">' + data.value[id].name + '</option>');
+           			} 
+           		}
+           		else
+           		{
+           			alert("ERROR: "+data.message);
+           		}
+        });
+        //load species
+		$.getJSON("http://localhost:8080/biouml/trial/dictionary?name=species&callback=?", function(data)
+		{
+		   		if(data.type=='ok')
+           		{
+           			var speciesElement = $('#form3').find('#speciesID');
+           			for (id in data.value)
+           			{
+           				speciesElement.append('<option value="' + data.value[id].id + '">' + data.value[id].name + '</option>');
+           			} 
+           		}
+           		else
+           		{
+           			alert("ERROR: "+data.message);
+           		}
+        });
+		
+		$('#submit_1').click(function()
+		{
+			$.getJSON("http://localhost:8080/biouml/trial/registerDemoUser?email="+$('#form1').find('#email').val()+"&callback=?", function(data)
+			{
+		    		if(data.type=='ok')
+            		{
+            			alert("SUCCESS: we'll send you access info by email after some minutes");
+            		}
+            		else
+            		{
+            			alert("ERROR: "+data.message);
+            		}
+        	});
+        });
+        $('#submit_1_2').click(function()
+		{
+			$.ajax(
+    		{
+        		type: 'POST',
+        		url: '../biouml/trial/registerTrialUser',
+        		data: 
+        		{
+					email: $('#form1').find('#email').val(),
+					courtesy: $('#form1').find('#courtesy').val(),
+					firstName: $('#form1').find('#firstName').val(),
+					middleName: $('#form1').find('#middleName').val(),
+					lastName: $('#form1').find('#lastName').val(),
+					organization: $('#form1').find('#organization').val(),
+					organizationType: $('#form1').find('#organizationType').val(),
+					countryID: $('#form1').find('#countryID').val(),
+					city: $('#form1').find('#city').val(),
+					address: $('#form1').find('#address').val(),
+					zip: $('#form1').find('#zip').val()
+				},
+        		success: function(data)
+        		{
+            		if(data.type=='ok')
+            		{
+            			alert("SUCCESS: we'll send you result by email after some minutes");
+            		}
+            		else
+            		{
+            			alert("ERROR: "+data.message);
+            		}
+        		},
+        		dataType: 'json'
+    		});
+		});
+		$('#submit_2').click(function()
+		{
+			$.ajax(
+    		{
+        		type: 'POST',
+        		url: '../biouml/trial/updateRegistration',
+        		data: 
+        		{
+					email: $('#form2').find('#email').val(),
+					pass: $('#form2').find('#pass').val(),
+					courtesy: $('#form2').find('#courtesy').val(),
+					firstName: $('#form2').find('#firstName').val(),
+					middleName: $('#form2').find('#middleName').val(),
+					lastName: $('#form2').find('#lastName').val(),
+					organization: $('#form2').find('#organization').val(),
+					organizationType: $('#form2').find('#organizationType').val(),
+					countryID: $('#form2').find('#countryID').val(),
+					city: $('#form2').find('#city').val(),
+					address: $('#form2').find('#address').val(),
+					zip: $('#form2').find('#zip').val()
+				},
+        		success: function(data)
+        		{
+            		if(data.type=='ok')
+            		{
+            			alert("SUCCESS: we'll send you result by email after some minutes");
+            		}
+            		else
+            		{
+            			alert("ERROR: "+data.message);
+            		}
+        		},
+        		dataType: 'json'
+    		});
+		});
+		
+		
+		$('#form3').find('#example').click(function()
+    	{
+        	$('#form3').find('#genes').val("BCL2A1\nBIRC3\nCCL2\nCCL20\nCD69\nCSF2\nCX3CL1\nCXCL1\nCXCL2\nCXCL3\nCXCL5\nCXCR7\nF3\nICAM1\nIL18R1\nIL7R\nIL8\nIRF1\nJAG1\nLTB\nNFKBIA\nRND1\nSELE\nSLC7A2\nSOD2\nTNFAIP2\nTNFAIP3\nTRAF1\nUBD\nVCAM1");
+        	return false;
+    	});
+		$('#submit_3').click(function()
+		{
+		    var genes = encodeURIComponent($('#form3').find('#genes').val());
+		    $.getJSON("http://localhost:8080/biouml/trial/demoAnalysis?email="+$('#form3').find('#email').val()+"&pass="+$('#form3_b').find('#pass').val()+"&speciesID="+$('#form3').find('#speciesID').val()+"&genes="+genes+"&callback=?", function(data)
+            {
+					if(data.type=='ok')
+            		{
+            			alert("SUCCESS: we'll send you result by email after some minutes");
+            		}
+            		else
+            		{
+            			alert("ERROR: "+data.message);
+            		}
+        	});
+		});
+	});
+    </script>
+</head>
+<body>
+	<h3>1. Free demo account (24 hours)</h3>
+	<form id="form1" action="#" method="post">
+	<table border=0>
+		<tr><td>E-mail:</td><td><input type="text" id="email" name="email"/></td></tr>
+		<tr><td><input id="submit_1" type="button" value="Create demo"/></td><td>Give your e.mail adress - this will be enough to recieve a FREE demo account for 24 hours (no data uploading will be possible though)</td></tr>
+	    <tr><td colspan=2>&nbsp;</td></tr>
+		<tr><td>Courtesy: </td><td><select id="courtesy" name="courtesy"><option>Mr.</option><option>Dr.</option><option>Ms.</option><option>Mrs.</option><option>Miss</option><option>Prof.</option><option>Sir</option></select></td></tr>
+		<tr><td>First name: </td><td><input type="text" id="firstName" name="firstName"/></td></tr>
+		<tr><td>Middle name: </td><td><input type="text" id="middleName" name="middleName"/></td></tr>
+		<tr><td>Last name: </td><td><input type="text" id="lastName" name="lastName"/></td></tr>
+		<tr><td>Organization: </td><td><input type="text" id="organization" name="organization"/></td></tr>
+		<tr><td>Organization type: </td><td><select id="organizationType" name="organizationType"><option>academic</option><option>govermental</option><option>commercial</option></select></td></tr>
+		<tr><td>Country: </td><td><select id="countryID" name="countryID"></select></td></tr>
+		<tr><td>City: </td><td><input type="text" id="city" name="city"/></td></tr>
+		<tr><td>Address: </td><td><input type="text" id="address" name="address"/></td></tr>
+		<tr><td>ZIP code: </td><td><input type="text" id="zip" name="zip"/></td></tr>
+		<tr><td><input id="submit_1_2" type="button" value="Create trial"/></td><td>Please provide required information to recieve the FULL FREE TRIAL account for 2 weeks</td></tr>
+	</table>
+	</form>
+	<hr>
+	<h3>2. Free trial (two weeks)</h3>
+	<form id="form2" action="#" method="post">
+		E-mail: <input type="text" id="email" name="email"/><br>
+		Password: <input type="password" id="pass" name="pass"/><br>
+		<br>
+		Courtesy: <select id="courtesy" name="courtesy"><option>Mr.</option><option>Dr.</option><option>Ms.</option><option>Mrs.</option><option>Miss</option><option>Prof.</option><option>Sir</option></select><br>
+		First name: <input type="text" id="firstName" name="firstName"/><br>
+		Middle name: <input type="text" id="middleName" name="middleName"/><br>
+		Last name: <input type="text" id="lastName" name="lastName"/><br>
+		Organization: <input type="text" id="organization" name="organization"/><br>
+		Organization type: <select id="organizationType" name="organizationType"><option>academic</option><option>govermental</option><option>commercial</option></select><br>
+		Country: <select id="countryID" name="countryID"></select><br>
+		City: <input type="text" id="city" name="city"/><br>
+		Address: <input type="text" id="address" name="address"/><br>
+		ZIP code: <input type="text" id="zip" name="zip"/><br>
+		<br>
+		<input id="submit_2" type="button" value="Upgrade to trial"/>
+	</form>
+	<hr>
+	<h3>3. Explain my genes</h3>
+	<form id="form3" action="#" method="post">
+	    <a id="example" href="#">example</a><br/>
+		E-mail: <input type="text" id="email" name="email"/><br>
+		Species: <select id="speciesID" name="speciesID"></select><br>
+		Gene list (one per line):<br><textarea id="genes" name="genes"></textarea><br>
+		<br>
+		<input id="submit_3" type="button" value="Explain by e-mail"/>
+	</form>
+	<form id="form3_b" action="#">
+	    Password: <input type="password" id="pass" name="pass"/><br>
+	</form>
+	<hr>
+</body>
+</html>

@@ -1,0 +1,26 @@
+/*
+ * New research action
+ * This action is currently disabled as the same effect can be achieved through new_diagram
+ */
+{
+    id: "new_research",
+    label: "New research",
+	icon: "../biouml/web/img?id=biouml.plugins.research:biouml/plugins/research/resources/workflow.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') && dc.isJournal()) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createJournalDiagram(path, 'research');
+    }"
+}

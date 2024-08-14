@@ -1,0 +1,21 @@
+<h2>Adaptive simulated annealing (ASA)</h2>
+
+<p>
+  ASA algorithm<span class="ref">1</span> is developed to statistically find the best global fit of a nonlinear non-convex
+  cost-function over a <i>D</i>-dimensional space. It is argued that this algorithm permits an annealing
+  schedule for "temperature" <i>T</i> decreasing exponentially in annealing-time <i>k</i>,
+  <i>T</i> = <i>T</i><sub>0</sub>exp(-<i>c</i><i>k</i><sup>(1/<i>D</i>)</sup>).
+  The introduction of re-annealing also permits adaptation
+  to changing sensitivities in the multi-dimensional parameter-space. This annealing schedule is faster
+  than fast Cauchy annealing, where <i>T</i> = <i>T</i><sub>0</sub>/<i>k</i>, and much faster than Boltzmann annealing,
+  where <i>T</i> = <i>T</i><sub>0</sub>/ln <i>k</i>.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li>L Ingber,
+    "Adaptive simulated annealing (ASA): Lessons learned."
+    Control and Cybernetics, Vol. 25, No. 1, pp. 33-54, 1996.
+  </li>
+</ol>

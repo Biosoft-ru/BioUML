@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: com.Ostermiller.syntax;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Vendor: %providerName
+Bundle-ClassPath: syntax.jar
+Export-Package: com.Ostermiller,
+ com.Ostermiller.Syntax,
+ com.Ostermiller.Syntax.Lexer,
+ com.Ostermiller.Syntax.doc,
+ com.Ostermiller.bte,
+ com.Ostermiller.util

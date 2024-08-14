@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="Perfectosape" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.perfectosape.PerfectosapeAnalysis" group="Mutations" name="Perfectosape" description="Run perfectosape analysis." js="perfectosape.perfectosape"/> 
+  </extension>
+
+  <extension id="perfectosape" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="perfectosape" class="biouml.plugins.perfectosape.JavaScriptPerfectosape" >
+    </hostObject>
+  </extension>
+</plugin>

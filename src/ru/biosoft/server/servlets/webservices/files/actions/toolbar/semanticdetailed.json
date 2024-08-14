@@ -1,0 +1,24 @@
+/*
+ * Overview action
+ */
+{
+    id: "semantic_detailed",
+    label: "Detailed",
+    icon: "icons/detailed.gif",
+    visible: "function(doc)
+    {
+    	if ((doc != null) && (doc instanceof SequenceDocument)) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = opennedDocuments[activeDocumentId];
+        if (activeDocument instanceof SequenceDocument) 
+        {
+            activeDocument.zoomDetailed();
+        }
+    }"
+}

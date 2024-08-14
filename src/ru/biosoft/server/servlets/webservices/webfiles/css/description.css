@@ -1,0 +1,62 @@
+/*
+CSS for element info
+*/
+.elementDescriptionScrollPane {
+	overflow: auto;
+	position: relative;
+}
+
+.elementDescription {
+	font-size: 10pt;
+	font-family: tahoma, helvetica, arial, sans-serif;
+}
+
+.elementDescription .workbench-only {
+	display: none;
+}
+
+.elementDescription table.formula {
+	width: 100%;
+}
+
+.elementDescription span.formula-text {
+	white-space: nowrap;
+}
+
+.elementDescription div.formula-text {
+	white-space: nowrap;
+	text-align: center;
+}
+
+.elementDescription td.formula-text {
+	white-space: nowrap;
+	width: 90%;
+	text-align: center;
+} 
+
+.elementDescription .formula-number {
+	text-align: right;
+	width: 10%;
+	font-weight: bold;
+}
+
+.elementDescription .references {
+	font-size: 100%;
+}
+
+.elementDescription .ref {
+	vertical-align: super;
+	font-size: 85%;
+}
+
+.elementDescription h2 {
+}
+
+.elementDescription h3 {
+	margin: 0pt;
+	padding: 10pt 0pt 0pt;
+}
+
+.elementDescription pre {
+	padding-left: 40pt;
+}

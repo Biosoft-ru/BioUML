@@ -1,0 +1,5 @@
+model diagramTest
+   substanceOnly species s2;
+   species s1;
+   compartment default;
+end

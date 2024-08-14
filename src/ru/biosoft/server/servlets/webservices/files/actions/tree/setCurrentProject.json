@@ -1,0 +1,20 @@
+/*
+ * Find project action
+ */
+{
+    id: "set_current_project",
+    label: "Set as current project",
+    icon: "icons/ok.png",
+    visible: "function(completePath)
+    {
+    	var path = getElementPath(completePath);
+        if(path == appInfo.userProjectsPath && completePath != currentProjectPath) 
+        	return true;
+        return -1;
+    }",
+    action: "function(completePath)
+    {
+    	var name = getElementName(completePath);
+    	setCurrentProject(name);
+    }"
+}

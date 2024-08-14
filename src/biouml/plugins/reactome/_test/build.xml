@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<project name="biouml.plugins.reactome._test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.reactome"/>
+
+    <target name="autotest">
+		<ant target="rtest">
+		</ant>
+	</target>
+    
+    <target name="matching.test">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.ReactomeMatchingHubTest" />
+		</ant>
+	</target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

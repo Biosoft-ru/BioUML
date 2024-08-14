@@ -1,0 +1,64 @@
+<tool id="sissrs14" name="SISSRs v1.4">
+    <description></description>
+    <command interpreter="perl">/opt/tools/sissrs_v1.4/sissrs.pl -i $input -o $output -s $size 
+#if str ($background) != 'None':
+  -b $background
+#end if
+#if str ($ignore) != 'None':
+  -q $ignore
+#end if
+#if str ($fragment_length) != '0':
+  -F $fragment_length
+#end if
+$ignore_same -D $fdr -e $evalue -p $pvalue -m $mappable -w $window -E $E -L $L $output_style $report_unmapped</command>
+    <inputs>
+        <param name="input" type="data" format="bed" label="Input track (-i)"/>
+        <param name="background" type="data" format="bed" optional="True" label="Background track (-b)"/>
+        <param name="ignore" type="data" format="bed" optional="True" label="Ignore regions (-q)" help="Reads falling withing regions in this track will not be considered for the analysis."/>
+        <param name="size" type="float" value="3080000000" label="Genome size (-s)"/>
+        <param name="ignore_same" type="boolean" truevalue="-a" falsevalue="" checked="False" label="Ignore multiple (-a)" help="If this option is set, only one read is kept if multiple reads align to the same genomic coordinate, thus effectively minimizing PCR amplification bias."/>
+        <param name="fragment_length" type="integer" value="0" label="Average fragment length (-F)" help="Average length of the DNA fragments from ChIP, whose ends (typically ~25-50 nt) were sequenced (use 0 for auto-detect)"/>
+        <param name="fdr" type="float" value="0.001" label="FDR (-D)" help="False discovery rate if random background model based on Poisson probabilities need to be used as control (i.e., no background data is available)."/>
+        <param name="evalue" type="float" value="10" label="e-value threshold (-e)" help="It is the maximum number of &quot;enriched regions&quot; one can expect to see by chance (Poisson probabilities), when analyzing a similar-sized dataset. The value entered for this option is used to estimate the minimum number of reads necessary to identify candidate binding sites. This option controls sensitivity, and is irrelevant if no background control data is used."/>
+        <param name="pvalue" type="float" value="0.001" label="p-value threshold (-p)" help="This option controls specificity, and is irrelevant if no background control data is used."/>
+        <param name="mappable" type="float" value="0.8" label="Mappable genome fraction (-m)" help="Fraction of genome (0.0 to 1.0) mappable by reads. Typically, sequenced reads could be mapped only to a fraction of the reference genome. That is, there are regions in the genome, containing repetitive elements, which are not mappable."/>
+        <param name="window" type="integer" value="20" label="Size of the scanning window (-w)" help="Size of the overlapping/sliding scanning window (must be an even number >1), which is one of the parameters that attempts to control for noise in the data. The scanning window slides in such a manner that there is a 50% overlap between two consecutive window positions."/>
+        <param name="E" type="integer" value="2" label="E (-E)" help="Number of 'directional' reads required within average fragment length base pairs on either side of the inferred binding site. This is one of the parameters that controls for specificity. The higher the E, the more specific (and less sensitive) SISSRs will be, and vice-versa."/>
+        <param name="L" type="integer" value="500" label="Max DNA fragment length (-L)" help="It is the approximate length/size of the longest DNA fragment that was sequenced. This value is one of the critical parameters used during the estimation of average DNA fragment length."/>
+        <param name="output_style" type="select" label="Output sites style" help="Output sites style">
+            <option value="-c" selected="True">clustered (-c)</option>
+            <option value="-r">regions (-r)</option>
+            <option value="-t">single BP (-t)</option>
+		</param>
+        <param name="report_unmapped" type="boolean" truevalue="-u" falsevalue="" checked="False" label="Report unmapped (-u)" help="If this option is set, SISSRs also reports binding sites supported only by reads mapped to either sense or anti-sense strand. This option will recover binding sites whose sense or anti-sense reads were not mapped for some reason"/>
+    </inputs>
+    <outputs>
+      <data format="sissrs" name="output" label="Output (-o)"/>
+    </outputs> 
+    <help>
+** Description **
+
+SISSRs is a software application for precise identification of genome-wide transcription factor binding
+sites from ChIP-Seq data. It is essentially a perl implementation of the SISSRs algorithm outlined in
+Jothiet et al, 2008, with several new features that were not fully described in the original paper.
+
+ChIP-Seq, which combines chromatin immunoprecipitation (ChIP) with next generation massively
+parallel sequencing, is a powerful experimental technique to determine whether proteins including,
+but not limited to, transcription factors bind to specific regions on chromatin in vivo. In ChIP-Seq, the DNA
+fragments obtained from ChIP are directly sequenced using the next generation genome sequencers such as
+Illumina Genome Analyzers. Although the lengths of the input DNA could be anywhere between ~200
+bp and 1 kb, typically, only the first 25-50 nt from the DNA ends are sequenced. The resulting short
+reads are mapped back to a reference genome, and only those reads that map to an unique genomic locus
+in the reference genome are considered for further analysis. Mapped reads are commonly referred to as
+tags (henceforth, 'reads' and 'tags' are used interchangeably).
+
+A binding site is a region on the DNA to which specific proteins including, but not limited to,
+transcription factors bind in vivo. A typical binding site could be anywhere between ~5-20 nucleotides in
+length.
+
+** References **
+Raja Jothi, Suresh Cuddapah, Artem Barski, Kairong Cui, Keji Zhao
+Genome-wide identification of in vivo protein-DNA binding sites
+from ChIP-Seq Data. Nucleic Acids Research, 36(16):5221-31 (2008)
+    </help>
+</tool>

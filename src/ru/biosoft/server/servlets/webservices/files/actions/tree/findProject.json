@@ -1,0 +1,22 @@
+/*
+ * Find project action
+ */
+{
+    id: "find_project",
+    label: "Find project",
+    icon: "icons/search.gif",
+    visible: "function(completePath)
+    {
+        if(completePath == appInfo.userProjectsPath) return true;
+        return -1;
+    }",
+    action: "function()
+    {
+        loadBioUMLModules(['accountManager'], function()
+        {
+        }, function()
+        {
+            findProject();
+        });
+    }"
+}

@@ -1,0 +1,46 @@
+<h2>Enrichment analysis (GSEA)</h2>
+<p>
+	Gene set enrichment analysis (GSEA) is an advanced categories classification technique which works with ranked set of genes.
+	A group from classification is considered over-represented if most of input set genes belonging to the group are top-ranked genes.
+	Ranking is specified by user via numerical column (Fold-change values, for example).
+</p>
+<p>
+    For this analysis you have to prepare input table having Ensembl genes as rows. If your data have different row identifiers, consider
+	using "%analysis:Convert table%" analysis first.
+</p>
+%parameters%
+<h3>Result</h3>
+<p>
+	As the result of this analysis you will see the table where each row corresponds to the single group.
+	The following columns are always present in the result:
+</p>
+<ul>
+	<li><b>ID</b>: Accession number representing given group.
+	<li><b>Nominal p-value</b>: (<i>P</i>): P-value, calculated for the group using random permutations of the ranks: fraction of random permutations which showed better <i>ES</i>.
+	Only groups for which <i>P &le; P<sub>max</sub></i> are included into result.
+	<li><b>ES</b>: Enrichment score (or the most extreme Kolmogorov-Smirnov score).
+	<li><b>NES</b>: Normalized enrichment score. It's <i>ES</i> divided by average <i>ES</i> for all random sets which have the same sign.
+	<li><b>Number of hits</b> (<i>n</i>): Number of genes from the input set matched to the group.
+	Only groups for which <i>n &ge; n<sub>min</sub></i> are included into result.  
+	<li><b>Plot</b>: Click to see the plot. The plot shows how Kolmogorov-Smirnov score (<i>KS</i>) depends on gene rank (<i>r</i>).
+	Axis X shows gene ranks, axis Y shows <i>KS</i> value.
+	<i>KS</i> can be defined recurrently as follows:
+	<div class="formula-text"><img src="ks_score.png" alt="KS formula"></div>
+	Here <i>N</i> is the total number of genes in the input group.
+	The value of <i>ES</i> is the most extreme (maximal by absolute value) <i>KS</i>. Plot example is shown <a href="#plot">below</a>.
+	<li><b>Hits</b>: List of Ensembl IDs from the input set matched to the group (number of IDs is always <i>n</i>).
+</ul>
+<p>
+	More columns may present for specific classifications (e.g. group description). Column 'Level' if present means minimal number of steps necessary to achieve the root of classification hierarchy (thus higher values mean more specific and smaller groups). 
+</p>
+<a name="plot"></a><h3>Plot example</h3>
+<p>
+	<div><img src="plot_example.png" alt="Plot example"></div>
+	In this example plot is displayed for the set of 10 genes (<i>N</i> = 10) and 3 hits in the group (<i>n</i> = 3), which have ranks
+	1, 3 and 4. The most extreme <i>KS</i> value (which is enrichment score or <i>ES</i>) equals to <i>KS</i>(4), which can be calculated as follows:
+	<div class="formula-text"><img src="es_calculation.png" alt="ES calculation example"></div>
+</p>
+<h3>References</h3>
+<ol class="references">
+<li><a href="http://www.broadinstitute.org/gsea/">Gene Set Enrichment Analysis page on the Broad Institute site</a>
+</ol>

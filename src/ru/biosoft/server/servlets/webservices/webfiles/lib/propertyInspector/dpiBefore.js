@@ -1,0 +1,3 @@
+var keyHooker = {
+	addListener: function() {}	
+};

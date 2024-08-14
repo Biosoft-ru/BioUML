@@ -1,0 +1,32 @@
+<h2>Convert table identifiers using BioHub(s)</h2>
+
+<p>
+  This analysis changes the type of identifiers in the table and converts rows accordingly using a chain of BioHubs.
+  A BioHub is a converter between two or more types (for example, convert <i>"Genes: Ensembl"</i> into <i>"Proteins: Ensembl"</i>).
+  If direct conversion between two given types is impossible, this analysis will create the optimal chain of several BioHubs and use them subsequently.
+</p>
+
+<p>
+  Note that several non-trivial situations might occur during conversion:
+  <ul>
+    <li>Single source ID matches to several target IDs. In this case source row will be copied several times, one copy per one target ID.
+    <li>Source ID doesn't match to any target ID. In this case source row will be removed from result.
+    <li>Several source ID's match to single target ID. In this case two options available: 
+      <ul>
+        <li>You have specified main column. Of all suitable source rows only one will be selected to be put into result,
+          based on specified aggregator. For example, if you specified 'maximum' as an aggregator,
+          source row with maximal value in main column will be selected from suitable rows.
+        </li>      
+        <li>
+          You have not specified main column. All the corresponding source rows will be merged together using merging rules.
+          Non-trivial columns like 'Graph' will be removed from result. Text columns will have all values joined into
+          sorted comma-separated list with duplicates removed. Numerical columns will be merged based on selected aggregator.
+          For example, if you select 'average' as an aggregator, then mean value will appear in the result.
+          If your source column have integral type, some aggregators may change it to float.
+        </li>
+      </ul>
+    </li>
+  </ul>
+</p>
+
+%parameters%

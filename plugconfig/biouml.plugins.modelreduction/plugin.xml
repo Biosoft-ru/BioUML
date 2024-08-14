@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension id="SteadyStateSimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+        <analysisClass class="biouml.plugins.modelreduction.AlgebraicSteadyStateAnalysis" group="Differential algebraic equations" name="Algebraic steady state"  description="Find steady state by solving corresponding algebraic equations."/> 
+    </extension>
+  
+	<extension id="Steady State" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.SteadyStateAnalysis" group="Differential algebraic equations" name="Steady State" description="Find steady state by simuilating model until steady state." />
+	</extension>
+	
+	<extension id="Sensitivity Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.SensitivityAnalysis"
+          group="Differential algebraic equations"
+          name="Sensitivity Analysis"
+          shortDescription="Calculates sensitivities associated with the steady state."
+          description="biouml/plugins/modelreduction/resources/sa.html" />
+	</extension>
+	
+    <extension id="Key Node Sensitivity Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.KeyNodesSensitivityAnalysis" group="Differential algebraic equations" name="Key Node Sensitivity Analysis" description="" />
+	</extension>
+
+	<extension id="Metabolic Control Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.MetabolicControlAnalysis"
+            group="Differential algebraic equations"
+            name="Metabolic Control Analysis"
+            shortDecription="Quantifies how variables, such as fluxes and species concentrations, depend on the systems parameters."
+            description="biouml/plugins/modelreduction/resources/mca.html" />
+	</extension>
+	
+	<extension id="Mass Conservation Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.MassConservationAnalysis"
+           group="Differential algebraic equations"
+           name="Mass Conservation Analysis"
+           shortDescription=""
+           description="biouml/plugins/modelreduction/resources/mc.html" />
+	</extension>
+
+	<extension id="Stoichiometric Matrix" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.StoichiometricAnalysis"
+          group="Differential algebraic equations"
+          name="Stoichiometric Matrix"
+          shortDescription="Calculates stoichiometric matrix of the model."
+          description="biouml/plugins/modelreduction/resources/stoich.html" />
+	</extension>
+
+	<extension id="Quasi-Steady-State Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.QuasiSteadyStateAnalysis"
+          group="Differential algebraic equations"
+          name="Quasi-Steady-State Analysis"
+          shortDescription="Find a steady state by simulating model for sufficiently long time."
+          description="biouml/plugins/modelreduction/resources/qssa.html" />
+	</extension>
+
+	<extension id="Reactions Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.ReactionsAnalysis" 
+           group="Differential algebraic equations"
+           name="Reactions Analysis"
+           shortDescription="Find linear, monomolecular and pseudo-monomolecular reactions of a model."
+           description="biouml/plugins/modelreduction/resources/reactions.html" />
+	</extension>
+	
+	<extension id="Apply Events Analysis" point="ru.biosoft.analysiscore.method">
+		<analysisClass class="biouml.plugins.modelreduction.ApplyEvents" group="Differential algebraic equations" name="Apply events" description="" />
+	</extension>
+	
+	<extension id="steady state task" point="biouml.plugins.optimization.task"> 
+      <task type="Steady state"
+        class="biouml.plugins.modelreduction.SteadyStateTask" 
+	    parametersClass="biouml.plugins.modelreduction.SteadyStateTaskParameters" 
+	    parametersPriority="1"/>
+  </extension>
+  
+</plugin>

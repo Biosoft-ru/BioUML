@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2011/10/20 11:44:55 lan Exp $  -->
+
+<project name="ru.biosoft.server package test" default="autotest" basedir="../../../..">
+
+	<property name="package" value="ru.biosoft.table" />
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="${package}._test.AutoTest" />
+		</ant>
+	</target>
+
+	<target name="simple">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="${package}._test.StandardTableSimpleTest" />
+		</ant>
+	</target>
+
+	<target name="calculated">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="${package}._test.CalculatedTableTest" />
+		</ant>
+	</target>
+
+	<target name="import">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="${package}._test.ImportTableTest" />
+		</ant>
+	</target>
+
+	<target name="sqlQuery">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="${package}._test.SqlQueryTableTest" />
+		</ant>
+	</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

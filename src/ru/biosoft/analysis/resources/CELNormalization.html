@@ -1,0 +1,46 @@
+<h2>Affymetrix Normalization</h2>
+
+<p>
+  Normalization of Affymetrix CEL files based on the functions of the 
+  <a href="http://www.bioconductor.org/help/bioc-views/release/bioc/html/affy.html">Bioconductor AFFY package</a>.
+</p>
+<p>
+  In the case of arrays of new design (Affymetrix Gene ST, Clariom S and D, Human Transcriptome Array 2.0, Affymetrix miRNA Array etc.) the normalization is always done with the RMA method of the 
+  <a href="https://www.bioconductor.org/packages/release/bioc/html/oligo.html">Bioconductor <b>oligo</b> package</a>.
+</p>
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li data-property="celFiles"><b>CEL file</b> - the path to the CEL file.
+  <li data-property="method"><b>Method</b> (<tt>normalize</tt> AFFY function) - A generic function which normalizes microarray data.
+    Normalization is intended to remove from the intensity measures any systematic trends which arise from the microarray 
+    technology rather than from differences between the probes or between the target RNA samples
+    hybridized to the arrays.
+  <li data-property="bgCorrection"><b>Background Correction</b> (<tt>bgcorrect.method</tt>) - the name of the background adjustment method.
+  <li data-property="normMethod"><b>Normalization method</b> (<tt>normalize.method</tt>) - the normalization method to use.
+  <li data-property="pmCorrection"><b>PM correction</b> (<tt>pmcorrect.method</tt>) - the name of the PM adjustment method.
+  <li data-property="summarization"><b>Summarization</b> (<tt>summary.method</tt>) - the method used for the computation of expression values.
+  <li data-property="cdf"><b>CDF version</b> - version of Affymetrix CDF file.
+  <li data-property="outputPath"><b>Output name</b> - the name of the output data file.
+</ul>
+
+<p>
+  Original names of the AFFY functions used for analysis are shown in parentheses.
+  For a detailed description of these functions see the
+  <a href="http://www.bioconductor.org/packages/2.7/bioc/manuals/affy/man/affy.pdf">AFFY reference manual</a>.
+</p>
+
+<p>
+  Oligo RMA strategy performs background subtraction, quantile normalization and summarization (via median-polish).
+  For a detailed description of oligo package see the
+  <a href="https://www.bioconductor.org/packages/release/bioc/manuals/oligo/man/oligo.pdf">oligo reference manual</a>.
+</p>
+
+<p class="workbench-only">
+  <b>Note</b>: Before the CEL normalization is started you need to install R and Rserve on your computer.
+  For more information on installing, please visit
+   <a href="http://www.r-project.org/">R-project website</a>.
+</p>
+
+

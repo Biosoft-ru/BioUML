@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.download;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ com.developmentontheedge.util,
+ ru.biosoft.jobcontrol,
+ one.util.streamex,
+ it.sauronsoftware.ftp4j,
+ ru.biosoft.access
+Export-Package: biouml.plugins.download

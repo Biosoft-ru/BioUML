@@ -1,0 +1,60 @@
+<tool id="cnvnator_genotyping" name="Genopying for CNVnator" version="0.2.5">
+    <requirements>
+        <requirement type='package'>cnvnator</requirement>
+    </requirements>
+    <description></description>
+    <parallelism method="basic"></parallelism>
+
+  <command>
+    cat "$inputGenRegions" | cnvnator     
+    -root "$inputROOTFile"    
+    -genotype 
+    $binSize | tee "$output"
+  </command>
+
+    <inputs>
+        <param name="inputGenRegions" type="data"
+                    format="txt" label="Genomic regions for genotyping"
+                    help="Input ROOT file" />
+        <param name="inputROOTFile" type="data"
+                    format="CNVnatorRoot" label="Input Root file."
+                    help="Input ROOT file" />
+
+        <param name="binSize" type="integer" value="100"
+                    label="Bin Size for calculation" help="Bin Size should be the same as was used for histogram calculation" />        
+    </inputs>
+
+    <outputs>
+        <data format="txt" name="output" label="Text output"/>            
+    </outputs>
+
+    <tests>
+    </tests>
+
+    <help>
+
+The input file format: 
+------------------------------
+chr12:11396601-11436500
+chr22:20999401-21300400
+exit
+EOF
+-----------------------------
+Output file format: 
+Genotype chr1:104201-106700 XXXX.root 0.571939 0.558869
+Genotype chr1:107401-108200 XXXX.root 0.458549 0.44807
+Genotype chr1:107401-108200 XXXX.root 0.458549 0.44807
+Genotype chr1:109701-122800 XXXX.root 0.758377 0.741046
+Genotype chr1:109701-123700 XXXX.root 0.782897 0.765005
+Genotype chr1:123001-123700 XXXX.root 0.254318 0.248506
+Genotype chr1:124101-124800 XXXX.root 0.309656 0.302579
+Genotype chr1:124301-124800 XXXX.root 0.123225 0.120409
+
+
+For efficient calculation recommended to sort list of regions by chromosome.
+
+Please send your comments and suggestions regarding CNVnator to alexej.abyzov@yale.edu.
+and CNVnator integration issues/suggestions to support@biodatomics.com
+    </help>
+</tool>
+

@@ -1,0 +1,18 @@
+/*
+ * Home action for genome enhancer
+ */
+{
+    id: "home_ge",
+    label: "Home",
+    icon: "icons/home.gif",
+    visible: "function()
+    {
+        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+          return true;
+        return -1;
+    }",
+    action: "function()
+    {
+    	/*defined in wizard.js*/
+    }"
+}

@@ -1,0 +1,140 @@
+<h2>Hypergeometric analysis</h2>
+
+<p>
+  This method was designed for identification of down- and up-regulated genes.
+  Unlike other up and down identification methods for the same purpose, it compares expression levels to some constant level 
+  (<i>BV</i> - Boundary Value), and measures for a given expression profile the probability of obtaining
+  expression values that are higher (in the case of up regulated genes) or lower (for down-regulated genes)
+  than <i>BV</i> by randomly permutating of the input table and deriving random row from it. If the control is set, the the program will first 
+  divide data in the experiment table according to the average value from the control set.
+  As input we have one or two tables with names of genes as keys and rows containing the expression values.
+</p>
+
+<p>
+  <b>Note:</b> If control is set then result will be calculated only for elements which are present in both experimental
+  and control tables!
+</p>
+
+<p>
+  For each gene we test the null hypothesis and calculate a score that accumulates the information obtained for the
+  gene: The sign of the score indicates whether the gene is found to be up- or down-regulated, the absolute value of the score is equal to log(<i>P-value</i>) where <i>P-value</i> is the probability of mistakenly considering the gene element as disregulated
+  (lower <i>P-value</i> (hence higher absolute score value) means more reliable result).
+</p>  
+  
+<p>
+  <b>Note:</b> elements are considered in the context of whole element pool, considering that for almost every
+  element from table null hypothesis is true (experiment and control are not different significantly).
+</p>
+
+<p>
+  Method have rank character it does take into account only relationships between values so it
+  is very robust to outlines.
+</p>
+
+<h3>References:</h3>
+
+<ol class="references">
+  <li>
+    Y.V.Kondrakhin, R.N.Sharipov, A.E.Kel, F.A.Kolpakov. (2008)
+    Identification of Differentially Expressed Genes by Meta-Analysis of Microarray Data on Breast Cancer,
+    In Silico Biology, 8: 383-411.
+  </li>
+</ol>
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li data-property="experimentData"><b>Experiment</b> - experimental data for analysis.
+    <ul>
+      <li><b>Table</b> - a table data collection with experimental data stored in the BioUML repository.
+      <li><b>Columns</b> - the columns from the table which should be taken into account.
+    </ul>
+  </li>
+  
+  <li data-property="controlData"><b>Control</b> - control data for analysis (not obligatory).
+    <ul>
+      <li><b>Table</b> - a table data collection with control data stored in the BioUML repository.
+      <li><b>Columns</b> - the columns from the table which should be taken into account.
+    </ul>
+  </li>
+  
+  <li data-property="outputType"><b>Output type</b> - the type of genes to be included in the result table:
+    <ul>
+      <li>Up- and down-regulated
+      <li>Up-regulated
+      <li>Down-regulated
+    </ul>
+  </li>
+
+  <li data-property="pvalue"><b><i>P-value</i> threshold</b> - the threshold for the <i>P-value</i> (only genes with lower <i>P-value</i> will be included in the results)
+
+  <li data-property="threshold"><b>Outline boundaries</b> - lower and upper boundaries for values from the input table. Outliers will be ignored.
+
+  <li data-property="bv">
+    <b>Boundary value</b> - an expression will be compared with that value.
+    If you want to compare experimental data with control you should set it equal to 1.
+  </li>
+
+  <li data-property="fdr">
+    <b>Calculate FDR</b> - the test method for calculation of False Discovery Rate (FDR) -
+    an average rate of mistakenly found up or down
+    regulated genes with a given <i>P-value</i> threshold. It random permutates the data 50 times and applies 
+    hypergemetric test to each randomized set. FDR is calculated separately for up and down regulated
+    genes according to the formula:
+    
+    <div class="formula-text"><img src="fdr.png" alt="fdr up"></div>
+  </li>
+  
+  <li data-property="detailed"><b>Detailed output</b> - whether some technical information will be included in result or not.
+  
+  <li data-property="outputTablePath">
+    <b>Output table</b> -  the path in BioUML repository where the result table will be stored.
+    If a table with the specified path already exists it will be replaced.
+  </li>
+</ul>
+
+<h3>Method details</h3>
+
+<p>
+  Let us denote: <i>Y</i> = &#123;<i>Y</i><sub>1</sub>, ...,<i>Y</i><sub><i>m</i></sub>&#125; &#8212; as the measurements
+  of the gene expression for m patients, where:
+
+  <div class="formula-text"><img src="hg1.png" alt="expression"></div>
+
+  is the ratio of actual and control signals.
+  The analysis checks the hypothesis <i>H</i><sub>0</sub>: <i>Y</i><sub><i>i</i></sub> = <i>BV</i> &#8704;<i>i</i>.
+</p>
+
+<p>
+  <i>BV</i> (Boundary Value) &#8212; - is designed for discrimination between up- and down-regulation.
+  As a critical statistic we use:
+
+  <div class="formula-text"><img src="hg2.png" alt="statistic"></div>
+
+  In the case that the <i>H</i><sub>0</sub> hypothesis is true, our statistic will be distributed like hypergeometric
+  random value with parameters <i>N</i>, <i>M</i>, <i>n</i>, <i>m</i>, where
+  <ul class="parameters">
+    <li><i>n</i> is the total number of clones(genes) which expression is measured in experiment.
+    <li><i>M</i> is the amount of values which are greater or equal then <i>Y</i><sub><i>i</i></sub>
+    <li><i>N</i> = <i>mn</i> is the total amount of expression measurements in the table.
+    <li><i>m</i> is the total number of patients.
+  </ul>
+</p>
+
+<p>
+  We suppose that for almost all genes in the table the <i>H</i><sub>0</sub> hypothesis is true.
+  So, for every statistic we estimate temporary <i>P-values</i> as:
+  
+  <div class="formula-text"><img src="hg3.png" alt="tempPval"></div>
+  
+  As final <i>P-value</i> for gene we take:
+  
+  <div class="formula-text"><img src="hg4.png" alt="Pval"></div>
+  
+  Finally a gene is considered as
+  <ul>
+    <li><b>Up-regulated</b> if the expression value with the best <i>P-value</i> is lower than <i>BV</i>, and the <i>P-value</i> passes threshold.</li>
+    <li><b>Down-regulated</b> if the expression value with the best <i>P-value</i> is greater than <i>BV</i>, and the <i>P-value</i> passes threshold.</li>
+  </ul>
+  
+  <i>P-value</i> here is the estimated probability of this consideration to be wrong.

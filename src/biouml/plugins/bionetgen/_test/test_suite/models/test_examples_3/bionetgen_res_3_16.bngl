@@ -1,0 +1,31 @@
+begin model
+
+begin molecule types
+    A(b)
+    B(a)   # comment molecule type
+    C(c~uP~P)
+    D(d~0~1)
+    B1(a,b~uP~P)
+end molecule types
+
+begin parameters
+   P1: k1   15
+   P2: k2    5*k1/3    # comment param
+   P3: k3  18+2*(k2-5)
+end parameters
+
+begin seed species
+   S1: A(b)    k2  # comment seed species
+   S2: B(a)  5
+end seed species
+
+begin observables
+  O1:  Species    A_tot    A(b!?)
+    O2:Molecules   B_tot   B      # comment observable
+end observables
+
+begin reaction rules
+   R1: C(c~uP) + B(a)  ->  C(c~P)  MM(k3+1,k3)  exclude_reactants(1,A) # comment reaction
+end reaction rules
+
+end model

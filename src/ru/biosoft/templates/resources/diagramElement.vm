@@ -1,0 +1,103 @@
+#macro( strField $name $label )
+	#if($name && !$name.equals(""))
+		<b>$label</b>: $name <br>
+	#end
+#end
+
+#macro( boolField $name $label )
+	#if($name == "true" || $name == "false")<b>$label</b>: $name <br>#end
+#end
+
+#macro( strArrayField $name $label )
+	#if($name)
+			<b>$label</b>:
+			<ul>
+			#foreach( $str in $name )
+            	<li>$str</li>
+            #end
+            </ul>		
+			<br>
+	#end
+#end
+
+<html>
+    #addScript()
+	<body>
+	    #strField($de.getTitle(), "Title")
+	    #if($de.getShapeSize())<b>Size</b>: $de.shapeSize.width x $de.shapeSize.height <br>#end
+	    #if($de.getKernel())
+	        <b>Data</b>: <br>
+	    	#strField($de.kernel.date, "&nbsp;Date")
+	    	#strField($de.kernel.title, "&nbsp;Title")
+	    	#strField($de.kernel.comment, "&nbsp;Comment")
+	    	#strField($de.kernel.completeName, "&nbsp;Complete name")
+	    	#strField($de.kernel.synonyms, "&nbsp;Synonyms")
+	    	#strField($de.kernel.description, "&nbsp;Description")
+    		#getDBRefListCollapsible($resolver, $de, $DBRef, "true")
+    		#if($DBRef != "")
+                &nbsp;$DBRef
+            #end
+			#if($de.kernel.literatureReferences)
+				<b>&nbsp;Literature</b>:<br>
+				#foreach( $dr in $de.kernel.literatureReferences )
+        	    	<b>&nbsp;&nbsp;PMID</b>: $dr<br>
+        	    #end
+			#end
+			#strField($de.kernel.type, "&nbsp;Type")
+			#strField($de.kernel.chromosome, "&nbsp;Chromosome")
+	    	#strField($de.kernel.source, "&nbsp;Source")
+	    	#strField($de.kernel.regulation, "&nbsp;Regulation")
+	    	#strField($de.kernel.casRegistryNumber, "&nbsp;CAS")
+	    	#strField($de.kernel.formula, "&nbsp;Formula")
+	    	#strField($de.kernel.value, "&nbsp;Value")
+	    	#strField($de.kernel.unit, "&nbsp;Unit")
+	    	#strField($de.kernel.queryById, "&nbsp;QID")
+	    	#strField($de.kernel.queryByAc, "&nbsp;QAC")
+	    	#strField($de.kernel.platform, "&nbsp;Platform")
+	    	#boolField($de.kernel.isReversible(), "&nbsp;Reversible")
+	    	#boolField($de.kernel.isFast(), "&nbsp;Fast")
+	    	#if($de.kernel.kineticLaw)
+				<b>&nbsp;Kinetic law</b>:<br>
+			    <b>&nbsp;&nbsp;Formula</b>: $de.kernel.kineticLaw.formula <br>
+			    <b>&nbsp;&nbsp;Time units</b>: $de.kernel.kineticLaw.timeUnits <br>
+			    <b>&nbsp;&nbsp;Substance inits</b>: $de.kernel.kineticLaw.substanceUnits <br>
+			    <b>&nbsp;&nbsp;Comment</b>: $de.kernel.kineticLaw.comment <br>
+				<br>
+			#end
+	    	#strField($de.kernel.relationType, "&nbsp;Relation type")
+	    	#strField($de.kernel.role, "&nbsp;Role")
+	    	#strField($de.kernel.stoichiometry, "&nbsp;Stoichiometry")
+	    	#if($de.kernel.specieReferences)
+				<b>&nbsp;Specie references</b>:
+				<ul>
+				#foreach( $sr in $de.kernel.specieReferences )
+        	    	<li>&nbsp;$sr.name ($sr.specie)</li>
+        	    #end
+        	    </ul>		
+				<br>
+			#end
+			#if($de.kernel.getAttributes())
+				#if ($de.kernel.attributes.size() > 0)
+	    			<b>&nbsp;Attributes</b>: <br>
+	    			#displayAttributesCollapsible($de.kernel.attributes)
+        		#end
+        	#end
+	    #end
+	    #if($de.getRole())
+	    	<b>Role</b>: <br>
+	    	#strField($de.role.name, "&nbsp;Name")
+	    	#strField($de.role.initialValue, "&nbsp;Initial value")
+	    	#boolField($de.role.isBoundaryCondition(), "&nbsp;Boundary condition")
+	    	#strField($de.role.units, "&nbsp;Units")
+	    	#boolField($de.role.isShowInPlot(), "&nbsp;Show in plot")
+	    	#strField($de.role.plotLineSpec, "&nbsp;Plot line spec")
+	    	#strField($de.role.equation, "&nbsp;Equation")
+	    	#strField($de.role.variable, "&nbsp;Variable")
+	    	#strField($de.role.type, "&nbsp;Type")	
+	    #end
+	    #if ($de.getAttributes().size() > 0)
+	    	<b>Attributes</b>: <br>
+	    	#displayAttributesCollapsible($de.attributes)
+        #end
+	</body>
+</html>

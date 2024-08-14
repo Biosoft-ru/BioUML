@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2012/03/16 04:17:15 helenka Exp $  -->
+
+<project name="biouml.plugins.optimization package test" default="autotest" basedir="../../../../">
+
+	<property name="package" value="biouml.plugins.optimization" />
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="biouml.plugins.optimization._test.AutoTest" />
+		</ant>
+	</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

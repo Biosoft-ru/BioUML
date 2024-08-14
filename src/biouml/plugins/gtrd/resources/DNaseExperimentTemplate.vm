@@ -1,0 +1,99 @@
+#macro( strField $name $label )
+    #if ($name && !$name.equals(""))
+    	<b>$label</b>: $name<br>
+	#end
+#end
+
+#macro( deRef $path $label )
+  #if ( $path && !$path.toString().isEmpty() )
+    #set( $name = $path.toString().replaceAll(".*/", "") )
+    <b>$label</b>: <a href="de:$path">$name</a><br>
+  #end
+#end
+
+#macro( gtrdDE $path )
+  #if( $path.exists() )
+    <a href="#de=$path">$path.getName()</a>
+  #else
+    $path.getName()
+  #end
+  #set( $properties = $de.getElementProperties($path.getName().replaceAll("[.].*", "")) ) 
+  #set( $delim = "" ) 
+  #if( !$properties.isEmpty() ) 
+  (
+    #foreach ( $p in $properties.entrySet() ) 
+      $delim
+      #set($delim=", ")
+      #if ( $p.getKey().equals("url") ) 
+        fetched from <a href="$p.getValue()">URL</a>
+      #else
+        $p.getKey()=$p.getValue()
+      #end
+    #end
+  )
+  #end
+  <br>
+#end
+
+#macro(gtrdPeaks $path)
+  $path.getName()
+  #if( $path.exists() )
+  (open as <a href="#de=$path&action=open_table">table</a>
+   or in <a href="#de=$path&action=open_genome_browser">genome browser</a>
+   or <a href="#de=$path&action=export_element">export</a>)
+   #else
+   (not available)
+   #end
+  <br>
+#end
+
+#macro(gtrdAligns $path)
+  $path.getName()
+  #if( $path.exists() )
+  (open in <a href="#de=$path&action=open_genome_browser">genome browser</a>)
+  #else
+  (not available)
+  #end
+  <br>
+#end
+
+<html>
+  <body>
+     <h1>$de.name</h1>
+     #strField( $de.cell.title, "Cell" )
+     #strField( $de.specie, "Specie" )
+     #strField( $de.treatment, "Treatment" )
+     
+     <b>Reads</b>:<br> 
+     #foreach( $r in $de.reads )
+       #gtrdDE($r)
+     #end
+     
+     <b>Alignments</b>: #gtrdAligns($de.alignment)
+     
+     <b>MACS2 Peaks</b><br>
+     #foreach( $p in $de.macsPeaks )
+       #gtrdPeaks($p)
+     #end
+     
+     <b>Wellington Peaks</b><br>
+     #foreach( $p in $de.wellingtonPeaks )
+       #gtrdPeaks($p)
+     #end
+
+     #if( !$de.externalRefs.isEmpty() )
+       <b>External references</b>:<br>
+       #foreach( $ref in $de.externalRefs )
+         <li>$ref.externalDB :
+         #if ($ref.externalDB.equals("GEO"))
+           <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=$ref.id">$ref.id</a>
+         #elseif ($ref.externalDB.equals("PUBMED"))
+           <a href="http://www.ncbi.nlm.nih.gov/pubmed/$ref.id">$ref.id</a>
+         #else
+           $ref.id
+         #end
+         </li>
+       #end
+     #end
+  </body>
+</html>

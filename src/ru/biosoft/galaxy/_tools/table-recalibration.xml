@@ -1,0 +1,86 @@
+<tool name="Table recalibration" id="table_recalibration" version="1.5-11">
+  <command>/bin/bash -v "$bashScript" </command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file" />
+    
+    <param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="gatk_picard_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+	<param name="recalFile" type="data" format="data" label="Recalibration table" help="Recalibration table from Count covariates analysis"/>
+	
+   <param name="defaultPlatform" type="select" label="Sequencing platform" help="If a read has no platform then default to the provided String.">
+      <option value="illumina" selected="True">illumina</option>
+      <option value="solid">solid</option>
+      <option value="454">454</option>
+    </param>
+        <param name="compressionLevel" type="integer" label="Compression level" value="6" help="Compression level for output bam"/>
+	<param name="tmpFolder" type="text" label="TMP folder" value="/tmp" />
+	<param name="nThreads" type="integer" label="Number of threads" value="30" />
+	<param name="memoryUsage" type="text" label="Max memory usage" value="6"  help="Max memory usage per thread in gigabytes" />
+    
+  </inputs>
+  
+  <outputs>
+	<data format="txt" name="log" label="Log file" />
+	<data format="bam" name="output" label="Realigned BAM file" />
+  </outputs>
+  
+  <configfiles>
+    <configfile name="script">
+import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.sting.queue.extensions.gatk._
+
+class QTableRecalibration extends QScript {
+  def script() {
+    val tableRecalibration = new TableRecalibration
+    tableRecalibration.reference_sequence = new File("${ refGenome.fields.path }")
+    tableRecalibration.input_file :+= new File("$input_bam")
+    tableRecalibration.recal_file = new File("$recalFile")
+    tableRecalibration.out = new File("$output")
+    tableRecalibration.scatterCount = $nThreads
+    tableRecalibration.memoryLimit = $memoryUsage
+    tableRecalibration.default_platform = "$defaultPlatform"
+    tableRecalibration.log = new File("$log"+".tmp")
+    tableRecalibration.performanceLog = new File("$log"+".perf.tmp")
+    tableRecalibration.compress=$compressionLevel
+    add(tableRecalibration)
+  }
+}
+    </configfile>
+<configfile name="bashScript">#!/bin/bash -v
+DEST=`dirname $log`
+cd \$DEST
+
+runqueue "$tmpFolder" "$script" "\$DEST"
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "runqueue finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+cd \$DEST
+
+### cat *.jobreport.txt "$log".tmp "$log".perf.tmp &gt; $log
+cat *.jobreport.txt ${output}.out &gt; $log
+
+    </configfile>
+
+  </configfiles>
+  
+  <help>
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

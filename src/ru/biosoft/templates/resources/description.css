@@ -1,0 +1,58 @@
+table.formula {
+	width: 100%;
+}
+
+span.formula-text {
+	white-space: nowrap;
+}
+
+div.formula-text {
+	white-space: nowrap;
+	text-align: center;
+}
+
+td.formula-text {
+	white-space: nowrap;
+	width: 90%;
+	text-align: center;
+}
+
+td.centered-text {
+	white-space: nowrap;
+	text-align: center;
+}
+
+.formula-number {
+	text-align: right;
+	width: 10%;
+	font-weight: bold;
+}
+
+.references {
+	font-size: 100%;
+}
+
+ul.parameters {
+	list-style-type: none;
+}
+
+ul.analysis-parameters {
+	list-style-type: circle;
+}
+
+.ref {
+	vertical-align: super;
+	font-size: 85%;
+}
+
+h2 {
+}
+
+h3 {
+	margin: 0pt;
+	padding: 10pt 0pt 0pt;
+}
+
+pre {
+	padding-left: 40pt;
+}

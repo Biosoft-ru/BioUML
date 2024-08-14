@@ -1,0 +1,5 @@
+species s;
+model example()
+   species s1;
+end
+   Sub: example(), extentconv = k, timeconv = t;

@@ -1,0 +1,36 @@
+/*
+ * Export action
+ */
+{
+    id: "export_element",
+    label: "Export",
+    icon: "icons/export.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+		if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || instanceOf(type,'ru.biosoft.table.TableDataCollection') 
+        || instanceOf(type,'ru.biosoft.bsa.Track') || instanceOf(type,'ru.biosoft.access.FileDataElement')
+        || instanceOf(type,'ru.biosoft.bsa.AnnotatedSequence') || instanceOf(type,'biouml.standard.state.State')
+        || instanceOf(type,'ru.biosoft.access.ImageElement') || instanceOf(type,'ru.biosoft.access.TextDataElement')
+        || instanceOf(type, 'biouml.model.Diagram') || instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(completePath)
+    {
+	    $.chainclude(
+		    {
+		        'lib/export.js':function(){
+					exportElement(completePath, 'Element');
+		        }
+		    }
+	    );
+    }"
+}

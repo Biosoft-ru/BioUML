@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="../css/jstree/tree_component.css" />
+        <script type="text/javascript" src="../lib/jquery/jquery-1.3.2.min.js">
+        </script>
+        <script type="text/javascript" src="../lib/jstree/css.js">
+        </script>
+        <script type="text/javascript" src="../lib/jstree/tree_component.min.js">
+        </script>
+    </head>
+    <body>
+        <div id="demo1" class="demo">
+            <ul>
+                <li id="phtml_1" class="open">
+                    <a href="#">Root node 1</a>
+                    <ul>
+                        <li id="phtml_2">
+                            <a href="http://ya.ru">Custom icon</a>
+                        </li>
+                        <li id="phtml_3">
+                            <a href="#">Child node 2</a>
+                        </li>
+                        <li id="phtml_4">
+                            <a href="#">Some other child node 111</a>
+                        </li>
+                    </ul>
+                </li>
+                <li id="phtml_5">
+                    <a href="#">Root node 2</a>
+                </li>
+            </ul>
+        </div>
+        <script type="text/javascript">
+            $(function()
+            {
+                $("#demo1").tree();
+            });
+        </script>
+    </body>
+</html>

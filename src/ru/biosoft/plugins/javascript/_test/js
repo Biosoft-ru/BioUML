@@ -1,0 +1,10 @@
+% cf = new Packages.ru.biosoft.access.CollectionFactory()
+ru.biosoft.access.CollectionFactory@1eb0
+% cf.createRepository('../plugins')
+13839941 ../plugins/plugins class=class ru.biosoft.access.LocalRepository
+
+% method = cf.getDataElement("plugins/SBW/service categories/BROKER/getModuleDescriptor")
+biouml.plugins.sbw.SbwServiceMethod@322bce
+% method.invoke(['BROKER', true])
+[BROKER, SBW Broker, 0, , The SBW Broker manages all modules.]
+%

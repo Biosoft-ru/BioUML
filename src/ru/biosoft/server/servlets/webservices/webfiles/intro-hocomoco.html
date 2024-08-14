@@ -1,0 +1,118 @@
+<script type="text/javascript">
+  var userData = "HOCOMOCO/User data";
+
+  var siteSearch = showAnalysisControl($("#analysis_site_search"), "analyses/Methods/TF binding site search/Site search on track",
+  {
+   params: [{name: "profilePath", value: "HOCOMOCO/Matrices and profiles/PWM_HUMAN_mono_pval=0.0001"},
+            {name: "output", value: "HOCOMOCO/User data/Site search result"},
+            {name: "trackPath", value: "HOCOMOCO/Public datasets/human_TP53_gene_promoter_-1000+100"}],
+   autoOpen: false
+  });
+
+  $("#button_import_data").click(function(){
+    doImportMultiple(userData, false, function(results){
+      openBranch(userData, false);
+      var path = results[0];
+      var type = getDataCollection(getElementPath(path)).getElementInfo(getElementName(path))["class"];
+      var params = $.parseJSON(convertDPSToJSON(siteSearch.propertyPane.getModel()));
+      if(instanceOf(type, "ru.biosoft.bsa.SequenceCollection"))
+      {
+        params.push({name:"dbSelector",value:"Custom..."});
+        params.push({name:"seqCollectionPath",value:path});
+        params.push({name:"trackPath",value:null});
+      }else if(instanceOf(type, "ru.biosoft.bsa.Track"))
+      {
+        params.push({name: "trackPath", value: path});
+      }
+      $("#analysis_site_search").empty();
+      siteSearch = showAnalysisControl($("#analysis_site_search"), "analyses/Methods/TF binding site search/Site search on track", {params: params, autoOpen: false});
+    });
+  });
+
+
+  showAnalysisControl($("#analysis_create_profile"), "analyses/Methods/TF binding site search/Create profile from site model table",
+  {
+   params: [{name: "table", value: "HOCOMOCO/User data/"},
+            {name: "profile", value: "HOCOMOCO/Matrices and profiles/PWM_HUMAN_mono_pval=0.0001"},
+            {name: "outputProfile", value: "HOCOMOCO/User data/User profile"}]
+  });
+
+  var viewResultsDPS = convertJSONToDPS([
+     {
+       name: "Genome track",
+       value: "HOCOMOCO/User data/Site search result",
+       type: "data-element-path",
+       elementMustExist: true,
+       elementClass: "ru.biosoft.bsa.Track",
+       canBeNull: false
+     }]);
+  var viewResultsPane = new JSPropertyInspector();
+  viewResultsPane.setParentNodeId("pane_view_results");
+  viewResultsPane.setModel(viewResultsDPS);
+  viewResultsPane.generate();
+  var viewButton = $("<input type='button' value='View in genome browser'/>");
+  viewButton.click(function() {
+    var model = viewResultsPane.getModel();
+    var path = model.getValue("Genome track")
+    if(path != null && path != "")
+      performTreeAction(path, "open_genome_browser");
+  });
+  $("#pane_view_results").append(viewButton);
+  var viewTableButton = $("<input type='button' value='View as table'/>");
+  viewTableButton.click(function() {
+    var model = viewResultsPane.getModel();
+    var path = model.getValue("Genome track")
+    if(path != null && path != "")
+      performTreeAction(path, "open_table");
+  });
+  $("#pane_view_results").append(viewTableButton);
+  var exportButton = $("<input type='button' value='Export'/>");
+  exportButton.click(function() {
+    var model = viewResultsPane.getModel();
+    var path = model.getValue("Genome track")
+    if(path != null && path != "")
+      performTreeAction(path, "export_element");
+  });
+  $("#pane_view_results").append(exportButton);
+</script>
+
+<h1 style="float:right"><a href="#" onclick='setPerspectiveName("Default")'><b>&larr;</b>Back</a></h1>
+<center><img src="images/hocomoco_logo.png"></center><br>
+<center><h1>HOCOMOCO in BioUML</h1></center>
+<ul>
+  <li>
+    <big>
+      <b>HO</b>mo sapiens <b>CO</b>mprehensive <b>MO</b>del <b>CO</b>llection (<a href="http://hocomoco.autosome.ru/">HOCOMOCO</a>) is a collection of transcription factor (TF) binding models.<br>
+      From this page you can use BioUML tools and HOCOMOCO collection to search for binding sites in DNA sequences.
+    </big>
+    <br><br>
+  </li>
+  <li>
+    <big><a href="#" id="button_import_data">Import data</a></big>
+    <br>
+    Load your bed or fasta file
+    <br><br>
+  </li>
+  <li>
+    <big>Site search</big><br>
+    Search for binding sites in your track or sequences
+    <div id="analysis_site_search" style="width:600px;"></div>
+    <br><br>
+  </li>
+  <li>
+    <big>View/Export results</big><br>
+    View and export site search results
+    <div id="pane_view_results" style="width:600px;"></div>
+    <br><br>
+  </li>
+  <li>
+    <big><a href="#" onclick="$('#advanced_content').toggle()">+ Advanced</a></big><br>
+    <div id="advanced_content" style="display: none;">
+      <big>Create profile</big><br>
+      Create your own profile by filtering existing one
+      <div id="analysis_create_profile" style="width:600px;"></div>
+      <br><br>
+    </div>
+  </li>
+</ul>
+

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>  
+    <extension point="biouml.workbench.diagramType">
+        <diagramType class="biouml.plugins.sbgn.SbgnDiagramType"/>
+        <diagramType class="biouml.plugins.sbgn.SbgnCompositeDiagramType"/>
+        <diagramType class="biouml.plugins.sbgn.extension.SbgnExDiagramType"/>
+    </extension>
+    
+    <extension id="SbgnMlExporter" point="ru.biosoft.access.export"> 
+     <export 
+        diagramType="*"
+        format="SBGN-ML"
+        suffix=".xml"
+        contentType="text/xml"
+        exporter="biouml.plugins.sbgn.sbgnml.SbgnMlExporter"
+        description=""
+     /> 
+  </extension> 
+  <extension id="SbgnMlImporter" point="ru.biosoft.access.import"> 
+     <export 
+        format="SBGN-ML"
+        importer="biouml.plugins.sbgn.sbgnml.SbgnMlImporter"
+        description=""
+        moduleType = "biouml.plugins.sbml.SbmlModuleType"
+     /> 
+  </extension> 
+  
+  <extension id="standardDiagramTypeConversions" point="biouml.workbench.diagramTypeConverter">
+		<conversion from="biouml.plugins.sbgn.SbgnDiagramType" to="biouml.plugins.sbgn.SbgnCompositeDiagramType" converter="biouml.plugins.sbgn.SbgnFlattener" />
+  		<conversion from="biouml.plugins.sbgn.SbgnCompositeDiagramType" to="biouml.plugins.sbgn.SbgnDiagramType" converter="biouml.plugins.sbgn.SbgnFlattener" />
+  		<conversion from="biouml.plugins.agentmodeling.AgentModelDiagramType" to="biouml.plugins.sbgn.SbgnCompositeDiagramType" converter="biouml.plugins.sbgn.SbgnDiagramTypeConverter" />
+	    <conversion from="biouml.standard.diagram.MathDiagramType" to="biouml.plugins.sbgn.SbgnCompositeDiagramType" converter="biouml.plugins.sbgn.SbgnDiagramTypeConverter" />
+	    <conversion from="biouml.standard.diagram.CompositeDiagramType" to="biouml.plugins.sbgn.SbgnCompositeDiagramType" converter="biouml.plugins.sbgn.SbgnDiagramTypeConverter" />	   
+  </extension>
+	
+  <extension id="SbgnExAnnotationExtension" point="biouml.plugins.sbml.annotation"> 
+     <annotation
+       namespace="sbgn_ext" 
+       priority="4"
+       extension_class="biouml.plugins.sbgn.extension.SbgnExExtension"
+     /> 
+  </extension>
+  
+  <extension id="SbexExporter" point="ru.biosoft.access.export">
+      <export diagramType="*" format="COMBINE archive (*.omex)" suffix="omex" contentType="text/xml" exporter="biouml.plugins.sbgn.SbexExporter" description="%DiagramImport-ZIP" />
+  </extension>
+  
+  <extension id="SbexImporter" point="ru.biosoft.access.import"> 
+     <export format="COMBINE archive (*.omex)" importer="biouml.plugins.sbgn.SbexImporter" description="Sbex archive importer" />
+     <export format="COMBINE archive (*.sbex)" importer="biouml.plugins.sbgn.SbexImporter" description="Sbex archive importer" /> 
+  </extension> 
+  
+</plugin>

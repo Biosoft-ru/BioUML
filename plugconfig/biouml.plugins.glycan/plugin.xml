@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="ViewBuilder" point="biouml.workbench.nodeViewBuilder"> 
+     <builder
+        name="glycan"
+        class="biouml.plugins.glycan.GlycanViewBuilder"
+     /> 
+  </extension> 
+   
+</plugin>

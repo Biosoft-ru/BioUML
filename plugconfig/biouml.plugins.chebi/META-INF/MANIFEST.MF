@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.chebi;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.workbench,
+ one.util.streamex,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.access,
+ ru.biosoft.analysis,
+ ru.biosoft.graphics
+Export-Package: biouml.plugins.chebi

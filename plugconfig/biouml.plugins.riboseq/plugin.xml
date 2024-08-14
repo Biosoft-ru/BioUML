@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+    <extension id="RiboSeqExperiment" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.riboseqanalysis.RiboSeqAnalysis"
+                group="Trash" name="RiboSeqExp"
+                description="Ribo-seq Experiment."/>
+    </extension>
+
+    <extension id="SelectionTrustClusters" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.stc_analysis.SelectionTrustClustersAnalysis"
+                group="Trash" name="SelectionTrustClusters"
+                description="Selection Trust Clusters from track."/>
+    </extension>
+
+    <extension id="SVM" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.svm.SVMAnalysis"
+                group="Trash" name="SVM"
+                description="SVM classification."/>
+    </extension>
+
+    <extension id="ArticleComparator" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.comparison_article.ComparatorAnalysis"
+                group="Trash" name="ArticleComparator"
+                description="Article Comparator with Yes track."/>
+    </extension>
+
+    <extension id="FinderArticlePoints" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.finder_article_points.FinderArticlePointsAnalysis"
+                group="Trash" name="FinderArticlePoints"
+                description="Finder article points in tracks."/>
+    </extension>
+
+    <extension id="CoverageCheker" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.coverageChecker.CoverageCheckerAnalysis"
+                group="Trash" name="CoverageCheker"
+                description="Check input track's sites coverage article's points."/>
+    </extension>
+
+    <extension id="RiboSeq experiment template" point="ru.biosoft.templates.template">
+        <template name="RiboSeq Experiment" file="biouml/plugins/riboseq/db/resources/experimentTemplate.vm" description="Template for RiboSeq experiment" isBrief="no" order="0">
+            <filter class="biouml.plugins.riboseq.db.model.Experiment" subclasses="yes"/>
+        </template>
+    </extension>
+
+    <extension id="mRNASeq experiment template" point="ru.biosoft.templates.template">
+        <template name="mRNA-seq Experiment" file="biouml/plugins/riboseq/db/resources/mRNAExperimentTemplate.vm" description="Template for mRNA-seq experiment" isBrief="no" order="0">
+            <filter class="biouml.plugins.riboseq.db.model.MRNAExperiment" subclasses="yes"/>
+        </template>
+    </extension>
+
+    <extension id="RiboSeqDB perspective" point="biouml.workbench.perspective">
+        <perspective name="RiboSeqDB" priority="20" intro="intro-riboseqdb">
+            <repository>
+                <tab title="Databases" path="databases"/>
+                <tab title="Data" path="data"/>
+                <tab title="Analyses" path="analyses"/>
+            </repository>
+            <viewparts>
+                <deny id="*"/>
+                <allow id="common.description"/>
+                <allow id="table.*"/>
+                <allow id="search.results" />
+                <allow id="sequence.tracks" />
+                <allow id="sequence.sites" />
+                <allow id="diagram.overview" />
+                <allow id="diagram.workflow.main" />
+                <allow id="common.tasks" />
+            </viewparts>
+            <importers>
+                <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+            </importers>
+        </perspective>
+    </extension>
+    
+    <extension id="ArticleTrackCreator" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.article_track.ArticleTrackCreatorAnalysis"
+                group="Trash" name="ArticleTrackCreator"
+                description="Create track with article points."/>
+    </extension>
+
+    <extension id="BuildProfileModel" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.ingolia.BuildProfileModel"
+                group="Ribosome profiling" name="BuildProfileModel"
+                description="Build model of translation initiation footrpint profile."/>
+    </extension>
+
+    <extension id="BuildASiteOffsetTable" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.ingolia.asite.BuildASiteOffsetTable"
+                group="Ribosome profiling" name="BuildASiteOffsetTable"
+                description="Build A site offset table on the length of the fragment."/>
+    </extension>
+
+    <extension id="PredictStartSites" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.ingolia.PredictStartSites"
+                group="Ribosome profiling" name="PredictStartSites"
+                description="Predict translation start sites."/>
+    </extension>
+
+    <extension id="ComputeTranscriptProfile" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.ingolia.ComputeTranscriptProfile"
+                group="Ribosome profiling" name="ComputeTranscriptProfile"
+                description="Compute footprint profile for transcripts."/>
+    </extension>
+
+    <extension id="ComputeProfileSums" point="ru.biosoft.analysiscore.method">
+        <analysisClass
+                class="biouml.plugins.riboseq.ingolia.ComputeProfileSums"
+                group="Ribosome profiling" name="ComputeProfileSums"
+                description="Compute sums of footprint profile."/>
+    </extension>
+
+    <extension id="Transcriptome minimal unique length" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.TranscriptomeMinimalUniqueLength"
+                     group="Sequence mappability"
+                     name="Transcriptome minimal unique length"
+                     description="For each position in transcript find the shortest possible read length that can map uniquely to this position."
+                     />
+    </extension>
+
+    <extension id="Transcriptome mappability" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.TranscriptomeMappability"
+                     group="Sequence mappability"
+                     name="Transcriptome mappability"
+                     description="Compute transcriptome mappability."
+                     />
+    </extension>
+
+    <extension id="Isoform TE" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.isoforms.IsoformTEAnalysis"
+                     group="Ribosome profiling"
+                     name="Isoform TE"
+                     description="Translation efficency of splice isoforms."
+                     />
+    </extension>
+
+    <extension id="Sequence mappability" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.SequenceMappability"
+                     group="Sequence mappability"
+                     name="Sequence mappability"
+                     description="Compute sequence mappability."
+                     />
+    </extension>
+
+    <extension id="Convert genomic BAM to transcriptomic" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.GenomicAlignmentsToTranscriptomic"
+                     group="Ribosome profiling"
+                     name="Convert genomic BAM to transcriptomic"
+                     description="Convert BAM alignments on genome to alignments on transcriptome."
+                     />
+    </extension>
+
+    <extension id="Make GTF for riboseq alignment" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.GTFForRiboseqAlignment"
+                     group="Ribosome profiling"
+                     name="Make GTF for riboseq alignment"
+                     description="Creates GTF file from Ensembl database, suitable for riboseq alignment."
+                     />
+    </extension>
+
+    <extension id="Count reads in transcripts" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.CountReadsInTranscripts"
+                     group="RNA-seq"
+                     name="Count reads in transcripts"
+                     description="For each transcript count the number mapped NGS reads from BAM file.">
+        <group name="Ribosome profiling" />
+      </analysisClass>
+    </extension>
+
+    <extension id="BAM filter multi-hits" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.BAMFilterMultiHits"
+                     group="NGS utils"
+                     name="BAM filter multi-hits"
+                     description="Filter multi-hits (reads having more then one alignment) from BAM file."
+                     />
+    </extension>
+
+    <extension id="BAM filter strand specific" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.FilterStrandSpecific"
+                     group="Ribosome profiling"
+                     name="BAM filter strand specific"
+                     description="Filter strand specific reads in BAM file."
+                     />
+    </extension>
+
+    <extension id="Estimate read density" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.EstimateReadDensity"
+                     group="Ribosome profiling"
+                     name="Estimate read density"
+                     description="Estimate read density in transcripts and CDS using mappability information."
+                     />
+    </extension>
+
+    <extension id="Transcript structure analysis" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.TranscriptStructureAnalysis"
+                     group="Ribosome profiling"
+                     name="Transcript structure analysis"
+                     description=""
+                     />
+    </extension>
+
+    <extension id="Sequence minimal unique length" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.SequenceMinimalUniqueLength"
+                     group="Sequence mappability"
+                     name="Sequence minimal unique length"
+                     description="For each position in genome (or it's part) find the shortest possible read length that can map uniquely to this position."
+                     />
+    </extension>
+
+    <extension id="Large sequence minimal unique length" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.LargeSequenceMinimalUniqueLength"
+                     group="Sequence mappability"
+                     name="Large sequence minimal unique length"
+                     description="For each position in genome (or it's part) find the shortest possible read length that can map uniquely to this position. Support sequences larger then 1e9 nucleotides."
+                     />
+    </extension>
+
+    <extension id="Find unmappable regions" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.FindUnmappableRegions"
+                     group="Sequence mappability"
+                     name="Find unmappable regions"
+                     description="Find genomic regions unmappable with given read length."
+                     />
+    </extension>
+
+    <extension id="Mappability histogram" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.riboseq.mappability.MappabilityHistogram"
+                     group="Sequence mappability"
+                     name="Mappability histogram"
+                     description="Computes fraction of mappable genome for each read length."
+                     />
+    </extension>
+
+</plugin>

@@ -1,0 +1,24 @@
+/*
+ * Export action
+ */
+{
+    id: "export",
+    label: "Export",
+    icon: "icons/export.gif",
+    visible: "function(doc)
+    {
+    	if (doc && doc.exportElement) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = opennedDocuments[activeDocumentId];
+        if (activeDocument && activeDocument.exportElement) 
+        {
+            activeDocument.exportElement();
+        }
+    }"
+}

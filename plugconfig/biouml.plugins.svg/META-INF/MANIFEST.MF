@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.svg;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: ru.biosoft.graphics,
+ org.eclipse.osgi,
+ biouml.workbench,
+ ru.biosoft.jobcontrol,
+ org.apache.batik,
+ ru.biosoft.access
+Export-Package: biouml.plugins.svg

@@ -1,0 +1,158 @@
+<tool id="ncbi_psiblast_wrapper" name="NCBI BLAST+ psiblast" version="0.0.22">
+    <!-- Draft wrapper from Luobin Yang, based on the blastp wrapper.
+         TODO: Handle datatype definitions -->
+    <description>Search protein database with protein query sequence(s)</description>
+    <!-- If job splitting is enabled, break up the query file into parts -->
+    <parallelism method="multi" split_inputs="query" split_mode="to_size" split_size="1000" merge_outputs="output1"></parallelism>
+    <macros>
+        <token name="@BINARY@">psiblast</token>
+        <import>ncbi_macros.xml</import>
+    </macros>
+    <expand macro="requirements" />
+    <command>
+## The command is a Cheetah template which allows some Python based syntax.
+## Lines starting hash hash are comments. Galaxy will turn newlines into spaces
+psiblast
+#if str($input_opts.input_opts_selector) == "query"
+-query "$query"
+#else if str($input_opts.input_opts_selector) == "pssm"
+-in_pssm "$in_pssm"
+#else if str($input_opts.input_opts_selector) == "msa"
+-in_msa "$in_msa"
+#end if
+@BLAST_DB_SUBJECT@
+-evalue $evalue_cutoff
+@BLAST_OUTPUT@
+@THREADS@
+
+#if $adv_opts.adv_opts_selector=="advanced":
+-matrix $adv_opts.matrix
+@ADVANCED_OPTIONS@
+##Ungapped disabled for now - see comments below
+##$adv_opts.ungapped
+## End of advanced options:
+#end if
+
+#if $psiblast_opts.psiblast_opts_selector=="advanced"
+-num_iterations $psiblast_opts.num_iterations
+-pseudocount $psiblast_opts.pseudocount
+-inclusion_ethresh $psiblast_opts.inclusion_ethresh
+#end if
+
+#if $pssm_output_condition.pssm_output_selector == "yes" 
+-out_pssm $pssm_output
+#end if
+
+#if $pssm_ascii_output_condition.pssm_ascii_output_selector == "yes" 
+-out_ascii_pssm $pssm_ascii_output
+#end if
+
+    </command>
+    <expand macro="stdio" />
+    <inputs>
+        <conditional name="input_opts">
+            <param name="input_opts_selector" type="select" label="Select the input file type">
+                <option value="query" selected="true">Query</option>
+                <option value="msa">Multiple Sequence Alignment file</option>
+                <option value="pssm">PSI-BLAST checkpoint file</option>
+            </param>
+            <when value="query">
+                <param name="query" type="data" format="data" label="Protein query sequence(s)"/> 
+            </when>
+            <when value="msa">
+                <param name="in_msa" type="data" format="msa,phylip" label="Multiple Sequence Alignment File" />
+            </when>
+            <when value="pssm">
+                <param name="in_pssm" type="data" format="pssm" label="PSI-BLAST checkpoint file" />
+            </when>
+        </conditional>
+
+        <expand macro="input_conditional_protein_db" />
+        <expand macro="input_evalue" />
+        <expand macro="input_out_format" />
+
+        <conditional name="psiblast_opts">
+            <param name="psiblast_opts_selector" type="select" label="PSI-BLAST options">
+                <option value="basic" selected="True">Hide PSI-BLAST Options</option>
+                <option value="advanced">Show PSI-BLAST Options</option>
+            </param>
+            <when value="basic" />
+            <when value="advanced">
+               <param name="num_iterations" type="integer" label="Number of iterations to perform" value="1" />
+               <param name="inclusion_ethresh" type="float" label="The statistical significance threshold to include a sequence" help="Set the statistical significant threshold to include a sequence in the model used by PSI-BLAST to create the PSSM on the next iteration." value="0.002" />
+               <param name="pseudocount" type="integer" label="Pseudocount value used when constructing PSSM" value="0" help="If zero is specified, then the parameter is automatically determined through a minimum length description principle (PMID 19088134). A value of 30 is suggested in order to obtain the approximate behavior before the minimum length principle was implemented" /> 
+            </when>
+        </conditional>
+        <expand macro="advanced_options">
+            <!-- Could use a select (yes, no, other) where other allows setting 'window locut hicut' -->
+            <expand macro="input_filter_query_default_false" />
+            <expand macro="input_scoring_matrix" />
+            <expand macro="input_max_hits" />
+            <expand macro="input_word_size" />
+            <!--
+            Can't use '-ungapped' on its own, error back is:
+            Composition-adjusted searched are not supported with an ungapped search, please add -comp_based_stats F or do a gapped search
+            Tried using '-ungapped -comp_based_stats F' and blastp crashed with 'Attempt to access NULL pointer.'
+            <param name="ungapped" type="boolean" label="Perform ungapped alignment only?" truevalue="-ungapped -comp_based_stats F" falsevalue="" checked="false" />
+            -->
+            <expand macro="input_parse_deflines" />
+        </expand>
+
+        <conditional name="pssm_output_condition">
+            <param name="pssm_output_selector" type="select" label="Generate PSSM output?" >
+                <option value="yes">Yes</option>
+                <option value="no" selected="true">No</option>
+            </param>
+        </conditional>
+
+        <conditional name="pssm_ascii_output_condition">
+            <param name="pssm_ascii_output_selector" type="select" label="Generate PSSM text output?" >
+                <option value="yes">Yes</option>
+                <option value="no" selected="true">No</option> 
+            </param>
+        </conditional>
+
+    </inputs>
+    <outputs>
+        <data name="output1" format="tabular" label="psiblast output">
+
+            <expand macro="output_change_format" />
+
+        </data>
+
+        <data name="pssm_ascii_output" format="txt" label="psiblast.pssm.txt" >
+            <filter>pssm_ascii_output_condition['pssm_ascii_output_selector'] == "yes" </filter>
+        </data>
+
+        <data name="pssm_output" format="pssm" label="psiblast.pssm" >
+            <filter>pssm_output_condition['pssm_output_selector'] == "yes"</filter>
+        </data>
+
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+    
+@SEARCH_TIME_WARNING@
+
+**What it does**
+
+Search a *protein database* using a *protein query*,
+using the NCBI BLAST+ blastp command line tool.
+
+@FASTA_WARNING@
+
+-----
+
+@OUTPUT_FORMAT@
+
+-------
+
+**References**
+
+If you use this Galaxy tool in work leading to a scientific publication please
+cite the following papers (a more specific paper covering this wrapper is planned):
+
+@REFERENCES@
+    </help>
+</tool>

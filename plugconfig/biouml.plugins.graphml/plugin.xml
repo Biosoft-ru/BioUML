@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="GraphMLExport" point="ru.biosoft.access.export">
+		<export 
+			diagramType="*" 
+			format="GraphML(*.graphml)" 
+			suffix="graphml" 
+			contentType="text/xml" 
+			exporter="biouml.plugins.graphml.GraphMLExporter" 
+		/>
+  </extension>
+
+</plugin>

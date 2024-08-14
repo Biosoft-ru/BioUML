@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="net.java.plaf.windows" point="ru.biosoft.workbench.lookAndFeel"> 
+    <lookAndFeel name="Windows (winlaf)" class="net.java.plaf.windows.WindowsLookAndFeel"/> 
+  </extension> 
+
+</plugin>

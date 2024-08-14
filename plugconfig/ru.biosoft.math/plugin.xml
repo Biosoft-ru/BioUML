@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="htmlLinearFormatter" point="ru.biosoft.templates.contextItem"> 
+      <htmlLinearFormatter
+      	name="formatter"
+        class="ru.biosoft.math.model.HTMLLinearFormatter" 
+      /> 
+  </extension>
+  
+    <extension id="mathmlFormatter" point="ru.biosoft.templates.contextItem"> 
+      <htmlLinearFormatter
+      	name="mathmlformatter"
+        class="ru.biosoft.math.xml.MathMLFormatter" 
+      /> 
+  </extension>
+
+  <extension point="ru.biosoft.access.scriptType">
+  	<scriptType type="math" title="Math" class="ru.biosoft.math.MathScript" lexer="com.Ostermiller.Syntax.Lexer.JavaScriptLexer"/>
+  </extension>
+</plugin>

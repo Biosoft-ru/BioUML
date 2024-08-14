@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="miRBase biohub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="miRBase biohub" class="biouml.plugins.mirbase.MiRBaseHub">
+     	<property name="jdbcURL" value="jdbc:mysql://localhost:3306/mirbase"/>
+     	<property name="jdbcUser" value="mirbase"/>
+     	<property name="jdbcPassword" value="mirbase"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="MiRBaseName" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.mirbase.MiRBaseName" urlTemplate="https://www.mirbase.org/textsearch.shtml?q=$id$"/>
+  	<type typeClass="biouml.plugins.mirbase.MiRBaseMatureMiRNA" urlTemplate="https://www.mirbase.org/textsearch.shtml?q=$id$"/>
+  	<type typeClass="biouml.plugins.mirbase.MiRBaseStemLoopMiRNA" urlTemplate="https://www.mirbase.org/textsearch.shtml?q=$id$"/>
+    <type typeClass="biouml.plugins.mirbase.MiRBaseAccession" urlTemplate="https://www.mirbase.org/textsearch.shtml?q=$id$"/>
+    <type typeClass="biouml.plugins.mirbase.MiRBaseMixture" urlTemplate="https://www.mirbase.org/textsearch.shtml?q=$id$"/>
+  </extension>
+</plugin>

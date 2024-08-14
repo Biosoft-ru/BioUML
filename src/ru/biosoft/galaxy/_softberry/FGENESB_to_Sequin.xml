@@ -1,0 +1,18 @@
+<tool id="softberry-annotate-to-sequin" name="FGENESB to Sequin">
+	<description>Convert FGENESB annotation to Sequin format</description>
+	<command interpreter="perl">/wrun/BACT/FgenesB_converters/FgenesB_2_Sequin/fgenesb_2_sequin.pl "$annotation" "$seq_name" "$locus_tag_prefix" "$dbname" /wrun/xmldata/examples/FGENESB_Converter/hom_def.txt -s:/wrun/xmldata/examples/FGENESB_Converter/hom_sim.txt -f:/wrun/xmldata/examples/FGENESB_Converter/list_forbid.txt $EC $prom $term $c "$Sequin_annotation"
+	</command>
+	<inputs>
+		<param name="annotation" type="data" format="txt" label="Fgenesb annotation" help="File created by Fgenesb analysis"/>
+		<param name="seq_name" label="Sequence name" type="text" value="gi|15807672|ref|NC_001264.1"/>
+		<param name="locus_tag_prefix" label="Locus tag prefix" type="text" value="Deinococcus_radiodurans_R1"/>
+		<param name="dbname" label="DB name" description="the username on your ftp account or name assigned by GenBank" type="text" value="R1src"/>
+		<param name="EC" label="Annotate EC numbers" type="boolean" truevalue=" -EC" falsevalue="" checked="true"/>
+		<param name="prom" label="Annotate promoters" type="boolean" truevalue=" -prom" falsevalue="" checked="true"/>
+		<param name="term" label="Annotate terminators" type="boolean" truevalue=" -term" falsevalue="" checked="true"/>
+		<param name="c" label="Add suffix 'c' to locus_tag of '-'-strand genes" type="boolean" truevalue=" -c" falsevalue="" checked="true"/>
+	</inputs>
+	<outputs>
+	    <data format="txt" name="Sequin_annotation"/>
+	</outputs>
+</tool>

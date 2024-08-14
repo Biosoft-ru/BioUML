@@ -1,0 +1,28 @@
+/*
+ * Open tree table action
+ */
+{
+    id: "open_tree_table",
+    label: "Open view",
+    icon: "icons/open.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.treetable.TreeTableElement'))
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		createTreeTableDocument(path, function (tableDoc){
+			openDocumentTab(tableDoc);
+        });
+    }"
+}

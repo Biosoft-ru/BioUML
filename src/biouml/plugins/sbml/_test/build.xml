@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.66 2008/01/23 11:25:34 tolstyh Exp $  -->
+
+<project name="biouml.plugins.sbml package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="biouml.plugins.sbml"/>
+
+  <target name="test.reader">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.SbmlReaderTest"/>
+    </ant>
+  </target>
+
+  <target name="test.writer">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.SbmlWriterTest"/>
+    </ant>
+  </target>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.sbml._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="semantic">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.SbmlSemanticTest"/>
+    </ant>
+  </target>
+
+  <target name="biomodels">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.SbmlBiomodelsTest"/>
+    </ant>
+  </target>
+
+  <target name="biomodels.upload">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.SbmlBiomodelsUploadTest"/>
+    </ant>
+  </target>
+
+  <target name="java.console">
+    <ant target="ctest">
+      <property name="test" value="${package}._test.SbmlJavaConsoleTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+   <target name="local_settings">
+      <ant antfile="build_bdk.xml" target="local_settings_tofile"/>
+      <property file="${basedir}/.local.properties"/>
+      <property file="${basedir}/.global.properties"/>
+      <echo>SRCDIR=${SRCDIR}</echo>
+   </target>
+
+  <target name="java.console.run" depends="local_settings,java.console">
+    <java classname="${package}._test.SbmlJavaConsoleTest" fork="yes">
+         <classpath>
+           <pathelement path="${OUTDIR};${BEANEXPLORER};${BEANHELPERS};${LOG4J};${JUNIT};${JUNITX};${ECLIPSE_JARS};${COMMON_CLI_JAR};${JAMA}"/>
+         </classpath>         
+         <arg value="-d./biouml/plugins/sbml/_test/"/>
+     <arg value="-a1e-20"/>
+     <arg value="-r1e-10"/>
+     <arg value="-L2"/>
+     <!--arg value="own/100yeast"/-->
+     <arg value="semantic-test-suite/basicRules/differentialUsedInDifferential-Species/basicRules-differentialUsedInDifferential-Species"/>
+     </java>
+  </target>
+
+  <target name="java.main" depends="local_settings">
+    <ant target="ctest">
+      <property name="test" value="${package}._test.SbmlJavaMain"/>
+    </ant>
+    <java classname="${package}._test.SbmlJavaMain" fork="yes">
+         <jvmarg value="-Xmx2048m"/>
+         <classpath>
+           <pathelement path="${OUTDIR};${BEANEXPLORER};${BEANHELPERS};${LOG4J};${JUNIT};${JUNITX};${ECLIPSE_JARS};${MYSQL_JAR};${PLUGINS}/biouml.plugins.matlab_0.7.2;${PLUGINS}/mysql.jar;${COMMON_CLI_JAR}"/>
+         </classpath>         
+     <arg value="-a1e-8"/>
+     <arg value="-r1e-5"/>
+     <arg value="-f100Yeast"/>
+     <arg value="-g"/>
+     <arg value="-c"/>
+     <arg value="-s"/>
+     <arg value="-s"/>	 
+    </java>
+  </target>
+
+</project>

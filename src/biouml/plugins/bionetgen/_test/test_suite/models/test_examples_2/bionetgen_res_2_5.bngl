@@ -1,0 +1,7 @@
+begin model
+
+begin seed species
+    $A(b!1).B(a!1)    25.0
+end seed species
+
+end model

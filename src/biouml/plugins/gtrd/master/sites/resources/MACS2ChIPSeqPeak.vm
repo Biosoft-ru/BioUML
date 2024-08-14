@@ -1,0 +1,31 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $utils.formatHtml( $name ) <br>
+	#end
+#end
+
+#macro( deRef $path $label )
+  #if ( $path && !$path.toString().isEmpty() )
+    #set( $name = $path.toString().replaceAll(".*/", "") )
+    <b>$label</b>: <a href="de:$path">$name</a><br>
+  #end
+#end
+
+<b>ChIP-seq peak</b><br>
+
+#strField($de.getStableId(), "Stable ID")
+#strField("$de.getChr():$de.getFrom()-$de.getTo()", "Location")
+
+#strField("$de.getExp().getTfTitle()", "Transcription factor")
+#strField("$de.getExp().getTfUniprotId()", "Uniprot ID")
+#strField("$de.getExp().getCell().getTitle()", "Cell")
+#strField($de.getExp().getTreatment(), "Treatment")
+#deRef("databases/GTRD/Data/experiments/$de.getExp().getName()", "Experiment")
+
+#strField("$de.getPeakCaller()", "Peak caller")
+
+#strField("$de.foldEnrichment", "Fold enrichment")
+#strField($de.mLog10PValue, "-log10(p-value)")
+#strField($de.mLog10QValue, "-log10(q-value)")
+#strField("$de.summit", "Summit")
+#strField("$de.pileup", "Pileup")

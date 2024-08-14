@@ -1,0 +1,167 @@
+#macro( strField $name $label )
+    #if ($name && !$name.equals(""))
+    	<b>$label</b>: $name<br>
+	#end
+#end
+
+#macro( deRef $path $label )
+  #if ( $path && !$path.toString().isEmpty() )
+    #set( $name = $path.toString().replaceAll(".*/", "") )
+    <b>$label</b>: <a href="de:$path">$name</a><br>
+  #end
+#end
+
+#macro( gtrdDE $path )
+  #if( $path.exists() )
+    <a href="#de=$path">$path.getName()</a>
+  #else
+    $path.getName()
+  #end
+  #set( $properties = $de.getElementProperties($path.getName().replaceAll("[.].*", "")) ) 
+  #set( $delim = "" ) 
+  #if( !$properties.isEmpty() ) 
+  (
+    #foreach ( $p in $properties.entrySet() )
+      #if (!$p.startsWith("QC."))
+        $delim
+        #set($delim=", ")
+        #if ( $p.getKey().equals("url") ) 
+          fetched from <a href="$p.getValue()">URL</a>
+        #else
+          $p.getKey()=$p.getValue()
+        #end
+      #end
+    #end
+  )
+  #end
+  <br>
+#end
+
+#macro(gtrdPeaks $path)
+  $path.getName()
+  #if( $path.exists() )
+  (open as <a href="#de=$path&action=open_table">table</a>
+   or in <a href="#de=$path&action=open_genome_browser">genome browser</a>
+   or <a href="#de=$path&action=export_element">export</a>)
+   #else
+   (not available)
+   #end
+  <br>
+#end
+
+#macro(gtrdAligns $path)
+  $path.getName()
+  #if( $path.exists() )
+  (open in <a href="#de=$path&action=open_genome_browser">genome browser</a>)
+  #else
+  (not available)
+  #end
+  <br>
+#end
+
+#macro(circle $title $value $threshold)
+  #if($value > $threshold)
+    #set($color="rgb(0, 204, 68)")
+  #end
+  #if($value <= $threshold)
+    #set($color="rgb(255, 80, 80)")
+  #end
+  #if($value == "NaN" || $threshold == "NaN")
+    #set($color = "gray")
+  #end
+  <div><div title="$title" style="background-color: $color; border-radius: 50%; width: 16px; height: 16px; display: inline-block"></div><p style="margin: 0; vertical-align: top; display: inline-block">$title</p></div>
+#end
+
+#macro(triangleUp $title $value $threshold)
+  #if($value > $threshold)
+    #set($color="rgb(0, 204, 68)")
+  #end
+  #if($value <= $threshold)
+    #set($color="rgb(255, 80, 80)")
+  #end
+  #if($value == "NaN" || $threshold == "NaN")
+    #set($color = "gray")
+  #end
+  <div><div title="$title" style="width: 0; height: 0; border-bottom: 16px solid $color; border-left: 8px solid transparent; border-right: 8px solid transparent; display: inline-block"></div><p style="margin: 0; vertical-align: top; display: inline-block">$title</p></div>
+#end
+
+#macro(qualityControl)
+  #if($de.peak)
+     #set( $id = $de.peak.getName() )
+     #set( $alignId = $de.getAlignmentName() )
+     #set( $fncmGEM = $de.getDoubleProperty($id, "QC.FNCM_gem") )
+     #set( $fncmMACS = $de.getDoubleProperty($id, "QC.FNCM_macs") )
+     #set( $fncmPICS = $de.getDoubleProperty($id, "QC.FNCM_pics") )
+     #set( $fncmSISSRS = $de.getDoubleProperty($id, "QC.FNCM_sissrs") )
+     #set( $fpcm = $de.getDoubleProperty($id, "QC.FPCM") )
+     #set( $NRF = $de.getDoubleProperty($alignId, "QC.NRF") )
+     #set( $PBC1 = $de.getDoubleProperty($alignId, "QC.PBC1") )
+     #set( $PBC2 = $de.getDoubleProperty($alignId, "QC.PBC2") )
+     #set( $NSC = $de.getDoubleProperty($alignId, "QC.NSC") )
+     #set( $RSC = $de.getDoubleProperty($alignId, "QC.RSC") )
+     #set( $FRiP_GEM = $de.getDoubleProperty($id, "QC.FRiP_GEM") )
+     #set( $FRiP_MACS = $de.getDoubleProperty($id, "QC.FRiP_MACS") )
+     #set( $FRiP_SISSRS = $de.getDoubleProperty($id, "QC.FRiP_SISSRS") )
+     #set( $FRiP_PICS = $de.getDoubleProperty($id, "QC.FRiP_PICS") )
+     <div>
+       <b>Quality metrics</b>:<br>
+       #circle("FNCM(GEM) = $fncmGEM", $fncmGEM, 0.5)
+       #circle("FNCM(MACS) = $fncmMACS",  $fncmMACS, 0.5)
+       #circle("FNCM(PICS) = $fncmPICS", $fncmPICS, 0.5)
+       #circle("FNCM(SISSRS) = $fncmSISSRS", $fncmSISSRS, 0.5)
+       #circle("FPCM = $fpcm", 2, $fpcm)
+       #triangleUp("NRF = $NRF", $NRF, 0.8)
+       #triangleUp("PBC1 = $PBC1", $PBC1, 0.8)
+       #triangleUp("PBC2 = $PBC2", $PBC2, 3)
+       #triangleUp("NSC = $NSC", $NSC, 1.1)
+       #triangleUp("RSC = $RSC", $RSC, 1)
+       #triangleUp("FRiP_GEM = $FRiP_GEM", $FRiP_GEM, 0.01)
+       #triangleUp("FRiP_MACS = $FRiP_MACS", $FRiP_MACS, 0.01)
+       #triangleUp("FRiP_SISSRS = $FRiP_SISSRS", $FRiP_SISSRS, 0.01)
+       #triangleUp("FRiP_PICS = $FRiP_PICS", $FRiP_PICS, 0.01)
+     </div>
+  #end
+#end
+
+<html>
+  <body>
+     <h1>$de.name</h1>
+     #if ( $de.tfClassId )
+       #deRef($utils.getReferenceURL("Categories: GTRD", $de.tfClassId).substring(3), "Transcription factor class")
+     #end
+     #strField( $de.tfTitle, "Transcription factor" )
+     #strField( $de.antibody, "Antibody" )
+     #strField( $de.cell.title, "Cell" )
+     #strField( $de.specie, "Specie" )
+     #strField( $de.treatment, "Treatment" )
+     #qualityControl()
+     
+     #deRef($de.control, "Control")
+     
+     <b>Reads</b>:<br> 
+     #foreach( $r in $de.reads )
+       #gtrdDE($r)
+     #end
+     
+     <b>Alignments</b>: #gtrdAligns($de.alignment)
+     
+     #if($de.peak)
+       <b>Peaks</b>: #gtrdPeaks($de.peak)
+     #end
+     
+     #if( !$de.externalRefs.isEmpty() )
+       <b>External references</b>:<br>
+       #foreach( $ref in $de.externalRefs )
+         <li>$ref.externalDB :
+         #if ($ref.externalDB.equals("GEO"))
+           <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=$ref.id">$ref.id</a>
+         #elseif ($ref.externalDB.equals("PUBMED"))
+           <a href="http://www.ncbi.nlm.nih.gov/pubmed/$ref.id">$ref.id</a>
+         #else
+           $ref.id
+         #end
+         </li>
+       #end
+     #end
+  </body>
+</html>

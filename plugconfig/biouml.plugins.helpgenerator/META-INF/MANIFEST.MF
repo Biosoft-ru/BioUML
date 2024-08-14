@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: BioUML workbench
+Bundle-SymbolicName: biouml.plugins.helpgenerator;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.workbench,
+ com.developmentontheedge.util,
+ one.util.streamex,
+ org.eclipse.equinox.app,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore;resolution:=optional
+Export-Package: biouml.plugins.helpgenerator

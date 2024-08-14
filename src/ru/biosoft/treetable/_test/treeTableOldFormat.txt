@@ -1,0 +1,4 @@
+TP databases/Test
+HD true
+TS var a = null;
+TS a;

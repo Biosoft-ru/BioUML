@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.31 2012/05/30 11:49:02 lan Exp $  -->
+
+<project name="ru.biosoft.analysis package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="ru.biosoft.analysis"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="ru.biosoft.analysis._test.AutoTest"/>
+        </ant>
+    </target>
+	
+	<target name="AnnotateTest">
+				        <ant target="rtest">
+				            <property name="testui" value="swingui"/>
+				            <property name="test" value="ru.biosoft.analysis._test.AnnotateTest"/>
+				        </ant>
+				    </target>
+	
+	<target name="AnalysesTest">
+				        <ant target="rtest">
+				            <property name="testui" value="swingui"/>
+				            <property name="test" value="ru.biosoft.analysis._test.AnalysesTest"/>
+				        </ant>
+				    </target>
+	
+	<target name="BinomialTest">
+					        <ant target="rtest">
+					            <property name="testui" value="swingui"/>
+					            <property name="test" value="ru.biosoft.analysis._test.BinomialTest"/>
+					        </ant>
+					    </target>
+	
+	<target name="HypergeometricTest">
+					        <ant target="rtest">
+					            <property name="testui" value="swingui"/>
+					            <property name="test" value="ru.biosoft.analysis._test.HypergeometricTest"/>
+					        </ant>
+					    </target>
+	
+	<target name="ClusterAnalysisTest">
+					        <ant target="rtest">
+					            <property name="testui" value="swingui"/>
+					            <property name="test" value="ru.biosoft.analysis._test.ClusterAnalysisTest"/>
+					        </ant>
+					    </target>
+	
+	<target name="corr">
+				        <ant target="rtest">
+				            <property name="testui" value="swingui"/>
+				            <property name="test" value="ru.biosoft.analysis._test.CorrTest"/>
+				        </ant>
+				    </target>
+	
+	<target name="PoissonTest">
+					        <ant target="rtest">
+					            <property name="testui" value="swingui"/>
+					            <property name="test" value="ru.biosoft.analysis._test.PoissonTest"/>
+					        </ant>
+					    </target>
+	
+	<target name="RepeatedNamesTest">
+			        <ant target="rtest">
+			            <property name="testui" value="swingui"/>
+			            <property name="test" value="ru.biosoft.analysis._test.RepeatedNamesTest"/>
+			        </ant>
+			    </target>
+
+	
+	<target name="TableDataCollectionTest">
+			        <ant target="rtest">
+			            <property name="testui" value="swingui"/>
+			            <property name="test" value="ru.biosoft.analysis._test.TableDataCollectionTest"/>
+			        </ant>
+			    </target>	
+	
+	<target name="TwoSamplesAnalysisTest">
+			        <ant target="rtest">
+			            <property name="testui" value="swingui"/>
+			            <property name="test" value="ru.biosoft.analysis._test.TwoSamplesAnalysisTest"/>
+			        </ant>
+			    </target>	
+	
+	<target name="TwoSamplesAnalysisTest2">
+			        <ant target="rtest">
+			            <property name="testui" value="swingui"/>
+			            <property name="test" value="ru.biosoft.analysis._test.TwoSamplesAnalysisTest2"/>
+			        </ant>
+			    </target>	
+	
+	<target name="UnigeneTest">
+			        <ant target="rtest">
+			            <property name="testui" value="swingui"/>
+			            <property name="test" value="ru.biosoft.analysis._test.UnigeneTest"/>
+			        </ant>
+			    </target>	
+	
+	<target name="WilcoxonTest">
+					        <ant target="rtest">
+					            <property name="testui" value="swingui"/>
+					            <property name="test" value="ru.biosoft.analysis._test.WilcoxonTest"/>
+					        </ant>
+					    </target>
+	
+	<target name="MissedValuesRefillTest">
+			        <ant target="rtest">
+			            <property name="testui" value="swingui"/>
+			            <property name="test" value="ru.biosoft.analysis._test.MissedValuesRefillTest"/>
+			        </ant>
+			    </target>	
+	
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

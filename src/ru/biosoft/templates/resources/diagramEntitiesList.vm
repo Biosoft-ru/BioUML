@@ -1,0 +1,20 @@
+<html>
+	<body>
+		#set( $orderNumber = 0)
+		#set( $isTitleSet = false)
+		#processCompartments($resolver, $de, $orderNumber, $isTitleSet)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+		
+		#if($de.getRole().getVariableRoles() && $de.getRole().getVariableRoles().getSize() > 0)
+			<font size = 6>Entities</font><br><br>
+			<table border="0">
+			#updateSpeciesTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Name</b>", "<b>Compartment</b>", "<b>Initial value</b>", "<b>Units</b>", "<b>Comment</b>" "<b>Boundary condition</b>", "<b>Databases</b>", "<b>References</b>")
+			#processSpecies($resolver, $de)
+			</table>
+			<br><br>
+		#end
+	</body>
+</html>

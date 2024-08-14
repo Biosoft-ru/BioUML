@@ -1,0 +1,26 @@
+/*
+ * New Nextflow script action
+ */
+{
+    id: "new_nextflow_script",
+    label: "New nextflow script",
+	icon: "icons/nextflow-script.gif",
+	visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || 
+        	getDataCollection(completePath).getChildClass() == 'biouml.plugins.nextflow.NextflowScript') 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createScript(path, 'Nextflow');
+    }"
+}

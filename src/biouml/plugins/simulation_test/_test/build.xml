@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.5 2012/11/29 10:14:37 axec Exp $  -->
+
+<project name="biouml.plugins.simulation_test package test" default="autotest" basedir="../../../..">
+
+	<property name="package" value="biouml.plugins.simulation_test" />
+
+	<target name="biomodels">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.RunBiomodelsSimulatorTest" />
+		</ant>
+	</target>
+	
+	<target name="semantic">
+			<ant target="rtest">
+				<property name="test" value="${package}._test.RunSemanticSimulatorTest" />
+			</ant>
+		</target>
+
+	<target name="biomodels_statistics">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.RunBiomodelsStatisticsTest" />
+		</ant>
+	</target>
+	
+	<target name="semantic_statistics">
+			<ant target="rtest">
+				<property name="test" value="${package}._test.RunSemanticStatisticsTest" />
+			</ant>
+	</target>
+	
+	<target name="SBMLTest">
+				<ant target="rtest">
+					<property name="test" value="${package}._test.SBMLTest" />
+					<property name="TEST_OPTS" value="-Dbiouml.sbmltest.path=${biouml.sbmltest.path}"/>
+				</ant>
+		</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+	<target name="local_settings">
+		<ant antfile="build_bdk.xml" target="local_settings_tofile" />
+		<property file="${basedir}/.local.properties" />
+		<property file="${basedir}/.global.properties" />
+		<echo>SRCDIR=${SRCDIR}</echo>
+	</target>
+
+</project>

@@ -1,0 +1,7 @@
+[TreeTable]
+TreePath = databases/Test
+HideAbsentBranches=true
+
+[Script]
+var a = null;  
+a;

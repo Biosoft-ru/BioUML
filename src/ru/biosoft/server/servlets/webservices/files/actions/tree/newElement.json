@@ -1,0 +1,26 @@
+/*
+ * New element action
+ */
+{
+    id: "new_element",
+    label: "New element",
+    icon: "icons/folder.png",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(completePath);
+        var parent = getDataCollection(path);
+        var type = parent.getChildClass(name);
+        if( dc.isDataCollectionClass() && dc.isMutable() && dc.getAttributes()['can-create-element-from-bean'] == 'true' )
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(completePath)
+    {
+        createNewElement(completePath);
+    }"
+}

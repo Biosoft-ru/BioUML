@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: ru.biosoft.plugins.jsconsistent;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi
+Export-Package: ru.biosoft.plugins.jsconsistent

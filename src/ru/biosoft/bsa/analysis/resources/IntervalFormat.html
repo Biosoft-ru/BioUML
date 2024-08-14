@@ -1,0 +1,40 @@
+<h2>Interval format</h2>
+
+<p>
+  The interval format is pretty much like BED format, but only first three columns are well-defined; others can be used for any purpose.
+</p>
+
+<p>
+  The first three required fields are:
+</p>
+  
+<ol>
+  <li><b>chrom</b> - The name of the chromosome (e.g. chr3, chrY, chr2_random) or scaffold (e.g. scaffold10671).
+  
+  <li>
+    <b>chromStart</b> - The starting position of the feature in the chromosome or scaffold.
+    The first base in a chromosome is numbered 0.
+  </li>
+  
+  <li>
+    <b>chromEnd</b> - The ending position of the feature in the
+    chromosome or scaffold. The <i>chromEnd</i> base is not included in the
+    display of the feature. For example, the first 100 bases of a
+    chromosome are defined as <i>chromStart=0, chromEnd=100</i>, and span
+    the bases numbered 0-99.
+  </li>
+</ol>
+
+Other fields (if exist) will be loaded into site properties with names field1, field2 and so on.
+
+<h3>Example</h3>
+
+<p>
+  Here's an example of track in interval format with additional allele information:
+</p>
+
+<pre>
+chr22 1000 1001 A C
+chr22 1005 1005 - GT
+chr22 1010 1012 GC T
+</pre>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="bsa.service" point="ru.biosoft.server.service"> 
+        <service name="bsa.service" class="ru.biosoft.bsa.server.BSAService"/>
+  </extension> 
+
+  <extension point="ru.biosoft.access.beans">
+  	  <provider class="ru.biosoft.bsa.server.SiteViewOptionsProvider" prefix="bsa/siteviewoptions"/>
+  </extension>
+  
+  <extension point="ru.biosoft.access.beans">
+		<provider class="ru.biosoft.bsa.server.ColorSchemesBeanProvider" prefix="bsa/genomebrowsercolors"/>
+  </extension>
+  
+  <extension point="ru.biosoft.server.servlets.webProvider">
+  	<provider prefix="track-finder" class="ru.biosoft.bsa.server.TrackFinderProvider"/>
+  </extension>
+  
+   <extension point="ru.biosoft.server.servlets.exportedDe" id="TrackExportedDe">
+		<provider prefix="Track" class="ru.biosoft.bsa.server.TrackExportedDeProvider"/>
+	</extension>
+	
+	<extension point="ru.biosoft.server.servlets.webTableResolver">
+    	<tableResolver type="sites" class="ru.biosoft.bsa.server.SitesTableResolver"/>
+  	</extension>
+  	
+  	<extension point="ru.biosoft.server.servlets.webTableResolver">
+    	<tableResolver type="track" class="ru.biosoft.bsa.server.TrackTableResolver"/>
+  	</extension>
+	
+	<extension point="ru.biosoft.server.servlets.tableExporter" id="TrackExporter">
+		<exporter prefix="Sites" class="ru.biosoft.bsa.server.SitesTableExporter"/>
+	</extension>
+	
+	<extension point="ru.biosoft.server.servlets.controlCodeGenerator" id="ProjectCodeGenerator">
+		<exporter prefix="Project" class="ru.biosoft.bsa.server.ProjectControlCodeGenerator"/>
+	</extension>
+	
+</plugin>

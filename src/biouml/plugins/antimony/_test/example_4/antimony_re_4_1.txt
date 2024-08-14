@@ -1,0 +1,4 @@
+species s;
+model example()
+   species s1;
+end

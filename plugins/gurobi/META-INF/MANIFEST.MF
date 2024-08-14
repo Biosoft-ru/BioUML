@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: Gurobi Plug-in
+Bundle-SymbolicName: gurobi;singleton:=true
+Bundle-Version: 6.0.5
+Bundle-Vendor: Gurobi
+Bundle-ClassPath: gurobi.jar
+Export-Package: gurobi

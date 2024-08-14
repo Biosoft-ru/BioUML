@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2005/02/04 12:00:08 sanya Exp $  -->
+
+<project name="biouml.simulation package test" default="test" basedir="../../../../..">
+
+  <property name="package" value="biouml.plugins.simulation.ode"/>
+
+
+  <target name="stiff">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.VanderpolTest"/>
+    </ant>
+  </target>
+
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

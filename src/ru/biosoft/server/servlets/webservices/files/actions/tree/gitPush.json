@@ -1,0 +1,26 @@
+{
+    id: "git_push",
+    label: "Git push",
+    icon: "icons/Git.png",
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var edc = getDataCollection(completePath);
+        if( edc && instanceOf( edc.getClass(),'biouml.model.Module' ) && edc.isGitEnabled() && edc.isMutable() ) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        loadBioUMLModules(['git'], function()
+        {
+        }, function()
+        {
+            gitPush(path);
+        });
+    }"
+}

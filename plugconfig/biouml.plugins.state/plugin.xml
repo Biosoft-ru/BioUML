@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+  <extension id="ApplyState" point="ru.biosoft.analysiscore.method"> 
+    <analysisClass class="biouml.plugins.state.ApplyState" group="SEDML" name="Apply state to diagram"  description="Apply state to diagram."/> 
+  </extension>
+
+  <extension id="CreateState" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.state.analyses.CreateStateAnalysis" group="SEDML" name="Create state"  description="Create diagram state."/> 
+  </extension>
+
+  <extension id="ChangeDiagram" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.state.analyses.ChangeDiagram" group="SEDML" name="Change diagram"  description="Change diagram."/> 
+  </extension>
+</plugin>

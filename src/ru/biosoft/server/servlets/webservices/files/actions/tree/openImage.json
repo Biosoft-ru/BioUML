@@ -1,0 +1,28 @@
+/*
+ * Open image action
+ */
+{
+    id: "open_image",
+    label: "Open image",
+    icon: "icons/open.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if( instanceOf(type,'ru.biosoft.access.ImageElement') )
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		createImageDocument(path, function (document){
+			openDocumentTab(document);
+        });
+    }"
+}

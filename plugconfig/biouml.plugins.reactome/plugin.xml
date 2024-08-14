@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="ReactomeProteinTableType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.reactome.ReactomeProteinTableType" urlTemplate="MIR:00000018"/>
+  </extension>
+  
+  <extension id="ReactomePathwayTableType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.reactome.ReactomePathwayTableType"/>
+  </extension>
+  
+  <extension id="ReactomeSBGNConverter" point="biouml.workbench.diagramTypeConverter">
+  	<elementConversion from="biouml.model.xml.XmlDiagramType" to="biouml.model.xml.XmlDiagramType" converter="biouml.plugins.reactome.sbgn.SBGNConverter"/>
+  </extension>
+  
+  <extension id="Install reactome DB" point="ru.biosoft.analysiscore.method"> 
+     <analysisClass
+       class="biouml.plugins.reactome.imports.InstallReactomeAnalysis"
+       group="Admin"
+       name="Install Reactome"
+       description="Installs reactome after sql dump installation."
+     /> 
+  </extension>
+</plugin>

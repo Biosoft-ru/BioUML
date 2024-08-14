@@ -1,0 +1,24 @@
+/*
+ * Rename project action
+ */
+{
+    id: "rename_project",
+    label: "Rename project",
+    icon: "icons/rename.png",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		
+        if(path == appInfo.userProjectsPath )
+        {
+        	var dc = getDataCollection(completePath);
+        	if(dc.isMutable()) 
+        		return true;
+    	}
+        return -1;
+    }",
+    action: "function(path)
+    {
+        renameProject(path);
+    }"
+}

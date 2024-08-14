@@ -1,0 +1,4 @@
+.*uniprot.org.* molecule-protein
+.*www.ebi.ac.uk/chebi.* molecule-substance
+.*www.genome.jp/kegg/compound.* molecule-substance
+.*geneontology.org.* molecule-gene

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.machinelearning.analysis.RegressionAnalysisAdvanced"
+                   group="Machine learning"
+                   name="Regression analysis advanced"
+                   description="Create and save regression model or load regression model for prediction of response or cross-validation of regression model."
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.machinelearning.analysis.ClassificationAnalysisAdvanced"
+                   group="Machine learning"
+                   name="Classification analysis advanced"
+                   description="Create and save classification model or load classification model for prediction of response or cross-validation of classification model."
+                   />
+   </extension>
+</plugin>

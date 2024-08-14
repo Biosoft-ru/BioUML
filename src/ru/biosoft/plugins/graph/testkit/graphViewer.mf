@@ -1,0 +1,2 @@
+Main-Class: ru.biosoft.graph.testkit.GraphViewer
+Class-Path: log4j-1.2.8.jar

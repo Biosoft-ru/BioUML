@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.junittest;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ junit,
+ org.eclipse.equinox.app,
+ ru.biosoft.access,
+ ru.biosoft.workbench
+Export-Package: biouml.plugins.junittest

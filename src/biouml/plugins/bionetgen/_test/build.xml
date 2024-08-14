@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.5 2013/04/02 08:03:38 lan Exp $  -->
+
+<project name="BioNetGen package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="biouml.plugins.bionetgen"/>
+
+  <target name="test.convert">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.DiagramConverterTest"/>
+    </ant>
+  </target>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>
+                                                                         

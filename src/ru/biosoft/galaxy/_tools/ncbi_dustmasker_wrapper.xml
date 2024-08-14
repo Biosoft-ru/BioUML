@@ -1,0 +1,104 @@
+<tool id="ncbi_dustmasker_wrapper" name="NCBI dustmasker" version="0.0.22">
+    <!-- dustmasker wrapper from Edward Kirton and Nicola Soranzo -->
+    <description>masks low complexity regions</description>
+    <requirements>
+        <requirement type="binary">dustmasker</requirement>
+        <requirement type="package" version="2.2.27">blast+</requirement>
+    </requirements>
+    <version_command>dustmasker -version-full</version_command>
+    <macros>
+        <import>ncbi_macros.xml</import>
+    </macros>
+    <command>
+## The command is a Cheetah template which allows some Python based syntax.
+## Lines starting hash hash are comments. Galaxy will turn newlines into spaces
+dustmasker
+#if $db_opts.db_opts_selector == "db":
+  -in "${db_opts.database.fields.path}" -infmt blastdb
+#elif $db_opts.db_opts_selector == "histdb":
+  -in "${os.path.join($db_opts.histdb.extra_files_path, 'blastdb')}" -infmt blastdb
+#else:
+  -in "$subject" -infmt fasta
+#end if
+-out "$outfile"
+-window $window -level $level -linker $linker -outfmt $outformat
+    </command>
+    <expand macro="stdio" />
+    <inputs>
+        <expand macro="input_conditional_nucleotide_db" />
+        <param name="window" type="integer" value="64" label="DUST window length" />
+        <param name="level" type="integer" value="20" label="DUST level" help="Score threshold for subwindows" />
+        <param name="linker" type="integer" value="1" label="DUST linker" help="How close masked intervals should be to get merged together" />
+        <param name="outformat" type="select" label="Output format">
+<!-- acclist and maskinfo_xml are listed as possible output formats in
+     "dustmasker -help", but were not recognized by NCBI BLAST up to
+     release 2.2.27+. Fixed in BLAST 2.2.28+.
+     seqloc_* formats are not very useful -->
+<!--            <option value="acclist">acclist</option>-->
+            <option value="fasta">FASTA</option>
+            <option value="interval" selected="true">interval</option>
+            <option value="maskinfo_asn1_bin">maskinfo ASN.1 binary</option>
+            <option value="maskinfo_asn1_text">maskinfo ASN.1 text</option>
+<!--            <option value="maskinfo_xml">maskinfo_xml</option>
+            <option value="seqloc_asn1_bin">seqloc_asn1_bin</option>
+            <option value="seqloc_asn1_text">seqloc_asn1_text</option>
+            <option value="seqloc_xml">seqloc_xml</option>-->
+        </param>
+    </inputs>
+    <outputs>
+        <data name="outfile" format="interval" label="DUST Masked File">
+            <change_format>
+                <when input="outformat" value="fasta" format="data" />
+                <when input="outformat" value="maskinfo_asn1_bin" format="maskinfo-asn1-binary" />
+                <when input="outformat" value="maskinfo_asn1_text" format="maskinfo-asn1" />
+            </change_format>
+        </data>
+    </outputs>
+    <tests>
+        <test>
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="three_human_mRNA.fasta" ftype="fasta" />
+            <param name="window" value="64" />
+            <param name="level" value="20" />
+            <param name="linker" value="1" />
+            <param name="outformat" value="fasta" />
+            <output name="outfile" file="dustmasker_three_human.fasta" />
+        </test>
+        <test>
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="three_human_mRNA.fasta" ftype="fasta" />
+            <param name="window" value="64" />
+            <param name="level" value="20" />
+            <param name="linker" value="1" />
+            <param name="outformat" value="maskinfo_asn1_bin" />
+            <output name="outfile" file="dustmasker_three_human.maskinfo-asn1-binary" />
+        </test>
+        <test>
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="three_human_mRNA.fasta" ftype="fasta" />
+            <param name="window" value="64" />
+            <param name="level" value="20" />
+            <param name="linker" value="1" />
+            <param name="outformat" value="maskinfo_asn1_text" />
+            <output name="outfile" file="dustmasker_three_human.maskinfo-asn1" />
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+This tool identifies and masks out low complexity regions of a nucleotide database (or sequences in FASTA format) by using the symmetric DUST algorithm.
+
+If you select *maskinfo ASN.1* (binary or text) as output format, the output file can be used as masking data for NCBI BLAST+ makeblastdb tool.
+
+More information about dustmasker can be found in the `BLAST Command Line Applications User Manual`_.
+
+.. _BLAST Command Line Applications User Manual: http://www.ncbi.nlm.nih.gov/books/NBK1763/
+
+**References**
+
+If you use this Galaxy tool in work leading to a scientific publication please
+cite the following papers (a more specific paper covering this wrapper is planned):
+
+@REFERENCES@
+    </help>
+</tool>

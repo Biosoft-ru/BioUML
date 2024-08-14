@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2007/04/30 11:40:56 alexander Exp $  -->
+
+<project name="biouml.workbench package test" default="autotest" basedir="../../..">
+
+  <property name="package" value="biouml.workbench"/>
+
+  <target name="searchtest">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.SearchFormDialogTest"/>
+    </ant>
+  </target>
+
+  <target name="pluginsStructure">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.PluginsStructureTest"/>
+    </ant>
+  </target>
+
+  <target name="math">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.MathTest"/>
+    </ant>
+  </target>
+
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="biouml.workbench._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>
+

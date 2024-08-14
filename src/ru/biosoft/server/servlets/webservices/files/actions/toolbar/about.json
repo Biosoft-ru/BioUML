@@ -1,0 +1,29 @@
+/*
+ * About action
+ */
+{
+    id: "about",
+    label: "About",
+    icon: "icons/about.gif",
+    visible: "function()
+    {
+        return true; 
+    }",
+    action: "function()
+    {
+        var dialogDiv = $('<div title=\"About\"></div>').css('padding', 0).css('margin', 0).css('text-align', 'center');
+        dialogDiv.load('about.html');
+        dialogDiv.dialog({
+            autoOpen: false,
+            width: 420,
+            buttons: {
+                'Ok': function()
+                {
+                    $(this).dialog('close');
+					$(this).remove();
+                }
+            }
+        });
+        dialogDiv.dialog('open');
+    }"
+}

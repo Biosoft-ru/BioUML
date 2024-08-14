@@ -1,0 +1,173 @@
+<tool id="joint-snv-mix-classify-heuristic" name="JointSNVmix classify heuristic" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>	
+		<param name="nBam" type="data" format="bam" label="Normal BAM" 
+		      help="BAM file for the normal sample"/>
+		<param name="tBam" type="data" format="bam" label="Tumor BAM" 
+ 		      help="BAM file for the tumor sample"/>
+		<param name="param" type="data" format="txt" label="File with parameters" 
+ 		      help="File with parameters for the model. It is recommended to get this file by training with JointSVNmix-train"/>
+
+       <param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+      <conditional name="method_selector">
+   		      <param name="method" type="select" label="Method to run" 
+                        help="Select output format">
+                                <option value="independent_fisher">independent_fisher</option>
+                                <option value="joint_fisher">joint_fisher</option>
+                                <option value="threshold">threshold</option>
+            </param>
+             <when value="independent_fisher">
+                  <param name="min_var_freq" type="float" value="0.1" label="Minimum frequency for declaring a site a variant"/>
+                  <param name="hom_var_freq" type="float" value="0.3" label="Minimum frequency to decalare genotype BB."/>
+                  <param name="p_value_threshold" type="float" value="0.05" label="Significance threshold for declaring a site heterozygous in tumour."/>
+                  <param name="expected_error_rate" type="float" value="0.01" label="Expected error rate of base miscalls."/>
+                  <param name="min_var_depth" type="integer" value="5" label="Sites with fewer variant reads in the tumour than this will always be called reference."/>
+              </when>
+              <when value="joint_fisher">
+                  <param name="min_var_freq" type="float" value="0.1" label="Minimum frequency for declaring a site a variant"/>
+                  <param name="hom_var_freq" type="float" value="0.3" label="Minimum frequency to decalare genotype BB."/>
+                  <param name="p_value_threshold" type="float" value="0.05" label="Significance threshold for declaring a site heterozygous in tumour."/>
+                  <param name="expected_error_rate" type="float" value="0.01" label="Expected error rate of base miscalls."/>
+                  <param name="min_var_depth" type="integer" value="5" label="Sites with fewer variant reads in the tumour than this will always be called reference."/>
+              </when>
+              <when value="threshold">
+                  <param name="normal_threshold" type="float" value="0.05" label="Threshold for declaring a site homozygous in normal. [0.05]"/>
+                  <param name="tumour_threshold" type="float" value="0.05" label="Threshold for declaring a site homozygous in tumour.[0.05]"/>
+              </when>
+       </conditional>
+       <param name="min_base_qual" type="integer" value="10" label="Remove bases with base quality lower than this. [10]"/>
+       <param name="min_map_qual" type="integer" value="10" label="Remove bases with mapping quality lower than this. [10]"/>
+       
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data format="txt" name="output_bz2" label="Output file compressed by bz2" />
+	</outputs>
+
+
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  cd `dirname $outMetrics`
+  DEST=`dirname $log`
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/err.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'rm "\$err"  "\$out"' EXIT
+tee $log.err &lt; "\$err" &gt;&amp;2 &amp;
+tee $log.out &lt; "\$out" &gt;&amp;1 &amp;
+
+jsm.py  classify $method_selector.method \
+--min_base_qual $method_selector.method.min_base_qual \
+--min_map_qual $method_selector.method.min_map_qual \
+#if str( $method_selector.method ) == "threshold":
+--normal_threshold $normal_threshold  --tumour_threshold $tumour_threshold \
+#else:
+--min_var_freq $min_var_freq --hom_var_freq $hom_var_freq --p_value_threshold $p_value_threshold \
+--expected_error_rate $expected_error_rate --min_var_depth $min_var_depth \
+#end if 
+"${ refGenome.fields.path }"  \
+"$nBAM" \
+"$tBAM" \
+output.tmp \
+  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "varscan finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+pbzip2 -9 -m900 output.tmp
+mv output.tmp.bz2 "${output_bz2}"
+cat $log.err $log.out &gt;&gt; $log
+  </configfile>
+  </configfiles>
+
+<help>
+JointSNVMix
+
+Usage: pileup_to_jcnt.py NORMAL_PILEUP_FILE TUMOUR_PILEUP_FILE OUTPUT_FILE Options:-h, –help            show this help message and exit-b                    Set this flag if file is in bz2 format.–bpil                Set this flag if files are already in bpil format.–min_base_qual=MIN_BASE_QUALMinimum base quality to use, value is inclusive.Default is 5.–min_map_qual=MIN_MAP_QUALMinimum mapping quality to use, value is inclusive.Default is 30.
+
+
+Description
+JointSNVMix implements a probabilistic graphical model to analyse sequence data from tumour/normal pairs. The model draws statistical strength by analysing both genome jointly to more accurately classify germline and somatic mutations.
+
+Overview
+The JointSnvMix software package consists of a number of tools for calling somatic mutations in tumour/normal paired NGS data.
+
+After installation the jsm.py command should be available on your system.
+
+There are two subcommands jsm.py classify and jsm.py train. If you type these in a list of models available for use with each command will be presented.
+
+Classifiy
+The classify command is used for analysing tumour/normal paired data and computing the posterior probability for each of the nine joint genotypes for a pair of diploid genomes.
+
+For more information on the output of this command see output page.
+
+Currently the following models are available.
+
+snv_mix_one - Runs two separate SnvMix1 analysis and multiplies the resulting genotypes together to get joint genotype probabilities.
+snv_mix_two - Runs two separate SnvMix2 analysis and multiplies the resulting genotypes together to get joint genotype probabilities.
+joint_snv_mix_one - Runs a JointSnvMix1 analysis.
+joint_snv_mix_two - Runs a JointSnvMix2 analysis
+independent_fisher - Runs a heuristic method using fisher exact tests on each sample and joins the results post-hoc.
+joint_fisher - Runs and independent Fisher analysis with a final step where the count data of putative somatic sites is compared to see if differs significantly. If not these sites are relabeled as wild type positions.
+threshold - Runs a heuristic method based on thresholding variant allele frequencies in the tumour and normal separately and joins the results post-hoc.
+Note that running jsm.py classify MODEL -h will show the help command for the given model.
+
+I recommend using the train to learn the model parameters for models in the SnvMix family and then using these parameters for the classify command.
+
+indepdent_fisher
+This is simple heuristic which uses Fisher's exact test to see if the frequency of the B allele at a position differs from that expected due to random noise. Sites which differ significantly from null distribution are the classified as AB or BB depending on the B allele frequency. This is performed in both the normal and tumour and the predicted genotypes are joined post-hoc.
+
+joint_fisher
+This is another heuristic method. First the independent_fisher method is used to classify positions. Next positions which are putatively predicted as somatic mutations have the count data from the normal and tumour compared using a two tailed Fisher exact test. If the counts are not significantly different the position is relabeled as a wildtype position.
+
+threshold
+This is simple heuristic which sets a threshold on b allele frequencies, above which a site is declared a variant. This is done in both the normal and tumour and the results are joined post-hoc.
+
+All subcommands of classify produce a file with a standard format. This is a tab delimited file with a header for each column.
+
+The file will look like the following
+
+chrom   position        ref_base        var_base        normal_counts_a normal_counts_b tumour_counts_a tumour_counts_b p_AA_AA p_AA_AB p_AA_BB p_AB_AA p_AB_AB p_AB_BB p_BB_AA p_BB_AB p_BB_BB
+1       1299268 T       C       26      25      3       17      0.0000  0.0000  0.0000  0.0000  0.0000  1.0000  0.0000  0.0000  0.0000
+The last nine columns of the file list the posterior probability of each of the joint genotypes. They have the form p_gN_gT where gN is the normal genotype and gT is the tumour genotype. For deterministic methods only one of these columns will be non-zero and will have a value of 1.
+
+The rows of the file correspond to genomic positions. The columns are as follows
+
+chrom - Chromosome the site is on.
+position - 1-based position on the chromosome
+ref_base - Base found in reference genome at this position.
+var_base - Variant base found at this position. If no variant base is found this will be N.
+normal_counts_a - Number of read matching ref_base in the normal at this position
+normal_counts_b - Number of reads matching var_base in the normal at this position.
+tumour_counts_a - Number of read matching ref_base in the tumour at this position
+tumour_counts_b - Number of reads matching var_base in the tumour at this position.
+p_AA_AA - Probability of joint genotype AA_AA
+p_AA_AB - Probability of joint genotype AA_AB
+p_AA_BB - Probability of joint genotype AA_BB
+p_AB_AA - Probability of joint genotype AB_AA
+p_AB_AB - Probability of joint genotype AB_AB
+p_AB_BB - Probability of joint genotype AB_BB
+p_AB_AA - Probability of joint genotype BB_AA
+p_AB_AB - Probability of joint genotype BB_AB
+p_AB_BB - Probability of joint genotype BB_BB
+To extract somatic positions from this file I suggest adding p_AA_AB + p_AA_BB together to get the somatic genotype probability. You can then choose to threshold at whatever level is appropriate.
+
+This file format can easily be manipulated using Python and the csv library which is installed by default. The csv.DictReader class will be especially useful.
+
+JOINTSNVMIX PAPER PUBLISHED: A STATISTICAL MODEL FOR SOMATIC POINT MUTATION DETECTION
+ 
+Andrew Roth, Ryan Morin, Jiarui Ding, Anamaria Crisan, Gavin Ha, Ryan Giuliany, Ali Bashashati, Martin Hirst, Gulisa Turashvili, Arusha Oloumi, Marco A. Marra, Samuel Aparicio and Sohrab P. Shah. JointSNVMix : A Probabilistic Model For Accurate Detection Of Somatic Mutations In Normal/Tumour Paired Next Generation Sequencing Data. Bioinformatics. 2012 doi: 10.1093/bioinformatics/bts053 SOFTWARE
+</help>
+
+
+</tool>

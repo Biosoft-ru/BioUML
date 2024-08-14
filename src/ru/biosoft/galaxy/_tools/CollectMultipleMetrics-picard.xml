@@ -1,0 +1,78 @@
+<tool name="CollectMultipleMetrics" id="picard_CollectMultipleMetrics" version="1.65">
+  <command>/bin/bash -v "$script"</command>
+  <inputs>
+	<param name="input_bam" type="data" format="bam" label="BAM file" />
+
+	<param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+
+	<param name="program" type="select" multiple="True" display="checkboxes" label="Programs" >
+		<option value="CollectAlignmentSummaryMetrics" selected="True">Alignment Summary Metrics</option>
+                <option value="CollectInsertSizeMetrics" selected="True">Insert Size Metrics</option>
+                <option value="QualityScoreDistribution" selected="True">Quality Score Distribution</option>
+                <option value="MeanQualityByCycle" selected="True">Mean Quality By Cycle</option>
+	</param>
+
+	<param name="sort" type="boolean" truevalue="true" falsevalue="false" checked="True" label="ASSUME_SORTED" 
+		help="If true (default), then the sort order in the header file will be ignored" />
+
+	<param name="stopafter" type="integer" value="0" label="STOP_AFTER" 
+                                        help="Stop after processing N reads, mainly for debugging. Default value: 0."/>
+
+	<param name="baseName" type="text" label="Base name" value="Metrics" 
+		help="Base name of output files"/>
+	<param name="memoryUsage" type="text" label="Max memory usage" value="16G" />
+
+
+      
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="log" label="Execution Log" />
+     <data format="zip" name="output" label="Output folder" />
+  </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  cd `dirname $log`
+err="`dirname $log`/err.pipe"
+echo \$err
+
+mkfifo "\$err"
+trap 'rm "\$err"' EXIT
+tee $log &lt; "\$err" &gt;&amp;2 &amp;
+mkdir ${output}_dir
+
+ runpicard CollectMultipleMetrics $memoryUsage \
+	INPUT="$input_bam" \
+	REFERENCE_SEQUENCE="${ refGenome.fields.path }" \
+	ASSUME_SORTED=$sort \
+	STOP_AFTER=$stopafter \
+    #for $prog in str( $program ).split( ',' ):
+	PROGRAM=${prog} \
+    #end for
+	 OUTPUT=${output}_dir/$baseName 2&gt;"\$err" \
+&amp;&amp; zip -rj ${output} "${output}_dir"
+
+
+  </configfile>
+  </configfiles>
+  
+  <help>
+
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

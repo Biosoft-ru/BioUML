@@ -1,0 +1,298 @@
+/***************************************************************
+ OPTIONS
+ ***************************************************************/
+
+options
+{
+    MULTI = true;
+    NODE_DEFAULT_VOID = true;
+    STATIC = false;
+
+    NODE_PREFIX ="Ast";
+}
+
+PARSER_BEGIN(UnitParser)
+package ru.biosoft.math.unitparser;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.StringReader;
+
+public class UnitParser {
+    private static Logger log = Logger.getLogger( UnitParser.class.getName() );
+    public UnitParser()
+    {
+        this (new StringReader("0"));
+    }
+    public AstStart parse(String expression) throws ParseException
+        {
+            AstStart astStart;
+            ReInit( new StringReader(expression) );
+            astStart = Start();
+            return astStart;
+
+        }
+
+
+
+}
+
+
+PARSER_END(UnitParser)
+
+/***************************************************************
+ SKIP
+ ***************************************************************/
+
+SKIP :
+{
+    " "
+    | "\t"
+    | "\n"
+    | "\r"
+    | <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+    | <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
+}
+
+
+/***************************************************************
+ TOKENS
+ ***************************************************************/
+
+TOKEN : /* LITERALS */
+{
+    < INTEGER_LITERAL: <DECIMAL_LITERAL> >
+    |
+    < #DECIMAL_LITERAL: (<MINUS>)? ["0"-"9"] (["0"-"9"])* >
+    |
+    < FLOATING_POINT_LITERAL: (<MINUS>)?
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)?
+        | "." (["0"-"9"])+ (<EXPONENT>)?
+        | (["0"-"9"])+ <EXPONENT>
+    >
+    |
+    < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+}
+
+
+
+TOKEN : /* IDENTIFIERS */
+{
+< TYPE: ("ampere"| "gram" | "katal" | "metre" | "second" | "watt" | "becquerel"| "gray"
+        | "kelvin" | "mole" | "siemens" | "weber" |"candela" | "henry" | "kilogram" | "newton"
+        | "sievert" | "coulomb" | "hertz" | "litre" | "ohm" | "steradian" | "dimensionless"
+        | "item" | "lumen"|  "pascal" | "tesla" | "farad" | "joule" | "lux" | "radian" | "volt")>
+}
+
+/* OPERATORS */
+TOKEN:
+{
+    < PLUS: "+"  >
+    |       < MINUS:"-"  >
+    |       < MUL:  "*"  >
+    |       < DIV:  "/"  >
+    |       < POWER:"^"  >
+}
+
+/***************************************************************
+ GRAMMAR START
+ ***************************************************************/
+
+AstStart Start() #Start :
+{}
+{
+    MultiplicativeExpression()
+
+    (";")?
+    <EOF>
+{ return jjtThis; }
+
+}
+
+
+/***************************************************************
+ EXPRESSION
+ ***************************************************************/
+
+ void MultiplicativeExpression() :
+ {
+ }
+ {
+
+   UnitOrUnaryExpression()
+
+   (
+     ( <MUL> UnitOrUnaryExpression()
+       {
+         jjtThis.setOperator("*");
+       }
+     ) #FunNode(2)
+         |
+     (
+     <DIV> UnitOrUnaryExpression()
+       {
+         jjtThis.setOperator("/");
+       }
+     ) #FunNode(2)
+   )*
+ }
+
+void UnitOrUnaryExpression() :
+{Token t;}
+ {
+        LOOKAHEAD(12)
+         (MultiplicativeConstantExpression()
+         MultiplicativeTypeExpression()) #UnitNode(2)
+         |
+         ParenthesesExpression()
+ }
+
+
+ void ParenthesesExpression() : {}
+ {
+    "(" MultiplicativeExpression() ")"
+    [
+       ( <POWER> UnaryConstantExpression()
+         {
+           jjtThis.setOperator("^");
+         }
+       ) #FunNode(2)
+       ]
+ }
+
+/***************************************************
+* CONSTANT EXPRESSION
+****************************************************/
+void MultiplicativeConstantExpression() :
+{
+}
+{
+    PowerConstantExpression()
+    (
+        ( <MUL> PowerConstantExpression()
+        {
+            jjtThis.setOperator("*");
+        }
+        ) #FunNode(2)
+        |
+        ( <DIV> PowerConstantExpression()
+        {
+            jjtThis.setOperator("/");
+        }
+        ) #FunNode(2)
+    )*
+}
+
+
+
+
+ void PowerConstantExpression() :
+ {
+ }
+ {
+     UnaryConstantExpression()
+     [
+     LOOKAHEAD(2)
+         ( <POWER>   UnaryConstantExpression()
+         {
+         jjtThis.setOperator("^");
+         }
+         ) #FunNode(2)
+     ]
+ }
+ void UnaryConstantExpression() :
+ {
+ }
+ {
+     RealConstant()
+     |
+     ParenthesesConstantExpression()
+ }
+
+ void ParenthesesConstantExpression() :
+ {}
+ {
+    "(" MultiplicativeConstantExpression() ")"
+ }
+
+void RealConstant() #Constant:
+{
+Token t;
+Number value;
+}
+{
+    (t=<INTEGER_LITERAL>
+    {
+        try
+        {
+            value = new Integer(t.image);
+        }
+        catch (Exception e)
+        {
+            value = null;
+            log.log(Level.SEVERE, "Can't parse \"" + t.image + "\"");
+        }
+        jjtThis.setValue(value);
+
+    }
+    |
+    t=<FLOATING_POINT_LITERAL>)
+    {
+        try
+        {
+        value = new Double(t.image);
+        }
+        catch (Exception e)
+        {
+        value = null;
+        log.log(Level.SEVERE, "Can't parse \"" + t.image + "\"");
+        }
+        jjtThis.setValue(value);
+    }
+}
+/***************************************************
+* TYPE EXPRESSION
+****************************************************/
+void MultiplicativeTypeExpression() :
+{
+}
+{
+    PowerTypeExpression()
+    ( LOOKAHEAD(2) (
+        ( <MUL> PowerTypeExpression()
+        {
+            jjtThis.setOperator("*");
+        }
+        ) #FunNode(2)
+        |
+        ( <DIV> PowerTypeExpression()
+        {
+            jjtThis.setOperator("/");
+        }
+        ) #FunNode(2))
+    )*
+}
+void PowerTypeExpression() :
+{
+Token t;
+}
+{
+    Type()
+    [
+    LOOKAHEAD(2)
+        (
+        <POWER> UnaryConstantExpression()
+            {
+            jjtThis.setOperator("^");
+            }
+        ) #FunNode(2)
+    ]
+
+}
+
+
+void Type() #Type:
+{Token t;}
+{
+    t = <TYPE> ("s")?
+    {jjtThis.setValue(t.image);}
+}

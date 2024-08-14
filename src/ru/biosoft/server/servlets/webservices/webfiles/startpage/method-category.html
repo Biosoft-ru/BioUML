@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../lib/jquery/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var category = urlParams.get("name");
+        $('.category-name').text(category);
+        window.parent.getDataCollection("analyses/Methods/"+category).getNameList(function(values) {
+            for(var i = 0; i < values.length; i++) {
+              var iconId = values[i].icon;
+              var iconURL = "/biouml/web/img?id="+iconId;
+              var name = values[i].name;
+              var title = values[i].title ? values[i].title : values[i].name;
+              let item = $("<div></div>")
+                .addClass("method-item")
+                .append('<img src="'+iconURL+'"></img>')
+                .append('<a target=_parent href="/bioumlweb/#de=analyses/Methods/'+category+'/'+ name+'">' + title + '</a>');
+              item.appendTo("#method-list");
+
+              window.parent.getDataCollection("analyses/Methods/"+category + "/" + values[i].name).getBeanFields("shortDescription", function(beanDPS) {
+                var description = beanDPS.getProperty("shortDescription")?beanDPS.getProperty("shortDescription").getValue():"";
+                var descrItem = $("<div></div>").addClass('method-description').text(description);
+                item.append(descrItem);
+              });
+            }
+        });
+        window.parent.getDataCollection("analyses/Methods/"+category).getBeanFields("description;related", function(beanDPS)
+        {
+            var description = beanDPS.getProperty("description")?beanDPS.getProperty("description").getValue():"";
+            $('#category-description').html(description);
+
+            var related = beanDPS.getProperty("related")?beanDPS.getProperty("related").getValue():[];
+            if(related.length > 0)
+              $('#related-categories').show();
+            for(var i = 0; i < related.length; i++) {
+              var groupName = related[i].getProperty("[" + i + "]").getValue()
+              $('#related-categories>ul').append('<li><a href="method-category.html?name='+groupName+'">'+groupName+'</a></li>');
+            }
+        });
+
+       $(window).resize(function() {
+          $('.header-offset').css("margin-top", $(".header").height());
+       }).resize();
+       
+       var backPage = urlParams.get("back");
+       if(backPage)
+       {
+			$('.back-btn').attr("href", backPage + ".html");	
+       }
+      });
+    </script>
+    <style>
+      body {margin: 0px;}
+      .back-btn {
+        float: left;
+        background-color: rgb(204, 204, 204);
+        color: #333;
+        border-radius: 5px;
+        padding: 8px;
+        text-decoration: none;
+        font-family: Verdana, Arial, sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 21px;
+        margin-left: 10px;
+      }
+      .back-btn:hover {
+        background-color: rgb(170, 170, 170);
+      }
+
+      .header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: #eee;
+      }
+      .header-offset {
+        margin-top: 100px;
+      }
+
+      #method-list {
+        padding: 10px;
+      }
+      .method-item {
+        margin: 8px;
+        border: solid 1px #ddd;
+        border-radius: 3px;
+        max-width: 600px;
+        padding: 10px;
+        background: #f5f5f5;
+        box-shadow: 0 1px 1px rgba(0,0,0,.05);
+      }
+      .method-item > img {
+        vertical-align: baseline;
+      }
+      .method-item > a {
+        margin: 5px;
+      }
+      #category-description1 {
+        max-width: 75%;
+        margin: 0 auto;
+        text-align: center;
+      }
+      #related-categories {
+        display: none;
+      }
+      .panel {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-top: 10px;
+        margin-bottom: 0px;
+        margin-left: 5px;
+        margin-right: 5px;
+        color: rgb(51, 51, 51);
+        box-shadow: 0 1px 1px rgba(0,0,0,.05);
+       }
+      .panel-body {
+        margin: 10px;
+      }
+      .panel-heading {
+        background-color: #f5f5f5;
+        border-color: #ddd;
+        padding: 10px 15px;
+        border-bottom: 1px solid transparent;
+        border-bottom-color: transparent;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .method-description {
+        max-width: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class=header>
+      <a class="back-btn" href="index.html">&larr;&nbsp;&nbsp;Start page</a>
+      <center><h1>Methods in category: <span class="category-name"></span></h1></center>
+    </div>
+    <div class="header-offset"/>
+
+    <div id='category-description'>
+    </div>
+    <div id="method-list">
+    </div>
+    <div id="related-categories">
+      <h2>Related categories:</h2>
+      <ul>
+      </ul>
+    </div>
+  </body>
+</html>

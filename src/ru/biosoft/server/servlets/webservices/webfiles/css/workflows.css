@@ -1,0 +1,104 @@
+/*Workflows page styles*/
+li.workflows_list_item{
+	text-decoration:underline;
+	padding: 5px 5px 20px;
+	list-style-image: url(../images/brick_right.png);
+	font: 1.5em Arial;
+	position: relative;
+}
+li.workflows_list_item_exp{
+	text-decoration:none;
+	list-style-image: url(../images/brick_down.png);
+}
+
+li.workflows_inner_list_item{
+	list-style-image: none;
+	list-style-type: none;
+	padding: 3px 0;
+	font-size: 0.9em;
+}
+
+a.workflows_list_item{
+	text-decoration:underline;
+	font-weight: bold;
+	cursor: pointer;
+	color: #5F5F5F;
+}
+a.workflows_list_item_exp{
+	text-decoration:none;
+}
+
+a.workflows_inner_list_item{
+	text-decoration:underline;
+	color: #17ACE4;
+	cursor: pointer;
+}
+
+.workflows_caption{
+	color: #0794CC;
+	font: normal 2em Arial;
+	margin: 0;
+	padding: 10px 0;
+}
+
+.workflows_link{
+	float: left;
+	width: 30%;
+	text-align: left;
+	text-decoration:underline;
+	color: #17ACE4;
+	font: italic 1.3em Arial;
+	cursor: pointer;
+	padding-bottom: 5pt;
+}
+
+.workflows_intro_link{
+	float: right;
+	width: 30%;
+	text-align: right;
+	text-decoration:underline;
+	color: #17ACE4;
+	font: italic 1.3em Arial;
+	cursor: pointer;
+	padding-bottom: 5pt;
+}
+
+.intro_workflows_link{
+	text-decoration:underline;
+	color: #17ACE4;
+	font: italic 1.3em Arial;
+	padding-top: 10px;
+	cursor: pointer;
+}
+
+.workflow_header_block{
+	width: 600px;
+}
+
+.workflows_manual_link{
+	width: 15%;
+	text-decoration:underline;
+	color: #17ACE4 !important;
+	font: italic 1.3em Arial;
+	margin-top: 10px;
+	cursor: pointer;
+	padding-left: 20px;
+	background-image: url(../icons/icon_pdf.gif);
+	background-repeat: no-repeat;
+}
+
+.workflows_examples{
+	float: right;
+	font: italic 1.3em Arial;
+	color: #17ACE4 !important;
+}
+
+.workflow_example_link{
+	position: absolute;
+	right: 0;
+	top: -10px; 
+}
+
+.workflow_example_link a img {
+	border-width: 0;
+}

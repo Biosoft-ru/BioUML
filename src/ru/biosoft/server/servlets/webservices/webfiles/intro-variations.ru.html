@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<link type="text/css" href="css/intro.css" rel="stylesheet" />
+<head>
+</head>
+<body class="intro-styles">
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+<h2>Поиск и анализ вариаций геномов</h2>
+<table width=90% align="center">
+<tr>
+<td valign="top">
+<h3>Подготовка данных и контроль качества</h3>
+<ul>
+        <li><big><a href="#" onclick="doImportMultiple(constructSelectedProjectPath())">Импортировать данные</a></big><br>
+        Вы можете загрузить ваши файлы FASTQ через браузер или по FTP<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Methods/NGS%20utils/Track%20statistics&docOnly=true">Контроль качества данных секвенирования</a> </big><br>
+	Выполняет контроль качества ваших данных<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/fasta_manipulation/fastq_mcf">EA Utils trim and clip</a> </big><br>
+	Отмечает присутствие адаптерных последовательностей,
+        <br/> вычисляет вероятное положение (начало и конец) адаптеров<br>
+        Удаляет адаптерные последовательности из файлов FASTQ<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/NGS_QC/cshl_fastx_clipper&docOnly=true">FastX clip</a> </big><br>
+        Отрезает адаптеры с 3' конца последовательностей в FASTA/FASTQ файлах
+	<br><br></li>
+</ul>
+</td>
+
+<td valign="top" width=50>
+&nbsp;
+</td>
+
+<td valign="top"><h3>Сценарии обработки данных</h3>Попробуйте сценарий автоматической обработки данных
+<ul>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Workflows/Variations/Genome Variations from NGS Data">Сценарий для аннотирования геномных вариаций</a></big><br>
+	Прочтения подаются как FASTQ файлы<br>
+	<br></li>
+</ul>
+</td>
+</tr>
+
+<tr>
+<td>
+<h3>Картирование прочтений на референсный геном</h3>
+<ul>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/alignment_tools/Map%20with%20BWA&docOnly=true">Картирование по методу Burrows-Wheeler (BWA)</a> </big><br>
+	Картирование прочтений на референсный геном локальным выравниванием по методу Burrows-Wheeler<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs%3A_quality_control/Samtools%20flagstat">Статистика картирования (samtools flagstat)</a> </big><br>
+	Сводная таблица статистики картирования на референсный геном инструментом <i>flagstat</i> из пакета samtools<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs%3A_qc/Je-MarkDuplicates">Удаление дуплицированных выравниваний</a> </big><br>
+	Отфильтровывает дуплицированные выравнивания<br><br></li>
+</ul>
+</td>
+
+<td valign="top">
+&nbsp;
+</td>
+
+<td valign="top"><h3>Аннотация геномных вариациий</h3>
+<ul>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/gatk/Realigner%20Target%20Creator">Определение локусов перекартирования</a> </big><br>
+	Определяет геномные локусы для уточтения картирования прочтений инструментом Realigner Target Creator из пакета GATK<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/gatk/Indel%20Realigner">Уточнение картирования прочтений</a> </big><br></li>
+	Уточненное локальное выравнивание прочтений на референсный геном инструментом Indel Realigner из пакета GATK<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/gatk/Count%20Covariates">Подсчет ковариаций нуклеотидных замен в прочтениях</a> </big><br>
+	Подсчет ковариаций нуклеотидных замен в прочтениях и оценка их значимости инструментом Count Covariates из пакета GATK<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/gatk/Analyze%20Covariates">Анализ ковариаций</a> </big><br>
+	Калибровка сайтов ковариации на основании качества прочтения нуклеотидов инструментом Analyze Covariates из пакета GATK<br><br></li>
+
+</ul>
+</td>
+</tr>
+
+</table>
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+</body>
+</html>

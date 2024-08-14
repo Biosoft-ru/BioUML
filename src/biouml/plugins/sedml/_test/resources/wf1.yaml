@@ -1,0 +1,7 @@
+name: wf1
+expressions:
+  model: {type: Data element}
+tasks:
+  Download model:
+    out: {outputPath: $model$}
+    param: {source: 'urn:miriam:biomodels.db:BIOMD0000000140'}

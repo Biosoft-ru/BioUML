@@ -1,0 +1,296 @@
+<tool id="joint-snv-mix-train-snv" name="JointSNVmix TRAIN snv" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>	
+		<param name="nBam" type="data" format="bam" label="Normal BAM" 
+		      help="BAM file for the normal sample"/>
+		<param name="tBam" type="data" format="bam" label="Tumor BAM" 
+ 		      help="BAM file for the tumor sample"/>
+<conditional name="additional_params">
+  <param name="selector" type="select" label="Initial parameters">
+    <option value="default">default</option>
+    <option value="provided">provided</option>
+  </param> 
+  <when value="default" />
+  <when value="provided">
+	<param name="priors_file_name" type="data" format="txt" label="Priors"  needs_metadata="False"
+ 		      help="Path to a file with priors for the model parameters. If none is provided than default set will be used"/>
+	<param name="initial_parameter_file_name" type="data" format="txt" label="Initial Parameters"   needs_metadata="False"
+ 		      help="Path to a file with Intitial parameters for the model parameters. If none is provided than default set will be used"/>
+  </when>
+</conditional>
+ 		      
+       <param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+      <conditional name="method_selector">
+   		      <param name="method" type="select" label="Method to run" 
+                        help="Select output format">
+                                <option value="snv_mix_one">snv_mix_one</option>
+                                <option value="snv_mix_two">snv_mix_two</option>
+                                <option value="joint_snv_mix_one">joint_snv_mix_one</option>
+                                <option value="joint_snv_mix_two">joint_snv_mix_two</option>
+            </param>
+             <when value="snv_mix_one">
+                  <param name="min_base_qual" type="integer" value="10" label="Remove bases with base quality lower than this. [10]"/>
+                  <param name="min_map_qual" type="integer" value="10" label="Remove bases with mapping quality lower than this. [10]"/>
+              </when>
+              <when value="snv_mix_two" />
+              <when value="joint_snv_mix_one">
+                  <param name="min_base_qual" type="integer" value="10" label="Remove bases with base quality lower than this. [10]"/>
+                  <param name="min_map_qual" type="integer" value="10" label="Remove bases with mapping quality lower than this. [10]"/>
+              </when>
+              <when value="joint_snv_mix_two" />
+       </conditional>
+       
+       <param name="min_normal_depth" type="integer" value="10" label="Minimum depth of coverage in normal sample" 
+                    help="Minimum depth of coverage in normal sample for a site to be eligible for use in training set.[10]"/>
+       <param name="min_tumour_depth" type="integer" value="10" label="Minimum depth of coverage in tumour sample" 
+                    help="Minimum depth of coverage in tumour sample for a site to be eligible for use in training set. [10]"/>
+       <param name="max_iters" type="integer" value="1000" label="Maximum number of iterations" 
+                    help="Maximum number of iterations to used for training model.[1000]"/>
+       <param name="skip_size" type="integer" value="100" label="number of positions to skip over " 
+                    help="When subsampling will skip over this number of position before adding a site to the subsample. Larger values lead to smaller subsample data sets with faster training and less memory. Smaller values should lead to better parameter estimates.[100]"/>
+       <param name="convergence_threshold" type="float" value="1E-6" label="Convergence threshold" 
+                    help="Convergence threshold for EM training. Once the change in objective function is below this value training will end.[1E-6]"/>
+                    
+      
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data format="txt" name="parameter_file_name" label="Output Parameters" />
+	</outputs>
+<configfiles>
+<configfile name="indep_priors_cfg">
+[pi_N]
+aa = 1e4
+ab = 1e2
+bb = 1e2
+
+[pi_T]
+aa = 1e4
+ab = 1e2
+bb = 1e2   
+
+[mu_N_alpha]
+aa = 1000
+ab = 500
+bb = 2   
+
+[mu_N_beta]
+aa = 2
+ab = 500   
+bb = 1000
+
+[mu_T_alpha]
+aa = 1000
+ab = 500
+bb = 2   
+
+[mu_T_beta]
+aa = 2
+ab = 500   
+bb = 1000
+
+</configfile>
+
+ <configfile name="joint_priors_cfg">
+[pi]
+aa_aa = 1e6
+aa_ab = 1e2
+aa_bb = 1e2
+ab_aa = 1e2
+ab_ab = 1e4
+ab_bb = 1e2
+bb_aa = 1e1
+bb_ab = 1e1
+bb_bb = 1e4
+
+[mu_N_alpha]
+aa = 1000
+ab = 500
+bb = 2
+
+[mu_N_beta]
+aa = 2
+ab = 500
+bb = 1000
+
+[mu_T_alpha]   
+aa = 1000
+ab = 500
+bb = 2
+
+[mu_T_beta]
+aa = 2
+ab = 500   
+bb = 1000  
+
+</configfile>
+
+<configfile name="indep_params_cfg">
+[pi_N]
+aa = 1e4
+ab = 1e2
+bb = 1e2
+
+[pi_T]
+aa = 1e4
+ab = 1e2
+bb = 1e2
+
+[mu_N]
+aa = 0.9900000000
+ab = 0.5000000000
+bb = 0.0100000000
+
+[mu_T]
+aa = 0.9900000000
+ab = 0.5000000000
+bb = 0.0100000000
+
+  </configfile>
+
+  <configfile name="joint_params_cfg">
+[pi]
+aa_aa = 1e6
+aa_ab = 1e2
+aa_bb = 1e2
+ab_aa = 1e2
+ab_ab = 1e4
+ab_bb = 1e2
+bb_aa = 1e1
+bb_ab = 1e1
+bb_bb = 1e4
+
+[mu_N]
+aa = 0.9900000000
+ab = 0.5000000000
+bb = 0.0100000000
+
+[mu_T]
+aa = 0.9900000000
+ab = 0.5000000000
+bb = 0.0100000000
+
+  </configfile>
+
+
+    <configfile name="script">#!/bin/bash -v
+DEST=`dirname $log`
+cd \$DEST
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/out.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'rm -f "\$err"  "\$out"' EXIT
+tee ${ log }.err &lt; "\$err" &gt;&amp;2 &amp;
+tee ${ log }.out &lt; "\$out" &gt;&amp;1 &amp;
+
+###jointSNVmix require to have indexes in the format bamfile.bai (example for file.bam index should be file.bam.bai galaxy usually provides it as file.bai)
+filename=\$(basename "$nBam")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+if [ "\$?" != "0" ] ; then
+   echo "index file for BAM was not found" 
+   exit 1
+fi
+
+filename=\$(basename "$tBam")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+if [ "\$?" != "0" ] ; then
+   echo "index file for BAM was not found"
+   exit 1
+fi
+
+
+
+
+jsm.py  train $method_selector.method \
+--min_normal_depth $min_normal_depth --min_tumour_depth $min_tumour_depth \
+--max_iters $max_iters --skip_size $skip_size --convergence_threshold $convergence_threshold \
+#if str( $method_selector.method ) == "snv_mix_one":
+--min_base_qual $method_selector.min_base_qual \
+--min_map_qual $method_selector.min_map_qual \
+#end if 
+#if str( $method_selector.method ) == "joint_snv_mix_one":
+--min_base_qual $method_selector.min_base_qual \
+--min_map_qual $method_selector.min_map_qual \
+#end if 
+"${ refGenome.fields.path }"  \
+"$nBam" \
+"$tBam" \
+#if str( $additional_params.selector ) == "default": 
+  #if str( $method_selector.method ) == "snv_mix_one":
+	"$indep_priors_cfg" \
+	"$indep_params_cfg" \
+  #end if 
+  #if str( $method_selector.method ) == "snv_mix_two":
+	"$indep_priors_cfg" \
+	"$indep_params_cfg" \
+  #end if 
+  #if str( $method_selector.method ) == "joint_snv_mix_one":
+	"$joint_priors_cfg" \
+	"$joint_params_cfg" \
+  #end if 
+  #if str( $method_selector.method ) == "joint_snv_mix_two":
+	"$joint_priors_cfg" \
+	"$joint_params_cfg" \
+  #end if 
+#else:
+	"$priors_file_name" \
+	"$initial_parameter_file_name" \
+#end if
+"$parameter_file_name" \
+  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "joint-SNVmix finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+cat ${ log }.err ${ log }.out >> $log
+  </configfile>
+    
+  </configfiles>
+
+<help>
+JointSNVMix
+
+Train
+The SnvMix family of models are complete generative models of the data. As such the model parameters can be learned using the Expectation Maximisation (EM) algorithm. The train command allows this to be done.
+
+All methods require that a file with the parameters for the prior densities, and an initial set of parameters be passed in. Templates for these files can be found in the config/ directory which ships with the package. If you are unsure about setting the priors or parameter values these files should suffice.
+
+The train command will produce a parameters file suitable for use with the classification command. Training is highly recommended to achieve optimal performance when using SnvMix based model.
+
+To reduce memory consumption all subcommands of train take an optional --skip-size flag. This is the number of positions to skip over before sampling a position for the training set. Smaller values will lead to larger training sets which will require more memory, but should yield better parameter estimates.
+
+All subcommands of train also take optional parameters for minimum depth a position has in the tumour and normal to be used for training. Higher depth sites should give more robust estimates of the parameters. The default values of these are likely fine.
+
+snv_mix_one
+This is a re-implementation of the SnvMix1 model published by Goya et. al. in 2010. The original model was designed for single samples so and additional step of multiplying the resultant genotype probabilities from the two samples is to get joint genotype probabilities.
+
+snv_mix_two
+This is a re-implementation of the SnvMix2 model published by Goya et. al. in 2010. This model makes use of base and mapping qualities so no threshold needs to be set on these. The original model was designed for single samples so and additional step of multiplying the resultant genotype probabilities from the two samples is to get joint genotype probabilities.
+
+joint_snv_mix_one
+This is the JointSnvMix1 model which jointly analyses the tumour and normal sample.
+
+  joint_snv_mix_two
+This is the JointSnvMix2 model which jointly analyses the tumour and normal sample. This model incorporates probabilistic modelling of base and mapping qualities in the same way as SnvMix2.
+
+
+This file format can easily be manipulated using Python and the csv library which is installed by default. The csv.DictReader class will be especially useful.
+
+JOINTSNVMIX PAPER PUBLISHED: A STATISTICAL MODEL FOR SOMATIC POINT MUTATION DETECTION
+ 
+Andrew Roth, Ryan Morin, Jiarui Ding, Anamaria Crisan, Gavin Ha, Ryan Giuliany, Ali Bashashati, Martin Hirst, Gulisa Turashvili, Arusha Oloumi, Marco A. Marra, Samuel Aparicio and Sohrab P. Shah. JointSNVMix : A Probabilistic Model For Accurate Detection Of Somatic Mutations In Normal/Tumour Paired Next Generation Sequencing Data. Bioinformatics. 2012 doi: 10.1093/bioinformatics/bts053 SOFTWARE
+</help>
+
+</tool>

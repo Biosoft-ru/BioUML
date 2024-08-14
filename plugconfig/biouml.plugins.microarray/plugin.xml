@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <!--extension id="microarray view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.microarray.MicroarrayViewPart"
+		id="table.microarray.main"
+        defaultEnable="false"
+        Name="Microarray"
+        ShortDescription="Microarray pane"
+      /> 
+  </extension--> 
+  
+  <extension id="microarray filters" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.microarray.editors.FilterViewPart" 
+		id="table.filters"
+        Name="Filters"
+        ShortDescription="Filters"
+        Priority = "1.4"
+      /> 
+  </extension>
+
+  <extension id="SifImporter" point="ru.biosoft.access.import"> 
+     <import 
+        format="SIF"
+        importer="biouml.plugins.microarray.SifImporter"
+        description="biouml/plugins/microarray/resources/SIFFormat.html"
+     /> 
+  </extension> 
+  
+</plugin>

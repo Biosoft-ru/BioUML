@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.6 2010/10/13 09:22:13 tolstyh Exp $  -->
+
+<project name="biouml.plugins.sabiork package test" default="autotest" basedir="../../../..">
+
+	<property name="package" value="biouml.plugins.sabiork" />
+
+	<target name="test">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.ConnectionTest" />
+		</ant>
+	</target>
+	
+	<target name="cache">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.CacheReactionsTest" />
+		</ant>
+	</target>
+
+	<target name="local_settings">
+		<ant antfile="build_bdk.xml" target="local_settings_tofile" />
+		<property file="${basedir}/.local.properties" />
+		<property file="${basedir}/.global.properties" />
+		<echo>SRCDIR=${SRCDIR}</echo>
+	</target>
+
+</project>

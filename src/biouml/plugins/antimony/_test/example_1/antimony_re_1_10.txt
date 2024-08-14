@@ -1,0 +1,5 @@
+model diagramTest
+   species s1, s2;
+   compartment default;
+   r1: s1 => s2; 1;
+end

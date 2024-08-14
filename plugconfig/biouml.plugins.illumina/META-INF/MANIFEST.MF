@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.illumina;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.plugins.ensembl,
+ com.mysql.cj,
+ com.developmentontheedge.beans,
+ ru.biosoft.jobcontrol,
+ ru.biosoft.access,
+ ru.biosoft.analysis,
+ ru.biosoft.analysiscore,
+ ru.biosoft.bsa,
+ ru.biosoft.table
+Export-Package: biouml.plugins.illumina

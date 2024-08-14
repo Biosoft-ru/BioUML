@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.mirbase;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.plugins.ensembl,
+ biouml.plugins.download,
+ com.mysql.cj,
+ ru.biosoft.jobcontrol,
+ ru.biosoft.access
+Export-Package: biouml.plugins.mirbase

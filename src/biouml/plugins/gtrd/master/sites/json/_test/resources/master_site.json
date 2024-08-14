@@ -1,0 +1,532 @@
+{
+    "id": 31, 
+    "summit": 15, 
+    "version": 2, 
+    "reliabilityLevel": "stable", 
+    "reliabilityScore": 1.0, 
+    "peaks": [
+        {
+            "id": "p.EXP048613.macs2.1", 
+            "pos": "1:778448-778908", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 24.5802, 
+            "mLog10QValue": 20.6714, 
+            "summit": 239, 
+            "pileUp": 35
+        }, 
+        {
+            "id": "p.EXP048613.sissrs.1", 
+            "pos": "1:778670-778711", 
+            "numTags": 122, 
+            "fold": 30.51, 
+            "pValue": 0.00096
+        }, 
+        {
+            "id": "p.EXP048613.gem.2766", 
+            "pos": "1:778685-778686", 
+            "control": 13.4, 
+            "expected": 14.9, 
+            "fold": 13.0, 
+            "IP": 174.0, 
+            "IPvsEMP": -0.79, 
+            "Noise": 0.17, 
+            "P_mLog10": 35.88, 
+            "P_poiss": 118.33, 
+            "Q_mLog10": 35.29
+        }, 
+        {
+            "id": "p.EXP048612.gem.2991", 
+            "pos": "1:778695-778696", 
+            "control": 17.7, 
+            "expected": 17.1, 
+            "fold": 9.7, 
+            "IP": 172.0, 
+            "IPvsEMP": -0.7, 
+            "Noise": 0.0, 
+            "P_mLog10": 32.3, 
+            "P_poiss": 106.69, 
+            "Q_mLog10": 31.86
+        }, 
+        {
+            "id": "p.EXP038077.pics.6", 
+            "pos": "1:778576-778840", 
+            "score": 16.0
+        }
+    ], 
+    "motifs": [
+        {
+            "pos": "1:778734-778743:-", 
+            "siteModel": "HOCOMOCOv11.AHR_HUMAN.H11MO.0.B", 
+            "score": 6.23614
+        }
+    ], 
+    "dnasePeaks": [
+        {
+            "id": "p.DEXP000392_1.macs2.4", 
+            "pos": "1:778488-779003", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 122.731, 
+            "mLog10QValue": 119.398, 
+            "summit": 192, 
+            "pileUp": 159
+        }, 
+        {
+            "id": "p.DEXP000392_1.hotspot2.8", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP000393_1.macs2.3", 
+            "pos": "1:778486-778921", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 114.254, 
+            "mLog10QValue": 110.937, 
+            "summit": 188, 
+            "pileUp": 168
+        }, 
+        {
+            "id": "p.DEXP000393_1.hotspot2.11", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP000396_1.macs2.1", 
+            "pos": "1:778486-779007", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 88.1702, 
+            "mLog10QValue": 84.8571, 
+            "summit": 189, 
+            "pileUp": 103
+        }, 
+        {
+            "id": "p.DEXP000396_1.hotspot2.1", 
+            "pos": "1:778498-778966", 
+            "score1": 395.0, 
+            "score2": 39.4878
+        }, 
+        {
+            "id": "p.DEXP000397_1.macs2.1", 
+            "pos": "1:778527-778970", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 33.787, 
+            "mLog10QValue": 29.9951, 
+            "summit": 231, 
+            "pileUp": 33
+        }, 
+        {
+            "id": "p.DEXP000397_1.hotspot2.3", 
+            "pos": "1:778513-778966", 
+            "score1": 242.0, 
+            "score2": 24.2054
+        }, 
+        {
+            "id": "p.DEXP000398_1.macs2.2", 
+            "pos": "1:778502-778902", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 39.2217, 
+            "mLog10QValue": 36.4352, 
+            "summit": 155, 
+            "pileUp": 58
+        }, 
+        {
+            "id": "p.DEXP000398_1.hotspot2.4", 
+            "pos": "1:778498-778930", 
+            "score1": 362.0, 
+            "score2": 36.2112
+        }, 
+        {
+            "id": "p.DEXP000573_1.macs2.5", 
+            "pos": "1:778558-778973", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 68.0131, 
+            "mLog10QValue": 63.6476, 
+            "summit": 176, 
+            "pileUp": 59
+        }, 
+        {
+            "id": "p.DEXP000573_2.macs2.9", 
+            "pos": "1:778510-778967", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 72.6005, 
+            "mLog10QValue": 68.5075, 
+            "summit": 204, 
+            "pileUp": 67
+        }, 
+        {
+            "id": "p.DEXP000573_1.hotspot2.12", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP000573_2.hotspot2.11", 
+            "pos": "1:778498-778966", 
+            "score1": 750.0, 
+            "score2": 75.0067
+        }, 
+        {
+            "id": "p.DEXP000574_1.macs2.5", 
+            "pos": "1:778551-778972", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 76.7344, 
+            "mLog10QValue": 72.1303, 
+            "summit": 182, 
+            "pileUp": 67
+        }, 
+        {
+            "id": "p.DEXP000574_2.macs2.11", 
+            "pos": "1:778521-778970", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 69.1917, 
+            "mLog10QValue": 65.1392, 
+            "summit": 226, 
+            "pileUp": 65
+        }, 
+        {
+            "id": "p.DEXP000574_1.hotspot2.12", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP000574_2.hotspot2.11", 
+            "pos": "1:778498-778966", 
+            "score1": 597.0, 
+            "score2": 59.7043
+        }, 
+        {
+            "id": "p.DEXP000582_1.macs2.8", 
+            "pos": "1:778549-778980", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 73.007, 
+            "mLog10QValue": 69.0145, 
+            "summit": 156, 
+            "pileUp": 59
+        }, 
+        {
+            "id": "p.DEXP000582_2.macs2.8", 
+            "pos": "1:778555-778965", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 71.865, 
+            "mLog10QValue": 67.1303, 
+            "summit": 179, 
+            "pileUp": 62
+        }, 
+        {
+            "id": "p.DEXP000582_1.hotspot2.11", 
+            "pos": "1:778498-778966", 
+            "score1": 565.0, 
+            "score2": 56.5226
+        }, 
+        {
+            "id": "p.DEXP000582_2.hotspot2.12", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP001221_1.macs2.6", 
+            "pos": "1:778549-778980", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 74.6336, 
+            "mLog10QValue": 70.6046, 
+            "summit": 156, 
+            "pileUp": 60
+        }, 
+        {
+            "id": "p.DEXP001221_1.hotspot2.11", 
+            "pos": "1:778498-778966", 
+            "score1": 594.0, 
+            "score2": 59.3611
+        }, 
+        {
+            "id": "p.DEXP001673_1.macs2.5", 
+            "pos": "1:778559-778972", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 66.6811, 
+            "mLog10QValue": 62.3542, 
+            "summit": 175, 
+            "pileUp": 58
+        }, 
+        {
+            "id": "p.DEXP001673_1.hotspot2.14", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP001681_1.macs2.10", 
+            "pos": "1:778522-778969", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 68.1963, 
+            "mLog10QValue": 64.163, 
+            "summit": 227, 
+            "pileUp": 64
+        }, 
+        {
+            "id": "p.DEXP001681_1.hotspot2.11", 
+            "pos": "1:778498-778966", 
+            "score1": 591.0, 
+            "score2": 59.1432
+        }, 
+        {
+            "id": "p.DEXP001865_1.macs2.2", 
+            "pos": "1:778504-779037", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 98.2684, 
+            "mLog10QValue": 94.9263, 
+            "summit": 179, 
+            "pileUp": 98
+        }, 
+        {
+            "id": "p.DEXP001865_1.hotspot2.2", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP001866_1.macs2.3", 
+            "pos": "1:778491-779007", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 90.7279, 
+            "mLog10QValue": 87.4496, 
+            "summit": 190, 
+            "pileUp": 97
+        }, 
+        {
+            "id": "p.DEXP001866_1.hotspot2.3", 
+            "pos": "1:778503-778966", 
+            "score1": 647.0, 
+            "score2": 64.6597
+        }, 
+        {
+            "id": "p.DEXP001867_1.macs2.5", 
+            "pos": "1:778491-779008", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 134.765, 
+            "mLog10QValue": 130.832, 
+            "summit": 190, 
+            "pileUp": 127
+        }, 
+        {
+            "id": "p.DEXP001867_1.hotspot2.3", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP001868_1.macs2.2", 
+            "pos": "1:778471-779032", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 131.291, 
+            "mLog10QValue": 127.565, 
+            "summit": 249, 
+            "pileUp": 126
+        }, 
+        {
+            "id": "p.DEXP001868_1.hotspot2.2", 
+            "pos": "1:778498-778966", 
+            "score1": 928.0, 
+            "score2": 92.7975
+        }, 
+        {
+            "id": "p.DEXP001926_1.macs2.6", 
+            "pos": "1:778560-778976", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 116.776, 
+            "mLog10QValue": 112.356, 
+            "summit": 231, 
+            "pileUp": 106
+        }, 
+        {
+            "id": "p.DEXP001926_1.hotspot2.4", 
+            "pos": "1:778498-778966", 
+            "score1": 1000.0, 
+            "score2": 100.0
+        }, 
+        {
+            "id": "p.DEXP001927_1.macs2.4", 
+            "pos": "1:778490-778965", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 116.224, 
+            "mLog10QValue": 111.418, 
+            "summit": 232, 
+            "pileUp": 107
+        }, 
+        {
+            "id": "p.DEXP001927_1.hotspot2.3", 
+            "pos": "1:778498-778966", 
+            "score1": 969.0, 
+            "score2": 96.8629
+        }, 
+        {
+            "id": "p.DEXP001928_1.macs2.6", 
+            "pos": "1:778390-779130", 
+            "foldEnrichmnet": 0.0, 
+            "mLog10PValue": 76.2368, 
+            "mLog10QValue": 73.0159, 
+            "summit": 364, 
+            "pileUp": 95
+        }, 
+        {
+            "id": "p.DEXP001928_1.hotspot2.3", 
+            "pos": "1:778498-778966", 
+            "score1": 217.0, 
+            "score2": 21.7474
+        }
+    ], 
+    "dnaseFootprints": [
+        {
+            "id": "p.DEXP000392_1.wellington_macs2.3", 
+            "pos": "1:778677-778702", 
+            "score": -251.059
+        }, 
+        {
+            "id": "p.DEXP000392_1.wellington_hotspot2.3", 
+            "pos": "1:778677-778702", 
+            "score": -251.059
+        }, 
+        {
+            "id": "p.DEXP000393_1.wellington_macs2.3", 
+            "pos": "1:778681-778706", 
+            "score": -160.082
+        }, 
+        {
+            "id": "p.DEXP000393_1.wellington_hotspot2.3", 
+            "pos": "1:778681-778706", 
+            "score": -160.082
+        }, 
+        {
+            "id": "p.DEXP000396_1.wellington_macs2.1", 
+            "pos": "1:778675-778700", 
+            "score": -69.5306
+        }, 
+        {
+            "id": "p.DEXP000396_1.wellington_hotspot2.1", 
+            "pos": "1:778675-778700", 
+            "score": -69.5306
+        }, 
+        {
+            "id": "p.DEXP000573_1.wellington_macs2.2", 
+            "pos": "1:778696-778721", 
+            "score": -88.1663
+        }, 
+        {
+            "id": "p.DEXP000573_2.wellington_macs2.2", 
+            "pos": "1:778694-778719", 
+            "score": -111.12
+        }, 
+        {
+            "id": "p.DEXP000573_1.wellington_hotspot2.1", 
+            "pos": "1:778696-778721", 
+            "score": -88.1663
+        }, 
+        {
+            "id": "p.DEXP000573_2.wellington_hotspot2.3", 
+            "pos": "1:778694-778719", 
+            "score": -111.12
+        }, 
+        {
+            "id": "p.DEXP000574_1.wellington_macs2.1", 
+            "pos": "1:778694-778719", 
+            "score": -120.059
+        }, 
+        {
+            "id": "p.DEXP000574_2.wellington_macs2.2", 
+            "pos": "1:778694-778719", 
+            "score": -62.7533
+        }, 
+        {
+            "id": "p.DEXP000574_1.wellington_hotspot2.1", 
+            "pos": "1:778694-778719", 
+            "score": -120.059
+        }, 
+        {
+            "id": "p.DEXP000574_2.wellington_hotspot2.1", 
+            "pos": "1:778694-778719", 
+            "score": -62.7533
+        }, 
+        {
+            "id": "p.DEXP000582_2.wellington_macs2.1", 
+            "pos": "1:778695-778720", 
+            "score": -57.6121
+        }, 
+        {
+            "id": "p.DEXP000582_2.wellington_hotspot2.1", 
+            "pos": "1:778695-778720", 
+            "score": -57.6121
+        }, 
+        {
+            "id": "p.DEXP001673_1.wellington_macs2.2", 
+            "pos": "1:778696-778721", 
+            "score": -88.1663
+        }, 
+        {
+            "id": "p.DEXP001673_1.wellington_hotspot2.1", 
+            "pos": "1:778696-778721", 
+            "score": -88.1663
+        }, 
+        {
+            "id": "p.DEXP001681_1.wellington_macs2.2", 
+            "pos": "1:778694-778719", 
+            "score": -61.9208
+        }, 
+        {
+            "id": "p.DEXP001681_1.wellington_hotspot2.1", 
+            "pos": "1:778694-778719", 
+            "score": -61.9208
+        }, 
+        {
+            "id": "p.DEXP001865_1.wellington_macs2.1", 
+            "pos": "1:778673-778698", 
+            "score": -82.4665
+        }, 
+        {
+            "id": "p.DEXP001865_1.wellington_hotspot2.1", 
+            "pos": "1:778673-778698", 
+            "score": -82.4665
+        }, 
+        {
+            "id": "p.DEXP001866_1.wellington_macs2.2", 
+            "pos": "1:778674-778699", 
+            "score": -76.5375
+        }, 
+        {
+            "id": "p.DEXP001866_1.wellington_hotspot2.2", 
+            "pos": "1:778674-778699", 
+            "score": -76.5375
+        }, 
+        {
+            "id": "p.DEXP001867_1.wellington_macs2.1", 
+            "pos": "1:778676-778701", 
+            "score": -102.827
+        }, 
+        {
+            "id": "p.DEXP001867_1.wellington_hotspot2.1", 
+            "pos": "1:778676-778701", 
+            "score": -102.827
+        }, 
+        {
+            "id": "p.DEXP001868_1.wellington_macs2.2", 
+            "pos": "1:778681-778706", 
+            "score": -107.799
+        }, 
+        {
+            "id": "p.DEXP001868_1.wellington_hotspot2.1", 
+            "pos": "1:778681-778706", 
+            "score": -107.799
+        }, 
+        {
+            "id": "p.DEXP001926_1.wellington_macs2.4", 
+            "pos": "1:778692-778717", 
+            "score": -168.832
+        }, 
+        {
+            "id": "p.DEXP001926_1.wellington_hotspot2.4", 
+            "pos": "1:778692-778717", 
+            "score": -168.832
+        }
+    ]
+}

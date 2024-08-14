@@ -1,0 +1,75 @@
+<h2>Drug target search analysis</h2>
+<p><b>Goal:</b> to search for important molecules in signal transduction cascade.</p>
+<p><b>Input:</b> a set of genes / molecules to start analysis with. For instance, this can be a set of transcription factors, which may result from a promoter analysis, or a set of ligands / receptors that trigger a certain (set of) pathway(s).</p>
+<p>Two separate analyses are available:</p>
+<ul>
+<li><b>Effector search</b> for molecules downstream of the molecules in the input list.</li>
+<li><b>Regulator search</b> for molecules upstream of the molecules in the input list.</li> 
+</ul>
+<h3>Output:</h3>
+<p>A set of proteins or their encoding genes, which may play a key role in regulating (or being regulated by) a maximal number of start molecules.</p>
+%parameters%
+<h3>Algorithm description</h3>
+<p>In drug target search analysis one searches for signaling molecules and corresponding networks that can transmit 
+a signal to or receive a signal from several of input molecules within a certain limit of reaction steps. 
+A search starts from each molecule of an input set <i>V<sub>x</sub></i> and constructs the shortest paths to all nodes <i>V</i> of the complete network 
+within a given maximal path cost <i>R</i> (i.e, the sum of the costs of all edges in the shortest path from a vertex in <i>V<sub>x</sub></i> 
+to a vertex in <i>V</i> should be smaller than or equal to <i>R</i>). The search can be conducted in reverse direction of the edges 
+leading to input molecules (upstream) or in the same direction (downstream).</p>
+<p>The <b>Specificity score</b> is calculated for every molecule found according to:</p>
+<div class="formula-text"><img src="score-equation.gif" alt="score"></div>
+<p>Where:</p>
+<ul>
+<li><b><i>R</i></b> — Max radius (input parameter)</li>
+<li><b><i>p</i></b> — Penalty (input parameter)</li>
+<li><b><i>N(X,r)</i></b> — total number of molecules reachable from key molecule X within the radius r.
+<li><b><i>N<sub>max</sub>(r)</i></b> — maximal value of <i>N(X,r)</i> over all key molecules X found for this radius.
+<li><b><i>M(X,r)</i></b> — sum of <i>w(X)</i> for all hits reachable from key molecule X within the radius r, where <i>w(X)</i> — weight of hit X.
+It equals to <i>w<sub>b</sub>(X)</i> if “Normalize multi-forms” is unchecked. Otherwise it’s <i>w<sub>b</sub>(X)/I(X)</i>, where <i>I(X)</i> is the number of multiforms of X in the input set (not total number of multiforms in the database).
+In both cases <i>w<sub>b</sub>(X)</i> is the base weight of hit X. It equals the corresponding value in “Weighting column” or 1 if “Weighting column” is not specified.
+<li><b><i>M<sub>max</sub>(r)</i></b> — maximal value of <i>M(X,r)</i> over all key molecules X found for this radius.
+</ul>
+<p><b>FDR</b>
+Each individual drug target molecule gets a <i>p</i>-value (FDR) assigned, which represents the probability to occupy the observed rank or higher ranks 
+by random chance. It is estimated on-the-fly by random sampling. The ranking of the key nodes is defined by sorting them according 
+to the Score above in descending order. It should be noted that the rank is defined by the ranks of the occurring scores, 
+which means that more than one key node can share the same score value in some cases. 
+Molecules which do not have any hits get assigned the last rank since the score is zero in this case.</p>
+<b><i>Z</i>-Score</b>
+<br/>
+In addition to the FDR, each drug target molecule gets a <i>Z</i>-Score
+<div class="formula-text"><img src="z-score.gif" alt="score"></div>
+<p>which measures the deviation of the observed rank <i>X</i> of the key node from the expected rank <i>&mu;</i> in random case, divided by the standard deviation. 
+In this formula, the rank above distribution is assumed to comply the normal distribution. Key nodes with <i>Z</i> greater than 1.0 are considered significant.</p>
+<h4>Context algorithm</h4>
+<p>For the purpose of incorporating additional contextual knowledge, e.g. a certain disease which we know to be related to 
+the anticipated analysis, we implemented a method which encodes this additional context information as modified edge costs 
+in the signaling network. The context information has to be provided as a second gene set (context genes). 
+The idea is based on attracting the drug target molecule search (e.g. the underlying Dijkstra algorithm for shortest paths) towards 
+context genes by decreasing the costs of those edges that are close to the context genes. It features two major aspects:</p>
+<ol>
+<li>Attraction ("gravity") of the shortest-paths towards context genes C</li>
+<li>Distribution of the attraction power to an extended surrounding area around C in order to prefer shortest paths close 
+to context genes in case there is no path possible that goes through the context gene directly. ("gravity range").</li>
+</ol>
+<h3>Result columns</h3>
+<ul class="analysis-parameters">
+    <li><b>ID</b> — key molecule identifier in respective database</li>
+    <li><b>Key molecule name</b> — molecule title</li>
+    <li><b>Reached from set</b> — number of molecules from input set, that were reached from key molecule within the distance given</li>
+    <li><b>Reachable total</b> — total number of molecules, that can be reached from key molecule within the distance given</li>
+    <li><b>Score</b> — specificity score value calculated as described above</li>
+    <li><b>FDR</b> — <i>p</i>-value, which represents the probability to occupy the observed rank or higher ranks by random chance</li>
+    <li><b>Z-Score</b> — z-score, according the equation above</li>
+    <li><b>Hits</b> — identifiers of molecules from input set, that were reached from key molecule within the distance given</li>
+    <li><b>Hits names</b> — titles of molecules from input set, that were reached from key molecule within the distance given</li>
+</ul>
+<h3>References:</h3>
+
+<ol class="references">
+  <li>
+    Kel, A., Voss, N., Jauregui, R., Kel-Margoulis, O. and Wingender, E.: 
+    Beyond microarrays: Find key transcription factors controlling signal transduction pathways 
+    BMC Bioinformatics 7(Suppl. 2), S13 (2006).
+  </li>
+</ol>

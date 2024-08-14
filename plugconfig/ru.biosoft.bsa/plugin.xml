@@ -1,0 +1,988 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="Map document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="ru.biosoft.bsa.project.ProjectDocumentFactory"
+        key="ru.biosoft.bsa.project.Project"
+      /> 
+  </extension>
+  
+  <extension id="Map document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="ru.biosoft.bsa.project.ProjectDocumentFactory"
+        key="ru.biosoft.bsa.AnnotatedSequence"
+      /> 
+  </extension>
+  
+  <extension id="Project description" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+       class="ru.biosoft.bsa.view.ProjectDescriptionEditor"
+        id="sequence.project" 
+        Name="Project"
+        ShortDescription="Project description"
+        Priority = "3.1"
+      /> 
+  </extension> 
+  
+  <extension id="Regions pane" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="ru.biosoft.bsa.view.RegionsViewPart" 
+        id="sequence.regions"
+        Name="Regions"
+        ShortDescription="Regions"
+        Priority = "3.4"
+      /> 
+  </extension> 
+  
+  <extension id="Tracks pane" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="ru.biosoft.bsa.view.TracksViewPart" 
+        id="sequence.tracks"
+        Name="Tracks"
+        ShortDescription="Tracks"
+        Priority = "3.5"
+      /> 
+  </extension> 
+  
+  <extension id="Sites pane" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="ru.biosoft.bsa.view.SitesViewPart" 
+        id="sequence.sites"
+        Name="Sites"
+        ShortDescription="Sites"
+        Priority = "3.6"
+      /> 
+  </extension> 
+  
+  <!--extension id="Profile editor pane" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="ru.biosoft.bsa.view.ProfileEditorViewPart" 
+        id="sitemodel.profile"
+        Name="Profile"
+        ShortDescription="Profile editor"
+        Priority = "1"
+      /> 
+  </extension--> 
+  
+  <extension id="Export sequences collection to FASTA" point="ru.biosoft.access.export"> 
+     <export 
+        format="FASTA sequences (*.fasta)"
+        suffix="fasta"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.FastaExporter"
+        description="Export sequences collection to FASTA"
+     />
+  </extension>
+    
+  <extension id="Export tracks to common formats" point="ru.biosoft.access.export"> 
+     <export 
+        format="BED format (*.bed)"
+        suffix="bed"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.exporter.DefaultTrackExporter"
+        description=""
+     />
+     <export 
+        format="Interval format (*.interval)"
+        suffix="interval"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.exporter.IntervalTrackExporter"
+        description=""
+     />
+     <export 
+        format="General Feature Format (*.gff)"
+        suffix="gff"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.exporter.DefaultTrackExporter"
+        description=""
+     />
+     <export 
+        format="Gene Transfer Format (*.gtf)"
+        suffix="gtf"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.exporter.DefaultTrackExporter"
+        description=""
+     />
+     <export 
+        format="Match format (*.match)"
+        suffix="match"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.MatchResultsExporter"
+        description=""
+     />
+     <export 
+        format="Variant Call Format (*.vcf)"
+        suffix="vcf"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.exporter.VCFExporter"
+        description=""
+     />
+     <export 
+        format="Wiggle format (*.wig)"
+        suffix="wig"
+        contentType="text/plain"
+        exporter="ru.biosoft.bsa.exporter.DefaultTrackExporter"
+        description=""
+     />
+  </extension>
+  
+  <extension id="Import SAM or BAM file" point="ru.biosoft.access.import"> 
+     <import 
+        format="SAM or BAM alignment file (*.sam, *.bam)"
+        importer="ru.biosoft.bsa.importer.SAMBAMTrackImporter"
+        description="Import SAM/BAM file"
+     />
+  </extension>
+
+  <extension id="Export SAM or BAM file" point="ru.biosoft.access.export"> 
+     <export 
+        suffix="bam"
+        contentType="application/octet-stream"
+        exporter="ru.biosoft.bsa.SAMBAMTrackExporter"
+        format="SAM or BAM alignment file (*.sam, *.bam)"
+        description="Export SAM/BAM file"
+     />
+  </extension>
+  
+  <extension id="Import tracks from common formats" point="ru.biosoft.access.import"> 
+     <import 
+        format="BED format (*.bed)"
+        suffix="bed"
+        importer="ru.biosoft.bsa.importer.BEDTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/BEDFormat.html"
+     />
+     <import 
+        format="Interval format (*.interval)"
+        suffix="interval"
+        importer="ru.biosoft.bsa.importer.IntervalTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/IntervalFormat.html"
+     />
+     <import 
+        format="General Feature Format (*.gff)"
+        suffix="gff"
+        importer="ru.biosoft.bsa.importer.GFFTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/GeneralFeatureFormat.html"
+     />
+     <import 
+        format="Gene Transfer Format (*.gtf)"
+        suffix="gtf"
+        importer="ru.biosoft.bsa.importer.GTFTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/GeneTransferFormat.html"
+     />
+     <import 
+        format="Wiggle format (*.wig)"
+        suffix="wig"
+        importer="ru.biosoft.bsa.importer.WiggleTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/WiggleFormat.html"
+     />
+     <import 
+        format="VCF format (*.vcf)"
+        suffix="vcf"
+        importer="ru.biosoft.bsa.importer.VCFTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/VCFFormat.html"
+     />
+     <import 
+        format="Breakdancer output (*.ctx)"
+        suffix="ctx"
+        importer="ru.biosoft.bsa.importer.BreakDancerTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/BreakDancerFormat.html"
+     />
+     <import 
+        format="CNVnator genotype output (*.genotype)"
+        suffix="genotype"
+        importer="ru.biosoft.bsa.importer.GenotypeTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/GenotypeFormat.html"
+     />
+     <import 
+        format="Pindel output"
+        suffix="pindel"
+        importer="ru.biosoft.bsa.importer.PindelTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/PindelFormat.html"
+     />
+     <import 
+        format="Varscan output"
+        suffix="varscan"
+        importer="ru.biosoft.bsa.importer.VarscanTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/VarscanFormat.html"
+     />
+     <import 
+        format="VAT output (*.vat)"
+        suffix="vat"
+        importer="ru.biosoft.bsa.importer.VATTrackImporter"
+        description="ru/biosoft/bsa/analysis/resources/VATFormat.html"
+     />
+     <import 
+        format="SISSRs output (*.bsites)"
+        suffix="bsites"
+        importer="ru.biosoft.bsa.importer.SissrsTrackImporter"
+        description="Output of SISSRs program"
+     />
+     <import 
+        format="GWAS format (*.tsv, *.txt)"
+        suffix="gwas"
+        importer="ru.biosoft.bsa.importer.GWASTrackImporter"
+        description="Import GWAS tables as tracks"
+     />
+  </extension> 
+
+  <extension id="Import sequences from common formats" point="ru.biosoft.access.import"> 
+     <import 
+        format="EMBL format (*.embl)"
+        suffix="embl"
+        importer="ru.biosoft.bsa.SequenceImporter"
+        description="ru/biosoft/bsa/analysis/resources/EMBLFormat.html"
+     />
+     <import 
+        format="Fasta format (*.fasta)"
+        suffix="fasta"
+        importer="ru.biosoft.bsa.SequenceImporter"
+        description="ru/biosoft/bsa/analysis/resources/FastaFormat.html"
+     />
+     <import 
+        format="Fastq format (*.fastq)"
+        suffix="fastq"
+        importer="ru.biosoft.access.FileImporter"
+        description=""
+     />
+     <import 
+        format="Fastq compressed (*.fastq.gz)"
+        suffix="fastq.gz"
+        importer="ru.biosoft.access.FileImporter"
+        description=""
+     />
+     <import 
+        format="Fastq format (*.fq)"
+        suffix="fq"
+        importer="ru.biosoft.access.FileImporter"
+        description=""
+     />
+     <import 
+        format="Fastq compressed (*.fq.gz)"
+        suffix="fq.gz"
+        importer="ru.biosoft.access.FileImporter"
+        description=""
+     />
+     <!--export 
+        format="Fastq as track (*.fastq)"
+        suffix="fastq"
+        importer="ru.biosoft.bsa.SequenceImporter"
+        description=""
+     /-->
+     <import 
+        format="GenBank format (*.gb)"
+        suffix="gb"
+        importer="ru.biosoft.bsa.SequenceImporter"
+        description="ru/biosoft/bsa/analysis/resources/GenBankFormat.html"
+     />
+     <import 
+        format="GenBank format (*.gbk)"
+        suffix="gbk"
+        importer="ru.biosoft.bsa.SequenceImporter"
+        description="ru/biosoft/bsa/analysis/resources/GenBankFormat.html"
+     />
+  </extension>
+
+  <extension id="SiteSearchReport" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="SiteSearchReport" class="ru.biosoft.bsa.analysis.SiteSearchReportAction">
+        <property name="Name" value="Report on selected matrices"/>
+        <property name="ShortDescription" value="Show per-gene statistics for selected matrices"/>
+        <property name="LongDescription" value="Table with matrices counts for each gene will be displayed"/>
+        <property name="SmallIcon" value="resources/sitesreport.gif"/>
+        <property name="ActionCommandKey" value="cmd-create-sites-report"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="SitesOnTrackAction" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="SiteSearchOnTrack" class="ru.biosoft.bsa.analysis.SitesOnTrackAction">
+        <property name="Name" value="Sites on track"/>
+        <property name="ShortDescription" value="Visualize sites and sequence for selected gene"/>
+        <property name="LongDescription" value="Sites will be displayed as arrows on genome browser"/>
+        <property name="SmallIcon" value="resources/sitestrack.gif"/>
+        <property name="ActionCommandKey" value="cmd-create-sites-track"/>
+        <parameter name="numSelected" value="1"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="SubsetCollectionAction" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="SubsetCollectionAction" class="ru.biosoft.bsa.analysis.SubsetCollectionAction">
+        <property name="Name" value="Save selection"/>
+        <property name="ShortDescription" value="Create new profile from selected models"/>
+        <property name="LongDescription" value="Create new profile from selected models"/>
+        <property name="SmallIcon" value="resources/subset.gif"/>
+        <property name="ActionCommandKey" value="cmd-bsa-save-selection"/>
+        <parameter name="numSelected" value="2"/>
+        <parameter name="acceptReadOnly" value="true"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="SubsetTrackAction" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="SubsetTrackAction" class="ru.biosoft.bsa.analysis.SubsetTrackAction">
+        <property name="Name" value="Save selection"/>
+        <property name="ShortDescription" value="Create new track from selected sites"/>
+        <property name="LongDescription" value="Create new track from selected sites"/>
+        <property name="SmallIcon" value="resources/subset.gif"/>
+        <property name="ActionCommandKey" value="cmd-bsa-save-selection-track"/>
+        <parameter name="numSelected" value="2"/>
+        <parameter name="acceptReadOnly" value="true"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="SiteModelsToProteins" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="SiteModelsToProteins" class="ru.biosoft.bsa.analysis.SiteModelsToProteinsAction">
+        <property name="Name" value="Convert site models to proteins or genes"/>
+        <property name="ShortDescription" value="Match selected site models to the proteins or genes"/>
+        <property name="LongDescription" value="Match selected site models to the proteins or genes"/>
+        <property name="SmallIcon" value="resources/matrices-to-molecules.gif"/>
+        <property name="ActionCommandKey" value="cmd-create-proteins-from-sites"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="entry transformer" point="ru.biosoft.access.transformer"> 
+      <transformer name="Genome browser view" inputClass="ru.biosoft.access.Entry"
+        outputClass="ru.biosoft.bsa.project.Project" transformerClass="ru.biosoft.bsa.transformer.ProjectTransformer"/> 
+      <transformer name="Site model" inputClass="ru.biosoft.access.Entry" 
+        outputClass="ru.biosoft.bsa.SiteModel" transformerClass="ru.biosoft.bsa.transformer.SiteModelTransformer"/>
+      <transformer name="Frequency matrix" inputClass="ru.biosoft.access.Entry" 
+        outputClass="ru.biosoft.bsa.analysis.FrequencyMatrix" transformerClass="ru.biosoft.bsa.transformer.WeightMatrixTransformer"/>
+      <transformer name="Filtered track" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="ru.biosoft.bsa.analysis.FilteredTrack" transformerClass="ru.biosoft.access.XMLTransformer"/> 
+      <transformer name="Combined track" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="ru.biosoft.bsa.track.combined.CombinedTrack" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer"/>
+  </extension> 
+  
+  <extension id="Site search analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.SiteSearchAnalysis" group="TF binding site search" name="Site search on track"  description="Predict transcription factor binding sites."/> 
+  </extension>
+
+  <extension id="IPS motif discovery" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.IPSMotifDiscoveryAnalysis" group="Motif discovery" name="IPS motif discovery" description="Discover motifs in the sequence set." js="siteAnalysis.motifDiscoveryIPS"/> 
+  </extension>
+
+  <extension id="ChangeProfileThresholds" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.ChangeProfileThresholds" group="TF binding site search" name="Change profile cutoffs" description="Edit all cutoffs in given profile."/> 
+  </extension>
+
+  <extension id="Site search result optimization" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.OptimizeSiteSearchAnalysis" group="TF binding site search" name="Site search result optimization"  description="Tune matrix weights to minimize p-values."/> 
+  </extension>
+
+  <extension id="Convert gene set to track" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.GeneSetToTrack" group="Match sites and genes" name="Gene set to track"  description="Convert gene set to track." js="siteAnalysis.geneSetToTrack"/> 
+  </extension>
+
+  <extension id="Convert transcript set to track" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.TranscriptSetToTrack" group="Match sites and genes" name="Transcript set to track"  description="Convert transcript set to track." js="siteAnalysis.transcriptSetToTrack"/> 
+  </extension>
+
+  <extension id="Extract RNA length" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.ExtractRNALength" group="Unclassified" name="Extract RNA length"  description="Extract RNA length." /> 
+  </extension>
+
+  <extension id="Site search summary" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.SiteSearchSummary" group="TF binding site search" name="Site search summary"  description="Generate summary on site search result."/> 
+  </extension>
+
+  <extension id="Search sites on gene set" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.GeneSetSiteSearch" group="TF binding site search" name="Site search on gene set"  description="Compound analysis to search sites on gene set and generate summary."/> 
+  </extension>
+  
+  <extension id="Run MACS 1_3" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.macs.MACSAnalysis" group="ChIP-seq" name="Run MACS 1_3_7 on ChiP-Seq"
+       shortDescription="BioUML implementation of MACS peak caller (version 1.3.7)."
+       description="ru/biosoft/bsa/analysis/resources/MACS_1.3.7.html"/> 
+  </extension>
+
+  <extension id="Run MACS 1_4" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.macs14.MACS14Analysis" group="ChIP-seq" name="Run MACS 1_4_0 on ChiP-Seq"
+       shortDescription="BioUML implementation of MACS peak caller (version 1.4.0)."
+       description="ru/biosoft/bsa/analysis/resources/MACS_1.4.0.html"/> 
+  </extension>
+
+  <extension id="Filter track analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.FilterTrackAnalysis" group="Operations with genomic tracks" name="Filter one track by another"  description="This analysis filters out those sites which are present or absent in another track."/> 
+  </extension>
+
+  <extension id="Reduce track" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass
+        class="ru.biosoft.bsa.analysis.ReduceTrack"
+        group="Operations with genomic tracks"
+        name="Reduce track"
+        description="Removes same sites from track (same positions and same values of selected fields)"
+      /> 
+  </extension>
+
+  <extension id="Filter track by condition" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.FilterTrackByCondition" group="Operations with genomic tracks" name="Filter track by condition"
+        description="ru/biosoft/bsa/analysis/resources/FilterTrackByCondition.html"
+        shortDescription="Leave only those sites that meet the specified condition."
+        js="siteAnalysis.filterCondition"/> 
+  </extension>
+
+  <extension id="Join tracks analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.JoinTracksAnalysis" group="Operations with genomic tracks" name="Join tracks" description="Join several tracks into one. All sites from input tracks will be simply added to the output." js="siteAnalysis.joinTracks"/> 
+  </extension>
+
+  <extension id="Table to track" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.TableToTrack" group="Operations with genomic tracks" name="Convert table to track"  description="This analysis converts a table to a track." js="siteAnalysis.tableToTrack"/> 
+  </extension>
+
+  <extension id="Process track with sites" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.ProcessTrack" group="Operations with genomic tracks" name="Process track with sites"  description="This analysis enlarges/shrinks sites on the track, merges overlapping sites or removes too short sites."/> 
+  </extension>
+
+  <extension id="ChIP-seq peak profile" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.chipseqprofile.ChIPSeqProfileAnalysis" group="ChIP-seq" name="ChIP-seq peak profile"  description="This analysis computes probability profiles for Chip-seq peaks."/> 
+  </extension>
+  
+  <extension id="Create Match model" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.createsitemodel.CreateMatchModel" group="Motif discovery" name="Create Match model"  description="Creates Match site model."/> 
+  </extension>
+
+  <extension id="Create weight matrix model" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.createsitemodel.CreateWeightMatrixModel" group="Motif discovery" name="Create weight matrix model"  description="Creates weight matrix site model."/> 
+  </extension>
+  
+  <extension id="Create IPS model" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.createsitemodel.CreateIPSModel" group="Motif discovery" name="Create IPS model"  description="Creates IPS site model."/> 
+  </extension>
+  
+  <extension id="Create profile from site model table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.createsitemodel.CreateProfileFromTable" group="TF binding site search" name="Create profile from site model table"  description="Creates profile from the table of site models such as site search result." js="siteAnalysis.profileFromTable"/> 
+  </extension>
+  
+  <extension id="Create profile from gene table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.createsitemodel.FilterProfileByGeneSet" group="TF binding site search" name="Create profile from gene table"  description="Creates new profile which contains only site models linked to factors from given gene set." js="siteAnalysis.filterProfileByGeneSet"/> 
+  </extension>
+  
+  <extension id="Site Models to Proteins" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.SiteModelsToProteins" group="TF binding site search" name="Convert site models to proteins"
+        shortDescription="Convert site model IDs (e.g. PWMs) into transcription factors."
+        description="ru/biosoft/bsa/analysis/resources/SiteModelsToProteins.html" js="siteAnalysis.siteModelsToProteins"/> 
+  </extension>
+  
+  <extension id="Convert site search summary" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.SiteSearchModelSummary" group="TF binding site search" name="Convert site search summary"  description="Convert site search summary."/> 
+  </extension>
+  
+  <extension id="Compute coverage by window" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.TrackCoverageAnalysis" group="Operations with genomic tracks" name="Compute coverage by window"  description="Calculates the coverage of given track in fixed windows." js="siteAnalysis.trackCoverage"> 
+        <old name="Track coverage"/>
+      </analysisClass>
+  </extension>
+  
+  <extension id="Motif quality analysis" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.motifquality.MotifQualityAnalysis"
+                   group="Motif discovery"
+                   name="Motif quality analysis"
+                   description="Compute ROC curve of motif model."
+                   />
+  </extension>
+  
+  <extension id="Compare site models" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.motifcompare.MotifCompare"
+                   group="Motif discovery"
+                   name="Compare site models"
+                   description="Compare site models with ROC curve."
+                   />
+  </extension>
+  
+  <extension id="Construct IPS CisModule" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.ipsmodule.IPSModule"
+                   group="Motif discovery"
+                   name="Construct IPS CisModule"
+                   description="Construct IPS CisModule."
+                   />
+  </extension>
+
+  <extension id="Site counts in repeats" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.sitecountsinrepeats.SiteCountsInRepeats"
+                   group="Unclassified"
+                   name="Site counts in repeats"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Compute coverage profile" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.GenomeCoverage"
+                   group="Operations with genomic tracks"
+                   name="Compute coverage profile"
+                   description="Compute genome coverage profile at single nucleotide resolution."
+                   >
+      <old name="Genome coverage"/>
+    </analysisClass>
+  </extension>
+
+  <extension id="Heterozygous site caller" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.HeterozygousSiteCaller"
+                   group="Mutations"
+                   name="Heterozygous site caller"
+                   description="Find heterozygous sites from RNA-seq data."
+                   />
+  </extension>
+
+  <extension id="Chromsome enrichment" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.ChromosomeEnrichment"
+                   group="Unclassified"
+                   name="Chromosome enrichment"
+                   description="Find chromosomes enriched with given genes."
+                   />
+  </extension>
+  
+  <extension id="MicroRNA finder" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.MicroRNAFinder"
+                   group="MicroRNA"
+                   name="MicroRNA finder"
+                   description="Finds novel microRNA from genomic alignments of NGS reads."
+                   />
+  </extension>
+  
+  <extension id="Stem loop predictor" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.StemLoopPredictor"
+                   group="MicroRNA"
+                   name="Stem loop predictor"
+                   description="Predictds microRNA stem loops."
+                   />
+  </extension>
+  
+  <extension id="GC island finder" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.GCIslandFinder"
+                   group="Unclassified"
+                   name="GC island finder"
+                   description="Finds genomic islands with unusual GC content."
+                   />
+  </extension>
+
+  <extension id="Extract ribosomal RNA" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.ExtractRibosomalRNA"
+                   group="Ribosome profiling"
+                   name="Extract ribosomal RNA"
+                   description="Extract ribosomal RNA."
+                   />
+  </extension>
+  
+  <extension id="Cluster track" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.ClusterTrack"
+                   group="Operations with genomic tracks"
+                   name="Cluster track"
+                   shortDescription="Merge closely located sites into clusters."
+                   description="ru/biosoft/bsa/analysis/resources/cluster_track_analysis.html"
+                   />
+  </extension>
+  
+  <extension id="Color space to nucleotide" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.ColorSpaceToNucleotide"
+                   group="NGS color-space"
+                   name="Color space to nucleotide"
+                   description="Convert color space sequences in csfasta to nucleotide fasta."
+                   />
+  </extension>
+
+  <extension id="Split fasta" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.SplitFasta"
+                   group="Unclassified"
+                   name="Split fasta"
+                   description="Split fasta file into chunks of specified size."
+                   />
+  </extension>
+
+  <extension id="Blast alignment coverage" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.BlastAlignmentCoverage"
+                   group="Unclassified"
+                   name="Blast alignment coverage"
+                   description="Compute coverage of sequences by blast hits."
+                   />
+  </extension>
+
+  <extension id="Remove overlapping sites" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.FilterOverlappingSites"
+                   group="Operations with genomic tracks"
+                   name="Remove overlapping sites"
+                   shortDescription="Constructs subset of input track so that no sites overlap in the output track."
+                   description="ru/biosoft/bsa/analysis/resources/Remove overlapping sites.html"
+                   />
+  </extension>
+
+  <extension id="Site search report" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.SiteSearchReportAnalysis"
+                   group="TF binding site search"
+                   name="Site search report"
+                   description="Generate report for site search analysis result."
+                   />
+  </extension>
+  <extension id="Site search report on matrices" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.SiteSearchReportOnMatrices"
+                   group="TF binding site search"
+                   name="Site search report with matrix table"
+                   description="Generate report for site search analysis result."
+                   />
+  </extension>
+
+  <extension id="Mutation effect on sites" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.maos.MutationEffectOnSites"
+                   group="Mutations"
+                   name="Mutation effect on sites"
+                   description="Find transcription factor binding sites affected by mutations."
+                   />
+  </extension>
+
+  <extension id="Compare TFBS mutations" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.CompareTFBSMutations"
+                   group="Mutations"
+                   name="Compare TFBS mutations"
+                   description="Find transcription factors that have different proportions of site losses(gains) in two datasets."
+                   />
+  </extension>
+
+  <extension id="Double encode SOLiD" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.DoubleEncodeSOLiD"
+                   group="NGS color-space"
+                   name="Double encode SOLiD"
+                   description="Encode SOLiD color space codes into nucleotide letters."
+                   />
+  </extension>
+
+  <extension id="Track correlation" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.TrackCorrelation"
+                   group="Operations with genomic tracks"
+                   name="Track correlation"
+                   description="Finds correlation between two tracks."
+                   />
+  </extension>
+
+  <extension id="Sort SQL track" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.SortSqlTrack"
+                   group="Unclassified"
+                   name="Sort SQL track"
+                   description="Sorts sites in SQL track to improve perfomance."
+                   />
+  </extension>
+  
+  <extension id="Compare TFBS mutations advanced" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="ru.biosoft.bsa.analysis.CompareTFBSMutationsWithVCF"
+                   group="Mutations"
+                   name="Compare TFBS mutations advanced"
+                   description="Do VCF from mutations"
+                   />
+  </extension>
+  
+  <extension id="Table to VCF track" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.TableToVCFTrack" group="Operations with genomic tracks" name="Convert table to VCF track"  description="This analysis converts a table to a VCF track."/> 
+  </extension>
+  
+  <extension id="Filter VCF by genotype" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.FilterVCFAnalysis" group="Operations with genomic tracks" name="Filter VCF by genotype"  description="Filter VCF by genotype separately for each sample."/> 
+  </extension>
+  
+  <extension id="Track to table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.TrackToTable" group="Operations with genomic tracks" name="Convert track to table"  description="Convert track to table. All site properties will be put in separate columns."/> 
+  </extension>
+
+
+  <extension id="SNP table type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.bsa.snp.SNPTableType"/>
+  </extension>
+  
+  <extension id="Weight matrices table type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.bsa.MatrixTableType"/>
+  </extension>
+  
+  <extension id="Transfac matrices table type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.bsa.TransfacMatrixTableType" urlTemplate="https://portal.genexplain.com/cgi-bin/knowledgebase/idb/1.0/get.cgi?$id$"/>
+  </extension>
+  
+  <extension id="Transfac protein type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.bsa.TransfacProteinType" urlTemplate="https://portal.genexplain.com/cgi-bin/knowledgebase/idb/1.0/get.cgi?$id$"/>
+  </extension>
+  
+  <extension id="siteAnalysis" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="siteAnalysis" class="ru.biosoft.bsa.analysis.JavaScriptSiteAnalysis" >
+    </hostObject>
+  </extension>
+  
+  <extension id="Convert tracks to VCF" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.analysis.ConvertTracksToVCF" group="Admin" name="Convert tracks to VCF"  description="This analysis replace SqlTrack containing properties RefAllele and AltAllele by VCFSqlTrack."/> 
+  </extension>
+  
+  <extension id="bsa" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="bsa" class="ru.biosoft.bsa.analysis.JavaScriptBSA" >
+        <doc description="Site search-related analyses">
+		
+		<function name="siteSearch" description="Perform site search analysis">
+            <argument name="sequences" type="DataCollection" obligatory="true" description="Collection containing input sequences"/>			
+            <argument name="profile" type="DataCollection" obligatory="true" description="profile collection (should contain WeightMatrix objects)"/>			
+            <argument name="intervals" type="Track" obligatory="true" description="if not null then used to filter input"/>			
+            <argument name="outputPath" type="String" obligatory="true" description="name of output Track with complete path"/>			
+			<returns type="Track" description="Created track"/>
+        </function>
+		
+		<function name="siteSearchSummary" description="Generate summary table on site search analysis">
+            <argument name="yesTrack" type="Track" obligatory="true" description="Site search analysis resulting track for experiment data"/>			
+            <argument name="noTrack" type="Track" obligatory="true" description="Site search analysis resulting track for background data (can be null)"/>			
+            <argument name="overrepresentedOnly" type="boolean" obligatory="true" description="Remove underrepresented matrices from the output (not applicable if no-set is not specified)"/>			
+            <argument name="outputPath" type="String" obligatory="true" description="name of output TableDataCollection with complete path"/>			
+			<returns type="TableDataCollection" description="created summary table"/>
+        </function>
+		
+		<function name="optimizeSiteSearchAnalysis" description="Perform an optimization of site search analysis results">
+			<argument name="inYesTrack" type="Track" obligatory="true" description="Site search result for genes expressed in experiment"/>
+			<argument name="inNoTrack" type="Track" obligatory="true" description="Site search result for background genes"/>
+			<argument name="optimizationType" type="String" obligatory="true" description="Whether to optimize only matrices cutoffs, promoter windows or both. Valid values are 'Cutoffs', 'Window' or 'Both'"/>
+			<argument name="pvalueCutoff" type="double" obligatory="true" description="Matrix will be removed from result if p-value cannot be optimized to values lower than specified cutoff"/>
+			<argument name="outYesTrack" type="String" obligatory="true" description="Path to filtered site search result for expressed genes (collection must accept SqlTrack; can be null if you don't want this)"/>
+			<argument name="outNoTrack" type="String" obligatory="true" description="Path to filtered site search result for background genes (collection must accept SqlTrack; can be null if you don't want this)"/>
+            <argument name="overrepresentedOnly" type="boolean" obligatory="true" description="Remove underrepresented matrices from the output (not applicable if no-set is not specified)"/>			
+			<argument name="outSummary" type="String" obligatory="true" description="Path to summary table (collection must accept TableDataCollection)"/>
+        </function>
+		
+		<function name="geneSetSiteSearch" description="Generate summary table on site search analysis">
+            <argument name="yesSet"/>			
+            <argument name="noSet"/>			
+            <argument name="species"/>			
+            <argument name="from"/>			
+            <argument name="to"/>			
+            <argument name="profile"/>			
+            <argument name="outputPath"/>			
+            <argument name="optimizeCutoff"/>			
+            <argument name="optimizeWindow"/>			
+            <argument name="pvalueCutoff"/>			
+            <argument name="overrepresentedOnly"/>			
+        </function>
+        
+        <function name="processTrack" description="Enlarge/shrink sites on the track, merge overlapping sites or remove too short sites">
+            <argument name="source"/>			
+            <argument name="sequence"/>			
+            <argument name="enlargeStart"/>			
+            <argument name="enlargeEnd"/>			
+            <argument name="mergeOverlapping"/>			
+            <argument name="minimalSize"/>			
+            <argument name="outputPath"/>			
+        </function>
+        
+        <function name="MACS" description="Model-based analysis of ChiP-Seq data (MACS 1.3.7)">
+            <argument name="track" type="Track" obligatory="true" description="name of CHiP-Seq Track to analyze"/>
+            <argument name="controlTrack" type="Track" obligatory="true" description="name of Track to be used as control"/>
+            <argument name="outputPath" type="String" obligatory="true" description="name of output Track with complete path"/>
+            <argument name="fixedLambda" type="boolean" obligatory="true" description="If true, uses fixed lambda value. If false, uses three levels of nearby region in basepairs to calculate dynamic lambda."/>
+            <argument name="lambda1" type="int" obligatory="true" description="1st level of nearby region to calculate dynamic lambda (in basepairs)"/>
+            <argument name="lambda2" type="int" obligatory="true" description="2nd level of nearby region to calculate dynamic lambda (in basepairs)"/>
+            <argument name="lambda3" type="int" obligatory="true" description="3rd level of nearby region to calculate dynamic lambda (in basepairs)"/>
+            <argument name="noModel" type="boolean" obligatory="true" description="if true, MACS will not build model"/>
+            <argument name="shiftSize" type="int" obligatory="true" description="the arbitrary shift size in bp, is used when noModel is true"/>
+            <argument name="bandWidth" type="int" obligatory="true" description="band width, if noModel is true, 2 time of this value will be used as a scanwindow width"/>
+            <argument name="genomeSize" type="double" obligatory="true" description="effective genome size"/>
+            <argument name="enrichmentRatio" type="int" obligatory="true" description="enrichment ratio against background of regions to be taken to build model"/>
+            <argument name="tagSize" type="int" obligatory="true" description="tag size"/>
+            <argument name="pValue" type="double" obligatory="true" description="Pvalue cutoff for peak detection"/>
+            <argument name="FDR" type="boolean" obligatory="true" description="if true, False Discovery Rate is calculated"/>
+            <returns type="Track" description="Created track"/>
+        </function>
+		
+        <function name="MACS14" description="Model-based analysis of ChiP-Seq data (MACS 1.4.0)">
+            <argument name="track"/>
+            <argument name="controlTrack"/>
+            <argument name="outputPath"/>
+            <argument name="parameters"/>
+        </function>
+        
+        <function name="createMatchModel" description="Create Match site model from frequency matrix">
+            <argumnet name="matrix"/>
+            <argumnet name="output"/>
+            <argumnet name="parameters"/>
+        </function>
+        
+         <function name="createWeightMatrixModel" description="Create weight matrix site model from frequency matrix">
+            <argumnet name="matrix"/>
+            <argumnet name="output"/>
+            <argumnet name="parameters"/>
+        </function>
+        
+        <function name="createIPSModel" description="Create IPS site model from frequency matrices">
+            <argumnet name="frequencyMatrices"/>
+            <argumnet name="output"/>
+            <argumnet name="parameters"/>
+        </function>
+        
+        <function name="filterOneTrackByAnother" description="Filter one track by another">
+            <argument name="inputTrack"/>
+            <argument name="filterTrack"/>
+            <argument name="outputPath"/>
+            <argument name="parameters"/>
+        </function>
+
+        <function name="compareMotifs" description="Compare site models">
+            <argument name="sequences"/>
+            <argument name="siteModels"/>
+            <argument name="output"/>
+            <argument name="parameters"/>
+        </function>
+        
+        </doc>
+      </hostObject>
+  </extension>  
+
+  <extension id="bsa.commonClasses" point="ru.biosoft.access.commonClass">
+  	<class class="ru.biosoft.bsa.SqlTrack"/>
+  	<class class="ru.biosoft.bsa.AnnotatedSequence"/>
+  	<class class="ru.biosoft.bsa.SiteModel"/>
+  	<class class="ru.biosoft.bsa.SiteModelCollection"/>
+	<class class="ru.biosoft.bsa.analysis.WeightMatrixCollection"/>
+	<class class="ru.biosoft.bsa.analysis.FrequencyMatrix"/>
+	<class class="ru.biosoft.bsa.SequenceCollection"/>
+  </extension>
+
+  <extension id="Site model template" point="ru.biosoft.templates.template">
+      <template name="Site model" file="ru/biosoft/bsa/resources/sitemodel.vm" description="Site model detailed description" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.SiteModel" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="Matrix template" point="ru.biosoft.templates.template">
+      <template name="Matrix" file="ru/biosoft/bsa/resources/matrix.vm" description="Matrix detailed description" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.analysis.FrequencyMatrix" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Transcription factor template" point="ru.biosoft.templates.template">
+      <template name="Factor" file="ru/biosoft/bsa/resources/factor.vm" description="Factor detailed description" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.TransfacTranscriptionFactor" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Site template" point="ru.biosoft.templates.template">
+      <template name="Site" file="ru/biosoft/bsa/resources/site.vm" description="Site information" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.Site" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="BAM track template" point="ru.biosoft.templates.template">
+      <template name="BAM track" file="ru/biosoft/bsa/resources/bamtrack.vm" description="BAM track information" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.BAMTrack" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="BigBed track template" point="ru.biosoft.templates.template">
+      <template name="BigBed track" file="ru/biosoft/bsa/track/big/resources/bigbed_track.vm" description="BigBed track information" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.track.big.BigBedTrack" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="SQL track template" point="ru.biosoft.templates.template">
+      <template name="SQL track" file="ru/biosoft/bsa/resources/sqltrack.vm" description="SQL track information" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.SqlTrack" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension point="ru.biosoft.access.movedClass">
+  	<class name="ru.biosoft.bsa.AnnotatedSequence" oldNames="ru.biosoft.bsa.Map"/>
+  	<class name="ru.biosoft.bsa.track.big.BigBedTrack" oldNames="biouml.plugins.gtrd.master.BigBedTrack"/>
+  	<class name="ru.biosoft.bsa.track.big.BigWigTrack" oldNames="biouml.plugins.gtrd.master.BigWigTrack"/>
+  	<class name="ru.biosoft.bsa.track.big.BedEntryToSite" oldNames="biouml.plugins.gtrd.master.sites.bedconv.BedEntryToSite"/>
+    <class name="ru.biosoft.bsa.transformer.FastaSequenceCollection" oldNames="ru.biosoft.bsa.TrackOnSequences"/>
+  </extension>  
+
+  <extension point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="ru.biosoft.table.document.TableFactory"
+        key="ru.biosoft.bsa.analysis.WeightMatrixCollection"
+      /> 
+      <documentFactory 
+        class="ru.biosoft.table.document.TableFactory"
+        key="ru.biosoft.bsa.SiteModelCollection"
+      /> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="Open genome browser" class="ru.biosoft.bsa.gui.OpenSequenceAction" priority="60">
+        <property name="Name" value="Open genome browser"/>
+        <property name="ShortDescription" value="Open genome browser"/>
+        <property name="LongDescription" value="Open genome browser"/>
+        <property name="MnemonicKey" value="VK_O"/>
+        <property name="SmallIcon" value="open.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-genome-browser"/>
+     </action>
+     <action name="Open as table" class="ru.biosoft.bsa.gui.OpenTrackAsTable" priority="70">
+        <property name="Name" value="Open as table"/>
+        <property name="ShortDescription" value="Open track in tabular view"/>
+        <property name="LongDescription" value="Open track in tabular view"/>
+        <property name="MnemonicKey" value="VK_T"/>
+        <property name="SmallIcon" value="open.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-track-as-table"/>
+     </action>
+     <action name="Open track in genome browser" class="ru.biosoft.bsa.gui.OpenTrackInGenomeBrowser" priority="65">
+        <property name="Name" value="Open track"/>
+        <property name="ShortDescription" value="Open track in genome browser"/>
+        <property name="LongDescription" value="Open track in genome browser"/>
+        <property name="MnemonicKey" value="VK_R"/>
+        <property name="SmallIcon" value="open.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-track-in-genome-browser"/>
+     </action>
+     <action name="Open site search result" class="ru.biosoft.bsa.gui.OpenSiteSearchResultAction" priority="70">
+        <property name="Name" value="Open site search result"/>
+        <property name="ShortDescription" value="Open summary table of site search result"/>
+        <property name="LongDescription" value="Open summary table of site search result"/>
+        <property name="MnemonicKey" value="VK_T"/>
+        <property name="SmallIcon" value="open.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-document"/>
+     </action>
+  </extension>
+
+  <extension point="ru.biosoft.table.dataType">
+      <dataType class="ru.biosoft.bsa.access.GenomeBrowserDataType"/> 
+  </extension>
+
+  <extension id="Export table to ZHTML format" point="ru.biosoft.access.export"> 
+     <export 
+        format="ZHTML document (*.zhtml)"
+        suffix="zhtml"
+        contentType="text/zhtml"
+        exporter="ru.biosoft.bsa.exporter.TableElementExporterEx"
+        description=""
+     />
+  </extension>
+
+  <extension point="ru.biosoft.analysis.group">
+    <group name="Operations with genomic tracks" description="ru/biosoft/bsa/resources/operations_with_genomic_tracks.html" related="Match sites and genes;TF binding site search;Motif discovery;Mutations;NGS alignment;NGS color-space;NGS utils" />
+  </extension>
+
+  <extension point="ru.biosoft.access.beans">
+    <provider class="ru.biosoft.bsa.finder.TrackFinderBeanProvider" prefix="trackFinder/parameters"/>
+  </extension>
+
+  <extension id="BigBed importer" point="ru.biosoft.access.import"> 
+     <import 
+        format="BigBed (*.bb, *.bigBed)"
+        importer="ru.biosoft.bsa.track.big.BigBedTrackImporter"
+        description="Import BigBed file"
+     />
+  </extension>
+
+  <extension id="BigWig importer" point="ru.biosoft.access.import"> 
+     <import 
+        format="BigWig (*.bw, *.bigWig)"
+        importer="ru.biosoft.bsa.track.big.BigWigTrackImporter"
+        description="Import BigWig file"
+     />
+  </extension>
+
+  
+  <extension point="ru.biosoft.access.transformer">
+    <transformer name="BedFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.BedTrack" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" />
+    <transformer name="GFFFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.GFFTrack" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" />
+    <transformer name="FastaFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/> 
+    <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/> 
+    <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
+    <transformer name="BCFFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/> 
+    <transformer name="GenebankFile" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/> 
+  </extension>
+
+</plugin>

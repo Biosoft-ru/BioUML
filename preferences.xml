@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<dynamicPropertySet> 
+    <property name="DataCollectionPaths" type="com.developmentontheedge.beans.Preferences" display-name="DataCollectionPaths" short-description="DataCollectionPaths">
+        <dynamicPropertySet> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="Global" type="com.developmentontheedge.beans.Preferences" display-name="Global" short-description="Global" hidden="true">
+        <dynamicPropertySet> 
+            <property name="ApplicationName" type="java.lang.String" value="BioUML" display-name="ApplicationName" short-description="ApplicationName"/> 
+            <property name="ApplicationTitle" type="java.lang.String" value="BioUML workbench" display-name="ApplicationTitle" short-description="ApplicationTitle"/> 
+            <property name="ApplicationVersion" type="java.lang.String" value="0.9.4" display-name="ApplicationVersion" short-description="ApplicationVersion"/> 
+            <property name="HistoryDiagrams" type="java.lang.String" value="history/diagrams" display-name="HistoryDiagrams" short-description="HistoryDiagrams"/> 
+            <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/> 
+            <property name="ServerPath" type="java.lang.String" value="http://localhost:24555/biouml" display-name="ServerPath" short-description="ServerPath"/> 
+            <property name="ServerSession" type="java.lang.String" value="de2ca6a7-e73d-45f3-9656-2e818ad274b4" display-name="ServerSession" short-description="ServerSession"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="GridOptions" type="com.developmentontheedge.beans.Preferences" display-name="Grid options" short-description="Diagram editor grid options" ordered="true">
+        <dynamicPropertySet> 
+            <property name="showGrid" type="java.lang.Boolean" value="true" display-name="Show grid" short-description="Show and use grid for diagram editor"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="JAVA_LIBRARY_PATH" type="java.lang.String" value="/usr/local/lib64/jni" display-name="java.library.path" short-description="Extra library path for plugins"/> 
+    <property name="Look and feel" type="java.lang.String" value="Windows Classic" display-name="Look and feel" short-description="Preferred look and feel.&lt;br&gt;&lt;font color=red&gt;Warning:&lt;/font&gt; sometimes you need to restart the application so look and feel was updated properly.&lt;/i&gt;" property-editor="ru.biosoft.workbench.LookAndFeelManager$LookAndFeelTagEditor"/> 
+    <property name="Look and feel theme" type="java.lang.String" display-name="Look and feel, theme" short-description="Preferred theme for selected look and feel. Some look and feels have not themes.&lt;br&gt;&lt;font color=&quot;red&quot;&gt;Warning:&lt;/font&gt; sometimes you need to restart the application so look and feel theme was updated properly." property-editor="ru.biosoft.workbench.LookAndFeelManager$ThemeTagEditor"/> 
+    <property name="Perspective" type="java.lang.String" value="Default" display-name="Perspective" short-description="Perspective" property-editor="biouml.workbench.perspective.PerspectiveSelector"/> 
+    <property name="Proxy" type="com.developmentontheedge.beans.Preferences" display-name="Proxy" short-description="Proxy preferences" ordered="true">
+        <dynamicPropertySet> 
+            <property name="Use" type="java.lang.Boolean" value="false" display-name="Use proxy" short-description="Use proxy"/> 
+            <property name="Host" type="java.lang.String" display-name="Host" short-description="Proxy host"/> 
+            <property name="Port" type="java.lang.Integer" value="0" display-name="Port" short-description="Proxy port"/> 
+            <property name="Username" type="java.lang.String" display-name="Username" short-description="Proxy username"/> 
+            <property name="Password" type="java.lang.String" display-name="Password" short-description="Proxy password"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="Setup wizard" type="com.developmentontheedge.beans.Preferences" display-name="Setup wizard" short-description="Setup wizard preferences">
+        <dynamicPropertySet> 
+            <property name="Show on startup" type="java.lang.Boolean" value="true" display-name="Show on startup" short-description="Show on startup"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="Single Sign On" type="com.developmentontheedge.beans.Preferences" display-name="Single Sign On" short-description="Single Sign On preferences">
+        <dynamicPropertySet> 
+            <property name="use" type="java.lang.Boolean" value="false" display-name="use" short-description="Using of Singl-Sign-On"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="View Options" type="com.developmentontheedge.beans.Preferences" display-name="View Options" short-description="View options">
+        <dynamicPropertySet> 
+            <property name="Diagram element title size" type="java.lang.Integer" value="30" display-name="Title size" short-description="Maximum diagram element title size"/> 
+            <property name="Variable name mode" type="java.lang.String" value="title(brief)" display-name="Variable name mode" short-description="Variable name mode"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="Window location" type="com.developmentontheedge.beans.Preferences" display-name="Window location" short-description="Window location" hidden="true">
+        <dynamicPropertySet> 
+            <property name="height" type="java.lang.Integer" value="750" display-name="height" short-description="height"/> 
+            <property name="width" type="java.lang.Integer" value="1200" display-name="width" short-description="width"/> 
+            <property name="x" type="java.lang.Integer" value="360" display-name="x" short-description="x"/> 
+            <property name="y" type="java.lang.Integer" value="165" display-name="y" short-description="y"/> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="currentJournal" type="java.lang.String" value="Research: Iron metabolism" display-name="Current journal" short-description="Current journal"/> 
+    <property name="dialogs" type="com.developmentontheedge.beans.Preferences" display-name="dialogs" short-description="dialogs" expert="true">
+        <dynamicPropertySet> 
+        </dynamicPropertySet> 
+    </property> 
+    <property name="threadsNumber" type="java.lang.Integer" value="0" display-name="Preferred number of threads" short-description="Set 0 for number of processors available"/> 
+</dynamicPropertySet> 

@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: SEEK Synchronize
+Bundle-SymbolicName: biouml.plugins.seek;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.workbench.editors,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.jobcontrol,
+ org.apache.http
+Export-Package: biouml.plugins.seek

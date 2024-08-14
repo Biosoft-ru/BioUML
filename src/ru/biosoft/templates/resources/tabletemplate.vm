@@ -1,0 +1,20 @@
+#macro( strField $name $label )
+	#if($name)<b>$label</b>: $name <br>#end
+#end
+
+<html>
+	<body>
+	    #strField($de.name, "ID")
+	    #strField($de.title, "Title")
+	    #strField($de.description, "Description")
+	    #if($de.columns)
+			<b>Columns</b>:
+			<ul>
+			#foreach( $col in $de.columns )
+            	<li> $col.name </li>
+            #end
+            </ul>		
+			<br>
+		#end
+	</body>
+</html>

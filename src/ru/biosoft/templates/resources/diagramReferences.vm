@@ -1,0 +1,56 @@
+<html>
+	<body>
+		#set( $isRef = false)
+		#if($de.getClass().getName().endsWith("Diagram"))
+			#set( $orderNumber = 0)
+			#set( $isTitleSet = false)
+			#processDatabaseReferences($de, $resolver, $orderNumber, $isTitleSet)
+			#if($isTitleSet)
+				</table>
+				<br><br>
+				#set( $isRef = true)
+			#end
+		
+			#set( $orderNumber = 0)
+			#set( $isTitleSet = false)
+			#processLiteratureReferences($de, $resolver, $orderNumber, $isTitleSet)
+			#if($isTitleSet)
+				</table>
+				<br><br>
+				#set( $isRef = true)
+			#end
+		#else
+			#set( $orderNumber = 0)
+			#set( $kernel = $de.getKernel())
+			
+			#if( $kernel.getDatabaseReferences() && $kernel.getDatabaseReferences().size() > 0)
+	        	<font size = 6>Database references</font><br><br>
+				#set( $DBRef = [])
+				#set( $relations = [])
+				#set( $databases = [])
+	    	    #getDBRef($resolver, $de, $databases, $DBRef, $relations)
+				#set( $orderNumber = $orderNumber + 1)
+				<table border="0">
+					#updateReferencesTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>Databases</b>", "<b>Relations</b>", "<b>References</b>")
+					#updateReferencesTable($orderNumber, $de.getName(), $de.getTitle(), $databases, $relations, $DBRef)
+					#set( $isRef = true)
+				</table><br><br>
+			#end
+			
+			#if($kernel.getLiteratureReferences() && $kernel.getLiteratureReferences().size() > 0)
+	        	<font size = 6>Literature</font><br><br>
+				#set( $literature = [])
+	        	#getLiterature($resolver, $de, $literature)
+				#set( $orderNumber = $orderNumber + 1)
+				<table border="0">
+					#updateLiteratureTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>References</b>")
+					#updateLiteratureTable($orderNumber, $de.getName(), $de.getTitle(), $literature)
+					#set( $isRef = true)
+				</table><br><br>
+			#end
+		#end
+		#if( !$isRef)
+			There are not references for this element
+		#end
+	</body>
+</html>

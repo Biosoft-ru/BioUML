@@ -1,0 +1,20 @@
+/*
+ * Help GE action
+ */
+{
+    id: "help_ge",
+    label: "Help",
+    icon: "icons/help.gif",
+    visible: "function()
+    {
+        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        {
+          return true;
+        }
+        return -1;
+    }",
+    action: "function()
+    {
+    	/*defined in wizard.js*/
+    }"
+}

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension-point name="webTableResolver"     id="webTableResolver"/>
+    <extension-point name="webProvider"          id="webProvider"/>
+    <extension-point name="exportedDe"           id="exportedDe"/>
+    <extension-point name="tableExporter"        id="tableExporter"/>
+    <extension-point name="controlCodeGenerator" id="controlCodeGenerator"/>
+
+    <extension point="ru.biosoft.server.servlets.webProvider">
+        <provider prefix="data" class="ru.biosoft.server.servlets.webservices.providers.ServiceProvider"/>
+        <provider prefix="diagram" class="ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider"/>
+        <provider prefix="action" class="ru.biosoft.server.servlets.webservices.providers.WebActionsProvider"/>
+        <provider prefix="content" class="ru.biosoft.server.servlets.webservices.providers.ContentProvider"/>
+        <provider prefix="html" class="ru.biosoft.server.servlets.webservices.providers.HtmlTemplateProvider"/>
+        <provider prefix="html_page" class="ru.biosoft.server.servlets.webservices.providers.HtmlPageTemplateProvider"/>
+        <provider prefix="revert" class="ru.biosoft.server.servlets.webservices.providers.RevertRequestProvider"/>
+        <provider prefix="bean" class="ru.biosoft.server.servlets.webservices.providers.WebBeanProvider"/>
+        <provider prefix="table" class="ru.biosoft.server.servlets.webservices.providers.WebTablesProvider"/>
+        <provider prefix="script" class="ru.biosoft.server.servlets.webservices.providers.WebScriptsProvider"/>
+        <provider prefix="img" class="ru.biosoft.server.servlets.webservices.providers.ImageProvider"/>
+        <provider prefix="jobcontrol" class="ru.biosoft.server.servlets.webservices.providers.JobControlProvider"/>
+        <provider prefix="analysis" class="ru.biosoft.server.servlets.webservices.providers.AnalysisProvider"/>
+        <provider prefix="tasks" class="ru.biosoft.server.servlets.webservices.providers.TaskProvider"/>
+        <provider prefix="preferences" class="ru.biosoft.server.servlets.webservices.providers.PreferencesProvider"/>
+        <provider prefix="export" class="ru.biosoft.server.servlets.webservices.providers.ExportProvider"/>
+        <provider prefix="import" class="ru.biosoft.server.servlets.webservices.providers.ImportProvider"/>
+        <provider prefix="import2" class="ru.biosoft.server.servlets.webservices.imports.ImportProvider"/>
+        <provider prefix="treetable" class="ru.biosoft.server.servlets.webservices.providers.WebTreeTablesProvider"/>
+        <provider prefix="perspective" class="ru.biosoft.server.servlets.webservices.providers.PerspectivesProvider"/>
+        <provider prefix="doc" class="ru.biosoft.server.servlets.webservices.providers.DocumentProvider"/>
+        <provider prefix="newElement" class="ru.biosoft.server.servlets.webservices.providers.NewElementProvider"/>
+        <provider prefix="wikihelp" class="ru.biosoft.server.servlets.webservices.providers.WikiHelpProvider"/>
+        <provider prefix="serverMessages" class="ru.biosoft.server.servlets.webservices.messages.ServerMessagesProvider"/>
+        <provider prefix="folder" class="ru.biosoft.server.servlets.webservices.providers.CopyFolderProvider"/>
+        <provider prefix="omicsType" class="ru.biosoft.server.servlets.webservices.providers.OmicsTypeProvider"/>
+        <provider prefix="git" class="ru.biosoft.server.servlets.webservices.providers.GitWebProvider"/>
+        <provider prefix="oasys" class="ru.biosoft.server.servlets.webservices.providers.OASYSWebProvider"/>
+        <provider prefix="log" class="ru.biosoft.server.servlets.webservices.providers.WebLogProvider"/>
+        <provider prefix="video" class="ru.biosoft.server.servlets.webservices.providers.VideoProvider"/>
+    </extension>    
+
+    <extension id="Ubiprot" point="ru.biosoft.server.servlet"> 
+      <servlet 
+        class="ru.biosoft.server.servlets.ubiprot.DiagramServlet" 
+        prefix="ubiprot"
+      /> 
+    </extension> 
+    
+    <extension id="WebServices" point="ru.biosoft.server.servlet"> 
+      <servlet 
+        class="ru.biosoft.server.servlets.webservices.WebServicesServlet" 
+        prefix="web"
+      /> 
+    </extension> 
+    
+    <extension id="SupportService" point="ru.biosoft.server.servlet"> 
+      <servlet 
+        class="ru.biosoft.server.servlets.support.SupportServlet" 
+        prefix="support"
+      /> 
+    </extension> 
+    
+    <extension id="GeneticsService" point="ru.biosoft.server.servlet"> 
+      <servlet 
+        class="ru.biosoft.server.servlets.genetics.GeneticsServlet" 
+        prefix="genetics"
+      /> 
+    </extension> 
+    
+    <extension id="ExternalUrlMappingService" point="ru.biosoft.server.servlet"> 
+      <servlet 
+        class="ru.biosoft.server.servlets.webservices.ExternalUrlMappingServlet" 
+        prefix="map"
+      /> 
+    </extension> 
+
+    <extension id="JabberProxyServlet" point="ru.biosoft.server.servlet"> 
+      <servlet 
+        class="ru.biosoft.server.servlets.webservices.JabberProxyServlet" 
+        prefix="jabber"
+      /> 
+    </extension>
+    
+    <extension point="ru.biosoft.server.servlets.exportedDe" id="TableExportedDe">
+        <provider prefix="Table" class="ru.biosoft.server.servlets.webservices.providers.CommonExportedDeProvider"/>
+    </extension>
+    
+    <extension point="ru.biosoft.server.servlets.exportedDe" id="DiagramExportedDe">
+        <provider prefix="Diagram" class="ru.biosoft.server.servlets.webservices.providers.CommonExportedDeProvider"/>
+    </extension>
+    
+    <extension point="ru.biosoft.server.servlets.exportedDe" id="ElementExportedDe">
+        <provider prefix="Element" class="ru.biosoft.server.servlets.webservices.providers.CommonExportedDeProvider"/>
+    </extension>
+    
+    <extension point="ru.biosoft.server.servlets.tableExporter" id="RegularExporter">
+        <exporter prefix="Regular" class="ru.biosoft.server.servlets.webservices.providers.RegularTableExporter"/>
+    </extension>
+    
+</plugin>

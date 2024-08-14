@@ -1,0 +1,24 @@
+/*
+ * Undo action
+ */
+{
+    id: "undo_in",
+    label: "Undo",
+    icon: "icons/undo.gif",
+    visible: "function(doc)
+    {
+    	if(doc && doc.undo) 
+        {    
+            return !doc.readOnly;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = getActiveDocument();
+        if (activeDocument && activeDocument.undo) 
+        {
+            activeDocument.undo();
+        }
+    }"
+}

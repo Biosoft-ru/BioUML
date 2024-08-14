@@ -1,0 +1,54 @@
+#jabber_pane
+{
+	position: relative;
+}
+
+#jabber_messages 
+{
+	width: 97%;
+	height: 250px;
+	overflow: auto;
+	border: 1px solid grey;
+	padding: 4px;
+	font-size: 10pt;
+}
+
+#jabber_input 
+{
+	width: 97%;
+	height: 50px;
+	padding: 4px;
+	margin: 0;
+	border: 1px solid grey;
+}
+
+#jabber_messages_gr
+{
+	width: 80%;
+	height: 250px;
+	overflow: auto;
+	border: 1px solid grey;
+	padding: 4px;
+	font-size: 10pt;
+}
+
+#jabber_input_gr
+{
+	width: 80%;
+	height: 50px;
+	padding: 4px;
+	margin: 0;
+	border: 1px solid grey;
+}
+
+#jabber_groupusers
+{
+	width: 17%;
+	height: 318px;
+	position: absolute;
+	top: 0px;
+	right: 5px;
+	margin: 0;
+	border: 1px solid grey;
+	overflow: hidden;
+}

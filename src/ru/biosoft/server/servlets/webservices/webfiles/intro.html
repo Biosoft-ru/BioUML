@@ -1,0 +1,11 @@
+<script>
+// Get the iframe element we want to track mouse movements on and set up bubbling
+//var myIframe = document.getElementById("intro_iframe");
+//addIframeMouseMoveListener(myIframe);
+
+onIntroPageOpen("Default", function() {
+  toggleRepositoryVisibility(true);
+  toggleUI(true);
+});
+</script>
+<iframe id="intro_iframe" src="/bioumlweb/startpage/index.html" width="99%" height="99%" frameborder="no"/>

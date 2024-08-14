@@ -1,0 +1,19 @@
+<h2>Find longest connected chains</h2>
+
+<p>
+Goal of this analysis is to find longest <i>chains</i> which contains as many elements from <b>input collection</b> as possible.
+Here <i>chain</i> means a path which starts and ends with the elements from the <b>input collection</b>. In this path length between
+two elements from the <b>input collection</b> is limited by <b>maximal search radius</b>.
+<br><br>
+Analysis uses Dijkstra search algorithm to find all possible chains. Then short chains, or long chains which contains just a few elements
+from <b>input collection</b> are cut off using <b>score</b> parameter. Let <i>N<sub>start</sub></i> be a number of elements from 
+the <b>input collection</b> in the chain, <i>N<sub>total</sub></i> be a total number of elements in the chain, then score is obtained
+using following formula:
+</p>
+<br>
+<div class="formula-text"><img src="longestChainScore.gif" alt="score"></div>
+<p>
+where <i>coef</i> is value of <b>score coefficient</b>.
+</p>
+
+%parameters%

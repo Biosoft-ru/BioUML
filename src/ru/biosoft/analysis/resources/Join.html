@@ -1,0 +1,45 @@
+<h2>Join tables</h2>
+
+<p>
+  Combine two tables into a new one containing selected columns.
+  Joining is processed according to ID matching from left and right tables.
+</p>
+
+<p>
+  Columns with the same names can be merged if the respective option is checked. Otherwise column name will be extended by table name 
+  for both input tables and two distinct columns will be taken to the resulting table.
+</p>
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li><b>Left Table</b> - left (first table) for join.
+    <ul>
+      <li><b>Table</b> - a table data collection stored in BioUML repository.
+      <li><b>Columns</b> - the columns from the table which should be taken into account.
+    </ul>
+  </li>
+  
+  <li><b>Right Table</b> - right (second table) for join.
+    <ul>
+      <li><b>Table</b> - a table data collection stored in BioUML repository.
+      <li><b>Columns</b> - the columns from the table which should be taken into account.
+    </ul>
+  </li>
+  
+  <li><b>Join type</b> - the type of join:
+    <ul>
+      <li><b>Inner</b> - inner join in SQL sense (result will contain IDs presented in both tables).
+      <li><b>Outer</b> - full outer join in SQL sense (result will contain IDs presented at least in one table).
+      <li><b>Left</b> - left outer join in SQL sense (result will contain IDs presented in left table).
+      <li><b>Right</b> - right outer join in SQL sense (result will contain IDs presented in right table).
+      <li><b>Left substraction</b> - result will contain IDs presented ONLY in left table.
+      <li><b>Right substraction</b>  - result will contain IDs presented ONLY in right table.
+      <li><b>Symmetric Difference</b> - result will contain IDs presented only in one (any) of two tables.
+    </ul>
+  </li>
+
+  <li>
+    <b>Output table</b> - the path in BioUML repository where the result table will be stored.
+    If a table with the specified path already exists it will be replaced.
+  </li>

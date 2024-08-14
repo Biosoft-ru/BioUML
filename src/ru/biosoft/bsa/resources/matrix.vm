@@ -1,0 +1,44 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $name <br>
+	#end
+#end
+
+<html>
+	<body>
+		<h1>Matrix $de.getName()</h1>
+		#strField($de.getBindingElement(), "Binding factor")
+		#set($factorNames = $de.getBindingElement().getFactorNames())
+		#if (($factorNames!=$null)&&($factorNames.size()!=0))
+		<b>Binding factor names</b>: <br>
+		<ul>
+		#foreach ($ref in $factorNames)
+		#strField("factor", $ref)
+		#end
+		</ul><br>
+		#end
+		#set($name = $utils.getPath($de))
+		#set($width = $de.getLength()*40)
+		#strField($utils.formatBeanProperty($de, "uniprot"), "Uniprot IDs")
+		#strField($utils.formatBeanProperty($de, "references"), "References")
+		#strField($utils.formatBeanProperty($de, "classReferences"), "Classes")
+		#strField($de.getAccession(),"Accession")
+		#showReferences($de)
+	    #strField($de.getLength(),"Matrix length")
+		<table cellpadding="0" cellspacing="0"><tr><th>Logo<td colspan=$de.getLength() width="$width"><div style="border-left: 1px solid gray;">
+			<img src="image:///$name" height="80" width="$width">
+		</div></td></tr>
+		#set($alphabet = $de.getAlphabet())
+		#set($codes = $alphabet.basicCodes())
+		#foreach($code in $codes)
+			<tr><th>$alphabet.codeToLetters($code).toUpperCase()
+			#set($last = $de.getLength() - 1)
+			#foreach($pos in [0..$last])
+				<td width="40" style="width: 40px;"><div style="width: 37px; overflow: hidden; border-left: 1px solid gray; padding-left: 2px;">
+				#set($freq = $de.getFrequency($pos, $code))
+				$utils.format("%.3f", $freq)
+				</div></td>
+			#end				
+		#end
+	</body>
+</html>

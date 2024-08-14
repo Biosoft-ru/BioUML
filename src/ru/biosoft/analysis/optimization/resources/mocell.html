@@ -1,0 +1,44 @@
+<h2>Multi-objective cellular genetic algorithm (MOCell)</h2>
+
+<p>
+  The cellular model of the genetic algorithms works on a single population of candidate solutions (individuals)<span class="ref">1</span>.
+  MOCell is an adaptation of the algorithm to the multi-objective field<span class="ref">2</span>.
+  The main steps of the algorithm are the following.
+</p>
+<p>
+  <b>Initialization.</b> The one individual in the initial population is defined by the user,
+  the others are uniformly randomly generated.
+</p>
+<p>
+  <b>Evaluation.</b> Once we initialized the population, or when a new solution
+    offspring is created, it is necessary to calculate the fitness values
+    for all individuals in this population. For this purpose, we need to find
+    values of objective and penalty functions. (The latter is
+    in the case of the constraint optimization.)
+</p>
+<p>
+  <b>Selection.</b> Through the selection, we favor solutions,
+  which have the highest fitness value (that means the lowest values
+  of both objective and penalty function values) in the search.
+</p>
+<p>
+  <b>Recombination.</b> The recombination combines two parent solutions
+  for creating a new offspring using Simulated Binary Crossover (SBX). 
+</p>
+<p>
+  <b>Mutation.</b> The mutation randomly modifies the offspring using the polynomial operator.
+</p>
+<p>
+  <b>Replacement.</b> Individuals of the offspring population created through selection,
+  recombination and mutation, replace individuals of the parent population if their fitness values are higher.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li> E Alba and B Dorronsoro. "Cellular Genetic Algorithms". New York: Springer, 2008. </li>
+  <li>AJ Nebro, JJ Durillo, F Luna, B Dorronsoro and E Alba.
+    "A Cellular Genetic Algorithm for Multiobjective Optimization".
+    International Journal of Intelligent Systems,  24(7): 726-746, 2009.
+  </li>
+</ol>

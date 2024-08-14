@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.mirprom;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: biouml.plugins.ensembl,
+ com.developmentontheedge.beans,
+ com.eclipsesource.json,
+ com.mysql.cj,
+ one.util.streamex,
+ org.eclipse.osgi,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.bsa,
+ ru.biosoft.table
+Export-Package: biouml.plugins.mirprom

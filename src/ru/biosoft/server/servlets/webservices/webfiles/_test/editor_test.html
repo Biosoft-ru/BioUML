@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <script type="text/javascript" src="../lib/editarea/edit_area_loader.js">
+        </script>
+        <script type="text/javascript" charset="utf-8">
+            // initialisation
+            editAreaLoader.init({
+                id: "example_1",
+                start_highlight: true,
+                allow_resize: "both",
+                allow_toggle: false,
+                word_wrap: false,
+                language: "en",
+                syntax: "js",
+                toolbar: "go_to_line, |, undo, redo, |, select_font"
+            });
+        </script>
+    </head>
+    <body id="dt_example">
+        <textarea id="example_1" style="height: 350px; width: 100%;" name="test_1">
+            function resizeWindow()
+            {
+            var width = $(window).width() - 8;
+            var height = $(window).height() - 40;
+            $("#mainPane").css("width", width).trigger("resize");
+            $("#mainPane").css("height", height).trigger("resize");
+            }
+        </textarea>
+    </body>
+</html>

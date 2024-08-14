@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<script type="text/javascript" src="../lib/jquery/jquery-3.6.0.min.js"></script>
+	<link type="text/css" href="../css/intro.css" rel="stylesheet" />
+	<style>
+		.main-container {
+			display: flex;
+			margin-left:20px;
+		}
+		.left-column {
+			flex: 50%;
+		}
+		.right-column {
+			flex: 50%;
+		}
+		
+		h1.intro-styles{font-weight:normal;}
+		h3>a {
+			color:#222222;
+			font-weight:normal;
+		}
+		h3 {
+			margin-top: 20px; margin-bottom:10px
+		}
+	</style>
+	<script type="text/javascript">
+		function attachUIToggling()
+		{
+			$('.ui_toggling_href').on('click', function(){
+				window.parent.toggleUI(true);
+		  		window.parent.toggleRepositoryVisibility(true);
+			});
+		}
+	</script>
+
+</head>
+<body class="intro-styles" onload="attachUIToggling()">
+<h1 class="intro-styles">Рабочие окружения</h1>
+<div class="main-container">
+<div class="left-column">
+<h2>Анализ данных</h2>
+<h3><a class="ui_toggling_href" href="/bioumlweb/intro-dna-rna.ru.html">Анализ ДНК и РНК</a></h3>
+<ul class="intro-styles">
+        <li>
+            Загрузка данных
+        </li>
+        <li>Контроль качества
+        </li>
+        <li>Удаление адаптеров	
+        </li>
+        <li>Удаление ПЦР дупликатов
+        </li>
+</ul>
+<h3><a class="ui_toggling_href" href="/bioumlweb/intro-microbiome.ru.html">Сборка и аннотирование геномов</a></h3>
+<h3><a class="ui_toggling_href" href="/bioumlweb/startpage/rnaseq-rus.html">Анализ транскриптомных данных</a></h3>
+<ul class="intro-styles">
+        <li>
+            Первичный анализ 
+        </li>
+        <li>Анализ экспрессии генов
+        </li>
+        <li>Функциональный анализ	
+        </li>
+</ul>
+<h3><a class="ui_toggling_href" href="/bioumlweb/intro-variations.ru.html">Поиск и анализ вариаций геномов</a></h3>
+<h3><a class="ui_toggling_href" href="/bioumlweb/startpage/phylogenetics-rus.html">Филогенетический анализ</a></h3>
+</div>
+<div class="right-column">
+<h2>Инструменты и платформы</h2>
+<h3><a href="/bioumlweb/" target="_blanc">BioUML</a></h3>
+<p>анализ данных, сценарии, геномный браузер</p>
+<br/>
+<h3><a class="ui_toggling_href" href="/bioumlweb/startpage/jupyter.html">Jupyter ноутбуки</a></h3>
+<p>R/Bioconductor, Python</p>
+
+<h3><a class="ui_toggling_href" href="/bioumlweb/startpage/methods.html">Все методы анализа данных</a></h3>
+<h2>Примеры</h2>
+<ul class="intro-styles">
+        <li>
+            <a class="ui_toggling_href" target="_parent" href="/bioumlweb/#de=data/Collaboration/RNA-seq analysis/Data/Doc/readme">Анализ транскриптомных данных</a> 
+        </li>
+        <li>
+            <a class="ui_toggling_href" target="_parent" href="/bioumlweb/#de=data/Collaboration/Phylogenetic analysis/Data/Doc/readme">Филогенетический анализ</a> 
+        </li>
+        <li>
+            <a class="ui_toggling_href" target="_parent" href="/bioumlweb/#de=data/Collaboration/Genome assembly and annotation/Data/Doc/readme">Сборка и аннотирование геномов</a> 
+        </li>
+        <li>
+            <a class="ui_toggling_href" target="_parent" href="/bioumlweb/#de=data/Collaboration/Genome Variations/Data/Doc/readme">Поиск и анализ вариаций геномов</a> 
+        </li>
+        
+</ul>
+</div>
+</div>
+</body>
+</html>

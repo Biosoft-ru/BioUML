@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.1 2011/05/05 11:40:28 ivan Exp $
+-->
+
+<project name="ru.biosoft.bsa test package" default="autotest" basedir="../../../..">
+
+  <!-- Run batch of auto test for mgl3.core package. -->
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="ru.biosoft.access._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <!--
+     Delete all *.class files.
+  -->
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

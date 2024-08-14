@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="OboImporter" point="biouml.workbench.menuItem"> 
+     <menuItem 
+        title="Import OBO"
+        parent="Database"
+        action="biouml.plugins.obo.imports.ImportOboAction"
+     /> 
+  </extension> 
+
+</plugin>

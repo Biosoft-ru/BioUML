@@ -1,0 +1,12 @@
+name: wf3
+expressions:
+  model1: {type: Data element, expression: data/model}
+  model2: {type: Data element}
+tasks:
+  Change diagram:
+    in: {Diagram: $model1$}
+    out: {Output diagram: $model2$}
+    param:
+      Changes:
+      - {Property: role/vars/J0_v0/initialValue, Value: '8'}
+

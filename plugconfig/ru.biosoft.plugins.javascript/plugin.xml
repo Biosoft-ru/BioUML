@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension-point name="function" id="function"/>
+  <extension-point name="function" id="hostObject"/>
+  <extension-point name="JavaScript preprocessor" id="preprocessor"/>
+
+  <extension id="shell" point="org.eclipse.core.runtime.applications"> 
+    <application> 
+       <run class="ru.biosoft.plugins.javascript.JScriptRunner"/> 
+    </application> 
+  </extension> 
+
+  <extension 
+       point="ru.biosoft.plugins.visiblePlugin"> 
+      <visiblePlugin 
+         name="JavaScript"
+         class="ru.biosoft.plugins.javascript.JScriptVisiblePlugin" 
+         displayName="%pluginName">
+      </visiblePlugin>
+   </extension> 
+
+  <extension id="Context" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="ru.biosoft.plugins.javascript.document.ContextViewPart" 
+        id="js.context"
+        Name="Context/Watch"
+        ShortDescription="JavaScript context"
+        Priority = "4.0"
+      /> 
+  </extension>
+  
+  <!-- =================================================================== -->
+  <!-- JavaScript functions                                                -->
+  <!-- =================================================================== -->
+
+  <extension id="defineClass" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="defineClass" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="defineClass" 
+      varargs="true"> 
+        <doc description="%defineClass.descr">
+           <argument name="clazz" type="String" obligatory="true" description="%defineClass.arg_1"/>
+           <returns type="void"/>    
+           <throws type="IllegalAccessException"
+             description="if access is not available to a reflected class member"/>
+           <throws type="InstantiationException" 
+             description="if unable to instantiate the named class"/>
+           <throws type="InvocationTargetException"
+             description="if an exception is thrown during execution of methods of the named class"/>
+           <throws type="ClassDefinitionException"
+             description="if the format of the class causes this exception in ScriptableObject.defineClass"/>
+           <throws type="PropertyException"
+             description="if the format of the class causes this exception in ScriptableObject.defineClass"/>
+        </doc>
+    </function>
+  </extension>
+
+  <extension id="help" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="help" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="help" 
+      varargs="true"> 
+        <doc description="%help.descr">
+           <argument name="obj" type="Object" obligatory="true" description="%help.arg_1"/>
+           <example code="%help.ex_1c" description="%help.ex_1d"/>
+           <example code="%help.ex_2c" description="%help.ex_2d"/>
+           <example code="%help.ex_3c" description="%help.ex_3d"/>
+           <example code="%help.ex_4c" description="%help.ex_4d"/>
+        </doc>
+    </function>
+  </extension>
+
+  <extension id="printToFile" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="printToFile" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="printToFile" 
+      varargs="true"> 
+        <doc description="Print string to file">
+           <argument name="message" type="CharSequence" obligatory="true" description="message"/>
+           <argument name="file" type="CharSequence" obligatory="true" description="file path"/>
+        </doc>
+    </function>
+  </extension>
+  
+  <extension id="concat" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="concat" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="concat" 
+      varargs="true"> 
+        <doc description="Concatenates character sequences and returns the concatenated sequence">
+           <argument name="seq1" type="CharSequence" obligatory="false" description="sequence1"/>
+           <argument name="..." type="CharSequence" obligatory="false" description="sequenceN"/>
+        </doc>
+    </function>
+  </extension>
+
+  <extension id="load" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="load" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="load" 
+      varargs="true"> 
+        <doc description="%load.descr">
+           <argument name="fileName*" type="String" obligatory="true" description="%load.arg_1"/>
+           <returns type="void"/>    
+           <example code="%load.ex_1c" description="%load.ex_1d"/>
+        </doc>
+    </function>
+  </extension>
+
+  <extension id="quit" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="quit" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="quit" 
+      varargs="false"> 
+      <doc description="%quit.descr"/>
+    </function>
+  </extension>
+
+  <extension id="print" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="print" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="print" 
+      varargs="true"> 
+        <doc description="%print.descr">
+           <argument name="expr..." type="Object" obligatory="truee" description="%print.arg_1"/>
+           <example code="%print.ex_1c" description="%print.ex_1d"/>
+        </doc>
+    </function>
+  </extension>
+
+  <extension id="version" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="version" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="version" 
+      varargs="true"> 
+        <doc description="%version.descr">
+           <argument name="version" type="String" obligatory="false" description="%version.arg_1"/>
+        </doc>
+    </function>
+  </extension>
+  
+  <extension id="plot" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="plot" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="plot" 
+      varargs="true"> 
+        <doc description="%plot.descr">
+           <signature>
+              <argument name="x" type="Double[]" obligatory="true" description="%plot.arg_4"/>
+              <argument name="y..." type="Double[]" obligatory="true" description="%plot.arg_5"/>
+           </signature>
+           <signature>
+              <argument name="table" type="TableDataCollection" obligatory="true" description="%plot.arg_1"/>
+              <argument name="x" type="String" obligatory="true" description="%plot.arg_2"/>
+              <argument name="y..." type="String" obligatory="true" description="%plot.arg_3"/>
+           </signature>
+           <signature>
+              <argument name="xTitle" type="String" obligatory="true" description="%plot.arg_6"/>
+              <argument name="xTitle" type="String" obligatory="true" description="%plot.arg_7"/>
+              <argument name="x" type="Double[]" obligatory="true" description="%plot.arg_8"/>
+              <argument name="y..." type="Object" obligatory="true" description="%plot.arg_9"/>
+           </signature>
+           <example code="%plot.ex_2c" description="%plot.ex_2d"/>
+           <example code="%plot.ex_1c" description="%plot.ex_1d"/>
+           <example code="%plot.ex_3c" description="%plot.ex_3d"/>
+        </doc>
+    </function>
+  </extension>
+  
+    <extension id="createPlot" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="createPlot" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="createPlot" 
+      varargs="true"> 
+        <doc description="%createPlot.descr">
+           <signature>
+              <argument name="x" type="Double[]" obligatory="true" description="%plot.arg_4"/>
+              <argument name="y..." type="Double[]" obligatory="true" description="%plot.arg_5"/>
+           </signature>
+           <signature>
+              <argument name="table" type="TableDataCollection" obligatory="true" description="%plot.arg_1"/>
+              <argument name="x" type="String" obligatory="true" description="%plot.arg_2"/>
+              <argument name="y..." type="String" obligatory="true" description="%plot.arg_3"/>
+           </signature>
+           <signature>
+              <argument name="xTitle" type="String" obligatory="true" description="%plot.arg_6"/>
+              <argument name="xTitle" type="String" obligatory="true" description="%plot.arg_7"/>
+              <argument name="x" type="Double[]" obligatory="true" description="%plot.arg_8"/>
+              <argument name="y..." type="Object" obligatory="true" description="%plot.arg_9"/>
+           </signature>
+           <example code="%createPlot.ex_2c" description="%plot.ex_2d"/>
+           <example code="%createPlot.ex_1c" description="%plot.ex_1d"/>
+           <example code="%createPlot.ex_3c" description="%plot.ex_3d"/>
+        </doc>
+    </function>
+  </extension>
+  
+  <extension id="boxPlot" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="boxPlot" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="boxPlot" 
+      varargs="true"> 
+        <doc description="%boxAndWhisker.descr">
+           <signature>
+              <argument name="columns" type="String[]" obligatory="true" description="%boxAndWhisker.arg_1"/>
+              <argument name="values1" type="Double[]" obligatory="true" description="%boxAndWhisker.arg_2"/>
+              <argument name="values2..." type="Double[]" obligatory="true" description="%boxAndWhisker.arg_2"/>
+           </signature>
+           <signature>
+              <argument name="table" type="TableDataCollection" obligatory="true" description="%boxAndWhisker.arg_3"/>
+              <argument name="columnName1" type="String" obligatory="true" description="%boxAndWhisker.arg_4"/>
+              <argument name="columnName2..." type="String" obligatory="true" description="%boxAndWhisker.arg_4"/>
+           </signature>
+           <example code="%boxAndWhisker.ex_1c" description="%boxAndWhisker.ex_1d"/>
+           <example code="%boxAndWhisker.ex_2c" description="%boxAndWhisker.ex_2d"/>
+        </doc>
+    </function>
+  </extension>
+    
+  <extension id="view" point="ru.biosoft.plugins.javascript.function"> 
+    <function
+      name="view" 
+      class="ru.biosoft.plugins.javascript.Global" 
+      method="view" 
+      varargs="true"> 
+        <doc description="%view.descr">
+           <argument name="table" type="TableDataCollection" obligatory="true" description="%view.arg_1"/>
+        </doc>
+    </function>
+  </extension>
+
+  <extension id="JavaScript document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="ru.biosoft.plugins.javascript.document.JSDocument"
+        key="ru.biosoft.plugins.javascript.JSElement"
+      /> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="JavaScript file" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="ru.biosoft.plugins.javascript.JSElement" transformerClass="ru.biosoft.plugins.javascript.JSTransformer"/> 
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="New JS script" class="ru.biosoft.plugins.javascript.AddJSAction" priority="10">
+        <property name="Name" value="New JS script"/>
+        <property name="ShortDescription" value="Create a new JavaScript document"/>
+        <property name="LongDescription" value="Create a new JavaScript document"/>
+        <property name="MnemonicKey" value="VK_S"/>
+        <property name="SmallIcon" value="script.gif"/>
+        <property name="ActionCommandKey" value="cmd-new-script"/>
+     </action>
+  </extension>
+
+  <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
+  	<class class="ru.biosoft.plugins.javascript.JSElement"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.scriptType">
+  	<scriptType type="js" title="JavaScript" class="ru.biosoft.plugins.javascript.JSElement" lexer="com.Ostermiller.Syntax.Lexer.JavaScriptLexer"/>
+  </extension>
+
+  <!--extension id="report" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="report" class="ru.biosoft.plugins.javascript.report.JavaScriptReport" >
+        <doc description="Reports creation API">
+        <function name="create" description="Creates new report object and returns it. Further interaction should be performed with that object.">
+        	<argument name="title" description="Title of the report"/>
+            <returns type="Report" description="Returned report object" /> 
+        </function>
+        </doc>
+    </hostObject>
+  </extension-->
+   <extension id="dataFilter" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="dataFilter" class="ru.biosoft.plugins.javascript.host.JavaScriptFilter" >
+        <doc description="Facade for data-filtering">
+			<function name="byValue" description="returns error from last stament or null if there is no such">    														
+				<argument name="source" type="Object" obligatory="true" description="data-source, can be String (path to DC) or DataCollection"/>			
+				<argument name="property" type="String" obligatory="true" description="DataElement name value"/>
+				<argument name="values" type="String" obligatory="true" description="column value"/>
+	            <returns type="ru.biosoft.access.FilteredDataCollection" description="null on failure"/>
+			</function>
+			<function name="byExpression" description="filters by given javascript expression">
+				<argument name="source" type="Object" obligatory="true" description="data-source, can be String (path to DC) or DataCollection"/>
+				<argument name="expression" type="String" obligatory="true" description="data-source, can be String (path to DC) or DataCollection"/>
+				<returns type="ru.biosoft.access.FilteredDataCollection" description="null on failure"/>
+			</function>
+			<function name="bySet" description="filters by given data collection, used as permitable set of values">
+				<argument name="source" type="Object" obligatory="true" description="data-source, can be String (path to DC) or DataCollection"/>
+				<argument name="filterSource" type="Object" obligatory="true" description="filter data-source, can be String (path to DC) or DataCollection"/>
+				<returns type="ru.biosoft.access.FilteredDataCollection" description="null on failure"/>
+			</function>
+		</doc>
+      </hostObject>
+  </extension>
+  
+  <extension id="data" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="data" class="ru.biosoft.plugins.javascript.host.JavaScriptData" >
+        <doc description="Facade for data-manipulations">
+		
+		<function name="getLastError" description="returns error from last stament or null if there is no such">    														
+            <returns type="String" description="last error message"/>              
+        </function>
+		
+		<function name="contains" description="whether DataElement exists at path specified">    								
+			<argument name="path" type="String" obligatory="true" description="path to check"/>			
+            <returns type="Boolean" description="true if exists"/>              
+        </function>
+		
+		<function name="contains2" description="whether DataElement exists at relative path specified.">    		
+			<argument name="path" type="String" obligatory="true" description="root for relative path"/>			
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="ancestor"/>			
+            <returns type="Boolean" description="true if exists"/>              
+        </function>
+		
+		<function name="put" description="puts DataElement in to the DataCollection">    		
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="DataCollection to modify"/>			
+			<argument name="path" type="String" obligatory="true" description="if non-empty, then used as relative path from DataCollection"/>			
+			<argument name="de" type="java.lang.Object" obligatory="true" description="element to put"/>
+            <returns type="Boolean" description="true on success"/>              
+        </function>
+		
+		<function name="remove" description="removes DataElement from DataCollection">    		
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="DataCollection to modify"/>
+			<argument name="path" type="String" obligatory="true" description="path for DataElement to remove"/>			
+            <returns type="Boolean" description="put return descr"/>              
+        </function>
+		
+		<function name="get" description="returns DataElement">    					
+			<argument name="path" type="String" obligatory="true" description="path for DataElement"/>			
+			<argument name="className" type="String" obligatory="false" description="fully qualified class name"/>			
+            <returns type="ru.biosoft.access.core.DataElement" description="DataElement. If class name is specified then element must exist and be an instance of the given class (otherwise an exception will be thrown). If class name is not specified, method returns null in case of any error."/>              
+        </function>
+		
+		<function name="createFile" description="creates FileDataElement in given FileCollection and returns it">
+			<argument name="parent" type="FileCollection" obligatory="true" description="Parent FileCollection to create FileDataElement in"/>
+			<argument name="name" type="String" obligatory="true" description="Name of the file to create"/>
+            <returns type="ru.biosoft.access.FileDataElement" description="null on failure"/>
+        </function>
+		
+	<function name="importFileDataElement" description="imports FileDataElement in given DataCollection using specified importer">
+		<argument name="parent" type="DataCollection" obligatory="true" description="Parent DataCollection to import to"/>
+		<argument name="de" type="FileDataElement" obligatory="true" description="FileDataElement to import"/>
+		<argument name="name" type="String" obligatory="true" description="Desired target element name. Not that it may be changed to avoid dublicates."/>
+		<argument name="format" type="String" obligatory="false" description="File format description string. If omitted, file format will be autodetected."/>
+            <returns type="DataElement" description="On success: created DataElement; null otherwise"/>
+        </function>
+
+        <function name="importFile" description="imports file in given DataCollection">
+			<argument name="filePath" type="String" obligatory="true" description="the target file path."/>
+			<argument name="parent" type="DataCollection|DataElementPath|String" obligatory="true" description="parent DataCollection to import to"/>
+			<argument name="format" type="String" obligatory="true" description="File format (Generic file, ...)"/>
+			<argument name="params" type="{}" obligatory="false" description="{format:'Generic file', name:'result.txt', options:{}}"/>
+			<returns type="DataElement" description="On success: created DataElement; null otherwise"/>
+        </function>
+
+        <function name="export" description="exports DataElement into file">
+			<argument name="dataElement" type="DataElement|DataElementPath|String" obligatory="true" description="DataElement to export"/>
+			<argument name="filePath" type="String" obligatory="true" description="the target file path."/>
+			<argument name="format" type="String" obligatory="true" description="File format (Generic file, ...)"/>
+			<argument name="params" type="{}" obligatory="false" description="other params specific to selected format"/>
+        </function>
+
+        <function name="attach" description="attach folder from remote server into local repository">
+			<argument name="path" type="String" obligatory="true" description="path in repository"/>
+			<argument name="remoteURL" type="String" obligatory="true" description="Remote server URL (https://ict.biouml.org/biouml)"/>
+			<argument name="params" type="{}" obligatory="false" description="{user:'user', password:'password'} or {sessionId:''}"/>
+        </function>
+		
+		<function name="get2" description="gets DataElement">    		
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="ancestor"/>			
+			<argument name="path" type="String" obligatory="true" description="relative path for DataElement"/>			
+            <returns type="ru.biosoft.access.DataCollection" description="null on failure"/>              
+        </function>
+		
+		<function name="value" description="gets value from given data-source">    		
+			<argument name="source" type="Object" obligatory="true" description="data-source, can be String (path to DC) or DataCollection"/>			
+			<argument name="element" type="String" obligatory="true" description="DataElement name value"/>
+			<argument name="column" type="String" obligatory="true" description="column value"/>
+            <returns type="Object" description="value return descr"/>              
+        </function>
+		
+		<function name="recalc" description="calculates values using java-script exprs and puts them to target DC">    		
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="DC from modify"/>						
+			<argument name="column" type="String" obligatory="true" description="column to affect"/>
+			<argument name="expression" type="String" obligatory="true" description="expression, may include column names, they will be evaluated to column values at row being calculated."/>            
+        </function>
+		
+		<function name="join" description="peforms join in SQL sense">    		
+			<argument name="type" type="String" obligatory="true" description="type of join. Can be 'inner', 'left, 'right' and 'outer'"/>
+			<argument name="leftSource" type="Object" obligatory="true" description="left DC data-source, can be String (path to DC) or DataCollection"/>
+			<argument name="rightSource" type="Object" obligatory="true" description="right DC data-source, can be String (path to DC) or DataCollection"/>						
+			<argument name="leftColumns" type="String" obligatory="true" description="comma separated column names in left DC. If empty, all columns are used."/>
+			<argument name="rightColumns" type="String" obligatory="true" description="comma separated column names in right DC. If empty, all columns are used."/>
+			<argument name="resultName" type="String" obligatory="true" description="Name of the resultant TableDataCollection"/>
+            <returns type="ru.biosoft.access.TableDataCollection" description="null on failure"/>              
+        </function>
+		
+		<function name="save" description="saves DC on given path">    		
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="DC to save"/>			
+			<argument name="path" type="String" obligatory="true" description="path where to save"/>			
+            <returns type="Boolean" description="true on success"/>                 
+        </function>
+		
+		<function name="columnNames" description="list of fields in given dc">    		
+			<argument name="dc" type="ru.biosoft.access.DataCollection" obligatory="true" description="DC to save"/>								
+            <returns type="Scriptable" description="javascript array"/>                 
+        </function>
+		
+        </doc>
+      </hostObject>
+  </extension>  
+  <extension id="biohub" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="biohub" class="ru.biosoft.plugins.javascript.host.JavaScriptBioHub" >
+        <doc description="BioHub-manipulation methods">
+        <function name="getTypes" description="Returns list of registered reference types. Only these types can be passed to other functions which request type.">
+            <returns type="String[]" description="Array of strings containing reference type names." /> 
+        </function>
+
+        <function name="detectType" description="Tries to guess which reference type supplied accession number belongs.">
+        	<argument name="accession"/>
+            <returns type="String" description="Name of reference type which most likely corresponds to supplied accession number." /> 
+        </function>
+
+        <function name="getReachableTypes" description="Returns list of reference types reachable from supplied type (i.e. types which accession of supplied type can be converted into).">
+        	<argument name="inputType"/>
+        	<argument name="species"/>
+            <returns type="String[]" description="Array of strings containing reachable reference type names." /> 
+        </function>
+
+        <function name="getMatchingPlan" description="Returns list matching steps describing plan of matching from given inputType to given outputType.">
+        	<argument name="inputType"/>
+        	<argument name="outputType"/>
+        	<argument name="species"/>
+            <returns type="String[][]" description="Array of string arrays. Each element has 4 strings describing matching step: [reference type name, used BioHub, number of step, integral matching quality]. First element has only one String: inputType. Returns null if matching between supplied types cannot be performed." /> 
+        </function>
+
+        <function name="match" description="Matches supplied input accession numbers to requested reference type.">
+        	<argument name="accession"/>
+        	<argument name="inputType" obligatory="false"/>
+        	<argument name="outputType"/>
+        	<argument name="species"/>
+            <returns type="String[]" description="Array of strings containing accessions of target type. Empty array if matching procedure returned no result. Null if matching between given types is impossible or some error occurred." /> 
+        </function>
+
+        <function name="matchDebug" description="Matches supplied input accession numbers to requested reference type in verbose manner, displaying all intermediate steps.">
+        	<argument name="accession"/>
+        	<argument name="inputType" obligatory="false"/>
+        	<argument name="outputType"/>
+        	<argument name="species"/>
+            <returns type="String" description="Human-readable String containing comprehensive information about all matching steps." />
+            <example code="%help.matchDebugExample"/> 
+        </function>
+        </doc>
+    </hostObject>
+  </extension>
+    
+  <extension id="html" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="html" class="ru.biosoft.plugins.javascript.host.JavaScriptHTML" >
+        <doc description="HTML general API">
+        <function name="createTable" description="Creates new html table.">
+            <returns type="ru.biosoft.plugins.javascript.host.JavaScriptHTML.HTMLTable" description="Returned html object" /> 
+        </function>
+        </doc>
+    </hostObject>
+  </extension>
+</plugin>

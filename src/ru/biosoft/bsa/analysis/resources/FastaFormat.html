@@ -1,0 +1,60 @@
+<h2>FASTA format</h2>
+
+<p>
+  A sequence in FASTA format begins with a single-line description, followed by lines of sequence data,
+  which usually do not exceed 80 characters. The header line begins with ">" (greater-than) symbol and gives
+  a name and comments for the sequence. Sequences are expected to be represented in the
+  standard IUB/IUPAC amino acid and nucleic acid codes, with these exceptions: lower-case letters are
+  accepted and are mapped into upper-case; a single hyphen or dash can be used to represent a gap of
+  indeterminate length; and in amino acid sequences, U and * are acceptable letters.
+  Numerical digits are not allowed.
+</p>
+
+<h3>The supported nucleic acid codes</h3>
+
+<pre>
+A &rarr; adenosine             M &rarr; A C (amino)
+C &rarr; cytidine              S &rarr; G C (strong)
+G &rarr; guanine               W &rarr; A T (weak)
+T &rarr; thymidine             B &rarr; G T C
+U &rarr; uridine               D &rarr; G A T
+R &rarr; G A (purine)          H &rarr; A C T
+Y &rarr; T C (pyrimidine)      V &rarr; G C A
+K &rarr; G T (keto)            N &rarr; A G C T (any)
+- &rarr; gap of indeterminate length
+</pre>
+
+<h3>The supported codes (24 amino acids and 3 special codes)</h3>
+
+<pre>
+A  alanine                     P  proline
+B  aspartate or asparagine     Q  glutamine
+C  cystine                     R  arginine
+D  aspartate                   S  serine
+E  glutamate                   T  threonine
+F  phenylalanine               U  selenocysteine
+G  glycine                     V  valine
+H  histidine                   W  tryptophan
+I  isoleucine                  Y  tyrosine
+K  lysine                      Z  glutamate or glutamine
+L  leucine                     X  any
+M  methionine                  *  translation stop
+N  asparagine                  -  gap of indeterminate length
+</pre>
+
+<h3>Example</h3>
+
+<pre>
+>gi|5524211|gb|AAD44166.1| cytochrome b
+LCLYTHIGRNIYYGSYLYSETWNTGIMLLLITMATAFMGYVLPWGQMSFWGATVITNLFSAIPYIGTNLV
+EWIWGGFSVDKATLNRFFAFHFILPFTMVALAGVHLTFLHETGSNNPLGLTSDSDKIPFHPYYTIKDFLG
+LLILILLLLLLALLSPDMLGDPDNHMPADPLNTPLHIKPEWYFLFAYAILRSVPNKLGGVLALFLSIVIL
+GLMPFLHTSKHRSMMLRPLSQALFWTLTMDLLTLTWIGSQPVEYPYTIIGQMASILYFSIILAFLPIAGX
+IENY
+</pre>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://en.wikipedia.org/wiki/FASTA_format">http://en.wikipedia.org/wiki/FASTA_format</a>
+</ol>

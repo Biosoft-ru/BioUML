@@ -1,0 +1,24 @@
+/*
+ * Project properties action
+ */
+{
+    id: "projects_size",
+    label: "Occupied disk space",
+    icon: "icons/projectsSize.png",
+    visible: "function()
+    {
+        if(appInfo.disableToolbarActionProjectProperties === true)
+          return -1;
+        return true; 
+    }",
+    action: "function()
+    {
+    	 loadBioUMLModules(['accountManager'], function()
+        {
+        }, function()
+        {
+            getProjectsSize();
+        });
+    	
+    }"
+}

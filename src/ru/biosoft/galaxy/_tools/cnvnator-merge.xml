@@ -1,0 +1,57 @@
+<tool id="cnvnator_merge" name="Merging ROOT Files from CNVnator" version="0.2.5">
+    <requirements>
+        <requirement type='package'>cnvnator</requirement>
+    </requirements>
+    <description></description>
+    <parallelism method="basic"></parallelism>
+
+  <command>
+    cnvnator     
+    -root "$outputROOT"
+    #if str( $restChrom.condValue1 ) == "Select"
+       -chrom $restChrom.chrom
+    #end if
+    -merge "$inputROOTFiles"  
+    2> "$log"
+  </command>
+
+    <inputs>
+        <param name="inputROOTFiles" type="data-multi"
+                    format="data" label="Input Root files."
+                    help="list of input ROOT files" />
+
+        
+        <conditional name="restChrom">
+            <param name="condValue" type="select" label="Run for chromosomes">
+                <option value="All">All</option>
+                <option value="Select">Select</option>                
+                <when value="All"/>                
+                <when value="Select">
+                    <param name="chrom" type="text" label="Chromosomes to analyse"
+                            default=""  help="Run only for specified chromosomes. (chr1 chr2 chr3) or (1 2 3)"/>
+                </when>
+            </param>
+        </conditional>
+        
+    </inputs>
+
+    <outputs>
+        <data format="data" name="outputROOT"
+            label="Output Root file">
+        </data>
+        <data format="txt" name="log" label="Log file"/>
+    </outputs>
+
+    <tests>
+    </tests>
+
+    <help>
+Merging can be used when combining read mappings extracted from multiple files.
+Note, histogram generation, statistics calculation, signal partitioning and
+CNV calling should be completed/redone after merging.
+
+Please send your comments and suggestions regarding CNVnator to alexej.abyzov@yale.edu.
+and CNVnator integration issues/suggestions to support@biodatomics.com
+    </help>
+</tool>
+

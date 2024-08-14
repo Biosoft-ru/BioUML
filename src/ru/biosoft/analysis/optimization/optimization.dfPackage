@@ -1,0 +1,162 @@
+package id1p1kgfmu5fxm1fmu649qe;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:design#Class#id3a24ufn5ia34mfn5icpdu.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis.optimisation._test:oiref> 
+*/
+class reference27 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.GlbSolveOptMethod:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.MessageBundle:oiref><oihard>
+@__modelType reference 
+*/
+class reference25 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.GlbSolveOptMethodBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference26 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationProblem:oiref><oihard>
+@__modelType reference 
+*/
+class reference28 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.SRESOptMethod:oiref><oihard>
+@__modelType reference 
+*/
+class reference29 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.ASAOptMethod:oiref><oihard>
+@__modelType reference 
+*/
+class reference30 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference31 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.GoldfeldOptMethod:oiref><oihard>
+@__modelType reference 
+*/
+class reference32 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.SRESOptMethodBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference33 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference34 {
+}/**
+@__ref <oiref:design#Class#id2b4w6fol0kkpgfol0n6de.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis.optimization.editors:oiref> 
+*/
+class reference35 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.GoldfeldOptMethodBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference36 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationMethod:oiref><oihard>
+@__modelType reference 
+*/
+class reference37 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.ParameterBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference38 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.Parameter:oiref><oihard>
+@__modelType reference 
+*/
+class reference39 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.optimization.ASAOptMethodBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference40 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.GlbSolveOptMethod:oiref>=250,429,219,508,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.OptMethodOperations#optMethodParams:oiref>=843,385,843,325:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimization.GoldfeldOptMethod#ru.biosoft.analysis.optimization.OptimizationMethod:oiref>=74,429,305,121:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.SRESOptMethod#problem:oiref>=944,569,614,138:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimization.ParameterBeanInfo#ru.biosoft.analysis.optimization.OptimizationParametersBeanInfo:oiref>=589,233,249,317:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationMethod:oiref>=284,13,170,108,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimisation.ASAOptMethod#ru.biosoft.analysis.optimisation.OptimizationMethods:oiref>=340,468,340,308:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.ParameterBeanInfo:oiref>=523,152,133,81,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.Parameter:oiref>=366,155,147,157,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.SRESOptMethod:oiref>=780,569,219,546,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.GblSolveOptMethod#problem:oiref>=963,470,786,289:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.GoldfeldOptMethod#problem:oiref>=129,429,508,138:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimization.SRESOptMethod#ru.biosoft.analysis.optimization.OptimizationMethod:oiref>=889,569,439,121:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.ASAOptMethod#problem:oiref>=582,339,582,138:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimisation.SRESOptMethod#ru.biosoft.analysis.optimisation.OptimizationMethods:oiref>=664,466,370,308:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.ASAOptMethodBeanInfo:oiref>=1,220,156,80,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimisation.GoldfeldOptMethod#ru.biosoft.analysis.optimisation.OptimizationMethods:oiref>=206,468,206,308:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.MessageBundle:oiref>=669,198,180,127,1:oigroup>
+<oigroup:<oiref:design#Class#id3a24ufn5ia34mfn5icpdu.diagram:oiref>=66,95,203,110,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationParametersBeanInfo:oiref>=148,317,203,99,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.OptimizationMethods#parameters:oiref>=316,166,523,108:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationParameters:oiref>=670,9,199,172,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.OptimizationMethod#parameters:oiref>=410,121,410,155:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.GoldfeldOptMethod#params:oiref>=184,429,399,312:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.GlbSolveOptMethodBeanInfo:oiref>=788,337,183,80,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.ASAOptMethod#problem:oiref>=422,468,717,289:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.OptimizationMethod#parameters:oiref>=388,134,18,17,0:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimization.GlbSolveOptMethod#ru.biosoft.analysis.optimization.OptimizationMethod:oiref>=326,429,326,121:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.SRESOptMethod#problem:oiref>=749,466,749,289:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.SRESOptMethod#params:oiref>=834,569,473,312:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.GlbSolveOptMethod#params:oiref>=433,429,433,312:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.ASAOptMethod#params:oiref>=394,558,545,681:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimisation.GblSolveOptMethod#ru.biosoft.analysis.optimisation.OptimizationMethods:oiref>=890,470,411,308:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.OptimizationMethodParameter#optimizationProblem:oiref>=596,108,745,162:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.GoldfeldOptMethod#params:oiref>=339,312,18,17,0:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.GlbSolveOptMethod#problem:oiref>=451,429,545,138:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.SRESOptMethodBeanInfo:oiref>=106,5,167,80,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.ASAOptMethod:oiref>=550,339,219,489,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.ASAOptMethod#params:oiref>=550,382,513,283:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.SRESOptMethod#params:oiref>=689,575,579,681:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.ASAOptMethod#params:oiref>=517,262,18,17,0:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.GlbSolveOptMethod#params:oiref>=411,312,18,17,0:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimisation.OptMethodParams#ru.biosoft.analysis.optimisation.AnalysisMethodParams:oiref>=846,197,846,112:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.GoldfeldOptMethod#params:oiref>=148,558,511,681:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.optimization.ASAOptMethod#ru.biosoft.analysis.optimization.OptimizationMethod:oiref>=566,339,424,121:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.OptimizationProblem:oiref>=472,1,174,137,1:oigroup>
+<oigroup:<oiref:design#Class#id2b4w6fol0kkpgfol0n6de.diagram:oiref>=363,322,112,91,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.OptimizationParameters#fittingParameters:oiref>=517,158,18,17,0:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.GoldfeldOptMethod:oiref>=20,429,219,489,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.OptimizationParameters#fittingParameters:oiref>=670,171,513,180:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.GoldfeldOptMethod#problem:oiref>=232,468,687,289:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.optimization.GoldfeldOptMethodBeanInfo:oiref>=169,218,180,80,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimization.SRESOptMethod#params:oiref>=451,312,18,17,0:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.optimisation.GblSolveOptMethod#params:oiref>=926,560,613,681:oigroup>
+*/
+class __positions {
+}

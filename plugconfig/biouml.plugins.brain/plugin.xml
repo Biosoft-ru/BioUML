@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="SolverType" point="biouml.plugins.simulation.solver"> 
+     <solver class="biouml.plugins.brain.sde.EulerStochastic" 
+	displayName="Euler stochastic"
+	type="JAVA_SDE" 
+      /> 
+  </extension>
+
+  <extension id="SolverType" point="biouml.plugins.simulation.solver"> 
+     <solver class="biouml.plugins.brain.sde.HeunStochastic" 
+	displayName="Heun stochastic"
+	type="JAVA_SDE" 
+      /> 
+  </extension>  
+
+  <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.brain.sde.JavaSdeSimulationEngine" 
+	  displayName="SDE Simulation Engine"
+          emodelType="Brain EModel,ODE EModel" 
+	  priority="1,0.3"
+       />
+  </extension>   
+
+  <extension point="biouml.workbench.diagramType">
+     <diagramType class="biouml.plugins.brain.diagram.BrainDiagramType"/>
+  </extension>
+
+  <extension id="GenerateBrainEquations" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="Generate brain equations" class="biouml.plugins.brain.diagram.BrainGenerateEquationsAction">
+        <parameter name="numSelected" value="1"/>
+        <property name="Name" value="Generate brain equations"/>
+        <property name="ShortDescription" value="Generate brain equations"/>
+        <property name="LongDescription" value="Generate brain equations."/>
+        <property name="SmallIcon" value="resources/generatebrainequations.gif" /> 
+        <property name="ActionCommandKey" value="cmd-generate-brain-equations"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="GenerateBrainCompositeDiagram" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="Generate brain composite diagram" class="biouml.plugins.brain.diagram.BrainGenerateCompositeDiagramAction">
+        <parameter name="numSelected" value="1"/>
+        <property name="Name" value="Generate brain composite diagram"/>
+        <property name="ShortDescription" value="Generate brain composite diagram"/>
+        <property name="LongDescription" value="Generate brain composite diagram."/>
+        <property name="SmallIcon" value="resources/generatebraincompositediagram.gif" /> 
+        <property name="ActionCommandKey" value="cmd-generate-brain-composite-diagram"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="GenerateBrainMultilevelModel" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="Generate brain multilevel model" class="biouml.plugins.brain.diagram.BrainGenerateMultilevelModelAction">
+        <parameter name="numSelected" value="1"/>
+        <property name="Name" value="Generate brain multilevel model"/>
+        <property name="ShortDescription" value="Generate brain multilevel model"/>
+        <property name="LongDescription" value="Generate brain multilevel model."/>
+        <property name="SmallIcon" value="resources/generatebrainmultilevelmodel.gif" /> 
+        <property name="ActionCommandKey" value="cmd-generate-brain-multilevel-model"/>
+     </dynamicAction>
+  </extension>
+ 
+</plugin>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.plugins.visiblePlugin">
+  <visiblePlugin name="Methods" class="ru.biosoft.analysiscore.AnalysisMethodRegistry" displayName="methods" description="" /> 
+  </extension>
+
+  <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
+  	<class class="ru.biosoft.analysiscore.AnalysisMethodInfo"/>
+  </extension>
+  
+  <extension id="propertieswriter" point="ru.biosoft.templates.contextItem">
+        <helper name="propertieswriter" class="ru.biosoft.analysiscore.AnalysesPropertiesWriter" />
+  </extension>
+  
+  <extension point="ru.biosoft.access.beans">
+        <provider class="ru.biosoft.analysiscore.AnalysisParametersBeanProvider" prefix="properties/method/parameters"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.transformer">
+	<transformer name="Analysis method element" inputClass="ru.biosoft.access.FileDataElement" 
+      outputClass="ru.biosoft.analysiscore.AnalysisMethodElement" transformerClass="ru.biosoft.analysiscore.AnalysisMethodTransformer"/> 
+  </extension>
+
+  <extension point="ru.biosoft.workbench.documentFactory">
+      <documentFactory 
+        documentClass="ru.biosoft.analysis.document.AnalysisDocument"
+        key="ru.biosoft.analysiscore.AnalysisMethodElement"
+      />
+  </extension>
+
+  <extension-point name="method" id="method"/>
+  <extension-point name="group" id="group"/>
+
+  <extension id="analysis" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="analysis" class="ru.biosoft.analysiscore.javascript.JavaScriptAnalysisHost"/>
+  </extension>
+</plugin>

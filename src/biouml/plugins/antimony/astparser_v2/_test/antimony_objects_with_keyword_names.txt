@@ -1,0 +1,20 @@
+unit unit = 1 ampere;
+function model(species)
+   species^2;
+end
+global global as as;
+model model(as)
+   compartment compartment;
+   species species in compartment, subtype, has, is, identity;
+   gene gene;
+   const const;
+   var gene var;
+   species = 0;
+   gene '= const;
+   is is "IS"; 
+   import: at as<5 : as = as/7;
+   priority: has + identity -> is; 10;
+   var has;
+   math_constraint: assert has>100;
+   subtype subtype gene;  
+end

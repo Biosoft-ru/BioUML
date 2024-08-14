@@ -1,0 +1,177 @@
+<plugin>
+
+  <extension-point name="%solver"           id="solver"/>
+  <extension-point name="%engine"           id="engine"/>
+
+  <extension id="SolverType" point="biouml.plugins.simulation.solver"> 
+    <solver class="biouml.plugins.simulation.ode.EulerSimple" displayName="Euler" type="JAVA"/>
+    <solver class="biouml.plugins.simulation.ode.DiscreteSimulator" displayName="Discrete" type="JAVA"/>
+	<solver class="biouml.plugins.simulation.ode.DormandPrince" displayName="DormandPrince"	type="JAVA"/>
+	<solver class="biouml.plugins.simulation.ode.jvode.JVodeSolver" displayName="JVode"	type="JAVA"/>
+    <solver class="biouml.plugins.simulation.ode.radau5.Radau5" displayName="Radau5" type="JAVA"/>
+    <solver class="biouml.plugins.simulation.ode.ImexSD" displayName="Imex"	type="JAVA"/>
+  </extension> 
+
+    <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.simulation.java.JavaSimulationEngine" 
+	  displayName="ODE Simulation Engine" 
+	  emodelType="ODE EModel"
+	  priority="1"
+	  />
+    </extension> 
+
+  <extension id="repository actions" point="ru.biosoft.access.repositoryActionsProvider"> 
+      <repositoryActionsProvider class="biouml.plugins.simulation.RepositoryActionsProvider"/> 
+  </extension> 
+
+  <extension id="Simulation Pane" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.simulation.SimulationEnginePane" 
+        id="simulation.engine"
+        Name="Simulation"
+        ShortDescription="Control to use BioUML simulation engines"
+        Priority = "1.2"
+      /> 
+  </extension> 
+  
+  <extension id="plot factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="biouml.standard.simulation.plot.PlotFactory"
+        key="biouml.standard.simulation.plot.Plot"
+      /> 
+  </extension>
+  
+  <extension id="simulation factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="biouml.plugins.simulation.document.InteractiveSimulationFactory"
+        key="biouml.plugins.simulation.document.InteractiveSimulation"
+      /> 
+  </extension>
+  
+  <extension id="Parameters editor" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.simulation.document.ParametersEditorPart"
+        id="simulation.parameters" 
+        Name="Parameters"
+        ShortDescription="Parameters editor"
+        Priority = "1.4"
+      /> 
+  </extension>
+  
+    <extension id="Plot editor" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.simulation.document.PlotsEditorPart"
+        id="simulation.plot" 
+        Name="Plot"
+        ShortDescription="Plot editor"
+        Priority = "1.3"
+      /> 
+  </extension>
+  
+      <extension id="Simulation Otions editor" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.simulation.document.SimulationOptionsEditorPart"
+        id="simulation.options" 
+        Name="Simulation Options"
+        ShortDescription="Simulation options editor"
+        Priority = "2"
+      /> 
+  </extension>
+  
+  <extension id="SimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.simulation.SimulationAnalysis" group="Differential algebraic equations" name="Simulation analysis"  description="Simulate model."/> 
+  </extension>
+  
+  <extension id="ModelAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.simulation.ModelAnalysis" group="Differential algebraic equations" name="Model analysis"  description="Analyze model."/> 
+  </extension>
+  
+  <!-- Plot document extensions -->
+  <extension id="plot editor" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.simulation.plot.PlotEditorViewPart"
+        id="plot.editor" 
+        Name="Plot editor"
+        ShortDescription="Plot editor"
+        Priority = "1.3"
+      /> 
+  </extension>
+ <extension id="plot table" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.simulation.plot.PlotTableViewPart" 
+        id="plot.table" 
+        Name="Table"
+        ShortDescription="Table with plot values"
+        Priority = "1.4"
+      /> 
+  </extension> 
+  
+  <extension id="time course task" point="biouml.plugins.optimization.task"> 
+      <task 
+        type="Time course"
+        class="biouml.plugins.simulation.SimulationTask" 
+	    parametersClass="biouml.plugins.simulation.SimulationTaskParameters" 
+	    parametersPriority="0.5"
+      />
+  </extension> 
+  
+  <extension point="ru.biosoft.server.servlets.webProvider">
+    <provider prefix="simulation" class="biouml.plugins.simulation.web.SimulationProvider"/>
+  </extension>
+  
+  <extension point="ru.biosoft.server.servlets.webProvider">
+    <provider prefix="diagramplot" class="biouml.plugins.simulation.web.DiagramPlotProvider"/>
+  </extension>
+
+	<extension point="ru.biosoft.access.beans">
+		<provider class="biouml.plugins.simulation.web.SimulationEngineBeanProvider" prefix="diagram/model"/>
+		<provider class="biouml.plugins.simulation.web.PlotInfoBeanProvider" prefix="diagram/plot"/>
+	</extension>
+	
+	<extension point="ru.biosoft.access.beans">
+		<provider class="biouml.plugins.simulation.web.PlotPenProvider" prefix="plotseriespen"/>
+	</extension>
+	
+	<!--  Interactive Simulation document extensions -->
+  <extension point="ru.biosoft.server.servlets.webTableResolver">
+  		<tableResolver type="simulation_editor" class="biouml.plugins.simulation.web.SimulationEditorTableResolver"/>
+  </extension>
+    
+  <extension id="Model java code" point="ru.biosoft.templates.template">
+      <template name="Java code" file="biouml/plugins/simulation/resources/odeModelTemplate.vm" description="This template represents the Java code generated for simulation." isBrief="no" order="15">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Large model java code" point="ru.biosoft.templates.template">
+      <template name="Java code (Large)" file="biouml/plugins/simulation/resources/odeLargeModelTemplate.vm" description="This template represents the Large model Java code generated for simulation." isBrief="no" order="15">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Parallel model java code" point="ru.biosoft.templates.template">
+      <template name="Java code (Large Parallel)" file="biouml/plugins/simulation/resources/odeParallelLargeModelTemplate.vm" description="This template represents the Large model Java code generated for parallel simulation." isBrief="no" order="15">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+ 
+  <extension id="Delay model java code" point="ru.biosoft.templates.template">
+      <template name="Java code (Large Delay)" file="biouml/plugins/simulation/resources/odeDelayLargeModelTemplate.vm" description="This template represents the Delay Large model Java code generated for parallel simulation." isBrief="no" order="15">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  
+  <extension id="sew" point="ru.biosoft.templates.contextItem">
+    	<helper name="sew" class="biouml.plugins.simulation.java.SimulationEngineWrapper" />
+  </extension>
+  
+</plugin> 

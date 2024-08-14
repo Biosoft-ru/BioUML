@@ -1,0 +1,61 @@
+<html>
+	<head>
+		<script src="3Dmol-min.js"></script>
+		<script type="text/javascript">
+			var loc = window.location.toString();
+			var params = loc.split('?')[1].split('&');
+			var name = params[0];
+			var title = params[1];
+			var viewer;
+			$(function() {
+				let element = $('#mol-container');
+				let config = { backgroundColor: 'white'};
+				viewer = $3Dmol.createViewer( element, config );
+				
+				$('#mol-title').text(title);  
+				window.parent.queryBioUML("web/doc/getcontent", {"de":decodeURIComponent(name)}, function(data)
+				{
+					var dataTitle = getTitle(data.values);
+					if(dataTitle)
+						$('#mol-title').text(dataTitle);  
+					let v = viewer;
+					v.addModel( data.values, "pdb" );                       /* load data */
+					v.setStyle({}, {'stick':{}});  /* style all atoms */
+					v.zoomTo(); /* set camera */
+					v.render();                                      /* render scene */
+					v.zoom(1.1, 500);                               /* slight zoom */
+				});
+			});
+			
+			function changeMode()
+			{
+				var mode = $("#mol-view-type").val();
+				var style = {};
+				if(mode=="cartoon")
+					style[mode]={color:'spectrum'};
+				else
+					style[mode]={};
+				viewer.setStyle({}, style);
+				viewer.render();
+			}
+			
+			function getTitle(pdb_text)
+			{
+				var lines = pdb_text.split(/\r?\n/);
+				if(lines[1].startsWith("TITLE"))
+					return lines[1].substring(6).trim();
+				return undefined; 
+			}
+		</script>
+			     
+	</head>
+	<body>
+		<h4 id="mol-title"></h4>
+		<select id="mol-view-type" style="width:200px;" onchange="changeMode()">
+	        <option value="stick" selected>Stick</option>
+	        <option value="cartoon">Cartoon</option>
+	        <option value="sphere">Sphere</option>
+        </select>
+		<div style="height: 600px; width: 600px; position:relative;" id="mol-container" class="mol-container"></div>
+	</body>
+</html>

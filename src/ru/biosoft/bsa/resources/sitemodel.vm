@@ -1,0 +1,33 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $name <br>
+	#end
+#end
+
+#macro( displayMatrix $matr )
+	#set($name = $utils.getPath($matr))
+	#set($width = $matr.getLength()*30)
+	#strField($matr.getName(), "Matrix")
+	#strField($matr.getLength(), "Matrix length")
+	<img src="image:///$name" height="70" width="$width">
+#end
+
+<html>
+	<body>
+		<h1>Model $de.getName()</h1>
+		#strField($de.getBindingElement(), "Binding element")
+		#strField($de.getThreshold(), "Threshold")
+		#strField($de.getDistMin(), "Minimal distance")
+		#strField($de.getWindow(), "Window")
+		#set($matr = $de.getFrequencyMatrix())
+		#if($matr)
+			#displayMatrix($matr)
+		#end
+		#set($matrs = $de.getMatrices())
+		#if($matrs)
+			#foreach( $matr in $matrs )
+				#displayMatrix($matr.getFrequencyMatrix())
+			#end
+		#end
+	</body>
+</html>

@@ -1,0 +1,30 @@
+log4j.rootLogger=DEBUG,A1
+log4j.logger.statistic=INFO,stat
+
+log4j.appender.A1=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.A1.datePattern='.'yyyy-MM-dd
+log4j.appender.A1.append=true
+log4j.appender.A1.File=${catalina.base}/logs/biouml_server.log
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=>%d{yyyy/MM/dd HH:mm:ss} %-5p %m [%t:%F:%L]%n
+
+log4j.appender.stat=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.stat.datePattern='.'yyyy-MM-dd
+log4j.appender.stat.append=true
+log4j.appender.stat.File=${catalina.base}/logs/biouml_server_statistic.log
+log4j.appender.stat.layout=org.apache.log4j.PatternLayout
+log4j.appender.stat.layout.ConversionPattern=%d{[dd.MM.yyyy] [HH:mm:ss]} %m %n
+
+
+
+#java.util.logging logger settings
+handlers= java.util.logging.FileHandler, java.util.logging.ConsoleHandler
+.level= FINE
+
+java.util.logging.FileHandler.pattern = ${catalina.base}/logs/biouml_server.log
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+java.util.logging.FileHandler.append = true
+#java.util.logging.SimpleFormatter.format =>%1$tY/%1$tm/%1$td %1$tH:%1$tM:%1$tS %4$-7s %5$s [%3$s]%6$s%n
+
+java.util.logging.ConsoleHandler.level = OFF
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter

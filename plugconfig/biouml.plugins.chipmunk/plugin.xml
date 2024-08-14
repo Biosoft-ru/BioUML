@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="ChipMunkAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.chipmunk.ChipMunkAnalysis" group="Motif discovery" name="ChIPMunk"
+         shortDescription="Discover motifs using ChIPMunk method."
+         description="biouml/plugins/chipmunk/resources/ChIPMunk.html" js="chipmunk.chipmunk"/> 
+  </extension>
+
+  <extension id="DiChipMunkAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.chipmunk.DiChipMunkAnalysis" group="Motif discovery" name="DiChIPMunk"
+         shortDescription="Discover di-nucleotide motifs using ChIPMunk method."
+         description="biouml/plugins/chipmunk/resources/DiChIPMunk.html" js="chipmunk.dichipmunk"/> 
+  </extension>
+
+  <extension id="ChipHordeAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.chipmunk.ChipHordeAnalysis" group="Motif discovery" name="ChIPHorde"
+         shortDescription="ChIPMunk extension which detects many significant motifs."
+         description="biouml/plugins/chipmunk/resources/ChIPHorde.html" js="chipmunk.chiphorde"/> 
+  </extension>
+
+  <extension id="DiChipHordeAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.chipmunk.DiChipHordeAnalysis" group="Motif discovery" name="DiChIPHorde"
+         shortDescription="Discover multiple di-nucleotide motifs using ChIPHorde method."
+        description="biouml/plugins/chipmunk/resources/DiChIPHorde.html" js="chipmunk.dichiphorde"/> 
+  </extension>
+
+  <extension id="chipmunk" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="chipmunk" class="biouml.plugins.chipmunk.JavaScriptChipMunk" >
+    </hostObject>
+  </extension>
+
+  <extension point="ru.biosoft.access.virtualCollection">
+  	<folder name="ChIPMunk">
+  	  <link name="User data" target="data/Collaboration/Demo"/>
+  	  <link name="Analyses" target="analyses/Methods/Motif discovery"/>
+  	  <link name="Workflows" target="data/Examples/ChIPMunk workflows/Data"/>
+  	</folder>
+  </extension>
+  
+  <extension point="biouml.workbench.perspective">
+  	<perspective name="ChIPMunk" priority="30" intro="intro-chipmunk">
+  		<repository>
+  			<tab title="ChIPMunk" path="ChIPMunk"/>
+  		</repository>
+  		<viewparts>
+  			<deny id="search.graph"/>
+  			<deny id="common.clipboard"/>
+  			<deny id="script.*"/>
+  		</viewparts>
+  		<importers>
+            <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+        </importers>
+  	</perspective>
+  </extension>
+
+  <extension point="ru.biosoft.access.virtualCollection">
+  	<folder name="HOCOMOCO">
+  	  <link name="Matrices and profiles" target="databases/HOCOMOCO v11/Data"/>
+      <link name="Public datasets" target="data/Public/Data sets/Data/HOCOMOCO"/>
+  	  <link name="User data" target="data/Collaboration/Demo/tmp"/>
+  	</folder>
+  </extension>
+  
+  <extension point="biouml.workbench.perspective">
+  	<perspective name="HOCOMOCO" priority="30" intro="intro-hocomoco">
+  		<repository>
+  			<tab title="HOCOMOCO" path="HOCOMOCO"/>
+  		</repository>
+  		<viewparts>
+  			<deny id="*"/>
+            <allow id="table.filters"/>
+  		</viewparts>
+  		<importers>
+            <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+        </importers>
+  	</perspective>
+  </extension>
+</plugin>
+

@@ -1,0 +1,936 @@
+package id3gg5aczz6pfesd00xio5y;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:java#Class#Mgl.gui.SortedListModel:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference9 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.Util.SortedListModel:oiref><oihard>
+@__modelType reference
+@__imported
+@hideAll 
+*/
+class reference15 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.generic.SortedListModel:oiref><oihard>
+@__modelType reference
+@__imported
+@hideAll 
+*/
+class reference22 {
+}
+/**
+@__ref <oiref:java#Class#ru.biosoft.access.Entry:oiref><oihard>
+@__modelType reference 
+*/
+class reference12 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference13 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionListener:oiref><oihard>
+@__modelType reference 
+*/
+class reference20 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionEvent:oiref><oihard>
+@__modelType reference 
+*/
+class reference23 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElement:oiref><oihard>
+@__modelType reference 
+*/
+class reference26 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.AbstractDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference28 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.EntryCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference33 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.QuerySystem:oiref><oihard>
+@__modelType reference 
+@backgroundColor 255,255,255*/
+class reference35 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.Transformer:oiref><oihard>
+@__modelType reference 
+*/
+class reference39 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FilteredDataCollection:oiref><oihard>
+@__modelType reference 
+@backgroundColor 255,255,255
+*/
+class reference40 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.CollectionUnion:oiref><oihard>
+@__modelType reference 
+@backgroundColor 255,255,255
+*/
+class reference41 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileDataElement:oiref><oihard>
+@__modelType reference 
+*/
+class reference42 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.LocalRepository:oiref><oihard>
+@__modelType reference 
+*/
+class reference11 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.IndexTable:oiref><oihard>
+@__modelType reference 
+*/
+class reference21 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileEntryCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference10 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DerivedDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference6 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionVetoException:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.VectorDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference14 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference18 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementSupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference45 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference51 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.AbstractTransformer:oiref><oihard>
+@__modelType reference 
+*/
+class reference44 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.Repository:oiref><oihard>
+@__modelType reference 
+*/
+class reference49 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.CreateDataCollectionDefaultController:oiref><oihard>
+@__modelType reference 
+*/
+class reference50 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.CreateDataCollectionController:oiref><oihard>
+@__modelType reference 
+*/
+class reference54 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.Filter:oiref><oihard>
+@__modelType reference 
+*/
+class reference55 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.MutableFilter:oiref><oihard>
+@__modelType reference 
+*/
+class reference58 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.Index:oiref><oihard>
+@__modelType reference 
+*/
+class reference74 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileEntryCollection2:oiref><oihard>
+@__modelType reference 
+*/
+class reference75 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.MemIndex:oiref><oihard>
+@__modelType reference 
+*/
+class reference80 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.BTreeIndex:oiref><oihard>
+@__modelType reference 
+*/
+class reference82 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionUnion:oiref><oihard>
+@__modelType reference 
+*/
+class reference86 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.XMLTransformer:oiref><oihard>
+@__modelType reference 
+*/
+class reference62 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference5 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionUnion2:oiref><oihard>
+@__modelType reference 
+*/
+class reference53 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementRef:oiref><oihard>
+@__modelType reference 
+*/
+class reference56 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.CompositeFilter:oiref><oihard>
+@__modelType reference 
+*/
+class reference101 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.PatternFilter:oiref><oihard>
+@__modelType reference 
+*/
+class reference36 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.MutableDataElement:oiref><oihard>
+@__modelType reference 
+*/
+class reference34 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.MutableDataElementSupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference37 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.LocalRepositoryBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference31 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.QueryFilter:oiref><oihard>
+@__modelType reference 
+*/
+class reference8 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.Key:oiref><oihard>
+@__modelType reference 
+*/
+class reference16 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.BTreeRangeIndex:oiref><oihard>
+@__modelType reference 
+*/
+class reference17 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id272e7cwll1900cwll3in8.diagram:oiref><oihard>
+@automatic 
+*/
+class link397 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id1a602d0ewcqljd0ewgdl7.diagram:oiref><oihard>
+@automatic 
+*/
+class link398 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id4j55aczz6pfesd00za17r.diagram:oiref><oihard>
+@automatic 
+*/
+class link406 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionAddUndo:oiref><oihard>
+@__modelType reference 
+*/
+class reference19 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionRemoveUndo:oiref><oihard>
+@__modelType reference 
+*/
+class reference27 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionUndoListener:oiref><oihard>
+@__modelType reference 
+*/
+class reference1 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.TransformedDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference7 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.CollectionFactory:oiref><oihard>
+@__modelType reference 
+*/
+class reference38 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.MessageBundle:oiref><oihard>
+@__modelType reference 
+*/
+class reference32 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.TransformedDataCollectionBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference24 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionListenerSupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference46 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DefaultQuerySystem:oiref><oihard>
+@__modelType reference 
+*/
+class reference30 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlDataCollectionBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference91 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlTransformer:oiref><oihard>
+@__modelType reference 
+*/
+class reference92 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference94 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlTransformerSupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference96 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idh4mscf14nul1tf14nuzw3.diagram:oiref><oihard>
+@automatic 
+*/
+class link1613 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idfr6nff14nul1tf14nv00g.diagram:oiref><oihard>
+@automatic 
+*/
+class link1614 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idcf8ddf14nul1tf14nuzus.diagram:oiref><oihard>
+@automatic 
+*/
+class link1615 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id8zwftezyfe93cezyffo5w.diagram:oiref><oihard>
+@automatic 
+*/
+class link1616 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id1cw5aeytoxek3eytpb79m.diagram:oiref><oihard>
+@automatic 
+*/
+class link1617 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id2wwlpf14nul1tf14nv1nw.diagram:oiref><oihard>
+@automatic 
+*/
+class link1618 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id5znadf14nul1tf14nv026.diagram:oiref><oihard>
+@automatic 
+*/
+class link1619 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id6hfsbf14nul1tf14nuztx.diagram:oiref><oihard>
+@automatic 
+*/
+class link1620 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id77x34eytoxek3eytpb9u2.diagram:oiref><oihard>
+@automatic 
+*/
+class link1621 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id6tmlxeytoxek3eytpb78r.diagram:oiref><oihard>
+@automatic 
+*/
+class link1622 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id1gdt1f14nul1tf14numa3.diagram:oiref><oihard>
+@automatic 
+*/
+class link1623 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#id9tsv8eytoxek3eytpb71d.diagram:oiref><oihard>
+@automatic 
+*/
+class link1624 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idikntpf14nul1tf14nv0hd.diagram:oiref><oihard>
+@automatic 
+*/
+class link1625 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idb2wcef14nul1tf14nv0er.diagram:oiref><oihard>
+@automatic 
+*/
+class link1626 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idhvgdrf14nul1tf14nv057.diagram:oiref><oihard>
+@automatic 
+*/
+class link1627 {
+}/**
+@shapeType DependencyLink
+@__modelType link
+@__ref <oiref:design#Class#idakbkzf46gnc5uf46go2g1.diagram:oiref><oihard>
+@automatic 
+*/
+class link1628 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileImagesDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference79 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlImagesDataCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference83 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.ImageDataElement:oiref><oihard>
+@__modelType reference 
+*/
+class reference48 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlImagesDataCollectionBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference52 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileImagesDataCollectionBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference59 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SimpleFileFilter:oiref><oihard>
+@__modelType reference 
+*/
+class reference60 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementRegistry:oiref><oihard>
+@__modelType reference 
+*/
+class reference87 {
+}/**
+@__ref <oiref:design#Class#idgqwxygit027f0git04yjy.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.search:oiref> 
+*/
+class reference88 {
+}/**
+@__ref <oiref:design#Class#id36rd9git027f0git04yji.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.hibernate:oiref> 
+*/
+class reference89 {
+}/**
+@__ref <oiref:design#Class#idb6az3git027f0git04yji.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.generic:oiref> 
+*/
+class reference90 {
+}/**
+@__ref <oiref:design#Class#idjmo0git027f0git04yj3.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access._test:oiref> 
+*/
+class reference93 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementPathSetBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference95 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementExporterRegistry:oiref><oihard>
+@__modelType reference 
+*/
+class reference97 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.FileImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference98 {
+}/**
+@__ref <oiref:design#Class#id5g44ygit027f0git04yjy.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.sql:oiref> 
+*/
+class reference99 {
+}/**
+@__ref <oiref:design#Class#id1oatvgit027f0git04yjy.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.security:oiref> 
+*/
+class reference100 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementPathBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference102 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.QuerySystemWithIndexRebuilder:oiref><oihard>
+@__modelType reference 
+*/
+class reference103 {
+}/**
+@__ref <oiref:design#Class#id6an5ngit027f0git04yji.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.repository:oiref> 
+*/
+class reference104 {
+}/**
+@__ref <oiref:design#Class#id47ocbgit027f0git04yji.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.javascript:oiref> 
+*/
+class reference105 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.ZipFileImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference106 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementExporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference107 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementImporter:oiref><oihard>
+@__modelType reference 
+*/
+class reference108 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.CustomElementsCollection:oiref><oihard>
+@__modelType reference 
+*/
+class reference109 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataCollectionUtils:oiref><oihard>
+@__modelType reference 
+*/
+class reference110 {
+}/**
+@__ref <oiref:design#Class#id4aqg2git027f0git04yj3.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.biohub:oiref> 
+*/
+class reference111 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementImporterRegistry:oiref><oihard>
+@__modelType reference 
+*/
+class reference112 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementPath:oiref><oihard>
+@__modelType reference 
+*/
+class reference113 {
+}/**
+@__ref <oiref:design#Class#id8bjpqgit027f0git04yjy.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.server:oiref> 
+*/
+class reference114 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.TempDirectorySupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference115 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.DataElementsSqlTransformer:oiref><oihard>
+@__modelType reference 
+*/
+class reference116 {
+}/**
+@__ref <oiref:design#Class#id77zsgit027f0git04yjy.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.access.support:oiref> 
+*/
+class reference117 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.access.SqlDataInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference118 {
+}}
+/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}
+/**
+@__options option.associationLinks.directed = All
+option.associationLinks.showAttribute = All
+option.detail = Design
+*/
+class __options {
+}
+/**
+@__positions <oigroup:<oiref:java#Class#ru.biosoft.access.QuerySystemWithIndexRebuilder:oiref>=515,541,199,95,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionUnion2#added:oiref>=2289,964,2328,964:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileDataElement#collection:oiref>=1675,210,1779,210:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionUnion:oiref>=2481,1447,163,187,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.MutableDataElementSupport#ru.biosoft.access.MutableDataElement:oiref>=1258,166,1258,114:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.AbstractDataCollection:oiref>=1631,874,219,969,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.TransformedDataCollection:oiref>=1042,1052,194,295,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.CompositeFilter:oiref>=481,1418,191,213,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileCollection#root:oiref>=1745,1731,1467,460:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DerivedDataCollection#collection:oiref>=1183,611,1428,611,1774,611:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_File#Mgl.access.EntryCollection:oiref>=-1003,-120,-1003,-207:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileImagesDataCollectionBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=3129,758,3052,754:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.DataCollection#javax.swing.ListModel:oiref>=155,278,391,630:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.Index:oiref>=945,2351,198,211,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionUnion2#removed:oiref>=2306,1261,2306,1212:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileDataElement#ru.biosoft.access.DataElementSupport:oiref>=1456,269,1456,171:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlDataCollectionBeanInfo:oiref>=3124,646,174,79,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUnion3#ru.biosoft.access.CollectionUnion:oiref>=2599,912,2177,880:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileEntryCollection2#index:oiref>=1197,2415,1143,2415:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.AbstractDataCollection#nameList:oiref>=-884,-736,-949,-736:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.Entry#ru.biosoft.access.DataElementSupport:oiref>=1544,269,1544,171:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.IndexTable.Index:oiref>=831,1264,103,109,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractDataCollection#info:oiref>=1850,941,2301,941,2301,153:oigroup>
+<oigroup:<oiref:design#Class#id6tmlxeytoxek3eytpb78r.diagram.link1645:oiref>=2972,-229,3023,-229:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.AbstractDataCollection#ru.biosoft.access.DataCollection:oiref>=1788,874,1928,813:oigroup>
+<oigroup:<oiref:design#Class#id47ocbgit027f0git04yji.diagram:oiref>=3751,55,172,107,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionUnion#dc:oiref>=2202,779,1933,705:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.Repository:oiref>=2629,2202,203,77,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementsSqlTransformer:oiref>=1925,2360,181,87,1:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.Entry#Mgl.access.TextView:oiref>=-351,-852,-351,-939:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileImagesDataCollectionBeanInfo:oiref>=3129,748,203,79,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.DataCollectionInfo#version:oiref>=1236,888,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.MutableFilter#ru.biosoft.access.Filter:oiref>=692,1135,692,1034:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.Util.SortedListModel#javax.swing.ListModel:oiref>=-1486,-688,-1486,-716:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementSupport:oiref>=1442,22,219,149,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.Entry#format:oiref>=789,-50,1099,399:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileImagesDataCollection#ru.biosoft.access.FileCollection:oiref>=98,481,1996,2128:oigroup>
+<oigroup:<oiref:design#Class#id4aqg2git027f0git04yj3.diagram:oiref>=3287,1,154,287,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementExporterRegistry:oiref>=3204,1491,203,249,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.SqlTransformerSupport#ru.biosoft.access.SqlTransformer:oiref>=1780,2358,1780,2303:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.AbstractDataCollection#name:oiref>=509,336,1059,399:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.Transformer#write#(#ru.biosoft.access.DataElement#)#:oiref>=1175,1687,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionInfo#querySystem:oiref>=2249,153,2249,629,863,468:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.ImagesDataCollection#ru.biosoft.access.DataCollection:oiref>=181,224,1804,224:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollectionUnion#ru.biosoft.access.AbstractDataCollection:oiref>=2481,1607,1850,1607:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementPathSetBeanInfo:oiref>=2986,1182,190,77,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.Util.SortedListModel:oiref>=-1613,-688,165,47,1:oigroup>
+<oigroup:<oiref:design#Class#id6an5ngit027f0git04yji.diagram:oiref>=3744,-335,203,359,1:oigroup>
+<oigroup:<oiref:java#Implements#javax.swing.AbstractListModel#javax.swing.ListModel:oiref>=-1362,-676,-1362,-703:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionRemoveUndo#element:oiref>=1421,-197,1421,-127:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractTransformer#transformedCollection:oiref>=1538,1330,1538,642,1870,642:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.LocalRepository#ru.biosoft.access.Repository:oiref>=2730,2352,2730,2279:oigroup>
+<oigroup:<oiref:design#Class#id36rd9git027f0git04yji.diagram:oiref>=3750,331,203,161,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionListenerSupport#ru.biosoft.access.DataCollectionListener:oiref>=825,219,870,219:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.SqlImagesDataCollection#ru.biosoft.access.ImagesDataCollection:oiref>=818,326,125,283:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlDataCollection:oiref>=1429,2005,219,517,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.AbstractDataCollection#listenerList:oiref>=510,336,813,534:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.AbstractDataCollection#Mgl.access.DataCollection:oiref>=-827,-861,-827,-913:oigroup>
+<oigroup:<oiref:design#Class#id1oatvgit027f0git04yjy.diagram:oiref>=3500,51,203,449,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataElementExporterRegistry#ru.biosoft.access.DataElementRegistry:oiref>=3388,1491,3388,1431:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DefaultQuerySystem#ru.biosoft.access.QuerySystem:oiref>=801,539,801,499:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.SearchableCollection#Mgl.access.Collection:oiref>=216,252,163,245:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollection.FileObjectWrapper:oiref>=1282,468,203,99,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionEvent#owner:oiref>=1062,-7,1436,-7,1870,-7:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.VectorDataCollection:oiref>=2164,1995,165,285,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.Repository#ru.biosoft.access.CustomElementsCollection:oiref>=2730,2202,2268,1862:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SqlDataCollection#ru.biosoft.access.AbstractDataCollection:oiref>=1538,2005,1740,1843:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataElementImporterRegistry#ru.biosoft.access.DataElementRegistry:oiref>=3541,1494,3541,1431:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection#Mgl.access.AbstractDataCollection:oiref>=-962,-403,-837,-573:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionRemoveUndo:oiref>=1317,-354,199,157,1:oigroup>
+<oigroup:<oiref:design#Class#id5g44ygit027f0git04yjy.diagram:oiref>=2806,114,189,197,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DerivedDataCollection:oiref>=953,636,218,339,1:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.DataCollection#getTextView#(##)#:oiref>=1391,451,0,0,1:oigroup>
+<oigroup:<oiref:design#Class#id2vi1adqhze2rcdqoyzqr1.diagram:oiref>=272,9,174,110,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.EntryCollection#lnkEntry:oiref>=989,1206,742,1206,742,591:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.SQLDataCollection#transformer:oiref>=2452,2185,1928,1979:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.CreateDataCollectionDefaultController#ru.biosoft.access.CreateDataCollectionController:oiref>=3008,1721,3008,1681:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlImagesDataCollectionBeanInfo:oiref>=3134,844,203,79,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FilteredDataCollection#filter:oiref>=825,1108,706,1108:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.XMLTransformer:oiref>=1367,1512,206,151,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataElementRef#ru.biosoft.access.DataElementSupport:oiref>=2305,1107,1755,802,1755,304,1619,171:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollectionUnion2#ru.biosoft.access.VectorDataCollection:oiref>=2273,1582,2273,1995:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.generic.SortedListModel#javax.swing.ListModel:oiref>=-1160,-942,-1160,-976:oigroup>
+<oigroup:<oiref:design#Class#idlxmydrymb0k4ds5nmutx.diagram:oiref>=118,135,203,319,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_MglClient#Mgl.access.EntryCollection_Client:oiref>=-828,0,-828,-61:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.LocalRepositoryBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=3206,522,2925,647:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.AbstractDataCollection#info:oiref>=-884,-584,-950,-584:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlDataInfo:oiref>=1443,2730,203,249,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.FilteredDataCollection#ru.biosoft.access.DataCollectionListener:oiref>=930,1052,930,290:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementExporter:oiref>=3205,1815,138,149,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.DataSample#Mgl.access.AbstractDataCollection:oiref>=-634,-404,-737,-573:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUnion#ru.biosoft.access.CollectionUnion:oiref>=2526,1447,2526,1194:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUnion#ru.biosoft.access.DataCollection:oiref>=2259,779,1957,705:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionRemoveUndo#parent:oiref>=1516,-215,1870,-215:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_MGL#Mgl.access.AbstractDataCollection:oiref>=-1194,-120,-814,-505:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.TransformedDataCollection#current:oiref>=1220,916,1403,19:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_SrsClient#Mgl.access.EntryCollection_Client:oiref>=-913,0,-913,-61:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractDataCollection#parent:oiref>=1864,727,1864,643:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollectionUnion3#ru.biosoft.access.AbstractDataCollection:oiref>=2526,1071,1835,1071:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.CreateDataCollectionController:oiref>=2907,1488,203,193,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SQLDataCollection#ru.biosoft.access.AbstractDataCollection:oiref>=2525,2185,1751,1671:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.MutableDataElement:oiref>=1188,19,203,95,1:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.EntryCollection#Mgl.access.DataCollection:oiref>=335,345,183,290:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.OderedRepository#Mgl.access.Repository1:oiref>=515,126,357,126:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.MutableDataElementSupport:oiref>=1129,166,200,131,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionEvent:oiref>=843,-282,219,301,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.File#ru.biosoft.access.DataElement:oiref>=761,217,1240,217:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.TransformedDataCollection#putedElement:oiref>=1249,918,1249,136,1477,15:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.FileImporter#ru.biosoft.access.DataElementImporter:oiref>=3681,2128,3681,2073:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.BTreeRangeIndex#ru.biosoft.access.BTreeIndex:oiref>=1097,3065,1059,3065:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementPathBeanInfo:oiref>=2982,1093,172,77,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.CollectionUnion#ru.biosoft.access.DataCollection:oiref>=2497,1099,2044,813:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#javax.swing.AbstractListModel#listenerList:oiref>=571,542,704,544:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DefaultQuerySystem:oiref>=739,539,178,267,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SqlImagesDataCollection#ru.biosoft.access.SqlDataCollection:oiref>=1544,2568,1544,2522:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUnion2#ru.biosoft.access.CollectionUnion:oiref>=2363,1261,2484,1194:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.FileDataElement#ru.biosoft.access.DataElement:oiref>=1569,147,1387,116:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollection#parent:oiref>=1634,621,1634,674,1730,674,1730,578,1677,578:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUnion3#ru.biosoft.access.DataCollectionListener:oiref>=2657,912,1045,456:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.TransformedDataCollectionBeanInfo:oiref>=3119,555,203,61,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionListenerSupport:oiref>=642,141,183,151,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.QueryFilter#ru.biosoft.access.Filter:oiref>=629,1272,629,1165:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionEvent#primaryEvent:oiref>=882,19,882,42,826,42,826,-24,843,-24:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileDataElement#parent:oiref>=1336,375,1458,375:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.DataCollection#FILE_NAME_PROPERTY:oiref>=1596,259,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractTransformer#dcOutput:oiref>=1533,667,1779,667:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionUndoListener:oiref>=1087,-352,219,229,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.PatternFilter:oiref>=270,1419,190,141,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollectionAddUndo#ru.biosoft.access.DataCollectionRemoveUndo:oiref>=1535,-314,1516,-314:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.DataCollectionAsVector#Mgl.access.AbstractDataCollection:oiref>=-790,-403,-790,-573:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.BTreeIndex:oiref>=857,2684,202,751,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileCollection#ru.biosoft.access.VectorDataCollection:oiref>=2246,2347,2246,2280:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.CollectionFactory#getTextView#(##)#:oiref>=947,187,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.ImagesDataCollectionBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=1038,409,2417,1491:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.LocalRepositoryBeanInfo:oiref>=3124,443,164,79,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileEntryCollection#ru.biosoft.access.EntryCollection:oiref>=1136,1942,1136,1880:oigroup>
+<oigroup:<oiref:design#Class#id13sbbqen0whmbqf3m1o8.diagram:oiref>=1063,231,101,72,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileEntryCollection#idxTable:oiref>=938,2102,885,2102:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileEntryCollection:oiref>=938,1942,215,321,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.CreateDataCollectionDefaultController:oiref>=2901,1721,219,391,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractTransformer#dcInput:oiref>=1533,686,1779,686:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.Entry#collection:oiref>=683,1007,1382,532:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileDataElement:oiref>=1337,269,134,151,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataElementsSqlTransformer#ru.biosoft.access.SqlTransformer:oiref>=1985,2360,1822,2303:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileEntryCollection2#ru.biosoft.access.EntryCollection:oiref>=1268,1942,1268,1880:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.Collection#Mgl.access.Repository1:oiref>=163,236,437,263:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.TransformedDataCollection#ru.biosoft.access.AbstractDataCollection:oiref>=1181,1107,1460,1107:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.DataElement#getParent#(##)#:oiref>=1287,155,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollectionAsVector#ru.biosoft.access.AbstractDataCollection:oiref>=1802,1255,1738,1255:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.LocalRepository:oiref>=2617,2352,219,393,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.TempDirectorySupport:oiref>=3532,1105,203,87,1:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.NameList#Mgl.access.DataCollectionListener:oiref>=-1000,-854,-1000,-897:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.Filter:oiref>=506,1008,200,157,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SQLDataCollectionBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=1908,1994,2417,1609:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.Entry#data:oiref>=813,-50,1140,399:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SimpleFileFilter:oiref>=3534,990,112,103,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.TransformedDataCollection#ru.biosoft.access.DerivedDataCollection:oiref>=1106,1052,1106,975:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.SqlTransformerSupport#owner:oiref>=1835,2358,1893,2322,1957,813:oigroup>
+<oigroup:<oiref:design#Class#idjmo0git027f0git04yj3.diagram:oiref>=3749,202,174,107,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#biouml.standard.type.access.GenericSqlTransformer#owner:oiref>=1863,2508,1863,740:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.MemIndex#ru.biosoft.access.Index:oiref>=1107,2682,1107,2562:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.QuerySystem#ru.biosoft.access.DataCollectionListener:oiref>=761,342,900,290:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.NameList#Mgl.generic.SortedListModel:oiref>=-1102,-854,-1102,-895:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.CompositeFilter#filterList:oiref>=572,1418,572,1165:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionUndoListener#elementToRemove:oiref>=1306,-166,1341,-108:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.SqlDataCollection#transformer:oiref>=1648,2164,1675,2164:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractTransformer#owner:oiref>=634,1199,1931,643:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.QueryFilter:oiref>=582,1272,95,77,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionUtils:oiref>=3291,992,203,169,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.AbstractTransformer:oiref>=1357,1330,219,141,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.CustomElementsCollection#ru.biosoft.access.DataCollection:oiref>=2232,1787,2015,813:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.TransformedDataCollectionBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=3220,616,2988,647:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataElementsSqlTransformer#owner:oiref>=2045,2360,1986,813:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollection:oiref>=1870,-316,203,1129,1:oigroup>
+<oigroup:<oiref:design#Class#idgqwxygit027f0git04yjy.diagram:oiref>=3284,-336,203,305,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.Entry:oiref>=1508,269,178,267,1:oigroup>
+<oigroup:<oiref:design#Class#id8bjpqgit027f0git04yjy.diagram:oiref>=3504,-336,188,359,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.CollectionUnion:oiref>=2423,1099,149,95,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.Entry#ru.biosoft.access.TextView:oiref>=659,1007,809,596:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionIterator#collection:oiref>=1722,545,1677,545:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.QuerySystem:oiref>=660,342,203,157,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.AbstractDataCollection#ru.biosoft.access.LocalRepository:oiref>=1683,721,2044,631:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.LocalRepository#root:oiref>=1888,1731,1538,460:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FilteredDataCollection:oiref>=825,1052,202,447,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.QuerySystemWithIndexRebuilder#ru.biosoft.access.QuerySystem:oiref>=687,541,687,499:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.EntryCollection:oiref>=1120,1667,219,213,1:oigroup>
+<oigroup:<oiref:design#Class#id77zsgit027f0git04yjy.diagram:oiref>=3046,-332,203,629,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionListener:oiref>=870,105,164,185,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlTransformer:oiref>=1675,2010,189,293,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.CollectionFactory:oiref>=2403,-304,203,663,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.TransformedDataCollection#removedElement:oiref>=1231,918,1231,118,1450,15:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_Client#Mgl.access.EntryCollection:oiref>=-911,-120,-911,-207:oigroup>
+<oigroup:<oiref:design#Class#idb6az3git027f0git04yji.diagram:oiref>=2799,-325,203,413,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.Entry#collection:oiref>=-390,-852,-717,-913:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.Filter#INCLUDE_ALL_FILTER:oiref>=644,1165,644,1212,778,1212,778,1128,706,1128:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.NameList#list:oiref>=-1119,-769,-1169,-769:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionAddUndo:oiref>=1535,-353,176,115,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.AbstractDataCollection#ru.biosoft.access.DataElementSupport:oiref>=1727,874,1727,303,1578,171:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FileImagesDataCollection#ru.biosoft.access.VectorDataCollection:oiref>=2461,2348,2287,2280:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.ZipFileImporter:oiref>=3404,2120,203,195,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractDataCollection#nameList:oiref>=1666,921,1765,921:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.Entry#Mgl.access.DataElement:oiref>=-300,-852,-300,-1063:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.Transformer#read#(#ru.biosoft.access.FileDataElement#java.lang.Class#)#:oiref>=1138,1682,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.Filter#INCLUDE_NONE_FILTER:oiref>=675,1165,675,1202,747,1202,747,1138,706,1138:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.BTreeIndex#ru.biosoft.access.Index:oiref>=1002,2684,1002,2562:oigroup>
+<oigroup:<oiref:java#Class#Mgl.generic.SortedListModel:oiref>=-1256,-942,189,47,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlImagesDataCollection:oiref>=1461,2568,167,123,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileImagesDataCollection:oiref>=2352,2348,219,321,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.EntryCollection#ru.biosoft.access.AbstractDataCollection:oiref>=1339,1755,1631,1755:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.AbstractTransformer#ru.biosoft.access.Transformer:oiref>=1418,1330,1418,1277:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionInfo:oiref>=2123,-312,217,465,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.gui.SortedListModel:oiref>=401,361,170,91,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataElementSupport#ru.biosoft.access.DataElement:oiref>=1471,22,1471,-32:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.TransformedDataCollection#ru.biosoft.access.DataCollectionListener:oiref>=1188,1052,1188,512,967,290:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.TransformedDataCollection#transformer:oiref>=1236,1172,1276,1172:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.MemIndex:oiref>=1071,2682,149,229,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementRef:oiref>=2226,1107,158,105,1:oigroup>
+<oigroup:BeanProperty#<oiref:java#Member#ru.biosoft.access.DataElementSupport#getOrigin#(##)#:oiref>=1381,379,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.MutableDataElement#ru.biosoft.access.DataElement:oiref>=1366,19,1366,-32:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DerivedDataCollection#ru.biosoft.access.AbstractDataCollection:oiref>=1171,924,1631,924:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.MessageBundle:oiref>=2867,473,180,103,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.BTreeRangeIndex:oiref>=1097,2968,133,187,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.LocalRepository#ru.biosoft.access.VectorDataCollection:oiref>=2664,2352,2308,2280:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.CustomElementsCollection:oiref>=2150,1787,165,75,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementPath:oiref>=2848,1095,107,75,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.Transformer:oiref>=1276,1056,203,221,1:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.NameList#Mgl.Event.DataCollectionListener:oiref>=700,657,414,657:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.CompositeFilter#ru.biosoft.access.MutableFilter:oiref>=505,1418,505,1378:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.Entry#name:oiref>=837,-50,1181,399:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileEntryCollection2:oiref>=1197,1942,192,735,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.AbstractDataCollection#javax.swing.AbstractListModel:oiref>=465,339,465,519:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.ImageDataElement#ru.biosoft.access.DataElementSupport:oiref>=1489,438,1489,171:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.MutableDataElementSupport#origin:oiref>=1329,209,1870,209:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionEvent#dataElement:oiref>=1176,-36,1423,-36:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.MutableFilter#ru.biosoft.access.Filter:oiref>=516,1265,516,1165:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.FileImagesDataCollection#ru.biosoft.access.ImagesDataCollection:oiref>=70,315,70,283:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.NameList#Mgl.generic.SortedListModel:oiref>=-1391,-865,-1391,-614:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_MGL#Mgl.access.EntryCollection:oiref>=-1194,-120,-1027,-207:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.TransformedDataCollection#wrapper:oiref>=815,1133,778,1133:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.XMLTransformer#ru.biosoft.access.AbstractTransformer:oiref>=1470,1512,1470,1471:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=2862,647,190,113,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.DataSample#data:oiref>=-603,-404,-603,-858,-772,-913:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.Transformer#createEntry#(#ru.biosoft.access.DataElement#ru.biosoft.access.DataCollection#)#:oiref>=1196,1674,0,0,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataElementSupport#origin:oiref>=1661,51,1870,51:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionInfo#dc:oiref>=2123,-80,2073,-80:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.File#collection:oiref>=761,292,1779,292:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElement:oiref>=1341,-127,160,95,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#Mgl.access.DataCollectionEvent#dataElement:oiref>=-147,-1132,-238,-1132:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.SqlTransformerSupport:oiref>=1696,2358,205,267,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.EntryCollection.Interface1:oiref>=698,386,0,0,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:java#Member#ru.biosoft.access.CompositeFilter#filterList:oiref>=544,1165,24,18,0:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.CollectionFactory#getDataCollection#(##)#:oiref>=927,186,0,0,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionVetoException:oiref>=651,-281,173,75,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.ZipFileImporter#ru.biosoft.access.DataElementImporter:oiref>=3558,2120,3558,2073:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.MutableFilter:oiref>=398,1265,131,113,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementImporterRegistry:oiref>=3510,1494,203,249,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileEntryCollection#itID:oiref>=1837,1693,1922,1693:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.VectorDataCollection#ru.biosoft.access.CustomElementsCollection:oiref>=2222,1995,2222,1862:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.FastaFileEntryParser#ru.biosoft.access.EntryParser:oiref>=775,1508,623,1458:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.IndexTable:oiref>=682,1939,203,553,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.AbstractTransformer#primaryCollection:oiref>=1553,1330,1553,657,1870,657:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementImporter:oiref>=3510,1808,203,265,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.FileDataElement#origin:oiref>=1616,206,1779,206:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollection.FileObjectWrapper#ru.biosoft.access.Transformer:oiref>=1383,468,1185,430:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUnion2#ru.biosoft.access.DataCollectionListener:oiref>=2262,1261,1331,840,1215,505,1000,290:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DefaultQuerySystem#dc:oiref>=1507,2828,1792,769:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DerivedDataCollection#primaryCollection:oiref>=1171,695,1870,695:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.CollectionFactory#ru.biosoft.access.Repository:oiref>=2105,521,1797,521:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SiteSetSQLDataCollection#ru.biosoft.access.SQLDataCollection:oiref>=1602,2298,1602,2219:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SqlDataCollectionBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=3124,687,3052,687:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.FilteredDataCollection#ru.biosoft.access.DerivedDataCollection:oiref>=990,1052,990,975:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.LocalRepository#ru.biosoft.access.AbstractDataCollection:oiref>=1393,1384,1460,1269:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.SqlImagesDataCollectionBeanInfo#ru.biosoft.access.VectorDataCollectionBeanInfo:oiref>=3235,844,2957,760:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.GenericSqlTransformer#owner:oiref>=1864,2508,1864,740:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.VectorDataCollection#ru.biosoft.access.AbstractDataCollection:oiref>=2205,1995,1795,1843:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataCollectionUnion2:oiref>=2218,1261,203,321,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataElementExporterRegistry#instance:oiref>=3367,1740,3367,1790,3457,1790,3457,1700,3407,1700:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.Key:oiref>=685,2682,154,113,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.NameList#Mgl.gui.SortedListModel:oiref>=774,522,514,452:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.PatternFilter#ru.biosoft.access.MutableFilter:oiref>=429,1419,429,1378:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.gui.SortedListModel#javax.swing.ListModel:oiref>=457,452,61,640:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.access.DataCollection#ru.biosoft.access.DataElement:oiref>=1870,-96,1501,-96:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.access.DataCollectionUnion2#changed:oiref>=2289,942,2328,942:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileCollection:oiref>=2124,2347,217,321,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.CollectionUnion#ru.biosoft.access.DataCollection:oiref>=2004,778,1872,705:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.access.Transformer#createObject#(#ru.biosoft.access.Entry#java.lang.Class#)#:oiref>=1160,1680,0,0,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.EmblFileEntryParser#ru.biosoft.access.EntryParser:oiref>=606,1505,606,1458:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.ImageDataElement:oiref>=1353,438,157,97,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.access.DataCollectionUndoListener#ru.biosoft.access.DataCollectionListener:oiref>=1172,-123,1172,147,1034,147:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.DataElementRegistry:oiref>=3369,1308,203,123,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.access.FileImporter:oiref>=3649,2128,93,61,1:oigroup>
+*/
+class __positions {
+}

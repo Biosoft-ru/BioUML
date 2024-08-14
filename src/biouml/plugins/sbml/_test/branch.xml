@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by Jarnac 1.17a on 8/15/00 -->
+<sbml xmlns="cell:sbml.xml" version="1.0">
+ <Model id="1" name="SimpleBranch">
+
+   <listOfCompartments>
+     <Compartment id="0" name="uVol" volume="1"/>
+   </listOfCompartments>
+
+   <listOfSpecies>
+     <Simple id="1" name="S1" fixed="no" initialAmount="0"/> 
+     <Simple id="1" name="X0" fixed="yes" initialAmount="0"/> 
+     <Simple id="1" name="X1" fixed="yes" initialAmount="0"/> 
+     <Simple id="1" name="X2" fixed="yes" initialAmount="0"/> 
+   </listOfSpecies>
+
+  <listOfReactions>
+   <simpleReaction id="0" name="J1" reversible="no">
+     <listOfReactants>
+       <SpeciesRef name="X0" stoichiometry="1"/>
+     </listOfReactants>
+     <listOfProducts>
+       <SpeciesRef name="S1" stoichiometry="1"/>
+     </listOfProducts>
+
+     <kineticLaw formula="v1">
+       <parameters>
+         <paramSetting name="v1" value="0"/>
+       </parameters>
+     </kineticLaw>
+   </simpleReaction>
+
+   <simpleReaction id="1" name="J2" reversible="no">
+     <listOfReactants>
+       <SpeciesRef name="S1" stoichiometry="1"/>
+     </listOfReactants>
+     <listOfProducts>
+       <SpeciesRef name="X1" stoichiometry="1"/>
+     </listOfProducts>
+
+     <kineticLaw formula="v2">
+       <parameters>
+         <paramSetting name="v2" value="0"/>
+       </parameters>
+     </kineticLaw>
+   </simpleReaction>
+
+   <simpleReaction id="2" name="J3" reversible="no">
+     <listOfReactants>
+       <SpeciesRef name="S1" stoichiometry="1"/>
+     </listOfReactants>
+     <listOfProducts>
+       <SpeciesRef name="X2" stoichiometry="1"/>
+     </listOfProducts>
+
+     <kineticLaw formula="v3">
+       <parameters>
+         <paramSetting name="v3" value="0"/>
+       </parameters>
+     </kineticLaw>
+   </simpleReaction>
+
+  </listOfReactions>
+ </Model>
+</sbml>

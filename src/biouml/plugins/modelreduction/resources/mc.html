@@ -1,0 +1,38 @@
+<h2>Mass conservation analysis</h2>
+
+<p>
+  The mass conservation analysis involves the decomposition of the stoichiometric matrix <i>N</i>
+  into the product of two matrixes:
+  
+  <div class="formula-text"><i>N = L &times; N<sub>R</sub></i>,</div>
+  
+  where <i>N<sub>R</sub></i> is the reduced stoichiometry consisting of the linearly independent rows of the matrix <i>N</i>
+  and <i>L</i> is the link matrix.
+</p>
+
+<p>
+  To find such decomposition, we use the Gauss-Jordan method
+  detecting the left null space <i>&Gamma;</i> of the matrix <i>N</i><span class="ref">1</span>, so that
+  
+  <div class="formula-text"><i>&Gamma; &times; N </i> = 0.</div>
+  
+  The matrix <i>&Gamma;</i> specifies the conservation laws of the system, ie.
+  linear combinations of species concentrations which remain constant over time.
+
+  Generation of the matrix <i>&Gamma;</i> is based on the premultiplication of <i>N</i>
+  by a series of elementary matrixes. In particular, rows of this matrix and hence
+  the species order are permutated.
+  
+  Thus, eliminating from the matrix <i>N</i> all rows corresponding to the species which result in the null space,
+  we find the matrix <i>N<sub>R</sub></i>. In addition, the matrix <i>L</i> consists of the identity matrix rows
+  and rows defined by <i>&Gamma;</i> arranged according to the species order in the matrix <i>N</i>.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li> HM Sauro, B Ingalls,
+    "Conservation analysis in biochemical networks: computational issues for software writers".
+    Biophysical Chemistry, 109(1): 1-15, 2004.
+  </li>
+</ol>

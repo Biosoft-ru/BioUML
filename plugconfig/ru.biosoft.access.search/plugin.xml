@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="repository actions" point="ru.biosoft.access.repositoryActionsProvider"> 
+      <repositoryActionsProvider class="ru.biosoft.access.search.RepositoryActionsProvider"/> 
+  </extension> 
+
+  <!--extension id="dbsearch help" point="ru.biosoft.workbench.helpSet"> 
+      <helpSet id="dbsearch help" file="dbsearch.hs"/> 
+  </extension--> 
+
+</plugin>

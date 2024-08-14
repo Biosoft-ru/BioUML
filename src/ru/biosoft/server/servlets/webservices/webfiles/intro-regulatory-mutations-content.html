@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Genome Enhancer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css">
+  
+  <script src="lib/jquery/jquery-3.2.0.min.js"></script>
+
+  <script src="lib/bootstrap/bootstrap.min.js"></script>
+  <style>
+.panel-heading .accordion-toggle:before {
+  font-family: 'Glyphicons Halflings';
+  /* symbol for "opening" panels */
+  content: "\e114";
+  color: grey;
+}
+
+.panel-heading .accordion-toggle.collapsed:before {
+  /* symbol for "collapsed" panels */
+  content: "\e080";
+}
+  </style>
+</head>
+  <body>
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-6">
+        <img class="img-responsive" src="images/ccsignature_logo.png">
+      </div>
+      <div class="col-md-6 page-header">
+        <h1>Regulatory mutations</h1>
+        <p class="lead">Discover regulatory mutations using GTRD and TRANSFAC.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+
+        <div class="panel panel-primary">
+          <div class="panel-heading">What it does?</div>
+          <div class="panel-body">
+            <p class="text-justify">
+Regulatory mutation is a change in DNA that affects gene expression. This 
+pipeline is intended to test the provided mutations for regulatory potential. 
+The first step checks how mutations affects transcription factor (TF) binding 
+affinity to the corresponding TF binding site on DNA. This is done by applying 
+TRANSFAC binding site models to the DNA sequence before and after mutation and 
+comparing their scores and p-values. The significant decrease in score after 
+mutation indicates potential loss of TF binding site, similarly, an increase in 
+score indicates the potential gain of TF binding site. To further enhance 
+predicted regulatory mutations, the second step checks for the occurrence of 
+natural TF binding events in a particular cell/tissue and conditions. This is 
+done by scanning the GTRD database for ChIP-seq peaks overlapping the mutated 
+TF binding site. Finally, the score is calculated taking into account changes 
+in binding affinity and scores of the corresponding ChIP-seq peaks.
+            </p>
+          </div>
+        </div>
+
+
+      </div>
+
+      <div class="col-md-6">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Analyze your data.</div>
+          <div class="panel-body">
+
+            <ol class="list-group" style="list-style: decimal inside;">
+              <li class="list-group-item" style="display: list-item;">
+                Import VCF file into the platform. <br>
+                <button id="rmutations-import-data" type="button" class="btn btn-primary">Upload file</button>
+              </li>
+              <li class="list-group-item" style="display: list-item;">
+                The workflow accepts VCF track on hg38 genome build. If your data on another genome build, convert it to hg38 first.<br>
+            
+                <a target=_parent href="/bioumlweb/#de=analyses/Galaxy/liftOver/picard_LiftoverVCF" class="btn btn-primary">Liftover VCF track »</a>
+              </li>
+              <li class="list-group-item" style="display: list-item;">Start workflow on VCF track.<br>
+                <a target=_parent href="/bioumlweb/#de=analyses/Workflows/GTRD/Discover regulatory mutations using GTRD and TRANSFAC" class="btn btn-primary">Proceed to launch workflow »</a>
+              </li>
+            </ol>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Interpreting results.</div>
+          <div class="panel-body">
+            The workflow detects regulatory mutations and presents results in several tables and genomic tracks.
+            <br>
+            To get an idea of how the results look like, open example results as 
+            <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Mutatated TF binding sites table">a table</a>
+            or
+            <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Selected GTRD peaks">in genome browser</a>.
+            <br>Detailed description of outputs:
+            <div id="rmutations-accordion" class="panel-group">
+            
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+            	<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#rmutations-accordion" href="#rmutations-collapse1">
+            	   Mutated TF binding sites table
+            	</a>
+                  </h4>
+                </div>
+                <div id="rmutations-collapse1" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    The table of mutated binding sites. Each row corresponds to the binding site gain or loss.
+                    <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Mutatated TF binding sites table">Open example</a>.
+                    <br>Columns:</br>
+                    <ul>
+                      <li><b>Site model</b> – the name of TRANSFAC site model. Site model is the mathematical model of DNA binding site (motif).</li>
+                      <li><b>Site genomic position</b> – position of the found binding site on chromosome. Format "chromosome:from-to:strand", coordinates are one based hg38, "from" and "to" positions are included into the binding site.</li>
+                      <li><b>Event type</b> – Either "gain" when binding site was gained as a result of mutation or "lost" when binding site was lost as a result of mutation.</li>
+                      <li>
+                        <b>Mutations</b> – Description of mutations affecting binding site. 
+                        Mutations are separated by the "|" symbol, each mutations is shown in the following format "name:ref&gt;alt", for example "rs371557683:A&gt;C|rs376073966:T&gt;C".
+                        If the site model was matched to the reverse complement sequence (site genomic position show "–" strand) the alt and ref sequences shown here are also revrse complemented.
+                      </li>
+                      <li>
+                        <b>Alignment</b> – Alignment of the DNA binding sites before (top sequence) and after(bottom sequence) mutation. 
+                        Mutated positions shown in upper case. The gaps are shown with "–". Nucleotides not bound by TF shown with "."(dot).
+                        If the site model was matched to the reverse complement sequence (site genomic position show "–" strand) the sequences shown here are also revrse complemented.</li>
+                      </li>
+                      <li>
+                        <b>Motif logo</b> – the logo of TRANSFAC site model. 
+                      </li>
+                      <li><b>Score on reference</b> – the score of binding site on the DNA before mutation as determined by TRANSFAC site model. The score is in the range [0-1], greater score means better binding site.</li>
+                      <li><b>Score on alternative</b> – the score of binding site on the DNA after mutation  as determined by TRANSFAC site model. The score is in the range [0-1], greater score means better binding site.</li>
+                      <li><b>Score on difference</b> – ("Score on reference" - "Score on alternative")</li>
+                      <li><b>p-value on reference</b> – the p-value of binding site on the DNA before mutation as determined by TRANSFAC site model.</li>
+                      <li><b>p-value on alternative</b> – the p-value of binding site on the DNA after mutation  as determined by TRANSFAC site model.</li>
+                      <li><b>p-value log10 fold change</b> – log10("p-value on reference"/"p-value on alternative"). It is positive for site gain and negative for site loss.</li>
+                      <li><b>Target genes</b> – the list of genes potentially regulated by the current TF binding site. The binding side should be located in [-5000,+500] region from TSS.</li>
+                      <li><b>TFClass</b> – link to the TFClass database.</li>
+                      <li><b>TFUniprot</b> – link to the Uniprot database.</li>
+                      <li><b>GTRD cell</b> – the cell/tissue where corresponding binding site was found using GTRD.</li>
+                      <li><b>GTRD treatment</b> – the treatment/conditions where corresponding binding site was found using GTRD.</li>
+                      <li><b>GTRD peak count</b> – the number of GTRD ChIP-seq peaks supporting this binding site (for the corresponding TF in the given cell with the specified treatment).</li>
+                      <li><b>Avg. peak score</b> – the average score of the matched GTRD peaks.</li>
+                      <li><b>Final score</b> – the final score taking into account changes in binding affinity and scores of the corresponding ChIP-seq peaks. It is positive for site gain and negative for site loss.</li>
+                      <li><b>Transpath pathways</b> – the list of transpath pathways for the corresponding transcription factor.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+            	<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#rmutations-accordion" href="#rmutations-collapse2">
+            	   Regulatory mutations
+            	</a>
+                  </h4>
+                </div>
+                <div id="rmutations-collapse2" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    The track of mutations that affect transcription factor binding. This is a subset of input VCF track.
+                    <br>
+                    <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Regulatory mutations">Open example in genome browser</a>.
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+            	<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#rmutations-accordion" href="#rmutations-collapse3">
+            	   Lost binding sites
+            	</a>
+                  </h4>
+                </div>
+                <div id="rmutations-collapse3" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    The track of binding sites that were lost as a result of mutations.
+                    <br>
+                    <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Lost binding sites">Open example in genome browser</a>.
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+            	<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#rmutations-accordion" href="#rmutations-collapse4">
+            	   Gained binding sites
+            	</a>
+                  </h4>
+                </div>
+                <div id="rmutations-collapse4" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    The track of binding sites that were gained as a result of mutations.
+                    <br>
+                    <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Gained binding sites">Open example in genome browser</a>.
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+            	<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#rmutations-accordion" href="#rmutations-collapse5">
+            	   Selected GTRD peaks
+            	</a>
+                  </h4>
+                </div>
+                <div id="rmutations-collapse5" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    The track of GTRD peaks supporting found mutated binding sites.
+                    <br>
+                    <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Selected GTRD peaks">Open example in genome browser</a>.
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+            	<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#rmutations-accordion" href="#rmutations-collapse6">
+            	   Site model mutation frequencies
+            	</a>
+                  </h4>
+                </div>
+                <div id="rmutations-collapse6" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    This table shows how often binding sites mutate for a given transcription factor.
+                    <br>Columns:</br>
+                    <ul>
+                      <li><b>ID</b> – the name of TRANSFAC site model.</li>
+                      <li><b>Site gains per mutation</b> – the number of site gains normalized to mutation count.</li>
+                      <li><b>Site losses per mutation</b> – the number of site losses normalized to mutation count.</li>
+                    </ul>
+                    <br>
+                    <a target=_parent href="/bioumlweb/#de=data/Examples/Regulatory mutations/Data/Results/Site model mutation frequencies">Open example</a>.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+<script type="text/javascript">
+function onLoad(fun) {
+  $(function() {fun();});
+}
+onLoad(function() {
+  window.parent.findWritableProjectPath(function(projectPath) {
+      $("#rmutations-import-data").click(function(){
+        window.parent.doImportMultiple(projectPath, false, function() {
+          window.parent.openBranch(projectPath);
+        });
+      });
+    },
+    function() {
+      window.parent.createConfirmDialog("No writable projects found, please create one.", function() {});
+    }
+  );
+});
+</script>
+  </body>
+</html>

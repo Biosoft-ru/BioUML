@@ -1,0 +1,20 @@
+/*
+ * Edit document view options
+ */
+{
+    id: "annotation_view_options",
+    label: "Edit diagram appearance",
+    icon: "icons/annot_options.png",
+    visible: "function(doc)
+    {
+    	if (doc instanceof Diagram && doc.isAnnotation)
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+    	getActiveDocument().editViewOptions();
+    }"
+}

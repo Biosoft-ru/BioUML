@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2007/05/03 09:24:05 alexander Exp $  -->
+
+<project name="ru.biosoft.access.support package test" default="autotest" basedir="../../../../..">
+
+  <property name="package" value="ru.biosoft.access.support"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="ru.biosoft.access.support._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="choicePane">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="${package}._test.MultyChoicePaneTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

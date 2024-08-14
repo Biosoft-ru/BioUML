@@ -1,0 +1,46 @@
+<h2>Flux Balance Analysis</h2>
+
+<p>
+Flux balance analysis is a mathematical approach for analyzing the flow of metabolites through a metabolic network.
+</p>
+
+<p>
+Metabolic reactions are represented as a stoichiometric matrix <i>S</i>.
+The flux through all of the reactions in a network is represented by the vector <i>v</i>.
+Flux Balance Analysis seeks to maximize or minimize an objective function <i>Z = c<sup>T</sup>v</i>, 
+which can be any linear combination of fluxes, where <i>c</i> is a vector of weights, 
+indicating how much each reaction contributes to the objective function.
+FBA can thus be defined as the use of linear programming to solve the equation <i>Sv = 0</i> 
+given a set of upper and lower bounds on <i>v</i> and a linear combination of fluxes as an objective function.
+</p>
+%parameters%
+
+<p>
+One should use <b>Building Flux Balance DataTable</b> or <b>Score based FBC table builder</b> analyses to generate FBC data table.
+</p>
+
+<h3>Example</h3>
+<p>
+FBC syntax example: a simple four reaction pathway. The reactions are <i>R1, R2, X1, X2</i> with fixed species <i>IN,
+OUT, ATP, NADH</i> and variable species <i>A, B</i>.
+ <div class="formula-text"><img src="fbc_1.png" alt="expression"></div>
+Using the reagent identity and stoichiometry it is possible to compactly describe this network in terms of its reaction
+stoichiometry:
+ <div class="formula-text"><img src="fbc_2.png" alt="expression"></div>
+ <div class="formula-text"><img src="fbc_3.png" alt="expression"></div>
+ There are capacity constraints in this example:
+ <div class="formula-text"><img src="fbc_4.png" alt="expression"></div>
+In this example the flux through reaction <i>R2</i> will
+be maximized.
+Solving this we find that maximization of flux through <i>R2</i> gives an optimal solution <i>R2 = 1</i> with one possible solution for <i>v</i>.
+<div class="formula-text"><img src="fbc_5.png" alt="expression"></div>	
+ </p> 
+ <ol class="references">
+  <li> Jeffrey D. Orth, Ines Thiele and Bernhard O. Palsson,
+    "What is flux balance analysis?".
+    Nature Biotechnology 28, 245-248 2010.
+  </li>
+  <li> 
+  <a href="http://identifiers.org/combine.specifications/sbml.level-3.version-1.fbc.version-1.release-1">SBML Level 3 Package Specification</a>
+  </li>
+</ol>

@@ -1,0 +1,24 @@
+/*
+ * Open as track
+ */
+{
+    id: "open as track",
+    label: "Open as track",
+    icon: "icons/track.png",
+    visible: "function(doc)
+    {
+    	if ((doc != null) && (doc.canOpenAsTrack)) 
+        {
+            return doc.canOpenAsTrack()?true:-1;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = opennedDocuments[activeDocumentId];
+        if (activeDocument.openAsTrack) 
+        {
+            activeDocument.openAsTrack();
+        }
+    }"
+}

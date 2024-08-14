@@ -1,0 +1,4 @@
+@import biouml = "databases/Utils/Antimony/biouml.yaml";
+model diagramTest
+   species X, Y, Z;
+end

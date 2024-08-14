@@ -1,0 +1,34 @@
+<h2>Functional classification</h2>
+<p>
+	This analysis allows you to classify set of genes into groups.
+	Several types of classifications may be available for you,
+	for example, "Full gene ontology classification" (includes all groups
+	from GO database) or "GO (biological process)" (includes only groups representing biological process).
+</p>
+<p>
+    For this analysis you have to prepare input table having Ensembl genes as rows. If your data have different row identifiers, consider
+	using "%analysis:Convert table%" analysis first. Only row names are significant for this analysis; columns data is ignored.
+</p>
+%parameters%
+<h3>Result</h3>
+<p>
+	As the result of this analysis you will see the table where each row corresponds to the single group.
+	The following columns are always present in the result:
+</p>
+<ul>
+	<li><b>ID</b>: Accession number representing given group.
+	<li><b>Number of hits</b> (<i>n</i>): Number of genes or other biological objects from the group matched to some rows in the input set.
+	Only groups for which <i>n &ge; n<sub>min</sub></i> are included into result.  
+	<li><b>Group size</b> (<i>m</i>): Total number of genes or other biological objects in the given group. <i>n &le; m</i>.
+	<li><b>Expected hits</b> (<i>n<sub>exp</sub></i>): Number of hits expected in the random input set of given size.
+	<div class="formula-text"><img src="n_exp.png" alt="n_exp"></div>
+	where <i>N</i> is number of genes from the input set matched to any group in given classification and <i>M</i> is total number of genes which appear in given classification.
+	If <i>n &gt; n<sub>exp</sub></i>, then the group is over-represented. If "Only over-represented" option was set, all groups not satisfying this condition are excluded from the result.
+	<li><b>P-value</b> (<i>P</i>): Hypergeometric p-value (cumulative distribution function of hypergeometric distribution) having <i>m</i>, <i>M</i>, <i>n</i>, <i>N</i> as parameters.
+	Only groups for which <i>P &le; P<sub>max</sub></i> are included into result.
+	<li><b>Hits</b>: List of Ensembl IDs from the input set matched to the group. Note that number of Ensembl IDs might differ from <i>n</i> as classification internal objects might differ from Ensembl genes.
+	For example, GO uses gene symbols internally, and several Ensembl gene IDs may match to the same gene symbol. 
+</ul>
+<p>
+	More columns may present for specific classifications (e.g. group description). Column 'Level' if present means minimal number of steps necessary to achieve the root of classification hierarchy (thus higher values mean more specific and smaller groups). 
+</p>

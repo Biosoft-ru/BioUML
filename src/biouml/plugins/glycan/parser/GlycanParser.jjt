@@ -1,0 +1,210 @@
+/***************************************************************
+                   OPTIONS
+***************************************************************/
+options 
+{
+    MULTI = true;
+    NODE_DEFAULT_VOID = true;
+    STATIC = false;
+    NODE_PREFIX = "Glycan";
+    DEBUG_PARSER = false;
+    TRACK_TOKENS=true;
+}
+
+/***************************************************************
+                   PARSER BEGIN
+***************************************************************/
+PARSER_BEGIN(GlycanParser)
+
+package biouml.plugins.glycan.parser;
+
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class GlycanParser
+{
+
+    /** Default constructor. */
+    public GlycanParser()
+    {
+        this(new StringReader("0"));
+    }
+
+    public GlycanTree parse(Reader reader)
+    {
+        GlycanTree astTree = null;
+        try
+        {
+            reInitParser();
+            ReInit(reader);
+            astTree = Start();
+        }
+        catch(ParseException e)
+        {
+            fatalError(e.getMessage());
+        }
+        catch(Throwable t)
+        {
+            error(t.getMessage());
+        }
+        return astTree;
+    }
+    
+    private void reInitParser()
+    {
+        messages = new ArrayList<String>();
+        status = 0;
+    }
+    
+    private void addBranch(int lastChildIndex, Node parent, Node newParent)
+    {
+        Node lastChild = parent.jjtGetChild(lastChildIndex);
+        newParent.addAsLast(lastChild);
+        for( int i = lastChildIndex - 1; i >= 0; i-- )
+        {
+            Node currentChild = parent.jjtGetChild(i);
+            if( currentChild instanceof GlycanBranch )
+                addBranch(currentChild.jjtGetNumChildren() - 1, currentChild, lastChild);
+            else if( currentChild instanceof GlycanMolecule )
+            {
+                addBranch(i, parent, lastChild);
+                break;
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+    // Error processing issues
+    //
+    /** The expression was parsed successfully without any errors or warnings. */
+    public static final int STATUS_OK           = 0;
+
+    /** There were some warnings during expression parser. */
+    public static final int STATUS_WARNING      = 1;
+
+    /** There were some errors during expression parser. */
+    public static final int STATUS_ERROR        = 2;
+
+    /** Some fatal errors have occurred during the parser. */
+    public static final int STATUS_FATAL_ERROR  = 4;
+
+    protected int status;
+    public int getStatus()
+    {
+        return status;
+    }
+
+    protected List<String> messages = new ArrayList<String>();
+    public List<String> getMessages()
+    {
+        return messages;
+    }
+
+    public void warning(String warningStr)
+    {
+        messages.add("Warning: " + warningStr + ".");
+        status |= STATUS_WARNING;
+    }
+
+    public void error(String errorStr)
+    {
+        messages.add("Error: " + errorStr + ".");
+        status |= STATUS_ERROR;
+    }
+
+    public void fatalError(String errorStr)
+    {
+        messages.add("Syntax error: " + errorStr + ".");
+        status |= STATUS_FATAL_ERROR;
+    }
+}
+
+PARSER_END(GlycanParser)
+
+/***************************************************************
+                       SKIP & TOKENS
+***************************************************************/
+SPECIAL_TOKEN : /* instead of SKIP */
+{
+  " " 
+| "\t"
+| <"#" ~[" ","\n","\r"] (~["\n","\r"])*>
+| <"\\" ("\n"|"\r"|"\r\n")>
+}
+
+TOKEN : /* RESERVED WORDS */
+{
+<CONNECTION: ("a"|"b") (["0"-"9"]) >
+|
+<L_BRAKET: "(">
+|
+<R_BRAKET: ")">
+|
+<MOLECULE: "M" | "GN" | "G" | "AN" | "A" | "F" | "NN">
+}
+
+/***************************************************************
+                   GRAMMAR START
+***************************************************************/
+GlycanTree Start() #Tree :
+{}
+{
+    MainBranch()
+    {
+    GlycanTree restructuredTree = new GlycanTree(GlycanParser.JJTTREE);
+    addBranch(jjtThis.jjtGetNumChildren() - 1, jjtThis, restructuredTree);
+    return restructuredTree;
+    }
+}
+
+void MainBranch() :
+{}
+{
+    ( LOOKAHEAD(2) EndingMolecule() | Branch() | MoleculeSequence() )*
+}
+
+void Branch() #Branch:
+{ 
+    boolean invalid = false;
+}
+{
+    ( <L_BRAKET> )
+    ( ( Branch() {invalid = true;} | MoleculeSequence() {invalid = false;} )+ )
+    ( <R_BRAKET> )
+    {
+    if(invalid)
+        fatalError("Branch should be connected to molecule. Error in: '" + jjtThis.toString() + "'");
+    }
+}
+
+void EndingMolecule() :
+{}
+{
+    Molecule() <EOF>
+}
+
+void MoleculeSequence() :
+{ 
+GlycanMolecule molecule;
+String bind = "";
+}
+{
+    molecule = Molecule()
+    bind = Bind()
+    { molecule.setBind(bind);}
+}
+
+String Bind() :
+{}
+{
+    <CONNECTION>
+    {return token.image;}
+}
+
+GlycanMolecule Molecule() #Molecule:
+{}
+{
+    <MOLECULE> { jjtThis.setName(token.image); return jjtThis; }
+}

@@ -1,0 +1,37 @@
+<tool name="Unified genotyper" id="unified-genotyper" version="1.5-11">
+  <command>
+  rungatk $memoryUsage -T UnifiedGenotyper
+  -R "${ refGenome.fields.path }"
+  -I "$input_bam"
+  -l INFO -log "$logFile"
+  -nt $numThreads
+  #if str( $interval ) != "":
+    -L "$interval"
+  #end if
+  -o "$out"
+  </command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file" />
+    
+    <param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="gatk_picard_indexes">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+    <param name="interval" type="text" default="" label="Process only this genomic interval (chr1:50000000-80000000)" />
+    
+	<param name="numThreads" type="integer" label="Number of threads" value="60" />
+	<param name="memoryUsage" type="text" label="Max memory usage" value="16G" />
+    
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="logFile" label="Log file" />
+    <data format="vcf" name="out" label="Genotype calls" />
+  </outputs>
+  
+  <help>
+  </help>
+</tool>

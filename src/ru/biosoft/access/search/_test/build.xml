@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.3 2007/05/03 09:24:05 alexander Exp $  -->
+
+<project name="ru.biosoft.access.search package test" default="autotest" basedir="../../../../..">
+
+  <property name="package" value="ru.biosoft.access.search"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="ru.biosoft.access.search._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="test.ds">
+    <ant target="rtest">
+      <property name="testui" value="swingui"/>
+      <property name="test" value="ru.biosoft.access.search._test.DataSearchTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

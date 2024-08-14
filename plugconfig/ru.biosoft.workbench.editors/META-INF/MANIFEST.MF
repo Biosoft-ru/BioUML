@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: Workbench editors
+Bundle-SymbolicName: ru.biosoft.workbench.editors;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: biouml.workbench,
+ one.util.streamex,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ gnu.trove,
+ org.eclipse.osgi,
+ json,
+ ru.biosoft.access
+Export-Package: ru.biosoft.workbench.editors

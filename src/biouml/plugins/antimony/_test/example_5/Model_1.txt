@@ -1,0 +1,1 @@
+//Created by libAntimony v2.4model PhysicalConstants__PhysicalConstants(GasConstant)  // Assignment Rules:  GasConstant := 8.3144621;endmodel *PhysicalConstants____main()  // Sub-modules, and any changes to those submodules:  PhysicalConstants: PhysicalConstants__PhysicalConstants(GasConstant);end

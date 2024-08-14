@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.5 2007/08/28 07:39:17 puz Exp $  -->
+
+<project name="biouml.model.dynamics package test" default="autotest" basedir="../../../..">
+
+	<property name="package" value="biouml.model.dynamics" />
+
+	<target name="test">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.EModelTest" />
+		</ant>
+	</target>
+
+	<target name="test.event">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.EventTest" />
+		</ant>
+	</target>
+
+	<target name="test.state">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.StateTest" />
+		</ant>
+	</target>
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="test" value="biouml.model.dynamics._test.AutoTest" />
+		</ant>
+	</target>
+
+	<target name="test.helper">
+		<ant target="rtest">
+			<property name="test" value="${package}._test.EModelHelperTest" />
+		</ant>
+	</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

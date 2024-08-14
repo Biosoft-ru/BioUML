@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.proteinmodel;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.workbench,
+ com.developmentontheedge.beans,
+ com.mysql.cj,
+ org.apache.commons.lang,
+ one.util.streamex,
+ ru.biosoft.access,
+ ru.biosoft.exception
+Export-Package: biouml.plugins.proteinmodel

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2007/05/07 05:56:57 alexander Exp $  -->
+
+<project name="biouml.standard.filter package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.standard.filter"/>
+
+    <target name="test">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.FilterTest"/>
+        </ant>
+    </target>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.standard.filter._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

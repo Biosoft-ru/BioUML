@@ -1,0 +1,34 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: Lucene Plug-in
+Bundle-SymbolicName: org.apache.lucene;singleton:=true
+Bundle-Version: 9.11.1
+Bundle-Vendor: Apache Lucene
+Require-Bundle: org.eclipse.osgi,
+ org.eclipse.core.runtime
+Bundle-ClassPath: lucene-analysis-common-9.11.1.jar,lucene-core-9.11.1.jar,lucene-highlighter-9.11.1.jar,lucene-queryparser-9.11.1.jar,lucene-queries-9.11.1.jar,lucene-memory-9.11.1.jar
+Export-Package: org.apache.lucene,
+ org.apache.lucene.analysis,
+ org.apache.lucene.analysis.core,
+ org.apache.lucene.analysis.br,
+ org.apache.lucene.analysis.cjk,
+ org.apache.lucene.analysis.cz,
+ org.apache.lucene.analysis.de,
+ org.apache.lucene.analysis.el,
+ org.apache.lucene.analysis.fr,
+ org.apache.lucene.analysis.ngram,
+ org.apache.lucene.analysis.nl,
+ org.apache.lucene.analysis.ru,
+ org.apache.lucene.analysis.sinks,
+ org.apache.lucene.analysis.snowball,
+ org.apache.lucene.analysis.standard,
+ org.apache.lucene.analysis.th,
+ org.apache.lucene.document,
+ org.apache.lucene.index,
+ org.apache.lucene.queryparser,
+ org.apache.lucene.queryparser.classic,
+ org.apache.lucene.search,
+ org.apache.lucene.search.highlight,
+ org.apache.lucene.store,
+ org.apache.lucene.util

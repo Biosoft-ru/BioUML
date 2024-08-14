@@ -1,0 +1,33 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $utils.formatHtml( $name ) <br>
+	#end
+#end
+
+#macro( deRefWithTitle $path $title $label )
+  #if ( $path && !$path.toString().isEmpty() )
+    <b>$label</b>: <a href="de:$path">$title</a><br>
+  #end
+#end
+
+<b>Histone modification cluster</b><br>
+
+#strField($de.getStableId(), "Stable ID")
+#strField("$de.getChr():$de.getFrom()-$de.getTo()", "Location")
+#strField("$de.getTarget()", "Target")
+
+#deRefWithTitle("databases/GTRD/Dictionaries/cells/$de.getCell().getName()", "$de.getCell().getTitle()", "Cell")
+
+#strField("$de.peakCaller", "Peak caller")
+
+#strField("$de.peakCount", "Peak count")
+
+#if ( $de.hasSummit() )
+  #strField($de.meanAbsSummit, "MeanAbsSummit")
+  #strField($de.medianAbsSummit, "MedianAbsSummit")
+#end
+
+#strField($de.meanPileup, "MeanPileup")
+#strField($de.medianPileup, "MedianPileup")
+#strField($de.meanFoldEnrichment, "MeanFoldEnrichment")
+#strField($de.medianFoldEnrichment, "MedianFoldEnrichment")

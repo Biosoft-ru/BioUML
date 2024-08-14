@@ -1,0 +1,259 @@
+<tool id="breakdancer-max" name="BreakDancer-MAX" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>	
+ <param name="Bam" type="data" format="bam" label="BAM file" 
+	      help="BAM file"/>
+         
+ <param name="platform" type="select" label="Platform" 
+                        help="Select output format">
+                                <option value="">Illumina</option>
+                                <option value="-C">Solid</option>
+ </param>
+       <param name="min_map_qual" type="integer" value="35" label="Minumum mapping quality [35]" 
+                    help="Minumum mapping quality [35]"/>
+<!-- BreakDancer config parameters-->
+      <param name="map_inst_alt" type="boolean" truevalue="-m" falsevalue="" checked="False" label="Using mapping quality instead of alternative ampping quality" 
+                                help="Using mapping quality instead of alternative ampping quality" />
+       <!-- param name="min_ins_size" type="integer" value="50" label="Minimal mean insert size [50]" 
+                    help="Minimal mean insert size [50]"/ not supported but present in manual-->
+       <param name="cutoff_std" type="float" value="4.00" label="Cut off in unit of standard deviation [4.00]" 
+                    help="Cut off in unit of standard deviation [4.00]"/>
+       <param name="num_observ" type="integer" value="10000" label="Number of observation for std" 
+                    help="Number of observation required to estimate mean and s.d. insert size [10000]"/>
+       <param name="cuttoff_var" type="float" value="1" label="Cutoff on coefficients of variation [1.0]" 
+                    help="Cutoff on coefficients of variation [1.0]"/>
+       <param name="header_fix" type="string" value="" label="A two column tab-delimited text file (RG, LIB) specify the RG=>LIB mapping" 
+                    help="A two column tab-delimited text file (RG, LIB) specify the RG=>LIB mapping, useful when BAM header is incomplete"/>
+       <param name="bins" type="integer" value="50" label="Number of bins in the histogram [50]" 
+                    help="Number of bins in the histogram [50]"/>
+      <param name="out_mapping" type="boolean" truevalue="-g" falsevalue="" checked="True" label="Output mapping flag distribution" 
+                                help="Output mapping flag distribution" />
+      <param name="histograms" type="boolean" truevalue="-h" falsevalue="" checked="True" label="Plot insert size histogram for each BAM library" 
+                                help="Plot insert size histogram for each BAM library" />
+
+<!-- BreakDancer-max cpp parameters -->
+       <param name="min_length" type="integer" value="7" label="minimum length of a region [7]]" 
+                    help="minimum length of a region [7]"/>
+        <param name="cutoff_std" type="integer" value="3" label="cutoff in unit of standard deviation [3]" 
+                    help="cutoff in unit of standard deviation [3]"/>
+       <param name="max_sv" type="integer" value="1000000000" label="maximum SV size [1000000000]" 
+                    help="maximum SV size [1000000000]"/>
+       <param name="min_map_qual" type="integer" value="35" label="minimum alternative mapping quality [35]" 
+                    help="minimum alternative mapping quality [35]"/>
+       <param name="min_read_pairs" type="integer" value="6" label="minimum number of read pairs required to establish a connection [6]" 
+                    help="minimum number of read pairs required to establish a connection [6]"/>
+       <param name="max_thr_hapl" type="integer" value="1000" label="maximum threshold of haploid sequence coverage for regions to be ignored [1000]" 
+                    help="maximum threshold of haploid sequence coverage for regions to be ignored [1000]"/>
+       <param name="buff_size" type="integer" value="100" label="buffer size for building connection [100]" 
+                    help="buffer size for building connection [100]"/>
+       <param name="score_filter" type="integer" value="30" label="output score filter [30]" 
+                    help="output score filter [30]"/>
+      <param name="mate_pair" type="boolean" truevalue="-l" falsevalue="" checked="False" label="analyze Illumina long insert (mate-pair) library" 
+                                help="analyze Illumina long insert (mate-pair) library" />
+      <param name="print_by_library" type="boolean" truevalue="-a" falsevalue="" checked="False" label="copy number and support reads per library" 
+                                help="print out copy number and support reads per library rather than per bam [off]" />
+      <param name="allele_freq" type="boolean" truevalue="-h" falsevalue="" checked="True" label="print out Allele Frequency column" 
+                                help="print out Allele Frequency column [off]" />
+                    
+       <conditional name="region_selector">
+   		      <param name="regions" type="select" label="Operate by region" 
+                        help="Select output format">
+                                <option value="All">All</option>
+                                <option value="transchromosomal">transchromosomal</option>
+                                <option value="region">Specify region</option>
+            </param>
+              <when value="All" />
+              <when value="transchromosomal" />
+              <when value="region">
+                  <param name="spec_region" type="text" label="Chromosome name" 
+                     help="You need to specify the exact reference names as they are in the bam files." default="1" />
+              </when>
+       </conditional>
+       <param name="nThreads" type="integer" label="Maximal number of threads" value="30" />
+	<param name="tmpFolder" type="text" label="TMP folder" value="/mnt/ssd/Galaxy-tmp" />
+       
+	</inputs>
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data format="txt" name="ctx" label="Break Dancer output" />
+		<data format="zip" name="outputs" label="Output folder" />
+	</outputs>
+
+
+<configfiles>
+<configfile name="script2">#!/bin/bash
+HHH=\$1
+breakdancer-max -o "\$HHH" \
+ -s $min_length -c $cutoff_std -m $max_sv -q $min_map_qual -r $min_read_pairs -x $max_thr_hapl \
+ -b $buff_size -y $score_filter $mate_pair $print_by_library $allele_freq \
+ -d \$HHH.fastq -g \$HHH.bed \
+ breakdancer.cfg  &gt; breakdancer-\$HHH.ctx
+ STATUS=\$?
+ if [ "\$STATUS" != "0" ] ; then
+         echo "breakdancer for \$HHH chromosome exit with error \$STATUS" &gt;&gt; $log                                                                                                           
+         echo "breakdancer for \$HHH chromosome exit with error \$STATUS"
+	if [ "\$STATUS" == "139" ] ; then 
+     		STATUS=0 ### fixing bug in breakdancer. it produce error 139 if no reads present for chromosome 
+  	fi
+ fi
+ exit \$STATUS
+</configfile>
+
+
+<configfile name="script">#!/bin/bash -v
+export PATH=\$PATH:/opt/tools/breakdancer/default
+DEST=`dirname $log`
+cd \$DEST
+
+PREFIX="breakdancer-\$RANDOM"
+mkdir -p $tmpFolder/\$PREFIX
+mv -v * $tmpFolder/\$PREFIX/
+
+cd $tmpFolder/\$PREFIX/
+
+rm -Rf  \$DEST
+ln -s $tmpFolder/\$PREFIX/ \$DEST
+cd \$DEST
+
+err="\$DEST/err.pipe"
+echo \$err
+
+echo "BreakDancer started at `date`" &gt;  "$log"
+
+mkfifo "\$err"
+trap 'cat "$log".tmp &gt;&gt; "$log" ; rm -f "\$err" ; rm -Rf $tmpFolder/\$PREFIX/' EXIT
+### trap 'cat "$log".tmp &gt;&gt; "$log" ; rm -f "\$err"' EXIT
+
+tee "$log".tmp &lt; "\$err" &gt;&amp;2 &amp;
+
+###breakDancer require to have indexes in the format bamfile.bai (example for file.bam index should be file.bam.bai galaxy usually provides it as file.bai)
+filename=\$(basename "$Bam")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+if [ "\$?" != "0" ] ; then
+   echo "index file for BAM was not found" 
+   exit 1
+fi
+
+
+bam2cfg.pl -q $min_map_qual $map_inst_alt $platform -c $cutoff_std -n $num_observ -v $cuttoff_var \
+#if str ( $header_fix ) != "":
+  #if str ( $header_fix ) != "None" :
+    -f $header_fix \
+  #end if
+#end if
+-b $bins $out_mapping $histograms $Bam &gt; breakdancer.cfg  2&gt;"\$err"
+STATUS=\$?
+ if [[ "\$STATUS" != "0" ]]
+   then 
+     echo "BreakDancer config creation terminated with error" 
+     exit \$STATUS
+fi
+echo "BreakDancer configure log done at `date`" &gt;&gt;  "$log"
+
+
+echo "" &gt; breakdancer-inter.ctx
+
+#if str ( $region_selector.regions ) != "region" :
+transchromosomal () { 
+echo "transchromosomal started at `date`" 
+breakdancer-max -t \
+ -s $min_length -c $cutoff_std -m $max_sv -q $min_map_qual -r $min_read_pairs -x $max_thr_hapl \
+ -b $buff_size -y $score_filter $mate_pair $print_by_library $allele_freq \
+ -d inter.fastq -g inter.bed \
+ breakdancer.cfg  &gt; breakdancer-inter.ctx
+ exit \$?
+ }
+ 
+   transchromosomal &amp;
+   transPID=\$!
+#end if
+
+#if str ( $region_selector.regions ) == "region" :
+breakdancer-max -o "$region_selector.spec_region" \
+ -s $min_length -c $cutoff_std -m $max_sv -q $min_map_qual -r $min_read_pairs -x $max_thr_hapl \
+ -b $buff_size -y $score_filter $mate_pair $print_by_library $allele_freq \
+ -d "$region_selector.spec_region".fastq -g "$region_selector.spec_region".bed \
+ breakdancer.cfg  &gt;  breakDancer."$region_selector.spec_region".ctx 
+singlePID=\$!
+singleStatus=\$?
+if \$singleStatus;  then
+        echo "breakDancer for single chromosome succeeded"
+    else
+       echo "breakDancer for single chromosome FAILED!! (returned \$singleStatus)"
+       exit \$singleStatus
+    fi
+#end if
+
+#if str ( $region_selector.regions ) == "All" :
+samtools view -H $Bam | grep "SN:" | awk '{print $2}'| sed -e 's/SN://' | xargs -n 1 -P $nThreads -t /bin/bash "$script2"
+
+STATUS=\$?
+ if [[ "\$STATUS" != "0" ]]
+   then
+     echo "BreakDancer terminated with error"
+     exit \$STATUS
+fi
+#end if
+
+if [[ "\$transPID" != "" ]] ; then
+    if wait \$transPID; then
+        echo "breakDancer for transchromosomal succeeded"
+    else
+       status=\$?
+       echo "breakDancer for transchromosomal FAILED!! (returned \$status)"
+       exit \$status
+    fi
+fi
+
+mkdir -p "${outputs}_dir"
+
+ls *.fastq.* |sed 's/^.*fastq.//'| sort | uniq | xargs -n 1 -P 1 -I %% -t sh -c '{ ls *.%% | sort | xargs -n 1 -P 1 -t -I -- cat -- &gt;&gt;  "${outputs}_dir"/breakDancerSupportingReads.%%;  }'
+rm *.fastq
+
+ls *.bed | sort |  xargs -n 1 -P 1 -t -I -- cat -- &gt;&gt;  "${outputs}_dir"/breakDancer-sv.bed
+rm *.bed
+
+awk 'NR &gt; 5 { exit }; 1' `ls *.ctx| sort -n | head -1 ` &gt; all.ctx.tmp
+awk 'FNR &gt; 5' *.ctx &gt;&gt; all.ctx.tmp
+rm *.ctx
+
+### mv all.ctx.tmp $ctx
+
+mv *.insertsize_histogram* "${outputs}_dir"/
+
+zip -rj outputArchive.zip "${outputs}_dir"
+
+cd $tmpFolder/\$PREFIX/
+rm \$DEST ## removing soft link
+mkdir \$DEST
+mv all.ctx.tmp $ctx
+mv *.tmp \$DEST/
+mv outputArchive.zip ${outputs}
+
+cd \$DEST
+  </configfile>
+  
+  </configfiles>
+<help>
+Overview
+BreakDancer-1.1, released under GPLv3, is a Perl/Cpp package that provides genome-wide detection of structural variants from next generation paired-end sequencing reads. It includes two complementary programs.
+
+BreakDancerMax predicts five types of structural variants: insertions, deletions, inversions, inter- and intra-chromosomal translocations from next-generation short paired-end sequencing reads using read pairs that are mapped with unexpected separation distances or orientation.
+
+Step 1. Create a configuration file using bam2cfg.pl
+e.g.,
+myDirectory/bam2cfg.pl -g -h tumor.bam normal.bam &gt; BRC6.cfg
+bam2cfg now only has the perl version.
+
+Manually view the insert size and flag distribution results in BRC6.cfg to see if there are any data quality issue. Usually std/mean should be &lt; 0.2 or 0.3 at most. The flag 32(x%), represents percent of chimeric insert, this number (x%) should usually be smaller than 3%.
+
+View png files for the insert size distribution. You should usually see a normal distribution, a bimodal distribution is undesirable and it is not recommended to continue BreakDancerMax step with this situation existing.
+
+web-site: http://breakdancer.sourceforge.net/breakdancermax.html
+paper: http://www.nature.com/nmeth/journal/v6/n9/abs/nmeth.1363.html
+
+</help>
+
+</tool>
+

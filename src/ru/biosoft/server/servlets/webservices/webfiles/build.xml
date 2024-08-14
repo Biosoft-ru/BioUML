@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2011/05/20 03:56:36 lan Exp $  -->
+
+<project name="BioUML" default="incBuild" basedir=".">
+
+<target name="incBuild">
+	<echo>Increment build number</echo>
+	<delete file="defines.js.tmp"/>
+    <copy file="defines.js" tofile="defines.js.tmp">
+      <filterchain>
+		<tokenfilter>
+			<scriptfilter language="javascript"><![CDATA[
+				var token = new String(self.getToken());
+				var matches = token.match(/build: \"(\d+)\"/);
+				if(matches != null)
+				{
+					self.setToken(token.replace(/\"\d+\"/, "\""+(parseInt(matches[1])+1)+"\""));
+				}
+			]]></scriptfilter>
+		</tokenfilter>
+      </filterchain>
+    </copy>
+	<delete file="defines.js"/>
+	<copy file="defines.js.tmp" tofile="defines.js"/>
+	<delete file="defines.js.tmp"/>
+  </target>
+</project>

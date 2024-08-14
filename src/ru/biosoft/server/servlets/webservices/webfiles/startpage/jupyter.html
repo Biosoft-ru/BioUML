@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="../css/intro.css" rel="stylesheet" />
+  <style>
+    ol.main-list>li {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    
+    ul>li {
+	font-weight: normal;
+    }
+
+    ul.sub-list>li {
+      margin: 10px 0;
+    }
+    
+    .column {
+      float: left;
+      width: 50%;
+    }
+    /* Clear floats after the columns */
+    
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  </style>
+
+</head>
+
+<body class="intro-styles">
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+  <h2>Jupyter ноутбуки</h2>
+  <div>
+  <b>Jupyter notebook/hub</b> - широко используемый инструмент для интерактивного воспроизводимого анализа и визуализации данных. 
+  Он поддерживает использование множества языков программирования. Для этого используется понятие kernel - для каждого ноутбука на сервере 
+  запускается указанный kernel, который собственно и выполняет анализ и визуализацию данных, взаимодействуя с веб-интерфейсом (ноутбуком) 
+  через заданный API и передачу данных в JSON формате.
+  </div>
+  <img src="../images/jupyter.png"/>
+  <div>
+  Для этого были разработаны библиотеки на языках программирования R и Python 3:
+  <ul>
+  <li>rbiouml (<a href="https://cran.r-project.org/web/packages/rbiouml/index.html" target="_blank">https://cran.r-project.org/web/packages/rbiouml/index.html</a>)
+  - библиотека для работы с BioUML с помощью написания кода на языке программирования R.</li>
+  <li>pybiouml (<a href="https://pypi.org/project/pybiouml/" target="_blank">https://pypi.org/project/pybiouml/</a>) - библиотека для работы с BioUML с помощью 
+  написания кода на языке программирования Python 3.</li>
+  </ul>
+  </div>
+  <div>
+  Примеры ноутбуков:
+<ul>
+  <li><a href="/bioumlweb/#de=data/Collaboration/Phylogenetic%20analysis/Data/Doc/phylogenetics_example.ipynb" target="_parent">филогенетический анализ (Python 3)</a>
+	</li>
+  </ul>
+</div>
+  <div><a href="http://wiki.biouml.org/index.php/Jupyter" target="_blank">Создание Jupyter ноутбука</a></div>
+</body>
+
+</html>

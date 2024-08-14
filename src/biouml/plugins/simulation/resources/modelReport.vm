@@ -1,0 +1,16 @@
+﻿<head>
+<meta charset="utf-8">
+<title>Model $name analysis</title>
+</head>
+<body>
+<h2>Rate variables</h2>
+Variables with largest rates:
+#set ($rateVars = $report.getRateVariables())
+#set ($rates = $report.getRates())
+#set ($rateNumber = $rates.size() - 1)
+<ol>
+#foreach( $i in [0..$rateNumber] )
+<li>$rateVars.get($i)&nbsp&nbsp&nbsp$rates.get($i)</li>
+#end
+</ol>
+</body

@@ -1,0 +1,35 @@
+/*
+ * Open database reference on element click
+ */
+{
+    id: "open_external_url",
+    label: "Open external link",
+    icon: "icons/open.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        if(dc.isDataCollectionClass())
+        {
+        	var template = dc.getAttributes()['url-template'];
+        	if(template != undefined)
+            	return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        var dcpath = getElementPath(path);
+		var name = getElementName(path);
+		if(!dcpath || !name) return -1;
+        var dc = getDataCollection(dcpath);
+        var template = dc.getAttributes()['url-template'];
+        if(template != undefined)
+        {
+            var href = appInfo.serverPath+'map?de=' + path;
+            window.open(href);
+        }
+    }"
+}

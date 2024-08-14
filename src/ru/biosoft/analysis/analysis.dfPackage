@@ -1,0 +1,598 @@
+package idydxhflqdcyutflqkkqvj;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisMethod:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.StudentAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference40 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference41 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference43 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference45 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisDialog:oiref><oihard>
+@__modelType reference 
+*/
+class reference46 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference48 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.StudentAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference49 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MetaAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference50 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference53 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.Stat:oiref><oihard>
+@__modelType reference 
+*/
+class reference54 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AddExperimentDialog:oiref><oihard>
+@__modelType reference 
+*/
+class reference58 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference59 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference60 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference61 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference62 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.StudentAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference63 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MetaAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference64 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MetaAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference65 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference66 {
+}/**
+@__ref <oiref:design#Class#id3xjd9flqdcyutflqkl1uy.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis.javascript:oiref> 
+*/
+class reference67 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference68 {
+}/**
+@__ref <oiref:design#Class#id4pc8uflqdcyutflqkl1ui.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis._test:oiref> 
+*/
+class reference69 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.Util:oiref><oihard>
+@__modelType reference 
+*/
+class reference70 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisMethodSupport:oiref><oihard>
+@__modelType reference 
+*/
+class reference71 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AddSampleGroupDialog:oiref><oihard>
+@__modelType reference 
+*/
+class reference72 {
+}/**
+@__ref <oiref:design#Class#id12floflqdcyutflqkl1ui.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis.editors:oiref> 
+*/
+class reference73 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference76 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference77 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference78 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisMethodRegistry:oiref><oihard>
+@__modelType reference 
+*/
+class reference81 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MetaAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference5 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference6 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference7 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.StudentAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference9 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference10 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference11 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference1 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference2 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference3 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference4 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference8 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference12 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference13 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference14 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference15 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference16 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference17 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference18 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference19 {
+}/**
+@__ref <oiref:design#Class#id1p1kgfmu5fxm1fmu649qe.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis.optimisation:oiref> 
+*/
+class reference20 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference74 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.JoinTableParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference75 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.JoinTable:oiref><oihard>
+@__modelType reference 
+*/
+class reference79 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference80 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference82 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.JoinTableParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference83 {
+}/**
+@__ref <oiref:design#Class#id4hxl9fq6d90cxfq6da2my.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#ru.biosoft.analysis.resources:oiref> 
+*/
+class reference84 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference85 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AddKeysDialog:oiref><oihard>
+@__modelType reference 
+*/
+class reference86 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.JoinTableBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference87 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference88 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.VennAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference89 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.VennAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference90 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.VennAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference91 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.CELNormalization:oiref><oihard>
+@__modelType reference 
+*/
+class reference92 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysisBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference93 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.CELNormalizationBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference94 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AbstractAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference95 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference96 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysisParametersMessageBundle:oiref><oihard>
+@__modelType reference 
+*/
+class reference97 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.VennAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference98 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysisParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference99 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.AnalysisParametersFactory:oiref><oihard>
+@__modelType reference 
+*/
+class reference100 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysis:oiref><oihard>
+@__modelType reference 
+*/
+class reference101 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.CELNormalizationParametersBeanInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference102 {
+}/**
+@__ref <oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysisParameters:oiref><oihard>
+@__modelType reference 
+*/
+class reference103 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysisBeanInfo:oiref>=-465,1562,203,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysisParameters:oiref>=1914,1118,219,366,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AddKeysDialog:oiref>=3416,1250,177,184,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SimpleStatisticsAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=664,778,867,567:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=1975,232,1975,128:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.KolmogorovAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=801,506,801,729:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.LehmannRosenblattAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=291,471,719,729:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MetaAnalysisParameters:oiref>=847,1107,219,119,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MicroarrayAnalysisParameters#ru.biosoft.analysis.AbstractAnalysisParameters:oiref>=1093,1572,2485,1572:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=-645,1177,893,1539:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.CELNormalizationParametersBeanInfo:oiref>=475,2060,203,99,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MetaAnalysisBeanInfo:oiref>=-376,1942,147,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=-402,775,794,567:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=1730,232,1952,128:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.TwoSamplesAnalysis#parameters:oiref>=-645,979,-645,1115:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-86,2430,-86,2351:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysisParametersBeanInfo:oiref>=124,2303,203,81,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=1196,1314,898,1314:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=234,2418,-59,2351:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.StudentAnalysis#parameters:oiref>=-411,960,-411,1115:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisDialog:oiref>=3149,485,219,944,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.KolmogorovAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=215,197,1883,128:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.LehmannRosenblattAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=135,547,1906,128:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisParameters:oiref>=2502,1688,127,137,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.KolmogorovAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-489,2156,-134,2233:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisPanel#ru.biosoft.analysis.AnalysisParametersPane:oiref>=557,729,708,232:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.CELNormalization:oiref>=2861,500,219,223,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisPanel#ru.biosoft.analysis.AnalysisParametersPane:oiref>=111,729,636,232:oigroup>
+<oigroup:<oiref:java#Member#ru.biosoft.analysis.MicroarrayAnalysis#$$constructor$$#(##)#:oiref>=887,1328,0,0,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysisBeanInfo#ru.biosoft.analysis.AnalysisBeanInfo:oiref>=3449,196,3449,109:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.ShiftedRegressionAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=2009,785,965,567:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysisParametersBeanInfo:oiref>=-113,2430,203,81,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=284,1942,-38,1843:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.JoinTableBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-275,1867,-153,1833:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysis:oiref>=1638,787,219,166,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-235,2233,203,118,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysisParametersBeanInfo:oiref>=-590,2075,203,81,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysisParameters:oiref>=34,1105,203,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.JoinTableBeanInfo:oiref>=-404,1855,129,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.JoinTable#ru.biosoft.analysis.AnalysisMethodSupport:oiref>=2409,499,2674,431:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysisParameters:oiref>=581,1110,203,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysisBeanInfo:oiref>=59,1650,203,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=-641,775,775,567:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.JoinTableParameters:oiref>=2309,1028,203,394,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.KolmogorovAnalysis#parameters:oiref>=405,963,405,1111:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AddSampleGroupDialog:oiref>=3413,888,211,336,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysisParametersBeanInfo:oiref>=-584,2197,203,81,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=-411,1177,913,1539:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.StudentAnalysisBeanInfo:oiref>=203,1942,163,62,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.JoinTable#parameters:oiref>=2410,817,2410,1028:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-99,1628,-99,1744:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.VennAnalysisParameters#ru.biosoft.analysis.AbstractAnalysisParameters:oiref>=2625,1232,2625,1529:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=2399,232,2022,128:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=256,1298,679,1298:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.MetaAnalysis#parameters:oiref>=953,1009,953,1107:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.analysis.AnalysisMethodSupport#ru.biosoft.analysis.AnalysisMethod:oiref>=2735,303,2735,256:oigroup>
+<oigroup:<oiref:design#Class#id4hxl9fq6d90cxfq6da2my.diagram:oiref>=2408,2409,68,63,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysis:oiref>=1900,785,219,242,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.VennAnalysisParametersBeanInfo:oiref>=475,1925,203,99,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysis:oiref>=12,777,219,185,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=-146,1179,933,1539:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.VennAnalysisBeanInfo:oiref>=56,1741,149,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisBeanInfo#ru.biosoft.analysis.AnalysisBeanInfo:oiref>=3716,196,3461,109:oigroup>
+<oigroup:<oiref:design#Class#id3xjd9flqdcyutflqkl1uy.diagram:oiref>=2407,2318,128,72,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=2176,232,1998,128:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=1198,771,912,567:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.VennAnalysis:oiref>=2580,499,219,489,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.KolmogorovAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=149,1620,-81,1744:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MetaAnalysisBeanInfo#ru.biosoft.analysis.AnalysisBeanInfo:oiref>=3129,196,3391,109:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisMethod:oiref>=2618,43,203,213,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.MetaAnalysis#analysis:oiref>=1060,890,1089,890:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisMethodSupport:oiref>=2658,303,155,128,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.VennAnalysis#parameters:oiref>=2695,988,2695,1037:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysisBeanInfo:oiref>=101,1832,179,62,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.AnalysisVisiblePlugin#instance:oiref>=644,264,644,314,734,314,734,224,684,224:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-174,2433,-174,2351:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SDEModelAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=1747,787,948,567:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=1499,784,931,567:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.SimpleStatisticsAnalysis#parameters:oiref>=677,963,677,1110:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=461,1319,679,1319:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysisBeanInfo:oiref>=-206,1566,203,62,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.HypergeometricAnalysis#parameters:oiref>=1200,1051,1200,1111:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.TwoSamplesAnalysisPanel#parameters:oiref>=109,971,109,1278:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysisParametersBeanInfo:oiref>=133,2418,203,81,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.CELNormalization#ru.biosoft.analysis.AnalysisMethodSupport:oiref>=2970,500,2774,431:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.CELNormalizationBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-259,1824,-153,1824:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-498,1942,-130,1843:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.VennAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=56,1773,8,1773:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysisParametersBeanInfo:oiref>=118,2182,203,81,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MetaAnalysisParametersBeanInfo:oiref>=475,1790,203,99,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysisParameters:oiref>=309,1111,193,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.LehmannRosenblattAnalysisBeanInfo:oiref>=-461,1669,203,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysisParameters:oiref>=-238,1117,185,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysisParametersBeanInfo:oiref>=-580,2312,203,81,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisPanel#ru.biosoft.analysis.AnalysisParametersPane:oiref>=334,729,672,232:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MetaAnalysisParameters#ru.biosoft.analysis.HypergeometricAnalysisParameters:oiref>=1066,1165,1093,1165:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SimpleStatisticsAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=215,297,1880,147:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.Stat:oiref>=3167,1652,203,936,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.ShiftedRegressionAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=2023,1484,1075,1539:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysisBeanInfo:oiref>=-599,1942,203,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisMethodRegistry:oiref>=3375,43,219,412,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.StudentAnalysis:oiref>=-511,775,219,185,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MetaAnalysis:oiref>=841,767,219,242,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MetaAnalysisPanel#ru.biosoft.analysis.AnalysisParametersPane:oiref>=1536,1278,1332,720,780,579,780,232:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysisParameters:oiref>=1093,1111,219,109,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.AnalysisDialog#analysisMethod:oiref>=3258,485,2753,256:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.ShiftedRegressionAnalysisParametersBeanInfo:oiref>=-577,2433,203,81,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysisParametersMessageBundle:oiref>=475,1650,219,105,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.VennAnalysisParameters:oiref>=2592,1037,219,195,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=975,1327,898,1327:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.LehmannRosenblattAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-381,2255,-235,2255:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysisParameters:oiref>=-744,1115,199,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-153,1744,161,99,1:oigroup>
+<oigroup:<oiref:design#Class#id1p1kgfmu5fxm1fmu649qe.diagram:oiref>=2403,1960,203,319,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SDEModelAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-377,2331,-235,2331:oigroup>
+<oigroup:<oiref:design#Class#id12floflqdcyutflqkl1ui.diagram:oiref>=2902,1960,203,319,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysis:oiref>=287,778,219,185,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.PolynomialRegressionAnalysis#parameters:oiref>=1491,950,1491,1124:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.JoinAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=174,133,425,133:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SimpleStatisticsAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-364,1624,-117,1744:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=756,21,219,546,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisBeanInfo#ru.biosoft.analysis.AnalysisBeanInfo:oiref>=3406,196,3406,109:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysisParametersBeanInfo:oiref>=475,2335,203,99,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.CELNormalizationBeanInfo:oiref>=-434,1782,175,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.JoinTableParameters#ru.biosoft.analysis.AbstractAnalysisParameters:oiref>=2497,1422,2497,1529:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysis:oiref>=-750,775,219,204,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.MetaAnalysisPanel#parameters:oiref>=1589,1463,1589,1882:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AnalysisParametersFactory:oiref>=3142,43,203,100,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AddExperimentDialog:oiref>=3405,570,206,279,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.ShiftedRegressionAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=-476,2433,-205,2351:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.KolmogorovAnalysisBeanInfo:oiref>=56,1558,187,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.StudentAnalysisParametersBeanInfo:oiref>=-341,2433,203,81,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisPanel#ru.biosoft.analysis.AnalysisParametersPane:oiref>=1202,729,744,582,744,232:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.KolmogorovAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=405,1173,973,1539:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysisParameters:oiref>=1374,1124,219,176,1:oigroup>
+<oigroup:<oiref:java#Implements#ru.biosoft.analysis.AbstractAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=2565,1606,2565,1688:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.VennAnalysis#ru.biosoft.analysis.AnalysisMethodSupport:oiref>=2728,499,2728,431:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.AnalysisMethodRegistry#instance:oiref>=3551,455,3551,508,3647,508,3647,412,3594,412:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SDEModelAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=101,1842,8,1833:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.HypergeometricAnalysisPanel#parameters:oiref>=1277,971,1277,1278:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.TwoSamplesAnalysisBeanInfo:oiref>=-209,1942,194,62,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=874,1539,219,735,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=-145,777,811,567:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.ShiftedRegressionAnalysis#parameters:oiref>=2016,1027,2016,1118:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=1483,1300,1039,1539:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=118,2243,-32,2243:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysisBeanInfo:oiref>=5,1942,178,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MetaAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=890,767,890,567:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.StudentAnalysisPanel#parameters:oiref>=364,971,364,1278:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.LehmannRosenblattAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=135,1167,953,1539:oigroup>
+<oigroup:<oiref:design#Class#id4pc8uflqdcyutflqkl1ui.diagram:oiref>=2645,1956,183,433,1:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.WilkoksonAnalysis#parameters:oiref>=-146,962,-146,1117:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.StudentAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=1507,232,1929,128:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=697,1454,697,1464:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.ShiftedRegressionAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=340,1108,679,1108:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.JoinTableParametersBeanInfo:oiref>=475,2187,194,118,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.KolmogorovAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=396,778,846,567:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.TwoSamplesAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-84,1942,-84,1843:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SDEModelAnalysisParameters:oiref>=1646,1119,219,195,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.AbstractAnalysisParameters:oiref>=2485,1529,174,77,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisBeanInfo#ru.biosoft.analysis.AnalysisBeanInfo:oiref>=3919,196,3473,109:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.LehmannRosenblattAnalysis#parameters:oiref>=132,962,132,1105:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.SDEModelAnalysis#parameters:oiref>=1751,953,1751,1119:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.AnalysisDialog#analysisParameters:oiref>=3258,1429,2597,1688:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.PolynomialRegressionAnalysisPanel#parameters:oiref>=578,952,578,1278:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.HypergeometricAnalysis:oiref>=1089,771,219,280,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.StudentAnalysisParameters:oiref>=-495,1115,169,62,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.ShiftedRegressionAnalysisParametersBeanInfo#ru.biosoft.analysis.AnalysisParametersBeanInfo:oiref>=930,390,1940,128:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.Util:oiref>=3405,1652,203,974,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.SimpleStatisticsAnalysis:oiref>=555,778,219,185,1:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.PolynomialRegressionAnalysis:oiref>=1390,784,219,166,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.ShiftedRegressionAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=160,1712,-41,1744:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.LehmannRosenblattAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=121,777,828,567:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.JoinAnalysis#ru.biosoft.analysis.MicroarrayAnalysis:oiref>=904,587,904,1278:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.LehmannRosenblattAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-258,1719,-153,1763:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MetaAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=-303,1942,-106,1843:oigroup>
+<oigroup:MemberLink#<oiref:java#Member#ru.biosoft.analysis.JoinAnalysis#parameters:oiref>=1052,523,1401,523:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.HypergeometricAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=1202,1220,1017,1539:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.WilkoksonAnalysis:oiref>=-254,777,219,185,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.WilkoksonAnalysisBeanInfo#ru.biosoft.analysis.AnalysisMethodBeanInfo:oiref>=94,1942,-61,1843:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.MicroarrayAnalysis#ru.biosoft.analysis.AnalysisMethodSupport:oiref>=975,372,1757,372,2658,372:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisParametersBeanInfo#ru.biosoft.analysis.MicroarrayAnalysisParametersBeanInfo:oiref>=124,2327,-32,2327:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.PolynomialRegressionAnalysisBeanInfo#ru.biosoft.analysis.AnalysisBeanInfo:oiref>=2934,196,3376,109:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SimpleStatisticsAnalysisParameters#ru.biosoft.analysis.AnalysisParameters:oiref>=493,81,760,729:oigroup>
+<oigroup:<oiref:java#Class#ru.biosoft.analysis.JoinTable:oiref>=2300,499,219,318,1:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SimpleStatisticsAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=682,1172,995,1539:oigroup>
+<oigroup:<oiref:java#Extends#ru.biosoft.analysis.SDEModelAnalysisParameters#ru.biosoft.analysis.MicroarrayAnalysisParameters:oiref>=1755,1314,1057,1539:oigroup>
+*/
+class __positions {
+}

@@ -1,0 +1,26 @@
+/*
+ * New R script action
+ */
+{
+    id: "new_r_script",
+    label: "New R script",
+	icon: "icons/rscript.gif",
+	visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection')  || 
+        	getDataCollection(completePath).getChildClass() == 'ru.biosoft.plugins.jri.RElement') 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createScript(path, 'R');
+    }"
+}

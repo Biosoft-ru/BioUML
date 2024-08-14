@@ -1,0 +1,13 @@
+<tool id="softberry-oligo-zip" name="OligoZip">
+	<description>Algorithm of ab initio genome assembling using data produced by next-generation sequencing machines (Illumina/Solexa/etc).</description>
+	<command interpreter="perl">OligoZip.pl $fasta $pi $Assembled_contigs $Log_file
+	</command>
+	<inputs>
+		<param name="fasta" type="data" format="fasta" label="FASTA file" help="with reads with even/odd sequences representing one read pair (0-th and 1-st sequences should represent a pair, and so on)"/>
+		<param name="pi" type="data" format="txt" label="Pair info"/>
+	</inputs>
+	<outputs>
+	    <data format="fasta" name="Assembled_contigs"/>
+	    <data format="txt" name="Log_file"/>
+	</outputs>
+</tool>

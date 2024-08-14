@@ -1,0 +1,107 @@
+/*
+ * Toolbar properties to use bigger icon size (32 px)
+ */
+
+.fg-button-icon-solo {
+    display: block;
+}
+
+#infoTabs .fg-button-icon-solo {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-size: 100%;
+}
+
+#documentTabs .fg-button-icon-solo {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-size: 100%;
+}
+
+#viewPartTabs .fg-button-icon-solo {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-size: 100%;
+}
+
+#analysisSearchToolbar .fg-button-icon-solo {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-size: 100%;
+}
+
+.fg-button-icon-span {
+    display: block;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    
+}
+
+#infoTabs .fg-button-icon-span {
+    width: 16px;
+    height: 16px;
+    display: block;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+#documentTabs .fg-button-icon-span {
+    width: 16px;
+    height: 16px;
+    display: block;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+#viewPartTabs .fg-button-icon-span {
+    width: 16px;
+    height: 16px;
+    display: block;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+#analysisSearchToolbar .fg-button-icon-span {
+    width: 16px;
+    height: 16px;
+    display: block;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+#contextToolbar {
+    display: none;
+    height: 0px;
+}
+
+.tree-context a {
+    background-size: 16px;
+}
+
+.tree-default a{
+    background-size: 16px;
+}
+
+#TableElementMenu img {
+    width: 16px;
+}
+
+#jqContextMenu img{
+    width: 16px;
+}
+
+.fg-toolbar .fg-rightcomponent select{
+    height: 40px;
+}
+
+.vakata-context i{
+	background-size: 16px !important; 
+}

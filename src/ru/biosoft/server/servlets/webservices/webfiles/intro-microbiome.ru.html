@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<link type="text/css" href="css/intro.css" rel="stylesheet" />
+<head>
+</head>
+<body class="intro-styles">
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+  <h2>Сборка и аннотирование геномов</h2>
+<table width=90% align="center">
+<tr>
+<td valign="top">
+<h3>1. Подготовка данных и контроль качества</h3>
+<ul>
+        <li><big><a href="#" onclick="window.parent.doImportMultiple(window.parent.constructSelectedProjectPath())">Импортировать данные</a></big><br>
+        Вы можете загрузить ваши файлы FASTQ через браузер или по FTP<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Methods/NGS%20utils/Track%20statistics&docOnly=true">Контроль качества данных секвенирования</a> [<a href="http://wiki.biouml.org/index.php/Track_statistics_(analysis)" target="_blank">?</a>]</big><br>
+	Выполняет контроль качества ваших данных<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/fasta_manipulation/fastq_mcf">EA Utils trim and clip</a> [<a href="http://wiki.biouml.org/index.php/Fastq_mcf" target="_blank">?</a>]</big><br>
+	Отмечает присутствие адаптерных последовательностей,
+        <br/> вычисляет вероятное положение (начало и конец) адаптеров<br>
+        Удаляет адаптерные последовательности из файлов FASTQ<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/NGS_QC/cshl_fastx_clipper&docOnly=true">FastX clip</a> [<a href="http://wiki.biouml.org/index.php/Fastx_clip" target="_blank">?</a>]</big><br>
+        Отрезает адаптеры с 3' конца последовательностей в FASTA/FASTQ файлах
+	<br><br></li>
+</ul>
+</td>
+
+<td valign="top" width=50>
+&nbsp;
+</td>
+
+<td valign="top"><h3>Сценарии обработки данных</h3>Попробуйте сценарий автоматической обработки данных
+<ul>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Workflows/Microbiome/Assembly%20basic&docOnly=true">Простой сценарий для сборки</a></big><br>
+	Прочтения подаются как FASTQ файлы<br>
+	Адаптеры подаются как FASTA<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Workflows/Microbiome/Assembly%20Annotated&docOnly=true">Сценарий для сборки бактериального генома с генной аннотацией</a></big><br>
+	Прочтения подаются как FASTQ файлы<br>
+	Адаптеры подаются как FASTA<br><br></li>
+</ul>
+</td>
+</tr>
+
+<tr>
+<td>
+<h3>2. Сборка геномов</h3>
+<ul>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/hybrid/spades">De-novo assembly with SPAdes</a> [<a href="http://wiki.biouml.org/index.php/SPAdes" target="_blank">?</a>]</big><br>
+	SPAdes (St. Petersburg genome assembler) предназаначен для сборки бактериальных геномоов<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/hybrid/filter_spades_output">Filter SPAdes output</a> [<a target="_blank" href="http://wiki.biouml.org/index.php/Filter_SPAdes_output">?</a>]</big><br>
+	Отфильтровывает короткие или недостаточно покрытые контиги/скаффолды <br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/hybrid/plot_spades_stats">SPAdes stats</a> [<a target="_blank" href="http://wiki.biouml.org/index.php/SPAdes_stats">?</a>]</big><br>
+	Отображает графики длина-покрытие контигов и скаффолдов<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/NGS_QC/quast">QUAST</a> [<a target="_blank" href="http:wiki.biouml.org/index.php/QUAST">?</a>]</big><br>
+	Quality Assessment Tool for Genome Assemblies - оценка качества сборки<br><br></li>
+	<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/hybrid/ragout">RAGOUT</a> [<a target="_blank" href="http:wiki.biouml.org/index.php/RAGOUT">?</a>]</big><br>
+	Ragout (Reference-Assisted Genome Ordering UTility)
+        <br/> инструмент для сборки скаффолдов хромосомного масштаба<br><br></li>
+</ul>
+</td>
+
+<td valign="top">
+&nbsp;
+</td>
+
+<td valign="top"><h3>3. Аннотация геномов</h3>
+<li><big><a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/genome_annotation/prokka">Prokka</a></big><br>
+	Производит генную аннотацию собранных контигов или скаффолдов по референсным базам данных<br><br></li>
+</td>
+</tr>
+
+</table>
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+</body>
+</html>

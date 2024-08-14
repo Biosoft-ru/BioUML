@@ -1,0 +1,5 @@
+species s;
+model example(s1)
+   species s1;
+end
+   Sub: example();

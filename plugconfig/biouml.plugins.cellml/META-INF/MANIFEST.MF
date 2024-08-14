@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.cellml;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.workbench,
+ biouml.workbench.graph,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ one.util.streamex,
+ ru.biosoft.access,
+ ru.biosoft.graph,
+ ru.biosoft.math
+Export-Package: biouml.plugins.cellml,
+ biouml.plugins.cellml.resources

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2009/12/25 08:51:35 helenka Exp $  -->
+
+<project name="ru.biosoft.templates package test" default="formattertest" basedir="../../../..">
+
+    <property name="package" value="ru.biosoft.templates"/>
+	
+	<target name="formattertest">
+		<ant target="rtest">
+			<property name="testui" value="swingui"/>
+			<property name="test" value="ru.biosoft.templates._test.FormatterTest"/>
+		</ant>
+	</target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+ 
+  <extension id="Add expression analysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.expression.ExpressionFilterAnalysis" group="Molecular networks" name="Add expression values"  description="This analysis allows you to display expression values as molecules background on the specified diagram."/> 
+  </extension>
+  
+  <extension point="ru.biosoft.server.servlets.webProvider">
+    <provider prefix="diagramFilter" class="biouml.plugins.expression.web.ExpressionFilterProvider"/>
+  </extension>
+</plugin>

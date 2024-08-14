@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<antlib>
+    <macrodef name="create.plugin">
+        <attribute name="plugin"/>
+        <attribute name="source"/>
+        <element name="files" optional="yes"/>
+        <element name="src" optional="yes"/>
+        <sequential>
+            <local name="PERSPECTIVE_POINT"/>
+            <local name="HAS_SRC_JAR"/>
+            <if>
+                <and>
+                    <isset property="DISABLE_PERSPECTIVES"/>
+                    <not><equals arg1="@{plugin}" arg2="biouml.workbench"/></not>
+                </and>
+                <then>
+                    <property name="PERSPECTIVE_POINT" value="biouml.workbench.perspective.disabled"/>
+                </then>
+                <else>
+                    <property name="PERSPECTIVE_POINT" value="biouml.workbench.perspective"/>
+                </else>
+            </if>
+
+            <tstamp>
+                <format property="plugin.time.before.@{plugin}" pattern="HH:mm:ss" />
+            </tstamp>
+
+            <echo message="${plugin.time.before.@{plugin}} Making @{plugin}_${VERSION}.jar" />
+            <fileset dir="${OUTDIR}" id="src.jar.fileset">
+                <include name=""/>
+                <src/>
+            </fileset>
+            <pathconvert refid="src.jar.fileset" property="HAS_SRC_JAR" setonempty="false"/>
+            <if>
+                <isset property="HAS_SRC_JAR"/>
+                <then>
+                    <jar jarfile="${PLUGIN_CONFIG_DIR}/@{plugin}/src.jar" whenmanifestonly="skip">
+                        <fileset refid="src.jar.fileset"/>
+                    </jar>
+                </then>
+            </if>
+            <copy todir="${OUTDIR}/plugconfig/@{plugin}">
+                <fileset dir="${PLUGIN_CONFIG_DIR}/@{plugin}">
+                    <patternset>
+                        <include name="**" />
+                        <exclude name="META-INF/MANIFEST.MF"/>
+                        <exclude name="**/*.jar"/>
+                    </patternset>
+                </fileset>
+                <filterchain>
+                    <tokenfilter>
+                        <replacestring from="@DEFAULT_DATABASE_SERVER@" to="${DEFAULT_DATABASE_SERVER}" />
+                        <replacestring from="biouml.workbench.perspective" to="${PERSPECTIVE_POINT}" />
+                    </tokenfilter>
+                </filterchain>
+            </copy>
+            <jar jarfile="${PLUGIN_DIR}/@{plugin}_${VERSION}.jar" manifest="${PLUGIN_CONFIG_DIR}/@{plugin}/META-INF/MANIFEST.MF" compress="true">
+                <fileset dir="${OUTDIR}/plugconfig/@{plugin}"/>
+                <fileset dir="${OUTDIR}">
+                    <patternset>
+                        <include name="@{source}/**/*.class" />
+                        <include name="@{source}/**/*.vm" />
+                        <include name="@{source}/**/*.html" />
+                        <exclude name="@{source}/**/_test/**" />
+                        <files/>
+                    </patternset>
+                </fileset>
+                <fileset dir="${PLUGIN_CONFIG_DIR}/@{plugin}" includes="src.jar"/>
+                <fileset dir="${SRCDIR}">
+                    <patternset>
+                        <include name="@{source}/**/*.gif" />
+                        <include name="@{source}/**/*.jpg" />
+                        <include name="@{source}/**/*.png" />
+                        <include name="@{source}/**/*.css" />
+                        <include name="@{source}/**/*.txt" />
+                        <include name="@{source}/**/*.R" />
+                        <include name="@{source}/**/*.RData" />
+                        <include name="@{source}/**/*.properties" />
+                        <exclude name="@{source}/**/_test/**" />
+                        <exclude name="@{source}/**/large/*" />
+                        <files/>
+                    </patternset>
+                </fileset>
+
+                <zipgroupfileset dir="${PLUGIN_CONFIG_DIR}/@{plugin}" includes="**/*.jar" excludes="src.jar" />
+                
+                <!--archives>
+                    <zips>
+                        <fileset dir="${PLUGIN_CONFIG_DIR}/@{plugin}" includes="**/*.jar" excludes="src.jar"/>
+                    </zips>
+                </archives-->
+
+                <manifest>
+                    <attribute name="Bundle-Version" value="${VERSION}"/>
+                </manifest>
+            </jar>
+            <if>
+                 <equals arg1="${USE_LARGE_ICONS}" arg2="true"/>
+                 <then>
+                    <tstamp> <format property="touch.time" pattern="MM/dd/yyyy hh:mm aa"/>  </tstamp>
+                    <touch datetime="${touch.time}">
+                        <fileset dir="@{source}" includes="**/large/*" />
+                    </touch>
+                    <jar jarfile="${PLUGIN_DIR}/@{plugin}_${VERSION}.jar" update="yes">
+                        <mappedresources>
+                            <zipfileset dir="@{source}" includes="**/large/*" />
+                            <mapper type="regexp" from="^(.*)/large/(.*)" to="@{source}/\1/\2"/>
+                        </mappedresources>
+                     </jar>
+                 </then>
+             </if>
+        </sequential>
+    </macrodef>
+</antlib>

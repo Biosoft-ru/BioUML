@@ -1,0 +1,16 @@
+<tool id="vat_svMapper" name="VAT:Structural Variation Mapper">
+  <command>cat "$input" | svMapper "${annotationSource.fields.path}.interval" > "$output" 2> "$log"</command>
+  <inputs>
+    <param name="input" type="data" format="vcf" label="SVs to annotate" help="Structural variations to annotate"/>
+    <param name="annotationSource" type="select" label="Annotation source">
+      <options from_data_table="vat_files">
+        <filter type="sort_by" column="2" />
+      </options>
+    </param>
+  </inputs>
+  <outputs>
+    <data format="txt" name="log" label="Execution Log" />
+    <data format="vcf" name="output" label="Annotated SVs" />
+  </outputs>
+<help>svMapper is a program to annotate a set of SVs in VCF format. The program determines if a SV overlaps with different transcript isoforms of a gene.</help>
+</tool>

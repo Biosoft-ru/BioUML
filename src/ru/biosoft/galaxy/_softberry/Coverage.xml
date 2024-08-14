@@ -1,0 +1,16 @@
+<tool id="softberry-coverage" name="Coverage">
+	<description>Get optimal coverage from raw alignment</description>
+	<command interpreter="perl">Coverage.pl $input "$optimalPath" $Alignments
+	</command>
+	<inputs>
+		<param name="input" type="data" format="dabz2" label="Raw alignment"/>
+		<param name="optimalPath" type="select" label="Find the optimal path">
+			<option selected="True" value="for each of the query sequence alone">for each of the query sequence alone</option>
+			<option value="for the entire set of query sequences">for the entire set of query sequences</option>
+			<option value="all found alignments">all found alignments</option>
+		</param>
+	</inputs>
+	<outputs>
+	    <data format="zhtml" name="Alignments"/>
+	</outputs>
+</tool>

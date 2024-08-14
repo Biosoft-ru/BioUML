@@ -1,0 +1,52 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $utils.formatHtml( $name ) <br>
+	#end
+#end
+
+#macro( displayMatrix $matr )
+	#set($name = $utils.getPath($matr))
+	#set($width = $matr.getLength()*30)
+	#strField($matr.getName(), "Matrix")
+	#strField($matr.getLength(), "Matrix length")
+	<img src="image:///$name" height="70" width="$width">
+#end
+
+#macro( displaySiteModel $model )
+	<h3>Model $model.getName()</h3>
+	#strField($model.getBindingElement(), "Binding element")
+	#strField($model.getThreshold(), "Threshold")
+	#strField($model.getDistMin(), "Minimal distance")
+	#strField($model.getWindow(), "Window")
+	#set($matr = $model.getFrequencyMatrix())
+	#if($matr)
+		#displayMatrix($matr)
+	#end
+	#set($matrs = $model.getMatrices())
+	#if($matrs)
+		#foreach( $matr in $matrs )
+			#displayMatrix($matr.getFrequencyMatrix())
+		#end
+	#end
+#end
+
+#strField($de.Name, "Site ID")
+#strField($de.Type, "Type")
+#strField($de.Sequence.Name, "Sequence name")
+#if($de.Properties.getValue("sequence"))
+	#strField($de.Properties.getValue("sequence"), "Sequence")
+#else
+	#if($de.Sequence.Length < 100)
+		#strField($de.Sequence.toString(), "Sequence")
+	#end
+#end
+#if($de.From != 0 || $de.To != 0)
+	<b>Position</b>: $de.From - $de.To ($de.Length)<br>
+#end
+#if($de.Properties && $de.Properties.size() > 0)
+    <b>Properties</b>: <br>
+    #displayAttributes($de.Properties)
+#end
+#if($de.Properties.getValue("siteModel").Name)
+	#displaySiteModel($de.Properties.getValue("siteModel"))
+#end

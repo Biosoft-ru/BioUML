@@ -1,0 +1,24 @@
+/*
+ * Generate script action
+ */
+{
+    id: "generate_script",
+    label: "Generate script",
+    icon: "icons/script.gif",
+    visible: "function(doc)
+    {
+    	if (doc != null && doc instanceof AnalysisDocument) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = getActiveDocument();
+        if (activeDocument instanceof AnalysisDocument) 
+        {
+            activeDocument.generateScript();
+        }
+    }"
+}

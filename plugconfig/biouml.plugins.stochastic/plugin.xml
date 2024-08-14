@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="SolverType" point="biouml.plugins.simulation.solver"> 
+     <solver class="biouml.plugins.stochastic.solvers.GillespieSolver" 
+	displayName="Gillespie"
+	type="JAVA_STOCHASTIC" 
+      />
+	 <solver class="biouml.plugins.stochastic.solvers.GibsonBruckSolver" 
+	displayName="Gibson and Bruck"
+	type="JAVA_STOCHASTIC" 
+      />
+	<solver class="biouml.plugins.stochastic.solvers.MaxTSSolver" 
+	displayName="Maximum Time Step algorithm"
+	type="JAVA_STOCHASTIC" 
+    /> 
+	<solver class="biouml.plugins.stochastic.solvers.TauLeapingSolver" 
+	displayName="Tau Leap Method"
+	type="JAVA_STOCHASTIC" 
+  
+      /> 
+  </extension> 
+  
+
+    <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.stochastic.StochasticSimulationEngine" 
+	  displayName="Stochastic Simulation Engine" 
+	  emodelType="ODE EModel"
+	  priority="0.5"
+	  />
+    </extension>
+
+  <extension id="Stochastic model java code" point="ru.biosoft.templates.template">
+      <template name="Java code (Stochastic)" file="biouml/plugins/stochastic/resources/stochasticModelTemplate.vm" description="This template represents the Stochastic model Java code generated for simulation." isBrief="no" order="15">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+</plugin>

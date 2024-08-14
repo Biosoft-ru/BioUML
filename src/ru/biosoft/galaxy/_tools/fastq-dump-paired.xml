@@ -1,0 +1,21 @@
+<tool id="fastq-dump-paired" name="Convert Files in SRA format to FASTQ" version="2.1.9">
+
+  <command>fastq-dump --split-3 $srafile;
+base=`basename $srafile`;
+base=`echo \$base | sed 's/[.]sra\$//'`;
+mv \${base}_1.fastq $forward 2&gt; /dev/null || touch $forward;
+mv \${base}_2.fastq $reverse 2&gt; /dev/null || touch $reverse;
+mv \${base}.fastq $unpaired 2&gt; /dev/null  || touch $unpaired;
+  </command>
+  
+  <inputs>
+    <param name="srafile" type="data" format="data" label="SRA file"/>
+  </inputs>
+  
+  <outputs>
+    <data name="forward" format="fastq" label="Forward FASTQ file"/>
+    <data name="reverse" format="fastq" label="Reverse FASTQ file"/>
+    <data name="unpaired" format="fastq" label="Unpaired FASTQ file"/>
+  </outputs>
+  
+</tool>

@@ -1,0 +1,13 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $name <br>
+	#end
+#end
+
+<html>
+	<body>
+		<h1>Promoter ($de.getName()) for miRNA $de.getMiRName()</h1>
+		#strField($de.getLocation(), "TSS location")
+		#strField($de.getCellsString(), "Active in cells")
+	</body>
+</html>

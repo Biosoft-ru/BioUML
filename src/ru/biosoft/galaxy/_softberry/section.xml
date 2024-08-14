@@ -1,0 +1,13 @@
+  <section name="Softberry" id="softberry">
+    <label text="Annotation" id="annotation"/>
+    <tool file="softberry/FGENESB_Annotator.xml"/>
+    <label text="Converters" id="converters"/>
+    <tool file="softberry/FASTQ2toFASTA.xml"/>
+    <tool file="softberry/FGENESB_to_GenBank.xml"/>
+    <tool file="softberry/FGENESB_to_Sequin.xml"/>
+    <label text="De novo sequence assembling" id="sequence-assembling"/>
+    <tool file="softberry/OligoZip.xml"/>
+    <label text="Genome Alignment pipeline" id="genome-alignment-pipeline"/>
+    <tool file="softberry/Alignment.xml"/>
+    <tool file="softberry/Coverage.xml"/>
+  </section>

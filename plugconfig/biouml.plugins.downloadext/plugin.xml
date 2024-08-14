@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension id="Upload from FTP" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.downloadext.FTPUploadAnalysis" group="Import" name="Upload from FTP"
+        shortDescription="Upload the file from an FTP server directly to the system."
+        description="biouml/plugins/download/resources/FTPUpload.html"/> 
+  	</extension>
+  	
+  	<extension id="FTP-JS" point="ru.biosoft.plugins.javascript.hostObject"> 
+        <hostObject name="ftp" class="biouml.plugins.downloadext.JavaScriptFTP" >
+        <doc description="Javascript API to interact with FTP server">
+        
+             <function name="upload" description="Import data from external FTP site">
+               <argument name="fileURL"/>
+               <argument name="resultPath"/>
+               <argument name="importFormat"/>
+               <argument name="importerProperties"/>
+             </function>
+             
+         </doc>
+    </hostObject>
+  </extension>
+</plugin>

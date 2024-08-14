@@ -1,0 +1,973 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version3" level="2" version="3">
+  <model id="mapk.xml">
+    <listOfCompartments>
+      <compartment id="Cell"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="L" compartment="Cell" initialAmount="680" hasOnlySubstanceUnits="true"/>
+      <species id="R" compartment="Cell" initialAmount="100" hasOnlySubstanceUnits="true"/>
+      <species id="C" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="C2" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="C_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="A1" compartment="Cell" initialAmount="85" hasOnlySubstanceUnits="true"/>
+      <species id="A2" compartment="Cell" initialAmount="34" hasOnlySubstanceUnits="true"/>
+      <species id="E1" compartment="Cell" initialAmount="180" hasOnlySubstanceUnits="true"/>
+      <species id="E2" compartment="Cell" initialAmount="180" hasOnlySubstanceUnits="true"/>
+      <species id="E3" compartment="Cell" initialAmount="180" hasOnlySubstanceUnits="true"/>
+      <species id="E4" compartment="Cell" initialAmount="180" hasOnlySubstanceUnits="true"/>
+      <species id="E5" compartment="Cell" initialAmount="180" hasOnlySubstanceUnits="true"/>
+      <species id="P1" compartment="Cell" initialAmount="90" hasOnlySubstanceUnits="true"/>
+      <species id="P2" compartment="Cell" initialAmount="90" hasOnlySubstanceUnits="true"/>
+      <species id="P3" compartment="Cell" initialAmount="90" hasOnlySubstanceUnits="true"/>
+      <species id="P4" compartment="Cell" initialAmount="90" hasOnlySubstanceUnits="true"/>
+      <species id="P5" compartment="Cell" initialAmount="90" hasOnlySubstanceUnits="true"/>
+      <species id="E0_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E1_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E2_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E3_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E4_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E5_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="A2__" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E2__" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="C_A1" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="A1A2" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E1E0_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E1_P1" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E2E1_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E2_P2" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E3E2_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E3_P3" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E4E3_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E4_P4" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E5E4_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E5_P5" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E0_E4_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+      <species id="E2_E4_" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true"/>
+    </listOfSpecies>
+    <listOfReactions>
+      <reaction id="L+R__&gt;C" reversible="false">
+        <listOfReactants>
+          <speciesReference species="L"/>
+          <speciesReference species="R"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.003 </cn>
+              <ci> L </ci>
+              <ci> R </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C__&gt;L+R" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="L"/>
+          <speciesReference species="R"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.06 </cn>
+              <ci> C </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C+C__&gt;C2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C"/>
+          <speciesReference species="C"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> C </ci>
+              <apply>
+                <minus/>
+                <ci> C </ci>
+                <cn type="integer"> 1 </cn>
+              </apply>
+              <cn> 0.5 </cn>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C2__&gt;C+C" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C"/>
+          <speciesReference species="C"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> C2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C2__&gt;C_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 1 </cn>
+              <ci> C2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C___&gt;C2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> C_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C_+A1__&gt;C_A1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C_"/>
+          <speciesReference species="A1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C_A1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.003 </cn>
+              <ci> C_ </ci>
+              <ci> A1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C_A1__&gt;C_+A1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C_A1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C_"/>
+          <speciesReference species="A1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.05 </cn>
+              <ci> C_A1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C_A1+A2__&gt;E0_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C_A1"/>
+          <speciesReference species="A2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E0_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> C_A1 </ci>
+              <ci> A2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E0___&gt;C_A1+A2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E0_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C_A1"/>
+          <speciesReference species="A2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.06 </cn>
+              <ci> E0_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="A1+A2__&gt;A1A2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="A1"/>
+          <speciesReference species="A2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="A1A2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.0001 </cn>
+              <ci> A1 </ci>
+              <ci> A2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="A1A2__&gt;A1+A2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="A1A2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="A1"/>
+          <speciesReference species="A2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.0015 </cn>
+              <ci> A1A2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="C_+A1A2__&gt;E0_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="C_"/>
+          <speciesReference species="A1A2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E0_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.0045 </cn>
+              <ci> C_ </ci>
+              <ci> A1A2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E0___&gt;C_+A1A2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E0_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="C_"/>
+          <speciesReference species="A1A2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.03 </cn>
+              <ci> E0_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E1+E0___&gt;E1E0_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E1"/>
+          <speciesReference species="E0_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E1E0_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E1 </ci>
+              <ci> E0_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E1E0___&gt;E1+E0_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E1E0_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E1"/>
+          <speciesReference species="E0_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E1E0_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E1E0___&gt;E0_+E1_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E1E0_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E0_"/>
+          <speciesReference species="E1_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E1E0_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E1_+P1__&gt;E1_P1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E1_"/>
+          <speciesReference species="P1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E1_P1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E1_ </ci>
+              <ci> P1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E1_P1__&gt;E1_+P1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E1_P1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E1_"/>
+          <speciesReference species="P1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E1_P1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E1_P1__&gt;P1+E1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E1_P1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P1"/>
+          <speciesReference species="E1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E1_P1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2+E1___&gt;E2E1_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2"/>
+          <speciesReference species="E1_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2E1_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E2 </ci>
+              <ci> E1_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2E1___&gt;E2+E1_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2E1_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2"/>
+          <speciesReference species="E1_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E2E1_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2E1___&gt;E1_+E2_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2E1_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E1_"/>
+          <speciesReference species="E2_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E2E1_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2_+P2__&gt;E2_P2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2_"/>
+          <speciesReference species="P2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2_P2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E2_ </ci>
+              <ci> P2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2_P2__&gt;E2_+P2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2_P2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2_"/>
+          <speciesReference species="P2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E2_P2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2_P2__&gt;P2+E2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2_P2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P2"/>
+          <speciesReference species="E2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E2_P2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E3+E2___&gt;E3E2_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E3"/>
+          <speciesReference species="E2_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E3E2_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E3 </ci>
+              <ci> E2_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E3E2___&gt;E3+E2_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E3E2_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E3"/>
+          <speciesReference species="E2_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E3E2_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E3E2___&gt;E2_+E3_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E3E2_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2_"/>
+          <speciesReference species="E3_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E3E2_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E3_+P3__&gt;E3_P3" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E3_"/>
+          <speciesReference species="P3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E3_P3"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E3_ </ci>
+              <ci> P3 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E3_P3__&gt;E3_+P3" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E3_P3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E3_"/>
+          <speciesReference species="P3"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E3_P3 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E3_P3__&gt;P3+E3" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E3_P3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P3"/>
+          <speciesReference species="E3"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E3_P3 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E4+E3___&gt;E4E3_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E4"/>
+          <speciesReference species="E3_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4E3_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E4 </ci>
+              <ci> E3_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E4E3___&gt;E4+E3_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E4E3_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4"/>
+          <speciesReference species="E3_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E4E3_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E4E3___&gt;E3_+E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E4E3_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E3_"/>
+          <speciesReference species="E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E4E3_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E4_+P4__&gt;E4_P4" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E4_"/>
+          <speciesReference species="P4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4_P4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E4_ </ci>
+              <ci> P4 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E4_P4__&gt;E4_+P4" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E4_P4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4_"/>
+          <speciesReference species="P4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E4_P4 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E4_P4__&gt;P4+E4" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E4_P4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P4"/>
+          <speciesReference species="E4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E4_P4 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E5+E4___&gt;E5E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E5"/>
+          <speciesReference species="E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E5E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E5 </ci>
+              <ci> E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E5E4___&gt;E5+E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E5E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E5"/>
+          <speciesReference species="E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E5E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E5E4___&gt;E4_+E5_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E5E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4_"/>
+          <speciesReference species="E5_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E5E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E5_+P5__&gt;E5_P5" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E5_"/>
+          <speciesReference species="P5"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E5_P5"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E5_ </ci>
+              <ci> P5 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E5_P5__&gt;E5_+P5" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E5_P5"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E5_"/>
+          <speciesReference species="P5"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E5_P5 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E5_P5__&gt;P5+E5" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E5_P5"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P5"/>
+          <speciesReference species="E5"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E5_P5 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E0_+E4___&gt;E0_E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E0_"/>
+          <speciesReference species="E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E0_E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E0_ </ci>
+              <ci> E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E0_E4___&gt;E0_+E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E0_E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E0_"/>
+          <speciesReference species="E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E0_E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E0_E4___&gt;E4_+C_A1+A2__" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E0_E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4_"/>
+          <speciesReference species="C_A1"/>
+          <speciesReference species="A2__"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E0_E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2_+E4___&gt;E2_E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2_"/>
+          <speciesReference species="E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2_E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <ci> E2_ </ci>
+              <ci> E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2_E4___&gt;E2_+E4_" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2_E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E2_"/>
+          <speciesReference species="E4_"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <ci> E2_E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="E2_E4___&gt;E4_+E2__" reversible="false">
+        <listOfReactants>
+          <speciesReference species="E2_E4_"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E4_"/>
+          <speciesReference species="E2__"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <ci> E2_E4_ </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

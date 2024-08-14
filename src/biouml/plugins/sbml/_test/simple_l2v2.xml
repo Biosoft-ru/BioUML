@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml level="2" version="2"
+	xmlns="http://www.sbml.org/sbml/level2/version2">
+	<model name="EnzymaticReaction" sboTerm="SBO:0000004">
+		<listOfCompartmentTypes>
+			<compartmentType id="mitochondria" />
+		</listOfCompartmentTypes>
+		<listOfCompartments>
+			<compartment id="m1" size="0.013"
+				compartmentType="mitochondria" outside="cell" />
+			<compartment id="m2" size="0.013"
+				compartmentType="mitochondria" outside="cell" />
+			<compartment id="m3" size="0.013"
+				compartmentType="mitochondria" outside="cell" />
+			<compartment id="m4" size="0.013"
+				compartmentType="mitochondria" outside="cell" />
+			<compartment id="cell" size="190.0" />
+			<compartment id="cytosol" size="1e-14" />
+		</listOfCompartments>
+		<listOfSpeciesTypes>
+			<speciesType id="Glucose" />
+			<speciesType id="Glucose_6_P" />
+		</listOfSpeciesTypes>
+		<listOfSpecies>
+			<species compartment="cytosol" id="ES" initialAmount="0"
+				name="ES" speciesType="Glucose" />
+			<species compartment="cytosol" id="P" initialAmount="0"
+				name="P" speciesType="Glucose" />
+			<species compartment="cytosol" id="S" initialAmount="1e-20"
+				name="S" speciesType="Glucose_6_P" />
+			<species compartment="cytosol" id="E" initialAmount="5e-21"
+				name="E" />
+		</listOfSpecies>
+		<listOfReactions>
+			<reaction id="veq">
+				<listOfReactants>
+					<speciesReference species="E" />
+					<speciesReference species="S" />
+				</listOfReactants>
+				<listOfProducts>
+					<speciesReference species="ES" />
+				</listOfProducts>
+				<kineticLaw>
+					<math xmlns="http://www.w3.org/1998/Math/MathML">
+						<apply>
+							<times />
+							<ci>cytosol</ci>
+							<apply>
+								<minus />
+								<apply>
+									<times />
+									<ci>kon</ci>
+									<ci>E</ci>
+									<ci>S</ci>
+								</apply>
+								<apply>
+									<times />
+									<ci>koff</ci>
+									<ci>ES</ci>
+								</apply>
+							</apply>
+						</apply>
+					</math>
+					<listOfParameters>
+						<parameter id="kon" value="1000000" />
+						<parameter id="koff" value="0.2" />
+					</listOfParameters>
+				</kineticLaw>
+			</reaction>
+			<reaction id="vcat" reversible="false">
+				<listOfReactants>
+					<speciesReference species="ES" />
+				</listOfReactants>
+				<listOfProducts>
+					<speciesReference species="E" />
+					<speciesReference species="P" />
+				</listOfProducts>
+				<kineticLaw>
+					<math xmlns="http://www.w3.org/1998/Math/MathML">
+						<apply>
+							<times />
+							<ci>cytosol</ci>
+							<ci>kcat</ci>
+							<ci>ES</ci>
+						</apply>
+					</math>
+					<listOfParameters>
+						<parameter id="kcat" value="0.1" />
+					</listOfParameters>
+				</kineticLaw>
+			</reaction>
+		</listOfReactions>
+		<listOfRules>
+			<assignmentRule variable="k">
+				<math xmlns="http://www.w3.org/1998/Math/MathML">
+					<apply>
+						<divide />
+						<ci>k3</ci>
+						<ci>k2</ci>
+					</apply>
+				</math>
+			</assignmentRule>
+			<assignmentRule variable="s2" sboTerm="SBO:0000004">
+				<math xmlns="http://www.w3.org/1998/Math/MathML">
+					<apply>
+						<divide />
+						<apply>
+							<times />
+							<ci>k</ci>
+							<ci>x</ci>
+						</apply>
+						<apply>
+							<plus />
+							<cn>1</cn>
+							<ci>k2</ci>
+						</apply>
+					</apply>
+				</math>
+			</assignmentRule>
+			<assignmentRule variable="A">
+				<math xmlns="http://www.w3.org/1998/Math/MathML">
+					<apply>
+						<times />
+						<cn>0.10</cn>
+						<ci>x</ci>
+					</apply>
+				</math>
+			</assignmentRule>
+		</listOfRules>
+	</model>
+</sbml>

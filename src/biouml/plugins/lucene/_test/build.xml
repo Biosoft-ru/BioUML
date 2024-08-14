@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.7 2011/06/03 02:25:17 tolstyh Exp $  -->
+
+<project name="biouml.plugins.lucene package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.lucene"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.lucene._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

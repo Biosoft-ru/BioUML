@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.8 2007/05/05 05:45:36 alexander Exp $  -->
+
+<project name="biouml.plugins.simulation.java package test" default="autotest" basedir="../../../../..">
+
+    <property name="package" value="biouml.plugins.simulation.java"/>
+
+    <target name="test_java">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.TestJavaSimulationEngine"/>
+        </ant>
+    </target>
+                                                             
+    <target name="test.event">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.TestEventModel"/>
+        </ant>
+    </target>
+
+    <target name="test.simulate">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.SimulationTest"/>
+        </ant>
+    </target>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.simulation.java._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

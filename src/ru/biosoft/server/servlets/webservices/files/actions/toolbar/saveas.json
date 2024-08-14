@@ -1,0 +1,24 @@
+/*
+ * Save a copy... document action
+ */
+{
+    id: "save_document_as",
+    label: "Save a copy",
+    icon: "icons/saveas.gif",
+    visible: "function(doc)
+    {
+        if(doc && doc.saveAs)
+		{
+		    if(doc instanceof Diagram && doc.isAnnotation)
+                return -1;
+			var clazz = getElementClass(doc.completeName);
+			if(instanceOf(clazz,'ru.biosoft.access.core.CloneableDataElement') || instanceOf(clazz,'biouml.model.Diagram') || doc instanceof SequenceDocument)
+            	return true;
+        }
+        return -1; 
+    }",
+    action: "function()
+    {
+    	saveDocumentAs(undefined, openDocumentExt);
+    }"
+}

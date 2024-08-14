@@ -1,0 +1,23 @@
+/*
+ * Save document action
+ */
+{
+    id: "save_document",
+    label: "Save document",
+    icon: "icons/save.gif",
+    visible: "function(doc)
+    {
+        if(doc && doc.save)
+		{
+            if(doc instanceof Diagram && doc.isAnnotation)
+                return -1;
+                
+            return true;
+        } 
+        return -1;
+    }",
+    action: "function()
+    {
+    	saveDocument();
+    }"
+}

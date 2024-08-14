@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: ru.biosoft.proteome;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ json,
+ org.openscience.jmol,
+ ru.biosoft.access,
+ ru.biosoft.jobcontrol,
+ ru.biosoft.graphics,
+ ru.biosoft.table,
+ ru.biosoft.workbench
+Export-Package: ru.biosoft.proteome

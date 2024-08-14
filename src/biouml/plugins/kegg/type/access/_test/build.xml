@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!--
+  $Id: build.xml,v 1.3 2008/07/18 08:40:05 tolstyh Exp $
+  Run batch test for biouml.plugins.kegg.type.access package
+-->
+
+<project name="biouml.plugins.kegg.access._test" default="autotest" basedir="../../../../../..">
+
+  <!-- Run batch of auto test for biouml.plugins.kegg.access package. -->
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.kegg.type.access._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="compound">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.kegg.type.access._test.TestCompoundTransformer"/>
+    </ant>
+  </target>
+
+  <target name="glycan">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.kegg.type.access._test.TestGlycanTransformer"/>
+    </ant>
+  </target>
+
+  <target name="enzyme">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.kegg.type.access._test.TestEnzymeTransformer"/>
+    </ant>
+  </target>
+
+  <target name="reaction">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.kegg.type.access._test.TestReactionTransformer"/>
+    </ant>
+  </target>
+
+  <target name="ortholog">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.kegg.type.access._test.TestOrthologTransformer"/>
+    </ant>
+  </target>
+
+  <!--
+     Delete all *.class files.
+  -->
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

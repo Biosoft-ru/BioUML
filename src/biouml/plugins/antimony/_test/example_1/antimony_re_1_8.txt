@@ -1,0 +1,5 @@
+model diagramTest
+   var k;
+   compartment default;
+   math_event: at k<5 : k = k/7: k = 0;
+end

@@ -1,0 +1,9 @@
+log4j.rootCategory=INFO,A1
+
+# Appender A1 writes to the file "RepositoryImportTest.log".
+log4j.appender.A1=org.apache.log4j.FileAppender
+log4j.appender.A1.File=RepositoryImportTest.log
+log4j.appender.A1.Append=false
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%d{HH:mm} %-5p %-l %3x- %m%n
+#log4j.appender.A1.layout.ConversionPattern=%-5r %d{dd MM yyyy HH:mm} %-c %-5p %-l %3x- %m%n

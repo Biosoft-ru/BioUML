@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="EnzymeClassExpasyType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.expasy.EnzymeClassExpasyType"/>
+  </extension>
+
+  <extension id="EnzymeExpasyType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.expasy.EnzymeExpasyType"/>
+  </extension>
+  
+  <extension id="Install ExPASy" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.expasy.InstallExPASy"
+                   group="Admin"
+                   name="Install ExPASy"
+                   description="Install ExPASy database."
+                   />
+  </extension>
+
+</plugin>

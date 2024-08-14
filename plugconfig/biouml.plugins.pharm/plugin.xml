@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="PharmModuleType" point="biouml.workbench.moduleType"> 
+      <moduleType 
+        class="biouml.plugins.pharm.PopulationModuleType"
+        displayName="%PopulationModule" 
+        description="%PopulationModuleDescription"
+      /> 
+  </extension> 
+  
+  <extension id="EngineType" point="biouml.plugins.simulation.engine"> 
+      <engine class="biouml.plugins.pharm.nlme.PopulationModelSimulationEngine" 
+	  displayName="NLME Simulation Engine" 
+	  emodelType="Population Model"
+	  priority="1"
+	  />
+    </extension>
+
+  <extension id="PopulationVariables" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.pharm.PopulationVariablesTabularEditor"
+        id="population.variables"
+        Name="Population variables"
+        ShortDescription="Population variables."
+      /> 
+  </extension>
+  
+  <extension point="biouml.workbench.diagramType">
+       <diagramType class="biouml.plugins.pharm.PopulationModelDiagramType"/>
+  </extension>
+  
+  <extension id="SimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.pharm.analysis.PopulationSampling" group="Population" name="Sample population"  description="Sample population."/> 
+  </extension>
+  
+  <extension id="SimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.pharm.analysis.SimulatePopulationAnalysis" group="Population" name="Simulate Population"  description="Simulate population."/> 
+  </extension>
+  
+    <extension id="SimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.pharm.prognostic.TreatmentSystem" group="Population" name="Treatment Simulation"  description="Treatment Simulation."/> 
+    </extension>
+
+    <extension id="SimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.pharm.prognostic.PopulationGeneration" group="Population" name="Population generation"  description="Population generation"/> 
+    </extension>
+
+    <extension id="SimulationAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.pharm.prognostic.PopulationTreatment" group="Population" name="Population treatment"  description="Population treatment"/> 
+    </extension>
+  
+</plugin>

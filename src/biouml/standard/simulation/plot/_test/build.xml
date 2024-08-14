@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.2 2008/11/28 11:23:00 lsa80 Exp $  -->
+
+<project name="biouml.standard.simulation package test" default="autotest" basedir="../../../../..">
+
+  <property name="package" value="biouml.standard.simulation.plot"/>
+
+  <target name="transformer">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.PlotTransformerTest"/>
+    </ant>
+  </target>
+
+  <target name="transformer.sql">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.PlotSqlTransformerTest"/>
+    </ant>
+  </target>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

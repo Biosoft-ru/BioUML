@@ -1,0 +1,1016 @@
+## This template contains the recursive macros using local variables.
+## It's necessary to set the following properties for the correct utilization of the template. 
+##
+## Properties props = new Properties();
+## props.setProperty("velocimacro.context.localscope", "true");
+## Velocity.init(props);
+
+#macro(setField $param $value)
+	#if($value)
+		#set( $param = $value)
+	#else
+		#set( $param = "")
+	#end
+#end
+
+#macro(processCompartments $resolver $diagram $orderNumber $isTitleSet)
+	#set( $iterator = $diagram.iterator() )
+	#foreach ($foo in [1..$diagram.getSize()])
+		#if($iterator.hasNext())
+	        #set( $diagramElement = $iterator.next())
+	        #if ($diagramElement.getKernel().getType().equals("compartment"))
+	        
+	        	#if(!$isTitleSet)
+            	    <font size = 6>Compartments</font><br><br>
+					<table border="0">
+					#updateCompartmentTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Name</b>", "<b>Initial value</b>", "<b>Units</b>", "<b>Comment</b>", "<b>Databases</b>", "<b>References</b>")
+            	    #set( $isTitleSet = true)
+            	#end
+	        
+	        	#set( $orderNumber = $orderNumber + 1)
+	        	#setField($ID, $diagramElement.getName())
+	        	#setField($name, $diagramElement.getTitle())
+	        	#set( $DBRef = [])
+	        	#set( $databases = [])
+	        	#getDBRef($resolver, $diagramElement, $databases, $DBRef)
+	        	#set( $variable = $diagram.getRole().getVariable($ID))
+				#set( $initialValue = $variable.getInitialValue())
+				#setField($units, $variable.getUnits())
+				#setField($comment, $variable.getComment())	
+				
+				#updateCompartmentTable($orderNumber, $ID, $name, $initialValue, $units, $comment, $databases, $DBRef)
+				
+				#processCompartments($resolver, $diagramElement, $orderNumber, $isTitleSet)
+	        #end
+	    #end
+    #end
+#end
+
+#macro(processSpecies $resolver, $diagram)
+	#set( $orderNumber = 0)
+	#if($diagram.getRole().getVariableRoles().getSize() > 0)
+		#set( $iterator = $diagram.getRole().getVariableRoles().iterator())
+		#foreach($boo in [1..$diagram.getRole().getVariableRoles().getSize()])
+			#if($iterator.hasNext())
+				#set( $variable = $iterator.next())
+				
+				#set( $de = $variable.getDiagramElement())
+				
+				#set($clone = $de.getAttributes().getProperty("sbgn:cloneMarker"))
+				#if(!$de.getAttributes().getProperty("sbgn:cloneMarker") || $clone.getValue().equals("") || $clone.getValue().equals($de.getName()))			
+				
+				    #set( $kernel = $de.getKernel())
+				
+				    #if( !$kernel.getType().equals("compartment"))
+					    #setField($ID, $variable.getName())
+					    #setField($title, $de.getTitle())
+	        		    #setField($compartment, $de.getParent().getTitle())
+	        		
+	        		    #set( $DBRef = [])
+	        		    #set( $databases = [])
+	        		    #getDBRef($resolver, $de, $databases, $DBRef)
+	        	
+					    #set( $initialValue = $variable.getInitialValue())
+					    #setField($units, $variable.getUnits())
+					    #setField($comment, $variable.getComment())
+					    #set( $bounds = $variable.isBoundaryCondition())
+					    #set( $orderNumber = $orderNumber + 1)
+	
+					    #updateSpeciesTable($orderNumber, $ID, $title, $compartment, $initialValue, $units, $comment, $bounds, $databases, $DBRef)
+				    #end
+				#end
+			#end
+		#end
+	#end
+#end
+
+#macro(processDatabaseReferences $diagram $resolver $orderNumber $isTitleSet)
+	#if($diagram)
+		#set($kernel = $diagram.getKernel())
+		#if($kernel && $kernel.getDatabaseReferences() && $kernel.getDatabaseReferences().size() > 0)
+            
+            <font size = 6>Database references</font><br><br>
+			<table border="0">
+			#updateReferencesTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>Databases</b>", "<b>Relations</b>", "<b>References</b>")
+			#set( $isTitleSet = true)
+			
+			#set( $DBRef = [])
+			#set( $relations = [])
+			#set( $databases = [])
+	        #getDBRef($resolver, $diagram, $databases, $DBRef, $relations)
+			#set( $orderNumber = $orderNumber + 1)
+			
+			#updateReferencesTable($orderNumber, $diagram.getName(), $diagram.getTitle(), $databases, $relations, $DBRef)
+		#end
+		#processInternalDatabaseReferences($diagram, $resolver, $orderNumber, $isTitleSet)
+	#end
+#end
+
+#macro(processInternalDatabaseReferences $compartment $resolver $orderNumber $isTitleSet)
+	#if ( $compartment.getSize() > 0)
+		#set( $iterator = $compartment.iterator() )
+		#foreach ($foo in [1..$compartment.getSize()])
+			#if($iterator.hasNext())
+	        	#set( $diagramElement = $iterator.next())
+	        	#set( $kernel = $diagramElement.getKernel())
+	        	#if( $kernel && $kernel.getDatabaseReferences() && $kernel.getDatabaseReferences().size() > 0)
+	        	
+	        		#if(!$isTitleSet)
+	        			<font size = 6>Database references</font><br><br>
+						<table border="0">
+						#updateReferencesTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>Databases</b>", "<b>Relations</b>", "<b>References</b>")
+						#set( $isTitleSet = true)
+	        		#end
+	        	
+					#set( $DBRef = [])
+					#set( $relations = [])
+					#set( $databases = [])
+	        		#getDBRef($resolver, $diagramElement, $databases, $DBRef, $relations)
+					#set( $orderNumber = $orderNumber + 1)
+					
+					#updateReferencesTable($orderNumber, $diagramElement.getName(), $diagramElement.getTitle(), $databases, $relations, $DBRef)
+				#end
+				#if ($kernel.getType().equals("compartment"))
+            	    #processInternalDatabaseReferences($diagramElement, $resolver, $orderNumber, $isTitleSet)
+            	#end
+	    	#end
+		#end
+	#end
+#end
+
+#macro(processLiteratureReferences $diagram $resolver $orderNumber $isTitleSet)
+	#if($diagram)
+		#set($kernel = $diagram.getKernel())
+		#if($kernel && $kernel.getLiteratureReferences() && $kernel.getLiteratureReferences().size() > 0)
+		
+			#if(!$isTitleSet)
+	        	<font size = 6>Literature</font><br><br>
+				<table border="0">
+				#updateLiteratureTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>References</b>")
+				#set( $isTitleSet = true)
+	       	#end
+		
+			#set( $literature = [])
+	        #getLiterature($resolver, $diagram, $literature)
+			#set( $orderNumber = $orderNumber + 1)
+			
+			#updateLiteratureTable($orderNumber, $diagram.getName(), $diagram.getTitle(), $literature)
+		#end
+		#processInternalLiteratureReferences($diagram, $resolver, $orderNumber, $isTitleSet)
+	#end
+#end
+
+#macro(processInternalLiteratureReferences $compartment $resolver $orderNumber $isTitleSet)
+	#if ( $compartment.getSize() > 0)
+		#set( $iterator = $compartment.iterator() )
+		#foreach ($foo in [1..$compartment.getSize()])
+			#if($iterator.hasNext())
+	        	#set( $diagramElement = $iterator.next())
+	        	#set( $kernel = $diagramElement.getKernel())
+	        	#if( $kernel && $kernel.getLiteratureReferences() && $kernel.getLiteratureReferences().size() > 0)
+	        	
+	        		#if(!$isTitleSet)
+	        			<font size = 6>Literature</font><br><br>
+						<table border="0">
+						#updateLiteratureTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>References</b>")
+						#set( $isTitleSet = true)
+	        		#end
+	        	
+					#set( $literature = [])
+	        		#getLiterature($resolver, $diagramElement, $literature)
+					#set( $orderNumber = $orderNumber + 1)
+					
+					#updateLiteratureTable($orderNumber, $diagramElement.getName(), $diagramElement.getTitle(), $literature)
+				#end
+				#if ($kernel.getType().equals("compartment"))
+            	    #processInternalLiteratureReferences($diagramElement, $resolver, $orderNumber, $isTitleSet)
+            	#end
+	    	#end
+		#end
+	#end
+#end
+
+#macro(processReactions $diagram $compartment $formatter $resolver $orderNumber $isTitleSet $case)
+	#set( $plus = " + ")
+    #set( $comma = ", ")
+    #set( $straight_arrow = "&rarr;")
+    #set( $double_arrow = "&harr;")
+    #set( $hyphen = " -")
+           	    	
+	#if ($compartment.getSize() > 0)
+	    #set( $iterator = $compartment.iterator() )
+	    #foreach ($foo in [1..$compartment.getSize()])
+            #if ($iterator.hasNext())
+            	#set( $diagramElement = $iterator.next() )
+            	    
+            	#if ($diagramElement.getKernel() && $diagramElement.getKernel().getType().equals("reaction"))
+            	    #if(!$isTitleSet)
+            	    	<font size = 6>Reactions</font><br><br>
+            	    	<table border="0">
+            	    	#if( $case.equals("Overview"))
+            	    		#updateReactionTableForOverview("<b>&#8470;</b>", "<b>Title</b>", "<b>Reactions</b>", "<b>Kinetic law</b>", "<b>Comment</b>", "<b>Databases</b>", "<b>References</b>")
+            	    	#end
+            	    	#if( $case.equals("ReactionTemplate"))
+            	    		#updateReactionTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Reactions</b>", "<b>Kinetic law</b>", "<b>Parameters</b>", "<b>Comment</b>", "<b>Databases</b>", "<b>References</b>")
+            	    	#end
+            	    	#set( $isTitleSet = true)
+            	    #end
+            	    
+            	    #set( $edges = $diagramElement.edges)
+            	    #set( $it = $edges.iterator())
+            	    	
+            	    #set( $reactants = "")
+            	    #set( $products = "")
+            	    #set( $modifiers = "")
+            	    #set( $point = ".")
+            	    #set( $isReversible = $diagramElement.getKernel().isReversible())
+            	    	
+            	    #foreach ($boo in [1..$edges.size()])
+            	    	#if($it.hasNext())
+	            	    	#set( $edge = $it.next())
+	            	    	#if( $edge.getKernel().getType().equals("relation-chemical"))
+	            	    	
+	            	    		#set( $sr = $edge.getKernel())
+	            	    		#set( $stoichiometry = $sr.getStoichiometry())
+	            	    		#if( $stoichiometry.equals("1"))
+	            	    			#set( $stoichiometry = "")
+	            	    		#else
+	            	    		    #set( $stoichiometry = "${stoichiometry}&times;")
+	            	    		#end
+	            	    		#if( $sr.getRole().equals("reactant") )
+	                        		#setField($title, $edge.getInput().getTitle())
+	                        		#if ($reactants.equals(""))
+	                            		#set( $reactants = "<nobr>$stoichiometry$title</nobr>")
+	                            	#else
+	                            		#set( $reactants = "$reactants$plus<nobr>$stoichiometry$title</nobr>")
+	                            	#end
+	                        	#else
+	                        		#if( $sr.getRole().equals("product") )
+	                           			#setField($title, $edge.getOutput().getTitle())
+	                           			#if ($products.equals(""))
+	                           				#set( $products = "<nobr>$stoichiometry$title</nobr>")
+	                           			#else
+	                            			#set( $products = "$products$plus<nobr>$stoichiometry$title</nobr>")
+	                            		#end
+	                        		#else
+	                           		 	#setField($title, $edge.getInput().getTitle())
+	                           		 	#if ($modifiers.equals(""))
+	                           		 		#set( $modifiers = "<nobr>$hyphen$stoichiometry$title</nobr>")
+	                           		 	#else
+	                            			#set( $modifiers = "$modifiers$comma<nobr>$stoichiometry$title</nobr>")
+	                            		#end
+	                           		 #end
+	                           	#end
+	            	    	#end
+	            	    #end	
+            	    #end
+            	    	
+            	    #set( $reaction = $reactants)
+            	    #if( $isReversible)
+            	        #set( $arrow = "<nobr>$double_arrow</nobr> ")
+            	    #else
+            	        #set( $arrow = "<nobr>$straight_arrow</nobr> ")
+            	    #end
+            	    #if( !$modifiers.equals(""))
+            	    	#set( $color = "blue")
+            	    	#set( $reaction = "$reaction<font color=$color>$modifiers</font>$arrow$products")
+            	    #else
+            	    	#set( $reaction = "${reaction} $arrow$products")
+            	    #end
+            	    	
+            	    #setField($formula, $diagramElement.getKernel().getFormula())
+            	    ##getFormula($diagram, $formatter, $formula, $diagramElement.getRole(), $null)
+            	    #getMathML($diagram, $formula, $null)
+ 	
+            	    #set( $orderNumber = $orderNumber + 1)
+            	    
+            	    #setField($title, $diagramElement.getTitle())
+            	    #if($title.equals(""))
+            	    	#setField($title, $diagramElement.getName())
+            	    #end
+            	    
+            	    #set( $DBRef = [])
+            	    #set( $databases = [])
+	        		#getDBRef($resolver, $diagramElement, $databases, $DBRef)
+	        		
+	        		#setField($comment, $diagramElement.getComment())
+            	    #if( $case.equals("Overview"))	
+            	    	#updateReactionTableForOverview($orderNumber, $title, $reaction, $formula, $comment, $databases, $DBRef)
+            	    #end
+            	    #if( $case.equals("ReactionTemplate"))
+            	    	#set($parameters = [])
+            	    	#getParametersForReactionTemplate($diagram $formula $parameters)
+            	    	#updateReactionTable($orderNumber, $title, $reaction, $formula, $parameters, $comment, $databases, $DBRef)
+            	    #end
+            	#else 
+            	    #if ($diagramElement.getKernel().getType().equals("compartment"))
+            	    	#processReactions($diagram, $diagramElement, $formatter, $resolver, $orderNumber, $isTitleSet, $case)
+            		#end
+            	#end
+            #end
+        #end
+    #end
+#end
+
+#macro(processParameters $diagram)
+	#set( $iterator = $diagram.getRole().getParameters().iterator())
+	#foreach($boo in [1..$diagram.getRole().getParameters().getSize()])
+		#if($iterator.hasNext())
+			#set( $parameter = $iterator.next())
+			#setField($name, $parameter.getName())
+			#set( $initialValue = $parameter.getInitialValue())
+			#setField($units, $parameter.getUnits())
+			#setField($comment, $parameter.getComment())
+			#set( $isConstant = $parameter.isConstant())
+			#updateParameterTable($boo, $name, $initialValue, $units, $isConstant, $comment)
+		#end
+	#end
+#end
+
+#macro(processFunctions $diagram)
+	#set($orderNumber = 0)
+	#set( $functions = $diagram.getRole().getFunctions())
+	#foreach( $function in $functions)
+		#set( $orderNumber = $orderNumber + 1)
+		#setField($title, $function.getName())
+		#setField($identifier, $function.getName())
+		#setField($comment, $function.getParent().getComment())	
+		#setField($formula, $function.getRightHandSide())
+		#set( $identifier = "<u>${identifier}</u>")
+		#getMathML($diagram, $formula, $function)
+		#updateFunctionTable($orderNumber, $title, $formula, $comment)
+	#end
+#end
+
+#macro(processConstraints $diagram)
+	#set($orderNumber = 0)
+	#set( $constraints = $diagram.getRole().getConstraints())
+	#foreach( $constraint in $constraints)
+		#set( $orderNumber = $orderNumber + 1)
+		#setField($title, $constraint.getParent().getTitle())
+		#setField($comment, $constraint.getParent().getComment())	
+		#setField($formula, $constraint.getFormula())
+		#setField($message, $constraint.getMessage())
+		#getMathML($diagram, $formula, $constraint)
+		#updateConstraintTable($orderNumber, $title, $formula, $message, $comment)
+	#end
+#end
+
+#macro(processEquations $diagram $equations)
+	#set($orderNumber = 0)
+	#foreach( $equation in $equations)
+	    #if ($equation.getParent().getKernel().getType().equals("math-equation"))
+			#setField($title, $equation.getParent().getTitle())
+			#setField($formula, $equation.getFormula())
+			#setField($variable, $equation.getVariable())
+			#set($left = "${variable} == ")
+			#setField($type, $equation.getType())	
+			#if( $type.equals("rate"))
+				#set( $left = "diff(time, ${variable}) = ")
+			#elseif ($type.equals("algebraic"))
+		    	#set( $left = "0 == ")		
+			#elseif ($type.equals("initial assignment"))
+		    	#set( $left = "${variable} == ")		    
+			#end    
+			#set( $formula = "${left}${formula}" )
+			#set( $orderNumber = $orderNumber + 1)
+			#setField($comment, $equation.getParent().getComment())
+			#getMathML($diagram, $formula, $equation)
+			#updateEquationTable($orderNumber, $formula, $comment)
+		#end
+	#end
+#end
+
+#macro(processEvents $diagram)
+	#set($orderNumber = 0)
+	#set( $events = $diagram.getRole().getEvents())
+	#foreach( $event in $events)
+		#set( $orderNumber = $orderNumber + 1)
+		#setField($title, $event.getParent().getTitle())
+		#set( $expressions = $event.getExpressions())
+		#set( $formulas = [])
+		#foreach($formula in $expressions)
+			#if($formula && !$formula.isEmpty())
+				#getMathML($diagram, $formula, $event)
+				#set($temp = $formulas.add($formula))
+			#end 
+		#end
+		#setField($comment, $event.getParent().getComment())
+		#set( $trigger = "$formulas.get(0)")
+		#set( $delay = "$formulas.get(1)")
+		#updateEventTable($orderNumber, $title, $trigger, $delay, $formulas, $comment)
+	#end
+#end
+
+#macro(processRateEquations $diagram $formatter)
+	#set($orderNumber = 0)
+	#set( $equations = $diagram.getRole().getODE())
+	#foreach( $equation in $equations)
+		#setField($title, $equation.getParent().getTitle())
+		#setField($eFormula, $equation.getFormula())
+		#setField($eVariable, $equation.getVariable())
+		#if ($equation.getParent().getKernel().getType().equals("math-equation"))
+			#getFormula($diagram, $formatter, $eVariable, $equation, $null)
+			#getFormula($diagram, $formatter, $eFormula, $equation, $null)
+			#set( $orderNumber = $orderNumber + 1)
+			#setField($comment, $equation.getParent().getComment())
+			#updateEquationTable($orderNumber, "d${eVariable}/dt = $eFormula", $comment)
+		#end
+	#end
+#end
+
+#macro(processAlgebraicEquations $diagram $formatter)
+	#set($orderNumber = 0)
+	#set( $equations = $diagram.getRole().getAlgebraic())
+	#foreach( $equation in $equations)
+		#setField($title, $equation.getParent().getTitle())
+		#setField($eFormula, $equation.getFormula())
+		#setField($eVariable, $equation.getVariable())
+		#if ($equation.getParent().getKernel().getType().equals("math-equation"))
+			#getFormula($diagram, $formatter, $eVariable, $equation, $null)
+			#getFormula($diagram, $formatter, $eFormula, $equation, $null)
+			#set( $orderNumber = $orderNumber + 1)
+			#setField($comment, $equation.getParent().getComment())
+			#updateEquationTable($orderNumber,  "${eFormula}  = 0", $comment)
+		#end
+	#end
+#end
+
+#macro(processInitialAssignments $diagram $formatter)
+	#set($orderNumber = 0)
+	#set( $equations = $diagram.getRole().getInitialAssignments())
+	#foreach( $equation in $equations)
+		#setField($title, $equation.getParent().getTitle())
+		#setField($eFormula, $equation.getFormula())
+		#setField($eVariable, $equation.getVariable())
+		#if ($equation.getParent().getKernel().getType().equals("math-equation"))
+			#getFormula($diagram, $formatter, $eVariable, $equation, $null)
+			#getFormula($diagram, $formatter, $eFormula, $equation, $null)
+			#set( $orderNumber = $orderNumber + 1)
+			#setField($comment, $equation.getParent().getComment())
+			#updateEquationTable($orderNumber,  "${eVariable} (0) = ${eFormula}", $comment)
+		#end
+	#end
+#end
+
+#macro(processAssignments $diagram $formatter)
+	#set($orderNumber = 0)
+	#set( $equations = $diagram.getRole().getAssignments())
+	#foreach( $equation in $equations)
+		#setField($title, $equation.getParent().getTitle())
+		#setField($eFormula, $equation.getFormula())
+		#setField($eVariable, $equation.getVariable())
+		#if ($equation.getParent().getKernel().getType().equals("math-equation"))
+			#getFormula($diagram, $formatter, $eVariable, $equation, $null)
+			#getFormula($diagram, $formatter, $eFormula, $equation, $null)
+			#set( $orderNumber = $orderNumber + 1)
+			#setField($comment, $equation.getParent().getComment())
+			#updateEquationTable($orderNumber,  "${eVariable} = ${eFormula}", $comment)
+		#end
+	#end
+#end
+
+#macro(processODEEquations $diagram $compartment $formatter $isTitleSet)
+	#set( $orderNumber = 0)
+	#set( $nodes = $compartment.getNodes())
+	#foreach( $node in $nodes)
+		#if( $node.getKernel().getType().equals("compartment") )
+			#processODEEquations($diagram, $node, $formatter, $isTitleSet)
+		#else
+			#set($var = $node.getRole())
+			#if($var && $var.getClass().getName().endsWith("VariableRole") && $var.getDiagramElement().equals($node))
+				##set($name = $node.getTitle())
+				#set($name = $var.getShortName())
+				#set( $firstPart = "diff(time, ${name})")
+                #set( $secondPart = "")
+                #set( $termsNumber = 0)
+
+                #set($clones = $node.getRole().getAssociatedElements())
+                #foreach($clone in $clones)
+					#set($edges = $clone.getEdges())
+					#foreach($edge in $edges)
+						#set($sr = $edge.getKernel())
+					 	#if($sr && $sr.getRole() && ($sr.getRole().equals("reactant") || ($sr.getRole().equals("product"))))
+							#set($st = $sr.getStoichiometry())
+
+							#if($edge.getInput().getKernel().getType().equals("reaction"))
+						 		#set($reactionNode = $edge.getInput())
+						 	#end
+						 	#if($edge.getOutput().getKernel().getType().equals("reaction"))
+						 		#set($reactionNode = $edge.getOutput())
+						 	#end
+
+						 	#if($reactionNode && $reactionNode.getKernel() && $reactionNode.getKernel().getFormula() && $reactionNode.getRole())
+						 		#set($formula = $reactionNode.getKernel().getFormula())
+								#set($equation = $reactionNode.getRole())
+							
+								#if( $sr.getRole().equals("reactant") )
+                            		#getFormulaWithMinus($diagram, $formatter, $formula, $equation, $st)
+                            	#else
+                                	#getFormula($diagram, $formatter, $formula, $equation, $st)
+                            	#end
+                                    	
+                            	#if( $termsNumber == 0 )
+                            		#set( $secondPart = "$formula")
+                            	#else
+                            		#if( !$formula.startsWith("&minus;") && !$formula.startsWith("+"))
+                                		#set( $secondPart = "${secondPart} + $formula")
+                                	#else
+                                		#set( $secondPart = "${secondPart} $formula")
+                                	#end
+                            	#end
+
+                            	#set( $termsNumber = $termsNumber + 1)
+							#end		
+						#end
+					#end
+                #end
+				#if( $termsNumber > 0 )
+                	#if(!$isTitleSet)
+						<font size = 6>Differential equation system</font><br><br>
+						<table border="0">
+            			#set( $isTitleSet = true)
+           			#end
+
+                    #set( $orderNumber = $orderNumber + 1)
+                    #set( $formula = "${firstPart}=${secondPart}")
+                    #getMathML($diagram, $formula, $null)
+                    ##getMathML($diagram, $secondPart, $null) 
+                    ##getMathML($diagram, $firstPart, $null) 
+                    #updateODEEquations($orderNumber, $formula, "")
+            	#end
+			#end	
+		#end
+	#end
+#end
+
+#macro(getFormula $diagram $formatter $formula $role $stoichiometry)
+	#set( $formula = $formula.replace(" ", ""))
+
+	#if($stoichiometry && !$stoichiometry.equals("1"))
+		#if($formula.contains("+") || $formula.contains("-"))
+			#set($formula = "${stoichiometry}*(${formula})")
+		#else
+			#set($formula = "${stoichiometry}*${formula}")
+		#end
+	#end
+
+    ##set( $model = $diagram.getRole())
+	##set( $start = $model.readMath($formula, $role))
+    ##set( $variableResolver = $model.getVariableResolver(2))
+    ##set( $isMinus = false)
+	##set( $formattedTree = $formatter.format($start, $variableResolver, $isMinus))
+    
+	##set( $i = 0)
+	##foreach( $element in $formattedTree)
+		##if( $i == 1)
+			##set( $formula = $element)
+		##end
+		##set( $i = $i + 1)
+	##end
+#end
+
+#macro(getFormulaWithMinus $diagram $formatter $formula $role $stoichiometry)
+	#set( $formula = $formula.replace(" ", ""))
+
+	#if($stoichiometry && !$stoichiometry.equals("1"))
+		#if($formula.contains("+") || $formula.contains("-"))
+			#set($formula = "${stoichiometry}*(${formula})")
+		#else
+			#set($formula = "${stoichiometry}*${formula}")
+		#end
+	#end
+	
+
+	##set( $model = $diagram.getRole())
+	##set( $start = $model.readMath($formula, $role))
+	##set( $variableResolver = $model.getVariableResolver(2))
+    ##set( $isMinus = true)
+	##set( $formattedTree = $formatter.format($start, $variableResolver, $isMinus))
+    
+	##set( $i = 0)
+	##foreach( $element in $formattedTree)
+		##if( $i == 1)
+		##set( $formula = $element)
+		##end
+		##set( $i = $i + 1)
+	##end
+#end
+
+#macro( getParametersForReactionTemplate $diagram $formula $parameters)
+	#set( $symbols = ["*", "/", "+", "-", "=", "/dt", "piecewise", ">", "<", "&&", "||", "!", "^", "[", "{", "(", "]","}", ")", ";"])
+	#set( $formulaClone = $formula)
+	
+	#foreach($boo in $symbols)
+		#set( $formulaClone = $formulaClone.replace($boo, " "))
+	#end
+	
+	#set($paramArray = $formulaClone.split(" "))
+	#foreach($boo in $paramArray)
+		#if($diagram.getRole().getParameters() && $diagram.getRole().getParameters().contains($boo))
+        	#set( $value = $diagram.getRole().getVariable($boo).getInitialValue())
+        	#set( $parameter = "${boo} = $value")
+        	#if( !$parameters.contains($parameter))
+        		#set( $temp = $parameters.add($parameter))
+        	#end
+        #end
+    #end
+#end
+
+#macro(getDBRef $resolver $de $databases $DBRef $relations)
+	#if ($de.getKernel())
+		#set( $kernel = $de.getKernel())
+	#else
+		#set( $kernel = $de)
+	#end
+	#set( $kernelName = $de.getAttributes().getProperty("completeName"))
+	#if( $kernelName && !$kernelName.getValue().equals(""))
+		#set( $kernel = $resolver.getDataElement($kernelName.getValue()))
+	#end
+	#set( $DBReferences = $kernel.getDatabaseReferences())
+	#foreach( $boo in $DBReferences)
+		#set( $link = $resolver.getQueryById($kernel, $boo))
+		#set( $ID = $boo.getId())
+		#if( $link && !$link.equals(""))
+			#set( $reference = "<a target='_blank' href=${link}>${ID}</a>")
+		#else
+			#set( $reference = $ID)
+		#end
+		#set( $temp = $DBRef.add($reference))
+		#set( $temp = $databases.add($resolver.getDatabaseTitle($kernel, $boo)))
+		#if( $relations)
+			#set( $temp = $relations.add($boo.getRelationshipType()))
+		#end
+	#end
+#end
+
+#macro(getDBRefList $resolver $de $DBRef)
+	#if ($de.Kernel && $de.Kernel.Class.SimpleName == "DiagramInfo")
+		#set( $kernel = $de.Kernel)
+	#else
+		#set( $kernel = $de)
+	#end
+	#set( $kernelName = $de.getAttributes().getProperty("completeName"))
+	#if( $kernelName && !$kernelName.getValue().equals(""))
+		#set( $kernel = $resolver.getDataElement($kernelName.getValue()))
+	#end
+	#set( $DBReferences = $kernel.getDatabaseReferences())
+	#set( $DBRef = "")
+	#foreach( $boo in $DBReferences)
+		#set( $link = $resolver.getQueryById($kernel, $boo))
+		#set( $ID = $boo.getId())
+		#if( $link && !$link.equals(""))
+			#set( $reference = "<a target='_blank' href=${link}>${ID}</a>")
+		#else
+			#set( $reference = $ID)
+		#end
+		#set( $dbTitle = $resolver.getDatabaseTitle($kernel, $boo))
+		#set( $DBRef = "${DBRef}<li><b>Database name</b>: ${dbTitle} <b>ID</b>: ${reference}</li>")
+	#end
+	#if( $DBRef != "" )
+		#set( $DBRef = "<b>Database References</b>:<ul>${DBRef}</ul>" )
+	#end
+#end
+
+#macro(getLiterature $resolver $de $literature)
+	#if ($de.getKernel())
+		#set( $kernel = $de.getKernel())
+	#else
+		#set( $kernel = $de)
+	#end
+	#set( $LiteratureReferences = $kernel.getLiteratureReferences())
+	#foreach( $boo in $LiteratureReferences)
+		#set( $link = $resolver.getQueryById($kernel, $boo))
+		#set( $ID = $resolver.getReference($kernel, $boo))
+		#if( $link && !$link.equals(""))
+			#set( $ID = "${ID} (PubMed)")
+			#set( $reference = "<a target='_blank' href=${link}>${ID}</a>")
+		#else
+			#set( $reference = $ID)
+		#end
+	#set( $temp = $literature.add($reference))
+	#end
+#end
+
+#macro( getDBRefListCollapsible $resolver $de $DBRef $showKernelRefs )
+    #if ($de.Kernel && $de.Kernel.Class.SimpleName == "DiagramInfo")
+        #set( $kernel = $de.Kernel)
+    #else
+        #set( $kernel = $de)
+    #end
+    #set( $kernelName = $de.getAttributes().getProperty("completeName"))
+    #if( $kernelName && !$kernelName.getValue().equals(""))
+        #set( $kernel = $resolver.getDataElement($kernelName.getValue()))
+    #end
+    #if($showKernelRefs == "true")
+        #set ( $nodeKernel = $de.getKernel())
+        #if($nodeKernel)
+            #set( $originalPath = $nodeKernel.getAttributes().getProperty("originalPath"))
+            #if( $originalPath && !$originalPath.getValue().equals(""))
+                #set ($kernel = $resolver.getDataElement($originalPath.getValue()))
+            #end
+        #end
+    #end
+    #set( $idAdd = $de.getName() )
+    #set( $DBReferences = $kernel.getDatabaseReferences())
+    #set( $DBRef = "")
+    #foreach( $boo in $DBReferences)
+        #set( $link = $resolver.getQueryById($kernel, $boo))
+        #set( $ID = $boo.getId())
+        #if( $link && !$link.equals(""))
+            #set( $reference = "<a target='_blank' href=${link}>${ID}</a>")
+        #else
+            #set( $reference = $ID)
+        #end
+        #set( $dbTitle = $resolver.getDatabaseTitle($kernel, $boo))
+        #set( $DBRef = "${DBRef}<li><b>Database name</b>: ${dbTitle} <b>ID</b>: ${reference}</li>")
+    #end
+    #set( $quote='"' )
+    #set( $idUl = "col_ul${idAdd}" )
+    #set( $idUlBtn = "col_ul_btn${idAdd}" )
+    #set( $collapsible = "<b id='${idUlBtn}' onclick='toggleListVisibility(${quote}${idUl}${quote}, ${quote}${idUlBtn}${quote}, ${quote}Database References${quote})' style='cursor: pointer;'>Database References[+]</b>")
+    #if( $DBRef != "" )
+        #set( $DBRef = "${collapsible} <ul id='${idUl}' style='display:none;'>${DBRef}</ul><br/>" )
+    #end
+#end
+
+#macro( displayAttributesCollapsible $attributes )
+    <ul>
+        #set( $iterator = $attributes.nameIterator() )
+        #foreach ($foo in [1..$attributes.size()])
+            #if ($iterator.hasNext())
+                #set( $pName = $iterator.next() )
+                #set( $property = $attributes.getProperty($pName) )
+                #if ( $property )
+                    #if(!$property.getDescriptor().getValue("transientProperty")&&!$property.getDescriptor().getValue("node-hidden")&&!$property.getDescriptor().isHidden())
+                        #if ($attributes.getValue($pName))
+                            #set( $pValue = $attributes.getValue($pName) )
+                            #if( $pValue.getClass().getCanonicalName().endsWith("[]"))
+                                <li>#strArrayFieldCollapsible($pValue, $pName)</li>
+                            #else
+                                #set( $strValue = $utils.formatHtml($pValue))
+                                #if($strValue)
+                                    <li><b>$pName</b>: $pValue</li>
+                                #end
+                            #end
+                        #end
+                    #end
+                #end
+            #end
+        #end
+    </ul>
+#end
+
+#macro( strArrayFieldCollapsible $name $label )
+    #if($name)
+        #set( $idUl = "col_ul${label}" )
+        #if( $name.size() > 5 )
+            #set( $displ = "none")
+        #else
+            #set( $displ = "block")
+        #end
+        #getCollapsibleLabel($label, $name.size(), $collapsible, $idUl)
+        $collapsible
+        <ul id='${idUl}' style='display:${displ};'>
+        #foreach( $str in $name )
+            <li>$str</li>
+        #end
+        </ul>       
+        <br>
+    #end
+#end
+
+#macro ( getCollapsibleLabel $label $size $collapsible $idUl)
+        #set( $quote='"' )
+        #set( $idUlBtn = "${idUl}_btn" )
+        #if( $size > 5 )
+            #set( $displ = "none")
+            #set ($startVal = "[+]")
+        #else
+            #set( $displ = "block")
+            #set ($startVal = "[&minus;] :")
+        #end
+        #set( $collapsible = "<b id='${idUlBtn}' onclick='toggleListVisibility(${quote}${idUl}${quote}, ${quote}${idUlBtn}${quote}, ${quote}${label}${quote})' style='cursor: pointer;'>${label} ${startVal}</b>")
+#end
+
+#macro ( addScript )
+<script>
+function toggleListVisibility(id, btnid, title)
+{
+    var x = document.getElementById(id);
+    var btn = document.getElementById(btnid);
+    if (x.style.display === "none") {
+        x.style.display = "block";
+        btn.innerHTML = title + " [&minus;]:";
+    } else {
+        x.style.display = "none";
+        btn.innerHTML = title + " [+]";
+    }
+}
+</script>
+#end
+
+
+#macro ( processUnits $diagram $isTitleSet )
+	#set( $model = $diagram.getRole())
+	#set( $units = $model.getUnits())
+	#if( $units && $units.size() > 0)
+		#set( $iterator = $units.keySet().iterator())
+		#foreach ($foo in [1..$units.keySet().size()])
+			#if($iterator.hasNext())
+				#set( $unitName = $iterator.next() )
+				#set( $expression = "")
+				#set( $title = "")
+				#set( $comment = "")
+				#set( $isFirst = true )
+				#set( $unit = $units.get($unitName) )
+				#if($unit.getTitle() && $unit.getTitle() != "")
+					#set( $title = "<nobr>${unit.getTitle()}</nobr>" )
+				#end
+                #if(!$isTitleSet)
+					<font size = 6>Units</font><br><br>
+					<table border="0">
+					#updateUnit("<b>&#8470;</b>", "<b>Name</b>", "<b>Expression</b>", "<b>Title</b>", "<b>Comment</b>")
+				#end
+			    #set( $isTitleSet = true)
+			    #set( $expression = $unit.generateFormula())
+			    #getMathML($diagram, $expression, $null)
+			   	#updateUnit($foo, "<nobr>${unitName}</nobr>", $expression, $title, $comment)
+			#end
+		#end
+	#end
+#end
+
+#macro (getPortsList $de $ports)
+	#set($inputPorts = [])
+	#set($outputPorts = [])
+	#set($contactPorts = [])
+	#set($simplePorts = [])
+	#set($hasPorts = false)
+	#set ($iter = $de.iterator())
+	#foreach($foo2 in [1..$de.getSize()])
+		#if($iter.hasNext())
+			#set($elem = $iter.next())		
+			#set( $kernel = $elem.getKernel())
+			#if( $kernel != $null )
+				#set($type = $kernel.getType())
+				#if( $kernel.getType().equals("input connection port") )
+					#set($temp = $inputPorts.add($elem.getTitle()))
+					#set($type = "input port")
+					#set($hasPorts = true)	
+				#elseif( $kernel.getType().equals("output connection port") )
+					#set($temp = $outputPorts.add($elem.getTitle()))
+					#set($type = "output port")
+					#set($hasPorts = true)
+				#elseif( $kernel.getType().equals("contact connection port") )
+					#set($temp = $contactPorts.add($elem.getTitle()))
+					#set($type = "contact port")
+					#set($hasPorts = true)
+				#end
+			#end
+		#end
+	#end
+	#if($hasPorts)
+		#if($inputPorts.size() > 0)
+			#set($first = "<b>Input:</b>")
+			#set($joined = "")
+			#joinArray($inputPorts, ", ", $joined)
+			#set($ports = "${ports}<tr><td>${first}</td><td>${joined}</td></tr>")
+		#end
+		#if($outputPorts.size() > 0)
+			#set($joined = "")
+			#joinArray($outputPorts, ", ", $joined)
+			#set($first = "<b>Output:</b>")
+			#set($ports = "${ports}<tr><td>${first}</td><td>${joined}</td></tr>")
+		#end
+		#if($contactPorts.size() > 0)
+			#set($first = "<b>Contact:</b>")
+			#set($joined = "")
+			#joinArray($contactPorts, ", ", $joined)
+			#set($ports = "${ports}<tr><td>${first}</td><td>${joined}</td></tr>")
+		#end
+		#set($ports = "<table border='0'>${ports}</table>")
+	#end
+#end
+
+#macro (joinArray $arr $delim $result)
+	#set($result = "")
+	#set($cnt = 1)
+	#foreach($val in $arr)
+		#set($result="${result}${val}")
+		#if($cnt != $arr.size())
+			#set($result="${result}${delim}")
+		#end
+		#set($cnt = $cnt + 1)
+	#end
+#end
+
+#macro (processConnectionPort $de $title)
+	#set($kernel = $de.getKernel())
+	#if ($kernel != $null)
+		#set($varName = $de.getAttributes().getProperty("variableName"))
+		#if($varName)
+			#set($varName = $varName.getValue())
+		#else
+			#set($varName = "") 
+		#end
+		#if($kernel.getType().equals("connection bus"))
+			#set($varName = $de.getRole().getName())
+			#set($title="${varName} (bus)")
+		#elseif($kernel.getType().equals("constant"))
+			#set($varName =$de.getName()) 
+			#set($title="${varName} (constant)")
+		#elseif($kernel.getType().equals("adapter"))
+			#set($varName =$de.getName()) 
+			#set($title="${varName} (averager)")
+		#elseif($de.getParent().getKernel() != $null && $de.getParent().getKernel().getType().equals("switch"))
+			#set($varName =$de.getName()) 
+			#set($title="${varName} ($de.getParent().getTitle())")
+		#elseif($de.getParent().getClass().getName().endsWith("SubDiagram"))
+			#set($title="${varName} ($de.getParent().getTitle())")			
+		#end
+	#end
+#end
+
+#macro (processBuses $de $isTitleSet)
+	#set( $iterator = $de.iterator() )
+	#set( $orderNumber = 1)
+	#foreach ($foo in [1..$de.getSize()])
+		#if($iterator.hasNext())
+			#set( $diagramElement = $iterator.next() )
+			#if($diagramElement.getKernel()!=$null && $diagramElement.getKernel().getType().equals("connection bus"))
+	        	#set($fields = [])
+				#set($tmp = $fields.add($diagramElement.getTitle()))
+				#if (!$isTitleSet)
+					<font size = 6>Buses</font><br><br>
+					<table border="0">
+					#set($fields = [])
+					#set($tmp = $fields.add("<b>Title</b>"))
+					#displaySimpleTableRow("<b>&#8470;</b>", "<b>Name</b>", $fields)
+					#set( $isTitleSet = true)
+				#end	
+	        	#displaySimpleTableRow($orderNumber, $diagramElement.getName(), $fields)
+	        	#set( $orderNumber = $orderNumber + 1)
+	        #end
+        #end
+    #end
+#end
+
+
+#macro(getMathML $diagram $formula $role)
+	 #set( $model = $diagram.getRole())
+	 #set( $start = $model.readMath2($formula, $role))
+	 #set( $formattedTree = $mathmlformatter.format( $start ))
+	 #set( $i = 0)
+	 #foreach( $element in $formattedTree)
+		#if( $i == 1)
+			#set( $formula = $element)
+		#end
+		#set( $i = $i + 1)
+	#end
+#end
+
+#macro (processConnections $de $isTitleSet)
+	
+	#set( $iterator = $de.iterator() )
+	#set( $orderNumber = 1)
+	#foreach ($foo in [1..$de.getSize()])
+		#if($iterator.hasNext())
+			#set( $diagramElement = $iterator.next() )
+			#if($diagramElement.getKernel()!=$null)
+				#set($classname = $diagramElement.getKernel().getClass().getName())
+				#set ($type = "")
+				#if ($classname.endsWith("DirectedConnection"))
+					#set ($type = "directed")
+				#elseif($classname.endsWith("UndirectedConnection"))
+					#set ($type = "undirected")
+				#end
+				#if($type != "")
+					#if (!$isTitleSet)
+						<font size = 6>Connections</font><br><br>
+						<table border="0">
+						#set($fields = [])
+						#set($tmp = $fields.add("<b>Title</b>"))
+						#set($tmp = $fields.add("<b>Type</b>"))
+						#set($tmp = $fields.add("<b>From</b>"))
+						#set($tmp = $fields.add("<b>To</b>"))
+						#displaySimpleTableRow("<b>&#8470;</b>", "<b>Name</b>", $fields)
+						#set( $isTitleSet = true)
+					#end
+		        	#set($fields = [])
+		        	#set($tmp = $fields.add($diagramElement.getTitle()))
+					#set($tmp = $fields.add($type))
+					#set($inputStr = "")
+					#processConnectionPort($diagramElement.getInput(), $inputStr)
+					#set($outputStr = "")
+					#processConnectionPort($diagramElement.getOutput(), $outputStr)
+					#set($tmp = $fields.add($inputStr))	
+					#set($tmp = $fields.add($outputStr))
+		        	#displaySimpleTableRow($orderNumber, $diagramElement.getName(), $fields)
+		        	#set( $orderNumber = $orderNumber + 1)
+	        	#end
+	        #end
+        #end
+    #end
+#end
+

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2011/10/25 09:02:53 axec Exp $  -->
+
+<project name="biouml.plugins.brain package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.brain"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="textui"/>
+            <property name="test" value="biouml.plugins.brain._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="diagram">
+        <ant target="rtest">
+            <property name="testui" value="textui"/>
+            <property name="test" value="biouml.plugins.brain._test.DiagramTest"/>
+        </ant>
+    </target>
+
+</project>

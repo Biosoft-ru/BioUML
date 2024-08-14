@@ -1,0 +1,38 @@
+
+ /*
+ * Set data type as Omics action
+ */
+{
+    id: "set_omics_type",
+    label: "Set data Omics type",
+    icon: "icons/set_omics.png",
+    multi: false,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.table.TableDataCollection') 
+        	|| instanceOf(type,'ru.biosoft.bsa.Track')
+        	|| instanceOf(type,'ru.biosoft.access.FileDataElement')
+        	)
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		queryBioUML('web/omicsType', {'action':'detect','de':path}, function(data) {
+	    var omicsType = data.values;
+	    var omicsValues = ['Transcriptomics','Proteomics','Genomics','Epigenomics', 'Metabolomics'];
+	    createSelectorDialog('Set data type', 'Please, select <b>Omics</b> data type for <b>' + getElementName(path)+'</b>:', omicsType, omicsValues, function(type){
+	    		queryBioUML('web/omicsType', {'action':'set','de':path, 'omicsType':type}, function(data) {
+	    			refreshTreeBranch(getElementPath(path));
+	    		});
+	    	});
+	    }); 
+    }"
+}

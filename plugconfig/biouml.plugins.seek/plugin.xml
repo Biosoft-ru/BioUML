@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension id="SeekSync" point="ru.biosoft.analysiscore.method">
+	<analysisClass class="biouml.plugins.seek.SeekSyncAnalysis" group="Unclassified" name="SEEK Synchronize" description="Synchronize with SEEK platform."/>
+    </extension>
+</plugin>
+

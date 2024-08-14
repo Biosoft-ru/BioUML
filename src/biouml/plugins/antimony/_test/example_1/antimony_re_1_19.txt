@@ -1,0 +1,5 @@
+model diagramTest
+   var z;
+   compartment default;
+end
+unit foo = 100.0 mole / 5.0 litre;

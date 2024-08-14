@@ -1,0 +1,205 @@
+<h2>Wiggle format</h2>
+
+<p>
+  Wiggle format (WIG) allows the display of continuous-valued data in a track format.
+</p>
+
+<p>
+  WIG is line-oriented. For wiggle custom tracks, the first line must be a track definition line,
+  which designates the track as a wiggle track and adds a number of options for controlling the default display.
+</p>
+
+<p>
+  Wiggle format is composed of declaration lines and data lines.
+  There are two options for formatting wiggle data: <b>variableStep</b> and <b>fixedStep</b>.
+</p>
+
+<p>
+  <b>variableStep</b> is for data with irregular intervals between new data points and is the more
+  commonly used wiggle format. It begins with a declaration line and is followed by two columns containing
+  chromosome positions and data values:
+</p>
+  
+<pre>
+variableStep  chrom=chrN  [span=windowSize]
+chromStartA  dataValueA
+chromStartB  dataValueB
+... etc ...  ... etc ...
+</pre>
+
+<p>
+  The declaration line starts with the word <tt>variableStep</tt> and is followed by a specification for a chromosome.
+  The optional span parameter (default: span=1) allows data composed of contiguous runs of bases with the same data
+  value to be specified more succinctly. The span begins at each chromosome position specified and indicates the number
+  of bases that data value should cover. For example, this variableStep specification:
+</p>
+
+<pre>
+variableStep chrom=chr2
+300701 12.5
+300702 12.5
+300703 12.5
+300704 12.5
+300705 12.5
+</pre>
+
+<p>
+  is equivalent to:
+</p>
+
+<pre>
+variableStep chrom=chr2 span=5
+300701 12.5
+</pre>
+
+<p>
+  Both versions display a value of 12.5 at position 300701-300705 on chromosome 2.
+</p>
+
+<p>
+  <b>fixedStep</b> is for data with regular intervals between new data values and
+  is the more compact wiggle format. It begins with a declaration line and is followed
+  by a single column of data values:
+</p>
+
+<pre>
+fixedStep  chrom=chrN  start=position  step=stepInterval  [span=windowSize]
+dataValue1
+dataValue2
+... etc ...
+</pre>
+
+<p>
+  The declaration line starts with the word <tt>fixedStep</tt> and includes specifications for chromosome,
+  start coordinate, and step size. The span specification has the same meaning as in variableStep format.
+  For example, this fixedStep specification:
+</p>
+
+<pre>
+fixedStep chrom=chr3 start=400601 step=100
+11
+22
+33
+</pre>
+
+<p>
+  displays the values 11, 22, and 33 as single-base regions on chromosome 3 at positions
+  400601, 400701, and 400801, respectively. Adding span=5 to the declaration line:
+</p>
+
+<pre>
+fixedStep chrom=chr3 start=400601 step=100 span=5
+11
+22
+33
+</pre>
+
+<p>
+  causes the values 11, 22, and 33 to be displayed as 5-base regions on chromosome
+  3 at positions 400601-400605, 400701-400705, and 400801-400805, respectively.
+
+  Note that for both variableStep and fixedStep formats, the same span must be used throughout the dataset.
+  If no span is specified, the default span of one is used. 
+</p>
+
+<h3>Data Values</h3>
+
+<p>
+  Wiggle track data values can be integer or real, positive or negative values.
+  Chromosome positions are specified as 1-relative. For a chromosome of length N,
+  the first position is 1 and the last position is N. Only positions specified have data.
+  Positions not specified do not have data and will not be graphed.
+  All positions specified in the input data must be in numerical order. 
+</p>
+
+<h3>Parameters for custom wiggle track definition lines</h3>
+
+<p>
+  All options are placed in a single line separated by spaces:
+</p>
+
+<pre>
+<b>track type</b>=wiggle_0 <b>name</b>=track_label <b>description</b>=center_label
+      <b>visibility</b>=display_mode <b>color</b>=r,g,b altColor=r,g,b
+      <b>priority</b>=priority <b>autoScale</b>=on|off <b>alwaysZero</b>=on|off
+      <b>gridDefault</b>=on|off <b>maxHeightPixels</b>=max:default:min
+      <b>graphType</b>=bar|points <b>viewLimits</b>=lower:upper
+      <b>yLineMark</b>=real-value <b>yLineOnOff</b>=on|off
+      <b>windowingFunction</b>=maximum|mean|minimum <b>smoothingWindow</b>=off|2-16
+</pre>
+
+<p>
+  <b>Note:/<b> the track type with version is required. The remaining values are optional:
+</p>
+
+<pre>
+name              trackLabel           # default is "User Track"
+description       centerlabel          # default is "User Supplied Track"
+visibility        full|dense|hide      # default is hide (will also take numeric values 2|1|0)
+color             RRR,GGG,BBB          # default is 255,255,255
+altColor          RRR,GGG,BBB          # default is 128,128,128
+priority          N                    # default is 100
+autoScale         on|off               # default is on
+alwaysZero        on|off               # default is off
+gridDefault       on|off               # default is off
+maxHeightPixels   max:default:min      # default is 128:128:11
+graphType         bar|points           # default is bar
+viewLimits        lower:upper          # default is range found in data
+yLineMark         real-value           # default is 0.0
+yLineOnOff        on|off               # default is off
+windowingFunction maximum|mean|minimum # default is maximum
+smoothingWindow   off|[2-16]           # default is off
+</pre>
+
+<h3>Example</h3>
+
+<p>
+  This example specifies 19 separate data points in two tracks in the region chr19:59,304,200-59,310,700. 
+</p>
+
+<pre>
+browser position chr19:59304200-59310700
+browser hide all
+#	150 base wide bar graph at arbitrarily spaced positions,
+#	threshold line drawn at y=11.76
+#	autoScale off viewing range set to [0:25]
+#	priority = 10 positions this as the first graph
+#	Note, one-relative coordinate system in use for this format
+track type=wiggle_0 name="variableStep" description="variableStep format" \
+    visibility=full autoScale=off viewLimits=0.0:25.0 color=50,150,255 \
+    yLineMark=11.76 yLineOnOff=on priority=10
+variableStep chrom=chr19 span=150
+59304701 10.0
+59304901 12.5
+59305401 15.0
+59305601 17.5
+59305901 20.0
+59306081 17.5
+59306301 15.0
+59306691 12.5
+59307871 10.0
+#	200 base wide points graph at every 300 bases, 50 pixel high graph
+#	autoScale off and viewing range set to [0:1000]
+#	priority = 20 positions this as the second graph
+#	Note, one-relative coordinate system in use for this format
+track type=wiggle_0 name="fixedStep" description="fixedStep format" visibility=full \
+    autoScale=off viewLimits=0:1000 color=0,200,100 maxHeightPixels=100:50:20 \
+    graphType=points priority=20
+fixedStep chrom=chr19 start=59307401 step=300 span=200
+1000
+ 900
+ 800
+ 700
+ 600
+ 500
+ 400
+ 300
+ 200
+ 100
+</pre>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://genome.ucsc.edu/goldenPath/help/wiggle.html">http://genome.ucsc.edu/goldenPath/help/wiggle.html</a>
+</ol>

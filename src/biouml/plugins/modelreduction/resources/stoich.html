@@ -1,0 +1,36 @@
+<h2>Stoichiometric Matrix</h2>
+
+<p>
+  The stoichiometric matrix <i>N</i> provides the linear relationship of the model between the flux rates
+  of the (enzymatic) reactions and the derivatives of the reactant (enzyme) concentrations.
+</p>
+
+<p>
+  If a reaction network has <i>n</i> reactions and <i>m</i> participating molecular species
+  then the dynamic mass balance equation can be written as
+
+  <div class="formula-text"><img src="stoich1.png" alt="expression"></div>
+  
+  where <i>v</i> is the flux vector and <i>S</i> is the concentration vector:
+  
+  <div class="formula-text"><img src="stoich2.png" alt="expression"></div>
+</p>
+
+<h3>Example</h3>
+
+<p>
+  Consider the following system of reactions:
+  
+  <div class="formula-text"><img src="stoich3.png" alt="expression"></div>
+  
+  This systems comprises four reactions and five different molecular species.
+  The stoichiometry matrix for this system can be written as:
+  
+  <div class="formula-text"><img src="stoich4.png" alt="expression"></div>
+  
+  where the rows correspond to <i>S</i><sub>1</sub>, <i>S</i><sub>2</sub>,
+  <i>S</i><sub>3</sub>, <i>S</i><sub>4</sub> and <i>S</i><sub>5</sub>, respectively.
+  Note that the process of converting a reaction scheme into a stoichiometry matrix
+  can be a lossy transformation, for example, the stoichiometries in the second reaction
+  simplify when included in the matrix. 
+</p>

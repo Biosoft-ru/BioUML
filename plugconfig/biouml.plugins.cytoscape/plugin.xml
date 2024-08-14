@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <extension id="CytoscapeImporter" point="ru.biosoft.access.import">
+        <export
+            format="Cytoscape network format (*.cx)"
+            importer="biouml.plugins.cytoscape.CytoscapeDiagramImporter"
+            description="Imports cytoscape networks"
+        />
+    </extension>
+    
+    <extension id="CytoscapeExporter" point="ru.biosoft.access.export">
+        <export 
+            format="Cytoscape (*.cx)"
+            suffix=".cx"
+            contentType="text/xml"
+            exporter="biouml.plugins.cytoscape.CytoscapeDiagramExporter"
+            description="Export diagram in Cytoscape network format"
+        /> 
+    </extension>
+</plugin>

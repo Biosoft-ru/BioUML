@@ -1,0 +1,12 @@
+<tool id="cat" name="Concatenate files">
+    <description>Concatenate files</description>
+    <command>cat $inputs &gt; $output</command>
+    <inputs>
+        <param name="inputs" type="data-multi" format="data" label="Input files"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="data"/>
+    </outputs>
+    <help>
+    </help>
+</tool>

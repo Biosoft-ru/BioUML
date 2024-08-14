@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+   
+  <extension point="ru.biosoft.access.movedClass">
+  	<class name="biouml.plugins.server.access.ClientDataCollection" oldNames="ru.biosoft.access.server.ClientDataCollection"/>
+  	<class name="biouml.plugins.server.access.ClientQuerySystemSupport" oldNames="ru.biosoft.access.server.ClientQuerySystemSupport"/>
+  	<class name="biouml.plugins.server.access.DataClientCollection" oldNames="ru.biosoft.access.server.DataClientCollection"/>
+  </extension>  
+
+    <extension id="diagram.service" point="ru.biosoft.server.service"> 
+        <service name="diagram.service" class="biouml.plugins.server.DiagramService"/>
+    </extension> 
+
+    <extension id="sqleditor.service" point="ru.biosoft.server.service"> 
+        <service name="sqleditor.service" class="biouml.plugins.server.SqlEditorService"/>
+    </extension> 
+
+    <extension id="module.service" point="ru.biosoft.server.service"> 
+        <service name="module.service" class="biouml.plugins.server.ModuleService"/>
+    </extension> 
+    
+    <extension id="graphsearch.service" point="ru.biosoft.server.service"> 
+        <service name="graphsearch.service" class="biouml.plugins.server.GraphSearchService"/>
+    </extension>
+    
+    <extension id="ClientQueryEngine" point="biouml.workbench.queryEngine"> 
+     <engineItem name="ClientQueryEngine" class="biouml.plugins.server.access.ClientQueryEngine"/>
+    </extension>
+    
+    <extension id="sql editor view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.server.SqlEditorViewPart"
+        id="sql.editor" 
+        Name="SQL editor"
+        ShortDescription="SQL editor"
+        Priority = "6.1"
+      /> 
+    </extension>
+
+  <extension id="access.service" point="ru.biosoft.server.service"> 
+      <service name="access.service" class="biouml.plugins.server.access.AccessService"/>
+  </extension> 
+
+  <extension id="query.service" point="ru.biosoft.server.service"> 
+      <service name="query.service" class="biouml.plugins.server.access.QuerySystemService"/>
+  </extension> 
+  
+  <extension id="SQL properties page" point="ru.biosoft.workbench.wizardPage"> 
+      <wizardPage 
+      	name="SQL settings" 
+      	description="Configure available SQL connections." 
+      	position="2" 
+      	page="biouml.plugins.server.access.SQLWizardPage"
+      /> 
+   </extension>
+
+	<extension id="Databases wizard page" point="ru.biosoft.workbench.wizardPage">
+		<wizardPage name="Connect databases" description="Connect to server databases" position="3" page="biouml.plugins.server.DatabasesWizardPage" />
+	</extension>
+
+  <extension id="Database loader" point="biouml.workbench.menuItem"> 
+     <menuItem 
+        title="Load database"
+        parent="Database"
+        action="biouml.plugins.server.LoadDatabasesAction"
+     /> 
+  </extension>
+
+    <extension id="title client query system" point="ru.biosoft.access.querySystem"> 
+      <querySystem class="biouml.plugins.server.access.TitleClientQuerySystem"/> 
+    </extension>
+    
+    <extension point="ru.biosoft.access.movedClass">
+        <class name="biouml.plugins.server.access.ClientQueryEngine" oldNames="biouml.plugins.server.ClientQueryEngine"/>
+    </extension>
+</plugin>

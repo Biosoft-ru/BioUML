@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: JGraph
+Bundle-SymbolicName: org.jgraph.jgraph;singleton:=true
+Bundle-Version: 5.1
+Bundle-ClassPath: jgraph.jar

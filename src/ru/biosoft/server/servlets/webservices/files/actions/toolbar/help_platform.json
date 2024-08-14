@@ -1,0 +1,20 @@
+/*
+ * Help action for Platform perspective
+ */
+{
+    id: "help_platform",
+    label: "Help",
+    icon: "icons/help.gif",
+    visible: "function()
+    {
+        if( perspective && perspective.name && 'Platform' === perspective.name )
+        {
+          return true;
+        }
+        return -1;
+    }",
+    action: "function()
+    {
+        document.location = '#de=data/Examples/Sample%20data/Data/Manual/User%20Guide%204.0.pdf';
+    }"
+}

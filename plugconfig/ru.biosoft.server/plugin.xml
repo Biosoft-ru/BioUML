@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+    <extension-point name="Server service"     id="service"/>
+    <extension-point name="Servlet extension"  id="servlet"/>
+    
+    <extension point="ru.biosoft.access.beans">
+    	<provider class="ru.biosoft.server.ServerLoadBeanProvider" prefix="system/serverLoad"/>
+    </extension>
+</plugin>

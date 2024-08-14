@@ -1,0 +1,13 @@
+<tool id="fastq-dump" name="Convert Files in SRA format to FASTQ" version="2.1.9">
+
+  <command>fastq-dump --stdout --gzip $srafile 1> $fastqfile </command>
+  
+  <inputs>
+    <param name="srafile" type="data" format="data" label="SRA file"/>
+  </inputs>
+  
+  <outputs>
+    <data name="fastqfile" format="fastq" label="FASTQ file"/>
+  </outputs>
+  
+</tool>

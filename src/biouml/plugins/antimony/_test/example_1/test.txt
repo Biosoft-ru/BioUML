@@ -1,0 +1,6 @@
+model diagramTest
+   compartment default;
+end
+function f()
+0;
+end

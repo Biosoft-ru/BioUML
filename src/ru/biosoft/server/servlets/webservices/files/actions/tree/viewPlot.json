@@ -1,0 +1,27 @@
+/*
+ * View plot action
+ */
+{
+    id: "view_plot",
+    label: "View",
+    icon: "icons/plot.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.standard.simulation.plot.Plot')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        var plot = new PlotDialog(path);
+        plot.showPlot();
+    }"
+}

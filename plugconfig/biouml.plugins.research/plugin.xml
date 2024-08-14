@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.server.servlets.webTableResolver">
+    <tableResolver type="journal" class="biouml.plugins.research.web.JournalTableResolver"/>
+  </extension>
+
+  <extension point="biouml.workbench.diagramText">
+    <diagramText class="biouml.plugins.research.workflow.yaml.WorkflowYamlRepresentationFactory"/>
+  </extension>
+
+  <extension point="ru.biosoft.server.servlets.webProvider">
+	<provider prefix="journal" class="biouml.plugins.research.web.JournalProvider"/>
+	<provider prefix="research" class="biouml.plugins.research.web.WebResearchProvider"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.beans">
+	<provider class="biouml.plugins.research.web.WorkflowElementPropertiesBeanProvider" prefix="properties/workflow"/>
+	<provider class="biouml.plugins.research.web.WorkflowParametersProvider" prefix="workflow/parameters"/>
+  </extension>
+	
+  <extension id="journal view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.research.JournalViewPart"
+        id="history.main" 
+        Name="History"
+        ShortDescription="Activity history"
+      /> 
+  </extension>
+  
+  <extension id="workflow view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.research.workflow.WorkflowViewPart"
+        id="diagram.workflow.main" 
+        Name="Workflow"
+        ShortDescription="Workflow control pane"
+      /> 
+  </extension>
+
+  <extension id="yaml view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.research.workflow.yaml.YamlViewPart"
+        id="diagram.workflow.yaml" 
+        Name="YAML"
+        ShortDescription="Workflow YAML editor"
+        ignoreInIDE="true"
+      /> 
+  </extension>
+  
+  <extension id="research_journal_list" point="ru.biosoft.workbench.journalList">
+      <journalList 
+      	class="biouml.plugins.research.ResearchJournalList"
+      />
+  </extension>
+  
+  <extension id="NewResearchAction" point="biouml.workbench.menuItem"> 
+     <menuItem 
+        title="New project"
+        parent="Data"
+        action="biouml.plugins.research.action.NewProjectAction"
+     /> 
+  </extension>
+  
+  <extension id="New project page" point="ru.biosoft.workbench.wizardPage"> 
+      <wizardPage 
+      	name="Create project" 
+      	description="Create new research project." 
+      	position="6" 
+      	page="biouml.plugins.research.NewProjectWizardPage"
+      /> 
+   </extension>
+
+	<extension id="ImportResearchAction" point="biouml.workbench.menuItem"> 
+     <menuItem 
+        title="Load project"
+        parent="Data"
+        action="biouml.plugins.research.action.ImportResearchAction"
+     /> 
+  </extension>
+  
+  <extension id="ImportResearch wizard page" point="ru.biosoft.workbench.wizardPage"> 
+      <wizardPage 
+      	name="Load project" 
+      	description="Load project from server." 
+      	position="4" 
+      	page="biouml.plugins.research.imports.ImportResearchWizardPage"
+      /> 
+  </extension> 
+
+	<extension point="ru.biosoft.access.beans">
+		<provider class="biouml.plugins.research.WorkflowRelaunchBeanProvider" prefix="workflow/relaunch"/>
+	</extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="New workflow" class="biouml.plugins.research.workflow.actions.NewWorkflowAction" priority="10">
+        <property name="Name" value="New workflow"/>
+        <property name="ShortDescription" value="Create a workflow in selected folder"/>
+        <property name="LongDescription" value="Create a workflow in selected folder"/>
+        <property name="MnemonicKey" value="VK_W"/>
+        <property name="SmallIcon" value="workflow.gif"/>
+        <property name="ActionCommandKey" value="cmd-new-workflow"/>
+     </action>
+     <action name="New research" class="biouml.plugins.research.research.actions.NewResearchAction" priority="10">
+        <property name="Name" value="New research"/>
+        <property name="ShortDescription" value="Create a research diagram in selected folder"/>
+        <property name="LongDescription" value="Create a research diagram in selected folder"/>
+        <property name="MnemonicKey" value="VK_R"/>
+        <property name="SmallIcon" value="newResearch.gif"/>
+        <property name="ActionCommandKey" value="cmd-new-research"/>
+     </action>
+     <action name="Open journal as table" class="biouml.plugins.research.action.OpenAsTableAction" priority="50">
+        <property name="Name" value="Open journal as table"/>
+        <property name="ShortDescription" value="Show journal events in tabular form"/>
+        <property name="LongDescription" value="Show journal events in tabular form"/>
+        <property name="MnemonicKey" value="VK_O"/>
+        <property name="SmallIcon" value="open.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-journal"/>
+     </action>
+   </extension>
+
+  <extension point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.research.web.CustomProjectAnalysis" group="Admin" name="Create custom project" description="Create project in custom location like in 'Public' or 'Examples' folder"/> 
+  </extension>
+  <extension id="RunWorkflow" point="ru.biosoft.analysiscore.method">
+      <analysisClass
+        class="biouml.plugins.research.workflow.RunWorkflowAnalysis"
+        group="Workflow utils"
+        name="Run a Workflow as Analysis"
+        description="Analysis that allows to insert a workflow as a node into another workflow."/>
+  </extension>
+  
+  <extension id="CheckWorkflow" point="ru.biosoft.analysiscore.method">
+      <analysisClass
+        class="biouml.plugins.research.workflow.CheckWorkflowAnalysis"
+        group="Workflow utils"
+        name="Check Workflow consistency"
+        description="Check which workflow analyses have modified or missing parameters. Use to validate workflows after updates."/>
+  </extension>
+</plugin>

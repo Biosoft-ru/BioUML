@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<project name="biouml.plugins.antimony package test" default="autotest" basedir="../../../../">
+
+	<property name="package" value="biouml.plugins.antimony" />
+
+	<target name="autotest">
+		<ant target="rtest">
+			<property name="testui" value="swingui" />
+			<property name="test" value="biouml.plugins.antimony._test.AutoTest" />
+		</ant>
+	</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

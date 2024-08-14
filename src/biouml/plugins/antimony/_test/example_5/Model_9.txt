@@ -1,0 +1,77 @@
+//Created by libAntimony v2.4
+model alexander_2010__environment(time_)
+
+  // Variable initializations:
+  time_ = ;
+end
+
+model alexander_2010__A(A, v, k, G, R, time_)
+
+  // Rate Rules:
+  A' = (f * v * G) / (k + G) - ((sigma1 * R + b1) * A + muA * A);
+
+  // Variable initializations:
+  A = 1.0;
+  v = 1.25e5;
+  k = 5e7;
+  f = 1e-4;
+  sigma1 = 3e-6;
+  b1 = 0.25;
+  muA = 0.25;
+  G = ;
+  R = ;
+  time_ = ;
+end
+
+model alexander_2010__R(R, A, E, time_)
+
+  // Rate Rules:
+  R' = (pi1 * E + beta) * A - muR * R;
+
+  // Variable initializations:
+  R = 0.0;
+  pi1 = 0.016;
+  beta = 200.0;
+  muR = 0.25;
+  A = ;
+  E = ;
+  time_ = ;
+end
+
+model alexander_2010__E(E, A, time_)
+
+  // Rate Rules:
+  E' = lambdaE * A - muE * E;
+
+  // Variable initializations:
+  E = 0.0;
+  lambdaE = 1000.0;
+  muE = 0.25;
+  A = ;
+  time_ = ;
+end
+
+model alexander_2010__G(G, v, k, E, time_)
+
+  // Rate Rules:
+  G' = gamma * E - ((v * G) / (k + G) + muG * G);
+
+  // Variable initializations:
+  G = 1e8;
+  gamma = 2000.0;
+  muG = 5.0;
+  v = ;
+  k = ;
+  E = ;
+  time_ = ;
+end
+
+model *alexander_2010____main()
+
+  // Sub-modules, and any changes to those submodules:
+  environment: alexander_2010__environment(time_);
+  A: alexander_2010__A(A0, v, k, G0, R0, time_);
+  R: alexander_2010__R(R0, A0, E0, time_);
+  E: alexander_2010__E(E0, A0, time_);
+  G: alexander_2010__G(G0, v, k, E0, time_);
+end

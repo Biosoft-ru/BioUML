@@ -1,0 +1,27 @@
+/*
+ * Open plot action
+ */
+{
+    id: "open_plot",
+    label: "Open plot",
+    icon: "icons/open.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.standard.simulation.plot.Plot')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createPlotDocument( path, function(plot) {
+			openDocumentTab(plot);
+        });
+    }"
+}

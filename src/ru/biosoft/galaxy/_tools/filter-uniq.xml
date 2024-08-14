@@ -1,0 +1,22 @@
+<tool id="filter-uniq" name="Filter duplicate alignments" version="1.0.0">
+  <requirements>
+    <requirement type="package">samtools</requirement>
+  </requirements>
+  <description>Remove duplicate alignments from BAM file using NM tag of BAM records</description>
+  <command>
+  {
+    samtools view -H "$input_bam" > "$output_bam".sam;
+    samtools view "$input_bam" | grep 'NH:i:1$' >> "$output_bam".sam;
+    samtools view -S -b "$output_bam".sam > "$output_bam";
+  } 2&gt;&amp;1;
+    rm "$output_bam".sam
+  </command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file to filter" />
+  </inputs>
+  <outputs>
+    <data name="output_bam" format="bam" />
+  </outputs>
+  <help>
+  </help>
+</tool>

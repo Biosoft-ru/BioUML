@@ -1,0 +1,21 @@
+begin model
+
+begin parameters
+    k1    15
+    k2    10*k1/5/2*(11+2-3)
+end parameters
+
+begin seed species
+    A(b)    k2
+    B(a)    k2/k1+1
+end seed species
+
+begin observables
+    Species    A_tot    A(b!?)
+end observables
+
+begin reaction rules
+    C(c~uP)  ->  C(c~P)  k1
+end reaction rules
+
+end model

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="SvgExport" point="ru.biosoft.access.export"> 
+     <export 
+        diagramType="*"
+        format="Scalable Vector Graphics(*.svg)"
+        suffix="svg"
+        contentType="image/svg+xml"
+        exporter="biouml.plugins.svg.SvgDiagramExporter"
+        description="%DiagramExport-SVG"
+     /> 
+  </extension> 
+
+</plugin>

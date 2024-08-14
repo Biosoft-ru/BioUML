@@ -1,0 +1,90 @@
+<tool id="cnvnator_wrapper" name="CNVNator-main" version="0.2.5">
+    <requirements>
+        <requirement type='package'>cnvnator</requirement>
+    </requirements>
+    <description></description>
+    <parallelism method="basic"></parallelism>
+
+  <command>cnvnator      
+      -root "$method.inputROOTFile"
+      -outroot="$outputROOT"
+      #if str( $restChrom.condValue1 ) == "Select"
+        -chrom $restChrom.chrom
+      #end if
+      $method.condValue
+      $method.binSize
+      #if str( $method.condValue ) == "-partition"
+        $method.ngc        
+      #end if     
+    2> "$log"
+  </command>
+
+    <inputs>
+    <param name="binSize" type="integer" value="100"
+                    label="Bin Size for calculation" help="Bin Size depend on each experiment and need to be evaluated later" />
+        <param name="inputROOTFile" type="data"
+                    format="data" label="Input Root file."
+                    help="Input ROOT file" />
+
+        <conditional name="method">
+            <param name="condValue" type="select" label="Method from CNVnator">
+                <option value="-his">Generating Histogram</option>
+                <option value="-stat">Calculating Statistics</option>
+                <option value="-partition">RD Signal Partitioning</option>
+            </param>           
+            <when value="-his"/>
+            <when value="-stat"/>                                
+            <when value="-partition">                
+                <param name="ngc" type="select" label="use GC corrected RD signal">                      
+                    <option value=" ">Yes</option>
+                    <option value="-ngc">No</option>
+                </param>
+            </when>                    
+        </conditional>
+         
+
+        <conditional name="restChrom">
+            <param name="condValue1" type="select" label="Run for chromosomes">
+                <option value="All">All</option>
+                <option value="Select">Select</option>                
+
+            </param>
+            <when value="All"/>                
+            <when value="Select">
+                <param name="chrom" type="text" label="Chromosomes to analyse"
+                        default=""  help="Run only for specified chromosomes. (chr1 chr2 chr3) or (1 2 3)"/>
+            </when>
+        </conditional>
+        
+    </inputs>
+
+    <outputs>
+        <data format="data" name="outputROOT" label="Output Root file"/>
+        <data format="txt" name="log" label="Log file"/>
+    </outputs>
+
+    <tests>
+    </tests>
+
+    <help>
+
+>>>GENERATING HISTOGRAM
+This step is not memory consuming and can be done for all chromosomes
+at once, still can be done for a subset of chromosomes. 
+
+Chromosome format: 
+chr1 chr2 chr3
+is equivalent to
+1 2 3
+
+>>>CALCULATING STATISTICS
+This step must be completed before proceeding to partitioning and CNV calling.
+
+>>>RD SIGNAL PARTITIONING
+Option -ngc spcifies not to use GC corrected RD signal. Partitioning
+is the most time consuming step.
+
+Please send your comments and suggestions regarding CNVnator to alexej.abyzov@yale.edu.
+and CNVnator integration issues/suggestions to support@biodatomics.com
+    </help>
+</tool>

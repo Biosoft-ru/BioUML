@@ -1,0 +1,40 @@
+<tool id="softberry-fgenesb-annotator" name="FGENESB annotator">
+	<description>Bacterial genome annotation</description>
+	<command interpreter="perl">FGENESB_annotator_config_maker.pl --fasta "$input" --o3_1 "$o3_1" --o3_2 500 --o5_7 $o5_7 --o6_8 $o6_8 --o9 $o9 $o12 --o14 $o14 --o18 $o18 --o19 $o19 --o20 $o20 --o21 $o21 --o22 $o22 --o23 $o23 --output "$Fgenesb_annotation" --vis "$Visualization"
+	</command>
+	<inputs>
+		<param name="input" type="data" format="fasta" label="Sequence to annotate"/>
+		<param name="o3_1" type="select" label="Microbial sequence type">
+			<option value="Bacterial" checked="True">Bacterial</option>
+			<option value="Archaeal">Archaeal</option>
+			<option value="Bacterial + archaeal"></option>
+		</param>
+		<param name="o5_7" type="boolean" label="Use 16S/23S rRNA database" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o6_8" type="boolean" label="Use 5S rRNA database" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o9" type="boolean" label="Use tRNAscan" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o12" type="select" label="Use ribosomal proteins DB" help="to map proteins to genomic sequences">
+			<option value="--o12_1 false --o12_2 false">Do not use</option>
+			<option value="--o12_1 true --o12_2 false" selected="True">Use</option>
+			<option value="--o12_1 true --o12_2 true">Use and allow frameshifts/internal stop codons</option>
+		</param>
+		<param name="o14" type="boolean" label="Use BLAST predicted proteins against COG database" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o18" type="select" label="Use BLAST predicted proteins against KEGG database">
+			<option value="0">Do not BLAST predicted proteins</option>
+			<option value="1">BLAST all predicted proteins</option>
+			<option value="2" selected="True">BLAST only those predicted proteins that have no hits from other BLAST</option>
+		</param>
+		<param name="o19" type="select" label="Use BLAST predicted proteins against NR database">
+			<option value="0">Do not BLAST predicted proteins</option>
+			<option value="1">BLAST all predicted proteins</option>
+			<option value="2" selected="True">BLAST only those predicted proteins that have no hits from other BLAST</option>
+		</param>
+		<param name="o20" type="boolean" label="Predict promoters / terminators" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o21" type="boolean" label="Replace alternative start codons" help="Alternative codons will be replaced by 'M' in protein sequences" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o22" type="boolean" label="Make short protein deflines" checked="True" truevalue="true" falsevalue="false"/>
+		<param name="o23" type="boolean" label="Adding names of sequences" help="Names will be added to ID lines of predicted proteins" checked="True" truevalue="true" falsevalue="false"/>
+	</inputs>
+	<outputs>
+		<data name="Fgenesb_annotation" format="txt"/>
+		<data name="Visualization" format="zhtml"/>
+	</outputs>
+</tool>

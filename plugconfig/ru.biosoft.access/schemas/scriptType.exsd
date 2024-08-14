@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="ru.biosoft.access" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="ru.biosoft.access" id="scriptType" name="scriptType"/>
+      </appinfo>
+      <documentation>
+         This extension point allows to register new script languages supported by BioUML.
+      </documentation>
+   </annotation>
+
+   <element name="scriptType">
+      <annotation>
+         <documentation>
+            Definition of the script type supported by BioUML
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="type" type="string" use="required">
+            <annotation>
+               <documentation>
+                  short name of script type. It&apos;s used mostly as internal script type identifier, but can be exposed to user, for example, as default extension for new script elements
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="title" type="string" use="required">
+            <annotation>
+               <documentation>
+                  user-friendly name of script language.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  fully-qualified name of data element class representing the script written on this language
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn="ru.biosoft.access.script.ScriptDataElement:"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="lexer" type="string" use="required">
+            <annotation>
+               <documentation>
+                  fully-qualified name of class representing the language lexer used for syntax highlighting in BioUML workbench
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":com.Ostermiller.Syntax.Lexer.Lexer"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="product" type="string">
+            <annotation>
+               <documentation>
+                  if specified, then BioUML server user must be subscribed to given product in order to use this type of scripts.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         0.9.6
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         &lt;pre&gt;&lt;extension point=&quot;ru.biosoft.access.scriptType&quot;&gt;
+  &lt;scriptType 
+    type=&quot;R&quot; 
+    title=&quot;R script&quot; 
+    product=&quot;R&quot; 
+    class=&quot;ru.biosoft.plugins.jri.RElement&quot; 
+    lexer=&quot;ru.biosoft.plugins.jri.lex.RLexer&quot;
+  /&gt;
+&lt;/extension&gt;&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>

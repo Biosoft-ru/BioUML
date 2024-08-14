@@ -1,0 +1,42 @@
+/*
+ * Remove element action
+ */
+{
+    id: "remove_element",
+    label: "Remove",
+    icon: "icons/remove_de.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+		if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+            return -1;
+        
+        var dc = getDataCollection(path);
+        if( instanceOf(dc.getClass(), 'ru.biosoft.access.core.FolderCollection') )
+        {
+            return true;
+        }
+        var type = dc.getChildClass(name);
+		if (instanceOf(type,'ru.biosoft.bsa.Track') || instanceOf(type,'ru.biosoft.table.TableDataCollection')
+			|| (instanceOf(type,'ru.biosoft.access.core.FolderCollection') && instanceOf(dc.getClass(),'ru.biosoft.access.core.FolderCollection')) 
+			|| instanceOf(type,'ru.biosoft.access.FileDataElement')
+			|| instanceOf(type,'ru.biosoft.bsa.project.Project') || instanceOf(type,'ru.biosoft.plugins.javascript.JSElement')
+			|| (instanceOf(type,'ru.biosoft.access.TransformedDataCollection') && instanceOf(getDataCollection(completePath).getChildClass(),'ru.biosoft.bsa.SiteModel'))
+            || instanceOf(type,'biouml.plugins.optimization.Optimization') || instanceOf(type,'biouml.standard.simulation.plot.Plot')
+            || instanceOf(type,'ru.biosoft.access.ImageDataElement') || instanceOf(type,'ru.biosoft.access.TextDataElement')
+            || (instanceOf(type,'biouml.model.Diagram') && path.substring(0,5)=='data/')
+            || (instanceOf(type,'ru.biosoft.bsa.analysis.WeightMatrixCollection') && path.substring(0,5)=='data/'))
+        {
+            return true;
+        }
+        
+        return -1;
+    }",
+    multiAction: "function(paths)
+    {
+        removeElements(paths);
+    }"
+}

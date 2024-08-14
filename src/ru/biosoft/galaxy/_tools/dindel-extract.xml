@@ -1,0 +1,57 @@
+<tool id="dindel_extract" name="Dindel extract" version="1.0beta">
+<command>/bin/bash -v "$script"</command>
+ <inputs>
+	<param name="bamfile" type="data" format="bam" label="BAM file">
+        	<validator type="metadata" check="bam_index" message="Missing bam index."/>
+	</param>
+	<param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+</inputs>
+        <outputs>
+                <data format="txt" name="log" label="Log file"/>
+		<data format="txt" name="insert_size_distribution" label="insert size distribution"/>
+                <data format="txt" name="inserts" label="candidate_indels" />
+        </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+DEST=`dirname $log`
+cd \$DEST
+err=err.pipe
+out=out.pipe
+echo \$err
+
+mkfifo "\$err" "\$out"
+
+trap 'cat err.tmp out.tmp &gt;&gt; "$log" ; rm -f "\$err" "\$out" ' EXIT
+tee err.tmp &lt; "\$err" &gt;&amp;2 &amp;
+tee out.tmp &lt; "\$out" &gt;&amp;1 &amp;
+
+
+filename=\$(basename "$bamfile")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+
+dindel --doDiploid --analysis getCIGARindels --bamFile "$bamfile" \
+--outputFile tmpName --ref "${ refGenome.fields.path }" &gt;\$out 2&gt;\$err
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]] ; then 
+   echo "Dindel finished with error" 
+   exit \$STATUS
+fi
+
+mv tmpName.variants.txt "$inserts"
+mv tmpName.libraries.txt "$insert_size_distribution"
+
+  </configfile>
+  </configfiles>
+
+        <help>
+        </help>
+</tool>
+
+

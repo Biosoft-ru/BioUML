@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PICARD_DIR=`dirname "$0"`
+
+JAR=$1
+MEM=$2
+
+shift
+shift
+
+java "-Xmx$MEM" -jar "$PICARD_DIR/$JAR.jar"  $*
+exit $?

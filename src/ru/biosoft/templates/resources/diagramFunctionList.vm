@@ -1,0 +1,31 @@
+<html>
+	<body>
+		#if(!$de.getRole().getFunctions().isEmpty())
+			<font size = 6>Functions</font><br><br>
+			<table border="0">
+			#updateFunctionTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Formula</b>", "<b>Comment</b>")
+			#processFunctions($de, $formatter)
+			</table>
+			<br><br>
+		#end
+		
+		#if(!$de.getRole().getEquations().isEmpty())
+		    <font size = 6>Equations</font><br><br>
+			<table border="0">
+		    #updateEquationTable( "<b>&#8470;</b>", "<b>Formula</b>", "<b>Comment</b>")
+		    #set( $isTitleSet = true)
+		    #processEquations($de, $formatter, $isTitleSet)
+	        </table>
+			<br><br>
+	    #end
+		
+		#if(!$de.getRole().getEvents().isEmpty())
+			<font size = 6>Events</font><br><br>
+			<table border="0">
+			#updateEventTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Trigger</b>", "<b>Delay</b>", "<b>Events</b>", "<b>Comment</b>")
+			#processEvents($de, $formatter)
+			</table>
+			<br><br>
+		#end
+	</body>
+</html>

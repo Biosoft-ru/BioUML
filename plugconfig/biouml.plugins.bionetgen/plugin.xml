@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+    <extension id="BionetgenImporter" point="ru.biosoft.access.import">
+        <export
+            format="BioNetGen language format (*.bngl)"
+            importer="biouml.plugins.bionetgen.diagram.BionetgenImporter"
+            description="biouml/plugins/bionetgen/diagram/resources/BioNetGenFormat.html"
+        />
+    </extension>
+
+    <extension id="BionetgenExporter" point="ru.biosoft.access.export">
+        <export
+            diagramType="*"
+            format="BioNetGen language format (*.bngl)"
+            suffix=".bngl"
+            exporter="biouml.plugins.bionetgen.diagram.BionetgenExporter"
+            description="BioNetGen Language exporter (exports diagram of BioNetGen type to .bngl file)"
+        />
+    </extension>
+
+    <extension id="Bionetgen" point="biouml.workbench.diagramViewPart">
+        <diagramViewPart
+            editor="true"
+            class="biouml.plugins.bionetgen.diagram.BionetgenEditor"
+            id="diagram.bionetgen"
+            Name="Bionetgen"
+            ShortDescription="Bionetgen"
+            Priority="3"
+            ignoreInIDE="true"
+        />
+    </extension>
+
+    <extension point="biouml.workbench.diagramText">
+        <diagramText class="biouml.plugins.bionetgen.diagram.BionetgenTextRepresentationFactory"/>
+    </extension>
+
+    <extension point="biouml.workbench.diagramType">
+        <diagramType class="biouml.plugins.bionetgen.diagram.BionetgenDiagramType"/>
+    </extension>
+
+    <extension id="ApplyBioNetGen" point="ru.biosoft.access.dynamicAction"> 
+       <dynamicAction name="Apply bionetgen" class="biouml.plugins.bionetgen.diagram.BionetgenApplyAction">
+          <parameter name="numSelected" value="1"/>
+          <property name="Name" value="Apply bionetgen"/>
+          <property name="ShortDescription" value="Apply bionetgen"/>
+          <property name="LongDescription" value="Apply bionetgen."/>
+          <property name="SmallIcon" value="resources/updatebionetgen.gif" /> 
+          <property name="ActionCommandKey" value="cmd-apply-bionetgen"/>
+       </dynamicAction>
+    </extension>
+
+</plugin>

@@ -1,0 +1,699 @@
+<tool id="gatk_unified_genotyper" name="Unified Genotyper" version="0.0.6">
+  <description>SNP and indel caller</description>
+  <requirements>
+      <requirement type="package" version="1.4">gatk</requirement>
+      <requirement type="package">samtools</requirement>
+  </requirements>
+ 	<command>/bin/bash -v "$script"	</command>
+  <inputs>
+<conditional name="reference_source">
+    
+      <param name="reference_source_selector" type="select" label="Choose the source for the reference list">
+        <option value="cached">Locally cached</option>
+        <option value="history">History</option>
+      </param>
+      <when value="cached">
+        <repeat name="input_bams" title="BAM file" min="1" help="-I,--input_file &lt;input_file&gt;">
+            <param name="input_bam" type="data" format="bam" label="BAM file">
+              <validator type="unspecified_build" />
+              <validator type="dataset_metadata_in_data_table" table_name="gatk_picard_indexes" metadata_name="dbkey" metadata_column="dbkey" message="Sequences are not currently available for the specified build." /> <!-- fixme!!! this needs to be a select -->
+            </param>
+        </repeat>
+        <param name="ref_file" type="select" label="Using reference genome" help="-R,--reference_sequence &lt;reference_sequence&gt;">
+          <options from_data_table="gatk_picard_indexes">
+            <!-- <filter type="data_meta" key="dbkey" ref="input_bam" column="dbkey"/> does not yet work in a repeat...--> 
+          </options>
+          <validator type="no_options" message="A built-in reference genome is not available for the build associated with the selected input file"/>
+        </param>
+      </when>
+      <when value="history"> <!-- FIX ME!!!! -->
+        <repeat name="input_bams" title="BAM file" min="1" help="-I,--input_file &lt;input_file&gt;">
+            <param name="input_bam" type="data" format="bam" label="BAM file" >
+            </param>
+        </repeat>
+        <param name="ref_file" type="data" format="fasta" label="Using reference file" help="-R,--reference_sequence &lt;reference_sequence&gt;" />
+      </when>
+    </conditional>
+    
+    <repeat name="rod_bind" title="Binding for reference-ordered data" help="-D,--dbsnp &lt;dbsnp&gt;">
+    
+    
+        <conditional name="rod_bind_type">
+          <param name="rod_bind_type_selector" type="select" label="Binding Type">
+            <option value="dbsnp" selected="True">dbSNP</option>
+            <option value="snps">SNPs</option>
+            <option value="indels">INDELs</option>
+            <option value="custom">Custom</option>
+          </param>
+          <when value="dbsnp">
+              <param name="input_rod" type="data" format="vcf" label="ROD file" />
+          </when>
+          <when value="snps">
+              <param name="input_rod" type="data" format="vcf" label="ROD file" />
+          </when>
+          <when value="indels">
+              <param name="input_rod" type="data" format="vcf" label="ROD file" />
+          </when>
+          <when value="custom">
+              <param name="custom_rod_name" type="text" value="Unknown" label="ROD Name"/>
+              <param name="input_rod" type="data" format="vcf" label="ROD file" />
+          </when>
+        </conditional>
+    </repeat>
+    
+    <param name="genotype_likelihoods_model" type="select" label="Genotype likelihoods calculation model to employ" 
+        help="-glm,--genotype_likelihoods_model &lt;genotype_likelihoods_model&gt;">
+      <option value="BOTH" selected="True">BOTH</option>
+      <option value="SNP">SNP</option>
+      <option value="INDEL">INDEL</option>
+      <option value="POOLSNP">POOLSNP</option>
+      <option value="POOLINDEL">POOLINDEL</option>
+    </param>
+    
+    
+    <param name="standard_min_confidence_threshold_for_calling" type="float" value="30.0" 
+      label="The minimum phred-scaled confidence threshold at which variants not at 'trigger' track sites should be called" 
+      help="-stand_call_conf,--standard_min_confidence_threshold_for_calling &lt;standard_min_confidence_threshold_for_calling&gt;" />
+    <param name="standard_min_confidence_threshold_for_emitting" type="float" value="30.0" 
+      label="standard_min_confidence_threshold_for_emitting" 
+      help="-stand_emit_conf,--standard_min_confidence_threshold_for_emitting &lt;standard_min_confidence_threshold_for_emitting&gt; The minimum phred-scaled confidence threshold at which variants not at 'trigger' track sites should be emitted (and filtered if less than the calling threshold)" />
+
+    
+    <conditional name="gatk_param_type">
+    
+    
+      <param name="gatk_param_type_selector" type="select" label="Basic or Advanced GATK options">
+        <option value="basic" selected="True">Basic</option>
+        <option value="advanced">Advanced</option>
+      </param>
+      <when value="basic">
+        <!-- Do nothing here -->
+      </when>
+      <when value="advanced">
+        <param name="numThreads" type="integer" label="Number of threads" value="60" />
+        <repeat name="pedigree" title="Pedigree file" help="-ped,--pedigree &lt;pedigree&gt;">
+            <param name="pedigree_file" type="data" format="txt" label="Pedigree files for samples"/>
+        </repeat>
+        <repeat name="pedigree_string_repeat" title="Pedigree string" help="-pedString,--pedigreeString &lt;pedigreeString&gt;">
+            <param name="pedigree_string" type="text" value="" label="Pedigree string for samples"/>
+        </repeat>
+        <param name="pedigree_validation_type" type="select" label="How strict should we be in validating the pedigree information" 
+            help="-pedValidationType,--pedigreeValidationType &lt;pedigreeValidationType&gt;">
+          <option value="STRICT" selected="True">STRICT</option>
+          <option value="SILENT">SILENT</option>
+        </param>
+        <repeat name="read_filter" title="Read Filter" help="-rf,--read_filter &lt;read_filter&gt;">
+            <conditional name="read_filter_type">
+              <param name="read_filter_type_selector" type="select" label="Read Filter Type">
+                <option value="BadCigar">BadCigar</option>
+                <option value="BadMate">BadMate</option>
+                <option value="DuplicateRead">DuplicateRead</option>
+                <option value="FailsVendorQualityCheck">FailsVendorQualityCheck</option>
+                <option value="MalformedRead">MalformedRead</option>
+                <option value="MappingQuality">MappingQuality</option>
+                <option value="MappingQualityUnavailable">MappingQualityUnavailable</option>
+                <option value="MappingQualityZero">MappingQualityZero</option>
+                <option value="MateSameStrand">MateSameStrand</option>
+                <option value="MaxInsertSize">MaxInsertSize</option>
+                <option value="MaxReadLength" selected="True">MaxReadLength</option>
+                <option value="MissingReadGroup">MissingReadGroup</option>
+                <option value="NoOriginalQualityScores">NoOriginalQualityScores</option>
+                <option value="NotPrimaryAlignment">NotPrimaryAlignment</option>
+                <option value="Platform454">Platform454</option>
+                <option value="Platform">Platform</option>
+                <option value="PlatformUnit">PlatformUnit</option>
+                <option value="ReadGroupBlackList">ReadGroupBlackList</option>
+                <option value="ReadName">ReadName</option>
+                <option value="ReadStrand">ReadStrand</option>
+                <option value="ReassignMappingQuality">ReassignMappingQuality</option>
+                <option value="Sample">Sample</option>
+                <option value="SingleReadGroup">SingleReadGroup</option>
+                <option value="UnmappedRead">UnmappedRead</option>
+              </param>
+              <when value="BadCigar">
+                  <!-- no extra options -->
+              </when>
+              <when value="BadMate">
+                  <!-- no extra options -->
+              </when>
+              <when value="DuplicateRead">
+                  <!-- no extra options -->
+              </when>
+              <when value="FailsVendorQualityCheck">
+                  <!-- no extra options -->
+              </when>
+              <when value="MalformedRead">
+                  <!-- no extra options -->
+              </when>
+              <when value="MappingQuality">
+                  <param name="min_mapping_quality_score" type="integer" value="10" 
+                  label="Minimum read mapping quality required to consider a read for calling"/>
+              </when>
+              <when value="MappingQualityUnavailable">
+                  <!-- no extra options -->
+              </when>
+              <when value="MappingQualityZero">
+                  <!-- no extra options -->
+              </when>
+              <when value="MateSameStrand">
+                  <!-- no extra options -->
+              </when>
+              <when value="MaxInsertSize">
+                  <param name="maxInsertSize" type="integer" value="1000000" 
+                  label="Discard reads with insert size greater than the specified value"/>
+              </when>
+              <when value="MaxReadLength">
+                  <param name="maxReadLength" type="integer" value="76" label="Max Read Length"/>
+              </when>
+              <when value="MissingReadGroup">
+                  <!-- no extra options -->
+              </when>
+              <when value="NoOriginalQualityScores">
+                  <!-- no extra options -->
+              </when>
+              <when value="NotPrimaryAlignment">
+                  <!-- no extra options -->
+              </when>
+              <when value="Platform454">
+                  <!-- no extra options -->
+              </when>
+              <when value="Platform">
+                  <param name="PLFilterName" type="text" value="" label="Discard reads with RG:PL attribute containing this string"/>
+              </when>
+              <when value="PlatformUnit">
+                  <!-- no extra options -->
+              </when>
+              <when value="ReadGroupBlackList">
+                  <!-- no extra options -->
+              </when>
+              <when value="ReadName">
+                  <param name="readName" type="text" value="" label="Filter out all reads except those with this read name"/>
+              </when>
+              <when value="ReadStrand">
+                  <param name="filterPositive" type="boolean" truevalue="--filterPositive" falsevalue="" 
+                  label="Discard reads on the forward strand"/>
+              </when>
+              <when value="ReassignMappingQuality">
+                  <param name="default_mapping_quality" type="integer" value="60" label="Default read mapping quality to assign to all reads"/>
+              </when>
+              <when value="Sample">
+                  <param name="sample_to_keep" type="text" value="" label="The name of the sample(s) to keep, filtering out all others"/>
+              </when>
+              <when value="SingleReadGroup">
+                  <param name="read_group_to_keep" type="integer" value="76" label="The name of the read group to keep, filtering out all others"/>
+              </when>
+              <when value="UnmappedRead">
+                  <!-- no extra options -->
+              </when>
+            </conditional>
+        </repeat>
+        <repeat name="input_interval_repeat" title="Operate on Genomic intervals" help="-L,--intervals &lt;intervals&gt;">
+          <param name="input_intervals" type="data" format="bed,gatk_interval,picard_interval_list,vcf" label="Genomic intervals" />
+        </repeat>
+        <repeat name="input_exclude_interval_repeat" title="Exclude Genomic intervals" help="-XL,--excludeIntervals &lt;excludeIntervals&gt;">
+          <param name="input_exclude_intervals" type="data" format="bed,gatk_interval,picard_interval_list,vcf" label="Genomic intervals" />
+        </repeat>
+        
+        <param name="interval_set_rule" type="select" label="Interval set rule" help="-isr,--interval_set_rule &amp;lt;interval_set_rule&amp;gt;">
+          <option value="UNION" selected="True">UNION</option>
+          <option value="INTERSECTION">INTERSECTION</option>
+        </param>
+        
+        <conditional name="downsampling_type">
+          <param name="downsampling_type_selector" type="select" label="Type of reads downsampling to employ at a given locus" help="-dt,--downsampling_type &amp;lt;downsampling_type&amp;gt;">
+            <option value="NONE" selected="True">NONE</option>
+            <option value="ALL_READS">ALL_READS</option>
+            <option value="BY_SAMPLE">BY_SAMPLE</option>
+          </param>
+          <when value="NONE">
+              <!-- no more options here -->
+          </when>
+          <when value="ALL_READS">
+              <conditional name="downsample_to_type">
+                  <param name="downsample_to_type_selector" type="select" label="Downsample method">
+                      <option value="downsample_to_fraction" selected="True">Downsample by Fraction</option>
+                      <option value="downsample_to_coverage">Downsample by Coverage</option>
+                  </param>
+                  <when value="downsample_to_fraction">
+                      <param name="downsample_to_value" type="float" label="Fraction [0.0-1.0] of reads to downsample to" value="1" min="0" max="1" help="-dfrac,--downsample_to_fraction &amp;lt;downsample_to_fraction&amp;gt;"/>
+                  </when>
+                  <when value="downsample_to_coverage">
+                      <param name="downsample_to_value" type="integer" label="Coverage to downsample to at any given locus" value="0" help="-dcov,--downsample_to_coverage &amp;lt;downsample_to_coverage&amp;gt;"/>
+                  </when>
+              </conditional>
+          </when>
+          <when value="BY_SAMPLE">
+              <conditional name="downsample_to_type">
+                  <param name="downsample_to_type_selector" type="select" label="Downsample method">
+                      <option value="downsample_to_fraction" selected="True">Downsample by Fraction</option>
+                      <option value="downsample_to_coverage">Downsample by Coverage</option>
+                  </param>
+                  <when value="downsample_to_fraction">
+                      <param name="downsample_to_value" type="float" label="Fraction [0.0-1.0] of reads to downsample to" value="1" min="0" max="1" help="-dfrac,--downsample_to_fraction &amp;lt;downsample_to_fraction&amp;gt;"/>
+                  </when>
+                  <when value="downsample_to_coverage">
+                      <param name="downsample_to_value" type="integer" label="Coverage to downsample to at any given locus" value="0" help="-dcov,--downsample_to_coverage &amp;lt;downsample_to_coverage&amp;gt;"/>
+                  </when>
+              </conditional>
+          </when>
+        </conditional>
+        <param name="baq" type="select" label="Type of BAQ calculation to apply in the engine" help="-baq,--baq &amp;lt;baq&amp;gt;">
+          <option value="OFF" selected="True">OFF</option>
+          <option value="CALCULATE_AS_NECESSARY">CALCULATE_AS_NECESSARY</option>
+          <option value="RECALCULATE">RECALCULATE</option>
+        </param>
+        <param name="baq_gap_open_penalty" type="float" label="BAQ gap open penalty (Phred Scaled)" value="40" help="Default value is 40. 30 is perhaps better for whole genome call sets. -baqGOP,--baqGapOpenPenalty &amp;lt;baqGapOpenPenalty&amp;gt;" />
+        <param name="use_original_qualities" type="boolean" truevalue="--useOriginalQualities" falsevalue="" label="Use the original base quality scores from the OQ tag" help="-OQ,--useOriginalQualities" />
+        <param name="default_base_qualities" type="integer" label="Value to be used for all base quality scores, when some are missing" value="-1" help="-DBQ,--defaultBaseQualities &amp;lt;defaultBaseQualities&amp;gt;"/>
+        <param name="validation_strictness" type="select" label="How strict should we be with validation" help="-S,--validation_strictness &amp;lt;validation_strictness&amp;gt;">
+          <option value="STRICT" selected="True">STRICT</option>
+          <option value="LENIENT">LENIENT</option>
+          <option value="SILENT">SILENT</option>
+          <!-- <option value="DEFAULT_STRINGENCY">DEFAULT_STRINGENCY</option> listed in docs, but not valid value...-->
+        </param>
+        <param name="interval_merging" type="select" label="Interval merging rule" help="-im,--interval_merging &amp;lt;interval_merging&amp;gt;">
+          <option value="ALL" selected="True">ALL</option>
+          <option value="OVERLAPPING_ONLY">OVERLAPPING_ONLY</option>
+        </param>
+        
+        <repeat name="read_group_black_list_repeat" title="Read group black list" help="-rgbl,--read_group_black_list &amp;lt;read_group_black_list&amp;gt;">
+          <conditional name="read_group_black_list_type">
+            <param name="read_group_black_list_type_selector" type="select" label="Type of reads read group black list">
+              <option value="file" selected="True">Filters in file</option>
+              <option value="text">Specify filters as a string</option>
+            </param>
+            <when value="file">
+              <param name="read_group_black_list" type="data" format="txt" label="Read group black list file" />
+            </when>
+            <when value="text">
+              <param name="read_group_black_list" type="text" value="tag:string" label="Read group black list tag:string" />
+            </when>
+          </conditional>
+        </repeat>
+        
+        <param name="disable_experimental_low_memory_sharding" type="boolean" truevalue="--disable_experimental_low_memory_sharding" falsevalue="" label="Disable experimental low-memory sharding functionality." checked="False" help="--disable_experimental_low_memory_sharding"/>
+        <param name="non_deterministic_random_seed" type="boolean" truevalue="--nonDeterministicRandomSeed" falsevalue="" label="Makes the GATK behave non deterministically, that is, the random numbers generated will be different in every run" checked="False"  help="-ndrs,--nonDeterministicRandomSeed"/>
+        
+      </when>
+    </conditional>
+    
+    <conditional name="analysis_param_type">
+      <param name="analysis_param_type_selector" type="select" label="Basic or Advanced Analysis options">
+        <option value="basic" selected="True">Basic</option>
+        <option value="advanced">Advanced</option>
+      </param>
+      <when value="basic">
+        <!-- Do nothing here -->
+      </when>
+      <when value="advanced">
+        <param name="p_nonref_model" type="select" label="Non-reference probability calculation model to employ" 
+            help="-pnrm,--p_nonref_model &lt;p_nonref_model&gt;">
+          <option value="EXACT" selected="True">EXACT</option>
+          <option value="GRID_SEARCH">GRID_SEARCH</option>
+        </param>
+        
+        <param name="heterozygosity" type="float" value="1e-3" label="Heterozygosity value used to compute prior likelihoods for any locus" 
+            help="-hets,--heterozygosity &lt;heterozygosity&gt;" />
+        <param name="pcr_error_rate" type="float" value="1e-4" label="The PCR error rate to be used for computing fragment-based likelihoods" 
+            help="-pcr_error,--pcr_error_rate &lt;pcr_error_rate&gt;" />
+        <conditional name="genotyping_mode_type">
+        
+          <param name="genotyping_mode" type="select" label="How to determine the alternate allele to use for genotyping" 
+              help="-gt_mode,--genotyping_mode &lt;genotyping_mode&gt;">
+            <option value="DISCOVERY" selected="True">DISCOVERY</option>
+            <option value="GENOTYPE_GIVEN_ALLELES">GENOTYPE_GIVEN_ALLELES</option>
+          </param>
+          <when value="DISCOVERY">
+            <!-- Do nothing here -->
+          </when>
+          <when value="GENOTYPE_GIVEN_ALLELES">
+            <param name="input_alleles_rod" type="data" format="vcf" label="Alleles ROD file" help="-alleles,--alleles &lt;alleles&gt;" />
+          </when>
+        </conditional>
+        
+        <param name="output_mode" type="select" label="Should we output confident genotypes (i.e. including ref calls) or just the variants?" 
+             help="-out_mode,--output_mode &lt;output_mode&gt;">
+             
+             
+          <option value="EMIT_VARIANTS_ONLY" selected="True">EMIT_VARIANTS_ONLY</option>
+          <option value="EMIT_ALL_CONFIDENT_SITES">EMIT_ALL_CONFIDENT_SITES</option>
+          <option value="EMIT_ALL_SITES">EMIT_ALL_SITES</option>
+        </param>
+        <param name="compute_SLOD" type="boolean" checked="True" truevalue="" falsevalue="-nosl" 
+                 label="Compute the SLOD" 
+                 help="Note that calculating the SLOD increases the runtime by an appreciable amount. [Checked]" />
+                 
+        <param name="annotateNDA" type="boolean" checked="True" truevalue="--annotateNDA" falsevalue="" 
+                 label="Annotate Number of Alternative Allels" 
+                 help="--annotateNDA; -nda . If provided, we will annotate records with the number of alternate alleles that were discovered (but not necessarily genotyped) at a given site. Depending on the value of the --max_alternate_alleles argument, we may genotype only a fraction of the alleles being sent on for genotyping. Using this argument instructs the genotyper to annotate (in the INFO field) the number of alternate alleles that were originally discovered at the site. [Checked]" />
+                 
+        <param name="min_base_quality_score" type="integer" value="17" label="Minimum base quality required to consider a base for calling" 
+            help="-mbq,--min_base_quality_score &lt;min_base_quality_score&gt;" />
+        <param name="max_deletion_fraction" type="float" value="0.05" label="Maximum fraction of reads with deletions spanning this locus for it to be callable" 
+            help="to disable, set to &lt; 0 or &gt; 1 (-deletions,--max_deletion_fraction &lt;max_deletion_fraction&gt;)" />
+        <param name="max_alternate_alleles" type="integer" value="5" label="Maximum number of alternate alleles to genotype" 
+            help="-maxAlleles,--max_alternate_alleles &lt;max_alternate_alleles&gt;" />
+        <param name="min_indel_count_for_genotyping" type="integer" value="5" label="Minimum number of consensus indels required to trigger genotyping run" 
+            help="-minIndelCnt,--min_indel_count_for_genotyping &lt;min_indel_count_for_genotyping&gt;" />
+            
+        <param name="min_indel_fraction_per_sample" type="float" value="0.25" label="Minimum number of consensus indels required to trigger genotyping run" 
+            help="-minIndelFrac,--min_indel_fraction_per_sample &lt;min_indel_fraction_per_sample&gt;Minimum fraction of all reads at a locus that must contain an indel (of any allele) for that sample to contribute to the indel count for alleles. Complementary argument to minIndelCnt. Only samples with at least this fraction of indel-containing reads will contribute to counting and overcoming the threshold minIndelCnt. This parameter ensures that in deep data you don't end up summing lots of super rare errors up to overcome the 5 read default threshold. Should work equally well for low-coverage and high-coverage samples, as low coverage samples with any indel containing reads should easily over come this threshold." />
+            
+        <param name="indel_heterozygosity" type="float" value="0.000125" label="Heterozygosity for indel calling" 
+            help="1.0/8000==0.000125 (-indelHeterozygosity,--indel_heterozygosity &lt;indel_heterozygosity&gt;)"/>
+            
+            
+            
+        <param name="annotation" type="select" multiple="True" display="checkboxes" label="Annotation Types" help="-A,--annotation &amp;lt;annotation&amp;gt;">
+          <!-- load the available annotations from an external configuration file, since additional ones can be added to local installs
+          <options from_data_table="gatk_annotations">
+            <filter type="multiple_splitter" column="tools_valid_for" separator=","/>
+            <filter type="static_value" value="UnifiedGenotyper" column="tools_valid_for"/>
+          </options>
+          -->
+            <!-- bug in the gatk doesn't work with this option <option value="TransmissionDisequilibriumTest">TransmissionDisequilibriumTest</option> -->
+            <option value="ChromosomeCounts">ChromosomeCounts</option>
+            <option value="IndelType">IndelType</option>
+            <option value="SpanningDeletions" selected="True">SpanningDeletions</option>
+            <option value="HardyWeinberg">HardyWeinberg</option>
+            <!-- bug in the gatk doesn't work with this option <option value="NBaseCount">NBaseCount</option> -->
+            <option value="MappingQualityZero" selected="True">MappingQualityZero</option>
+            <option value="AlleleBalance">AlleleBalance</option>
+            <option value="BaseCounts">BaseCounts</option>
+            <option value="LowMQ">LowMQ</option>
+            <option value="MVLikelihoodRatio">MVLikelihoodRatio</option>
+            <option value="InbreedingCoeff" selected="True">InbreedingCoeff</option>
+            <option value="RMSMappingQuality" selected="True">RMSMappingQuality</option>
+            <option value="HaplotypeScore" selected="True">HaplotypeScore</option>
+            <option value="TechnologyComposition">TechnologyComposition</option>
+            <option value="QualByDepth" selected="True">QualByDepth</option>
+            <option value="SampleList">SampleList</option>
+            <option value="FisherStrand" selected="True">FisherStrand</option>
+            <option value="HomopolymerRun" selected="True">HomopolymerRun</option>
+            <option value="DepthOfCoverage" selected="True">DepthOfCoverage</option>
+            <option value="SnpEff">SnpEff</option>
+            <option value="MappingQualityZeroFraction">MappingQualityZeroFraction</option>
+            <option value="GCContent">GCContent</option>
+            <option value="MappingQualityRankSumTest" selected="True">MappingQualityRankSumTest</option>
+            <option value="ReadPosRankSumTest" selected="True">ReadPosRankSumTest</option>
+            <option value="BaseQualityRankSumTest" selected="True">BaseQualityRankSumTest</option>
+            <option value="AlleleBalanceBySample">AlleleBalanceBySample</option>
+            <option value="DepthPerAlleleBySample" selected="True">DepthPerAlleleBySample</option>
+            <option value="MappingQualityZeroBySample">MappingQualityZeroBySample</option>
+        </param>
+        <repeat name="additional_annotations" title="Additional annotation" help="-A,--annotation &amp;lt;annotation&amp;gt;">
+          <param name="additional_annotation_name" type="text" value="" label="Annotation name" />
+        </repeat>
+<!--
+        <conditional name="snpEff_rod_bind_type">
+          <param name="snpEff_rod_bind_type_selector" type="select" label="Provide a snpEff reference-ordered data file">
+            <option value="set_snpEff">Set snpEff</option>
+            <option value="exclude_snpEff" selected="True">Don't set snpEff</option>
+          </param>
+          <when value="exclude_snpEff">
+          </when>
+          <when value="set_snpEff">
+            <param name="snpEff_input_rod" type="data" format="vcf" label="ROD file" />
+            <param name="snpEff_rod_name" type="hidden" value="snpEff" label="ROD Name"/>
+          </when>
+        </conditional>
+-->
+        <param name="group" type="select" multiple="True" display="checkboxes" label="Annotation Interfaces/Groups" help="-G,--group &amp;lt;group&amp;gt;">
+            <option value="RodRequiringAnnotation">RodRequiringAnnotation</option>
+            <option value="Standard">Standard</option>
+            <option value="Experimental">Experimental</option>
+            <option value="WorkInProgress">WorkInProgress</option>
+            <option value="RankSumTest">RankSumTest</option>
+            <option value="ActiveRegionBasedAnnotation">ActiveRegionBasedAnnotation</option>
+            <!-- <option value="none">none</option> -->
+        </param>
+        
+    <!--     <param name="family_string" type="text" value="" label="Family String"/> -->
+        <param name="exclude_annotations" type="select" multiple="True" display="checkboxes" label="Annotations to exclude" help="-XA,--excludeAnnotation &amp;lt;excludeAnnotation&amp;gt;" >
+          <!-- load the available annotations from an external configuration file, since additional ones can be added to local installs
+          <options from_data_table="gatk_annotations">
+            <filter type="multiple_splitter" column="tools_valid_for" separator=","/>
+            <filter type="static_value" value="UnifiedGenotyper" column="tools_valid_for"/>
+          </options> -->
+            <!-- bug in the gatk doesn't work with this option <option value="TransmissionDisequilibriumTest">TransmissionDisequilibriumTest</option> -->
+            <option value="ChromosomeCounts">ChromosomeCounts</option>
+            <option value="IndelType">IndelType</option>
+            <option value="SpanningDeletions">SpanningDeletions</option>
+            <option value="HardyWeinberg">HardyWeinberg</option>
+            <!-- bug in the gatk doesn't work with this option <option value="NBaseCount">NBaseCount</option> -->
+            <option value="MappingQualityZero">MappingQualityZero</option>
+            <option value="AlleleBalance">AlleleBalance</option>
+            <option value="BaseCounts">BaseCounts</option>
+            <option value="LowMQ">LowMQ</option>
+            <option value="MVLikelihoodRatio">MVLikelihoodRatio</option>
+            <option value="InbreedingCoeff">InbreedingCoeff</option>
+            <option value="RMSMappingQuality">RMSMappingQuality</option>
+            <option value="HaplotypeScore">HaplotypeScore</option>
+            <option value="TechnologyComposition">TechnologyComposition</option>
+            <option value="QualByDepth">QualByDepth</option>
+            <option value="SampleList">SampleList</option>
+            <option value="FisherStrand">FisherStrand</option>
+            <option value="HomopolymerRun">HomopolymerRun</option>
+            <option value="DepthOfCoverage">DepthOfCoverage</option>
+            <option value="SnpEff">SnpEff</option>
+            <option value="MappingQualityZeroFraction">MappingQualityZeroFraction</option>
+            <option value="GCContent">GCContent</option>
+            <option value="MappingQualityRankSumTest">MappingQualityRankSumTest</option>
+            <option value="ReadPosRankSumTest">ReadPosRankSumTest</option>
+            <option value="BaseQualityRankSumTest">BaseQualityRankSumTest</option>
+            <option value="AlleleBalanceBySample">AlleleBalanceBySample</option>
+            <option value="DepthPerAlleleBySample">DepthPerAlleleBySample</option>
+            <option value="MappingQualityZeroBySample">MappingQualityZeroBySample</option>
+        </param>
+      </when>
+    </conditional>
+
+ </inputs>
+  <outputs>
+    <data format="vcf" name="output_vcf" label="${tool.name} on ${on_string} (VCF)" />
+    <data format="txt" name="output_metrics" label="${tool.name} on ${on_string} (metrics)" />
+    <data format="txt" name="output_log" label="${tool.name} on ${on_string} (log)" />
+  </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+DEST=`dirname ${output_log}`
+cp gatk_wrapper.py \$DEST
+cd \$DEST
+err="err.pipe"
+out="out.pipe"
+mkfifo "\$err" "\$out" 
+trap 'cat ${ output_log }.err &gt;&gt; ${ output_log }; echo "output-log: \n" &gt;&gt; ${ output_log }; cat ${ output_log }.out &gt;&gt; ${ output_log }; rm -f "\$err"  "\$out"' EXIT
+tee ${ output_log }.err &lt; "\$err" &gt;&amp;2 &amp;
+tee ${ output_log }.out &lt; "\$out" &gt;&amp;1 &amp;    
+
+/usr/bin/python gatk_wrapper.py \
+   --max_jvm_heap_fraction "1" \
+   ### --stdout "${output_log}" \ ### we are checking out end std in this script
+   #for $i, $input_bam in enumerate( $reference_source.input_bams ):
+       -d "-I" "${input_bam.input_bam}" "${input_bam.input_bam.ext}" "gatk_input_${i}" \
+       #if str( $input_bam.input_bam.metadata.bam_index ) != "None":
+           -d "" "${input_bam.input_bam.metadata.bam_index}" "bam_index" "gatk_input_${i}" \
+		##hardcode galaxy ext type as bam_index
+       #end if
+   #end for
+   -p 'java -jar "${GALAXY_DATA_INDEX_DIR}/shared/jars/gatk/GenomeAnalysisTK.jar"' \
+   -p ' -T "UnifiedGenotyper" -nt "$numThreads" --out "${output_vcf}"' \
+   -p ' --metrics_file "${output_metrics}" ' \
+    #### -et "NO_ET" ##ET no phone home
+    ##-log "${output_log}" ##don't use this to log to file, instead directly capture stdout
+    #if $reference_source.reference_source_selector != "history":
+        -p ' -R "${reference_source.ref_file.fields.path}" ' \
+    #end if
+    -p ' --genotype_likelihoods_model "${genotype_likelihoods_model}" --standard_min_confidence_threshold_for_calling "${standard_min_confidence_threshold_for_calling}" '\
+    -p ' --standard_min_confidence_threshold_for_emitting "${standard_min_confidence_threshold_for_emitting}" ' \
+    #set $rod_binding_names = dict()
+    #for $rod_binding in $rod_bind:
+        #if str( $rod_binding.rod_bind_type.rod_bind_type_selector ) == 'custom':
+            #set $rod_bind_name = $rod_binding.rod_bind_type.custom_rod_name
+        #else
+            #set $rod_bind_name = $rod_binding.rod_bind_type.rod_bind_type_selector
+        #end if
+        #set $rod_binding_names[$rod_bind_name] = $rod_binding_names.get( $rod_bind_name, -1 ) + 1
+        -d "--dbsnp:${rod_bind_name},%(file_type)s" "${rod_binding.rod_bind_type.input_rod}" "${rod_binding.rod_bind_type.input_rod.ext}" "input_${rod_bind_name}_${rod_binding_names[$rod_bind_name]}" \
+    #end for
+    ##start standard gatk options
+    #if $gatk_param_type.gatk_param_type_selector == "advanced":
+        #for $pedigree in $gatk_param_type.pedigree:
+            -p '--pedigree "${pedigree.pedigree_file}"' \
+        #end for
+        #for $pedigree_string in $gatk_param_type.pedigree_string_repeat:
+            -p '--pedigreeString "${pedigree_string.pedigree_string}"' \
+        #end for
+        -p '--pedigreeValidationType "${gatk_param_type.pedigree_validation_type}"' \
+        #for $read_filter in $gatk_param_type.read_filter:
+            -p '--read_filter "${read_filter.read_filter_type.read_filter_type_selector}"' \
+            ###raise Exception( str( dir( $read_filter ) ) )
+            #for $name, $param in $read_filter.read_filter_type.iteritems():
+                #if $name not in [ "__current_case__", "read_filter_type_selector" ]:
+                    #if hasattr( $param.input, 'truevalue' ):
+                        -p '${param}' \ 
+                    #else:
+                        -p '--${name} "${param}" ' \
+                    #end if
+                #end if
+            #end for
+        #end for
+        #for $interval_count, $input_intervals in enumerate( $gatk_param_type.input_interval_repeat ):
+            -d "--intervals" "${input_intervals.input_intervals}" "${input_intervals.input_intervals.ext}" "input_intervals_${interval_count}" \
+        #end for
+        #for $interval_count, $input_intervals in enumerate( $gatk_param_type.input_exclude_interval_repeat ):
+            -d "--excludeIntervals" "${input_intervals.input_exclude_intervals}" "${input_intervals.input_exclude_intervals.ext}" "input_exlude_intervals_${interval_count}" \
+        #end for
+        -p '--interval_set_rule "${gatk_param_type.interval_set_rule}"' \
+        -p '--downsampling_type "${gatk_param_type.downsampling_type.downsampling_type_selector}"' \
+        #if str( $gatk_param_type.downsampling_type.downsampling_type_selector ) != "NONE":
+            -p '--${gatk_param_type.downsampling_type.downsample_to_type.downsample_to_type_selector} "${gatk_param_type.downsampling_type.downsample_to_type.downsample_to_value}"' \
+        #end if
+        -p '--baq "${gatk_param_type.baq}" --baqGapOpenPenalty "${gatk_param_type.baq_gap_open_penalty}" ${gatk_param_type.use_original_qualities}' \
+        -p '--defaultBaseQualities "${gatk_param_type.default_base_qualities}" --validation_strictness "${gatk_param_type.validation_strictness}"' \
+        -p ' --interval_merging "${gatk_param_type.interval_merging}" ${gatk_param_type.disable_experimental_low_memory_sharding} ${gatk_param_type.non_deterministic_random_seed}' \
+        #for $rg_black_list_count, $rg_black_list in enumerate( $gatk_param_type.read_group_black_list_repeat ):
+            #if $rg_black_list.read_group_black_list_type.read_group_black_list_type_selector == "file":
+                -d "--read_group_black_list" "${rg_black_list.read_group_black_list_type.read_group_black_list}" "txt" "input_read_group_black_list_${rg_black_list_count}" \
+            #else
+                -p '--read_group_black_list "${rg_black_list.read_group_black_list_type.read_group_black_list}"' \
+            #end if
+        #end for
+    #end if
+    #if $reference_source.reference_source_selector == "history":
+        -d "-R" "${reference_source.ref_file}" "${reference_source.ref_file.ext}" "gatk_input" \
+    #end if
+    ##end standard gatk options
+    ##start analysis specific options
+    #if $analysis_param_type.analysis_param_type_selector == "advanced":
+     -p '--p_nonref_model "${analysis_param_type.p_nonref_model}" --heterozygosity "${analysis_param_type.heterozygosity}" --pcr_error_rate "${analysis_param_type.pcr_error_rate}"' \
+     -p '--genotyping_mode "${analysis_param_type.genotyping_mode_type.genotyping_mode}" ' \
+        #if str( $analysis_param_type.genotyping_mode_type.genotyping_mode ) == 'GENOTYPE_GIVEN_ALLELES':
+           -p '--alleles "${analysis_param_type.genotyping_mode_type.input_alleles_rod}"' \
+        #end if
+        -p '--output_mode "${analysis_param_type.output_mode}" ${analysis_param_type.compute_SLOD} --min_base_quality_score "${analysis_param_type.min_base_quality_score}" ' \
+        -p '${annotateNDA} --max_deletion_fraction "${analysis_param_type.max_deletion_fraction}" --max_alternate_alleles "${analysis_param_type.max_alternate_alleles}"' \
+        -p '--min_indel_count_for_genotyping "${analysis_param_type.min_indel_count_for_genotyping}" --min_indel_fraction_per_sample "${min_indel_fraction_per_sample}"' \
+        -p '--indel_heterozygosity "${analysis_param_type.indel_heterozygosity}"' \
+        #if str( $analysis_param_type.annotation ) != "":
+            #for $annotation in str( $analysis_param_type.annotation ).split( ','):
+                -p '--annotation "${annotation}"' \
+            #end for
+        #end if
+        #for $additional_annotation in $analysis_param_type.additional_annotations:
+            -p '--annotation "${additional_annotation.additional_annotation_name}" ' \
+        #end for
+        #if str( $analysis_param_type.group ) != "":
+            #for $group in str( $analysis_param_type.group ).split( ','):
+                -p '--group "${group}" ' \
+            #end for
+        #end if
+        #if str( $analysis_param_type.exclude_annotations ) != "":
+            #for $annotation in str( $analysis_param_type.exclude_annotations ).split( ','):
+                -p '--excludeAnnotation "${annotation}"' \
+            #end for
+        #end if
+    &gt;\$out 2&gt;\$err
+##        #if str( $analysis_param_type.snpEff_rod_bind_type.snpEff_rod_bind_type_selector ) == 'set_snpEff':
+##            -p '--annotation "SnpEff"'
+##            -d "--snpEffFile:${analysis_param_type.snpEff_rod_bind_type.snpEff_rod_name},%(file_type)s" "${analysis_param_type.snpEff_rod_bind_type.snpEff_input_rod}" "${analysis_param_type.snpEff_rod_bind_type.s$
+##        #else:
+##            -p '--excludeAnnotation "SnpEff"'
+##        #end if
+    #end if
+
+  </configfile>
+  </configfiles>
+<tests>
+      <test>
+          <param name="reference_source_selector" value="history" />
+          <param name="ref_file" value="phiX.fasta" ftype="fasta" />
+          <param name="input_bam" value="gatk/gatk_table_recalibration/gatk_table_recalibration_out_1.bam" ftype="bam" />
+          <param name="rod_bind_type_selector" value="dbsnp" />
+          <param name="input_rod" value="gatk/fake_phiX_variant_locations.vcf" ftype="vcf" />
+          <param name="standard_min_confidence_threshold_for_calling" value="0" />
+          <param name="standard_min_confidence_threshold_for_emitting" value="4" />
+          <param name="gatk_param_type_selector" value="basic" />
+          <param name="analysis_param_type_selector" value="advanced" />
+          <param name="genotype_likelihoods_model" value="BOTH" />
+          <param name="p_nonref_model" value="EXACT" />
+          <param name="heterozygosity" value="0.001" />
+          <param name="pcr_error_rate" value="0.0001" />
+          <param name="genotyping_mode" value="DISCOVERY" />
+          <param name="output_mode" value="EMIT_ALL_CONFIDENT_SITES" />
+          <param name="compute_SLOD" />
+          <param name="min_base_quality_score" value="17" />
+          <param name="max_deletion_fraction" value="-1" />
+          <param name="min_indel_count_for_genotyping" value="2" />
+          <param name="indel_heterozygosity" value="0.000125" />
+          <!-- <param name="indelGapContinuationPenalty" value="10" /> -->
+          <!-- <param name="indelGapOpenPenalty" value="3" /> -->
+          <!-- <param name="indelHaplotypeSize" value="80" /> -->
+          <!-- <param name="doContextDependentGapPenalties" /> -->
+          <!-- <param name="annotation" value="" />
+          <param name="group" value="" /> -->
+          <output name="output_vcf" file="gatk/gatk_unified_genotyper/gatk_unified_genotyper_out_1.vcf" lines_diff="4" /> 
+          <output name="output_metrics" file="gatk/gatk_unified_genotyper/gatk_unified_genotyper_out_1.metrics" /> 
+          <output name="output_log" file="gatk/gatk_unified_genotyper/gatk_unified_genotyper_out_1.log.contains" compare="contains" />
+      </test>
+  </tests>
+ <help>
+**What it does**
+
+A variant caller which unifies the approaches of several disparate callers.  Works for single-sample and multi-sample data.  The user can choose from several different incorporated calculation models.
+
+For more information on the GATK Unified Genotyper, see this `tool specific page &lt;http://www.broadinstitute.org/gsa/wiki/index.php/Unified_genotyper&gt;`_.
+
+To learn about best practices for variant detection using GATK, see this `overview &lt;http://www.broadinstitute.org/gsa/wiki/index.php/Best_Practice_Variant_Detection_with_the_GATK_v3&gt;`_.
+
+If you encounter errors, please view the `GATK FAQ &lt;http://www.broadinstitute.org/gsa/wiki/index.php/Frequently_Asked_Questions&gt;`_.
+
+------
+
+**Inputs**
+
+GenomeAnalysisTK: UnifiedGenotyper accepts an aligned BAM input file.
+
+
+**Outputs**
+
+The output is in VCF format.
+
+
+Go `here &lt;http://www.broadinstitute.org/gsa/wiki/index.php/Input_files_for_the_GATK&gt;`_ for details on GATK file formats.
+
+-------
+
+**Settings**::
+
+ genotype_likelihoods_model                        Genotype likelihoods calculation model to employ -- BOTH is the default option, while INDEL is also available for calling indels and SNP is available for calling SNPs only (SNP|INDEL|BOTH)
+ p_nonref_model                                    Non-reference probability calculation model to employ -- EXACT is the default option, while GRID_SEARCH is also available. (EXACT|GRID_SEARCH)
+ heterozygosity                                    Heterozygosity value used to compute prior likelihoods for any locus
+ pcr_error_rate                                    The PCR error rate to be used for computing fragment-based likelihoods
+ genotyping_mode                                   Should we output confident genotypes (i.e. including ref calls) or just the variants? (DISCOVERY|GENOTYPE_GIVEN_ALLELES)
+ output_mode                                       Should we output confident genotypes (i.e. including ref calls) or just the variants? (EMIT_VARIANTS_ONLY|EMIT_ALL_CONFIDENT_SITES|EMIT_ALL_SITES)
+ standard_min_confidence_threshold_for_calling     The minimum phred-scaled confidence threshold at which variants not at 'trigger' track sites should be called
+ standard_min_confidence_threshold_for_emitting    The minimum phred-scaled confidence threshold at which variants not at 'trigger' track sites should be emitted (and filtered if less than the calling threshold)
+ noSLOD                                            If provided, we will not calculate the SLOD
+ min_base_quality_score                            Minimum base quality required to consider a base for calling
+ max_deletion_fraction                             Maximum fraction of reads with deletions spanning this locus for it to be callable [to disable, set to &lt; 0 or &gt; 1; default:0.05]
+ min_indel_count_for_genotyping                    Minimum number of consensus indels required to trigger genotyping run
+ indel_heterozygosity                              Heterozygosity for indel calling
+ indel_recal_file                                  Filename for the input covariates table recalibration .csv file - EXPERIMENTAL, DO NO USE
+ indelDebug                                        Output indel debug info
+ out                                               File to which variants should be written
+ annotation                                        One or more specific annotations to apply to variant calls
+ group                                             One or more classes/groups of annotations to apply to variant calls
+
+------
+
+**Citation**
+
+For the underlying tool, please cite `DePristo MA, Banks E, Poplin R, Garimella KV, Maguire JR, Hartl C, Philippakis AA, del Angel G, Rivas MA, Hanna M, McKenna A, Fennell TJ, Kernytsky AM, Sivachenko AY, Cibulskis K, Gabriel SB, Altshuler D, Daly MJ. A framework for variation discovery and genotyping using next-generation DNA sequencing data. Nat Genet. 2011 May;43(5):491-8. &lt;http://www.ncbi.nlm.nih.gov/pubmed/21478889&gt;`_
+
+If you use this tool in Galaxy, please cite Blankenberg D, et al. *In preparation.*
+
+  </help>
+
+</tool>
+

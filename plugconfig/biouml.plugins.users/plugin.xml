@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="Open chat" class="biouml.plugins.users.OpenChatAction" priority="50">
+        <property name="Name" value="Open chat"/>
+        <property name="ShortDescription" value="Start a chat with the selected user"/>
+        <property name="LongDescription" value="Start a chat with the selected user"/>
+        <property name="MnemonicKey" value="VK_O"/>
+        <property name="SmallIcon" value="chat.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-chat"/>
+     </action>
+     <action name="Open group chat" class="biouml.plugins.users.OpenGroupChatAction" priority="50">
+        <property name="Name" value="Open group chat"/>
+        <property name="ShortDescription" value="Start a chat with the selected group"/>
+        <property name="LongDescription" value="Start a chat with the selected group"/>
+        <property name="MnemonicKey" value="VK_O"/>
+        <property name="SmallIcon" value="chat.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-chat"/>
+     </action>
+  </extension>
+</plugin>

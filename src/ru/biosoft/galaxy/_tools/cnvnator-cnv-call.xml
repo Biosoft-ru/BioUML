@@ -1,0 +1,74 @@
+<tool id="cnvnator_call" name="Merging ROOT Files from CNVnator" version="0.2.5">
+    <requirements>
+        <requirement type='package'>cnvnator</requirement>
+    </requirements>
+    <description></description>
+    <parallelism method="basic"></parallelism>
+
+  <command>
+    cnvnator     
+    -root "$inputROOTFile"
+    #if str( $restChrom.condValue ) == "Select"
+        -chrom $restChrom.chrom
+    #end if
+    -call 
+    $binSize
+    $ngc | tee "$cnvs"
+  </command>
+
+    <inputs>
+        <param name="inputROOTFile" type="data"
+                    format="CNVnatorRoot" label="Input Root file."
+                    help="Input ROOT file" />
+
+        <param name="binSize" type="integer" value="100"
+                    label="Bin Size for calculation" help="Bin Size should be the same as was used for histogram calculation" />
+        <conditional name="restChrom">
+            <param name="condValue" type="select" label="Run for chromosomes">
+                <option value="All">All</option>
+                <option value="Select">Select</option>                
+                <when value="All"/>                
+                <when value="Select">
+                    <param name="chrom" type="text" label="Chromosomes to analyse"
+                            default=""  help="Run only for specified chromosomes. (chr1 chr2 chr3) or (1 2 3)"/>
+                </when>
+            </param>
+                
+        </conditional>
+        <param name="ngc" type="select" label="use GC corrected RD signal">                      
+                    <option value=" ">Yes</option>
+                    <option value="-ngc">No</option>
+        </param>
+        
+    </inputs>
+
+    <outputs>        
+        <data format="txt" name="cnvs" label="Text file with CNVs"/>
+    </outputs>
+
+    <tests>
+    </tests>
+
+    <help>
+The output is as follows:
+
+CNV_type coordinates CNV_size normalized_RD p-val1 p-val2
+
+normalized_RD -- normalized to 1.
+p-val1        -- is calculated using t-test statistics.
+p-val2        -- is from probability of RD values within the region to be in
+the tails of gaussian distribution describing frequencies of RD values in bins.
+
+Example:
+type        region            length    normalized_RD     p-val1        p-val2
+deletion        chr1:59601-60200        600     0.19512     280.645     0.00100133      1       1       1
+duplication     chr1:61501-63100        1600    1.77262     0.044514        0.616054        1       1       1
+deletion        chr1:64201-64600        400     0.141946        480.679     7.51745e-05     1       1       1
+deletion        chr1:64201-64600        400     0.0980435       92.6653     3.70508e-10     1       1       1
+
+
+Please send your comments and suggestions regarding CNVnator to alexej.abyzov@yale.edu.
+and CNVnator integration issues/suggestions to support@biodatomics.com
+    </help>
+</tool>
+

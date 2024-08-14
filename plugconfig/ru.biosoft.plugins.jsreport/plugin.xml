@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="report" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="report" class="ru.biosoft.plugins.jsreport.JavaScriptReport" >
+        <doc description="Reports creation API">
+        <function name="create" description="Creates new report object and returns it. Further interaction should be performed with that object.">
+        	<argument name="title" description="Title of the report"/>
+            <returns type="Report" description="Returned report object" /> 
+        </function>
+        </doc>
+    </hostObject>
+  </extension>
+</plugin>

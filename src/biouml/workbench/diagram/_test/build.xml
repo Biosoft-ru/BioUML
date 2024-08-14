@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.4 2007/05/05 02:57:25 alexander Exp $  -->
+
+<project name="biouml.workbench.diagram package test" default="autotest" basedir="../../../..">
+
+  	<property name="package" value="biouml.workbench.diagram"/>
+
+  	<target name="import">
+    	<ant target="rtest">
+    		<property name="testui" value="swingui"/>
+    		<property name="test" value="${package}._test.ImporterRegistryTest"/>
+    	</ant>
+  	</target>
+
+  	<!--target name="export">
+    	<ant target="rtest">
+      		<property name="testui" value="swingui"/>
+    		<property name="test" value="${package}._test.ExporterRegistryTest"/>
+    	</ant>
+  	</target-->
+
+  	<target name="autotest">
+    	<ant target="rtest">
+    		<property name="testui" value="swingui"/>
+    		<property name="test" value="biouml.workbench.diagram._test.AutoTest"/>
+    	</ant>
+  	</target>
+
+  	<target name="clean">
+    	<ant target="clean"/>
+  	</target>
+
+</project>
+

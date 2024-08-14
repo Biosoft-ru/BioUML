@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<project name="biouml.plugins.graphml._test" default="autotest" basedir="../../../..">
+
+	<target name="autotest">
+		<ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.graphml._test.AutoTest"/>
+        </ant>
+	</target>
+
+	<target name="writer.test">
+		<ant target="rtest">
+			<property name="test" value="biouml.plugins.graphml._test.GraphMLTest" />
+		</ant>
+	</target>
+	
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

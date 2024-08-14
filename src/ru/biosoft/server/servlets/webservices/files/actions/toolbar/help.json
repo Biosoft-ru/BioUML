@@ -1,0 +1,21 @@
+/*
+ * Help action
+ */
+{
+    id: "help",
+    label: "Help",
+    icon: "icons/help.gif",
+    visible: "function()
+    {
+    	if( perspective && perspective.name && ('Genome Enhancer' === perspective.name) )
+            return -1;
+        return true; 
+    }",
+    action: "function()
+    {
+    	if(appInfo.help.substring(0,1) == '#')
+    	    document.location = appInfo.help;
+    	else
+        	window.open(appInfo.help);
+    }"
+}

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: JGraph Addons
+Bundle-SymbolicName: org.jgraph.jgraphaddons;singleton:=true
+Bundle-Version: 1.0.3
+Bundle-ClassPath: jgraphaddons.jar

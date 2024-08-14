@@ -1,0 +1,37 @@
+<h2>Sensitivity Analysis</h2>
+
+<p>
+  The method calculates sensitivities associated with the steady state of the purely temporal system
+  
+  <div class="formula-text"><img src="sa1.png" alt="expression"></div>
+  
+  where <i>c</i> is the <i>n</i>-vector of species concentrations, <i>&alpha;</i> is the <i>m</i>-vector
+  of systems parameters (which can include the initial conditions <i>c</i><sup>0</sup>),
+  and <i>t</i> (time) is the variable of integration.
+</p>
+
+<p>
+  The local unscaled sensitivities &part;<i>c</i>/&part;<i>&alpha;<sub>j</sub></i> are calculated via finite difference approximations
+  
+  <div class="formula-text"><img src="sa2.png" alt="expression"></div>
+  
+  where <i>c<sub>ss</sub></i>(<i>&alpha;<sub>j</sub></i>) and
+  <i>c<sub>ss</sub></i>(<i>&alpha;<sub>j</sub></i>+&Delta;<i>&alpha;<sub>j</sub></i>)
+  correspond to the solutions of the algebraic systems <i>f</i>(<i>c</i>, <i>&alpha;<sub>j</sub></i>) = 0
+  and <i>f</i>(<i>c</i>, <i>&alpha;<sub>j</sub></i>+&Delta;<i>&alpha;<sub>j</sub></i>) = 0 respectively.
+</p>
+
+<p>
+  The scaled sensitivities is calculated by multiplying each component &part;<i>c<sup>k</sup></i>/&part;<i>&alpha;<sub>j</sub></i>
+  of the vector &part;<i>c</i>/&part;<i>&alpha;<sub>j</sub></i>
+  by the normalization factor <i>&alpha;<sub>j</sub></i>/<i>c<sup>k</sup><sub>ss</sub></i>(<i>&alpha;<sub>j</sub></i>).
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li> H Rabitz, M Kramer, D Dacol,
+    "Sensitivity analysis in chemical kinetics".
+    Annu. Rev. of Phys. Chem., 34:419-461.
+  </li>
+</ol>

@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: Improved Windows Look and Feel
+Bundle-SymbolicName: net.java.plaf.windows;singleton:=true
+Bundle-Version: 0.5.0
+Bundle-ClassPath: winlaf-0.5.jar
+Export-Package: net.java.plaf.windows

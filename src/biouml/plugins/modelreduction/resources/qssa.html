@@ -1,0 +1,118 @@
+<h2>Quasi-Steady-State Analysis</h2>
+
+<p>
+  In homogeneous chemical kinetics, the dynamic model can be written in the following form of the ODE.
+  
+  <div class="formula-text"><img src="qssa1.png" alt="expression"></div>
+  
+  Since a chemical reaction system generally consists of production and loss terms, the ODE can be rewritten as:
+  
+  <div class="formula-text"><img src="qssa2.png" alt="expression"></div>
+  
+  or with a matrix-vector notation,
+  
+  <div class="formula-text"><img src="qssa3.png" alt="expression"></div>
+  
+  where <i>y</i> &isin; <i>R</i><sup>+<i>n</i></sup> is a concentration vector, <i>P<sub>i</sub></i>:
+  <i>R</i><sup>+<i>n</i></sup> &rarr; <i>R</i><sup>+</sup>
+  is a production term, and <i>L</i><sub><i>i</i></sub> : <i>R</i><sup>+<i>n</i></sup> &rarr; <i>R</i><sup>+</sup> is a loss terms.
+  <i>S</i> is a stoichiometric matrix and <i>v</i> is a reaction rate vector.
+  The subscripts <i>P</i> and <i>L</i> denote the production and loss, respectively.
+</p>
+
+<p>
+  Generally, it can be said that if <i>y<sub>i</sub></i> exhibits a quasi-steady state behavior,
+  such behavior is observed after a short period of time for the corresponding <i>P<sub>i</sub></i> and <i>L<sub>i</sub></i>
+  to balance each other. At the moment either <i>P<sub>i</sub></i> or <i>L<sub>i</sub></i> enlarge,
+  the period during which <i>P<sub>i</sub></i> balances with <i>L<sub>i</sub></i> can be evaluated in a simple manner.
+</p>
+
+<p>
+  By chain rule,
+  
+  <div class="formula-text"><img src="qssa4.png" alt="expression"></div>
+  
+  where <i>f</i> = (<i>f</i><sub>1</sub>, <i>f</i><sub>2</sub>,...)<sup><i>T</i></sup>.
+  Let <i>&delta;t<sub>i</sub></i> be a short time period after which <i>P<sub>i</sub></i> and <i>L<sub>i</sub></i>
+  balance each other. Then, we have following relationship:
+  
+  <div class="formula-text"><img src="qssa5.png" alt="expression"></div>
+  
+  where superscript 0 indicates the reference value. Rearranging the equation gives:
+
+  <table class="formula">
+    <tr>
+      <td class="formula-text">
+        <div class="formula-text"><img src="qssa6.png" alt="expression"></div>
+      <td class="formula-number">(1)</td>
+    </tr>
+  </table>
+  
+  If the denominator on the righthand side of equation (1) is not zero, namely
+  
+  <div class="formula-text"><img src="qssa7.png" alt="expression"></div>
+  
+  for some <i>&epsilon;<sub>d</sub></i> > 0, we can compute the time scale <i>&delta;t<sub>i</sub></i> from this equation.
+  If the magnitude of the time scale is large, namely, |<i>&delta;t<sub>i</sub></i>| &gt; <i>&epsilon;<sub>t</sub></i>
+  for some <i>&epsilon;<sub>t</sub></i> > 0, <i>y<sub>i</sub></i> is considered to exhibit slow dynamics.
+</p>
+
+<p>
+  If 0 &le; <i>&delta;t<sub>i</sub></i> &le; <i>&epsilon;<sub>t</sub></i>, it will reach a balancing
+  state quickly and QSSA can be applied.
+</p>
+
+<p>
+  If -<i>&epsilon;<sub>t</sub></i> &le; <i>&delta;t<sub>i</sub></i>  &le; 0,
+  another scale factor should be used to determine whether the <i>i</i>'th variable is balanced or not;
+  the ratio of |<i>f<sub>i</sub></i>| to the larger one of <i>P<sub>i</sub></i> and <i>L<sub>i</sub></i>,
+  
+  <div class="formula-text"><img src="qssa8.png" alt="expression"></div>
+  
+  If <i>r<sub>i</sub></i> is large, namely <i>r<sub>i</sub></i> > <i>&epsilon;<sub>r</sub></i>
+  for some <i>&epsilon;<sub>r</sub></i> > 0, the production and loss are neither balanced nor can be balanced soon,
+  hence QSSA is not applicable to such <i>y<sub>i</sub></i>.
+</p>
+
+<p>
+  The applicability of QSSA to the <i>i</i>th variable is summarized in table 1.
+</p>
+
+<p>
+<b>Table 1: Detection fast/slow dynamics for variable <i>y<sub>i</sub></i></b>
+  <table border="0" cellpadding="0" cellspacing="5" id="poparticle">
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td class="centered-text">0 &le; <i>&delta;t<sub>i</sub></i> &le; <i>&epsilon;<sub>t</sub></i></td>
+      <td>&nbsp;</td>
+      <td class="centered-text">-<i>&epsilon;<sub>t</sub></i> &lt; <i>&delta;t<sub>i</sub></i> &le; 0</td>
+      <td>&nbsp;</td>
+      <td class="centered-text">|<i>&delta;t<sub>i</sub></i>| &gt; <i>&epsilon;<sub>t</sub></i></td>
+    </tr>
+    <tr>
+      <td class="centered-text"><i>r<sub>i</i></sub> &le; <i>&epsilon;<sub>r</sub></i></td>
+      <td>&nbsp;</td>
+      <td class="centered-text">Fast</td>
+      <td>&nbsp;</td>
+      <td class="centered-text">Fast</td>
+      <td>&nbsp;</td>
+      <td class="centered-text">Slow</td>
+    </tr>
+    <tr>
+      <td class="centered-text"><i>r<sub>i</sub></i> &gt; <i>&epsilon;<sub>r</sub></i></td>
+      <td>&nbsp;</td>
+      <td class="centered-text">Fast</td>
+      <td>&nbsp;</td>
+      <td class="centered-text">Slow</td>
+      <td>&nbsp;</td>
+      <td class="centered-text">Slow</td>
+    </tr>
+  </table>
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li> J Choi, KW Yang, TY Lee and SY Lee. "New time-scale criteria for model simplification of bio-reaction systems". BMC Bioinformatics, 9:338, 2008.
+</ol>

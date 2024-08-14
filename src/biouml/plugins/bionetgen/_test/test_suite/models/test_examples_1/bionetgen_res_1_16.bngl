@@ -1,0 +1,26 @@
+begin model
+
+begin parameters
+    k1    15
+    k2    0.0
+end parameters
+
+begin seed species
+    A(b)    k2
+    B(a)    5.0
+end seed species
+
+begin observables
+    Species    A_tot    A(b!?)
+end observables
+
+begin reaction rules
+    C(c~uP)  ->  C(c~P)  k1
+end reaction rules
+
+
+begin molecule types
+    C(c~uP~P)
+end molecule types
+
+end model

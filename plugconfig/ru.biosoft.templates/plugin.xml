@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension-point name="template" id="template"/>
+  <extension-point name="contextItem" id="contextItem"/>
+  
+  <extension id="Base template" point="ru.biosoft.templates.template">
+      <template name="Default" file="ru/biosoft/templates/resources/beaninfotemplate.vm" description="Universal bean template" isBrief="no" order="1">
+      </template>
+  </extension>
+  
+  <extension id="ODE template" point="ru.biosoft.templates.template">
+      <template name="ODE template" file="ru/biosoft/templates/resources/odeModelTemplate.vm" description="Universal ODE model template" isBrief="no" order="1">
+	  <filter class="biouml.plugins.simulation.java.JavaBaseModel" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Table template" point="ru.biosoft.templates.template">
+      <template name="Table info" file="ru/biosoft/templates/resources/tabletemplate.vm" description="Table info template" isBrief="no"  order="2">
+          <filter class="ru.biosoft.table.TableDataCollection" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Diagram element template" point="ru.biosoft.templates.template">
+      <template name="Diagram element info" file="ru/biosoft/templates/resources/diagramElement.vm" description="Diagram element info template" isBrief="no"  order="2">
+          <filter class="biouml.model.DiagramElement" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="References template" point="ru.biosoft.templates.template">
+      <template name="Element references" file="ru/biosoft/templates/resources/referrertemplate.vm" description="Element references template" isBrief="no" order="3">
+          <filter class="biouml.standard.type.Referrer" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="References template" point="ru.biosoft.templates.template">
+      <template name="References" file="ru/biosoft/templates/resources/diagramReferences.vm" description="Diagram references template" isBrief="no" order="3">
+          <filter class="biouml.model.DiagramElement" subclasses="yes">
+              <property name="kernel" class="biouml.standard.type.Referrer"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Diagram reaction list template" point="ru.biosoft.templates.template">
+      <template name="Reactions" file="ru/biosoft/templates/resources/diagramReactionList.vm" description="This template represents the diagram reaction list" isBrief="no" order="4">
+          <filter class="biouml.model.Diagram" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Diagram parameter list template" point="ru.biosoft.templates.template">
+      <template name="Variables" file="ru/biosoft/templates/resources/diagramVariablesList.vm" description="This template represents the diagram variables list" isBrief="no" order="5">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Diagram variable list template" point="ru.biosoft.templates.template">
+      <template name="Entities" file="ru/biosoft/templates/resources/diagramEntitiesList.vm" description="This template represents the diagram variable roles (entities) list" isBrief="no" order="6">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Diagram events list template" point="ru.biosoft.templates.template">
+      <template name="Events" file="ru/biosoft/templates/resources/diagramEvents.vm" description="This template represents the diagram events list." isBrief="no" order="7">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+ <extension id="Diagram equations list template" point="ru.biosoft.templates.template">
+      <template name="Equations" file="ru/biosoft/templates/resources/diagramEquations.vm" description="Model equations template" isBrief="no" order="10">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+    <extension id="Diagram functions list template" point="ru.biosoft.templates.template">
+      <template name="Functions" file="ru/biosoft/templates/resources/diagramFunctions.vm" description="This template represents the diagram functions list." isBrief="no" order="8">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Diagram constraints list template" point="ru.biosoft.templates.template">
+      <template name="Constraints" file="ru/biosoft/templates/resources/diagramConstraints.vm" description="This template represents the diagram constraints list." isBrief="no" order="8">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Diagram ODE list template" point="ru.biosoft.templates.template">
+      <template name="ODE" file="ru/biosoft/templates/resources/diagramODEList.vm" description="This template represents the differential equation system of a diagram" isBrief="no" order="9">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Diagram identifier template" point="ru.biosoft.templates.template">
+      <template name="Overview" file="ru/biosoft/templates/resources/diagramDescription.vm" description="Diagram description, lists of reactions, variables, entities, compartments, functions, events and equations as well as the system of differential equations." isBrief="no" order="3">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Publications template" point="ru.biosoft.templates.template">
+      <template name="Publication info" file="ru/biosoft/templates/resources/publicationtemplate.vm" description="Publications list template" isBrief="no" order="0">
+          <filter class="biouml.standard.type.Publication" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Units template" point="ru.biosoft.templates.template">
+      <template name="Unit info" file="ru/biosoft/templates/resources/unittemplate.vm" description="Template for unit description" isBrief="no" order="0">
+          <filter class="biouml.standard.type.Unit" subclasses="yes"/>
+      </template>
+  </extension>
+  
+  <extension id="Diagram Units" point="ru.biosoft.templates.template">
+      <template name="Units" file="ru/biosoft/templates/resources/diagramUnits.vm" isBrief="no" order="9" description="Units of measurement for variables and reaction participants used in diagram">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+ 
+   <extension id="Modules" point="ru.biosoft.templates.template">
+      <template name="Modules" file="ru/biosoft/templates/resources/modulesTemplate.vm" isBrief="no" order="11" description="Modules">
+          <filter class="biouml.model.Diagram" subclasses="yes" method="biouml.standard.diagram.DiagramUtility.isComposite">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+  
+  <extension id="Buses" point="ru.biosoft.templates.template">
+      <template name="Connections and Buses" file="ru/biosoft/templates/resources/busesTemplate.vm" isBrief="no" order="12" description="Connecitons and Buses">
+          <filter class="biouml.model.Diagram" subclasses="yes" method="biouml.standard.diagram.DiagramUtility.isComposite">
+              <property name="role" class="biouml.model.dynamics.EModel"/>
+          </filter>
+      </template>
+  </extension>
+
+  <extension id="utils" point="ru.biosoft.templates.contextItem">
+    	<helper name="utils" class="ru.biosoft.templates.Formatter" />
+  </extension>
+</plugin>

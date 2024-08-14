@@ -1,0 +1,315 @@
+======================================================================
+SISSRs: A tool to identify binding sites from ChIP-Seq data
+======================================================================
+SISSRs version 1.0 (Release date: Mon, 07 July 2008)
+
+For further information on how to interpret these results or to get
+a copy of the SISSRs software please access http:
+For a recent version of the SISSRs software, please visit
+http://www.rajajothi.com
+======================================================================
+
+
+======================================================================
+REFERENCE
+======================================================================
+If you use this program in your research, please cite:
+
+Raja Jothi, Suresh Cuddapah, Artem Barski, Kairong Cui, Keji Zhao
+Genome-wide identification of in vivo protein-DNA binding sites
+from ChIP-Seq Data, Nucleic Acids Research, 2008
+======================================================================
+
+
+======================================================================
+COMMAND LINE SUMMARY & ESTIMATED PARAMETERS
+======================================================================
+
+Input file (i)                          : ctcf.bed
+Number of tags in the input file        : 2947043
+Number of tags selected for analysis    : 2947043 (100.00%)
+Tags mapped to sense strand             : 1469453 (49.86%)
+Tags mapped to anti-sense strand        : 1477590 (50.14%)
+Genome length (s)                       : 3080436051
+Background model                        : Poisson
+Fraction of genome mappable by reads (m): 0.80
+Scanning window size (w)                : 20
+Average DNA fragment length (f)         : 127
+False discovery rate (d)                : 0.001
+Minimum number of 'directional' reads
+  required on each side of the inferred
+  binding site (e)                      : 2
+Also reports binding sites supported
+  only by reads mapped to either sense
+  or anti-sense strand (u)              : NO
+
+======================================================================
+
+
+======================================================================
+BINDING SITES
+======================================================================
+Number of tags necessary to identify binding sites: 6
+(at least e=2 tags on each side)
+
+Chr	Bsite	NumTags
+---	-----	-------
+
+chr1	227611	11
+chr1	559791	14
+chr1	795131	27
+chr1	830011	38
+chr1	901471	16
+chr1	909571	65
+chr1	927251	19
+chr1	944671	9
+chr1	958341	19
+chr1	966041	13
+chr1	989251	32
+chr1	1047511	52
+chr1	1190451	9
+chr1	1215591	17
+chr1	1217271	36
+chr1	1225471	8
+chr1	1227341	6
+chr1	1230681	7
+chr1	1274671	10
+chr1	1275191	7
+chr1	1280091	7
+chr1	1297491	35
+chr1	1324801	11
+chr1	1366331	49
+chr1	1430331	20
+chr1	1524811	12
+chr1	1555631	12
+chr1	1587221	11
+chr1	1600391	21
+chr1	1700471	6
+chr1	1717981	6
+chr1	1780071	18
+chr1	1820651	8
+chr1	1827711	62
+chr1	1827851	11
+chr1	1830431	17
+chr1	1865511	29
+chr1	1881531	26
+chr1	1966321	25
+chr1	1967951	16
+chr1	2013111	17
+chr1	2061231	14
+chr1	2061431	20
+chr1	2095771	44
+chr1	2116651	41
+chr1	2134151	20
+chr1	2150561	10
+chr1	2155741	8
+chr1	2212151	6
+chr1	2236641	12
+chr1	2303231	87
+chr1	2304081	9
+chr1	2335871	35
+chr1	2365331	7
+chr1	2469491	48
+chr1	2480891	10
+chr1	2487911	34
+chr1	2499911	9
+chr1	2506941	6
+chr1	2564631	8
+chr1	2693241	34
+chr1	2728611	28
+chr1	2747011	11
+chr1	2828641	11
+chr1	2919071	6
+chr1	3331311	38
+chr1	3359731	72
+chr1	3390471	11
+chr1	3397831	54
+chr1	3424811	8
+chr1	3471841	24
+chr1	3521751	13
+chr1	3525631	49
+chr1	3525751	7
+chr1	3602221	16
+chr1	3631011	44
+chr1	3682511	45
+chr1	3702901	6
+chr1	3763751	34
+chr1	3817391	57
+chr1	4545311	13
+chr1	4612671	44
+chr1	5246371	10
+chr1	5431331	6
+chr1	5492711	56
+chr1	5497371	37
+chr1	5728631	37
+chr1	5898851	17
+chr1	5957991	35
+chr1	6017281	10
+chr1	6024271	11
+chr1	6035751	11
+chr1	6091651	12
+chr1	6168651	17
+chr1	6188011	20
+chr1	6227891	56
+chr1	6229531	77
+chr1	6326271	32
+chr1	6330761	47
+chr1	6331451	6
+chr1	6360921	9
+chr1	6376791	10
+chr1	6387491	52
+chr1	6397141	16
+chr1	6406251	41
+chr1	6420851	41
+chr1	6427931	18
+chr1	6431521	9
+chr1	6447321	8
+chr1	6458351	81
+chr1	6469291	82
+chr1	6472701	39
+chr1	6506411	7
+chr1	6536951	8
+chr1	6537271	55
+chr1	6607741	13
+chr1	6617441	11
+chr1	6629351	20
+chr1	6684551	69
+chr1	6702831	51
+chr1	6710301	19
+chr1	6872731	12
+chr1	7025581	7
+chr1	7053231	41
+chr1	7630071	35
+chr1	7650381	91
+chr1	7652291	29
+chr1	7735651	22
+chr1	7791081	9
+chr1	7885591	36
+chr1	7925101	15
+chr1	7944111	14
+chr1	7958091	27
+chr1	7965111	54
+chr1	7965271	6
+chr1	7997831	48
+chr1	8014031	11
+chr1	8297131	30
+chr1	8331831	53
+chr1	8357661	11
+chr1	8391831	11
+chr1	8413871	14
+chr1	8426351	6
+chr1	8543891	54
+chr1	8654141	10
+chr1	8709351	21
+chr1	8800291	9
+chr1	8831731	48
+chr1	8842231	23
+chr1	8845321	20
+chr1	8854391	13
+chr1	8862121	8
+chr1	8900921	19
+chr1	8945721	22
+chr1	8970871	55
+chr1	8970991	6
+chr1	8987951	50
+chr1	8992811	6
+chr1	8992851	7
+chr1	9093591	64
+chr1	9125071	43
+chr1	9164091	33
+chr1	9179251	27
+chr1	9217251	17
+chr1	9232881	20
+chr1	9249911	44
+chr1	9271811	59
+chr1	9271871	58
+chr1	9277741	6
+chr1	9411491	16
+chr1	9438611	34
+chr1	9473891	63
+chr1	9478071	38
+chr1	9571291	23
+chr1	9571351	16
+chr1	9598411	34
+chr1	9609611	7
+chr1	9609811	140
+chr1	9685051	12
+chr1	9704621	24
+chr1	9707851	78
+chr1	9767371	47
+chr1	9850311	127
+chr1	9857691	65
+chr1	9925141	14
+chr1	9933151	64
+chr1	10015211	7
+chr1	10015331	38
+chr1	10193001	33
+chr1	10320891	18
+chr1	10360231	11
+chr1	10410861	47
+chr1	10413011	54
+chr1	10477471	39
+chr1	10477861	27
+chr1	10490111	7
+chr1	10490271	39
+chr1	10497251	9
+chr1	10675181	25
+chr1	10849921	10
+chr1	10892751	13
+chr1	10924791	54
+chr1	10943831	33
+chr1	11020431	99
+chr1	11224511	46
+chr1	11278721	16
+chr1	11302971	16
+chr1	11320351	22
+chr1	11347031	7
+chr1	11461491	17
+chr1	11625271	124
+chr1	11628491	26
+chr1	11633231	26
+chr1	11646831	40
+chr1	11693931	16
+chr1	11702611	84
+chr1	11732011	60
+chr1	11767971	14
+chr1	11821491	93
+chr1	11842111	7
+chr1	11848361	8
+chr1	11876771	55
+chr1	11890511	44
+chr1	11949911	7
+chr1	11984401	15
+chr1	12014091	7
+chr1	12062451	11
+chr1	12101431	47
+chr1	12107611	40
+chr1	12107751	8
+chr1	12154391	7
+chr1	12156691	7
+chr1	12161971	9
+chr1	12191671	61
+chr1	12212611	27
+chr1	12254871	10
+chr1	12254911	9
+chr1	12258201	20
+chr1	12297151	21
+chr1	12390271	9
+chr1	12405301	6
+chr1	12493431	13
+chr1	12584011	29
+chr1	12602631	73
+chr1	12641771	62
+chr1	12766661	7
+chr1	13864951	62
+chr1	13925111	24
+chr1	13925221	11
+chr1	13948241	10
+chr1	14009051	7
+chr1	14010451	28
+chr1	14012891	17
+chr1	14129471	7
+chr1	14159671	102
+chr1	14313121	6
+chr1	14931161	18
+======================================================================

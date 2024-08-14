@@ -1,0 +1,43 @@
+/*
+ * Open sequence document action
+ */
+{
+    id: "open_sequence",
+    label: "Open sequence",
+    icon: "icons/open.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.bsa.AnnotatedSequence') || instanceOf(type,'ru.biosoft.bsa.project.Project')) 
+        {
+            return true;
+        }
+        if (instanceOf(type,'ru.biosoft.access.core.DataCollection'))
+        {
+        	var info = getDataCollection(completePath).getElementInfoAt(0);
+        	if(info && instanceOf(info['class'],'ru.biosoft.bsa.AnnotatedSequence'))
+        	{
+	        	return true;
+        	}
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+    	if (instanceOf(getDataCollection(path).getClass(),'ru.biosoft.bsa.AnnotatedSequence'))
+    	{
+	        var doc = opennedDocuments[allocateDocumentId('sequence_'+getElementPath(path))];
+	        if(doc)
+	        {
+	        	doc.setPosition(getElementName(path)+':');
+	        }
+    	}
+        CreateSequenceDocument( path, function (sequenceDoc) {
+			openDocumentTab(sequenceDoc);
+        });
+    }"
+}

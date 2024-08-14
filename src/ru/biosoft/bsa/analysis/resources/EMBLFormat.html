@@ -1,0 +1,106 @@
+<h2>EMBL sequence format</h2>
+
+<p>
+  The EMBL flat format is a format for storing sequences and their associated meta-information,
+  feature coordinates, and annotations.
+</p>
+  
+<p>
+  One sequence entry starts with an identifier line ("ID"), followed by further annotation lines.
+  The start of the sequence is marked by a line starting with "SQ" and the end of the sequence is marked
+  by two slashes ("//").
+</p>
+
+<h3>Example</h3>
+
+<pre>
+ID   ADHBADA2   standard; DNA; VRT; 1145 BP.
+XX
+AC   J00923; J00924;
+XX
+DT   13-JUN-1985 (Rel. 06, Created)
+DT   22-NOV-1994 (Rel. 41, Last updated, Version 2)
+XX
+DE   Duck alpha-A-globin gene and 5' flank.
+XX
+KW   alpha-globin; globin.
+XX
+OS   Cairina moschata (duck)
+OC   Eukaryota; Animalia; Metazoa; Chordata; Vertebrata; Aves;
+OC   Neornithes; Neognathae; Anseriformes; Anatidae.
+XX
+RN   [1]
+RP   603-696
+RX   MEDLINE; 83028533.
+RA   Niessing J., Erbil C., Neubauer V.;
+RT   "The isolation and partial characterization of linked alpha-A- and
+RT   alpha-D-globin genes from a duck DNA recombinant library";
+RL   Gene 18:187-191(1982).
+XX
+RN   [2]
+RP   1-1145
+RX   MEDLINE; 83158759.
+RA   Erbil C., Niessing J.;
+RT   "The complete nucleotide sequence of the duck alpha-A-globin
+RT   gene";
+RL   Gene 20:211-217(1982).
+XX
+DR   EPD; 33033; Cm  a'A-globin.
+DR   SWISS-PROT; P01987; HBA_CAIMO.
+XX
+CC   The alpha-A-globin gene is linked to the alpha-D-globin gene. [1]
+CC   compared their alpha-A-globin gene sequence with chicken alpha-A-
+CC   and alpha-S-globin gene sequences, as well as with other avian and
+CC   mammalian alpha-A-globin gene sequences. NCBI gi: 212911
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1145
+FT                   /organism="Cairina moschata"
+FT   prim_transcript 331..1145
+FT                   /note="alpha-A-globin mRNA"
+FT   CDS             join(367..461,612..816,921..1049)
+FT                   /note="alpha-A globin; NCBI gi: 212914"
+FT                   /codon_start=1
+FT   exon            367..461
+FT                   /note="alpha-A globin"
+FT                   /number=1
+FT   intron          462..611
+FT                   /note="alpha-A-globin intron A"
+FT   exon            612..816
+FT                   /number=2
+FT   intron          817..920
+FT                   /note="alpha-A-globin intron B"
+FT   exon            921..>1049
+FT                   /note="alpha-A globin"
+FT                   /number=3
+XX
+SQ   Sequence 1145 BP; 193 A; 435 C; 291 G; 226 T; 0 other;
+     ctcatgctgg ggttgcctcc ccccctcaaa ccctaacctt aatcccatct cgtgctgggg        60
+     tcagaccccc ctaaccctaa cccagttcat gccgggatca gcccccccaa accctaaccc       120
+     taaacccatc tcgtgccggg gtcagacccc ccccaaccct aaccccgacc ccagttcatg       180
+     ccggggtcgc ccccccccgg tggtgccggt gccgcaggcg gggcagggcg gcggccccgc       240
+     ctggccgagg tccagccgcg acggggcggg cggggcgggg cggcgcccgg gccggcacgg       300
+     ggatataagg ccggcggcac cagtgggggc acccgtgctg ggggctgcca acgcggagct       360
+     gcaaccatgg tgctgtctgc ggctgacaag accaacgtca agggtgtctt ctccaaaatc       420
+     ggtggccatg ctgaggagta tggcgccgag accctggaga ggtaggtgtc tgtccccgtc       480
+     ctttgtccgt ccctgatcct ctcctctcta accccatgct ctcccccacc ataactgtcc       540
+     gtgtcctacc ccaccccatc catcccccct gtccgttgat cccgctggcc ctgactcgct       600
+     ctgctccaca ggatgttcat cgcctacccc cagaccaaga cctacttccc ccactttgac       660
+     ctgcagcacg gctctgctca gatcaaggcc catggcaaga aggtggcggc tgccctagtt       720
+     gaagctgtca accacatcga tgacattgcg ggtgctctct ccaagctcag tgacctccac       780
+     gcccaaaagc tccgtgtgga ccctgtcaac ttcaaagtga gtctggtgac tccccccagc       840
+     tcctcttcag cacccatcct gggccatccg gccacccctt tacctccccc actcgctcac       900
+     cgtctccttt tgcctttcag ttcctgggcc actgcttcct ggtggtggtt gccatccacc       960
+     accccgctgc cctgacccca gaggtccacg cttccctgga caagttcatg tgcgccgtgg      1020
+     gtgctgtgct gactgccaag taccgttaga cggcaccgtg gctagagctg gacccaccct      1080
+     gttgccagcc ttccaactgc aagcagccaa atgatctgaa ataaaatctg ttgcatttgt      1140
+     gctcc                                                                  1145
+//
+</pre>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://www.embl.org/">http://www.embl.org</a>
+</ol>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+<extension-point name="layout" id="layout"/>
+
+<extension point="ru.biosoft.plugins.graph.layout">
+    <graphLayouter title="Hierarchic layout"     class="ru.biosoft.graph.HierarchicLayouter"    description="%hierarchicLayout" public="true">
+    	<property name="verticalOrientation" value="false"/>
+    	<property name="layerDeltaX" value="40"/>
+    	<property name="layerDeltaY" value="40"/>
+    </graphLayouter>
+    <graphLayouter title="Orthogonal layout"     class="ru.biosoft.graph.GreedyLayouter"        description="%orthogonalLayout"/>
+    <graphLayouter title="Force directed layout" class="ru.biosoft.graph.ForceDirectedLayouter" description="%forceDirectedLayout"/>
+    <!--graphLayouter title="Modified Hierarchic layout" class="ru.biosoft.graph.ModHierarchicLayouter" description="%modHierarchicLayout"/-->
+    <graphLayouter title="Cross cost grid layout (with compartments)" class="ru.biosoft.graph.CompartmentCrossCostGridLayouter" description="%compartmentCrossCostLayout"/>
+   
+   <graphLayouter title="Grid layout"	class="ru.biosoft.graph.FastGridLayouter"	description="%parallelfastGridLayout"	public = "true">
+		<property name="threadCount" value="4"/>
+		<property name="iterations" value="5"/>
+		<property name="cool" value="0.4"/>
+		<property name="stochasticRate" value="0.3"/>
+		<property name="sd" value="6"/>
+		<property name="gridX" value="80"/>
+		<property name="gridY" value="60"/>
+		<property name="isStartingFromThisLayout" value="false"/>
+	</graphLayouter>
+</extension>
+
+<extension point="ru.biosoft.access.beans">
+	<provider class="ru.biosoft.plugins.graph.LayoutBeanProvider" prefix="properties/layout"/>
+</extension>
+
+</plugin>

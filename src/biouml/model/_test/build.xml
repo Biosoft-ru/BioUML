@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.8 2010/12/06 12:38:06 helenka Exp $  -->
+
+<project name="biouml.model package test" default="autotest" basedir="../../..">
+
+    <property name="package" value="biouml.model"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.model._test.AutoTest"/>
+        </ant>
+    </target>
+
+    <target name="test.xml">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.TestDiagramToXML"/>
+        </ant>
+    </target>
+
+    <target name="av">
+        <ant target="rtest">
+            <property name="testui" value="textui"/>
+            <property name="test" value="${package}._test.AttributeViewTest"/>
+        </ant>
+    </target>
+	
+	<target name="diagramtest">
+	    <ant target="rtest">
+	        <property name="testui" value="swingui"/>
+	        <property name="test" value="biouml.model._test.DiagramSimulationTest"/>
+	    </ant>
+	</target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

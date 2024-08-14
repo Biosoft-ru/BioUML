@@ -1,0 +1,24 @@
+/*
+ * Zoom out action
+ */
+{
+    id: "zoom_out",
+    label: "Zoom out",
+    icon: "icons/zoomout.gif",
+    visible: "function(doc)
+    {
+    	if ((doc != null) && (doc instanceof Diagram)) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = getActiveDocument();
+        if (activeDocument instanceof Diagram) 
+        {
+            activeDocument.scale(0.8);
+        }
+    }"
+}

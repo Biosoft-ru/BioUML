@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="../css/intro.css" rel="stylesheet" />
+  <style>
+    ul.main-list>li {
+      margin: 20px 0;
+    }
+
+    ul>li {
+	font-weight: normal;
+    }
+
+    ul.sub-list>li {
+      margin: 10px 0;
+    }
+    
+    .column {
+      float: left;
+      width: 50%;
+    }
+    /* Clear floats after the columns */
+    
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  </style>
+
+</head>
+
+<body class="intro-styles">
+<div><a href="/bioumlweb/startpage/index.html"><b>&larr;</b> Рабочие окружения</a></div>
+  <h2>Анализ данных мономолекулярного секвенирования</h2>
+  <div class="row">
+
+    <div class="column">
+      <ul class="main-list">
+
+        <li>
+          <a target="_parent" href="/bioumlweb/#de=data/Collaboration/Sequencer examples/De Novo Genome Assembly">
+            Сценарий "Сборка геномов de-novo"
+          </a>
+          <br/>
+          <small>
+            
+          </small>
+	</li>
+        <li>
+          <a target="_parent" href="/bioumlweb/#de=data/Collaboration/Sequencer examples/SNP and Structural Variations Analysis">
+            Сценарий "Определение однонуклеотидных полиморфизмов и структурных вариаций"
+          </a>
+          <br/>
+          <small>
+            Идентификация однонуклеотидных полиморфизмов и структурных
+            вариаций (≥20 п. н.) на основе данных мономолекулярного секвенирования
+          </small>
+        </li>
+        <li>
+          <a target="_parent" href="/bioumlweb/#de=data/Collaboration/Sequencer examples/RNA Sequencing">
+            Сценарий "Секвенирование РНК"
+          </a>
+          <br/>
+          <small>
+            Реконструкция последовательностей РНК и функциональная
+            характеризация полноразмерных изоформ транскриптов на основе данных мономолекулярного
+            секвенирования РНК
+          </small>
+        </li>
+      </ul>
+    </div>
+
+    <div class="column">
+      <ul class="main-list">
+        <li>
+          <a target="_parent" href="/bioumlweb/#de=data/Collaboration/Sequencer examples/Targeted Sequencing">
+            Сценарий "Секвенирование целевых локусов"
+          </a>
+          <br/>
+          <small>
+            Реконструкция и анализ целевых локусов на основе данных
+            таргетного мономолекулярного секвенирования
+          </small>
+        </li>
+        <li>
+          <a target="_parent" href="/bioumlweb/#de=data/Collaboration/Sequencer examples/Epigenetics Analysis">
+            Сценарий "Эпигеномное секвенирование прокариот"
+          </a>
+          <br/>
+          <small>
+            Определение и характеризация мотивов ДНК, распознаваемых
+            метилтрансферазой при модификациях нуклеотидов (бактериальная эпигенетика)
+          </small>
+        </li>
+        <li>
+          <a target="_parent" href="/bioumlweb/#de=data/Collaboration/Sequencer examples/Epigenetics Analysis">
+            Сценарий "Эпигеномное секвенирование эукариот"
+          </a>
+          <br/>
+          <small>
+            Идентификация гипер- и гипометилированных CpG-островков
+            для исследования генной экспрессии и регуляции на основе данных мономолекулярного
+            секвенирования
+          </small>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+  <script>
+//Fix iframe resize
+var bubbleIframeMouseMove = function( iframe ){
+
+    iframe.contentWindow.addEventListener('mousemove', function( event ) {
+        var boundingClientRect = iframe.getBoundingClientRect();
+
+        var evt = new CustomEvent( 'mousemove', {bubbles: true, cancelable: false})
+        evt.clientX = event.clientX + boundingClientRect.left;
+        evt.clientY = event.clientY + boundingClientRect.top;
+
+        iframe.dispatchEvent( evt );
+    });
+
+};
+// Get the iframe element we want to track mouse movements on
+var myIframe = window.parent.document.getElementById("intro_iframe");
+
+// Run it through the function to setup bubbling
+bubbleIframeMouseMove(myIframe);
+</script>
+</body>
+
+</html>

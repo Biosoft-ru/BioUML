@@ -1,0 +1,65 @@
+body {
+	font-family: tahoma, verdana, arial, sans-serif;
+	font-size: 10pt; 
+}
+
+h1 {
+	font-size: 14pt;
+	color: #447;
+}
+
+h2 {
+	font-size: 12pt;
+	color: #447;
+}
+
+h3 {
+	font-size: 10pt;
+	color: #447;
+}
+
+table.parameters {
+}
+
+table.parameters td.header {
+	text-align: right;
+	font-weight: bold;
+}
+
+table.data {
+	border-collapse: collapse;
+	border-spacing: 0;
+	border-width: 1px 0;
+	border-style: solid;
+	border-color: #448;
+}
+
+table.data th {
+	border-width: 1px 0;
+	border-style: solid;
+	border-color: #448;
+	text-align: left;
+	padding: 1pt 5pt;
+}
+
+table.data tr {
+	border-width: 1px 0;
+	border-style: solid;
+	border-color: #AAE;
+}
+
+table.data tr.even-row {
+	background-color: #E5E5FF;
+}
+
+table.data tr.odd-row {
+	background-color: #FFF;
+}
+
+table.data td {
+	padding: 1pt 5pt;
+}
+
+div.image-description {
+	font-weight: bold;
+}

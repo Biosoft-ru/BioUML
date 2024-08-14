@@ -1,0 +1,142 @@
+<html>
+#setMathJax()
+	<body>
+		#set( $title = $de.getTitle())
+		#if( !$title.equals(""))
+			<center><font size = 6><b>${title}</b></font></center><br><br>
+		#else
+			<center><font size = 6><b>Diagram $de.getName()</b></font></center><br><br>
+		#end
+		
+		<b>Identifier: </b>$de.getName()<br>
+		<b>Type: </b> $de.getDiagramType()<br>
+		#if( $de.kernel.description)
+			<br>
+			$de.kernel.description
+		#end
+		<br><br>
+	
+		#set( $orderNumber = 0)
+		#set( $isTitleSet = false)
+		#processCompartments($resolver, $de, $orderNumber, $isTitleSet)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+		
+		#if($de.getRole().getVariableRoles() && $de.getRole().getVariableRoles().getSize() > 0)
+			<font size = 6>Species</font><br><br>
+			<table border="0">
+			#updateSpeciesTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Name</b>", "<b>Compartment</b>", "<b>Initial value</b>", "<b>Units</b>", "<b>Comment</b>" "<b>Boundary condition</b>", "<b>Databases</b>", "<b>References</b>")
+			#processSpecies($resolver, $de)
+			</table>
+			<br><br>
+		#end
+		
+		#set( $orderNumber = 0)
+		#set( $isTitleSet = false)
+		#set( $case = "Overview")
+		#processReactions ($de, $de, $formatter, $resolver, $orderNumber, $isTitleSet, $case)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+		
+		#if( $de.getRole().getParameters() && $de.getRole().getParameters().getSize() > 0)
+			<font size = 6>Parameters</font><br><br>
+			<table border="0">
+			#updateParameterTable("<b>&#8470;</b>", "<b>Name</b>", "<b>Initial value</b>", "<b>Units</b>", "<b>Constant</b>", "<b>Comment</b>")
+			#processParameters($de)
+			</table>
+			<br><br>
+		#end
+		
+		#if(!$de.getRole().getFunctions().isEmpty())
+			<font size = 6>Functions</font><br><br>
+			<table border="0">
+			#updateFunctionTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Formula</b>", "<b>Comment</b>")
+			#processFunctions($de)
+			</table>
+			<br><br>
+		#end
+
+		#if(!$de.getRole().getConstraints().isEmpty())
+			<font size = 6>Constraints</font><br><br>
+			<table border="0">
+			#updateConstraintTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Formula</b>", "<b>Message</b>", "<b>Comment</b>")
+			#processConstraints($de)
+			</table>
+			<br><br>
+		#end
+		
+        #set($ode = $de.getRole().getODE().toList()) 	
+		#set($algebraic = $de.getRole().getAlgebraic().toList()) 	
+		#set($assignments = $de.getRole().getAssignments().toList()) 	
+		#set($initial = $de.getRole().getInitialAssignments().toList()) 	
+		#if(!$initial.isEmpty())
+		    <font size = 6>Initial Assignments</font><br><br>
+			<table>
+		    #updateEquationTable( "<b>&#8470;</b>", "<b>Formula</b>", "<b>Comment</b>", "center")
+		    #set( $isTitleSet = true)
+		    #processEquations($de, $initial)
+		    </table>
+			<br><br>
+		#end
+		#if(!$ode.isEmpty())
+		    <font size = 6>Differential Equations</font><br><br>
+			<table>
+		    #updateEquationTable( "<b>&#8470;</b>", "<b>Formula</b>", "<b>Comment</b>", "center")
+		    #set( $isTitleSet = true)
+		    #processEquations($de, $ode)
+		    </table>
+			<br><br>
+		#end
+		#if(!$algebraic.isEmpty())
+			<font size = 6>Algebraic Equations</font><br><br>
+		    <table>
+		    #updateEquationTable( "<b>&#8470;</b>", "<b>Formula</b>", "<b>Comment</b>", "center")
+		    #processEquations($de, $algebraic)
+		    </table>
+		    <br><br>
+		#end
+		#if(!$assignments.isEmpty())
+		    <font size = 6>Assignments</font><br><br>
+		    <table>
+		    #updateEquationTable( "<b>&#8470;</b>", "<b>Formula</b>", "<b>Comment</b>", "center")
+		    #processEquations($de, $assignments)
+		    </table>
+		    <br><br>
+		#end 
+		
+		#if(!$de.getRole().getEvents().isEmpty())
+			<font size = 6>Events</font><br><br>
+			<table border="0">
+			#updateEventTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Trigger</b>", "<b>Delay</b>", "<b>Events</b>", "<b>Comment</b>")
+			#processEvents($de)
+			</table>
+			<br><br>
+		#end
+		
+		#set( $isTitleSet = false)
+		#processUnits($de, $isTitleSet)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+		
+		#set( $isTitleSet = false)
+		#processBuses($de, $isTitleSet)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+		
+		#set( $isTitleSet = false)
+		#processConnections($de, $isTitleSet)
+		#if($isTitleSet)
+			</table>
+			<br><br>
+		#end
+#setMathJaxUpdate()
+	</body>
+</html>

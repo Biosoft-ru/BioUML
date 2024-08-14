@@ -1,0 +1,27 @@
+/*
+ * Save a copy... element action
+ */
+{
+    id: "save_element_as",
+    label: "Save a copy",
+    icon: "icons/saveas.gif",
+    visible: "function(completePath)
+    {
+        var clazz = getElementClass(completePath);
+        if(instanceOf(clazz,'ru.biosoft.analysiscore.AnalysisMethodInfo') || instanceOf(clazz,'ru.biosoft.access.core.FolderCollection'))
+            return -1;
+        if(instanceOf(clazz,'ru.biosoft.access.core.CloneableDataElement') || instanceOf(clazz,'biouml.model.Diagram'))
+            return true;
+        return -1; 
+    }",
+    action: "function(completePath)
+    {
+         $.chainclude(
+            {
+                'lib/copy.js':function(){
+                    copyElement(completePath);
+                }
+            }
+        );
+    }"
+}

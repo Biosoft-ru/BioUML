@@ -1,0 +1,39 @@
+<html>
+	<body>
+	<font size = 5>Modules</font><br><br>
+	<table border="0">
+	#displayModule("<b>&#8470;</b>", "<b>Name</b>", "<b>Type</b>", "", "<b>Ports</b>")
+	#set( $isTitleSet = false)
+	#set( $iterator = $de.iterator() )
+	#set( $orderNumber = 1)
+	
+	#foreach ($foo in [1..$de.getSize()])
+		#set ($moduleLink = "")
+		#set ($ports  = "")
+		#if($iterator.hasNext())
+			#set( $diagramElement = $iterator.next() )
+			#set ($type = "")
+	        #if($diagramElement.getClass().getName().endsWith("SubDiagram"))
+	        	#set ($moduleLink = "de:${diagramElement.getDiagramPath()}" )
+	        	#set ($type = "SubDiagram")
+	        #elseif($diagramElement.getKernel() != $null)
+	        	#set($kernelType = $diagramElement.getKernel().getType())
+	        	#if($kernelType=="switch" )
+	        		#set( $type = "Switch")
+	        	#elseif($kernelType=="constant" )
+	        		#set( $type = "Constant")
+	        	#elseif ($kernelType=="adapter")
+	        		#set( $type = "Averager")
+	        	#end
+	        #end
+	        #if($type != "")
+	        	#set ($ports = "")
+	        	#getPortsList($diagramElement, $ports)
+	        	#displayModule($orderNumber, $diagramElement.getName(), $type, $moduleLink, $ports)
+	        	#set( $orderNumber = $orderNumber + 1)
+	        #end
+        #end
+    #end
+	</table>
+	</body>
+</html>

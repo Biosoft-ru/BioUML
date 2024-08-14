@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<link type="text/css" href="css/intro.css" rel="stylesheet" />
+<head>
+  <style>
+    ul.main-list>li {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    
+    ul>li {
+	font-weight: normal;
+    }
+
+    ul.sub-list>li {
+      margin: 10px 0;
+    }
+    
+    .column {
+      float: left;
+      width: 50%;
+    }
+    /* Clear floats after the columns */
+    
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  </style>
+</head>
+
+<body class="intro-styles">
+<div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+  <h2>Анализ ДНК и РНК</h2>
+  Набор наиболее часто используемых методов для контроля качества генетических данных,
+  их первичной подготовки (удаление адаптеров, ПЦР дупликатов) и выравнивания на геном.
+
+  <div class="row">
+    <div class="column">
+      <ul class="main-list">
+        <li>Загрузка данных
+          <ul class="sub-list">
+            <li>
+              <a href="#" onclick="window.parent.doImportMultiple(window.parent.constructSelectedProjectPath())">Загрузка NGS данных</a>
+              <br>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/sra_toolkit/fastq-dump">Конвертация SRA в FASTQ</a>
+              <br>
+            </li>
+          </ul>
+        </li>
+
+        <li>Контроль качества
+          <ul class="sub-list">
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Methods/NGS utils/Track statistics">FASTQC</a>
+              <br>
+              <small>Контроль качества FASTQ файлов</small>
+            </li>
+          </ul>
+        </li>
+
+        <li>Удаление адаптеров
+          <ul class="sub-list">
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/ngs%3A_preprocessing/Cutadapt">Cutadapt</a>
+              <br>
+              <small>Удаление адаптерных последовательностей, обрезание концов прочтений,<br/> фильтрация прочтений низкого качества и недостаточной длины</small>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="column">
+      <ul class="main-list">
+        <li>Выравнивание прочтений на референсный геном
+          <ul class="sub-list">
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/alignment_tools/Map%20with%20BWA-MEM">BWA-MEM</a>
+              <br>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/alignment_tools/HISAT2">HISAT2</a>
+              <br>
+            </li>
+          </ul>
+	  <br/>
+        </li>
+
+        <li>Оценка качества выравнивания
+          <ul class="sub-list">
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/samtools/samtools_flagstat">SAMTools Flagstat</a>
+              <br>
+              <small>Базовые статистики выравнивания</small>
+            </li>
+            <li>
+              <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy2/picard/MarkDuplicates">Picard: MarkDuplicates</a>
+              <br>
+              <small>Идентификация и удаление ПЦР-дупликатов</small>
+            </li>
+          </ul>
+
+        </li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

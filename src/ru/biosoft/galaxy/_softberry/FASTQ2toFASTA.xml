@@ -1,0 +1,18 @@
+<tool id="softberry-fastq2-to-fasta" name="FASTQ2toFASTA">
+	<description>Convert reads from two FASTQ files to FASTA file</description>
+	<command interpreter="perl">FASTQ2toFASTA.pl $fastq1 $fastq2 $pi $phred $Output_reads $Output_pair_info
+	</command>
+	<inputs>
+		<param name="fastq1" type="data" format="fastqsanger" label="First FASTQ file" help="File with first reads from pairs"/>
+		<param name="fastq2" type="data" format="fastqsanger" label="Second FASTQ file" help="File with second reads from pairs"/>
+		<param name="pi" type="data" format="txt" label="Pair info" help="Each line describe pair of input reads files"/>
+		<param name="phred" type="select" label="phred" help="encoding scheme">
+			<option selected="True" value="64">64</option>
+			<option value="33">33</option>
+		</param>
+	</inputs>
+	<outputs>
+	    <data format="fasta" name="Output_reads"/>
+	    <data format="txt" name="Output_pair_info"/>
+	</outputs>
+</tool>

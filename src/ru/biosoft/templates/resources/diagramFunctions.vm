@@ -1,0 +1,13 @@
+<html>
+#setMathJax()
+	<body>
+		#if(!$de.getRole().getFunctions().isEmpty())
+			<font size = 6>Functions</font><br><br>
+			<table border="0">
+			#updateFunctionTable("<b>&#8470;</b>", "<b>Title</b>", "<b>Formula</b>", "<b>Comment</b>")
+			#processFunctions($de)
+			</table>
+		#end
+#setMathJaxUpdate()
+	</body>
+</html>

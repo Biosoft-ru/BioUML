@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.fbc.server;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.plugins.fbc,
+ biouml.workbench,
+ ru.biosoft.access,
+ ru.biosoft.jobcontrol,
+ ru.biosoft.server,
+ ru.biosoft.server.servlets,
+ ru.biosoft.table,
+ json
+Export-Package: biouml.plugins.fbc.server
+ 

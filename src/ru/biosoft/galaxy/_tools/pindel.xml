@@ -1,0 +1,269 @@
+<tool id="pindel" name="Pindel" version="0.2.4s">
+ <command>/bin/bash -v $pindel_wrapper </command>
+  
+ <inputs>
+    <param name="bamfile" type="data" format="bam" label="BAM file">
+        <validator type="metadata" check="bam_index" message="Missing bam index."/>
+    </param>
+
+     <param name="sample_name" type="text" label="Sample Name" value="Sample"/> 
+     <param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+
+       <conditional name="config_file">
+   		      <param name="source" type="select" label="Insert Size" 
+                        help="Select source of insert size">
+                                <option value="learn">learn from file</option>
+                                <option value="manual">manual entry</option>
+            </param>
+              <when value="learn" />
+              <when value="manual">
+                  <param name="fragment_length" type="integer" label="Fragment length" value="200"/>
+              </when>
+       </conditional>
+       
+<conditional name="additional_params">
+   <param name="selector" type="select" label="known SV from other methods">
+    <option value="none">none</option>
+    <option value="breakdancer">breakdancer</option>
+  </param> 
+  <when value="none" />
+  <when value="breakdancer">
+        <param name="bd_filename" type="data" format="txt" label="BreakDancer file"  needs_metadata="False"
+                      help="Pindel is able to use calls from other SV methods such as BreakDancer to further increase sensitivity and specificity.   BreakDancer result or calls from any methods must in the format:   ChrA LocA stringA ChrB LocB stringB other"/>
+  </when>
+</conditional>
+
+
+     <param name="max_range_index" type="integer" value="9" label="maximum size of SV" 
+            help="the maximum size of structural variations to be detected; the higher this number, the greater the number of SVs reported, but the computational cost and memory requirements increase, as does the rate of false positives. 1=128, 2=512, 3=2,048, 4=8,092, 5=32,368, 6=129,472, 7=517,888, 8=2,071,552, 9=8,286,208  (maximum 9) [5]"/>
+     <param name="min_NT_size" type="integer" value="50" label="report inserted (NT) sequences in deletions greater than" 
+            help="only report inserted (NT) sequences in deletions greater than this size [50]"/>
+     <param name="min_inversion_size" type="integer" value="50" label="report inversions greater than" 
+            help="only report inversions greater than this number of bases [50]"/>
+     <param name="report_inversions" type="boolean" truevalue="--report_inversions" falsevalue="" checked="True" label="report inversions" 
+                                help="report inversions [checked]" />
+     <param name="report_duplications" type="boolean" truevalue="--report_duplications" falsevalue="" checked="True" label="report tandem duplications" 
+                                help="report tandem duplications [checked]" />
+     <param name="report_breakpoints" type="boolean" truevalue="--report_breakpoints" falsevalue="" checked="True" label="report breakpoints" 
+                                help="report breakpoints [checked]" />
+                                
+     <param name="report_long_insertions" type="boolean" truevalue="--report_long_insertions" falsevalue="" checked="True" label="report long insertions" 
+                                help="report insertions of which the full sequence cannot be deduced because of their length [checked]" />
+     <param name="report_close_mapped_reads" type="boolean" truevalue="--report_close_mapped_reads" falsevalue="" checked="False" label="report reads of which only one end could be mapped" 
+                                help="report reads of which only one end (the one closest to the mapped read of the paired-end read) could be mapped" />
+     
+     <param name="min_num_matched_bases" type="integer" value="30" label="Min number of mapped bases for evidence" 
+                  help="only consider reads as evidence if they map with more than this number of bases to the reference [30]"/>
+     
+     <param name="min_perfect_match_around_BP" type="integer" value="3" label="Min Perfect Match around BP" 
+                  help=" at the point where the read is split into two, there should at least be this number of perfectly matching bases between read and reference [3]"/>
+     
+     <param name="additional_mismatch" type="integer" value="1" label="additional mismatches" 
+                  help="Pindel will only map part of a read to the reference genome if there are no other candidate positions with no more than the specified number of mismatches position.  The bigger this value, the more accurate but less sensitive [1]"/>
+     <param name="sequencing_error_rate" type="float" value="0.03" label="sequencing error rate" 
+                  help="the expected fraction of sequencing errors [0.03]"/>
+     <param name="maximum_allowed_mismatch_rate" type="float" value="0.1" label="maximum allowed mismatch rate" 
+                  help="only reads with fewer mismatches with the reference genome than this fraction will be considered"/>
+                  
+      <param name="balance_cutoff" type="integer" value="100" label="Balance cutoff" 
+                  help="the number of bases of a SV above which a more stringent filter is applied which demands that both sides of the SV are mapped with sufficiently long strings of bases [100]"/>
+     <param name="anchor_quality" type="integer" value="20" label="Anchor Quality" 
+                  help="the minimal mapping quality of the reads Pindel uses as anchor [20]"/>
+     <param name="minimum_support_for_event" type="integer" value="3" label="Minimum Support for event" 
+                  help="Pindel only calls events which have this number or more supporting reads [20]"/>
+     <param name="genotyping" type="boolean" truevalue="--genotyping" falsevalue="" checked="True" label="gentype variants" 
+                                help="gentype variants" />
+                                
+                                
+       <conditional name="region_selector">
+   		      <param name="regions" type="select" label="Operate by region" 
+                        help="Select output format">
+                                <option value="All">All</option>
+                                <option value="region">Specify region</option>
+            </param>
+              <when value="All" />
+              <when value="region">
+                  <param name="spec_region" type="text" label="Chromosome name" 
+                     help="Which chr/fragment. Pindel will process reads for one chromosome each time. ChrName must be the same as in reference sequence and in read file.  The search for indels and SVs can also be limited to a specific region; 20:10,000,000 will only look for indels and SVs after position 10,000,000 = [10M, end], -c 20:5,000,000-15,000,000 will report indels in the range between and including the bases at position 5,000,000 and 15,000,000 = [5M, 15M]." default="1" />
+              </when>
+       </conditional>
+     <param name="num_streams" type="integer" value="30" label="Number of streams" help="Amount of chromosome analised simuletenuously. each stream will be run on separated chromosome"/>
+     <param name="num_threads" type="integer" value="40" label="Number of threads per stream"/>
+     <param name="tmpFolder" type="text" label="TMP folder" value="/mnt/ssd/Galaxy-tmp" />
+  </inputs>
+
+  <outputs>
+    <data name="log" format="txt" label="Log file"/>  
+    <!-- data name="break_points" format="file" label="Break points"/>
+    <data name="deletions" format="file" label="Deletions"/>
+    <data name="inversions" format="file" label="Inversions"/>
+    <data name="long_insertions" format="file" label="Long insertions"/>
+    <data name="small_insertions" format="file" label="Small insertions"/>
+    <data name="tandem_duplications" format="file" label="Tandem duplications"/>
+    <data name="close_end_mapped" format="file" label="Close End Mapped reads" 
+		help="report reads of which only one end (the one closest to the mapped read of the paired-end read) could be mapped "/>
+    <data name="breakdancer_events" format="file" label="Confirmed Breakdancer events" 
+               help="If breakdancer input is used, you can specify a filename here to write the confirmed breakdancer events with their exact breakpoints to The list of BreakDancer calls with Pindel support information. Format: chr   Loc_left   Loc_right   size   type   index. For example, '1      72766323        72811840        45516   D       11970' means the deletion event chr1:72766323-72811840 of size 45516 is reported as an event with index 11970 in Pindel report of deletion. "/-->
+    <data format="zip" name="outputs" label="Output folder" help="Folder for results of Pindel"/>
+  </outputs>
+  
+  <configfiles>
+    <configfile name="bamconfig">tmp. Will be changed during script execution 
+    </configfile>
+    
+    <configfile name="pindel_one_chromosome">#!/bin/bash
+export PATH=\$PATH:/opt/tools/pindel/default/
+    CHROM=\$4
+    PREFIX=\$1
+    pindel --fasta "${ refGenome.fields.path }"  \
+          --config-file "$bamconfig" \
+          --output-prefix "\$PREFIX-\$CHROM" \
+          --chromosome \$CHROM \
+          --number_of_threads $num_threads \
+          --max_range_index $max_range_index \
+          $report_inversions $report_duplications $report_long_insertions $report_breakpoints $report_close_mapped_reads \
+          --min_NT_size $min_NT_size \
+          --min_inversion_size $min_inversion_size \
+          --min_num_matched_bases $min_num_matched_bases \
+          --additional_mismatch $additional_mismatch \
+          --min_perfect_match_around_BP $min_perfect_match_around_BP \
+          --sequencing_error_rate $sequencing_error_rate \
+          --maximum_allowed_mismatch_rate $maximum_allowed_mismatch_rate \
+          --anchor_quality $anchor_quality \
+          --balance_cutoff $balance_cutoff  \
+	  --window_size  300 \
+          --minimum_support_for_event $minimum_support_for_event \
+          $genotyping \
+#if str ( $additional_params.selector ) == "breakdancer" :
+          --breakdancer "$additional_params.bd_filename" \
+          --output_of_breakdancer_events "breakdancer-events-\$CHROM.txt" \
+#end if
+          --name_of_logfile \$CHROM.log
+    </configfile>
+    
+    <configfile name="pindel_wrapper">#!/bin/bash -v
+export PATH=\$PATH:/opt/tools/pindel/default/:/opt/tools/picard/default/
+
+  DEST=`dirname $log`
+    cd \$DEST
+
+
+PREFIX="pindel-\$RANDOM"
+mkdir -p $tmpFolder/\$PREFIX
+mv -v * $tmpFolder/\$PREFIX/
+
+cd $tmpFolder/\$PREFIX/
+
+rm -Rf  \$DEST
+ln -s $tmpFolder/\$PREFIX/ \$DEST
+cd \$DEST
+
+
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/out.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'cat ${ log }.err &gt;&gt; ${ log }; echo "output-log: \n" &gt;&gt; ${ log }; cat ${ log }.out &gt;&gt; ${ log }; rm -Rf "\$err"  "\$out" $tmpFolder/\$PREFIX/;' EXIT
+####trap 'cat ${ log }.err &gt;&gt; ${ log }; echo "output-log: \n" &gt;&gt; ${ log }; cat ${ log }.out &gt;&gt; ${ log }; rm -Rf "\$err"  "\$out";' EXIT
+tee ${ log }.err &lt; "\$err" &gt;&amp;2 &amp;
+tee ${ log }.out &lt; "\$out" &gt;&amp;1 &amp;    
+    
+
+echo "Pindel started at `date`" &gt;  "\$out"
+
+#if str ( $config_file.source ) == "learn" :
+echo "Collecting BAM metrix info by Picard CollectInsertSizeMetrics" &gt;  "\$out"
+runpicard CollectInsertSizeMetrics 1G STOP_AFTER=100000 R="${ refGenome.fields.path }" \
+           I=$bamfile AS=true O=insertmetrics.txt H=histo.txt &gt; "\$out"  2&gt;"\$err"
+STATUS=\$?
+ if [[ "\$STATUS" != "0" ]]
+   then
+     echo "Collecting metrics terminated with error  \$STATUS"
+     exit \$STATUS
+fi
+
+
+LENGTH=`cat insertmetrics.txt | grep -A 2 "MEDIAN_INSERT_SIZE" | awk 'NR&gt;1 {print $1}'`
+     
+echo length  = \$LENGTH will be used for pindel
+echo "$bamfile	\$LENGTH	$sample_name" &gt; "$bamconfig"
+
+#else :
+### manually create config file from user predefined parameters
+echo "$bamfile       $fragment_length        $sample_name" &gt; "$bamconfig"
+#end if 
+
+
+###Pindel require to have indexes in the format bamfile.bai (example for file.bam index should be file.bam.bai)
+filename=\$(basename "$bamfile")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+if [ "\$?" != "0" ] ; then
+   echo "index file for BAM was not found"
+   exit 1
+fi
+
+
+chmod a+x $pindel_one_chromosome
+
+#if str ( $region_selector.regions ) == "region" :
+      $pindel_one_chromosome "$\PREFIX" "\$out" "\$err" $region_selector.spec_region
+#end if
+
+#if str ( $region_selector.regions ) == "All" :
+      samtools view -H $bamfile | grep "SN:" | awk '{print $2}'| sed -e 's/SN://' | xargs -n 1 -P $num_streams -t $pindel_one_chromosome "\$PREFIX" "\$out" "\$err"
+#end if
+
+STATUS=\$?
+ if [[ "\$STATUS" != "0" ]]
+   then
+     echo "Pindel terminated with error  \$STATUS"
+     exit \$STATUS
+fi
+
+mkdir -p pindel_results
+
+cat \${PREFIX}-*_BP &gt;&gt; "pindel_results/${sample_name}_BP"
+rm \${PREFIX}-*_BP
+
+cat \${PREFIX}-*_D &gt;&gt; "pindel_results/${sample_name}_D"
+rm \${PREFIX}-*_D
+
+cat \${PREFIX}-*_INV &gt;&gt; "pindel_results/${sample_name}_INV"
+rm \${PREFIX}-*_INV
+
+cat \${PREFIX}-*_LI &gt;&gt; "pindel_results/${sample_name}_LI"
+rm \${PREFIX}-*_LI
+
+cat \${PREFIX}-*_SI  &gt;&gt;  "pindel_results/${sample_name}_SI"
+rm \${PREFIX}-*_SI
+
+cat \${PREFIX}-*_TD &gt;&gt;  "pindel_results/${sample_name}_TD"
+rm  \${PREFIX}-*_TD
+
+cat \${PREFIX}-*_CloseEndMapped &gt;&gt; "pindel_results/${sample_name}_CloseEndMapped"
+rm \${PREFIX}-*_CloseEndMapped
+
+
+cd pindel_results
+ls * | xargs -n 1 -P 10 -t pbzip2 -9 -m900
+
+cd $tmpFolder/\$PREFIX/
+rm \$DEST ## removing soft link  
+mkdir \$DEST
+
+zip -rj ${outputs} "pindel_results"
+mv -vf *.err *.out  \$DEST
+
+    </configfile>
+  </configfiles>
+  
+
+  
+</tool>

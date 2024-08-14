@@ -1,0 +1,49 @@
+#set ($br = "
+")
+#set ($dq = '"')
+#set ($spaces = "    ")
+import java.util.HashMap;
+import java.util.Map;
+import biouml.plugins.pharm.nlme.MixedEffectModel;
+
+#set( $modelName = $de.getNLMEModelName())
+#set( $odeModel = $de.getOdeModelName())
+#set( $expInfo = $de.getExpInfoName())
+
+public class $modelName extends MixedEffectModel
+{   
+    public $modelName()
+    {
+        super(new $odeModel(), new $expInfo());
+        varIndexMapping = new HashMap<String, Integer>();
+        
+#set ($varMapping = $de.getVarIndexMapping())
+#foreach ($var in $varMapping.entrySet())
+        varIndexMapping.put("$var.getKey()", $var.getValue());
+#end
+        
+        resultIndex = $de.getResultIndex();
+    }
+
+#if ($de.hasDoseColumn())    
+#set($doseTimes = $de.getDoseTimes())
+#set($doseVals = $de.getDoseVals())
+#set($doseNumber = $doseTimes.size() - 1)
+#set($doseTimeInit = "")
+#set($doseValInit = "")
+#foreach( $i in [0..$doseNumber])
+    private double $doseTimes.get($i);
+    private double $doseVals.get($i);
+#set($doseTimeInit = "result.put(${doseTimeInit}$dq$doseTimes.get($i)$dq , doseTimes[subject - 1][$i]);$br$spaces$spaces")
+#set($doseValInit = "result.put(${doseValInit}$dq$doseVals.get($i)$dq , doseVals[subject - 1][$i]);$br$spaces$spaces")
+#end
+    @Override
+    public Map<String, Double> getDoseParameters(int subject)
+    {
+        Map<String, Double> result = new HashMap<String, Double>();
+        $doseTimeInit;
+        $doseValInit;
+        return result;
+    }
+#end
+}

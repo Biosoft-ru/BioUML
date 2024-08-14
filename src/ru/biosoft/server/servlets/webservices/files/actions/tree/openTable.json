@@ -1,0 +1,54 @@
+/*
+ * Open table action
+ */
+{
+    id: "open_table",
+    label: "Open table",
+    icon: "icons/open.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.bsa.analysis.SiteSearchResult'))
+		{
+			return getDataCollection(completePath).getElementInfo('summary') == null ? -1 : true;
+		}
+        if (instanceOf(type,'biouml.plugins.cma.CMAResult'))
+		{
+			return getDataCollection(completePath).getElementInfo('Model visualization on Yes set') == null ? -1 : true;
+		}
+        if (instanceOf(type,'ru.biosoft.table.TableDataCollection') 
+        	|| instanceOf(type,'ru.biosoft.bsa.SqlTrack')
+        	|| instanceOf(type,'ru.biosoft.bsa.analysis.FilteredTrack')
+        	|| instanceOf(type,'ru.biosoft.bsa.TrackOnSequences')
+        	|| instanceOf(type,'ru.biosoft.bsa.track.big.BigBedTrack')
+			|| instanceOf(type,'ru.biosoft.treetable.TreeTableElement')
+            )
+        {
+            return true;
+        }
+        if(instanceOf(type,'ru.biosoft.access.core.DataCollection') 
+				&& !instanceOf(type,'ru.biosoft.access.core.FolderCollection') 
+				&& !instanceOf(type,'biouml.model.Diagram'))
+		{
+			var dc = getDataCollection(completePath);
+			if(dc.getAttributes().openAsTable || instanceOf(dc.getChildClass(),'ru.biosoft.tasks.TaskInfo'))
+				return true;
+		}
+        return -1;
+    }",
+    action: "function(path)
+    {
+		if(instanceOf(getDataCollection(path).getClass(),'ru.biosoft.bsa.analysis.SiteSearchResult'))
+			path = path+'/summary';
+		if(instanceOf(getDataCollection(path).getClass(),'biouml.plugins.cma.CMAResult'))
+			path = path+'/Model visualization on Yes set';
+        createTableDocument(path, function (tableDoc){
+			openDocumentTab(tableDoc);
+        });
+    }"
+}

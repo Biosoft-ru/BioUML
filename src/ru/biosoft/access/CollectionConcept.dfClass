@@ -1,0 +1,132 @@
+package id3u95sczz6pfesd00xio5o;
+
+/**
+@version 2.0
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:java#Class#Mgl.access.DataCollection:oiref><oihard>
+@__modelType reference
+@__imported
+@hideAll 
+*/
+class reference {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.EntryCollection:oiref><oihard>
+@__modelType reference
+@__imported
+@hideAll 
+*/
+class reference1 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.AbstractDataCollection:oiref><oihard>
+@__modelType reference
+@__imported
+@hideAll 
+*/
+class reference2 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.EntryCollection_File:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference4 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.EntryCollection_Client:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference6 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.Entry_Collection_MglClient:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference10 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.EntryCollection_MglClient:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference13 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.EntryCollection_SrsClient:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference15 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.DataElement:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference24 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.ObjectDataElement:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference30 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access._old.EntryDataElement:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference9 {
+}
+/**
+@__ref <oiref:java#Class#Mgl.access.Entry:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference38 {
+}
+}
+/**
+0
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}
+/**
+@__options 
+*/
+class __options {
+}
+/**
+@__positions <oigroup:<oiref:java#Implements#Mgl.access.AbstractDataCollection#Mgl.access.DataCollection:oiref>=100,236,100,266:oigroup>
+
+<oigroup:<oiref:java#Class#Mgl.access.Entry_Collection_MglClient:oiref>=526,242,152,59,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_MglClient#Mgl.access.EntryCollection_Client:oiref>=516,228,403,228:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.AbstractDataCollection:oiref>=36,203,219,33,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_Client#Mgl.access.EntryCollection:oiref>=274,205,157,166:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection#Mgl.access.AbstractDataCollection:oiref>=102,174,102,203:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.EntryCollection_MglClient:oiref>=516,204,149,59,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.EntryCollection_SrsClient:oiref>=517,134,149,59,1:oigroup>
+
+
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_File#Mgl.access.EntryCollection:oiref>=273,151,157,151:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.ObjectDataElement:oiref>=527,311,118,59,1:oigroup>
+<oigroup:<oiref:java#Extends#Mgl.access.EntryCollection_SrsClient#Mgl.access.EntryCollection_Client:oiref>=517,182,403,205:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.EntryCollection:oiref>=47,141,110,33,1:oigroup>
+<oigroup:<oiref:java#Implements#Mgl.access.Entry#Mgl.access.DataElement:oiref>=276,466,240,466:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.EntryCollection_Client:oiref>=274,194,129,59,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.Entry:oiref>=276,403,201,127,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access._old.EntryDataElement:oiref>=286,327,219,141,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.DataCollection:oiref>=46,266,180,47,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.DataElement:oiref>=39,402,201,141,1:oigroup>
+<oigroup:<oiref:java#Class#Mgl.access.EntryCollection_File:oiref>=273,115,116,59,1:oigroup>
+*/
+class __positions {
+}

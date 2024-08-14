@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="ru.biosoft.server.servlets.webTableResolver">
+  	<tableResolver type="fbc" class="biouml.plugins.fbc.server.FbcTableResolver"/>
+  </extension>
+  	
+  <extension id="fbc.service" point="ru.biosoft.server.service"> 
+    <service name="fbc.service" class="biouml.plugins.fbc.server.FbcService"/>
+  </extension>
+</plugin>

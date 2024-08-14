@@ -1,0 +1,29 @@
+bak
+/bin
+classes
+buildsrc
+release
+/all.log.*
+/*.log
+/*.log.lck
+build.properties
+temp
+bdk
+luceneIndex
+/test
+/.externalToolBuilders
+/.settings
+/wiki.login.properties
+/out
+/nbproject/private/
+/plugconfig/*/src.jar
+/nb
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+data/test/biouml/plugins/brain/diagrams/Test brain diagram
+data/test/biouml/plugins/brain/tables/test_1

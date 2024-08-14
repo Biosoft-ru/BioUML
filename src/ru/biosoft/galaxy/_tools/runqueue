@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+TMP=`mktemp -d --tmpdir="$1"`
+SCRIPT="$2"
+DEST="$3"
+
+GATK_DIR=`dirname "$0"`
+
+export SGE_ROOT=/var/lib/gridengine
+
+cd "$TMP"
+java -Djava.io.tmpdir="$TMP" -jar "$GATK_DIR/Queue.jar" -S "$SCRIPT" -jobRunner GridEngine -run
+STATUS=$?
+if [[ "$STATUS" != "0" ]]
+   then exit $STATUS
+fi
+mv *.jobreport.txt "$DEST/"
+cd -
+rm -r "$TMP"
+exit $?

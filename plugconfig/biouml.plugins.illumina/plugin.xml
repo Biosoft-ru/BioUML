@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="Illumina biohub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Illumina biohub" class="biouml.plugins.illumina.IlluminaHub">
+     	<property name="jdbcURL" value="jdbc:mysql://@DEFAULT_DATABASE_SERVER@:3306/illumina"/>
+     	<property name="jdbcUser" value="illumina"/>
+     	<property name="jdbcPassword" value="illumina"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="Illumina Gene Type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.illumina.IlluminaGeneType"/>
+  </extension>
+
+    <extension id="IlluminaTranscriptType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.illumina.IlluminaTranscriptType"/>
+    </extension>
+
+  <extension id="Illumina methylation probes to track" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.illumina.IlluminaMethylationProbesToTrack" group="Unclassified" name="Illumina methylation probes to track"  description="Convert table of illumina cg........ methylation identifiers into genomic coordinates."/> 
+  </extension>
+
+  <extension id="IlluminaMethylationProbeType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.illumina.IlluminaMethylationProbeType"/>
+  </extension>
+</plugin>

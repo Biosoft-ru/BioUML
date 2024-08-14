@@ -1,0 +1,169 @@
+.pi_table {
+	border: 1px solid #ccc;
+	width: 100%;
+/*	height: 100%;*/
+}
+
+.pi_table td {
+	border-top: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+}
+
+.leaf_img {
+	float: left;
+	width: 24px;
+	height: 22px;
+	background-image: url('js_pi/doc.gif');
+}
+
+.folder_img {
+	float: left;
+	width: 24px;
+	height: 22px;
+	background-image: url('js_pi/folder.gif');
+}
+
+.line {
+	float: left;
+	width: 16px;
+	height: 22px;
+}
+
+.line_vert {
+	background-image: url('js_pi/vertLine.gif');
+}
+
+.line_node {
+	background-image: url('js_pi/docNode.gif');
+}
+
+.line_vert_last {
+}
+
+.line_node_last {
+	background-image: url('js_pi/docNodeLast.gif');
+}
+
+.line_folderopen {
+	background-image: url('js_pi/folderNodeOpen.gif');
+}
+
+.line_folderclose {
+	background-image: url('js_pi/folderNode.gif');
+}
+
+.line_folderopen_last {
+	background-image: url('js_pi/folderNodeOpenLast.gif');
+}
+
+.line_folderclose_last {
+	background-image: url('js_pi/folderNodeLast.gif');
+}
+
+.genericComboText {
+	border-width: 0px;
+	height: 15px;
+	margin: 0px;
+	padding: 0px 2px;
+}
+.genericComboText[readonly] {
+	border-width: 0px;
+	background-color: white;
+	cursor: pointer;
+	height: 15px;
+	margin: 0px;
+	padding: 0px 2px;
+}
+.genericComboContainer {
+	border: 2px inset darkgray;
+}
+.genericComboData {
+	border: 1px solid black;
+}
+.genericComboButton {
+	width: 16px;
+	height: 15px;
+	float: right;
+	background: url('js_pi/combobutton.png');
+}
+.genericComboItem {
+	padding: 0pt 2pt 0pt 25pt;
+	text-indent: -23pt;
+	background-color: white;
+	cursor: pointer;
+    min-height: 15px;
+}
+.genericComboItemSelected {
+	padding: 0pt 2pt 0pt 25pt;
+	text-indent: -23pt;
+	background-color: darkblue;
+	color: white;
+	cursor: pointer;
+    min-height: 15px;
+}
+
+table.pi_table input[type=text] {
+	width: 250px;
+}
+
+.pi_table input[type=text] {
+	width: 250px;
+}
+
+input[readonly], textarea[readonly] {
+	background-color: #C0C0C0;
+}
+
+.data-element-path-editor input[type=text] {
+	background-color: #FFFFFF;
+}
+
+.data-element-path-editor-checkboxed input[type=checkbox] {
+	width: 18px;
+}
+
+.data-element-path-editor-checkboxed input[type=text] {
+	background-color: #FFFFFF;
+}
+
+img.path-editor-icon {
+	padding: 1px;
+	vertical-align: bottom;
+}
+
+ul.elementList {
+	overflow: auto;
+}
+
+ul.elementList li {
+	position: absolute;
+	display: block;
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-position: 1px 0px;
+}
+
+ul.elementList li.selected {
+	position: absolute;
+	display: block;
+	cursor: pointer;
+	color: white;
+	background-color: blue;
+	background-repeat: no-repeat;
+	background-position: 1px 0px;
+}
+
+ul.elementList div.ridge {
+	left: 0px;
+	top: 0px;
+	height: 1px;
+	position: absolute;
+}
+
+ul.elementList li div {
+	padding-left: 18px;
+}
+
+ul.elementList li.disabled {
+	opacity: .5; filter:Alpha(Opacity=50);
+}

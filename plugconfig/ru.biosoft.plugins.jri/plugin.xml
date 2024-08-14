@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="R script" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="ru.biosoft.plugins.jri.RElement" transformerClass="ru.biosoft.plugins.jri.RElementTransformer"/> 
+  </extension>
+
+  <extension point="ru.biosoft.access.scriptType">
+  	<scriptType type="R" title="R script" product="R" class="ru.biosoft.plugins.jri.RElement" lexer="ru.biosoft.plugins.jri.lex.RLexer"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="New R script" class="ru.biosoft.plugins.jri.AddRScriptAction" priority="10">
+        <property name="Name" value="New R script"/>
+        <property name="ShortDescription" value="Create a new R script document"/>
+        <property name="LongDescription" value="Create a new R script document"/>
+        <property name="SmallIcon" value="rscript.gif"/>
+        <property name="ActionCommandKey" value="cmd-new-rscript-rserve"/>
+     </action>
+  </extension>
+</plugin>

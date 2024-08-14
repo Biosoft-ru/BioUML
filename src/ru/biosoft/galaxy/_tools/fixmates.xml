@@ -1,0 +1,87 @@
+<tool name="FixMateInformation Picard" id="picard_FixMates" version="1.65">
+  <command>/bin/bash -v "$script"</command>
+  <inputs>
+   <param name="input_bam" type="data" format="bam" label="BAM file" />
+
+    <conditional name="advanced">
+	<param name="order" type="select" label="Sorting Order" 
+		help="A sort order if the OUTPUT file should be sorted differently than the INPUT file.">
+		<option value="null">original</option>
+		<option value="unsorted">unsorted</option>
+		<option value="queryname">by name</option>
+		<option value="coordinate">by coordinate</option>
+	</param>
+	<when value="null"/>
+	<when value="unsorted"/>
+	<when value="queryname"/>
+	<when value="coordinate">
+		<param name="createIndex" type="boolean" label="Create BAM index for output file" truevalue="true" falsevalue="false" checked="False" 
+			help="if used before another picard tools is better put false"/>
+	</when>
+    </conditional>
+
+
+    <param name="memoryUsage" type="text" label="Max memory usage" value="16G" />
+    <param name="compressionLevel" type="integer" label="Compression level for output bam" value="6" />
+    <param name="tmpFolder" type="text" label="TMP folder" value="/tmp" />
+    <param name="createMD5" type="boolean" label="Create MD5 for output file" truevalue="true" falsevalue="false" checked="False" />
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="log" label="Execution Log" />
+    <data format="bam" name="outBAM" label="Output BAM file" />
+  </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  cd `dirname $log`
+err="`dirname $log`/err.pipe"
+echo \$err
+
+mkfifo "\$err"
+tmpF="$tmpFolder/FixMates-\$RANDOM"
+mkdir -p \$tmpF
+
+trap 'rm -Rf "\$err" \$tmpF ' EXIT
+tee $log &lt; "\$err" &gt;&amp;2 &amp;
+
+filename=\$(basename "$input_bam")
+filename2="\${filename%.*}"
+cp \$filename2.bai \$filename.bai
+
+ runpicard FixMateInformation $memoryUsage 'INPUT=$input_bam' \
+	'OUTPUT=$outBAM' \
+ #if str( $advanced.order ) != "null"
+	 SORT_ORDER=$advanced.order \
+ #end if
+ #if str( $advanced.order ) == "coordinate"
+	CREATE_INDEX=$advanced.createIndex \
+  #end if
+	COMPRESSION_LEVEL=$compressionLevel \
+	TMP_DIR=\$tmpF \
+	CREATE_MD5_FILE=$createMD5 VALIDATION_STRINGENCY=LENIENT 2&gt;"\$err"
+
+  </configfile>
+  </configfiles>
+  
+  <help>
+
+.. class:: infomark
+
+**Purpose**
+
+Ensure that all mate-pair information is in sync between each read and it's mate pair. 
+
+**Picard documentation**
+
+This is a Galaxy interface for MarkDuplicates, a part of Picard-tools_, which is closely related to SAMTools_.
+
+ .. _Picard-tools: http://picard.sourceforge.net/index.shtml
+ .. _SAMTools: http://samtools.sourceforge.net/
+
+------
+
+**Input**
+
+BAM file.
+  </help>
+</tool>

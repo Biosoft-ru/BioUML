@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2008/05/17 09:31:54 tolstyh Exp $  -->
+
+<project name="biouml.workbench.module.xml.editor package test" default="autotest" basedir="../../../../../..">
+
+    <property name="package" value="biouml.workbench.module.xml.editor"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.model._test.AutoTest"/>
+        </ant>
+    </target>
+	
+    <target name="editor">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="${package}._test.EditorTest"/>
+        </ant>
+    </target>
+
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

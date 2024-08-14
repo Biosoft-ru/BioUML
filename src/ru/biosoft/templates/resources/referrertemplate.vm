@@ -1,0 +1,38 @@
+<html>
+	<body>
+		#set( $isRef = false)
+		#set( $orderNumber = 0)
+		
+		#if($de)
+			#if( $de.getDatabaseReferences() && $de.getDatabaseReferences().size() > 0)
+	        	<font size = 6>Database references</font><br><br>
+				#set( $DBRef = [])
+				#set( $relations = [])
+				#set( $databases = [])
+	    	    #getDBRef( $resolver, $de, $databases, $DBRef, $relations)
+				#set( $orderNumber = $orderNumber + 1)
+				<table border="0">
+					#updateReferencesTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>Databases</b>", "<b>Relations</b>", "<b>References</b>")
+					#updateReferencesTable($orderNumber, $de.getName(), $de.getTitle(), $databases, $relations, $DBRef)
+					#set( $isRef = true)
+				</table><br><br>
+			#end
+			
+			#if($de.getLiteratureReferences() && $de.getLiteratureReferences().size() > 0)
+	        	<font size = 6>Literature</font><br><br>
+				#set( $literature = [])
+	        	#getLiterature($resolver, $de, $literature)
+				#set( $orderNumber = $orderNumber + 1)
+				<table border="0">
+					#updateLiteratureTable("<b>&#8470;</b>", "<b>ID</b>", "<b>Title</b>", "<b>References</b>")
+					#updateLiteratureTable($orderNumber, $de.getName(), $de.getTitle(), $literature)
+					#set( $isRef = true)
+				</table><br><br>
+			#end
+		#end
+		
+		#if( !$isRef)
+			There are no references for this element
+		#end
+	</body>
+</html>

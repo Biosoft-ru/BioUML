@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension-point name="import"  id="import"/>
+  <extension-point name="export"  id="export"/>
+  <extension-point name="repositoryActionsProvider" id="repositoryActionsProvider"/>
+  <extension-point name="dataCollectionListener" id="dataCollectionListener"/>
+  <extension-point name="querySystem" id="querySystem"/>
+  <extension-point name="typeDriver" id="typeDriver"/>
+  <extension-point name="transformer" id="transformer"/>
+  <extension-point name="biohub" id="biohub"/>
+  <extension-point name="biohubSpecial" id="biohubSpecial"/>
+  <extension-point name="referenceType" id="referenceType"/>
+  <extension-point name="dynamicAction" id="dynamicAction"/>
+  <extension-point name="elementAction" id="elementAction"/>
+  <extension-point name="virtualCollection" id="virtualCollection"/>
+  <extension-point name="commonClass" id="commonClass"/>
+  <extension-point name="diffManager" id="diffManager"/>
+  <extension-point name="beans" id="beans"/>
+  <extension-point name="movedClass" id="movedClass"/>
+  <extension-point id="scriptType" name="scriptType" schema="plugconfig/ru.biosoft.access/schemas/scriptType.exsd"/>
+  
+  <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
+  	<class class="ru.biosoft.access.core.DataCollection"/>
+  	<class class="ru.biosoft.access.FileDataElement"/>
+  	<class class="ru.biosoft.access.TextDataElement"/>
+  	<class class="ru.biosoft.access.HtmlDataElement"/>
+  	<class class="ru.biosoft.access.ImageDataElement"/>
+  	<class class="ru.biosoft.access.FileCollection"/>
+  	<class class="ru.biosoft.access.security.NetworkDataCollection"/>
+  	<class class="ru.biosoft.access.generic.GenericDataCollection"/>
+  	<class class="ru.biosoft.access.core.TransformedDataCollection"/>
+  	<class class="ru.biosoft.access.SqlDataCollection"/>
+  	<class class="ru.biosoft.access.security.NetworkRepository"/>
+  	<class class="ru.biosoft.access.LocalRepository"/>
+  	<class class="ru.biosoft.access.VideoDataElement"/>
+  </extension>
+  
+  <extension id="title client query system" point="ru.biosoft.access.querySystem"> 
+      <querySystem class="ru.biosoft.access.DefaultQuerySystem"/> 
+  </extension>
+  
+  <extension id="SSO wizard page" point="ru.biosoft.workbench.wizardPage"> 
+      <wizardPage 
+      	name="Single Sign On" 
+      	description="Type Single Sign On properties" 
+      	position="1" 
+      	page="ru.biosoft.access.security.SingleSignOnWizardPage"
+      /> 
+  </extension> 
+  
+  <extension point="ru.biosoft.access.typeDriver"> 
+      <typeDriver class="ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver"/> 
+      <typeDriver class="ru.biosoft.access.generic.DataElementEntryTypeDriver"/> 
+      <typeDriver class="ru.biosoft.access.generic.DataElementFileTypeDriver"/> 
+      <typeDriver class="ru.biosoft.access.generic.DataElementSQLTypeDriver"/> 
+      <typeDriver class="ru.biosoft.access.generic.RepositoryTypeDriver"/> 
+  </extension> 
+  
+  <extension point="ru.biosoft.access.elementAction"> 
+     <dynamicAction name="Create folder" class="ru.biosoft.access.generic.CreateFolderAction" priority="30">
+        <property name="Name" value="Create folder"/>
+        <property name="ShortDescription" value="Create new folder inside the selected one"/>
+        <property name="LongDescription" value="Create new folder inside the selected one"/>
+        <property name="MnemonicKey" value="VK_C"/>
+        <property name="SmallIcon" value="newFolder.gif"/>
+        <property name="ActionCommandKey" value="cmd-generic-newfolder"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="Remove selection" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="Remove selection" class="ru.biosoft.access.subaction.RemoveSelectionAction">
+        <property name="Name" value="Remove selected"/>
+        <property name="ShortDescription" value="Remove selected elements from the document"/>
+        <property name="LongDescription" value="Remove selected elements from the document"/>
+        <property name="AcceleratorKey" value="VK_DELETE CTRL_MASK"/>
+        <property name="MnemonicKey" value="VK_DELETE"/>
+        <property name="SmallIcon" value="resources/removerows.gif"/>
+        <property name="ActionCommandKey" value="cmd-remove-elements"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+  </extension>
+  
+  <extension id="Import zip-archive" point="ru.biosoft.access.import"> 
+     <export
+     	format="ZIP-archive (*.zip)" 
+        displayName="Archived file (*.zip, *.tar, *.gz etc.)"
+        importer="ru.biosoft.access.ZipFileImporter"
+        description="ru/biosoft/access/resources/ZIPFormat.html"
+     />
+  </extension> 
+
+  <extension id="Import generic file" point="ru.biosoft.access.import"> 
+     <export 
+        format="Generic file"
+        importer="ru.biosoft.access.FileImporter"
+        description="ru/biosoft/access/resources/GenericFormat.html"
+     />
+  </extension>
+  
+  <extension id="Import image file" point="ru.biosoft.access.import"> 
+     <export 
+        format="Image file (*.png, *jpeg, *.gif etc)"
+        importer="ru.biosoft.access.ImageFileImporter"
+        description="ru/biosoft/access/resources/ImageFormat.html"
+     />
+  </extension>
+  
+  <extension id="Import text file" point="ru.biosoft.access.import"> 
+     <export 
+        format="Text file (*.txt)"
+        importer="ru.biosoft.access.TextFileImporter"
+        description="ru/biosoft/access/resources/TextFormat.html"
+     />
+  </extension>
+  
+  <extension id="Import html file" point="ru.biosoft.access.import"> 
+     <export 
+        format="HTML file (*.html, *.htm)"
+        importer="ru.biosoft.access.HtmlFileImporter"
+        description="ru/biosoft/access/resources/HtmlFormat.html"
+     />
+  </extension>
+  
+  <extension id="Import SRA-archive" point="ru.biosoft.access.import"> 
+     <export
+        format="SRA-archive" 
+        displayName="Sequence Read Archive files (SRR* ids)"
+        importer="ru.biosoft.access.SRAFastqImporter"
+        description="Download Sequence Read Archive data by SRR identifiers and upload as fastq files"
+     />
+  </extension>
+  
+  <extension id="Import video file" point="ru.biosoft.access.import"> 
+     <export 
+        format="Video file (*.mp4, *.webm, *.ogg)"
+        importer="ru.biosoft.access.VideoFileImporter"
+     />
+  </extension>
+  
+  <extension id="Export folder to ZIP" point="ru.biosoft.access.export"> 
+     <export 
+        format="Archive containing exported elements (*.zip)"
+        suffix="zip"
+        contentType="application/zip"
+        exporter="ru.biosoft.access.generic.GenericZipExporter"
+        description=""
+     />
+  </extension>
+  
+  <extension id="Export binary file" point="ru.biosoft.access.export"> 
+     <export 
+        format="Generic file"
+        suffix=""
+        contentType="application/octet-stream"
+        exporter="ru.biosoft.access.FileExporter"
+        description=""
+     />
+  </extension>
+
+  <extension id="Export zipped HTML file" point="ru.biosoft.access.export"> 
+     <export 
+        format="Zipped HTML file"
+        suffix="zip"
+        contentType="application/octet-stream"
+        exporter="ru.biosoft.access.html.ZipHtmlExporter"
+        description=""
+     />
+  </extension>
+
+  <extension id="Export HTML to PDF" point="ru.biosoft.access.export"> 
+     <export 
+        format="PDF (*.pdf)"
+        suffix="pdf"
+        contentType="application/pdf"
+        exporter="ru.biosoft.access.html.HtmlToPDFExporter"
+        description=""
+     />
+  </extension>
+  
+  
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="Image" inputClass="ru.biosoft.access.FileDataElement" 
+      	outputClass="ru.biosoft.access.ImageDataElement" transformerClass="ru.biosoft.access.support.FileImageTransformer"/> 
+      <transformer name="HTML file" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="ru.biosoft.access.HtmlDataElement" transformerClass="ru.biosoft.access.support.FileHtmlTransformer"/> 
+      <transformer name="Plain text" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="ru.biosoft.access.TextDataElement" transformerClass="ru.biosoft.access.support.FileTextTransformer"/> 
+      <transformer name="ZIP-archive with HTML pages" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="ru.biosoft.access.html.ZipHtmlDataCollection" transformerClass="ru.biosoft.access.support.FileZipHtmlTransformer"/>
+      <transformer name="Video" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="ru.biosoft.access.VideoDataElement" transformerClass="ru.biosoft.access.support.FileVideoTransformer"/> 
+  </extension>
+		 
+  <extension id="Default table type" point="ru.biosoft.access.referenceType">
+  	<type typeClass="ru.biosoft.access.biohub.DefaultReferenceType"/>
+  </extension>
+  
+  <!-- TODO: this extension depends on biouml.workbench and should be moved out here -->
+  <extension id="history view" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart class="ru.biosoft.access.history.gui.HistoryViewPart" Name="History" id="dataelement.history" ShortDescription="History pane" />
+  </extension>
+ 
+  <extension point="ru.biosoft.access.movedClass">
+  	<class name="ru.biosoft.access.generic.SessionCollection" oldNames="ru.biosoft.access.security.SessionCollection"/>
+    <class name="ru.biosoft.access.core.TransformedDataCollection" oldNames="ru.biosoft.access.TransformedDataCollection"/>
+    <class name="ru.biosoft.access.core.DataElementPath" oldNames="ru.biosoft.access.DataElementPath"/>
+    <class name="ru.biosoft.access.core.DataElementPathSet" oldNames="ru.biosoft.access.DataElementPathSet"/>
+    <class name="ru.biosoft.access.core.DataElement" oldNames="ru.biosoft.access.DataElement"/>
+    <class name="ru.biosoft.access.core.DataCollection" oldNames="ru.biosoft.access.DataCollection"/>
+    <class name="import ru.biosoft.access.core.PluginEntry" oldNames="ru.biosoft.util.entry.PluginEntry"/>
+  </extension>
+
+  <extension id="matchinpathwriter" point="ru.biosoft.templates.contextItem">
+        <helper name="matchinpathwriter" class="ru.biosoft.access.biohub.MatchingPathWriter" />
+  </extension>
+
+
+  <extension point="ru.biosoft.access.beans">
+	<provider class="ru.biosoft.access.FDCBeanProvider" prefix="properties/fdc"/>
+  </extension>
+</plugin>

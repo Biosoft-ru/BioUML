@@ -1,0 +1,23 @@
+/*
+ * Remove project action
+ */
+{
+    id: "remove_project",
+    label: "Remove project",
+    icon: "icons/remove_de.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		if(path == appInfo.userProjectsPath) return true;
+		return -1;
+    }",
+    action: "function(completePath)
+    {
+		loadBioUMLModules(['accountManager'], function()
+		{
+		}, function()
+		{
+			removeProject(completePath);
+		});
+    }"
+}

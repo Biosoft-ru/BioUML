@@ -1,0 +1,12 @@
+<tool id="softberry-annotate-to-genbank" name="FGENESB to GenBank">
+	<description>Convert FGENESB annotation to GenBank format</description>
+	<command interpreter="perl">FGENESB_to_GenBank.pl "$fasta" "$annotation" "$Annotated_genbank"
+	</command>
+	<inputs>
+		<param name="fasta" type="data" format="fasta" label="Original track" help="With (genomic) sequence(s)"/>
+		<param name="annotation" type="data" format="txt" label="Fgenesb annotation" help="File created by Fgenesb analysis"/>
+	</inputs>
+	<outputs>
+	    <data format="gb" name="Annotated_genbank"/>
+	</outputs>
+</tool>

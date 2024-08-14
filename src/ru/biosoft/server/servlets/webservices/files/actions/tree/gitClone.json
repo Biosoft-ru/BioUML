@@ -1,0 +1,26 @@
+{
+    id: "git_clone",
+    label: "Git clone",
+    icon: "icons/Git.png",
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var edc = getDataCollection(completePath);
+        if( edc && instanceOf( edc.getClass(),'ru.biosoft.access.security.NetworkRepository' ) && edc.isGitEnabled() ) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        loadBioUMLModules(['git'], function()
+        {
+        }, function()
+        {
+            gitClone(path);
+        });
+    }"
+}

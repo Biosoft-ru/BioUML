@@ -1,0 +1,12 @@
+<tool id="remove_unmapped_reads" name="Remove unmapped reads">
+    <description>Removes unmapped reads from bam file</description>
+    <command>samtools view -b -F 4 -o $output $input</command>
+    <inputs>
+        <param name="input" type="data" format="bam" label="Input BAM file"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="bam" label="Output BAM file"/>
+    </outputs>
+    <help>
+    </help>
+</tool>

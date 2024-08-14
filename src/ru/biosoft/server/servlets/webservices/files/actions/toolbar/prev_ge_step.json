@@ -1,0 +1,20 @@
+{
+    id: "genomeenhancer_prev",
+    label: "Previous",
+    icon: "icons/prev.png",
+    visible: "function()
+    {
+        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        {
+          var btn = $('#ge_intro_iframe').contents().find('#wizard-prev-btn');
+          if(btn)
+              return !btn.hasClass('disabled');
+          return false;
+        }
+        return -1;
+    }",
+    action: "function()
+    {
+      /* not properly work from here, move action to ge/wizard.js*/
+    }"
+}

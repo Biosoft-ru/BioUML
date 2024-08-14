@@ -1,0 +1,26 @@
+/*
+ * New script action
+ */
+{
+    id: "new_script",
+    label: "New JS script",
+	icon: "icons/script.gif",
+	visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || 
+        	getDataCollection(completePath).getChildClass() == 'ru.biosoft.plugins.javascript.JSElement') 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createScript(path, 'js');
+    }"
+}

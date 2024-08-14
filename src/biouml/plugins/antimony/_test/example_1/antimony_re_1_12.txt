@@ -1,0 +1,3 @@
+model diagramTest(default)
+   compartment default;
+end

@@ -1,0 +1,27 @@
+<html>
+	<body>
+		<h1>Factor $de.getName()</h1><br>
+		#if (($de.getDisplayName()!=$null)&&(!$de.getDisplayName().equals("")))
+			          #strField($de.getDisplayName(), "Factor name")
+		#else
+		<b>Transcription factor</b>
+		#end
+		#showDate()
+		#getDBRefList($resolver, $de, $DBRef)
+    	$DBRef
+        #strField($de.getReferenceType(), "ReferenceType")
+        #strField($de.getSpeciesName(), "Species")
+        #strField($de.getTaxonCompleteName(), "Taxon")
+        #strField($de.getDNABindingDomain().toString(), "Description")
+        #strField($de.getPositiveTissueSpecificity(), "Positive Tissue Specificity")
+        #strField($de.getNegativeTissueSpecificity(), "Negative Tissue Specificity")
+        #strField($de.getSynonyms(), "Synonyms")
+	    #showReferences($de)
+		#if($de.getAttributes())
+			#if ($de.attributes.size() > 0)
+				<b>Attributes</b>: <br>
+				#displayAttributes($de.attributes)
+			#end
+		#end
+	</body>
+</html>

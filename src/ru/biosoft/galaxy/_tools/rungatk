@@ -1,0 +1,11 @@
+#!/bin/bash
+
+GATK_DIR=`dirname "$0"`
+
+MEM=$1
+
+shift
+
+java "-Xmx$MEM" -jar "$GATK_DIR/GenomeAnalysisTK.jar"  $*
+
+exit $?

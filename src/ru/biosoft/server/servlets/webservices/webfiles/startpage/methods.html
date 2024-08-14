@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../lib/jquery/jquery-3.6.0.min.js"></script>
+    <link type="text/css" href="../css/intro.css" rel="stylesheet" />
+    <script type="text/javascript">
+      window.parent.loadBioUMLModules(["accountManager"], function() {}, function() {});
+
+      $(function() {
+        window.parent.getDataCollection("analyses/Methods").getNameList(function(methodGroups) {
+
+          var maxWidth = methodGroups.length < 30 ? 900 : 1000;
+          $("#method-groups").css('max-width', maxWidth+'px');
+
+          var colors = [];
+          var hue = 0.8;
+          var saturation = 0.3;
+          var hsvalue = 0.5;
+          var golden_ratio_conjugate = 0.618033988749895;
+          for(var i = 0; i < methodGroups.length; i++) {
+            hue = ( hue + golden_ratio_conjugate ) % 1.0;
+            var color = 'hsl(' + (hue*360) + ',' + (saturation*100) + '%,' + (hsvalue*100) + '%)';
+            colors.push(color);
+          }
+          
+          for(var i = 0; i < methodGroups.length; i++) {
+            let name = methodGroups[i].name;
+            let color = colors[i % colors.length];
+            $("<div></div>")
+             .text(name)
+             .addClass("method-group-item")
+             .css("background", color)
+             .click(function() { 
+               window.location.href="/bioumlweb/startpage/method-category.html?name="+name + "&back=nrcki-workspaces";
+              })
+             .appendTo("#method-groups");
+          }
+
+        });
+
+        var perspectives = window.parent.BioUML.perspectiveNames;
+        $("#perspective-list").empty();
+        for(var i = 0; i < perspectives.length; i++) {
+          let name = perspectives[i];
+          if(name == "Default")
+            continue;
+          var item = $("<li></li>");
+          var ahref = $("<a></a>").attr("href","#").appendTo(item);
+          ahref.text(name);
+          ahref.click(function() {
+            window.parent.setPerspectiveName(name);
+          });
+          $("#perspective-list").append(item);
+        }
+        $("#show-more").click(function() {
+          $("#perspective-list").toggleClass("minimized");
+          if($("#perspective-list").hasClass("minimized"))
+            $(this).html("more &#9662;");
+          else
+            $(this).html("less &#9652;");
+        })
+        
+        $('#analysis-search-button').bind('click', function(){
+			if($(this).hasClass("search-btn-disabled"))
+				return;
+			$(this).addClass("search-btn-disabled");
+    		var searchString = $('#analysis-search-string').val();
+        	window.parent.runSearch(searchString, function(){$('#analysis-search-button').removeClass("search-btn-disabled");});
+    	});
+
+        $("#analysis-search-string").keyup(function(e) {
+          if (e.keyCode === 13)
+              $("#analysis-search-button").click();
+        });
+      });
+    </script>
+    <style>
+      ul.main-list>li{
+        margin: 20px 0;
+      }
+      ul.sub-list>li{
+        margin: 10px 0;
+      }
+      #main-container {
+        display: flex;
+      }
+      #left-column {
+        flex: 25%;
+      }
+      #right-column {
+        flex: 75%;
+      }
+      #method-groups {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 1000px;
+        margin: 10px auto;
+      }
+      .method-group-item {
+        flex-grow: 1;
+        min-width: 80px;
+        height: 50px;
+        line-height: 50px;
+        background: rgb(204, 204, 204);
+        margin: 4px;
+        text-align: center;
+        border-radius: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+
+        font-family: Verdana, Arial, sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+
+        cursor: pointer;
+
+        border-style: solid;
+        border-width: 3px;
+        border-color: transparent;
+      }
+      .method-group-item:hover {
+        color: #252525;
+        filter: brightness(125%);
+      }
+      .button-with-icon {
+      	width: 16px;
+    	height: 16px;
+    	display: block;
+    	overflow: hidden;
+    	background-repeat: no-repeat;
+    	background-size: 100%;
+      }
+      #search-analysis {
+      	display: flex;
+    	margin-top: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      #analysis-search-string {
+      	margin: 0 10px;
+      	font-size:larger;
+      }
+      .search-btn {
+      	border: 1px solid #aaa;
+        background-color: #ddd;
+        color: #333;
+        border-radius: 5px;
+        padding: 8px;
+        text-decoration: none;
+        font-family: Verdana, Arial, sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .search-btn:hover {
+      	background: #ccc;
+  	  }
+  	  .search-btn-disabled {
+  	  	opacity: .35;
+		-ms-filter: "alpha(opacity=35)"; /* support: IE8 */
+		cursor: default !important;
+		pointer-events: none;
+  	  }
+      .back-btn:hover {
+        background-color: rgb(170, 170, 170);
+      }
+      #perspective-list.minimized  li:nth-child(n+5) {
+        display: none;
+      }
+      #show-more {
+        cursor: pointer;
+        margin-left: 40px;
+        background-color: rgb(204, 204, 204);
+        color: #333;
+        border-radius: 5px;
+        padding: 4px;
+        border: 1px solid gray;
+      }
+    </style>
+  </head>
+  <body class="intro-styles">
+  <div><a href="/bioumlweb/startpage/nrcki-workspaces.html"><b>&larr;</b> Рабочие окружения</a></div>
+    <div id="main-container">
+      <div id="right-column">
+        <div id="search-analysis">
+      	  <big style="padding: 5px 0;">Поиск анализов:</big>
+        	<input type="text" id="analysis-search-string" size="30"/>
+        	<span id="analysis-search-button" class="search-btn" title="Search">
+            <img class="fg-button-icon-span" src="../icons/search.gif"></img></span>
+        </div>
+        <div id="method-groups">
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.psimi;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ one.util.streamex,
+ biouml.plugins.biopax,
+ biouml.workbench,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.access
+Export-Package: biouml.plugins.psimi,
+ biouml.plugins.psimi.access,
+ biouml.plugins.psimi.model

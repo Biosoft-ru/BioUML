@@ -1,0 +1,119 @@
+<tool name="Cufflinks(Biodatomics)" id="cufflinks_biodatomics" version="1.3.0">
+<command>/bin/bash -v "$script" </command>
+  <inputs>
+    <param name="input_bam" type="data" format="bam" label="BAM file" />
+    <param name="annotation" type="data" format="data" label="Reference GTF" help="Reference annotation in GTF format. This option work together with Annotations only" />
+    <param name="mask_file" type="data" format="data" label="Mask File" help="Tells Cufflinks to ignore all reads that could have come from transcripts in this GTF file. We recommend including any annotated rRNA, mitochondrial transcripts other abundant transcripts you wish to ignore in your analysis in this file. Due to variable efficiency of mRNA enrichment methods and rRNA depletion kits, masking these transcripts often improves the overall robustness of transcript abundance estimates." />
+    
+    <param name="annotation_mode" type="boolean" checked="False"
+          truevalue="--GTF" falsevalue="--GTF-guide"
+          label="Annotations only" help="Use Only provided (GTF) transcripts. If false - Output will include all reference transcripts as well as any novel genes and isoforms that are assembled. if true will include only provided transcripts. This option has effect only if GTF file provided"
+        />
+    
+    <param name="refGenome" type="select" label="Reference genome" help="Works together with Bias Detection">
+			<options from_data_table="all_fasta">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+	<param name="bias_detection" type="boolean" checked="True"
+          truevalue="--frag-bias-correct" falsevalue=""
+          label="Bias Detection" help="Providing Cufflinks with a multifasta file via this option instructs it to run our new bias detection and correction algorithm which can significantly improve accuracy of transcript abundance estimates."
+        />
+	
+	<param name="multi_read_correct" type="boolean" checked="True"
+          truevalue="--multi-read-correct" falsevalue=""
+          label="Multiple locations" help="Tells Cufflinks to do an initial estimation procedure to more accurately weight reads mapping to multiple locations in the genome."
+        />
+	
+	<param name="library_type" type="select" label="library type" help="Cufflinks will treat the reads as strand specific. Every read alignment will have an XS attribute tag. Consider supplying library type options below to select the correct RNA-seq protocol. fr-secondstrand is a standard for SOLID. check an additional help">
+          <option value="fr-secondstrand">fr-secondstrand</option>
+          <option value="fr-unstranded">fr-unstranded</option>
+          <option value="fr-firststrand">fr-firststrand</option>
+    </param>
+	
+	<param name="numThreads" type="integer" label="Number of threads" value="60" />
+	
+	<param name="upper_quartile_norm" type="boolean" checked="False"
+          truevalue="--upper-quartile-norm" falsevalue=""
+          label="Upper Quartile Normalization" help="Cufflinks normalizes by the upper quartile of the number of fragments mapping to individual loci instead of the total number of sequenced fragments. This can improve robustness of differential expression calls for less abundant genes and transcripts."
+      />
+        
+  <param name="total_hits_norm" type="boolean" checked="True"
+          truevalue="--total-hits-norm" falsevalue=""
+          label="Total Hits Normalization" help="Cufflinks counts all fragments, including those not compatible with any reference transcript, towards the number of mapped hits used in the FPKM denominator. This option can be combined with upper-quartile-norm."
+      />
+    
+  </inputs>
+  
+  <outputs>
+	<data format="zip" name="output" label="Output folder" />
+	<data format="txt" name="log" label="Log file" />
+    <!--data format="data" name="transcripts" label="Transcripts" />
+    <data format="tabular" name="genes" label="GenesFPKM" />
+    <data format="tabular" name="isoforms" label="IsoformsFPKM" />
+    <data format="gtf" name="skipped" label="Skipped" /-->
+  </outputs>
+
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+DEST=`dirname $log`
+cd \$DEST
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/out.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out"
+trap 'cat ${log}.err ${log}.out &gt;&gt; ${log}; rm "\$err"  "\$out"' EXIT
+tee ${log}.err &lt; "\$err" &gt;&amp;2 &amp;
+tee ${log}.out &lt; "\$out" &gt;&amp;1 &amp;
+
+OUTDIR="${ input_bam }_outdir";
+cufflinks  -o "\$OUTDIR" \
+  -p $numThreads \
+  #if str( $annotation ) != ""
+       $annotation_mode "${ annotation }" \
+  #end if
+  #if str( $mask_file ) != ""
+       --mask-file "${ mask_file }" \
+  #end if
+  #if str ( $bias_detection ) != ""
+  --frag-bias-correct "${ refGenome.fields.path }" \
+  #end if
+ $multi_read_correct --library-type $library_type \
+  $upper_quartile_norm $total_hits_norm --no-update-check \
+  "$input_bam"  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "Cufflinks finished with error. All temproary files stored \$DEST";  exit \$STATUS
+fi
+
+
+zip -rj ${output} "\$OUTDIR" 
+
+## mv "\$OUTDIR/transcripts.gtf" "$transcripts";
+## mv "\$OUTDIR/skipped.gtf" "$skipped";
+## mv "\$OUTDIR/genes.fpkm_tracking" "$genes";
+## mv "\$OUTDIR/isoforms.fpkm_tracking" "$isoforms";
+rm -rf "\$OUTDIR";
+
+  </configfile>
+  </configfiles>
+
+  
+  <help>
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

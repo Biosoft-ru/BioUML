@@ -1,0 +1,5 @@
+model diagramTest
+   species s1, s2 in default;
+   compartment default;
+   s2 = 5.0 foo;
+end

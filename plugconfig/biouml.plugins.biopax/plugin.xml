@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="BioPAXImporter" point="biouml.workbench.menuItem"> 
+     <menuItem 
+        title="Import BioPAX"
+        parent="Database"
+        action="biouml.plugins.biopax.imports.ImportBioPAXAction"
+     /> 
+  </extension> 
+
+  <extension point="ru.biosoft.access.import"> 
+     <import 
+        format="BioPAX file (*.owl, *.xml)"
+        importer="biouml.plugins.biopax.BioPAXImporter"
+        description="Import BioPAX file"
+     />
+  </extension>
+
+  <extension id="BioPAXRepositoryAction" point="ru.biosoft.access.repositoryActionsProvider"> 
+      <repositoryActionsProvider class="biouml.plugins.biopax.RepositoryActionsProvider"/> 
+  </extension> 
+
+  <extension id="BioPAXDiagramExporter" point="ru.biosoft.access.export"> 
+     <export 
+        diagramType="biouml.plugins.biopax.BioPAXDiagramType"
+        format="BioPAX (*.owl)"
+        suffix=".owl"
+        contentType="text/xml"
+        exporter="biouml.plugins.biopax.BioPAXDiagramExporter"
+        description="%BioPAXExportDescription"
+     /> 
+  </extension> 
+
+  <extension id="BioPAXSBGNConverter" point="biouml.workbench.diagramTypeConverter">
+  	<elementConversion from="biouml.model.xml.XmlDiagramType" to="biouml.model.xml.XmlDiagramType" converter="biouml.plugins.biopax.access.SBGNConverter"/>
+  </extension>
+  
+</plugin>

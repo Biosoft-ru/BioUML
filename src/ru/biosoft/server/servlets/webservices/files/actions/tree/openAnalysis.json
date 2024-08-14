@@ -1,0 +1,37 @@
+/*
+ * Open analysis document action
+ */
+{
+    id: "open_analysis",
+    label: "Open analysis",
+    icon: "icons/open.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.analysiscore.AnalysisMethodInfo')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        try
+        {
+            console.log( path );
+            CreateAnalysisDocument ( path, function(analysis){
+                openDocumentTab(analysis)
+            });
+        }
+        catch(e)
+        {
+            logger.message(e);
+            return;
+        }
+    }"
+}

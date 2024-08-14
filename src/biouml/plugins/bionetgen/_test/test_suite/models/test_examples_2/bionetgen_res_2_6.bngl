@@ -1,0 +1,7 @@
+begin model
+
+begin reaction rules
+    C(c~P)    ->    C(c~uP) + A(b)    MM(10,10)    include_reactants(2,B) exclude_reactants(1,A)
+end reaction rules
+
+end model

@@ -1,0 +1,34 @@
+<h2>GLBSOLVE algorithm</h2>
+
+<p>
+  A deterministic global optimization method<span class="ref">1</span>. It is a version of
+  the DIRECT algorithm<span class="ref">2</span> that handles nonlinear and integer constraints.
+  The first step in the DIRECT algorithm is to transform the search space to be the unit hypercube. 
+  The function is then sampled at the center-point of this cube. Computing the function value at
+  the center-point instead of doing it at the vertices is an advantage when dealing with problems
+  in higher dimensions. The hypercube is then divided into smaller hyperrectangles whose center-
+  points are also sampled. Instead of using a Lipschitz constant when determining the rectangles
+  to sample next, DIRECT identifies a set of potentially optimal rectangles in each iteration. All
+  potentially optimal rectangles are further divided into smaller rectangles whose center-points are
+  sampled. When no Lipschitz constant is used, there is no natural way of defining convergence
+  (except when the optimal function value is known as in the test problems). Instead, the procedure
+  described above is performed for a predefined number of iterations.
+</p>
+
+<p>
+  Note that this solver does not support parameters constraints.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li>M Bj&ouml;rkman and K Holmstr&ouml;m, 
+    "Global Optimization Using the DIRECT Algorithm in Matlab". 
+    AMO, vol. 1, #2, pp. 17-37, 1999.
+  </li>
+
+  <li>DR Jones, 
+    "DIRECT global optimization algorithm". 
+    Encyclopedia of optimization, pp. 431-440, 2001.
+  </li>
+</ol>

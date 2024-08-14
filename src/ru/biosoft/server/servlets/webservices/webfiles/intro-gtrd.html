@@ -1,0 +1,217 @@
+<script type="text/javascript">
+
+	function changeExpSearchHint() {
+		var expDesign = document.getElementById('exp_designs').value;
+		if (expDesign == 'chipseq_tf') {
+			document.getElementById('search_string_hint').innerHTML = 'Enter transcription factor, antibody, cell line, treatment or GTRD/GEO ID';
+		} else if (expDesign == 'chipseq_hm') {
+			document.getElementById('search_string_hint').innerHTML = 'Enter histone modification, antibody, cell line, treatment or GTRD/GEO ID';
+		} else {
+			document.getElementById('search_string_hint').innerHTML = 'Enter cell line, treatment or GTRD/GEO ID';
+		}
+	}
+	
+	function changeDataCollectionPath() {
+		var expDesign = document.getElementById("exp_designs").value;
+		document.getElementById('gtrd_experiment_search_dc').href = '#de=' + getDataCollectionPathByDesign(expDesign);
+	}
+	
+	function getDataCollectionPathByDesign(expDesign) {
+		var result;
+		switch (expDesign) {
+		case 'chipseq_tf':
+			result = 'databases/GTRD/Data/experiments';
+			break;
+		case 'chipseq_hm':
+			result = 'databases/GTRD/Data/ChIP-seq HM experiments';
+			break;
+		case 'chipexo':
+			result = 'databases/GTRD/Data/ChIP-exo experiments';
+			break;
+		case 'dnase':
+			result = 'databases/GTRD/Data/DNase-seq experiments';
+			break;
+		case 'atac':
+			result = 'databases/GTRD/Data/ATAC-seq experiments';
+			break;
+		case 'faire':
+			result = 'databases/GTRD/Data/DNase experiments';
+			break;
+		case 'mnase':
+			result = 'databases/GTRD/Data/MNase-seq experiments';
+			break;
+		}
+		return result;
+	}
+	
+	function onLoad(fun) {
+		$(function() {fun();});
+	}
+	onLoad(function() {
+		var search = new Lucene("gtrd_experiment_search")
+
+		var expDesign = document.getElementById("exp_designs").value;
+		var dc = getDataCollection(getDataCollectionPathByDesign(expDesign));
+		search.setCollection(dc);
+
+		showAnalysisControl($("#analysis_open_per_tf_view"),
+				"analyses/Methods/GTRD/Open per TF view", {
+					showProgress : false,
+					runButtonTitle : "Show",
+					allowCanceling : false
+				});
+		showAnalysisControl($("#analysis_open_tracks_for_all_tf"),
+				"analyses/Methods/GTRD/Open tracks for all TF", {
+					showProgress : false,
+					runButtonTitle : "Show",
+					allowCanceling : false
+				});
+		showAnalysisControl($("#analysis_filtering_cell_lines"),
+				"analyses/Methods/GTRD/Filtering experiments by cell types", {
+					showProgress : true,
+					runButtonTitle : "Show",
+					allowCanceling : false
+				});
+
+		function showAnalyses(prefix) {
+			showAnalysisControl($("#analysis_search_by_regulation_sites"),
+					"analyses/Methods/GTRD/SBSAnalysis", {
+						params : [ {
+							name : "resultingSites",
+							value : prefix + "TF binding sites"
+						} ],
+						allowCanceling : false,
+						success : function(res) {
+							if (res[0].includes(".interval"))
+								window.location.assign(appInfo.serverPath
+										+ 'web/content/' + res[0]);
+						},
+					});
+			showAnalysisControl($("#analysis_search_by_regulation_genes"),
+					"analyses/Methods/GTRD/Open regulated genes table", {
+					        showProgress : false,
+						allowCanceling : false
+					});
+
+                        $("#regmut-import-data").click(function(){
+                          doImportMultiple(prefix, false, function(paths) {
+                            showAnalysisControl($("#analysis_regmut"),
+                              "analyses/Methods/GTRD/RegulatoryMutations", {
+                                params : [
+                                {
+                                name : "inputVCF",
+                                value : paths[0]
+                                },
+                                {
+                                name : "outputFolder",
+                                value : prefix + "regmut"
+                                } ],
+                                showProgress : true,
+                                allowCanceling : false
+                              });
+                            });
+                        });
+
+		}
+
+		var prefix = appInfo.userProjectsPath + "/Demo/tmp";
+		if (!isWritable(prefix)) {
+			findWritableProjectPath(function(projectPath) {
+				showAnalyses(projectPath + "/");
+			}, function() {
+				createConfirmDialog(
+						"No writable projects found, please create one.",
+						function() {
+						});
+			});
+		} else {
+			showAnalyses(prefix + "/");
+		}
+
+		onIntroPageOpen("GTRD", function() {
+			toggleRepositoryVisibility(true);
+			toggleUI(true);
+		});
+	});
+</script>
+<center><h1>Gene Transcription Regulation Database</h1></center>
+
+<ul>
+   <li>
+     <a href="http://wiki.biouml.org/index.php/GTRD" target="_blank">Documentation, help (wiki pages)</a>
+   </li>
+   <br>
+   <!--li>
+     <a href="#de=databases/GTRD/Data/statistics">Database statistics</a>
+   </li>
+   <br-->
+   <li>
+     <a href="#de=databases/GTRD/Dictionaries/classification">Transcription factor classification tree</a>
+   </li>
+   <br>
+</ul>
+<table style="border-spacing:20px 0;">
+  <tr>
+    <td><h1>Searching, browsing</h1></td>
+    <th valign="bottom" colspan="2">Search</th>
+    <th valign="bottom" colspan="2">Browse</th>
+  </tr>
+  <tr id="gtrd_experiment_search">
+    <td width="200px">Experimental design:</td>
+    <td>
+    	<select id="exp_designs" onchange="changeExpSearchHint(); changeDataCollectionPath()">
+    		<option value="chipseq_tf" selected>ChIP-seq Transcription Factors</option>
+    		<option value="chipseq_hm">ChIP-seq Histone Modifications</option>
+    		<option value="chipexo">ChIP-exo</option>
+    		<option value="dnase">DNase-seq</option>
+    		<option value="atac">ATAC-seq</option>
+    		<option value="faire">FAIRE-seq</option>
+    		<option value="mnase">MNase-seq</option>
+  		</select>
+  	</td>
+    <td width="400px"><input type="text" id="search_string" /></td>
+    <td width="20px"><a id="search_button" href="#" class="fg-button ui-state-default fg-button-icon-solo  ui-corner-all" title="Search"><img class="fg-button-icon-span" src="icons/search.gif"></img></a></td>
+    <td><a href="#de=databases/GTRD/Data/experiments" id="gtrd_experiment_search_dc">as table</a></td>
+  </tr>
+  <tr><td></td><td></td><td id="search_string_hint">Enter transcription factor, antibody, cell line, treatment or GTRD/GEO ID</td></tr>
+  <br>
+</table>
+<div style="margin: 20px 20px;">
+  <h1>Genome browser</h1>
+  <div style="margin: 20px 20px; display: inline-block; float: left">
+    <b>Display tracks</b>
+    <div id="analysis_open_tracks_for_all_tf" style="width:600px;"></div>
+  </div>
+  <div style="margin: 20px 20px; display: inline-block; float: left">
+    <b>Display per TF workflow results</b>
+    <div id="analysis_open_per_tf_view" style="width:600px;"></div>
+  </div>
+</div>
+<div style="clear: both;"></div>
+<h1 style="margin: 0px 20px;">Advanced search</h1>
+<div style="margin: 20px 20px; display: inline-block; float: left">
+  <b>Binding sites near the specified gene</b>
+  <div id="analysis_search_by_regulation_sites" style="width:600px;"></div>
+</div>
+<div style="margin: 20px 20px; display: inline-block; float: left">
+  <b>Genes regulated by the specified transcription factor</b>
+  <div id="analysis_search_by_regulation_genes" style="width:600px;"></div>
+</div>
+<div style="clear: both;"></div>
+<h1 style="margin: 0px 20px;">Filter cell type experiments</h1>
+<div style="margin: 20px 20px; display: inline-block; float: left">
+  <b>All experiments for cell types</b>
+  <div id="analysis_filtering_cell_lines" style="width:600px;"></div>
+</div>
+<div style="margin: 20px 20px; display: inline-block; float: left">
+  <b>Regulatory mutations</b>
+  <br>
+  check your SNVs for regulatory potential
+  <br>
+  <br>
+  <b>Import VCF file<b>
+  <button id="regmut-import-data" type="button" class="btn btn-primary">Upload file</button>
+  <div id="analysis_regmut" style="width:600px;"></div>
+</div>
+<div style="clear: both;"></div>
+

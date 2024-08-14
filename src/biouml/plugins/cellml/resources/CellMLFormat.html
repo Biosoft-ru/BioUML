@@ -1,0 +1,52 @@
+<h2>CellML format</h2>
+
+<p>
+  CellML is an XML based markup language<span class="ref">1</span> for describing mathematical models.
+</p>
+
+<p>
+  A CellML model consists of a number of components, each described in their own component element.
+  A component can be an entirely conceptual entity created for modeling convenience, or it can have some real
+  physical interpretation (for example, it could represent the cell membrane).
+</p>
+ 
+<p>
+  Each component contains a number of variables, which must be declared by placing a variable element inside
+  the component. For example, a component representing a cell membrane may have a variable called V representing
+  the potential difference (voltage) across the cell membrane.
+</p>
+
+<p>
+  Mathematical relationships between variables are expressed within components, using MathML.
+  MathML is used to make declarative expressions (as opposed to procedural statements as in a computer
+  programming language). However, most CellML processing software will only accept a limited of range
+  of mathematics (for example, some processing software requires equations with a single variable
+  on one side of an equality). The choice of MathML makes CellML particularly suited for describing
+  models that contain differential equations. There is no mechanism for the expression of stochastic models
+  or any other form of randomness.
+</p>
+  
+<p>
+  Components can be connected to other components using a connection element, which describes the name
+  of the two components to be connected, and the variables in the first component that are mapped to variables
+  in the second component. Such connections are a statement that the variable in one component is equivalent
+  to another variable in another component.
+</p>
+  
+<p>
+  CellML models also allow relationships between components to be expressed.
+  The CellML specification defines two types of relationship, encapsulation and containment,
+  however more can be defined by the user. The containment relationship is used to express that one component
+  is physically within another. The encapsulation relationship is special because it is the only relationship
+  that affects the interpretation of the rest of the model. The effect of encapsulation is that components
+  encapsulated beneath other components are private and cannot be accessed except by the component directly
+  above in the encapsulation tree. The modeler is free to use encapsulation as a conceptual tool, and it
+  does not necessarily have any physical interpretation.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://www.cellml.org">http://www.cellml.org</a>
+  <li><a href="http://en.wikipedia.org/wiki/CellML">http://en.wikipedia.org/wiki/CellML</a>
+</ol>

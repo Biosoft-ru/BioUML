@@ -1,0 +1,24 @@
+/*
+ * Semantic zoom out action
+ */
+{
+    id: "semantic_zoom_out",
+    label: "Semantic zoom out",
+    icon: "icons/semanticzoomout.gif",
+    visible: "function(doc)
+    {
+    	if ((doc != null) && (doc instanceof SequenceDocument)) 
+        {    
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+        var activeDocument = opennedDocuments[activeDocumentId];
+        if (activeDocument instanceof SequenceDocument) 
+        {
+            activeDocument.zoomOut();
+        }
+    }"
+}

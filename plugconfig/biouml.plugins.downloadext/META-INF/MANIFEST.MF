@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.downloadext;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ com.developmentontheedge.beans,
+ biouml.plugins.download,
+ ru.biosoft.jobcontrol,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.plugins.javascript
+Export-Package: biouml.plugins.downloadext

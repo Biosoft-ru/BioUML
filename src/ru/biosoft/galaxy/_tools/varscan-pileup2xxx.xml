@@ -1,0 +1,108 @@
+<tool id="varscan_pileup2xxx" name="VarScan for SingleSample" version="1.0">
+<command>/bin/bash -v "$script"</command>
+<inputs>
+		<param name="pileup" type="data" format="pileup" label="Pileup file" help="samtools mpileup generated file. See help for more information"/>
+		
+		 <param name="method" type="select" label="Method to run" 
+                              help="Select output format">
+                                <option value="pileup2cns">pileup2cns</option>
+                                <option value="pileup2snp">pileup2snp</option>
+                                <option value="pileup2indel">pileup2indel</option>
+                        </param>
+   
+      <param name="min_coverage" type="integer" label=" Minimum read depth" value="8" 
+            help="Minimum read depth at a position to make a call [8]"/>
+      <param name="min_support" type="integer" label="Minimum supporting reads" value="2" 
+            help="Minimum supporting reads at a position to call variants [2]"/>
+      <param name="min_qual" type="integer" label="Minimum base quality" value="15" 
+            help="Minimum base quality at a position to count a read [15]"/>
+            
+      <param name="allel_freq" type="float" value="0.01" label="Minimum variant allele frequency"
+              help="Minimum variant allele frequency threshold [0.01]" />
+      <param name="p_val" type="float" value="99e-02" label="p-value threshold"
+              help="Default p-value threshold for calling variants [99e-02]" />
+
+    <param name="memoryUsage" type="text" label="Max memory usage" value="6G"  help="Max memory usage" />
+
+	</inputs>
+
+	<outputs>
+		<data format="txt" name="log" label="Execution Log" />
+		<data format="txt" name="results" label="Output" />
+	</outputs>
+
+
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  cd `dirname $outMetrics`
+  DEST=`dirname $log`
+err="`dirname $log`/err.pipe"
+out="`dirname $log`/err.pipe"
+echo \$err \$out
+
+mkfifo "\$err" "\$out" 
+trap 'rm "\$err"  "\$out"' EXIT
+tee $log.err &lt; "\$err" &gt;&amp;2 &amp;
+tee $log.out &lt; "\$out" &gt;&amp;1 &amp;
+
+java "-Xmx$memoryUsage" -jar "${GALAXY_DATA_INDEX_DIR}/shared/jars/varscan.jar" \
+  $method "$pileup" \
+  --min-coverage $min_coverage --min-reads2 $min_support --min-avg-qual $min_qual \
+  --min-var-freq $allel_freq --p-value $p_val  &gt; "\$out"  2&gt;"\$err"
+
+STATUS=\$?
+if [[ "\$STATUS" != "0" ]]
+   then echo "varscan finished with error. All temproary files stores \$DEST";  exit \$STATUS
+fi
+
+cat $log.err $log.out >> $log
+  </configfile>
+  </configfiles>
+<help>
+pileup2snp
+This command calls SNPs from a pileup file 
+pileup2indel
+This command calls indels from a pileup file
+pileup2cns
+This command makes consensus calls (SNP/Indel/Reference) from a pileup file
+
+ OPTIONS:
+
+        --min-coverage  Minimum read depth at a position to make a call [8]
+        --min-reads2    Minimum supporting reads at a position to call variants [2]
+        --min-avg-qual  Minimum base quality at a position to count a read [15]
+        --min-var-freq  Minimum variant allele frequency threshold [0.01]
+        --p-value       Default p-value threshold for calling variants [99e-02]
+
+
+ OUTPUT:
+Tab-delimited consensus calls with the following columns:
+        Chrom           chromosome name
+        Position        position (1-based)
+        Ref             reference allele at this position
+	Cons		Consensus genotype of sample; */(var) indicates heterozygous
+	Reads1		reads supporting reference allele
+	Reads2		reads supporting variant allele
+        VarFreq		frequency of variant allele by read count
+	Strands1	strands on which reference allele was observed
+	Strands2	strands on which variant allele was observed
+	Qual1		average base quality of reference-supporting read bases
+	Qual2		average base quality of variant-supporting read bases
+	Pvalue		Significance of variant read count vs. expected baseline error
+	MapQual1	Average map quality of ref reads (only useful if in pileup)
+	MapQual2	Average map quality of var reads (only useful if in pileup)
+	Reads1Plus	Number of reference-supporting reads on + strand
+	Reads1Minus	Number of reference-supporting reads on - strand
+	Reads2Plus	Number of variant-supporting reads on + strand
+	Reads2Minus	Number of variant-supporting reads on - strand
+	VarAllele	Most frequent non-reference allele observed 
+
+Citing VarScan
+Please note the version number, and cite the publications below with URL to cite VarScan:
+
+VarScan 1: Koboldt DC, Chen K, Wylie T, Larson DE, McLellan MD, Mardis ER, Weinstock GM, Wilson RK, &amp; Ding L (2009). VarScan: variant detection in massively parallel sequencing of individual and pooled samples. Bioinformatics (Oxford, England), 25 (17), 2283-5 PMID: 19542151
+VarScan 2: Koboldt, D., Zhang, Q., Larson, D., Shen, D., McLellan, M., Lin, L., Miller, C., Mardis, E., Ding, L., &amp; Wilson, R. (2012). VarScan 2: Somatic mutation and copy number alteration discovery in cancer by exome sequencing Genome Research DOI: 10.1101/gr.129684.111 
+URL: http://varscan.sourceforge.net
+</help>
+
+</tool>

@@ -1,0 +1,16 @@
+log4j.rootCategory=INFO,A1
+
+log4j.appender.A1=org.apache.log4j.FileAppender
+log4j.appender.A1.File=test_bsaTransformer.log
+log4j.appender.A1.Append=false
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%d{HH:mm} %-5p %-l %3x- %m%n
+#log4j.appender.A1.layout.ConversionPattern=%-5r %d{dd MM yyyy HH:mm} %-c %-5p %-l %3x- %m%n
+
+#java.util.logging logger settings
+handlers= java.util.logging.FileHandler
+.level= INFO
+java.util.logging.FileHandler.pattern = test_bsaTransformer.log
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+java.util.logging.FileHandler.append = false
+java.util.logging.SimpleFormatter.format =%1$tH:%1$tM %4$s %2$s  - %5$s%n

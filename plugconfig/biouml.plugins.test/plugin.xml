@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+   
+  <extension id="functional test document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="biouml.plugins.test.TestDocument"
+        key="biouml.plugins.test.TestModel"
+      /> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="TestModel" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="biouml.plugins.test.TestModel" transformerClass="biouml.plugins.test.access.TestModelFileTransformer"/> 
+      <transformer name="TestSuite" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="biouml.plugins.test.AcceptanceTestSuite" transformerClass="biouml.plugins.test.access.TestSuiteFileTransformer"/> 
+  </extension> 
+  
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="New test" class="biouml.plugins.test.access.NewTestDocumentAction" priority="10">
+        <property name="Name" value="New test"/>
+        <property name="ShortDescription" value="Create a test in selected folder"/>
+        <property name="LongDescription" value="Create a test in selected folder and open it"/>
+        <property name="MnemonicKey" value="VK_S"/>
+        <property name="SmallIcon" value="test.gif"/>
+        <property name="ActionCommandKey" value="cmd-new-test"/>
+     </action>
+  </extension>
+  
+  <extension id="test document editor" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.test.editors.TestViewPart"
+        id="diagram.test" 
+        Name="Tests"
+        ShortDescription=""
+        Priority = "1.1"
+      /> 
+  </extension>
+</plugin>

@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="description" content="Integrated Java framework for systems biology" />
+		<!--[if IE 8]>
+		<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+		<![endif]-->
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="lib/jstree/themes/default/style.css" />
+        <link rel="stylesheet" type="text/css" href="css/contextMenu/jquery.contextMenu-2.9.2.css" />
+        <link type="text/css" href="css/ui/custom-theme/jquery-ui-1.13.1.css" rel="stylesheet" />
+        <link type="text/css" href="css/table/table.css" rel="stylesheet" />
+        <link type="text/css" href="css/treetable/jquery.treeTable.css" rel="stylesheet" />
+        <link type="text/css" href="css/main.css" rel="stylesheet" />
+        <link type="text/css" href="css/description.css" rel="stylesheet" />
+        <link type="text/css" href="css/workflows.css" rel="stylesheet" />
+        <link type="text/css" href="css/propertyInspector/js_pi.css" rel="stylesheet" />
+        <link type="text/css" href="css/messenger/message.css" rel="stylesheet" />
+        <link type="text/css" href="css/jpicker/jPicker-1.1.6.min.css" rel="stylesheet" />
+        <link type="text/css" href="css/extended.css" rel="stylesheet" />
+        
+        <link type="text/css" href="lib/codemirror/lib/codemirror.css" rel="stylesheet" />
+        <link type="text/css" href="lib/codemirror/addon/hint/show-hint.css" rel="stylesheet" />
+        <link type="text/css" href="lib/codemirror/addon/dialog/dialog.css" rel="stylesheet" />
+        
+        <!--link rel="stylesheet" href="https://unpkg.com/bpmn-js@8.8.2/dist/assets/diagram-js.css" />
+		<link rel="stylesheet" href="https://unpkg.com/bpmn-js@8.8.2/dist/assets/bpmn-font/css/bpmn.css" /-->
+        
+        <script type="text/javascript" src="lib/jquery/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.jeditable.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.json-2.2.min.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.inherit-1.3.6.mod.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.scrollview.mod.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.mousewheel.min.js"></script>
+        <script type="text/javascript" src="lib/jpicker/jpicker-1.1.6.min.js"></script>
+        <script type="text/javascript" src="lib/underscore/underscore-min.js"></script>
+        
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+        <script type="text/javascript" src="lib/codemirror/lib/codemirror.js"></script>
+        <script type="text/javascript" src="lib/codemirror/mode/javascript/javascript.js"></script>
+        <script type="text/javascript" src="lib/codemirror/mode/r/r.js"></script>
+        <script type="text/javascript" src="lib/codemirror/mode/antimony/antimony.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/hint/show-hint.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/hint/javascript-hint.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/mode/multiplex.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/search/search.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/search/searchcursor.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/selection/active-line.js"></script>
+        <script type="text/javascript" src="lib/codemirror/addon/dialog/dialog.js"></script>
+
+        <script type="text/javascript" src="defines.js"></script>
+        <script type="text/javascript" src="lib/messageBundle.js"></script>
+        <script type="text/javascript" src="lib/core.js"></script>
+        <script type="text/javascript" src="lib/copy.js"></script>
+        <script type="text/javascript" src="lib/serverQuery.js"></script>
+        <script type="text/javascript" src="lib/serverMessages.js"></script>
+        <script type="text/javascript" src="lib/toolbar.js"></script>
+        <script type="text/javascript" src="lib/uiCommons.js"></script>
+        <script type="text/javascript" src="lib/uiActions.js"></script>
+        <script type="text/javascript" src="lib/cookies.js"></script>
+        <script type="text/javascript" src="lib/documents.js"></script>
+        <script type="text/javascript" src="lib/dialogs.js"></script>
+        <script type="text/javascript" src="lib/upload.js"></script>
+        <script type="text/javascript" src="lib/urlHandler.js"></script>
+        <script type="text/javascript" src="lib/user.js"></script>
+        <script type="text/javascript" src="lib/preferences.js"></script>
+        <script type="text/javascript" src="lib/polymorph.js"></script>
+        <!--[if IE]><script type="text/javascript" src="lib/excanvas/excanvas.patched.js"></script><![endif]-->
+        <script type="text/javascript" src="lib/graph/graph.js"></script>
+        <script type="text/javascript" src="lib/graph/viewpane.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.includeMany-1.2.2.js"></script>
+        <script type="text/javascript" src="lib/jstree/jstree.min.js"></script>
+        <script type="text/javascript" src="lib/contextMenu/jquery.contextMenu-2.9.2.js"></script>
+        <script type="text/javascript" src="lib/splitter/jquery.splitter.js"></script>
+        <script type="text/javascript" src="lib/ui/jquery-ui-1.13.1.js"></script>
+		<script type="text/javascript" src="lib/ui/ui.tabs.paging.js"></script>
+		<script type="text/javascript" src="lib/table/jquery.dataTables.js"></script>
+        <script type="text/javascript" src="lib/table/tableUtils.js"></script>
+        <script type="text/javascript" src="lib/treetable/jquery.treeTable.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/dpiUtils.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/dpi.min.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSDataElementSelector.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSDataElementPathEditor.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSFileUploader.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSWorkflowExpressionEditBox.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSTextScriptEditBox.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSUrlBuilder.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSArrayControl.js"></script>
+        <script type="text/javascript" src="lib/propertyInspector/JSColorSelector.js"></script>
+        <script type="text/javascript" src="lib/dataCollection.js"></script>
+        <script type="text/javascript" src="lib/onDemandLoader.js"></script>
+		<script type="text/javascript" src="lib/messenger/jsjac.js"></script>
+    	<script type="text/javascript" src="lib/messenger/messenger.js"></script>
+        <script type="text/javascript" src="lib/lucene.js"></script>
+        <script type="text/javascript" src="lib/tree.js"></script>
+        <script type="text/javascript" src="lib/import_new.js"></script>
+        <script type="text/javascript" src="lib/javascript.js"></script>
+        <script type="text/javascript" src="lib/infoPane.js"></script>
+        <script type="text/javascript" src="lib/contextToolbar.js"></script>
+        <script type="text/javascript" src="lib/analysisSearchToolbar.js"></script>
+        <script type="text/javascript" src="lib/viewparts.js"></script>
+        <script type="text/javascript" src="lib/viewpartsWDL.js"></script>
+        <script type="text/javascript" src="lib/jmol/Jmol.js"></script>
+        <script type="text/javascript" src="lib/framework.js"></script>
+	    <script type="text/javascript" src="stat.js"></script>
+	    <script type="text/javascript" src="lib/iframeCommons.js"></script>
+        <script type="text/javascript" src="lib/jquery/jquery.ui.touch-punch.min.js"></script>
+        <script type="text/javascript" src="lib/projectUtils.js"></script>
+	</head>
+    <body>
+        <div id="mainToolbar" class="fg-toolbar ui-widget-header ui-corner-all ui-helper-clearfix">
+        	<!-- div class="ajaxLoaderHidden"></div-->
+        </div>
+        <div id="mainPane">
+            <div id="topPane" >
+                <div id="leftTopPane">
+                	<div id="contextToolbar" class="fg-toolbar ui-widget-header ui-corner-all ui-helper-clearfix">
+                    </div>
+                    <div id="repositoryTabs">
+                        <ul>
+                        </ul>
+                    </div>
+                    <div id="analysisSearchToolbar" class="fg-toolbar ui-widget-header ui-corner-all ui-helper-clearfix">
+                    <input type="text" id="analysis_search_string" class="tree_input_string"/>
+                    <span id="analysis_search_button" class="btn-search fg-button ui-state-default fg-button-icon-solo ui-corner-all" title="Search">
+                    <img class="fg-button-icon-span" src="icons/search.gif"></img></span>
+                    </div>
+                </div>
+                <div id="rightTopPane">
+                    <div id="documentTabs">
+                        <ul>
+                        	<li>
+                                <a href="#intro" id="intro_tab"><span>Start page</span></a>
+                            </li>
+                        </ul>
+                        <div id="intro" class="documentTab" style="position:relative;padding:0;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="bottomPane">
+                <div id="leftBottomPane">
+                	<div id="infoTabs">
+                        <ul>
+                        	<li>
+                                <a href="#search_tab_container" id="search_tab"><span>Search</span></a>
+                            </li>
+                            <li>
+                                <a href="#info_tab_container"><span>Info</span></a>
+                            </li>
+                        </ul>
+						<div id="search_tab_container" style="position:relative;padding:0;background: #ddd;">
+							<div id="lucene_search">
+								<div id="search_target">
+									<b>Select database to search in...</b>
+								</div>
+                        		<table>
+                            		<tr>
+                            			<td><input type="text" id="search_string"/></td>
+      									<td width="20px"><a id="search_button" href="#" class="fg-button ui-state-default fg-button-icon-solo  ui-corner-all" title="Search"><img class="fg-button-icon-span" src="icons/search.gif"></img></a></td>
+									</tr>
+									<tr>
+										<td align="left"><input type="checkbox" id="search_add_asterisk" name="search_add_asterisk"><label for="search_add_asterisk"></label>Add * for your search term</label></td>
+									</tr>
+								</table>
+								<br><br>
+								<div id="filter" width="100%">
+									<table border=0>
+										<tr>
+											<td><b>Collection:</b></td>
+											<td>
+												<select id="collections" style="width:100%;">
+	        										<option value="-All-">-All-</option>
+												</select>
+											</td>
+										</tr>
+										<tr>
+											<td><b>Field name:</b></td>
+											<td>
+												<select id="fields" style="width:100%;">
+	        										<option value="-All-">-All-</option>
+												</select>
+											</td>
+										</tr>
+									</table>
+								</div>	
+							</div>
+                        </div>
+                        <div id="info_tab_container" class="elementDescriptionScrollPane" style="position:relative;padding:0;">
+							<div id="info_area" class="elementDescription">
+                    		</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="rightBottomPane">
+                    <div id="viewPartTabs">
+                        
+                        <ul>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="notification"></div>
+    </body>
+</html>

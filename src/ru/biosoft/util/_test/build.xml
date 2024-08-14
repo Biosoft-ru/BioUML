@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2010/10/13 07:08:36 lan Exp $  -->
+
+<project name="ru.biosoft.util package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="ru.biosoft.util"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="ru.biosoft.util._test.AutoTest"/>
+        </ant>
+    </target>
+	
+	<target name="DPSPropertiesTest">
+				        <ant target="rtest">
+				            <property name="testui" value="swingui"/>
+				            <property name="test" value="ru.biosoft.util._test.DPSPropertiesTest"/>
+				        </ant>
+				    </target>
+	
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+
+</project>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="TreeTable document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="ru.biosoft.treetable.TreeTableDocument"
+        key="ru.biosoft.treetable.TreeTableElement"
+      /> 
+  </extension>
+
+  <extension point="ru.biosoft.access.commonClass">
+  	<class class="ru.biosoft.treetable.TreeTableElement"/>
+  </extension>
+</plugin>

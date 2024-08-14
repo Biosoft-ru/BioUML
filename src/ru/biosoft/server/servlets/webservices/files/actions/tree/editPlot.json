@@ -1,0 +1,26 @@
+/*
+ * Edit plot action
+ */
+{
+    id: "edit_plot",
+    label: "Edit",
+    icon: "icons/plot.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.standard.simulation.plot.Plot')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        var plot = new PlotDialog(path);
+        plot.open(false);
+    }"
+}

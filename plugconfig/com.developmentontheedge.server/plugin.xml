@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="dote.service" point="ru.biosoft.server.service"> 
+      <service name="dote.service" class="com.developmentontheedge.server.DoteService"/>
+  </extension> 
+
+  <!--extension id="log4j.service" point="ru.biosoft.server.service"> 
+      <service name="log4j.service" class="com.developmentontheedge.server.Log4jService"/>
+  </extension--> 
+
+</plugin>

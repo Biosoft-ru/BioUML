@@ -1,0 +1,35 @@
+<h2>Cluster analysis by K-means</h2>
+
+<h3>Goal:</h3>
+Genes are grouped into clusters so that those in one cluster exhibit maximal similarity, whereas those of different clusters are maximally dissimilar.
+
+<h3>Input:</h3>
+A table of genes or probes with their expression values or fold change calculated. Depending on the algorithm, input of certain parameters is required.
+
+
+<h3>Output:</h3>
+A table with the same genes grouped into clusters.
+
+<h3>Parameters:</h3>
+<ul class="analysis-parameters">
+  <li><b>Experiment data</b> - experimental data for analysis.
+    <ul>
+      <li><b>Table</b> - a table with experimental data stored in repository.</li>
+      <li><b>Columns</b> - the columns from the table which should be taken for the clustering analysis.</li>
+    </ul>
+  </li>
+  <li><b>Cluster algorithm</b> - the version of the K-means algorithm to be applied [1-4].</li>
+  <li><b>Cluster number</b> - the number of clusters into which the input data will be divided.</li>
+  <li><b>Output table</b> - name and path in the repository under which the result table will be saved. If a table with the specified name and path already exists, it will be overwritten.</li>
+</ul>
+
+<h3>Further details:</h3>
+The clustering is done with the K-means algorithm as implemented in the R package (http://www.r-project.org/).
+
+<h3>References:</h3>
+<ol class="references">
+<li>Forgy, E. W. (1965) Cluster analysis of multivariate data: efficiency vs interpretability of classifications. Biometrics <b>21</b>, 768–769.
+<li>Hartigan, J. A. and Wong, M. A. (1979). A K-means clustering algorithm. Applied Statistics <b>28</b>, 100–108.
+<li>Lloyd, S. P. (1957, 1982) Least squares quantization in PCM. Technical Note, Bell Laboratories. Published in 1982 in IEEE Transactions on Information Theory <b>28</b>, 128–137.</li>  
+<li>MacQueen, J. (1967) Some methods for classification and analysis of multivariate observations. In Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability, eds L. M. Le Cam & J. Neyman, <b>1</b>, pp. 281–297. Berkeley, CA: University of California Press.</li>
+</ol>

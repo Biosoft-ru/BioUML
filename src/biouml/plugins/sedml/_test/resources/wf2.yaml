@@ -1,0 +1,13 @@
+name: wf2
+expressions:
+  model: {type: Data element}
+tasks:
+  Change diagram:
+    in: {Diagram: $Download model/outputPath$}
+    out: {Output diagram: $model$}
+    param:
+      Changes:
+      - {Property: role/vars/J0_v0/initialValue, Value: '8'}
+  Download model:
+    out: {outputPath: $Change diagram/diagramPath$}
+    param: {source: 'urn:miriam:biomodels.db:BIOMD0000000140'}

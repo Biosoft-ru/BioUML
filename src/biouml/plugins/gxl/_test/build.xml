@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.3 2007/05/02 03:53:05 alexander Exp $  -->
+
+<project name="biouml.plugins.gxl package test" default="autotest" basedir="../../../..">
+
+  <property name="package" value="biouml.plugins.gxl"/>
+
+  <target name="autotest">
+    <ant target="rtest">
+      <property name="test" value="biouml.plugins.gxl._test.AutoTest"/>
+    </ant>
+  </target>
+
+  <target name="gxl">
+    <ant target="rtest">
+      <property name="test" value="${package}._test.GxlReadWrite"/>
+    </ant>
+  </target>
+
+  <target name="clean">
+    <ant target="clean"/>
+  </target>
+
+</project>

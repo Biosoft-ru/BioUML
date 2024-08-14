@@ -1,0 +1,30 @@
+/*
+ * Create new simulation document action
+ */
+{
+    id: "new_simulation_document",
+    label: "New simulation document",
+	icon: "icons/plot.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'biouml.model.Diagram')) 
+        {
+            if( getDataCollection(completePath).diagramHasModel() )
+            {
+                return true;
+            }
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+	    createSimulationDocument(path, function(doc) {
+				openDocumentTab(doc);
+			});
+    }"
+}

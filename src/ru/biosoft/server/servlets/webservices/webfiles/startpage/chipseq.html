@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+	     ul.main-list>li{
+	       margin: 20px 0;
+	     }
+	     ul.sub-list>li{
+	       margin: 10px 0;
+	     }
+	   </style>
+</head>
+<body>
+	<p>ChIP-seq</p>
+    <ul class="main-list">
+	<li>ChIP-seq raw data processing and analysis
+		<ul class="sub-list">
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/NGS utils/Track statistics">Quality
+					control of FASTQ files</a> [<a
+				href="http://wiki.biouml.org/index.php/Track_statistics_(analysis)"
+				target="_blank">?</a>] <br> <small>Gather various
+					statistics about track or FASTQ file</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/NGS utils/Preprocess raw reads">Preprocess
+					raw reads</a> [<a
+				href="http://wiki.biouml.org/index.php/Preprocess_raw_reads_(analysis)"
+				target="_blank">?</a>] <br> <small>Cut adapters, trim
+					read tails, remove short and low quality reads</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Galaxy/sra_toolkit/fastq-dump">SRA
+					to FASTQ</a> <br> <small>Convert file from NCBI SRA format
+					to FASTQ</small></li>	
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/ChIP-seq/ChIP-seq Quality control analysis">GTRD
+					pipeline for ChIP-seq experiments processing</a> [<a
+				href="http://wiki.biouml.org/index.php/ChIP-seq_Analysis"
+				target="_blank">?</a>] <br> <small>Processing raw
+					ChIP-seq data and Quality Control metrics calculation</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Galaxy/solexa_tools/bowtie2">Bowtie2</a>
+				<br> <small>Alignment of FASTQ with Bowtie2</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Galaxy/peak_calling/peakcalling_macs">MACS14</a>
+				<br> <small>ChIP-seq peak calling using MACS14</small></li>
+		</ul>
+	</li>
+	<li>Search for TF binding sites in intervals
+		<ul class="sub-list">
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/TF binding site search/TF binding sites prediction in genome or track">
+					Prediction of TF-binding sites of given TF</a> [<a href="http://wiki.biouml.org/index.php/Site_prediction"
+				target="_blank">?</a>] <br> <small>Predict TF-binding sites of given TF on track</small></li>
+					<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/TF binding site search/Site search on track">
+					Prediction of TF-binding sites on track</a> [<a href="http://wiki.biouml.org/index.php/Site_search_on_track_(analysis)"
+				target="_blank">?</a>] <br> <small>Predict transcription factor binding sites on track</small></li>
+		</ul>
+	</li>
+	<li>Discover functional enrichment of putative target genes near
+		the peaks
+		<ul class="sub-list">
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Gene set analysis/Functional classification">Functional
+					classification</a> [<a
+				href="http://wiki.biouml.org/index.php/Functional_classification_(analysis)"
+				target="_blank">?</a>] <br> <small>Enrichment of gene
+					categories for the set of genes</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Gene set analysis/Enrichment analysis">Enrichment
+					analysis</a> [<a
+				href="http://wiki.biouml.org/index.php/Enrichment_analysis"
+				target="_blank">?</a>] <br> <small>Gene set enrichment
+					analysis for ranked set of genes</small></li>
+		</ul>
+	</li>
+	<li>Operations with tracks
+		<ul class="sub-list">
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Match sites and genes/Annotate track with genes">Annotate
+					track with genes</a> [<a
+				href="http://wiki.biouml.org/index.php/Annotate_track_with_genes_(analysis)"
+				target="_blank">?</a>] <br> <small>Add properties to
+					each track site describing genes where this site falls</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Match sites and genes/Gene set to track">Gene
+					set to track</a> [<a
+				href="http://wiki.biouml.org/index.php/Gene_set_to_track_(analysis)"
+				target="_blank">?</a>] <br> <small>Convert genes to the
+					track of promoters</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Match sites and genes/Track to gene set">Track
+					to gene set</a> [<a
+				href="http://wiki.biouml.org/index.php/Track_to_gene_set_(analysis)"
+				target="_blank">?</a>] <br> <small>Get all the genes
+					that are near the track sites</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Operations with genomic tracks/Process track with sites">Process
+					track with sites</a> [<a
+				href="http://wiki.biouml.org/index.php/Process_track_with_sites_(analysis)"
+				target="_blank">?</a>] <br> <small>Enlarge/shrink sites
+					on the track, merge overlapping sites or remove too short sites</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/NGS utils/Track statistics">Track
+					statistics</a> [<a
+				href="http://wiki.biouml.org/index.php/Track_statistics_(analysis)"
+				target="_blank">?</a>] <br> <small>Gather various
+					statistics about track or FASTQ file</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Mutations/Mutation effect">Mutation
+					effect</a> [<a
+				href="http://wiki.biouml.org/index.php/Mutation_effect_(analysis)"
+				target="_blank">?</a>] <br> <small>Determine effect of
+					mutation on protein</small></li>
+			<li><a target="_parent"
+				href="/bioumlweb/#de=analyses/Methods/Remove overlapping sites/Remove overlapping sites">Remove
+					overlapping sites</a> [<a
+				href="http://wiki.biouml.org/index.php/Remove_overlapping_sites_(analysis)"
+				target="_blank">?</a>] <br> <small>Construct subset of
+					input track so that no sites overlap in the output track</small></li>
+		</ul>
+	</li>
+	</ul>
+	<h2>
+		<a href="/bioumlweb/startpage/index.html"><b>&larr;</b>Back</a>
+	</h2>
+</body>
+</html>

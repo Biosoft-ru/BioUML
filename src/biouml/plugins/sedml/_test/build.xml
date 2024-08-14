@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<project name="biouml.plugins.sedml._test" default="autotest" basedir="../../../..">
+
+	<target name="autotest">
+		<ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.sedml._test.AutoTest"/>
+        </ant>
+	</target>
+
+	<target name="sedmlconverter.test">
+		<ant target="rtest">
+			<property name="test" value="biouml.plugins.sedml._test.SedMlConverterTest" />
+		</ant>
+	</target>
+	
+	<target name="sedmldiagram.test">
+			<ant target="rtest">
+				<property name="test" value="biouml.plugins.sedml._test.SedMlDiagramTest" />
+			</ant>
+		</target>
+
+	<target name="clean">
+		<ant target="clean" />
+	</target>
+
+</project>

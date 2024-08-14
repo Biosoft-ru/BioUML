@@ -1,0 +1,12 @@
+<tool id="cat_tables" name="Concatenate tables">
+    <description>tail-to-head</description>
+    <command>cat $inputs &gt; $output</command>
+    <inputs>
+        <param name="inputs" type="data-multi" format="tabular" label="Input files"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular"/>
+    </outputs>
+    <help>
+    </help>
+</tool>

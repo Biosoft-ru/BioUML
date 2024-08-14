@@ -1,0 +1,11 @@
+ID    plot1
+DE    plot_description_1
+PT    plot_title_1
+XT    plot_X_title_1
+XFR   10.0
+XTO   20.0
+YT    plot_Y_title_1
+YFR   100.0
+YTO   200.0
+SE    s2 plot0 Spec2 Legend2 time var0 result
+SE    s3 plot1 Spec3 Legend3 time var1 result

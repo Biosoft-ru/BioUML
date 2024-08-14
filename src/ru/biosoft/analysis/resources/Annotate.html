@@ -1,0 +1,33 @@
+<h2>Annotate analysis</h2>
+
+<p>
+  Annotates table data collection with additional fields from annotation source which can be database
+  or another table data collection (in that case table data collections will be inner joined).
+  Result table data collection contains columns specified in <b>Columns</b> 
+  parameter and fields from <b>Annotations source</b> specified in <b>Annotation fields</b>
+</p>
+
+<p>
+  <b>Note:</b> Input table data collection will not be changed instead new table with annotations will be created.
+</p> 
+
+<h3>Parameters:</h3>
+
+<ul class="analysis-parameters">
+  <li data-property="inputTablePath"><b>Experiment</b> - data table you want to add annotation to.
+  In order for this analysis to work properly this table ID column should contain recognizable biological identifiers
+  which can be mapped to the annotation source identifiers.
+  
+  <li data-property="species"><b>Species</b> - species to be used during matching if necessary.
+  <li data-property="annotationCollectionPath"><b>Annotations source</b> - data collection with fields which should be added to the <b>Table</b>.
+  	It's reasonable to use Ensembl database corresponding to the species you are working with, but some other collections and even user uploaded
+  	tables might be suitable for the annotation.
+  <li data-property="annotationColumns"><b>Annotation fields</b> - annotation fields.
+  <li data-property="replaceDuplicates"><b>Remove duplicate annotations</b> - if input table was already annotated by this source, old annotation columns will be removed from the result.
+  	When it's checked (by default), it behaves in the way the user generally expect. Uncheck this only if you want to keep both old and new annotation.
+   
+  <li data-property="outputTablePath">
+    <b>Output table</b> - the path in the repository where the result table will be stored.
+    If a table with the specified path already exists it will be replaced.
+  </li>
+</ul>

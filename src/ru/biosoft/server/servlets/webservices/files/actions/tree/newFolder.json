@@ -1,0 +1,25 @@
+/*
+ * New folder action
+ */
+{
+    id: "new_folder",
+    label: "New folder",
+    icon: "icons/new_folder.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+		if (instanceOf(type,'ru.biosoft.access.core.FolderCollection')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(completePath)
+    {
+        createGenericCollection(completePath);
+    }"
+}

@@ -1,0 +1,65 @@
+<tool id="dindel_vcf2cand2" name="VCF2Dindel candidate v2" version="2.0">
+<command>/bin/bash -v "$script"</command>
+ <inputs>
+	<param name="vcffile" type="data" format="vcf" label="VCF file"/>
+	<param name="candidates" type="data" format="txt" label="Dindel Candidates to merge" help="Dindel candidates which were received from Dindel Extract"/>
+
+	<param name="refGenome" type="select" label="Reference genome">
+                        <options from_data_table="gatk_picard_indexes">
+                                <filter type="sort_by" column="2" />
+                                <validator type="no_options" message="No genomes are available for GATK" />
+                        </options>
+        </param>
+	<param name="nThreads" type="integer" label="Number of threads" value="30" />
+</inputs>
+        <outputs>
+                <data format="txt" name="log" label="Log file"/>
+                <data format="txt" name="inserts" label="candidate indels" help="a merged output file with Dindel-style variants calls"/>
+        </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+export PATH=\$PATH:/opt/tools/dindel/default/python:/opt/tools/dindel/default/binaries
+DEST=`dirname $log`
+cd \$DEST
+err=err.pipe
+out=out.pipe
+echo \$err
+
+mkfifo "\$err" "\$out"
+
+trap 'cd \$DEST; cat dindel.logs err.tmp out.tmp &gt;&gt; "$log" ; rm -Rf "\$err" "\$out" rawfiles' EXIT
+tee err.tmp &lt; "\$err" &gt;&amp;2 &amp;
+tee out.tmp &lt; "\$out" &gt;&amp;1 &amp;
+exec 1&gt;"\$out"
+exec 2&gt;"\$err"
+
+
+cat $vcffile | \
+awk '
+	/DEL/ {pos=$2-1; print $1,"\t",pos,"\t-"substr($4,2)}; 
+	/RPL|INV/ {pos=$2-1; print $1,"\t",pos,"\t-"substr($4,2)"\n"$1,"\t",pos,"\t+"substr($5,2)}; 
+	/INS/ {pos=$2-1; print $1"\t"pos"\t+"substr($5,2)}; 
+	/DUP/ {len=length($4); pos=$2+len-1; print $1"\t"pos"\t+"substr($5,len+1)}' \
+&gt; rawList.txt
+
+mkdir -p rawfiles
+cp rawList.txt rawfiles
+cd rawfiles
+split -n l/$nThreads rawList.txt
+rm rawList.txt
+ls x* | xargs -n 1 -P $nThreads -t -I {}  /bin/bash -c "dindel --analysis realignCandidates --varFile {} --outputFile result.{} --ref '${ refGenome.fields.path }' 2&gt;&amp;1 | tee log_out.{} "
+### time dindel --analysis realignCandidates --varFile rawList.txt --outputFile dindelcandidates.txt --ref "${ refGenome.fields.path }" 
+rm x*
+
+cd ..
+cat rawfiles/log_out.* &gt;&gt; dindel.logs;
+cat rawfiles/result.* $candidates | awk '{print $1"\tPPP"$0}'| sort -d | sed 's/[^ ]*PPP//' &gt;&gt; $inserts
+
+  </configfile>
+  </configfiles>
+
+        <help>
+        </help>
+</tool>
+
+

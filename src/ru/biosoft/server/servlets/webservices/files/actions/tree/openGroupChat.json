@@ -1,0 +1,26 @@
+/*
+ * Open group chat action (chat room)
+ */
+{
+    id: "open_group_chat",
+    label: "Group chat",
+    icon: "icons/users.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.users.UserGroup')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+    	var name = getElementName(path);
+        openChatDialog(name, CONFERENCE_SERVER_PREFIX+chatPreferences.serverName);
+    }"
+}

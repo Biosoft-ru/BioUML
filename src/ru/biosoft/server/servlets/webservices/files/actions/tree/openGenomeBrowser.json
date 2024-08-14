@@ -1,0 +1,114 @@
+/*
+ * Open genome browser action
+ */
+{
+    id: "open_genome_browser",
+    label: "Open track",
+    icon: "icons/open.gif",
+    visible: "function(completePath)
+    {
+    	if(!completePath) return -1;
+    	var dc = getDataCollection(completePath);
+    	if(!instanceOf(dc.getClass(), 'ru.biosoft.bsa.Track')) return -1;
+        if(instanceOf(dc.getClass(), 'ru.biosoft.bsa.transformer.FastaSequenceCollection')) return -1;//We don't want to view fasta as a track
+        return true;
+    }",
+    action: "function(path)
+    {
+    	if(!path) return;
+    	var dc = getDataCollection(path);
+    	if(!instanceOf(dc.getClass(), 'ru.biosoft.bsa.Track')) return;
+
+        function withSequenceCollection(fun) {
+        	if(instanceOf(dc.getClass(), 'ru.biosoft.bsa.track.combined.CombinedTrack'))
+        	{
+        		dc.getBeanFields('genomeSelector/sequenceCollectionPath', function(beanDPS)
+				{
+					var genomeSelector = beanDPS.getValue('genomeSelector');
+					sequenceCollection = genomeSelector.getValue('sequenceCollectionPath');
+					if(sequenceCollection)
+		            {
+		                fun(sequenceCollection);
+		            }
+		            else
+		            {
+		                 createBeanEditorDialog('Configure genome for track', path, function(data) {
+		                    dc.invalidateCollection();
+		                    dc.getHtml(function(info)
+		                    {
+		                        $('#info_area').html(info);
+		                    });
+		                    dc.getBeanFields('genomeSelector/sequenceCollectionPath', function(beanDPS)
+							{
+								var genomeSelector = beanDPS.getValue('genomeSelector');
+								sequenceCollection = genomeSelector.getValue('sequenceCollectionPath');
+								if(sequenceCollection)
+		                        	fun(sequenceCollection);
+	                        })
+		                  }
+		                 , true);
+		            }
+        		})
+        	}
+        	else
+        	{
+        		var sequenceCollection = dc.getAttributes()['SequencesCollection'];
+	            if(sequenceCollection)
+	            {
+	                fun(sequenceCollection);
+	            }
+	            else
+	            {
+	                 createBeanEditorDialog('Configure genome for track', path, function(data) {
+	                    dc.invalidateCollection();
+	                    dc.getHtml(function(info)
+	                    {
+	                        $('#info_area').html(info);
+	                    });
+	                    sequenceCollection = dc.getAttributes()['SequencesCollection'];
+	                    if(sequenceCollection)
+	                        fun(sequenceCollection);
+	                  }
+	                 , true);
+	            }
+            }
+        }
+
+        function openDocument(sequenceCollection) {
+            var pos = dc.getAttributes()['defaultPosition'];
+            var doc = opennedDocuments[allocateDocumentId('sequence_'+sequenceCollection)];
+            if(doc)
+            {
+                openDocumentTab(doc);
+                doc.addTrack(path);
+            } else
+            {
+                paramHash = {de: sequenceCollection, pos: pos};
+                CreateSequenceDocument(sequenceCollection, function (sequenceDoc) {
+                    sequenceDoc.initialTracks = [path];
+                    openDocumentTab(sequenceDoc);
+                });
+            }
+        }
+
+    	if( instanceOf(dc.getClass(), 'ru.biosoft.bsa.analysis.FilteredTrack') )
+    	{
+    	    queryBean(path, {}, function(data){
+                    var beanDPS = convertJSONToDPS(data.values);
+                    if( beanDPS && beanDPS.properties )
+                    {
+                        var sourcePath = beanDPS.properties.sourcePath.getValue();
+                        if(sourcePath)
+                            dc = getDataCollection(sourcePath);
+                    }
+                    withSequenceCollection(openDocument);
+                } , function() {
+                    withSequenceCollection(openDocument);
+                });
+    	}
+    	else
+    	{
+    	    withSequenceCollection(openDocument);
+    	}
+    }"
+}

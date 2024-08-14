@@ -1,0 +1,13 @@
+ul.intro-styles
+{
+	list-style-type: none;
+	margin: 10px 0;
+}
+ul.intro-styles>li
+{
+	margin: 10px 0;
+}
+.intro-styles {
+	font-family: tahoma, helvetica, arial, sans-serif;
+	color: #222222; 
+}

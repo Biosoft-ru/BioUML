@@ -1,0 +1,18 @@
+/*
+ * PathFinder legend action
+ */
+{
+    id: "legend",
+    label: "Legend",
+    icon: "icons/legend.png",
+    visible: "function()
+    {
+    	if( perspective && perspective.name && (perspective.name.startsWith('PathFinder')) )
+            return true;
+        return -1; 
+    }",
+    action: "function()
+    {
+    	document.location = '#de=databases/Utils/PathFinder/legend';
+    }"
+}

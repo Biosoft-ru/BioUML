@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: org.jivesoftware.smack
+Bundle-SymbolicName: org.jivesoftware.smack;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Vendor: JiveSoftware
+Bundle-ClassPath: smack.jar,smackx.jar
+Export-Package: org.jivesoftware.smack,
+ org.jivesoftware.smack.util,
+ org.jivesoftware.smack.packet,
+ org.jivesoftware.smack.proxy,
+ org.jivesoftware.smackx,
+ org.jivesoftware.smackx.muc
+

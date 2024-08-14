@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension-point name="fileSystem"  id="fileSystem"/>
+
+  <extension point="ru.biosoft.fs.fileSystem"> 
+      <fileSystem name="local" class="ru.biosoft.fs.LocalFileSystem"/> 
+      <fileSystem name="memory" class="ru.biosoft.fs.MemoryFileSystem"/> 
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <dynamicAction name="Change type" class="ru.biosoft.fs.ui.ChangeElementTypeAction" priority="40">
+        <property name="Name" value="Change type"/>
+        <property name="ShortDescription" value="Change type"/>
+        <property name="LongDescription" value="Change type"/>
+        <property name="MnemonicKey" value="VK_Y"/>
+        <property name="SmallIcon" value="convert.gif"/>
+        <property name="ActionCommandKey" value="cmd-fs-change-type"/>
+     </dynamicAction>
+  </extension>
+</plugin>

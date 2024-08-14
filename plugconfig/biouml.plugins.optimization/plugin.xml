@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension-point name="%task" id="task"/>
+  <extension-point name="%method" id="method"/>
+
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="Optimization document" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="biouml.plugins.optimization.Optimization" transformerClass="biouml.plugins.optimization.access.OptimizationTransformer"/> 
+      <transformer name="Simulation result" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.standard.simulation.SimulationResult" transformerClass="biouml.standard.simulation.access.SimulationResultTransformer"/> 
+      <transformer name="Plot" inputClass="ru.biosoft.access.FileDataElement" 
+        outputClass="biouml.standard.simulation.plot.Plot" transformerClass="biouml.standard.simulation.plot.access.PlotTransformer"/> 
+      <transformer name="Stochastic Simulation result" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.standard.simulation.StochasticSimulationResult" transformerClass="biouml.standard.simulation.access.stochastic.StochasticSimulationResultTransformer"/>  
+  </extension>
+  
+  <extension id="Parameter fitting" point="ru.biosoft.analysiscore.method">
+	<analysisClass class="biouml.plugins.optimization.analysis.ParameterFitting" group="Parameter fitting" name="Parameter fitting" description="" />
+  </extension>
+  
+  <extension id="Parameter identifiability table" point="ru.biosoft.analysiscore.method">
+    <analysisClass
+      class="biouml.plugins.optimization.analysis.IdentifiabilityOnTableAnalysis"
+      group="Differential algebraic equations"
+      name="Parameter identifiability (table)"
+      description="Parameter identifiability which uses tables as input."
+    />
+  </extension>
+  
+  <extension id="Parameter identifiability optimization" point="ru.biosoft.analysiscore.method">
+    <analysisClass
+      class="biouml.plugins.optimization.analysis.IdentifiabilityOnOptimizationAnalysis"
+      group="Differential algebraic equations"
+      name="Parameter identifiability (optimization)"
+      description="Parameter identifiability which uses optimization as input."
+    />
+  </extension>
+  
+  <extension id="optimization document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="biouml.plugins.optimization.document.OptimizationDocument"
+        key="biouml.plugins.optimization.Optimization"
+      /> 
+  </extension>
+  
+  <extension id="optimization method parameters" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.optimization.document.editors.OptimizationMethodViewPart"
+        id="diagram.optimization.main" 
+        Name="Optimization"
+        ShortDescription=""
+        Priority = "1.1"
+      /> 
+  </extension>
+  
+  <extension id="optimization experimental data" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.optimization.document.editors.OptimizationExperimentViewPart" 
+        id="diagram.optimization.experiment" 
+        Name="Experiments"
+        ShortDescription="Experiments"
+        Priority = "1.2"
+      /> 
+  </extension>
+  
+  <extension id="simulation parameters for optimization" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.optimization.document.editors.SimulationParametersViewPart" 
+        id="diagram.simulation" 
+        Name="Simulation"
+        ShortDescription="Simulation parameters"
+        Priority = "1.3"
+      /> 
+  </extension>
+  
+  <extension id="diagram parameters" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.optimization.document.editors.DiagramParametersViewPart" 
+        id="diagram.optimization.parameters" 
+        Name="Parameters"
+        ShortDescription="Parameters of the selected diagram"
+        Priority = "1.4"
+      /> 
+  </extension>
+  
+  <extension id="diagram variables" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.optimization.document.editors.DiagramVariablesViewPart" 
+        id="diagram.optimization.variables" 
+        Name="Variables"
+        ShortDescription="Variables of the selected diagram"
+        Priority = "1.5"
+      /> 
+  </extension>
+  
+  <extension id="constraints" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.optimization.document.editors.OptimizationConstraintsViewPart" 
+        id="diagram.optimization.constraints" 
+        Name="Constraints"
+        ShortDescription="Constraints"
+        Priority = "1.6"
+      /> 
+  </extension>
+  
+  <extension id="optimization" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="optimization" class="biouml.plugins.optimization.javascript.JavaScriptOptimization" >
+        <doc description="Functions for the optimization analysis.
+        Available optimization methods: Evolution strategy (SRES), Cellular genetic algorithm, Particle swarm optimization, GLBSOLVE, Adaptive simulated annealing">
+            <function name="createOptimization" description="Creates an optimization document.">
+			    <argument name="settings" type="Object" obligatory="true" description="the optimization settings."/>
+			    <returns type="biouml.plugins.optimization.Optimization" description="created Optimization on success or null otherwise."/>
+			</function>
+			<function name="createOptimization" description="Creates an optimization document.">
+			    <argument name="name" type="String" obligatory="true" description="the optimization name. If the optimization with the same name was earlier created, it will be rewrited."/>
+			    <argument name="databaseName" type="String" obligatory="true" description="the name of the database where the diagram which parameters you want to estimate is stored."/>			
+				<argument name="diagramName" type="String" obligatory="true" description="the name of the diagram which parameters you want to estimate."/>
+				<argument name="optimizationMethod" type="Integer" obligatory="true" description="the identifier of an optimization method. Valid methods are 0 - Adaptive simulated annealing, 1 - Cellular genetic algorithm, 2 - Evolution strategy (SRES), 3 - GLBSOLVE algorithm, 4 - Particle swarm optimization, 5 - Quadratic Hill-climbing."/>
+				<returns type="biouml.plugins.optimization.Optimization" description="created Optimization on success or null otherwise."/>
+			</function>
+			<function name="addExperiment" description="Adds an experiment to the optimization document.">
+			    <argument name="optimization" type="Optimization" obligatory="true" description="the optimization document."/>
+			    <argument name="settings" type="Object" obligatory="true" description="the optimization experiment settings."/> 																																															
+		    </function>
+			<function name="addExperiment" description="Adds an experiment to the optimization document.">
+			    <argument name="optimization" type="Optimization" obligatory="true" description="the optimization document to which you want to add the experiment."/>
+			    <argument name="name" type="String" obligatory="true" description="the optimization experiment name (must be unique)."/>
+			    <argument name="diagramState" type="String" obligatory="true" description="the diagram state name, which is specified when you need to fit parameters of the diagram modification identified by state. If the value is equal to the empty string the fitting is performed for the diagram without changes."/>			
+				<argument name="dataFile" type="String" obligatory="true" description="the name of the file with experimental data. The data must be stored in folder BioUML\data_resources\Optimization\Experiments."/>
+				<argument name="weightMethod" type="Integer" obligatory="true" description="the weight method to make all trajectories of each variable have similar importance in the fit. Valid methods are 0 - mean, 1 - mean square and 2 - standard deviation."/>  
+				<argument name="experimentType" type="Integer" obligatory="true" description="the type of experimental data. Valid values are 0 - time course and 1 - steady state."/>
+				<argument name="cellLine" type="String" obligatory="true" description="the parameter for separation of the experiments on the groups. All the fitting parameters declared as local remain global within the same cell line. For the experiments where cell line value is the empty string all local parameters are independently fitted."/>  	
+				<argument name="parameterConections" type="ParameterConnection[]" obligatory="true" description="the array of connections between diagram variables and columns of the experimental data table."/>  																																															
+		    </function>
+			<function name="createParameterConnection" description="Specifies connections between variables in diagrams and columns in experimental data tables stored in the files.">
+			    <argument name="tableColumn" type="TableColumn" obligatory="true" description="the experimental table column."/>
+			    <argument name="diagramVariable" type="Variable" obligatory="true" description="the diagram parameter or variable."/>			
+				<argument name="dataType" type="Integer" obligatory="true" description="the type of the experimental data column. Valid values are 0 - exact value, 1 - relative to initial value and 2 - relative to completion value."/>
+				<returns type="biouml.plugins.optimization.OptimizationExperiment.ParameterConnection" description="created ParameterConection on success or null otherwise."/>
+			</function>
+			<function name="addFittingParameter" description="Adds a fitting parameter to the optimization document.">
+				<argument name="optimization" type="Optimization" obligatory="true" description="the optimization document to which you want to add the fitting parameter."/>
+			    <argument name="var" type="Variable" obligatory="true" description="the diagram parameter or variable which you want to fit."/>			
+				<argument name="lowerBound" type="Double" obligatory="true" description="the lower bound of the parameter search space."/>
+				<argument name="upperBound" type="Double" obligatory="true" description="the upper bound of the parameter search space."/>
+				<argument name="isLocal" type="Boolean" obligatory="true" description="the field that determines whether the parameter is local or global for the optimization experiments."/>  
+			</function>
+			<function name="addConstraint" description="Creates constraints on the diagram parameters and variables.">
+			    <argument name="optimization" type="Optimization" obligatory="true" description="the optimization document to which you want to add the constraint."/>
+			    <argument name="formula" type="String" obligatory="true" description="the equality or inequality written using the identifiers of parameters and variables declared in the diagram."/>
+			    <argument name="startTime" type="Double" obligatory="true" description="the start time of the constraint."/>			
+				<argument name="endTime" type="Double" obligatory="true" description="the end time of the constraint."/>
+			</function>
+			<function name="setSimulationParameters" description="Set simulation parameters for the specified optimization experiment.">
+			    <argument name="optimization" type="Optimization" obligatory="true" description="the optimization document."/>
+			    <argument name="expName" type="String" obligatory="true" description="the name of the optimization experiment."/>			
+				<argument name="startTime" type="Double" obligatory="true" description="the start time of the diagram simulation."/>
+				<argument name="endTime" type="Double" obligatory="true" description="the end time of the diagram simulation."/>
+				<argument name="timeIncrement" type="Double" obligatory="true" description="the time increment of the diagram simulation."/>
+			</function>
+			<function name="optimize" description="Performs the optimization of the diagram parameters and variables based on the experimental data with additional constraints.">
+			    <argument name="optimization" type="Optimization" obligatory="true" description="the optimization document with specified parameters to fit, experimental data and constraints."/>
+			    <returns type="biouml.plugins.optimization.OptimizationResultCollection" description="generated OptimizationResultCollection on success or null otherwise."/>
+			</function>
+		</doc>
+      </hostObject>
+  </extension>
+
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="Start optimization" class="biouml.plugins.optimization.access.OptimizationAnalysisAction" priority="60">
+        <property name="Name" value="Start optimization"/>
+        <property name="ShortDescription" value="Starts a new optimization with the selected method"/>
+        <property name="LongDescription" value="Starts a new optimization with the selected method"/>
+        <property name="MnemonicKey" value="VK_O"/>
+        <property name="SmallIcon" value="analysis.gif"/>
+        <property name="ActionCommandKey" value="cmd-open-document"/>
+     </action>
+  </extension>
+
+  <extension point="ru.biosoft.server.servlets.webTableResolver">
+    <tableResolver type="optimization" class="biouml.plugins.optimization.web.OptimizationTableResolver"/>
+  </extension>
+
+	<extension point="ru.biosoft.server.servlets.webProvider">
+		<provider prefix="optimization" class="biouml.plugins.optimization.web.WebOptimizationProvider"/>
+	</extension>
+
+    <extension id="optimization actions provider" point="ru.biosoft.access.repositoryActionsProvider"> 
+        <repositoryActionsProvider class="biouml.plugins.optimization.access.RepositoryActionsProvider"/> 
+    </extension>    
+
+</plugin>

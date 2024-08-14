@@ -1,0 +1,50 @@
+<tool name="Cuffmerge(Biodatomics)" id="cuffmerge_biodatomics" version="1.3.0">
+  <command>
+OUTDIR="${merged}_outdir";
+file_list="${merged}_file_list"
+for f in $input_files; do
+  echo "\$f" >> "\$file_list";
+done
+cuffmerge
+  -o "\$OUTDIR"
+  --ref-sequence "${ refGenome.fields.path }"
+  --ref-gtf "$annotation"
+  --num-threads $numThreads
+  "\$file_list"
+mv "\$OUTDIR/merged.gtf" "$merged";
+rm -rf "\$OUTDIR";
+rm -rf "\$file_list";
+  </command>
+  <inputs>
+   <param name="input_files" type="data-multi" format="gtf" label="GTF files to merge" />
+    
+    <param name="refGenome" type="select" label="Reference genome">
+			<options from_data_table="all_fasta">
+				<filter type="sort_by" column="2" />
+				<validator type="no_options" message="No genomes are available for GATK" />
+			</options>
+	</param>
+	
+	<param name="annotation" type="data" format="gtf" label="Reference annotation in GTF format" />
+	<param name="numThreads" type="integer" label="Number of threads" value="60" />
+    
+  </inputs>
+  
+  <outputs>
+    <data format="gtf" name="merged" label="Merged transcripts" />
+  </outputs>
+  
+  <help>
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

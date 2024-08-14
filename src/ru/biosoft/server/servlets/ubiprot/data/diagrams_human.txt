@@ -1,0 +1,202 @@
+AMFR2_HUMAN	AMFR																UB2D2_HUMAN	UBE2D2								AMFR2_HUMAN	AMFR 																				
+APOB_HUMAN	APOB																UB2D2_HUMAN	UBE2D2								AMFR2_HUMAN	AMFR 																				
+ATF2_HUMAN	ATF2		PM:10777545																							RN19A_HUMAN 	RNF19A																				
+ATF4_HUMAN	ATF4	phosphorylation	PM:11238952	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:11238952												
+ATF4_HUMAN	ATF4	phosphorylation	PM:11238952	K48 multi	by similarity																							SCF_hs					FBW1B_HUMAN	FBXW11													
+AURKB_HUMAN	AURKB		PM:17543862 																									CUL3_hs					KLHL9_HUMAN	KLHL9	PM:17543862 												
+AURKB_HUMAN	AURKB		PM:17543862 																									CUL3_hs					KLH13_HUMAN	KLHL13	PM:17543862 												
+BAG1_HUMAN	BAG1		PM:12297498	K11 multi	PM:12297498																					STUB1_HUMAN	STUB1		PM:12297498																		
+BAG1_HUMAN	BAG1		PM:9582267																							SIAH1_HUMAN	SIAH1		PM:9582267																		
+BCL10_HUMAN	BCL10		PM:16395405	K48 multi	PM:18287044																					BIRC3_HUMAN	BIRC3		PM:16395405																		
+BCL10_HUMAN	BCL10		PM:15082780	K48 multi	PM:15082780																					ITCH_HUMAN	ITCH		PM:15082780																		
+BCL10_HUMAN	BCL10		PM:15082780	K48 multi	PM:15082780																					NEDD4_HUMAN	NEDD4		PM:15082780																		
+BCL10_HUMAN	BCL10		PM:18287044	K48 multi	PM:18287044																																										
+BCL10_HUMAN	BCL10		PM:18287044	K63 multi	PM:18287044	K63, K31  	PM:18287044																																								
+CASL_HUMAN	NEDD9		PM:15051726																							ITCH_HUMAN	ITCH		PM:15051726																		
+CASR_HUMAN	CASR		PM:16513638	K48 multi	PM:16513638																					RN19A_HUMAN	RNF19A		PM:16513638																		
+CBL_HUMAN	CBL		PM:16227975	K48 multi	PM:16227975																					ITCH_HUMAN	ITCH		PM:16227975																		
+CBL_HUMAN	CBL		PM:11375397																							CBL_HUMAN	CBL		PM:11375397																		
+CBLB_HUMAN	CBLB		PM:11375397																							CBLB_HUMAN	CBLB		PM:11375397																		
+CCNB1_HUMAN	CCNB1		PM:12791267	K48 multi	by similarity																							APC/C_hs	PM:12791267																		
+CCNB2_HUMAN	CCNB2		PM:12791267	K48 multi	by similarity																							APC/C_hs	PM:12791267																		
+CCNB3_HUMAN	CCNB3		PM:12791267	K48 multi	by similarity																							APC/C_hs	PM:12791267																		
+CD3D_HUMAN	CD3D																UB2D2_HUMAN	UBE2D2								AMFR2_HUMAN	AMFR 																				
+CDC6_HUMAN	CDC6		PM:17567951																							HUWE1_HUMAN	HUWE1		PM:17567951																		
+CDCA3_HUMAN	CDCA3		PM:12679038	K48 multi	by similarity																							APC/C_hs	PM:12679038																		
+CDK9_HUMAN	CDK9		PM:16103164	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2													
+CDN1A_HUMAN	CDKN1A		PM:16262255	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:16262255												
+CDN1B_HUMAN	CDKN1B		PM:15531880	K48 multi	PM:15531880																					RN123_HUMAN 	RNF123		PM:15531880	UBAC1_HUMAN	UBAC1	PM:15531880															
+CDN1B_HUMAN	CDKN1B	phosphorylation	PM:16880511	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:16880511												
+CDN1B_HUMAN	CDKN1B		PM:16880511																							RO52_HUMAN	TRIM21		PM:16880511																		
+CDT1_HUMAN	CDT1	phosphorylation	PM:12840033	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:12840033												
+CFTR_HUMAN	CFTR		PM:11146634																							STUB1_HUMAN	STUB1		PM:11146634																		
+CHFR_HUMAN	CHFR		PM:11912157																							CHFR_HUMAN	CHFR		PM:11912157										UBP7_HUMAN	USP7	PM:17442268						
+CP2E1_HUMAN	CYP2E1		PM:16331994																							STUB1_HUMAN	STUB1		PM:16331994																		
+CSF1_HUMAN	CSF1																UB2L3_HUMAN 	UBE2L3	PM:16227975							CBL_HUMAN	CBL																				
+CTNB1_HUMAN	CTNNB1	phosphorylation	PM:12077367	K48 multi	by similarity												UB2R2_HUMAN	UBE2R2	PM:12037680									SCF_hs					FBW1A_HUMAN	BTRC	PM:12077367												
+CTNB1_HUMAN	CTNNB1		PM:14707120																									SCF_hs					FBW1B_HUMAN	FBXW11	PM:14707120												
+CTNB1_HUMAN	CTNNB1		PM:11389840																							SIAH1_HUMAN	SIAH1		PM:11389840 																		
+DCC_HUMAN	DCC		PM:9334332																							SIAH1_HUMAN	SIAH1		PM:9334332																		
+DLG1_HUMAN	DLG1	phosphorylation	PM:12902344	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:12902344												
+EGFR_HUMAN	EGFR		PM:12218189	multi	PM:12218189												UB2L3_HUMAN 	UBE2L3	PM:16227975							CBLB_HUMAN	CBLB		PM:12218189																		
+EGFR_HUMAN	EGFR																UB2L3_HUMAN 	UBE2L3	PM:16227975							CBL_HUMAN	CBL																				
+ELF4_HUMAN	ELF4	phosphorylation	PM:16581786	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:16581786												
+ENC1_HUMAN	ENC1		PM:15983046																									CUL3_hs	PM:15983046																		
+FBW1B_HUMAN	FBXW11		PM:14707120																									SCF_hs					FBW1B_HUMAN	FBXW11	PM:14707120												
+FBX5_HUMAN	FBXO5		PM:12791267	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:12791267												
+FOXO1_HUMAN	FOXO1	phosphorylation	PM:15668399	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:15668399												
+FOXO1_HUMAN	FOXO1		PM:17965779	K63 multi	PM:17965779																							SCF_hs	PM:17965779				FBX32_HUMAN	FBXO32	PM:17965779												
+FOXO3_HUMAN	FOXO3			K48 multi	by similarity																																										
+FOXO3_HUMAN	FOXO3		PM:17965779	K63 multi	PM:17965779																							SCF_hs	PM:17965779				FBX32_HUMAN	FBXO32	PM:17965779												
+FOXO4_HUMAN	FOXO4			K48 multi	by similarity																																										
+FOXO4_HUMAN	FOXO4		PM:16964248	mono	PM:16964248																																		UBP7_HUMAN	USP7	PM:16964248						
+GAB2_HUMAN	GAB2		PM:14604964																							CBLB_HUMAN	CBLB		PM:14604964																		
+GAG_HTL1A	GAG		PM:15126635																							NEDD4_HUMAN	NEDD4		PM:15126635																		
+GAN_HUMAN	GAN		PM:15983046																									CUL3_hs	PM:15983046																		
+GCKR_HUMAN	GCKR		PM:12591926														UBE2N_HUMAN	UBE2N	PM:12591926	UB2V2_HUMAN	UBE2V2	PM:12591926				TRAF2_HUMAN	TRAF2		PM:12591926																		
+GCM1_HUMAN	GCM1		PM:18703417	K48 multi	PM:18703417												UB2D2_HUMAN	UBE2D2	PM:18703417									SCF_hs	by similarity				FBXW2_HUMAN	FBXW2	PM:18703417												
+GCR_HUMAN	NR3C1		PM:11676916																							STUB1_HUMAN	STUB1		PM:11676916																		
+HRX_HUMAN	MLL		PM:17908926	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2													
+HRX_HUMAN	MLL		PM:17908926																									APC/C_hs																			
+HSP7C_HUMAN	HSPA8		PM:11557750																							STUB1_HUMAN	STUB1		PM:11557750																		
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:14707120	K48 multi	PM:10775461																							SCF_hs					FBW1B_HUMAN	FBXW11	PM:14707120												
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:10066435	K48 multi	PM:7628694																							SCF_hs					FBW1A_HUMAN	BTRC	PM:10066435												
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:10066435	K48 multi	PM:7628694																							SCF_hs					FBW1B_HUMAN	FBXW11	PM:10066435												
+IKBA_HUMAN	NFKBIA		PM:14550571	K48 multi	PM:14550571																																										
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:10918611	multi	PM:11295496	K21, K22	PM:7479976										UB2R1_HUMAN	CDC34	PM:10918611									SCF_hs					FBW1A_HUMAN	BTRC	PM:10644755												
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:10918611	multi	PM:11295496	K21, K22	PM:7479976										UB2D2_HUMAN	UBE2D2	PM:10918611									SCF_hs					FBW1A_HUMAN	BTRC	PM:10644755												
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:10918611	multi	PM:11295496	K21, K22	PM:7479976										UB2R1_HUMAN	CDC34	PM:10918611									SCF_hs					FBW1B_HUMAN	FBXW11	PM:10644755												
+IKBA_HUMAN	NFKBIA	phosphorylation	PM:10918611	multi	PM:11295496	K21, K22	PM:7479976										UB2D2_HUMAN	UBE2D2	PM:10918611									SCF_hs					FBW1B_HUMAN	FBXW11	PM:10644755												
+IKBB_HUMAN	NFKBIB	phosphorylation	PM:10497169	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:10497169												
+IKBE_HUMAN	NFKBIE	phosphorylation	PM:10497169	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:10497169												
+INAR1_HUMAN	IFNAR1		PM:14532120	K48 multi	by similarity																							SCF_hs					FBW1B_HUMAN	FBXW11	PM:14532120												
+IRAK1_HUMAN	IRAK1		PM:14550571	K48 multi	PM:14550571																																										
+IRAK1_HUMAN	IRAK1		PM:18347055	K63 multi	PM:18347055	K134, K180	PM:18347055																			TRAF6_HUMAN	TRAF6		PM:18347055																		
+IRF5_HUMAN	IRF5		PM:18824541	K63 multi	PM:18824541	K411 K410	PM:18824541																			TRAF6_HUMAN	TRAF6		PM:18824541																		
+IRF7_HUMAN	IRF7		PM:18710948	K63 multi	PM:18710948	K444, K446, K452	PM:18710948																			TRAF6_HUMAN	TRAF6		PM:18710948																		
+IRF7_HUMAN	IRF7		PM:15361868	K63 multi	PM:18710948																					TRAF6_HUMAN	TRAF6		PM:15361868																		
+KBTBA_HUMAN	KBTBD10		PM:15983046																									CUL3_hs	PM:15983046																		
+KCNA3_HUMAN	KCNA3		PM:15040001																							NED4L_HUMAN	NEDD4L		PM:15040001																		
+KCNA3_HUMAN	KCNA3																									NEDD4_HUMAN	NEDD4																				
+KEAP1_HUMAN	KEAP1		PM:15983046																									CUL3_hs	PM:15983046																		
+KSYK_HUMAN	SYK		PM:12771181																							CBLB_HUMAN	CBLB		PM:12771181																		
+LCMT2_HUMAN	LCMT2		PM:12853982																							R144B_HUMAN	RNF144B		PM:12853982																		
+MAGD1_HUMAN	MAGED1																UB2D2_HUMAN	UBE2D2								PJA2_HUMAN	PJA2																				
+MAGD1_HUMAN	MAGED1																UB2D2_HUMAN	UBE2D2								PJA1_HUMAN	PJA1																				
+MALT1_HUMAN	MALT1		PM:17948050	K63 multi	PM:17948050																					TRAF6_HUMAN	TRAF6		PM:17948050																		
+MCL1_HUMAN	MCL1		PM:15989957	multi	PM:15989957																					HUWE1_HUMAN	HUWE1		PM:15989957																		
+MDM2_HUMAN	MDM2		PM:17989425	K48 multi	PM:17989425																					MDM2_HUMAN	MDM2		PM:17989425																		
+MPIP1_HUMAN	CDC25A	phosphorylation	PM:14681206	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:14681206												
+MPIP1_HUMAN	CDC25A																											SCF_hs					FBW1B_HUMAN	FBXW11													
+MYBPP_HUMAN	MYCBPAP		PM:17255943	mono	PM:17255943												UB2L3_HUMAN 	UBE2L3	PM:16227975							CBL_HUMAN	CBL		PM:17255943																		
+MYC_HUMAN	MYC		PM:12842079	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:12842079												
+MYC_HUMAN	MYC		PM:15103331																									SCF_hs					FBXW7_HUMAN	FBXW7	PM:15103331												
+MYC_HUMAN	MYC		PM:17786314																									ECV_hs	PM:17786314				SKP2_HUMAN	SKP2	PM:17786314												
+MYOD1_HUMAN	MYOD1		PM:15531760			K133	PM:15531760																					SCF_hs	PM:15531760				FBX32_HUMAN	FBXO32	PM:15531760												
+NEMO_HUMAN	IKBKG		PM:14695475	K63 multi	PM:14695475	"K277, K309; K285;  K399"	"PM:14651848;    PM:15620648; PM:14695475"										UBE2N_HUMAN	UBE2N	PM:14695475	UB2V2_HUMAN	UBE2V2	by similarity				MALT1_HUMAN	MALT1		PM:14695475										CYLD_HUMAN	CYLD	PM:12917691						
+NEMO_HUMAN	IKBKG		PM:15125833	K63 multi	PM:18216269																					TRAF6_HUMAN	TRAF6		PM:15125833										CYLD_HUMAN	CYLD	PM:15226292						
+NEMO_HUMAN	IKBKG		PM:16129784	K63 multi	PM:16129784	K399	PM:14695475										UBE2N_HUMAN	UBE2N	PM:16129784	UB2V1_HUMAN	UBE2V1 	PM:16129784				TRAF6_HUMAN	TRAF6		PM:16129784																		
+NF2L2_HUMAN	NFE2L2		PM:15601839	K48 multi	PM:15601839																							CUL3_hs	PM:15601839				KEAP1_HUMAN	KEAP1	PM:15601839												
+NFKB1_HUMAN	NFKB1	phosphorylation	PM:12482991																									SCF_hs					FBW1A_HUMAN	BTRC	PM:12482991												
+NFKB1_HUMAN	NFKB1	phosphorylation	PM:11158290																									SCF_hs					FBW1B_HUMAN	FBXW11	PM:11158290												
+NFKB1_HUMAN	NFKB1		PM:16056267																									SCF_hs					FBW1A_HUMAN	BTRC	PM:16056267												
+NFKB2_HUMAN	NFKB2		PM:16056267																									SCF_hs					FBW1A_HUMAN	BTRC	PM:16056267												
+NR2C2_HUMAN	NR2C2		PM:18758450	K63 multi	PM:18758450	K34	PM:18758450																			TRAF6_HUMAN	TRAF6		PM:18758450																		
+NR2C2_HUMAN	NR2C2			K63 multi																						TRAF2_HUMAN	TRAF2																				
+NTRK1_HUMAN	NTRK1		PM:18457658	K63 multi																						TRAF6_HUMAN	TRAF6		PM:18457658																		
+NUMB_HUMAN	NUMB		PM:11782429																							LNX1_HUMAN	LNX1		PM:11782429																		
+NUMB_HUMAN	NUMB		PM:11752454																							SIAH1_HUMAN	SIAH1		PM:11752454																		
+OBF1_HUMAN	POU2AF1		PM:11483517																							SIAH1_HUMAN	SIAH1		PM:11483517																		
+OBF1_HUMAN	POU2AF1		PM:11483518																							SIAH2_HUMAN	SIAH2		PM:11483518																		
+ORC1_HUMAN	ORC1L		PM:11931757	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:11931757												
+P53_HUMAN	TP53		PM:17989425	K48 multi	PM:17989425																					MDM2_HUMAN	MDM2		PM:17989425										UBP7_HUMAN	USP7	PM:11923872						
+P53_HUMAN	TP53			K48 multi													UB2L3_HUMAN	UBE2L3	PM:10558980							UBE3A_HUMAN	UBE3A												UBP7_HUMAN	USP7	PM:11923872						
+P53_HUMAN	TP53		PM:15247280	K48 multi	PM:15247280																					TOPRS_HUMAN	TOPORS		PM:15247280										UBP7_HUMAN	USP7	PM:11923872						
+P53_HUMAN	TP53		PM:15911628	K48 multi	PM:15911628																					STUB1_HUMAN	STUB1		PM:15911628										UBP7_HUMAN	USP7	PM:11923872						
+P53_HUMAN	TP53		PM:15567145																							HUWE1_HUMAN	HUWE1		PM:15567145										UBP7_HUMAN	USP7	PM:11923872						
+P53_HUMAN	TP53		PM:16427630																							R144B_HUMAN	RNF144B		PM:16427630										UBP7_HUMAN	USP7	PM:11923872						
+P85A_HUMAN	PIK3R1		PM:11087752																							CBLB_HUMAN	CBLB		PM:11087752																		
+P87662_9ALPH	ICPO		PM:15247261																							P87662_9ALPH	ICPO		PM:15247261										UBP7_HUMAN	USP7	PM:15247261						
+PAXI_HUMAN	PXN		PM:12861019					UBA6_HUMAN 	UBA6								UB2D2_HUMAN	UBE2D2								RNF5_HUMAN	RNF5		PM:12861019																		
+PCNA_HUMAN	PCNA	ubiquitylation	PM:17108083	K63 multi	PM:17108083												UBE2N_HUMAN	UBE2N	PM:17108083	UB2V2_HUMAN	UBE2V2	PM:17108083				SHPRH_HUMAN	SHPRH		PM:17108083																		
+PCNA_HUMAN	PCNA	ubiquitylation	PM:18316726	K63 multi	PM:18316726												UBE2N_HUMAN	UBE2N	PM:18316726	UB2V2_HUMAN	UBE2V2	PM:18316726				HLTF_HUMAN	HLTF		PM:18316726																		
+PCNA_HUMAN	PCNA		PM:15149598	mono	PM:15149598																					RAD18_HUMAN	RAD18		PM:15149598																		
+PCNA_HUMAN	PCNA		PM:17108083	mono	PM:17108083	K164	PM:17108083										UBE2B_HUMAN	UBE2B	PM:17108083							RAD18_HUMAN	RAD18		PM:17108083																		
+PDGFA_HUMAN	PDGFA																UB2L3_HUMAN 	UBE2L3	PM:16227975							CBL_HUMAN	CBL																				
+PGAM5_HUMAN	PGAM5		PM:17046835	K48 multi	PM:17046835																							CUL3_hs	PM:17046835				KEAP1_HUMAN	KEAP1	PM:17046835												
+PLK1_HUMAN	PLK1		PM:11807090	multi	PM:11807090																					CHFR_HUMAN	CHFR		PM:11807090																		
+RAF1_HUMAN	RAF1																									STUB1_HUMAN	STUB1																				
+RAG2_HUMAN	RAG2	phosphorylation	PM:15949444	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:15949444												
+RBL2_HUMAN	RBL2	phosphorylation	PM:12435635	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:12435635												
+RFC2_HUMAN	RFC2		PM:18245774														UBE2B_HUMAN	UBE2B	PM:18245774							RAD18_HUMAN	RAD18		PM:18245774																		
+RIPK1_HUMAN	RIPK1		PM:15728425	K48 multi	PM:15728425																					TRAF2_HUMAN	TRAF2		PM:15728425																		
+RIPK1_HUMAN	RIPK1		PM:16115877	K63 multi	PM:16115877																					TRAF2_HUMAN	TRAF2		PM:16115877																		
+RO52_HUMAN	TRIM21		PM:16472766																							RO52_HUMAN	TRIM21		PM:16472766										UBP4_HUMAN	USP4	PM:16472766						
+SCN2A_HUMAN	SCN2A		PM:15548568																							NED4L_HUMAN	NEDD4L		PM:15548568																		
+SCN2A_HUMAN	SCN2A																									NEDD4_HUMAN	NEDD4																				
+SCN3A_HUMAN	SCN3A		PM:15548568																							NED4L_HUMAN	NEDD4L		PM:15548568																		
+SCN3A_HUMAN	SCN3A																									NEDD4_HUMAN	NEDD4																				
+SCN5A_HUMAN	SCN5A		PM:15217910																							NED4L_HUMAN	NEDD4L		PM:15217910																		
+SCN5A_HUMAN	SCN5A		PM:15548568																							NEDD4_HUMAN	NEDD4		PM:15548568																		
+SCN5A_HUMAN	SCN5A		PM:15548568																							WWP2_HUMAN	WWP2		PM:15548568																		
+SH3K1_HUMAN	SH3KBP1			mono													UB2L3_HUMAN 	UBE2L3	PM:16227975							CBL_HUMAN	CBL																				
+SH3K1_HUMAN	SH3KBP1		PM:12218189	mono	PM:12218189												UB2L3_HUMAN 	UBE2L3	PM:16227975							CBLB_HUMAN	CBLB		PM:12218189																		
+SKP1_HUMAN	SKP1		PM:17254749																									SCF_hs					SKP2_HUMAN	SKP2	PM:17254749												
+SKP2_HUMAN	SKP2		PM:17254749	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:17254749												
+SMAD2_HUMAN	SMAD2		PM:15359284	K48 multi	PM:15359284																					Q5YLC1_HUMAN			PM:15359284																		
+SMAD3_HUMAN	SMAD3	phosphorylation	PM:11359933	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:11359933												
+SMAD4_HUMAN	SMAD4	phosphorylation																										SCF_hs					FBW1A_HUMAN	BTRC													
+SNCAP_HUMAN	SNCAIP		PM:12750386																							RN19A_HUMAN	RNF19A		PM:12750386																		
+SNCAP_HUMAN	SNCAIP		PM:14506261																							PRKN2_HUMAN	PARK2		PM:14506261																		
+SNCAP_HUMAN	SNCAIP		PM:14506261																							SIAH1_HUMAN	SIAH1		PM:14506261																		
+SODC_HUMAN	SOD1	unfolded	PM:12145308	K48 multi	PM:12145308																					RN19A_HUMAN	RNF19A		PM:12145308																		
+SPTA1_HUMAN	SPTA1		PM:7721801														SPTA1_HUMAN	SPTA1	PM:11560514							SPTA1_HUMAN	SPTA1		PM:15040428																		
+SRC_HUMAN	SRC		PM:17936276																							LNX1_HUMAN	LNX1																				
+STK6_HUMAN	AURKA		PM:17442268																							CHFR_HUMAN	CHFR		PM:17442268																		
+STUB1_HUMAN	STUB1		PM:18485199														UB2D1_HUMAN	UBE2D1	PM:18485199							STUB1_HUMAN	STUB1		PM:18485199																		
+TAB2_HUMAN	MAP3K7IP2		PM:14633987	K63 multi	PM:15327770																					TRAF6_HUMAN	TRAF6		PM:14633987																		
+TAB3_HUMAN	MAP3K7IP3		PM:14633987	K63 multi	PM:15327770																					TRAF6_HUMAN	TRAF6		PM:14633987																		
+TAL1_HUMAN	TAL1		PM:17962192	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2													
+TAL1_HUMAN	TAL1		PM:17962192	K48 multi	by similarity																					STUB1_HUMAN	STUB1		PM:17962192																		
+TAU_HUMAN	MAPT		PM:15953362	K63 multi	PM:15953362																					TRAF6_HUMAN	TRAF6		PM:15953362																		
+TOB1_HUMAN 	TOB1		PM:16951159	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2													
+TP53B_HUMAN	TP53BP1		PM:18678647														UBE2N_HUMAN	UBE2N	PM:18678647							RNF8_HUMAN	RNF8		PM:18678647																		
+TRAF2_HUMAN	TRAF2		PM:12411493	K48 multi	PM:12411493																					SIAH2_HUMAN	SIAH2		PM:12411493										UBP48_HUMAN	USP48							
+TRAF2_HUMAN	TRAF2		PM:12917690																																				CYLD_HUMAN	CYLD	PM:12917690						
+TRAF2_HUMAN	TRAF2		PM:11907583																							BIRC2_HUMAN	BIRC2		PM:11907583																		
+TRAF6_HUMAN	TRAF6		PM:11460167	K63 multi	PM:11460167												UBE2N_HUMAN	UBE2N	PM:11460167	UB2V1_HUMAN	UBE2V1	PM:11460167				TRAF6_HUMAN	TRAF6		PM:11057907										CYLD_HUMAN	CYLD	PM:12917689						
+TRIM5_HUMAN	TRIM5		PM:18312418	mono	PM:18312418												UB2D2_HUMAN	UBE2D2	PM:18312418							TRIM5_HUMAN	TRIM5		PM:18312418																		
+TRIM5_HUMAN	TRIM5		PM:18312418	mono	PM:18312418																					RO52_HUMAN	RO52		PM:18312418																		
+TRIM5_HUMAN	TRIM5		PM:16472833	multi	PM:16472833																																										
+TS101_HUMAN	TS101		PM:15256501	multi mono	PM:15256501																					LRSM1_HUMAN	LRSAM1		PM:15256501																		
+UBE3A_HUMAN	UBE3A		PM:9688277																							UBE3A_HUMAN	UBE3A																				
+UBP4_HUMAN	USP4		PM:16472766																							RO52_HUMAN	TRIM21		PM:16472766										UBP4_HUMAN	USP4	PM:16472766						
+UBP43_HUMAN	USP43		PM:15342634	K48 multi	by similarity																							SCF_hs					SKP2_HUMAN	SKP2	PM:15342634												
+WEE1_HUMAN	WEE1		PM:12679038	K48 multi	by similarity																							SCF_hs					CDCA3_HUMAN	CDCA3	PM:12679038												
+WEE1_HUMAN	WEE1		PM:15070733	K48 multi	by similarity																							SCF_hs					FBW1A_HUMAN	BTRC	PM:15070733												
+				K63 multi	PM:14562038												UBE2N_HUMAN	UBE2N	PM:14562038	UB2V2_HUMAN	UBE2V2	PM:14562038				CHFR_HUMAN	CHFR		PM:14562038																		
+	IKK		PM:11460167	K63 multi	PM:11460167												UBE2N_HUMAN	UBE2N	PM:11460167	UB2V1_HUMAN	UBE2V1	PM:11460167				TRAF6_HUMAN	TRAF6		PM:11057907																		
+	NFKB		PM:18759459	K63 multi	PM:18759459																					TRAF6_HUMAN	TRAF6		PM:18759459																		
+	NRIF		PM:18457658	K63 multi	PM:16252010	K19	PM:16252010																			TRAF6_HUMAN	TRAF6		PM:18457658																		
+				"K63 multi"	"PM:16215985;"												UBE2N_HUMAN	UBE2N	PM:16215985	UB2V1_HUMAN	UBE2V1	PM:16215985				RNF8_HUMAN	RNF8		PM:16215985																		
+				"K48 multi"	"PM:16215985;"												UBE2N_HUMAN	UBE2N	PM:16215985	UB2V1_HUMAN	UBE2V1	PM:16215985				RNF8_HUMAN	RNF8		PM:16215985																		
+				"K29 multi"	"PM:16215985;"												UBE2N_HUMAN	UBE2N	PM:16215985	UB2V1_HUMAN	UBE2V1	PM:16215985				RNF8_HUMAN	RNF8		PM:16215985																		
+				K63 multi	PM:16307917												UBE2N_HUMAN	UBE2N	PM:16307917	UB2V1_HUMAN	UBE2V1	PM:16307917				STUB1_HUMAN	STUB1		PM:16307917																		
+																	UBE2A_HUMAN	RAD6A	PM:17108083	RAD18_HUMAN	RAD18	PM:17108083				SHPRH_HUMAN	SHPRH		PM:17108083																		
+																	UBE2B_HUMAN	RAD6B	PM:17108083	RAD18_HUMAN	RAD18	PM:17108083				SHPRH_HUMAN	SHPRH		PM:17108083																		
+	calcineurin A		PM:15489953																									SCF_hs	PM:15489953				FBX32_HUMAN	FBXO32	PM:15489953												
+																	UB2E2_HUMAN	UBE2E2	PM:18485199							STUB1_HUMAN	STUB1		PM:18485199																		
+	VCP		PM:16513638																							RN19A_HUMAN	RNF19A		PM:16513638																		
+																	UB2D2_HUMAN	UBE2D2	PM:9990509							NEDD4_HUMAN	NEDD4		PM:9990509																		
+																	UB2L3_HUMAN	UBE2L3	PM:9990509							NEDD4_HUMAN	NEDD4		PM:9990509																		
+																	UB2D3_HUMAN	UBE2D3	PM:9990509							NEDD4_HUMAN	NEDD4		PM:9990509																		
+																	UB2E1_HUMAN	UBE2E1	PM:9990509							NEDD4_HUMAN	NEDD4		PM:9990509																		
+																	UB2L3_HUMAN	UBE2L3	PM:16427630							R144B_HUMAN	RNF144B		PM:16427630																		
+																		UBCH8	PM:16427630							R144B_HUMAN	RNF144B		PM:16427630																		
+																	UB2E1_HUMAN	UBE2E1	PM:11322894							RNF8_HUMAN	RNF8		PM:11322894																		
+																	UB2E2_HUMAN	UBE2E2	PM:11322894							RNF8_HUMAN	RNF8		PM:11322894																		
+																	UB2E3_HUMAN	UBE2E3	PM:11322894							RNF8_HUMAN	RNF8		PM:11322894																		
+																	UB2L3_HUMAN	UBE2L3	PM:17433363							UBE3A_HUMAN	UBE3A		PM:17433363																		
+																	UB2D2_HUMAN	UBE2D2	PM:9990509							UBE3A_HUMAN	UBE3A		PM:9990509																		
+																	UB2D3_HUMAN	UBE2D3	PM:9990509							UBE3A_HUMAN	UBE3A		PM:9990509																		
+																	UB2L3_HUMAN	UBE2L3	PM:9990509							UBE3A_HUMAN	UBE3A		PM:9990509																		

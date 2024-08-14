@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!--  $Id: build.xml,v 1.1 2011/10/25 09:02:53 axec Exp $  -->
+
+<project name="biouml.plugins.agentmodeling package test" default="autotest" basedir="../../../..">
+
+    <property name="package" value="biouml.plugins.agentmodeling"/>
+
+    <target name="autotest">
+        <ant target="rtest">
+            <property name="testui" value="swingui"/>
+            <property name="test" value="biouml.plugins.agentmodeling._test.AutoTest"/>
+        </ant>
+    </target>
+	
+	<target name="ArterialTree2">
+				        <ant target="rtest">
+				            <property name="testui" value="swingui"/>
+				            <property name="test" value="biouml.plugins.agentmodeling._test.ArterialTreeTest2"/>
+				        </ant>
+				    </target>
+
+    <target name="ArterialTree">
+    				        <ant target="rtest">
+    				            <property name="testui" value="swingui"/>
+    				            <property name="test" value="biouml.plugins.agentmodeling._test.ArterialTreeTest"/>
+    				        </ant>
+    				    </target>
+
+</project>

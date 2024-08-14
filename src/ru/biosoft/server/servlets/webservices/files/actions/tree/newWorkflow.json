@@ -1,0 +1,25 @@
+/*
+ * New workflow action
+ */
+{
+    id: "new_workflow",
+    label: "New workflow",
+	icon: "icons/workflow.gif",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') && dc.isJournal()) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        createJournalDiagram(path, 'workflow', true);
+    }"
+}

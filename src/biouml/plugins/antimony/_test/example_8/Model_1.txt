@@ -1,0 +1,11 @@
+@import biouml = "databases/Utils/Antimony/biouml.yaml";
+model Module_1(<s1)
+
+end
+
+model Module_2(>s1)
+
+end
+
+Module_1: Module_1()
+Module_2: Module_2()

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension-point name="package"  id="package"/>
+  
+  <extension id="SbmlModuleType" point="biouml.workbench.moduleType"> 
+      <moduleType 
+        class="biouml.plugins.sbml.SbmlModuleType"
+        displayName="%SbmlModule" 
+        description="%SbmlModuleDescription"
+        priority="80"
+      /> 
+  </extension> 
+
+  <extension id="SbmlToSbmlImporter" point="ru.biosoft.access.import"> 
+     <import 
+        format="SBML"
+        importer="biouml.plugins.sbml.SbmlImporter"
+        description="biouml/plugins/sbml/resources/SBMLFormat.html"
+        moduleType = "biouml.plugins.sbml.SbmlModuleType"
+     /> 
+  </extension> 
+  
+  <extension id="SbmlCompositePackage" point="biouml.plugins.sbml.package"> 
+     <package
+        name="comp"
+        reader="biouml.plugins.sbml.composite.SbmlCompositeReader"
+        writer="biouml.plugins.sbml.composite.SbmlCompositeWriter"
+     /> 
+  </extension> 
+  
+  <extension id="CellDesignerToSbmlImporter" point="ru.biosoft.access.import"> 
+     <import 
+        format="SBML(CellDesigner)"
+        importer="biouml.plugins.sbml.celldesigner.CellDesignerImporter"
+        description="biouml/plugins/sbml/celldesigner/resources/SBMLCellDesignerFormat.html"
+        moduleType = "biouml.plugins.sbml.SbmlModuleType"
+     /> 
+  </extension>
+
+  <extension id="SbmlExporter" point="ru.biosoft.access.export"> 
+     <export 
+        diagramType="*"
+        format="SBML"
+        suffix=".xml"
+        contentType="text/xml"
+        exporter="biouml.plugins.sbml.SbmlExporter"
+        description="%SBMLExportDescription"
+     /> 
+  </extension> 
+  
+  <extension id="sbmlDiagramTypeConversions" point="biouml.workbench.diagramTypeConverter"> 
+
+      <conversion 
+        from="biouml.standard.diagram.SemanticNetworkDiagramType"
+        to="biouml.plugins.sbml.SbmlDiagramType"
+        converter="biouml.plugins.sbml.converters.SbmlConverter"
+      /> 
+      
+      <conversion 
+        from="biouml.standard.diagram.PathwayDiagramType"
+        to="biouml.plugins.sbml.SbmlDiagramType"
+        converter="biouml.plugins.sbml.converters.SbmlConverter"
+      /> 
+      
+      <conversion 
+        from="biouml.standard.diagram.PathwaySimulationDiagramType"
+        to="biouml.plugins.sbml.SbmlDiagramType"
+        converter="biouml.plugins.sbml.converters.SbmlConverter"
+      /> 
+      
+      <conversion 
+        from="biouml.standard.diagram.MetabolicPathwayDiagramType"
+        to="biouml.plugins.sbml.SbmlDiagramType"
+        converter="biouml.plugins.sbml.converters.SbmlConverter"
+      /> 
+      
+      <conversion 
+        from="biouml.standard.diagram.GeneNetworkDiagramType"
+        to="biouml.plugins.sbml.SbmlDiagramType"
+        converter="biouml.plugins.sbml.converters.SbmlConverter"
+      /> 
+      
+  </extension> 
+  
+  <!-- ================================================================ -->
+  <!-- annotations extension                                            -->
+  <!-- ================================================================ -->
+  
+  <extension-point name="%annotation"             id="annotation"/>
+
+  <extension id="RdfAnnotationReader" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="rdf" 
+        extension_class="biouml.plugins.sbml.extensions.RdfExtensionReader"
+      /> 
+  </extension> 
+  
+    <extension id="RandomExtension" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="random" 
+        extension_class="biouml.plugins.sbml.extensions.RandomExtension"
+      /> 
+  </extension> 
+  
+  <extension id="StateAnnotationExtension" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="state" 
+        priority="3"
+        extension_class="biouml.plugins.sbml.extensions.StateExtension"
+      /> 
+  </extension> 
+  
+  <extension id="SimulationAnnotationExtension" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="simulation" 
+        priority="1"
+        extension_class="biouml.plugins.sbml.extensions.SimulationExtension"
+      /> 
+  </extension> 
+  
+  <extension id="PlotAnnotationExtension" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="plot" 
+        priority="2"
+        extension_class="biouml.plugins.sbml.extensions.PlotExtension"
+      /> 
+  </extension>
+  
+  <extension id="SBGNAnnotationExtension" point="biouml.plugins.sbml.annotation"> 
+      <annotation
+        namespace="" 
+        priority="4"
+        extension_class="biouml.plugins.sbml.extensions.SBGNExtension"
+      /> 
+  </extension>
+
+  <extension id="sbml" point="ru.biosoft.plugins.javascript.hostObject"> 
+      <hostObject name="sbml" class="biouml.plugins.sbml.javascript.JavaScriptSbml" >
+        <doc description="Functions for SBML diagrams processing.">
+           <function name="formats" description="">
+			    <returns type="String[]" description="the array of supported SBML files formats."/>
+           </function>
+           <function name="extensions" description="">
+			    <returns type="String[]" description="the array of supported extensions (used in annotation tag)."/>
+           </function>
+           <function name="load" description="Loads SBML file by the specified path.">
+			    <argument name="path" type="String" obligatory="true" description="the path to SBML file to be loaded."/>
+                <returns type="Diagram" description="the loaded diagram on succes or null otherwise."/>
+           </function>
+           <function name="save" description="Saves SBML file with the specified path.">
+			    <argument name="diagram" type="Diagram" obligatory="true" description="the diagram to be stored in SBML format."/>
+			    <argument name="path" type="String" obligatory="true" description="the path for SBML file to store the model."/>
+			    <argument name="extensions" type="String[]" obligatory="true" description="SBML extensions to save extra information, for example diagram layout. See extensions function for further details."/>
+           </function>
+		</doc>
+      </hostObject>
+  </extension>
+  
+  <extension point="ru.biosoft.access.transformer">
+      <transformer name="SBML diagram" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.sbml.SbmlDiagramTransformer" />
+  </extension>
+</plugin>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="InternalEnsemblHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Ensembl ID converter" class="biouml.plugins.ensembl.biohub.InternalEnsemblHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="EnsemblProteinToExternalHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Ensembl protein to external" class="biouml.plugins.ensembl.biohub.EnsemblProteinToExternalHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="EnsemblTranscriptToExternalHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Ensembl transcripts to external" class="biouml.plugins.ensembl.biohub.EnsemblTranscriptToExternalHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="EnsemblGeneToExternalHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Ensembl genes to external" class="biouml.plugins.ensembl.biohub.EnsemblGeneToExternalHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="ExternalToEnsemblGeneHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="External to Ensembl gene" class="biouml.plugins.ensembl.biohub.ExternalToEnsemblGeneHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="ExternalToEnsemblTranscriptHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="External to Ensembl transcript" class="biouml.plugins.ensembl.biohub.ExternalToEnsemblTranscriptHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="ProbeToEnsemblTranscriptHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Probes to Ensembl transcript" class="biouml.plugins.ensembl.biohub.ProbeToEnsemblTranscriptHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="ExternalToEnsemblProteinHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="External to Ensembl protein" class="biouml.plugins.ensembl.biohub.ExternalToEnsemblProteinHub">
+     </hubItem> 
+  </extension> 
+
+  <extension id="Homology mapper" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.ensembl.homology.HomologyMapping" group="Table manipulation" name="Convert table via homology"
+         shortDescription="Convert table from one species to another."
+         description="biouml/plugins/ensembl/homology/resources/HomologyMapping.html"/> 
+  </extension>
+   
+  <extension id="Homology import" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.ensembl.homology.ImportProteinTreeAnalysis" group="Admin" name="Import ensembl homology"  description="Import ensembl homology file."/> 
+  </extension>
+   
+  <extension id="HomologyHub" point="ru.biosoft.access.biohub"> 
+     <hubItem name="HomologyHub" class="biouml.plugins.ensembl.homology.HomologyHub">
+        <property name="jdbcDriverClass" value="%jdbcDriverClass"/>
+        <property name="jdbcURL" value="%jdbcURL"/>
+        <property name="jdbcUser" value="%jdbcUser"/>
+        <property name="jdbcPassword" value="%jdbcPassword"/>
+     </hubItem> 
+  </extension> 
+
+  <extension point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.ensembl.tabletype.AffymetrixProbeTableType" urlTemplate="MIR:00000394"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.AgilentProbeTableType"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.IlluminaProbeTableType"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.EnsemblGeneTableType" urlTemplate="MIR:00000003"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.EnsemblProteinTableType" urlTemplate="MIR:00000003"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.EnsemblTranscriptTableType" urlTemplate="MIR:00000003"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.EntrezGeneTableType" urlTemplate="MIR:00000069"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.GenBankGeneTableType" urlTemplate="MIR:00000029"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.GenBankProteinType" urlTemplate="MIR:00000345"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.NCBIProteinType" urlTemplate="http://www.ncbi.nlm.nih.gov/protein/$id$"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.GeneSymbolTableType"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.IPIProteinTableType" urlTemplate="MIR:00000043"/>
+  	<!--type typeClass="biouml.plugins.ensembl.tabletype.RefSeqGeneTableType" urlTemplate="MIR:00000039"/-->
+  	<type typeClass="biouml.plugins.ensembl.tabletype.RefSeqProteinTableType" urlTemplate="MIR:00000039"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.RefSeqTranscriptTableType" urlTemplate="MIR:00000039"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.UniGeneTableType"/>
+  	<type typeClass="biouml.plugins.ensembl.tabletype.UniprotProteinTableType" urlTemplate="MIR:00000005"/>
+  </extension>
+
+  <extension id="Convert track to gene set" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.ensembl.analysis.TrackToGeneSet" group="Match sites and genes" name="Track to gene set"  description="Convert track to gene set (get all genes which lie near the sites from the track)."/> 
+  </extension>
+
+  <extension id="Annotate track with genes" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.ensembl.analysis.AnnotateTrackWithGenes" group="Match sites and genes" name="Annotate track with genes"  description="Add properties to each track site describing genes where this site falls."/> 
+  </extension>
+
+  <extension id="Mutation effect" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.ensembl.analysis.mutationeffect.Analysis"
+                     group="Mutations"
+                     name="Mutation effect"
+                     description="Determine effect of mutation on protein."
+                     />
+  </extension>
+
+  <extension id="Gene overlap statistics" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.ensembl.analysis.GeneOverlapStatistics"
+                     group="Match sites and genes"
+                     name="Gene overlap statistics"
+                     description="Gene overlap statistics."
+                     js="siteAnalysis.geneOverlap"
+                     />
+  </extension>
+
+  <extension id="Site distribution" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.ensembl.analysis.SiteDistribution"
+                     group="Match sites and genes"
+                     name="Site distribution"
+                     description="Compute distribution of sites around gene boundaries."
+                     js="siteAnalysis.siteDistribution"
+                     />
+  </extension>
+
+  <extension id="Prepare GTF annotation" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.ensembl.analysis.PrepareGTFAnnotation"
+                     group="RNA-seq"
+                     name="Prepare GTF annotation"
+                     description="Prepare GTF annotation file from Ensembl database, this GTF can be used by Cufflinks."
+                     />
+  </extension>
+
+  <extension id="Get transcripts track" point="ru.biosoft.analysiscore.method">
+      <analysisClass class="biouml.plugins.ensembl.analysis.GetTranscriptsTrack"
+                     group="Match sites and genes"
+                     name="Get transcripts track"
+                     description="Create track of transcripts from table."
+                     />
+  </extension>
+
+  <extension id="SNP matching" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.ensembl.analysis.SNPListToTrack" group="Mutations" name="SNP matching"  description="Converts given list of SNPs to track and matches them to the genes. User should supply table where row identifiers are SNP names like 'rs11111111'."/> 
+  </extension>
+
+  <extension id="Read counter" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.ensembl.analysis.ReadCounter"
+                   group="RNA-seq"
+                   name="Read counter"
+                   description="Count reads that overlap with specified genes and output a table with genes and respective read counts."
+                   />
+  </extension>
+  
+  <extension id="Mutation effect on sites effected by SNPs" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.ensembl.analysis.mutationeffect.MutationEffectOnSitesBySNP"
+                   group="Mutations"
+                   name="Mutation effect on sites effected by SNPs"
+                   description="Find transcription factor binding sites affected by SNP mutations."
+                   />
+  </extension>
+
+  <extension id="ensembl" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="ensembl" class="biouml.plugins.ensembl.JavaScriptEnsembl" >
+        <doc description="Ensembl-related analyses and functions">
+			<!--function name="trackToGeneSet" description="Convert track to gene set (get all genes which lie near the sites from the track)">
+	            <argument name="sourcePath" type="Track" obligatory="true" description="Input track"/>			
+	            <argument name="species" type="String" obligatory="true" description="Species latin name used during matching (E.g. 'Homo sapiens')"/>			
+	            <argument name="from" type="int" obligatory="true" description="promoter window from value (relative to gene start)"/>			
+	            <argument name="to" type="int" obligatory="true" description="promoter window to value (relative to gene start)"/>			
+	            <argument name="outputPath" type="String" obligatory="true" description="name of output Table with complete path"/>			
+				<returns type="Track" description="Created track"/>
+	        </function-->
+		</doc>
+	</hostObject>
+  </extension>
+</plugin>

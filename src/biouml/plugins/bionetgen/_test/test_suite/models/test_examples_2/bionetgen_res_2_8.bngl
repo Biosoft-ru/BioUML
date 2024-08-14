@@ -1,0 +1,7 @@
+begin model
+
+begin molecule types
+    B(a)
+end molecule types
+
+end model

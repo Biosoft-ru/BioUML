@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="ProteinGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.ProteinGTRDType"/>
+  </extension>
+  
+  <extension id="IsoformGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.IsoformGTRDType"/>
+  </extension>
+  
+  <extension id="SiteModelGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.SiteModelGTRDType"/>
+  </extension>
+
+  <extension id="MatrixGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.MatrixGTRDType"/>
+  </extension>
+
+  <extension id="ClassGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.ClassGTRDType"/>
+  </extension>
+
+  <extension id="PeaksGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.PeaksGTRDType"/>
+  </extension>
+  
+  <extension id="ExperimentGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.ExperimentGTRDType" />
+  </extension>
+  
+  <extension id="DnaseExperimentGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.DnaseExperimentGTRDType" />
+  </extension>
+  
+  <extension id="MNaseExperimentGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.MNaseExperimentGTRDType" />
+  </extension>
+  
+  <extension id="ChIPexoExperimentGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.ChIPexoExperimentGTRDType" />
+  </extension>
+  
+  <extension id="HistonesExperimentGTRDType" point="ru.biosoft.access.referenceType">
+  	<type typeClass="biouml.plugins.gtrd.HistonesExperimentGTRDType" />
+  </extension>
+  
+  <extension id="GTRD perspective" point="biouml.workbench.perspective">
+  	<perspective name="GTRD" priority="20" intro="intro-gtrd">
+  		<repository>
+  			<tab title="databases" path="databases"/>
+  		</repository>
+  		<viewparts>
+  			<deny id="*"/>
+            <allow id="table.*"/>
+            <allow id="search.results" />
+            <allow id="sequence.tracks" />
+            <allow id="sequence.sites" />
+            <allow id="track.finder" />
+  		</viewparts>
+  		<actions>
+  			<deny id="export_element"/>
+  			<deny id="export"/>
+  		</actions>
+  		<importers>
+            <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+        </importers>
+  	</perspective>
+  </extension>
+  
+  <extension id="TF template" point="ru.biosoft.templates.template">
+      <template name="GTRD TF class" file="biouml/plugins/gtrd/resources/classificationTemplate.vm" description="Template for GTRD transcriptor factor class" isBrief="no" order="0">
+	      <filter class="biouml.plugins.gtrd.TFClassificationUnit" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="Experiment template" point="ru.biosoft.templates.template">
+      <template name="GTRD Experiment" file="biouml/plugins/gtrd/resources/experimentTemplate.vm" description="Template for GTRD experiment" isBrief="no" order="0">
+	      <filter class="biouml.plugins.gtrd.Experiment" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="DNase Experiment template" point="ru.biosoft.templates.template">
+      <template name="DNase Experiment" file="biouml/plugins/gtrd/resources/DNaseExperimentTemplate.vm" description="Template for GTRD experiment" isBrief="no" order="0">
+	      <filter class="biouml.plugins.gtrd.DNaseExperiment" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="Master site template" point="ru.biosoft.templates.template">
+      <template name="Master site template" file="biouml/plugins/gtrd/master/sites/resources/mastersite.vm" description="Master site template" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.MasterSite" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2DNasePeak" point="ru.biosoft.templates.template">
+      <template name="MACS2DNasePeak" file="biouml/plugins/gtrd/master/sites/resources/MACS2DNasePeak.vm" description="MACS2DNasePeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.dnase.MACS2DNasePeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="Hotspot2DNasePeak" point="ru.biosoft.templates.template">
+      <template name="Hotspot2DNasePeak" file="biouml/plugins/gtrd/master/sites/resources/Hotspot2DNasePeak.vm" description="Hotspot2DNasePeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.dnase.Hotspot2DNasePeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2ChIPSeqPeak" point="ru.biosoft.templates.template">
+      <template name="MACS2ChIPSeqPeak" file="biouml/plugins/gtrd/master/sites/resources/MACS2ChIPSeqPeak.vm" description="MACS2ChIPSeqPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.chipseq.MACS2ChIPSeqPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="SISSRSChIPSeqPeak" point="ru.biosoft.templates.template">
+      <template name="SISSRSChIPSeqPeak" file="biouml/plugins/gtrd/master/sites/resources/SISSRSChIPSeqPeak.vm" description="SISSRSChIPSeqPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.chipseq.SISSRSPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="PICSChIPSeqPeak" point="ru.biosoft.templates.template">
+      <template name="PICSChIPSeqPeak" file="biouml/plugins/gtrd/master/sites/resources/PICSChIPSeqPeak.vm" description="PICSChIPSeqPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.chipseq.PICSPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="GEMChIPSeqPeak" point="ru.biosoft.templates.template">
+      <template name="GEMChIPSeqPeak" file="biouml/plugins/gtrd/master/sites/resources/GEMChIPSeqPeak.vm" description="GEMChIPSeqPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.chipseq.GEMPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="PWMMotif" point="ru.biosoft.templates.template">
+      <template name="PWMMotif" file="biouml/plugins/gtrd/master/sites/resources/motif.vm" description="PWMMotif" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.PWMMotif" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2DNaseCluster" point="ru.biosoft.templates.template">
+      <template name="MACS2DNaseCluster" file="biouml/plugins/gtrd/master/sites/resources/MACS2DNaseCluster.vm" description="MACS2 DNaseCluster" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.dnase.MACS2DNaseCluster" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="Hotspot2DNaseCluster" point="ru.biosoft.templates.template">
+      <template name="Hotspot2DNaseCluster" file="biouml/plugins/gtrd/master/sites/resources/Hotspot2DNaseCluster.vm" description="Hotspot2 DNaseCluster" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.dnase.Hotspot2DNaseCluster" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="GEMChIPexoPeak" point="ru.biosoft.templates.template">
+      <template name="GEMChIPexoPeak" file="biouml/plugins/gtrd/master/sites/resources/GEMChIPexoPeak.vm" description="GEMChIPexoPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.chipexo.ChIPexoGEMPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="PeakzillaChIPexoPeak" point="ru.biosoft.templates.template">
+      <template name="PeakzillaChIPexoPeak" file="biouml/plugins/gtrd/master/sites/resources/PeakzillaChIPexoPeak.vm" description="PeakzillaChIPexoPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.chipexo.ChIPexoPeakzillaPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2HistonesPeak" point="ru.biosoft.templates.template">
+      <template name="MACS2HistonesPeak" file="biouml/plugins/gtrd/master/sites/resources/MACS2HistonesPeak.vm" description="MACS2HistonesPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.histones.MACS2HistonesPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="Danpos2MNasePeak" point="ru.biosoft.templates.template">
+      <template name="Danpos2MNasePeak" file="biouml/plugins/gtrd/master/sites/resources/Danpos2MNasePeak.vm" description="Danpos2MNasePeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.mnase.Danpos2MNasePeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2FAIREPeak" point="ru.biosoft.templates.template">
+      <template name="MACS2FAIREPeak" file="biouml/plugins/gtrd/master/sites/resources/MACS2FAIREPeak.vm" description="MACS2FAIREPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.faire.MACS2FAIREPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2ATACPeak" point="ru.biosoft.templates.template">
+      <template name="MACS2ATACPeak" file="biouml/plugins/gtrd/master/sites/resources/MACS2ATACPeak.vm" description="MACS2ATACPeak" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.atac.MACS2ATACPeak" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="MACS2HistonesCluster" point="ru.biosoft.templates.template">
+      <template name="MACS2HistonesCluster" file="biouml/plugins/gtrd/master/sites/resources/MACS2HistonesCluster.vm" description="MACS2 HistonesCluster" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.histones.MACS2HistonesCluster" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="WellingtonFootprint" point="ru.biosoft.templates.template">
+      <template name="WellingtonFootprint" file="biouml/plugins/gtrd/master/sites/resources/WellingtonFootprint.vm" description="Wellington footprint" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.dnase.WellingtonFootprint" subclasses="yes"/>
+      </template>
+  </extension>
+
+  <extension id="FootprintCluster" point="ru.biosoft.templates.template">
+      <template name="FootprintCluster" file="biouml/plugins/gtrd/master/sites/resources/FootprintCluster.vm" description="Footprint cluster" isBrief="no" order="-1">
+	      <filter class="biouml.plugins.gtrd.master.sites.dnase.FootprintCluster" subclasses="yes"/>
+      </template>
+  </extension>
+
+  
+  <extension id="Compare Experiments" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.CompareExperiments"
+                   group="GTRD build"
+                   name="Compare Experiments"
+                   description="Compare two collections of Experiments."
+                   />
+  </extension>
+  
+  <extension id="Validate Experiments" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.ValidateExperiments"
+                   group="GTRD build"
+                   name="Validate Experiments"
+                   description="Validate GTRD meta data."
+                   />
+  </extension>
+  
+  
+  <extension id="Gene features" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.GeneFeatures"
+                   group="GTRD build"
+                   name="Gene features"
+                   description="Extract gene features from GTRD."
+                   />
+  </extension>
+
+  <extension id="Join GTRD Tracks" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.JoinGTRDTracks"
+                   group="GTRD build"
+                   name="Join GTRD Tracks"
+                   description="Join GTRD Tracks."
+                   />
+  </extension>
+
+  <extension id="Search binding sites" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.SearchBindingSites"
+                   group="GTRD"
+                   name="Search binding sites"
+                   description="Search for TF binding sites in GTRD near the speciefied gene."
+                   />
+  </extension>
+
+  <extension id="Search regulated genes" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.SearchRegulatedGenes"
+                   group="GTRD"
+                   name="Search regulated genes"
+                   description="Search for genes potentially regulated by the given transcription factor(TF). The gene will be considered as potentially regulated by the given TF if the TF binds near the gene."
+                   />
+  </extension>
+
+  <extension id="Prepare Search by regulation" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.PrepareSearchByRegulation"
+                   group="GTRD build"
+                   name="Prepare Search by regulation"
+                   description="Prepare tables for Search by regulation analysis."
+                   />
+  </extension>
+  
+  <extension id="Compute profile thresholds" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.ComputeProfileThresholds"
+                   group="Motif discovery"
+                   name="Compute profile thresholds"
+                   description="Compute minFN and minFP thresholds for site models."
+                   />
+  </extension>
+
+  <extension id="Import HOCOMOCO" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.ImportHocomoco"
+                   group="Admin"
+                   name="Import HOCOMOCO"
+                   description="Imports HOCOMOCO database from flat files."
+                   />
+  </extension>
+
+  <extension id="Merge peaks" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.merge.MergePeaks"
+                   group="GTRD build"
+                   name="Merge peaks"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Merge peak callers" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.merge.MergePeakCallers"
+                   group="GTRD build"
+                   name="Merge peak callers"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Make meta tracks" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.merge.MakeMetaTracks"
+                   group="GTRD build"
+                   name="Make meta tracks"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Join GTRD clusters" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.merge.JoinGTRDClusters"
+                   group="GTRD build"
+                   name="Join GTRD clusters"
+                   description="Join clusters produced by 'Make meta tracks' analysis."
+                   />
+  </extension>
+
+  <extension id="Prepare cluster to exp table" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.PrepareClusterToExp"
+                   group="GTRD build"
+                   name="Prepare cluster to exp table"
+                   description="Prepare cluster to exp table."
+                   />
+  </extension>
+
+  <extension id="Open per TF view" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.OpenPerTFView"
+                   group="GTRD"
+                   name="Open per TF view"
+                   description="Show GTRD tracks for a particular transcription factor."
+                   />
+  </extension>
+
+  <extension id="Open regulated genes table" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.OpenRegulatedGenesTable"
+                   group="GTRD"
+                   name="Open regulated genes table"
+                   description="Returns table with genes regulated by the specified transcription factor."
+                   />
+  </extension>
+
+  <extension id="Open tracks for all TF" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.OpenTrackForAllTF"
+                   group="GTRD"
+                   name="Open tracks for all TF"
+                   description="Show GTRD summary tracks, such as meta-clusters, clusters, peaks, open chromatin, DNase footprints."
+                   />
+  </extension>
+
+  <extension id="Create flat files" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.CreateFlatFiles"
+                   group="GTRD build"
+                   name="Create flat files"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Prepare finised tables" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.PrepareFinishedTable"
+                   group="GTRD build"
+                   name="Prepare finished tables"
+                   description=""
+                   />
+  </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.QualityControlMetrics"
+                   group="GTRD build"
+                   name="Quality control metrics"
+                   description="Calculation of quality control metrics for assessing tracks from GTRD."
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.QualityControlAnalysis"
+                   group="ChIP-seq"
+                   name="Quality control analysis"
+                   description="Calculation of quality control metrics for assessing tracks from GTRD and AUCs-applications."
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.QCAnalysisReportGenerator"
+                   group="ChIP-seq"
+                   name="Report generator for quality control analysis"
+                   description="Report generator for quality control analysis."
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.ChIPseqQCAnalysis"
+                   group="ChIP-seq"
+                   name="ChIP-seq Quality control analysis"
+                   description="Processing raw Chip-seq data and calculation of quality control metrics for assessing tracks from GTRD and AUCs-applications."
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SiteProfileFiltering"
+                   group="GTRD build" 
+                   name="Site Profile Filtering"
+                   description="Filtering sites with a given profile height"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SiteSizeFiltering"
+                   group="GTRD"
+                   name="Site Size Filtering"
+                   description="Filtering sites with a given size"
+                   />
+   </extension>
+
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.DnaseProfileCreation"
+                   group="GTRD build"
+                   name="DNase-seq Group and Profile Generation"
+                   description="Group and profile generation of DNase-seq experiments."
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.CreateTrackInfoTab"
+                   group="GTRD build"
+                   name="TrackInfo table creation"
+                   description="Analysis creates track_info for gtrd_v1903_stats"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.CreateChromatinInfoTab"
+                   group="GTRD build"
+                   name="ChromatinInfo table creation"
+                   description="Analysis creates chromatin_info for gtrd_v1903_stats"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.DnaseProfileCreationOld"
+                   group="GTRD build"
+                   name="DNase-seq Group and Profile Generation (Previous version)"
+                   description="Group and profile generation of DNase-seq experiments (Previous version)"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.CoverageProfilesCutoff"
+                   group="GTRD build"
+                   name="Coverage Profiles Cutoff"
+                   description="Getting Coverage Profiles Cutoff."
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.ProfilesStats"
+                   group="GTRD build"
+                   name="Profiles Statistics"
+                   description="Getting Profiles Statistics"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SitesOpenChromatin"
+                   group="GTRD build"
+                   name="Sites Open Chromatin Statistics"
+                   description="Getting Statistics of sites in open chromatin"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SitesOpenChromatinFolders"
+                   group="GTRD build"
+                   name="Sites Open Chromatin Statistics For Folders"
+                   description="Setting Statistics of sites in open chromatin for all files in Folders"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SitesMotifsAnalysis"
+                   group="GTRD build"
+                   name="Sites Motifs Analysis"
+                   description="Count motives for SQL track + HOCOMOCO track"
+                   />
+   </extension>
+   
+      <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.AUCEstimationForTrack"
+                   group="GTRD build"
+                   name="AUC Estimation For meta-cluster track"
+                   description="AUC Estimation For meta-cluster track"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SitesGenomeLocation"
+                   group="GTRD build"
+                   name="Sites genome location"
+                   description="Count TSS and/or repeats"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.SiteGenomeLocationForFolders"
+                   group="GTRD build"
+                   name="Sites genome location for folders"
+                   description="Count TSS and/or repeats for experiments"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.CellsFiltering"
+                   group="GTRD"
+                   name="Filtering experiments by cell types"
+                   description="Filtering experiments by different cell types and experimental types"
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.EncodeQCAnalysis"
+                   group="GTRD build"
+                   name="Encode quality metrics estimation"
+                   description="Estimation of ENCODE quality metrics for ChIP-seq data."
+                   />
+   </extension>
+   
+   <extension point="ru.biosoft.analysiscore.method">
+   <analysisClass class="biouml.plugins.gtrd.analysis.UpdatePubmed"
+                   group="GTRD build"
+                   name="Update pubmed"
+                   description="Update pubmed data in GTRD."
+                   />
+   </extension>  
+
+  <extension id="Find target genes" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.FindTargetGenes"
+                   group="GTRD build"
+                   name="Find target genes"
+                   description="Map sites to the whole/promoter region of transcripts/genes and count them."
+                   />
+  </extension>
+
+  <extension id="Mutation effect on sites advanced" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.maos.MutationAffectOnSitesAdvanced"
+                   group="GTRD"
+                   name="Mutation effect on sites advanced"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Create per TF flat files" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.CreatePerTFFlatFiles"
+                   group="GTRD build"
+                   name="Create per TF flat files"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Export master track" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.master.analyses.ExportMasterTrack"
+                   group="GTRD build"
+                   name="Export master track"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Prepare target genes by expression" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.analysis.PrepareTargetGenesByExpression"
+                   group="GTRD build"
+                   name="Prepare target genes by expression"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Update master track" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.master.analyses.metacluster.UpdateMasterTrack"
+                   group="GTRD build"
+                   name="Update master track"
+                   description=""
+                   js="gtrdbuild.UpdateMasterTrack"
+                   />
+  </extension>
+
+  <extension id="Recover build info" point="ru.biosoft.analysiscore.method">
+    <analysisClass class="biouml.plugins.gtrd.master.analyses.RecoverBuildInfo"
+                   group="GTRD build"
+                   name="Recover build info"
+                   description=""
+                   js="gtrdbuild.RecoverBuildInfo"
+                   />
+  </extension>
+
+
+  <extension id="Export per cell clusters" point="ru.biosoft.analysiscore.method">
+    <analysisclass class="biouml.plugins.gtrd.master.analyses.percellclusters.ExportPerCellClusters"
+                   group="GTRD build"
+                   name="Export per cell clusters"
+                   description=""
+                   />
+  </extension>
+
+  <extension id="Export metadata json" point="ru.biosoft.analysiscore.method">
+    <analysisclass class="biouml.plugins.gtrd.master.analyses.ExportMetadata"
+                   group="GTRD build"
+                   name="Export metadata json"
+                   description=""
+                   js="gtrdbuild.ExportMetadataJson"
+                   />
+  </extension>
+
+  <extension id="SBSAnalysis" point="ru.biosoft.analysiscore.method">
+    <analysisclass class="biouml.plugins.gtrd.analysis.nosql.SBSAnalysis"
+                   group="GTRD build"
+                   name="SBSAnalysis"
+                   description=""
+                   js="gtrdbuild.SBSAnalysis"
+                   />
+  </extension>
+
+  <extension id="RegulatoryMutations" point="ru.biosoft.analysiscore.method">
+    <analysisclass class="biouml.plugins.gtrd.analysis.RegulatoryMutations"
+                   group="GTRD"
+                   name="RegulatoryMutations"
+                   description=""
+                   />
+  </extension>
+
+  <extension point="ru.biosoft.access.virtualCollection">
+    <folder name="ChIP_seq_Analysis">
+  	  <link name="Test data" target="data/Examples/ChIP-seq Analysis/Data"/>
+  	  <link name="Matrices and profiles" target="databases/HOCOMOCO v11/Data"/>
+  	  <link name="User temporal data" target="data/Collaboration/Demo/tmp"/>
+  	</folder>
+  </extension>
+  
+   <extension point="biouml.workbench.perspective">
+  	<perspective name="ChIP-seq Analysis" priority="30" intro="intro-chipseq-qc-analysis">
+  		<repository>
+            <tab title="ChIP-seq Analysis" path="ChIP_seq_Analysis"/>
+  			<tab title="Databases" path="databases"/>
+  			<tab title="Data" path="data"/>
+  		</repository>
+  		<viewparts>
+  			<deny id=""/>
+            <allow id="*"/>
+  		</viewparts>
+  		<importers>
+            <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+        </importers>
+  	</perspective>
+  </extension>
+
+  <extension point="biouml.workbench.perspective">
+    <perspective name="Regulatory mutations" priority="40" intro="intro-regulatory-mutations">
+      <repository>
+        <tab title="Databases" path="databases" databases="true"/>
+        <tab title="Data" path="data"/>
+        <tab title="Analyses" path="analyses"/>
+      </repository>
+    <importers>
+      <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+    </importers>
+    </perspective>
+  </extension>
+
+  <extension point="ru.biosoft.access.movedClass">
+  	<class name="biouml.plugins.gtrd.ChIPseqExperimentSQLTransformer" oldNames="biouml.plugins.gtrd.ExperimentSQLTransformer"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.transformer">
+  	<transformer name="GTRDMetadata" inputClass="ru.biosoft.access.FileDataElement" 
+  	  outputClass="biouml.plugins.gtrd.master.meta.Metadata" transformerClass="biouml.plugins.gtrd.master.meta.MetadataJSONFileTransformer" />
+  </extension>
+
+  <extension id="gtrdMaster" point="ru.biosoft.templates.contextItem">
+        <helper name="gtrdMaster" class="biouml.plugins.gtrd.master.VelocityHelper" />
+  </extension>
+
+  <extension id="masterTrackProfiler" point="org.eclipse.core.runtime.applications"> 
+      <application> 
+         <run class="biouml.plugins.gtrd.master.progs.MasterTrackProfiler"> 
+         </run> 
+      </application> 
+  </extension>
+
+  <extension id="gtrdbuild" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="gtrdbuild" class="biouml.plugins.gtrd.JavaScriptGTRDBuild" />
+  </extension>
+
+</plugin>

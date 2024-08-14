@@ -1,0 +1,112 @@
+<tool name="Mark Duplicates" id="picard_MarkDuplicates" version="1.65">
+  <command>/bin/bash -v "$script"</command>
+  <inputs>
+    <param name="input_files" type="data-multi" format="bam" label="BAM files to mark duplicates in" />
+    
+    <param name="remDups" type="boolean" label="Remove duplicates from output file" truevalue="true" falsevalue="false" checked="True" 
+      help="If true do not write duplicates to the output file instead of writing them with appropriate flags set" />
+    
+    <param name="memoryUsage" type="text" label="Max memory usage" value="16G" />
+    <param name="compressionLevel" type="integer" label="Compression level for output bam" value="6" />
+    <param name="maxFileHandles" type="integer" label="Max file handles for read ends map" value="50000" />
+    <param name="tmpFolder" type="text" label="TMP folder" value="/tmp" />
+    <param name="createIndex" type="boolean" label="Create BAM index for output file" truevalue="true" falsevalue="false" checked="True" />
+    <param name="createMD5" type="boolean" label="Create MD5 for output file" truevalue="true" falsevalue="false" checked="False" />
+      
+    <param name="readRegex" value="[a-zA-Z0-9]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*" type="text" size="80"
+      label="Regular expression that can be used to parse read names in the incoming SAM file" 
+      help="Names are parsed to extract: tile/region, x coordinate and y coordinate, to estimate optical duplication rate" >
+      <sanitizer>
+        <valid initial="string.printable">
+         <remove value="&apos;"/>
+        </valid>
+        <mapping initial="none">
+          <add source="&apos;" target="__sq__"/>
+        </mapping>
+      </sanitizer>
+    </param>
+    
+    <param name="optDupeDist" value="100" type="text"
+      label="The maximum offset between two duplicate clusters in order to consider them optical duplicates" size="5" 
+      help="Common range 5-10 pixels. Later Illumina software versions multiply pixel values by 10, in which case 50-100" />
+      
+  </inputs>
+  
+  <outputs>
+    <data format="txt" name="log" label="Execution Log" />
+    <data format="txt" name="outMetrics" label="Metrics" />
+    <data format="bam" name="outBAM" label="Output BAM file" />
+  </outputs>
+<configfiles>
+    <configfile name="script">#!/bin/bash -v
+  cd `dirname $outMetrics`
+err="`dirname $log`/err.pipe"
+echo \$err
+
+mkfifo "\$err"
+trap 'rm "\$err"' EXIT
+tee $log &lt; "\$err" &gt;&amp;2 &amp;
+
+ Inputs="`for f in $input_files; do echo -n "INPUT=\$f "; done`"
+
+ echo \$Inputs
+
+ runpicard MarkDuplicates $memoryUsage \$Inputs \
+	REMOVE_DUPLICATES=$remDups 'READ_NAME_REGEX=$readRegex' OPTICAL_DUPLICATE_PIXEL_DISTANCE=$optDupeDist \
+	'METRICS_FILE=$outMetrics' \
+	'OUTPUT=$outBAM' \
+	COMPRESSION_LEVEL=$compressionLevel MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=$maxFileHandles \
+	'TMP_DIR=$tmpFolder' \
+	CREATE_INDEX=$createIndex CREATE_MD5_FILE=$createMD5 VALIDATION_STRINGENCY=SILENT 2&gt;"\$err"
+
+  </configfile>
+  </configfiles>
+  
+  <help>
+
+.. class:: infomark
+
+**Purpose**
+
+MarkDuplicates examines aligned records in the supplied sam or bam file to identify duplicate molecules.
+
+**Picard documentation**
+
+This is a Galaxy interface for MarkDuplicates, a part of Picard-tools_, which is closely related to SAMTools_.
+
+ .. _Picard-tools: http://picard.sourceforge.net/index.shtml
+ .. _SAMTools: http://samtools.sourceforge.net/
+
+------
+
+**Input**
+
+Coordinate sorted BAM file.
+
+**Outputs**
+
+This tool provides two outputs. The first contains the marked (or kept) records, the second output is the metrics file, which is a text file containing information about the duplicates. 
+
+**MarkDuplicates parameters**
+
+The two main parameters to be concerned with are the flag for removing duplicates and the regular expression needed to identify reads. If it is set to remove duplicates, they will not be written to the output file; otherwise they will appear in the output but will be flagged appropriately. The read name regular expression is used to parse read names from the input sam file. Read names are parsed to extract three variables: tile/region, x coordinate, and y coordinate. These values are used to estimate the rate of optical duplication in order to give a more accurate estimated library size. The regular expression should contain three capture groups for the three variables, in order (capture groups are enclosed in parentheses). Default value: [a-zA-Z0-9]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*. 
+
+One other parameter that can be set is the maximum offset between two duplicate clusters in order for them to be considered optical duplicates. Later versions of the Illumina pipeline that multiply pixel values by 10 should generally use 50-100 pixels; otherwise 5-10 is normal. The default is set to 100. 
+
+**Note on the use of regular expressions for read name parsing**
+
+The regular expression (regex) is used to parse the read names, so it's important to get it exactly right (so you probably don't want to edit this unless you know exactly what you're doing). The three parts of the read names identified are tile/region, x coordinate, and y coordinate, which are used in conjunction with the optical duplication rate to more accurately estimate library size.
+
+  </help>
+</tool>
+
+
+
+
+
+
+
+
+
+
+

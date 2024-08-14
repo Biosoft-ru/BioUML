@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension id="lucene.service" point="ru.biosoft.server.service"> 
+      <service name="lucene.service" class="biouml.plugins.lucene.LuceneService"/>
+  </extension> 
+
+  <extension id="lucene repository actions" point="ru.biosoft.access.repositoryActionsProvider"> 
+      <repositoryActionsProvider class="biouml.plugins.lucene.RepositoryActionsProvider"/> 
+  </extension> 
+  
+  <extension id="lucene DataCollection listener" point="ru.biosoft.access.dataCollectionListener"> 
+      <dataCollectionListener class="biouml.plugins.lucene.LuceneInitListener"/> 
+      <dataCollectionListener class="biouml.plugins.lucene.LuceneFoldersListener"/> 
+  </extension>
+  <extension id="lucene query system" point="ru.biosoft.access.querySystem"> 
+      <querySystem class="biouml.plugins.lucene.LuceneQuerySystemImpl"/> 
+  </extension>
+  <extension id="lucene query system" point="ru.biosoft.access.querySystem"> 
+      <querySystem class="biouml.plugins.lucene.LuceneQuerySystemClient"/> 
+  </extension>
+
+  <extension id="lucene view" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart 
+        class="biouml.plugins.lucene.LuceneSearchViewPart"
+		id="search.results"
+        Name="Search results"
+        ShortDescription="Full text search result"
+        Priority = "2.5"
+      />
+  </extension> 
+  
+  <extension id="LuceneBasedHubSupport" point="ru.biosoft.access.biohub"> 
+     <hubItem name="LuceneBasedHub" class="biouml.plugins.lucene.biohub.LuceneBasedBioHub">
+        <property name="hubPath" value="hubs"/>
+     </hubItem> 
+  </extension>
+
+  <!--extension id="lucenesearch help" point="ru.biosoft.workbench.helpSet"> 
+      <helpSet id="lucenesearch help" file="lucenesearch.hs"/> 
+  </extension--> 
+  
+  <!-- Rebuild indexes application-->
+  <extension id="rebuilder" point="org.eclipse.core.runtime.applications"> 
+      <application> 
+         <run class="biouml.plugins.lucene.IndexRebuilder"> 
+         </run> 
+      </application> 
+  </extension>
+
+  <extension id="RebuildIndexesAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.lucene.RebuildIndexesAnalysis" group="Admin" name="Rebuild search indexes" description="This analysis rebuilds search indexes for given databases or user projects."/> 
+  </extension>
+
+  <extension point="ru.biosoft.server.servlets.webProvider">
+    <provider prefix="lucene" class="biouml.plugins.lucene.web.WebLuceneProvider"/>
+  </extension>
+
+  <extension point="ru.biosoft.access.beans">
+    <provider class="biouml.plugins.lucene.web.WebLuceneProvider$SaveTableBeanProvider" prefix="properties/luceneSearch/saveTable"/>
+  </extension>
+</plugin>

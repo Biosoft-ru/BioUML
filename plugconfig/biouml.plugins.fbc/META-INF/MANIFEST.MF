@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: biouml.plugins.fbc;singleton:=true
+Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.osgi,
+ biouml.plugins.sbml,
+ biouml.plugins.simulation,
+ biouml.workbench,
+ one.util.streamex,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.jobcontrol,
+ org.apache.commons.math3,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.exception,
+ ru.biosoft.math,
+ ru.biosoft.table,
+ ru.biosoft.workbench,
+ gurobi,
+ org.gnu.glpk
+Export-Package: biouml.plugins.fbc,
+ biouml.plugins.fbc.analysis,
+ biouml.plugins.fbc.table
+ 

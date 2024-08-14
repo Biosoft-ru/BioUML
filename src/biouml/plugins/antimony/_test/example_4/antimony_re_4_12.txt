@@ -1,0 +1,9 @@
+species s;
+model example(s1)
+   species s1;
+end
+   Sub: example();
+   s is Sub.s1;
+   @sbgn locate(s, "private port").title = "new title of s";
+   @sbgn locate(Sub.s1, "public port").title = "new title of Sub.s1";
+   

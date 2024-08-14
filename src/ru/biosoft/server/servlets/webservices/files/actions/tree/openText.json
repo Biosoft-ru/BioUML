@@ -1,0 +1,28 @@
+/*
+ * Open text document action
+ */
+{
+    id: "open_text",
+    label: "Open text document",
+    icon: "icons/open.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (type=='ru.biosoft.access.TextDataElement') 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		createTextDocument(path, function (document){
+			openDocumentTab(document);
+        });
+    }"
+}

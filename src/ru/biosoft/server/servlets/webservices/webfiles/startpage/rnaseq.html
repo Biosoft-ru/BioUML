@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      ul.main-list>li{
+        margin: 20px 0;
+      }
+      ul.sub-list>li{
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>RNA-seq</h2>
+    <ul class="main-list">
+      <li>Analysis of raw RNA-seq data
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/NGS utils/Track statistics">Quality control of FASTQ files</a>
+            [<a href="http://wiki.biouml.org/index.php/Track_statistics_(analysis)" target="_blank">?</a>]
+            <br>
+            <small>Gather various statistics about track or FASTQ file</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/NGS utils/Preprocess raw reads">Preprocess raw reads</a>
+            [<a href="http://wiki.biouml.org/index.php/Preprocess_raw_reads_(analysis)" target="_blank">?</a>]
+            <br>
+            <small>Cut adapters, trim read tails, remove short and low quality reads</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/sra_toolkit/fastq-dump">SRA to FASTQ</a>
+            <br>
+            <small>Convert file from NCBI SRA format to FASTQ</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/ngs-rna-tools/tophat2">TopHat2</a>
+            <br>
+            <small>Alignment of FASTQ with TopHat2</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Galaxy/ngs-rna-tools/cufflinks">Cufflinks</a>
+            <br>
+            <small>Quantification of RNA-seq with Cufflinks</small>
+          </li>
+        </ul>
+      </li>
+      <li>Find differentially expressed genes (DEG)
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Statistics/Fold-Change calculation">Fold-Change calculation</a>
+            [<a href="http://wiki.biouml.org/index.php/Fold-Change_calculation_(analysis)" target="_blank">?</a>]
+            <br>
+            <small>Calculates fold-change values</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Statistics/Differential expression with DESeq">DESeq</a>
+            <br>
+            <small>Differential expression with DESeq</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Statistics/Up and Down Identification">Classical t-test and wilcoxon test</a>
+            [<a href="http://wiki.biouml.org/index.php/Up_and_Down_Identification_(analysis)" target="_blank">?</a>]
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Table manipulation/Select top rows">Select top rows from a table</a>
+            [<a href="http://wiki.biouml.org/index.php/Select_top_rows_(analysis)" target="_blank">?</a>]
+          </li>
+        </ul>
+      </li>
+      <li>Discover functional enrichment of DEG
+        <ul class="sub-list">
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Gene set analysis/Functional classification">Functional classification</a>
+            [<a href="http://wiki.biouml.org/index.php/Functional_classification_(analysis)" target="_blank">?</a>]
+            <br>
+            <small>Enrichment of gene categories for the set of genes</small>
+          </li>
+          <li>
+            <a target="_parent" href="/bioumlweb/#de=analyses/Methods/Gene set analysis/Enrichment analysis">Enrichment analysis</a>
+            [<a href="http://wiki.biouml.org/index.php/Enrichment_analysis" target="_blank">?</a>]
+            <br>
+            <small>Gene set enrichment analysis for ranked set of genes</small>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <h2><a href="/bioumlweb/startpage/index.html"><b>&larr;</b>Back</a></h2>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<tool id="softberry-alignment" name="Alignment">
+	<description>Produce raw alignment</description>
+	<command interpreter="perl">Alignment.pl $input1 $input2 $chain $Raw_alignment</command>
+	<inputs>
+		<param name="input1" type="data" format="fasta" label="Target seqs"/>
+		<param name="input2" type="data" format="fasta" label="Query seqs"/>
+		<param name="chain" type="select" label="Chain">
+	        <option value="direct">direct</option>
+	        <option value="reverse">reverse</option>
+	        <option value="both" selected="True">both</option>
+		</param>
+	</inputs>
+	<outputs>
+	    <data format="dabz2" name="Raw_alignment"/>
+	</outputs>
+</tool>

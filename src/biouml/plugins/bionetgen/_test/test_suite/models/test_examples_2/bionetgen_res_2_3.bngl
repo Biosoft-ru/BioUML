@@ -1,0 +1,7 @@
+begin model
+
+begin observables
+    Species    newObservable    A(b!1).B(a!1), A(b), A(b!?)
+end observables
+
+end model

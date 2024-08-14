@@ -1,0 +1,155 @@
+<h2>General feature format</h2>
+
+<p>
+  The general feature format (gene-finding format, generic feature format, GFF) is a file format
+  used for describing genes and other features of DNA, RNA and protein sequences.
+  The filename extension associated with such files is *.gff.
+</p>
+
+<p>
+  The format consists of 9 columns, separated by tabs (NOT spaces). The
+  following characters must be escaped using URL escaping conventions (%XX hex codes):
+</p>
+
+<pre>
+tab
+newline
+carriage return
+control characters
+</pre>
+
+<p>
+  The following characters have reserved meanings and must be escaped
+  when used in other contexts:
+</p>
+
+<pre>
+;  (semicolon)
+=  (equals)
+%  (percent)
+&amp;  (ampersand)
+,  (comma)
+</pre>
+
+<p>
+  Unescaped quotation marks, backslashes and other ad-hoc escaping
+  conventions that have been added to the GFF format are explicitly
+  forbidden
+</p>
+
+<p>
+  Note that unescaped spaces are allowed within fields, meaning that
+  parsers must split on tabs, not spaces.
+</p>
+  
+<p>
+  Undefined fields are replaced with the "." character, as described in
+  the original GFF spec.
+</p>
+
+<p><b>Column 1: "seqid"</b></p>
+ 
+<p>
+  The ID of the landmark used to establish the coordinate system for the
+  current feature. IDs may contain any characters, but must escape any
+  characters not in the set [a-zA-Z0-9.:^*$@!+_?-|]. In particular, IDs
+  may not contain unescaped whitespace and must not begin with an
+  unescaped "&gt;".
+</p>
+
+<p><b>Column 2: "source"</b></p>
+
+<p>
+  The source is a free text qualifier intended to describe the algorithm
+  or operating procedure that generated this feature. Typically this is
+  the name of a piece of software, such as "Genescan" or a database
+  name, such as "Genbank." In effect, the source is used to extend the
+  feature ontology by adding a qualifier to the type creating a new
+  composite type that is a subclass of the type in the type column.
+</p>
+ 
+<p><b>Column 3: "type"</b></p>
+
+<p>
+  The type of the feature (previously called the "method"). This is constrained
+  to be either: (a)a term from the "lite" version of the Sequence Ontology -
+  SOFA, a term from the full Sequence Ontology - it must be an is_a child of
+  sequence_feature (SO:0000110) or (c) a SOFA or SO accession number. The
+  latter alternative is distinguished using the syntax SO:000000.
+</p>
+
+<p><b>Columns 4 &amp; 5: "start" and "end"</b></p>
+
+<p>
+  The start and end of the feature, in 1-based integer coordinates,
+  relative to the landmark given in column 1. Start is always less than
+  or equal to end. For features that cross the origin of a circular feature
+  (e.g. most bacterial genomes, plasmids, and some viral genomes), the
+  requirement for start to be less than or equal to end is satisfied by
+  making end = the position of the end + the length of the landmark feature.
+</p>
+
+<p>
+  For zero-length features, such as insertion sites, start equals end
+  and the implied site is to the right of the indicated base in the
+  direction of the landmark.
+</p>
+
+<p><b>Column 6: "score"</b></p>
+
+<p>
+  The score of the feature, a floating point number. As in earlier
+  versions of the format, the semantics of the score are ill-defined.
+  It is strongly recommended that E-values be used for sequence
+  similarity features, and that P-values be used for ab initio gene
+  prediction features.
+</p>
+
+<p><b>Column 7: "strand"</b></p>
+
+<p>
+  The strand of the feature. + for positive strand (relative to the
+  landmark), - for minus strand, and . for features that are not
+  stranded. In addition, ? can be used for features whose strandedness
+  is relevant, but unknown.
+</p>
+
+<p><b>Column 8: "phase"</b></p>
+
+<p>
+  For features of type "CDS", the phase indicates where the feature
+  begins with reference to the reading frame. The phase is one of the
+  integers 0, 1, or 2, indicating the number of bases that should be
+  removed from the beginning of this feature to reach the first base of
+  the next codon. In other words, a phase of "0" indicates that the next
+  codon begins at the first base of the region described by the current
+  line, a phase of "1" indicates that the next codon begins at the
+  second base of this region, and a phase of "2" indicates that the
+  codon begins at the third base of this region. This is NOT to be
+  confused with the frame, which is simply start modulo 3.
+</p>
+ 
+<p>
+  For forward strand features, phase is counted from the start
+  field. For reverse strand features, phase is counted from the end
+  field.
+</p>
+
+<p>The phase is REQUIRED for all CDS features.</p>
+
+<p><b>Column 9: "attributes"</b></p>
+
+<p>
+  A list of feature attributes in the format tag=value. Multiple
+  tag=value pairs are separated by semicolons. URL escaping rules are
+  used for tags or values containing the following characters: ",=;".
+  Spaces are allowed in this field, but tabs must be replaced with the
+  %09 URL escape.
+</p>
+
+<h3>References</h3>
+
+<ol class="references">
+  <li><a href="http://www.sequenceontology.org/gff3.shtml">http://www.sequenceontology.org/gff3.shtml</a>
+  <li><a href="http://en.wikipedia.org/wiki/General_feature_format">http://en.wikipedia.org/wiki/General_feature_format</a>
+</ol>

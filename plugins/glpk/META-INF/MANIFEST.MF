@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: GLPK Plug-in
+Bundle-SymbolicName: org.gnu.glpk;singleton:=true
+Bundle-Version: 1.12.0
+Bundle-Vendor: xypron
+Bundle-ClassPath: glpk-java-1.12.0.jar
+Export-Package: org.gnu.glpk

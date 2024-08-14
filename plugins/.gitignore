@@ -1,0 +1,6 @@
+/biouml.*.jar
+/ru.biosoft.*.jar
+/com.developmentontheedge.util*.jar
+/com.developmentontheedge.server*.jar
+!biouml.plugins.cwl-1.0.0-SNAPSHOT.jar
+!ru.biosoft.physicell_0.9.10.jar

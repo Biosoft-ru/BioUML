@@ -1,0 +1,161 @@
+<tool id="ncbi_tblastn_wrapper" name="NCBI BLAST+ tblastn" version="0.0.22">
+    <description>Search translated nucleotide database with protein query sequence(s)</description>
+    <!-- If job splitting is enabled, break up the query file into parts -->
+    <parallelism method="multi" split_inputs="query" split_mode="to_size" split_size="1000" merge_outputs="output1"></parallelism>
+    <macros>
+        <token name="@BINARY@">tblastn</token>
+        <import>ncbi_macros.xml</import>
+    </macros>
+    <expand macro="requirements" />
+    <command>
+## The command is a Cheetah template which allows some Python based syntax.
+## Lines starting hash hash are comments. Galaxy will turn newlines into spaces
+tblastn
+-query "$query"
+@BLAST_DB_SUBJECT@
+-evalue $evalue_cutoff
+@BLAST_OUTPUT@
+@THREADS@
+#if $adv_opts.adv_opts_selector=="advanced":
+-db_gencode $adv_opts.db_gencode
+-matrix $adv_opts.matrix
+@ADVANCED_OPTIONS@
+##Ungapped disabled for now - see comments below
+##$adv_opts.ungapped
+## End of advanced options:
+#end if
+    </command>
+
+    <expand macro="stdio" />
+
+    <inputs>
+        <param name="query" type="data" format="data" label="Protein query sequence(s)"/> 
+
+        <expand macro="input_conditional_nucleotide_db" />
+        <expand macro="input_out_format" />
+        <expand macro="input_evalue" />
+        <expand macro="advanced_options">
+            <expand macro="input_db_gencode" />
+
+            <!-- Could use a select (yes, no, other) where other allows setting 'window locut hicut' -->
+            <expand macro="input_filter_query_default_true" />
+            <expand macro="input_scoring_matrix" />
+            <expand macro="input_max_hits" />
+            <expand macro="input_word_size" />
+            <!--
+            Can't use '-ungapped' on its own, error back is:
+            Composition-adjusted searched are not supported with an ungapped search, please add -comp_based_stats F or do a gapped search
+            Tried using '-ungapped -comp_based_stats F' and tblastn crashed with 'Attempt to access NULL pointer.'
+            <param name="ungapped" type="boolean" label="Perform ungapped alignment only?" truevalue="-ungapped -comp_based_stats F" falsevalue="" checked="false" />
+            -->
+            <expand macro="input_parse_deflines" />
+        </expand>
+    </inputs>
+    <outputs>
+        <data name="output1" format="tabular" label="blast output">
+            <expand macro="output_change_format" />
+        </data>
+    </outputs>
+    <tests>
+        <test>
+            <param name="query" value="four_human_proteins.fasta" ftype="fasta" />
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="rhodopsin_nucs.fasta" ftype="fasta" />
+            <param name="database" value="" />
+            <param name="evalue_cutoff" value="1e-10" />
+            <param name="out_format" value="5" />
+            <param name="adv_opts_selector" value="advanced" />
+            <param name="filter_query" value="false" />
+            <param name="matrix" value="BLOSUM80" />
+            <param name="max_hits" value="0" />
+            <param name="word_size" value="0" />
+            <param name="parse_deflines" value="false" />
+            <output name="output1" file="tblastn_four_human_vs_rhodopsin.xml" ftype="blastxml" />
+        </test>
+        <test>
+            <param name="query" value="four_human_proteins.fasta" ftype="fasta" />
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="rhodopsin_nucs.fasta" ftype="fasta" />
+            <param name="database" value="" />
+            <param name="evalue_cutoff" value="1e-10" />
+            <param name="out_format" value="ext" />
+            <param name="adv_opts_selector" value="advanced" />
+            <param name="filter_query" value="false" />
+            <param name="matrix" value="BLOSUM80" />
+            <param name="max_hits" value="0" />
+            <param name="word_size" value="0" />
+            <param name="parse_deflines" value="false" />
+            <output name="output1" file="tblastn_four_human_vs_rhodopsin_ext.tabular" ftype="tabular" />
+        </test>
+        <test>
+            <param name="query" value="four_human_proteins.fasta" ftype="fasta" />
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="rhodopsin_nucs.fasta" ftype="fasta" />
+            <param name="database" value="" />
+            <param name="evalue_cutoff" value="1e-10" />
+            <param name="out_format" value="6" />
+            <param name="adv_opts_selector" value="advanced" />
+            <param name="filter_query" value="false" />
+            <param name="matrix" value="BLOSUM80" />
+            <param name="max_hits" value="0" />
+            <param name="word_size" value="0" />
+            <param name="parse_deflines" value="false" />
+            <output name="output1" file="tblastn_four_human_vs_rhodopsin.tabular" ftype="tabular" />
+        </test>
+        <test>
+            <!-- Same as above, but parse deflines - on BLAST 2.2.25+ - 2.2.27+ makes no difference -->
+            <param name="query" value="four_human_proteins.fasta" ftype="fasta" />
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="rhodopsin_nucs.fasta" ftype="fasta" />
+            <param name="database" value="" />
+            <param name="evalue_cutoff" value="1e-10" />
+            <param name="out_format" value="6" />
+            <param name="adv_opts_selector" value="advanced" />
+            <param name="filter_query" value="false" />
+            <param name="matrix" value="BLOSUM80" />
+            <param name="max_hits" value="0" />
+            <param name="word_size" value="0" />
+            <param name="parse_deflines" value="true" />
+            <output name="output1" file="tblastn_four_human_vs_rhodopsin.tabular" ftype="tabular" />
+        </test>
+        <test>
+            <param name="query" value="four_human_proteins.fasta" ftype="fasta" />
+            <param name="db_opts_selector" value="file" />
+            <param name="subject" value="rhodopsin_nucs.fasta" ftype="fasta" />
+            <param name="database" value="" />
+            <param name="evalue_cutoff" value="1e-10" />
+            <param name="out_format" value="0 -html" />
+            <param name="adv_opts_selector" value="advanced" />
+            <param name="filter_query" value="false" />
+            <param name="matrix" value="BLOSUM80" />
+            <param name="max_hits" value="0" />
+            <param name="word_size" value="0" />
+            <param name="parse_deflines" value="false" />
+            <output name="output1" file="tblastn_four_human_vs_rhodopsin.html" ftype="html" />
+        </test>
+    </tests>
+    <help>
+    
+@SEARCH_TIME_WARNING@
+
+**What it does**
+
+Search a *translated nucleotide database* using a *protein query*,
+using the NCBI BLAST+ tblastn command line tool.
+
+@FASTA_WARNING@
+
+-----
+
+@OUTPUT_FORMAT@
+
+-------
+
+**References**
+
+If you use this Galaxy tool in work leading to a scientific publication please
+cite the following papers:
+
+@REFERENCES@
+    </help>
+</tool>

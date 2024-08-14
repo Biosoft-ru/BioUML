@@ -1,0 +1,22 @@
+/*
+ * Set auto layout action
+ */
+{
+    id: "set_auto_layout",
+    label: "Set auto layout",
+    icon: "icons/set_auto_layout.gif",
+    visible: "function(doc)
+    {
+    	if (doc != null && !doc.readOnly && doc.isAutoLayout && !doc.isAutoLayout()) 
+        {    
+            if(doc instanceof Diagram && doc.isAnnotation)
+                return -1;
+            return true;
+        }
+        return -1; 
+    }",
+    action: "function(event)
+    {
+    	getActiveDocument().setAutoLayout(true);
+    }"
+}

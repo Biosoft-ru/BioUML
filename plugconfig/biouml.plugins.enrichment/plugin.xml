@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension id="Full gene ontology classification" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Full gene ontology classification" class="biouml.plugins.enrichment.FunctionalGOHub">
+     	<property name="shortName" value="GO"/>
+     	<property name="hubPriority" value="20"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="GO (biological process)" point="ru.biosoft.access.biohub"> 
+     <hubItem name="GO (biological process)" class="biouml.plugins.enrichment.FunctionalGOHub">
+     	<property name="type" value="biological_process"/>
+     	<property name="shortName" value="GO (biological)"/>
+     	<property name="hubPriority" value="15"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="GO (molecular function)" point="ru.biosoft.access.biohub"> 
+     <hubItem name="GO (molecular function)" class="biouml.plugins.enrichment.FunctionalGOHub">
+     	<property name="type" value="molecular_function"/>
+     	<property name="shortName" value="GO (molecular)"/>
+     	<property name="hubPriority" value="15"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="GO (cellular component)" point="ru.biosoft.access.biohub"> 
+     <hubItem name="GO (cellular component)" class="biouml.plugins.enrichment.FunctionalGOHub">
+     	<property name="type" value="cellular_component"/>
+     	<property name="shortName" value="GO (cellular)"/>
+     	<property name="hubPriority" value="15"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="Canonical pathways (MSigDB)" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Canonical pathways (MSigDB)" class="biouml.plugins.enrichment.GeneSetsHub">
+     	<property name="GeneSetCollection" value="databases/Utils/Functional categories/c2.cp.v2.5.symbols"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="Transcription factor targets (MSigDB)" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Transcription factor targets (MSigDB)" class="biouml.plugins.enrichment.GeneSetsHub">
+     	<property name="GeneSetCollection" value="databases/Utils/Functional categories/c3.tft.v2.5.symbols"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="Curated gene sets (MSigDB)" point="ru.biosoft.access.biohub"> 
+     <hubItem name="Curated gene sets (MSigDB)" class="biouml.plugins.enrichment.GeneSetsHub">
+     	<property name="GeneSetCollection" value="databases/Utils/Functional categories/c3.all.v2.5.symbols"/>
+     </hubItem> 
+  </extension> 
+
+  <extension id="Enrichment" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.enrichment.EnrichmentAnalysis" group="Gene set analysis" name="Enrichment analysis"
+        shortDescription="Find enriched categories in the ranked set of genes."
+        description="biouml/plugins/enrichment/resources/enrichment.html" js="enrichment.enrichment"/> 
+  </extension>
+   
+  <extension id="Functional classification" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.enrichment.FunctionalClassification" group="Gene set analysis" name="Functional classification"
+        shortDescription="Classify set of genes into groups."
+        description="biouml/plugins/enrichment/resources/functional.html" js="enrichment.classify"/> 
+  </extension>
+   
+  <extension id="Diagram classification" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.enrichment.DiagramClassification" group="Gene set analysis" name="Functional classification by diagrams"  description="Functional classification by diagrams." js="enrichment.diagram"/> 
+  </extension>
+  <extension id="TreeMap" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.enrichment.TreeMapAnalysis" group="Gene set analysis" name="TreeMap on Functional classification"  description="TreeMap on Functional classification results." js="enrichment.treemap"/> 
+  </extension>
+  <extension id="SaveClassificationHits" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.enrichment.SaveClassificationHits" group="Gene set analysis" name="Save hits from Functional classification"  description="Save hits of Functional classification categories satisfying conditions specified as separate gene lists."/> 
+  </extension>
+   
+  <extension id="EnrichmentSaveHitsAction" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="EnrichmentSaveHitsAction" class="biouml.plugins.enrichment.SaveHitsAction">
+        <property name="Name" value="Save hits"/>
+        <property name="ShortDescription" value="Save hits from selected rows"/>
+        <property name="LongDescription" value="Save hits from selected rows as new table (you will be prompted on new table location)"/>
+        <property name="SmallIcon" value="resources/savehits.gif"/>
+        <property name="ActionCommandKey" value="cmd-visualize-rows"/>
+        <parameter name="numSelected" value="2"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="EnrichmentMapPathwayAction" point="ru.biosoft.access.dynamicAction"> 
+     <dynamicAction name="EnrichmentMapPathwayAction" class="biouml.plugins.enrichment.MapOnPathwayAction">
+        <property name="Name" value="Map to pathway"/>
+        <property name="ShortDescription" value="Show hits from selected row on the pathway"/>
+        <property name="LongDescription" value="Show hits on the pathway"/>
+        <property name="SmallIcon" value="resources/visualize.gif"/>
+        <property name="ActionCommandKey" value="cmd-visualize-pathway-map"/>
+        <parameter name="numSelected" value="1"/>
+     </dynamicAction>
+  </extension>
+
+  <extension id="JS-Enrichment" point="ru.biosoft.plugins.javascript.hostObject"> 
+    <hostObject name="enrichment" class="biouml.plugins.enrichment.JavaScriptEnrichment" >
+    </hostObject>
+  </extension>
+
+  <extension point="ru.biosoft.access.biohubSpecial">
+    <biohub name="Repository folder"/>
+  </extension> 
+</plugin>

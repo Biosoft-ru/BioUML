@@ -1,0 +1,31 @@
+/*
+ * New work action
+ */
+{
+    id: "new_work",
+    label: "New work",
+    icon: "icons/work.png",
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+		if (instanceOf(type,'ru.biosoft.works.WorksCollection')) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(completePath)
+    {
+	    $.chainclude(
+	    {
+	        'lib/works.js':function(){
+	        	createNewWork(completePath);
+	        }
+	    }
+	    ); 
+    }"
+}
