@@ -13,12 +13,12 @@ public class MulticellEModel extends EModel
     private UserParameters userParmeters = new UserParameters();
     private InitialCondition initialCondition = new InitialCondition();
     private ReportProperties reportProperties = new ReportProperties();
-    
+
     public ReportProperties getReportProperties()
     {
         return reportProperties;
     }
-    
+
     public UserParameters getUserParmeters()
     {
         return userParmeters;
@@ -33,6 +33,7 @@ public class MulticellEModel extends EModel
     {
         return initialCondition;
     }
+
     public void setInitialCondition(InitialCondition condition)
     {
         this.initialCondition = condition;
@@ -83,6 +84,16 @@ public class MulticellEModel extends EModel
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
         doClone( emodel );
+        updateCellDefinitions(emodel);
         return emodel;
+    }
+
+    /**
+     * It adds parts of Cell Definition stored in edges. Nodes are cloned before edges and thus edge parts are not present yet.
+     */
+    private void updateCellDefinitions(MulticellEModel emodel)
+    {
+        for( CellDefinitionProperties cdp : emodel.getCellDefinitions() )
+            cdp.update();
     }
 }
