@@ -61,7 +61,7 @@ public class FunctionsLoader
         URL[] url = new URL[] {resultFile.toURI().toURL()};
         try (URLClassLoader cl = new URLClassLoader( url, FunctionsLoader.class.getClassLoader() ))
         {
-            return cl.loadClass( className ).asSubclass( c ).newInstance();
+            return cl.loadClass( className ).asSubclass( c ).getDeclaredConstructor().newInstance();
         }
     }
 

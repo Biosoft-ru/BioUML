@@ -2,7 +2,6 @@ package biouml.plugins.physicell;
 
 import com.developmentontheedge.beans.annot.PropertyName;
 
-import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.Volume;
 

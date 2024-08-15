@@ -40,9 +40,9 @@ public abstract class PhysicellTab extends TabularPropertiesEditor
     static class ListRowModel extends AbstractRowModel
     {
         private List<?> roles;
-        private Class c;
+        private Class<?> c;
 
-        public ListRowModel(List<?> roles, Class c)
+        public ListRowModel(List<?> roles, Class<?> c)
         {
             this.roles = roles;
             this.c = c;

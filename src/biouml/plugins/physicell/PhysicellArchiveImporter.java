@@ -31,8 +31,6 @@ public class PhysicellArchiveImporter implements DataElementImporter
 
     protected static final Logger log = Logger.getLogger(PhysicellArchiveImporter.class.getName());
 
-    private static final String MY_FORMAT = "Archive (*.pcl)";
-
     private List<ImportedFile> files;
     private File mainFile = null;
 

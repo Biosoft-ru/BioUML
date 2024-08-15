@@ -5,9 +5,7 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.DiagramElement;
 import biouml.model.Node;
-import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.CellDefinition;
-import ru.biosoft.physicell.core.CellInteractions;
 import ru.biosoft.physicell.core.CellTransformations;
 import ru.biosoft.physicell.core.Model;
 
