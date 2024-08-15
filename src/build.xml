@@ -1151,7 +1151,7 @@
     <!-- =================================================================== -->
 
     <target name="ctest" depends="prepare,compile" >
-        <property name="TEST_CLASSPATH" value="${BUILD_CLASSPATH};${JUNIT};${JUNITX};${COMMON}" />
+        <property name="TEST_CLASSPATH" value="${BUILD_CLASSPATH};${JUNIT};${JUNITX};${JUNIT5};${COMMON}" />
         <echo message="Building Tests..." />
         <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${TEST_CLASSPATH}" debug="on" deprecation="off" optimize="off" encoding="UTF-8">
             <include name="**/_test/*.java" />
@@ -1162,7 +1162,7 @@
         <echo message="Running tests in ${test}..." />
         <java classname="junit.${testui}.TestRunner" fork="yes">
             <classpath>
-                <pathelement path="${RUN_CLASSPATH};${JUNIT};${JUNITX};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR}" />
+                <pathelement path="${RUN_CLASSPATH};{JUNIT};${JUNITX};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR}" />
             </classpath>
             <jvmarg value="-Drepository=${projects.java.dir}/${PROJECT_NAME}/data" />
                         <jvmarg value = "${TEST_OPTS}"/>
@@ -1171,24 +1171,12 @@
         </java>
     </target>
 
-    <target name="ctest5" depends="prepare,compile" >
-        <property name="TEST_CLASSPATH" value="${BUILD_CLASSPATH};${JUNIT5};${COMMON}" />
-        <echo message="Building Tests..." />
-        <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${TEST_CLASSPATH}" debug="on" deprecation="off" optimize="off" encoding="UTF-8">
-            <include name="**/_test/*.java" />
-        </javac>
-    </target>
-
-    <target name="rtest5" depends="ctest5">
-        <echo message="Running tests in ${test}..." />
-        <java classname="org.junit.platform.console.ConsoleLauncher" fork="yes">
-            <classpath>
-                <pathelement path="${RUN_CLASSPATH};${JUNIT5};${ECLIPSE_JARS};${ENSEMBL_JAR};${MYSQL_JAR}" />
-            </classpath>
-            <jvmarg value="-Drepository=${projects.java.dir}/${PROJECT_NAME}/data" />
-                        <jvmarg value = "${TEST_OPTS}"/>
-            <arg value="-noloading" />
-            <arg value="${test}" />
+    <target name="rtest5" depends="ctest">
+        <echo message="Running tests in ${test}... " />
+        <java jar="${JUNIT5}" fork="yes">
+            <arg value="execute" />
+            <arg value="--class-path=${RUN_CLASSPATH};${JUNIT5}" />
+            <arg value="-c ${test}" />
         </java>
     </target>
 
