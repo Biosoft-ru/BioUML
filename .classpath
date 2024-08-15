@@ -204,5 +204,6 @@
 	<classpathentry kind="lib" path="plugins/org.apache.batik_1.7/batik-all.jar"/>
 	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar"/>
 	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar"/>
+	<classpathentry kind="lib" path="build/bin/junit-platform-console-standalone-1.11.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
