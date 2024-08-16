@@ -1177,6 +1177,7 @@
             <arg value="execute" />
             <arg value="--class-path=${RUN_CLASSPATH};${JUNIT5}" />
             <arg value="-c ${test}" />
+            <arg value="--details=summary" />
         </java>
     </target>
 
