@@ -34,7 +34,7 @@ ROBOCOPY %temp_dir%\BioUML\app %img_dir%\BioUML biouml.lcf >>log.txt
 ROBOCOPY %temp_dir%\BioUML\app %img_dir%\BioUML BioUML.ico >>log.txt
 
 REM 4: second jpackage run: generate installator on the base of modified image
-jpackage --type msi --app-image %img_dir%\BioUML --dest %result_dir% --name "BioUML" --app-version "2.0" --win-shortcut --win-dir-chooser --win-menu --win-per-user-install --icon %img_dir%\BioUML\BioUML.ico --win-help-url "www.biouml.org" --win-shortcut-prompt 
+jpackage --type msi --app-image %img_dir%\BioUML --dest %result_dir% --name "BioUML" --app-version "2.0" --vendor "Biosoft.RU" --win-shortcut --win-dir-chooser --win-menu --win-per-user-install --icon %img_dir%\BioUML\BioUML.ico --win-help-url "www.biouml.org" --win-shortcut-prompt 
 
 REM 5: remove generated image
 RMDIR /S /Q %temp_dir%
