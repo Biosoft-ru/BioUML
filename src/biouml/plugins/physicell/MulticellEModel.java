@@ -83,6 +83,7 @@ public class MulticellEModel extends EModel
         emodel.domain = domain.clone();
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
+        emodel.userParmeters = userParmeters.clone();
         doClone( emodel );
         emodel.updateCellDefinitions();
         return emodel;
