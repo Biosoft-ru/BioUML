@@ -108,7 +108,7 @@ public class PhysicellImporter implements DataElementImporter
     private void convertReport(Model model, Diagram result) throws Exception
     {
         ExternalFile external = model.getReportInfo();
-        if (external.format.equals("java"))
+        if (external != null && external.format.equals("java"))
         {
             DataElement de = importExternalCode(external.path);
             MulticellEModel emodel = result.getRole( MulticellEModel.class );
@@ -120,7 +120,7 @@ public class PhysicellImporter implements DataElementImporter
     private void convertVisualizer( Model model, Diagram result) throws Exception
     {
         ExternalFile external = model.getVisualizerInfo();
-        if (external.format.equals("java"))
+        if (external != null && external.format.equals("java"))
         {
             DataElement de = importExternalCode(external.path);
             MulticellEModel emodel = result.getRole( MulticellEModel.class );
