@@ -84,16 +84,16 @@ public class MulticellEModel extends EModel
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
         doClone( emodel );
-        updateCellDefinitions(emodel);
+        emodel.updateCellDefinitions();
         return emodel;
     }
 
     /**
      * It adds parts of Cell Definition stored in edges. Nodes are cloned before edges and thus edge parts are not present yet.
      */
-    private void updateCellDefinitions(MulticellEModel emodel)
+    public void updateCellDefinitions()
     {
-        for( CellDefinitionProperties cdp : emodel.getCellDefinitions() )
+        for( CellDefinitionProperties cdp : getCellDefinitions() )
             cdp.update();
     }
 }
