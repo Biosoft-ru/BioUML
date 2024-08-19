@@ -133,6 +133,9 @@ public class PhysicellImporter implements DataElementImporter
     private void convertInitial(File folder, Model model, Diagram result) throws Exception
     {
         ExternalFile external = model.getInitialInfo();
+        if (external == null)
+            return;
+        
         if (external.format.equals("java"))
         {
             DataElement de = importExternalCode(external.path);
