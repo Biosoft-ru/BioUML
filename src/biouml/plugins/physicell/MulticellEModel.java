@@ -1,12 +1,15 @@
 package biouml.plugins.physicell;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import biouml.model.DiagramElement;
 import biouml.model.dynamics.EModel;
 
 public class MulticellEModel extends EModel
 {
+    private static final Logger log = Logger.getLogger(MulticellEModel.class.getName());
+    
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
 
     private DomainOptions domain = new DomainOptions();
@@ -96,7 +99,7 @@ public class MulticellEModel extends EModel
     {
         for( CellDefinitionProperties cdp : getCellDefinitions() )
         {
-            System.out.println( cdp.getName()+" updating" );
+            log.info( cdp.getName()+" updating. Edges: "+cdp.getDiagramElement().getEdges().length );
             cdp.update();
         }
     }
