@@ -97,6 +97,7 @@ public class MulticellEModel extends EModel
      */
     public void updateCellDefinitions()
     {
+        log.info("Update");
         for( CellDefinitionProperties cdp : getCellDefinitions() )
         {
             log.info( cdp.getName()+" updating. Edges: "+cdp.getDiagramElement().getEdges().length );
