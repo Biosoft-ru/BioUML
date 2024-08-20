@@ -54,8 +54,10 @@ public class InitialCondition extends Option
     {
         InitialCondition result = new InitialCondition();
         result.customCondition = customCondition;
-        result.customConditionCode = DataElementPath.create( customConditionCode.toString() );
-        result.customConditionTable = DataElementPath.create( customConditionTable.toString() );
+        if( customConditionCode != null )
+            result.customConditionCode = DataElementPath.create( customConditionCode.toString() );
+        if( customConditionTable != null )
+            result.customConditionTable = DataElementPath.create( customConditionTable.toString() );
         return result;
     }
 }
