@@ -95,6 +95,9 @@ public class MulticellEModel extends EModel
     public void updateCellDefinitions()
     {
         for( CellDefinitionProperties cdp : getCellDefinitions() )
+        {
+            System.out.println( cdp.getName()+" updating" );
             cdp.update();
+        }
     }
 }
