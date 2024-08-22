@@ -97,7 +97,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         MulticellEModel emodel = diagram.getRole( MulticellEModel.class );
 
         for( UserParameter param : emodel.getUserParmeters().getParameters() )
-            model.addParameter( param.getName(), param.getValue() );
+            model.addParameter( param.getName(), param.getValue(), param.getDescription() );
 
         List<SubstrateProperties> substrates = emodel.getSubstrates();
         for( int i = 0; i < substrates.size(); i++ )
@@ -127,11 +127,15 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
+        DefinitionVisualizer defualtVisualizer = new DefinitionVisualizer();
+        for (CellDefinitionProperties cd: emodel.getCellDefinitions())
+            defualtVisualizer.setColor( cd.getName(), cd.getColor() );
+
         for( String density : m.densityNames )
         {
             Visualizer v = new Visualizer( null, density, Section.Z, 0 );
             v.setStubstrateIndex( m.findDensityIndex( density ) );
-            v.setAgentVisualizer( new DefinitionVisualizer() );//TODO: hardcoded for now
+            v.setAgentVisualizer( defualtVisualizer );
             model.addVisualizer( v );
         }
 
