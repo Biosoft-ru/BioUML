@@ -223,10 +223,11 @@ public class PhysicellImporter implements DataElementImporter
         MulticellEModel emodel = result.getRole( MulticellEModel.class );
         for( String s : model.getParameters() )
         {
-            String val = model.getParameter( s );
+            ru.biosoft.physicell.core.UserParameter userParameter = model.getParameter( s );
             UserParameter p = new UserParameter();
-            p.setName( s );
-            p.setValue( val );
+            p.setName( userParameter.getName() );
+            p.setValue( userParameter.getValue() );
+            p.setDescription( userParameter.getDescription() );
             emodel.addUserParameter( p );
         }
     }

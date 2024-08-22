@@ -9,6 +9,8 @@ public class ReportProperties extends Option
 {
     private boolean customReport = false;
     private DataElementPath reportPath = null;
+    private boolean customGlobalReport = false;
+    private DataElementPath globalReportPath = null;
     private boolean customVisualizer = false;
     private DataElementPath visualizerPath = null;
     
@@ -20,6 +22,17 @@ public class ReportProperties extends Option
     public void setReportPath(DataElementPath reportPath)
     {
         this.reportPath = reportPath;
+    }
+    
+    
+    @PropertyName("Global report")
+    public DataElementPath getGlobalReportPath()
+    {
+        return globalReportPath;
+    }
+    public void setGlobalReportPath(DataElementPath globalReportPath)
+    {
+        this.reportPath = globalReportPath;
     }
     
     @PropertyName("Visualizer")
@@ -44,6 +57,26 @@ public class ReportProperties extends Option
         firePropertyChange( "customReport", oldValue, customReport );
         firePropertyChange( "*", null, null );
     }
+    
+    @PropertyName("Custom global report")
+    public boolean isCustomGlobalReport()
+    {
+        return customGlobalReport;
+    }
+    public void setCustomGlobalReport(boolean customGlobalReport)
+    {
+        boolean oldValue = this.customGlobalReport;
+        this.customGlobalReport = customGlobalReport;
+        firePropertyChange( "customGlobalReport", oldValue, customGlobalReport );
+        firePropertyChange( "*", null, null );
+    }
+    
+    public boolean isDefaultGlobalReport()
+    {
+        return !isCustomGlobalReport();
+    }
+    
+    
     public boolean isDefaultReport()
     {
         return !isCustomReport();
@@ -72,8 +105,10 @@ public class ReportProperties extends Option
         ReportProperties result = new ReportProperties();
         result.customReport = customReport;
         result.customVisualizer = customVisualizer;
-        result.reportPath = DataElementPath.create( reportPath.toString() );
-        result.visualizerPath = DataElementPath.create( visualizerPath.toString() );
+        if( reportPath != null )
+            result.reportPath = DataElementPath.create( reportPath.toString() );
+        if( visualizerPath != null )
+            result.visualizerPath = DataElementPath.create( visualizerPath.toString() );
         return result;
     }
 }
