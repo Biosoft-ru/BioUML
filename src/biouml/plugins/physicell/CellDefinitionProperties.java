@@ -20,6 +20,7 @@ import biouml.standard.type.Stub;
 import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataCollectionVetoException;
+import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.HypothesisRuleset;
@@ -32,6 +33,9 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
 {
     private String name;
     private int initialNumber = 0;
+    private String comment;
+    private Brush color;
+    
     private Node node;
     private boolean isCompleted;
     private CellDefinition cd = new CellDefinition();
@@ -356,5 +360,25 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     {
         // TODO Auto-generated method stub
 
+    }
+    
+    @PropertyName("Color")
+    public Brush getColor()
+    {
+        return color;
+    }
+    public void setColor(Brush color)
+    {
+        this.color = color;
+    }
+
+    @PropertyName("Comment")
+    public String getComment()
+    {
+        return comment;
+    }
+    public void setComment(String comment)
+    {
+        this.comment = comment;
     }
 }

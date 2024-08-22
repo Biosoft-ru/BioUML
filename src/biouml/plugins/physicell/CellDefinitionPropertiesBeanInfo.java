@@ -16,7 +16,9 @@ public class CellDefinitionPropertiesBeanInfo extends BeanInfoEx2<CellDefinition
     {
         add( "name" );
         add( "initialNumber" );
-
+        add( "color" );
+        add( "comment" );
+        
         addHidden( "motilityProperties" );
         addHidden( "mechanicsProperties" );
         addHidden( "volumeProperties" );
