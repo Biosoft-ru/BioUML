@@ -59,7 +59,7 @@ public class PhysicellModel implements Model
 
     public String getLog() throws Exception
     {
-        return model.getLogInfo();
+        return model.getGlobalReportGenerator().getReportElements( model );
     }
 
     @Override
