@@ -16,7 +16,7 @@ public class MulticellEModel extends EModel
     private UserParameters userParmeters = new UserParameters();
     private InitialCondition initialCondition = new InitialCondition();
     private ReportProperties reportProperties = new ReportProperties();
-
+    
     public ReportProperties getReportProperties()
     {
         return reportProperties;
@@ -97,11 +97,7 @@ public class MulticellEModel extends EModel
      */
     public void updateCellDefinitions()
     {
-        log.info("Update");
-        for( CellDefinitionProperties cdp : getCellDefinitions() )
-        {
-            log.info( cdp.getName()+" updating. Edges: "+cdp.getDiagramElement().getEdges().length );
+       for( CellDefinitionProperties cdp : getCellDefinitions() )
             cdp.update();
-        }
     }
 }
