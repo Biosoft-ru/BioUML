@@ -2,30 +2,30 @@ package biouml.plugins.physicell;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import ru.biosoft.graphics.Brush;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.ui.AgentVisualizer2;
 
 public class DefinitionVisualizer extends AgentVisualizer2
 {
-    private static List<Color> colors = new ArrayList<>();
+    private Map<String, Brush> typeToColor = new HashMap<>();
+
+    public void setColor(String type, Brush b)
     {
-        colors.add( Color.green );
-        colors.add( Color.cyan );
-        colors.add( Color.gray );
-        colors.add( Color.magenta );
-        colors.add( Color.orange );
-        colors.add( Color.pink );
+        this.typeToColor.put( type, b );
     }
 
     @Override
     public Color[] findColors(Cell cell)
     {
-        if( cell.type <= colors.size() )
+        if( typeToColor.containsKey( cell.typeName ) )
         {
-            Color c = colors.get( cell.type );
-            return new Color[] {c, Color.black, c.darker(), Color.black};
+            Brush b = typeToColor.get( cell.typeName );
+            return new Color[] {b.getColor()};
         }
         return new Color[] {Color.white, Color.black};
     }
