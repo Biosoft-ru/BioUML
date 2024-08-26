@@ -70,7 +70,9 @@ public class ReactionSimple implements DataElement
     @PropertyName ( "Fast" )
     public boolean isFast()
     {
-        return r == null ? null : r.isFast();
+        if (r!=null)
+            return r.isFast();
+        return false;
     }
     public void setFast(boolean fast)
     {
