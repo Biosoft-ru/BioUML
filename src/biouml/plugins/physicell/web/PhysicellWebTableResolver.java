@@ -274,20 +274,64 @@ public class PhysicellWebTableResolver extends TableResolver
             return sp.isDirichletCondition();
         }
 
-        public void setDirichletCondition(boolean dirichletCondition)
+        @PropertyName("X min")
+        public double getXMin()
         {
-            sp.setDirichletCondition(dirichletCondition);
+            return sp.getXMin();
         }
-
-        @PropertyName("Dirichlet value")
-        public double getDirichletValue()
+        public void setXMin(double xMin)
         {
-            return sp.getDirichletValue();
+            this.sp.setXMin( xMin );
         }
-
-        public void setDirichletValue(double dirichletValue)
+        
+        @PropertyName("X max")
+        public double getXMax()
         {
-            sp.setDirichletValue(dirichletValue);
+            return sp.getXMax();
+        }
+        public void setXMax(double xMax)
+        {
+            this.sp.setXMax( xMax );
+        }
+        
+        @PropertyName("Y min")
+        public double getYMin()
+        {
+            return sp.getYMin();
+        }
+        public void setYMin(double yMin)
+        {
+            this.sp.setYMin (yMin);
+        }
+        
+        @PropertyName("Y max")
+        public double getYMax()
+        {
+            return sp.getYMax();
+        }
+        public void setYMax(double yMax)
+        {
+            this.sp.setYMax( yMax );
+        }
+        
+        @PropertyName("Z min")
+        public double getZMin()
+        {
+            return sp.getZMin();
+        }
+        public void setZMin(double zMin)
+        {
+            this.sp.setZMin( zMin );
+        }
+        
+        @PropertyName("Z max")
+        public double getZMax()
+        {
+            return sp.getZMax();
+        }
+        public void setZMax(double zMax)
+        {
+            this.sp.setZMax(zMax);
         }
 
         public boolean isCompleted()
@@ -311,8 +355,12 @@ public class PhysicellWebTableResolver extends TableResolver
             add("initialCondition");
             add("decayRate");
             add("diffusionCoefficient");
-            add("dirichletCondition");
-            add("dirichletValue");
+            add( "xMin" );
+            add( "xMax" );
+            add( "yMin" );
+            add( "yMax" );
+            add( "zMin" );
+            add( "zMax" );
         }
     }
 
