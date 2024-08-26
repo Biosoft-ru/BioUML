@@ -2,10 +2,11 @@ package biouml.plugins.physicell;
 
 import java.util.List;
 
+import biouml.model.Diagram;
 import biouml.model.DiagramElement;
-import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.EModelRoleSupport;
 
-public class MulticellEModel extends EModel
+public class MulticellEModel extends EModelRoleSupport
 {    
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
 
@@ -61,6 +62,18 @@ public class MulticellEModel extends EModel
         return domain;
     }
 
+    @Override
+    public Diagram getDiagramElement()
+    {
+        return (Diagram)super.getDiagramElement();
+    }
+
+    @Override
+    public Diagram getParent()
+    {
+        return (Diagram)super.getParent();
+    }
+    
     public List<SubstrateProperties> getSubstrates()
     {
         return this.getDiagramElement().stream().map( n -> n.getRole() ).select( SubstrateProperties.class ).toList();
@@ -91,7 +104,7 @@ public class MulticellEModel extends EModel
         emodel.reportProperties = reportProperties.clone();
         emodel.userParmeters = userParmeters.clone();
         emodel.options = options.clone();
-        doClone( emodel );
+        emodel.comment = comment;
         emodel.updateCellDefinitions();
         return emodel;
     }

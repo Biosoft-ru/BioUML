@@ -9,6 +9,8 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 public class EModelRoleSupport extends Option implements Role
 {
+    public static final String ODE_EMODEL_TYPE_UNKNOWN = "Unknown EModel";
+    
     public EModelRoleSupport()
     {
     }
@@ -16,6 +18,11 @@ public class EModelRoleSupport extends Option implements Role
     public EModelRoleSupport(DiagramElement diagramElement)
     {
         super(diagramElement);
+    }
+    
+    public String getType()
+    {
+        return ODE_EMODEL_TYPE_UNKNOWN;
     }
 
     /** Throws UnsupportedOperationException. Should be redefined in subclasses. */

@@ -10,7 +10,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.util.ApplicationUtils;
 
 import biouml.model.Module;
-import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.EModelRoleSupport;
 import biouml.standard.simulation.SimulationResult;
 
 public class SimulationEngineUtils
@@ -18,7 +18,7 @@ public class SimulationEngineUtils
     protected static final Logger log = Logger.getLogger(SimulationEngineUtils.class.getName());
 
     /** TODO - generate log message about code generation. */
-    public static File[] generateCode(EModel executableModel, SimulationEngine simulationEngine)
+    public static File[] generateCode(EModelRoleSupport executableModel, SimulationEngine simulationEngine)
     {
         try
         {

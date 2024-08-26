@@ -15,6 +15,7 @@ import ru.biosoft.gui.Document;
 import ru.biosoft.gui.TabularPropertiesEditor;
 import ru.biosoft.table.TableDataCollection;
 import biouml.model.Diagram;
+import biouml.model.dynamics.EModel;
 import biouml.plugins.fbc.analysis.FbcAnalysis;
 import biouml.plugins.fbc.table.FbcBuilderDataTableAnalysis;
 
@@ -40,11 +41,7 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
     @Override
     public boolean canExplore(Object model)
     {
-        if( model instanceof biouml.model.Diagram )
-        {
-            return true;
-        }
-        return false;
+        return model instanceof biouml.model.Diagram && ( (biouml.model.Diagram)model ).getRole() instanceof EModel;
     }
 
     @Override

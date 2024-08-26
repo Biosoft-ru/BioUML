@@ -709,6 +709,7 @@ public class EModel extends EModelRoleSupport implements DataCollectionListener,
      * Returns emodel formalism type (ode, ode etc)
      * @return
      */
+    @Override
     public String getType()
     {
         return ODE_EMODEL_TYPE_STRING;
