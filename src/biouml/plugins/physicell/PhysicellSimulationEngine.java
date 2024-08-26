@@ -91,6 +91,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
     {
         ru.biosoft.physicell.core.Model model = new ru.biosoft.physicell.core.Model();
 
+
         Microenvironment m = model.getMicroenvironment();
         m.options.initial_condition_vector = new double[1];
 
@@ -111,10 +112,41 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
             m.options.initial_condition_vector[i] = substrate.getInitialCondition();
 
-            if( substrate.isDirichletCondition() )
+            if( substrate.getXMin() > 0 )
             {
-                m.options.Dirichlet_condition_vector[i] = substrate.getDirichletValue();
-                m.options.Dirichlet_all[i] = true;
+                m.options.Dirichlet_xmin[i] = true;
+                m.options.Dirichlet_xmin_values[i] = substrate.getXMin();
+                m.options.outer_Dirichlet_conditions = true;
+            }
+            if( substrate.getXMax() > 0 )
+            {
+                m.options.Dirichlet_xmax[i] = true;
+                m.options.Dirichlet_xmax_values[i] = substrate.getXMax();
+                m.options.outer_Dirichlet_conditions = true;
+            }
+            if( substrate.getYMin() > 0 )
+            {
+                m.options.Dirichlet_ymin[i] = true;
+                m.options.Dirichlet_ymin_values[i] = substrate.getYMin();
+                m.options.outer_Dirichlet_conditions = true;
+            }
+            if( substrate.getYMax() > 0 )
+            {
+                m.options.Dirichlet_ymax[i] = true;
+                m.options.Dirichlet_ymax_values[i] = substrate.getYMax();
+                m.options.outer_Dirichlet_conditions = true;
+            }
+            if( substrate.getZMin() > 0 )
+            {
+                m.options.Dirichlet_zmin[i] = true;
+                m.options.Dirichlet_zmin_values[i] = substrate.getZMin();
+                m.options.outer_Dirichlet_conditions = true;
+            }
+            if( substrate.getZMax() > 0 )
+            {
+                m.options.Dirichlet_zmax[i] = true;
+                m.options.Dirichlet_zmax_values[i] = substrate.getZMax();
+                m.options.outer_Dirichlet_conditions = true;
             }
         }
 
@@ -128,7 +160,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.simulate2D = options.isUse2D();
 
         DefinitionVisualizer defualtVisualizer = new DefinitionVisualizer();
-        for (CellDefinitionProperties cd: emodel.getCellDefinitions())
+        for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
             defualtVisualizer.setColor( cd.getName(), cd.getColor() );
 
         for( String density : m.densityNames )
@@ -147,9 +179,9 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
         m.options.calculate_gradients = opts.isCalculateGradient();
         m.options.track_internalized_substrates_in_each_agent = opts.isTrackInnerSubstrates();
-                
+
         Microenvironment.initialize( m );
-        
+
         String cellUpdateType = opts.getCellUpdateType();
         CellContainer container = CellContainer.createCellContainer( m, cellUpdateType, 30 );
         container.setRulesEnabled( true );
@@ -195,6 +227,8 @@ public class PhysicellSimulationEngine extends SimulationEngine
         if( getCustomReportGenerator() != null && !getCustomReportGenerator().isEmpty() )
             model.setReportGenerator( FunctionsLoader.load( getCustomReportGenerator(), ReportGenerator.class, log.getLogger() ) );
 
+        model.disableAutomatedSpringAdhesions = emodel.getOptions().isDisableAutomatedAdhesions();
+        model.signals.setupDictionaries( model );
         model.init( false );
 
         InitialCondition condition = emodel.getInitialCondition();
@@ -202,7 +236,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         {
             DataElementPath codePath = condition.getCustomConditionCode();
             if( codePath != null && !codePath.isEmpty() )
-                FunctionsLoader.load( codePath, InitialCellsArranger.class, log.getLogger()  ).arrange( model );
+                FunctionsLoader.load( codePath, InitialCellsArranger.class, log.getLogger() ).arrange( model );
             DataElementPath tablePath = condition.getCustomConditionTable();
             if( tablePath != null && !tablePath.isEmpty() )
                 loadCellsTable( tablePath, model );
@@ -217,22 +251,22 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
         if( logReport )
             log.info( model.display() );
-        
-        if (emodel.getReportProperties().isCustomReport())
+
+        if( emodel.getReportProperties().isCustomReport() )
         {
             DataElementPath dep = emodel.getReportProperties().getReportPath();
-            model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger()  ));
+            model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger() ) );
         }
-        
-        if (emodel.getReportProperties().isCustomVisualizer())
+
+        if( emodel.getReportProperties().isCustomVisualizer() )
         {
             DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
-            AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer2.class, log.getLogger()  );     
-            for (Visualizer v: model.getVisualizers())
-                    v.setAgentVisualizer( visualizer );
+            AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer2.class, log.getLogger() );
+            for( Visualizer v : model.getVisualizers() )
+                v.setAgentVisualizer( visualizer );
         }
-        
-        
+
+
         return new PhysicellModel( model );
     }
 
@@ -245,8 +279,8 @@ public class PhysicellSimulationEngine extends SimulationEngine
             double x = Double.parseDouble( row[0].toString() );
             double y = Double.parseDouble( row[1].toString() );
             double z = Double.parseDouble( row[2].toString() );
-            String type = row[3].toString();
-            Cell.createCell( model.getCellDefinition( type ), model, new double[] {x, y, z} );
+            int code = (int)Double.parseDouble( row[3].toString() );//.toString();
+            Cell.createCell( model.getCellDefinition( code), model, new double[] {x, y, z} );
         }
     }
 
