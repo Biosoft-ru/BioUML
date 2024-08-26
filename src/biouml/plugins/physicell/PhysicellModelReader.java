@@ -26,10 +26,11 @@ public class PhysicellModelReader extends ModelXmlReader
             String className = element.getAttribute( MODEL_CLASS_ATTR );
             Class<? extends MulticellEModel> clazz = ClassLoading.loadSubClass( className, MulticellEModel.class );
             model = clazz.getConstructor( DiagramElement.class ).newInstance( diagram );
+            readOptions( element, model );
             readDomain( element, model );
             readUserParameters( element, model );
             readInitialCondiiton( element, model );
-            readReportProperties(element, model);
+            readReportProperties( element, model );
         }
         catch( Throwable t )
         {
@@ -71,6 +72,13 @@ public class PhysicellModelReader extends ModelXmlReader
         condition.setCustomConditionCode( DataElementPath.create( customCode ) );
         String customTable = conditionElement.getAttribute( "customTable" );
         condition.setCustomConditionTable( DataElementPath.create( customTable ) );
+    }
+
+    protected void readOptions(Element modelElement, MulticellEModel model)
+    {
+        ModelOptions options = model.getOptions();
+        Element optionsElement = XmlUtil.findElementByTagName( modelElement, "options" );
+        options.setDisableAutomatedAdhesions( getBoolean( optionsElement, "disableAutomatedAdhesion", false ) );
     }
 
     protected void readDomain(Element modelElement, MulticellEModel model)
