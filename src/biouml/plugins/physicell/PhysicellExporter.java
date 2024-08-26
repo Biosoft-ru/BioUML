@@ -285,7 +285,7 @@ public class PhysicellExporter implements DataElementExporter
         return createSimpleElement( parent, name, String.valueOf( value ) );
     }
 
-    
+
     private Element createSimpleElement(Element parent, String name, double value)
     {
         return createSimpleElement( parent, name, String.valueOf( value ) );
@@ -327,7 +327,7 @@ public class PhysicellExporter implements DataElementExporter
         createSimpleElement( overallElement, "max_time", opts.getFinalTime() );
         createSimpleElement( overallElement, "dt_diffusion", opts.getDiffusionDt() );
         createSimpleElement( overallElement, "dt_mechanics", opts.getMechanicsDt() );
-        createSimpleElement( overallElement, "dt_phenotype", opts.getMechanicsDt() );
+        createSimpleElement( overallElement, "dt_phenotype", opts.getPhenotypeDt() );
     }
 
     protected void writeSave(Element map)
@@ -350,7 +350,7 @@ public class PhysicellExporter implements DataElementExporter
         {
             Element reportElement = createSimpleElement( saveElement, "report" );
             reportElement.setAttribute( "enabled", "true" );
-            reportElement.setAttribute( "format", "java" );
+            reportElement.setAttribute( "type", "java" );
             createSimpleElement( reportElement, "folder", "." );
             createSimpleElement( reportElement, "filename", report.getReportPath().getName() );
         }
@@ -359,7 +359,7 @@ public class PhysicellExporter implements DataElementExporter
         {
             Element reportElement = createSimpleElement( saveElement, "visualizer" );
             reportElement.setAttribute( "enabled", "true" );
-            reportElement.setAttribute( "format", "java" );
+            reportElement.setAttribute( "type", "java" );
             createSimpleElement( reportElement, "folder", "." );
             createSimpleElement( reportElement, "filename", report.getVisualizerPath().getName() );
         }
@@ -369,8 +369,9 @@ public class PhysicellExporter implements DataElementExporter
     {
         Element optionsElement = createSimpleElement( map, "options" );
         createSimpleElement( optionsElement, "legacy_random_points_on_sphere_in_divide", false );
-        createSimpleElement( optionsElement, "virtual_wall_at_domain_edge", true );
-        createSimpleElement( optionsElement, "disable_automated_spring_adhesions", false );
+        createSimpleElement( optionsElement, "virtual_wall_at_domain_edge", false );
+        createSimpleElement( optionsElement, "disable_automated_spring_adhesions",
+                diagram.getRole( MulticellEModel.class ).getOptions().isDisableAutomatedAdhesions() );
     }
 
     protected void writeMicroenvironment(Element map)
@@ -399,8 +400,27 @@ public class PhysicellExporter implements DataElementExporter
         createSimpleElement( parametersElement, "diffusion_coefficient", substrate.getDiffusionCoefficient() );
         createSimpleElement( parametersElement, "decay_rate", substrate.getDecayRate() );
         createSimpleElement( variableElement, "initial_condition", substrate.getInitialCondition() );
-        Element dirichlet = createSimpleElement( variableElement, "Dirichlet_boundary_condition", substrate.getDirichletValue() );
+        Element dirichlet = createSimpleElement( variableElement, "Dirichlet_boundary_condition", 0 );
         dirichlet.setAttribute( "enabled", String.valueOf( substrate.isDirichletCondition() ) );
+        Element dirichletOptions = createSimpleElement( variableElement, "Dirichlet_options" );
+        Element xminElement = createSimpleElement( dirichletOptions, "boundary_value", substrate.getXMin() );
+        xminElement.setAttribute( "ID", "xmin" );
+        xminElement.setAttribute( "enabled", substrate.getXMin() >= 0 ? "True" : "False" );
+        Element xmaxElement = createSimpleElement( dirichletOptions, "boundary_value", substrate.getXMax() );
+        xmaxElement.setAttribute( "ID", "xmax" );
+        xmaxElement.setAttribute( "enabled", substrate.getXMax() >= 0 ? "True" : "False" );
+        Element yminElement = createSimpleElement( dirichletOptions, "boundary_value", substrate.getYMin() );
+        yminElement.setAttribute( "ID", "ymin" );
+        yminElement.setAttribute( "enabled", substrate.getYMin() >= 0 ? "True" : "False" );
+        Element ymaxElement = createSimpleElement( dirichletOptions, "boundary_value", substrate.getYMax() );
+        ymaxElement.setAttribute( "ID", "ymax" );
+        ymaxElement.setAttribute( "enabled", substrate.getYMax() >= 0 ? "True" : "False" );
+        Element zminElement = createSimpleElement( dirichletOptions, "boundary_value", substrate.getZMin() );
+        zminElement.setAttribute( "ID", "zmin" );
+        zminElement.setAttribute( "enabled", substrate.getZMin() >= 0 ? "True" : "False" );
+        Element zmaxElement = createSimpleElement( dirichletOptions, "boundary_value", substrate.getZMax() );
+        zmaxElement.setAttribute( "ID", "zmax" );
+        zmaxElement.setAttribute( "enabled", substrate.getZMax() >= 0 ? "True" : "False" );
     }
 
     protected void writeCellDefinitions(Element parent) throws Exception
@@ -417,8 +437,8 @@ public class PhysicellExporter implements DataElementExporter
         cellDefinitionElement.setAttribute( "name", cdp.getName() );
         cellDefinitionElement.setAttribute( "ID", String.valueOf( id ) );
         Element phenotypeElement = createSimpleElement( cellDefinitionElement, "phenotype" );
-       
-        writeCycle(phenotypeElement, cdp.getCycleProperties());
+
+        writeCycle( phenotypeElement, cdp.getCycleProperties() );
         writeDeath( phenotypeElement, cdp.getDeathProperties() );
         writeVolume( phenotypeElement, cdp.getVolumeProperties() );
         writeMechanics( phenotypeElement, cdp.getMechanicsProperties() );
@@ -440,7 +460,7 @@ public class PhysicellExporter implements DataElementExporter
     {
         el.setAttribute( name, String.valueOf( val ) );
     }
-    
+
     protected void writeCycle(Element parent, CycleProperties cycleProperties) throws Exception
     {
         Element cycleElement = createSimpleElement( parent, "cycle" );
@@ -452,7 +472,8 @@ public class PhysicellExporter implements DataElementExporter
             for( PhaseLink link : list )
             {
                 Element linkElement = createSimpleElement( cycleElement, "phase_transition_rates" );
-                Element rateElement = createSimpleElement( linkElement, "rate", cycle.data.getTransitionRate( link.getStartPhase().index, link.getEndPhase().index ) );
+                Element rateElement = createSimpleElement( linkElement, "rate",
+                        cycle.data.getTransitionRate( link.getStartPhase().index, link.getEndPhase().index ) );
                 setAttr( rateElement, "start_index", link.getStartPhase().index );
                 setAttr( rateElement, "end_index", link.getEndPhase().index );
                 setAttr( rateElement, "fixed_duration", link.fixedDuration );
@@ -675,7 +696,8 @@ public class PhysicellExporter implements DataElementExporter
         for( CellDefinitionProperties cdp : emodel.getCellDefinitions() )
         {
             InteractionProperties properties = interactionMapping.get( cdp.getName() );
-            Element el = createSimpleElement( livePhagocytosisElement, "phagocytosis_rate", properties == null ? 0 : properties.getPhagocytosisRate() );
+            Element el = createSimpleElement( livePhagocytosisElement, "phagocytosis_rate",
+                    properties == null ? 0 : properties.getPhagocytosisRate() );
             el.setAttribute( "name", cdp.getName() );
         }
 
@@ -683,16 +705,16 @@ public class PhysicellExporter implements DataElementExporter
         for( CellDefinitionProperties cdp : emodel.getCellDefinitions() )
         {
             InteractionProperties properties = interactionMapping.get( cdp.getName() );
-            Element el =createSimpleElement( attacksElement, "attack_rate", properties == null ? 0 : properties.getAttackRate() );
-            el.setAttribute( "name",  cdp.getName()  );
+            Element el = createSimpleElement( attacksElement, "attack_rate", properties == null ? 0 : properties.getAttackRate() );
+            el.setAttribute( "name", cdp.getName() );
         }
 
         Element fusionsElement = createSimpleElement( interactionsElement, "fusion_rates" );
         for( CellDefinitionProperties cdp : emodel.getCellDefinitions() )
         {
             InteractionProperties properties = interactionMapping.get( cdp.getName() );
-            Element el =createSimpleElement( fusionsElement, "fusion_rate", properties == null ? 0 : properties.getFuseRate() );
-            el.setAttribute( "name",  cdp.getName()  );
+            Element el = createSimpleElement( fusionsElement, "fusion_rate", properties == null ? 0 : properties.getFuseRate() );
+            el.setAttribute( "name", cdp.getName() );
         }
 
     }
@@ -716,7 +738,7 @@ public class PhysicellExporter implements DataElementExporter
         {
             TransformationProperties properties = transformationMapping.get( cdp.getName() );
             Element el = createSimpleElement( ratesElement, "transformation_rate", properties == null ? 0 : properties.getRate() );
-            el.setAttribute( "name",  cdp.getName()  );
+            el.setAttribute( "name", cdp.getName() );
         }
     }
 
@@ -745,12 +767,12 @@ public class PhysicellExporter implements DataElementExporter
         if( ic.getCustomConditionCode() != null && !ic.getCustomConditionCode().isEmpty() )
         {
             name = ic.getCustomConditionCode().getName();
-            positionElement.setAttribute( "format", "java" );
+            positionElement.setAttribute( "type", "java" );
         }
         else if( ic.getCustomConditionTable() != null && !ic.getCustomConditionTable().isEmpty() )
         {
             name = ic.getCustomConditionTable().getName();
-            positionElement.setAttribute( "format", "csv" );
+            positionElement.setAttribute( "type", "csv" );
         }
 
         createSimpleElement( positionElement, "folder", "." );
@@ -773,96 +795,105 @@ public class PhysicellExporter implements DataElementExporter
     {
         Element functionsElement = createSimpleElement( parent, "functions" );
 
+        Element phenotypeElement = createSimpleElement( functionsElement, "function" );
+        phenotypeElement.setAttribute( "name", "update_phenotype" );
         if( !properties.isDefaultPhenotype() )
         {
-            Element phenotypeElement = createSimpleElement( functionsElement, "function" );
-            phenotypeElement.setAttribute( "name", "update_phenotype" );
-            phenotypeElement.setAttribute( "format", "java" );
+            phenotypeElement.setAttribute( "file", properties.getPhenotypeUpdateCustom().getName() );
+            phenotypeElement.setAttribute( "type", "java" );
+
+        }
+        else
             phenotypeElement.setAttribute( "type", getTypeAttr( properties.getPhenotypeUpdate() ) );
-            phenotypeElement.setAttribute( "path", properties.getPhenotypeUpdateCustom().getName() );
-        }
 
-        if( !properties.isDefaultPhenotype() )
+        Element customRuleElement = createSimpleElement( functionsElement, "function" );
+        customRuleElement.setAttribute( "name", "custom_cell_rule" );
+        if( !properties.isDefaultRule() )
         {
-            Element customRuleElement = createSimpleElement( functionsElement, "function" );
-            customRuleElement.setAttribute( "name", "custom_cell_rule" );
+            customRuleElement.setAttribute( "file", properties.getCustomRuleCustom().getName() );
+            customRuleElement.setAttribute( "type", "java" );
+        }
+        else
             customRuleElement.setAttribute( "type", getTypeAttr( properties.getCustomRule() ) );
-            customRuleElement.setAttribute( "format", "java" );
-            customRuleElement.setAttribute( "path", properties.getCustomRuleCustom().getName() );
-        }
 
-        if( !properties.isDefaultPhenotype() )
+        Element updateMigrationElement = createSimpleElement( functionsElement, "function" );
+        updateMigrationElement.setAttribute( "name", "update_migration_bias" );
+
+        if( !properties.isDefaultMigration() )
         {
-            Element updateMigrationElement = createSimpleElement( functionsElement, "function" );
-            updateMigrationElement.setAttribute( "name", "update_migration_bias" );
-            updateMigrationElement.setAttribute( "type", getTypeAttr( properties.getMigrationUpdate() ) );
-            updateMigrationElement.setAttribute( "format", "java" );
-            updateMigrationElement.setAttribute( "path", properties.getMigrationUpdateCustom().getName() );
+            updateMigrationElement.setAttribute( "file", properties.getMigrationUpdateCustom().getName() );
+            updateMigrationElement.setAttribute( "type", "java" );
         }
+        else
+            updateMigrationElement.setAttribute( "type", getTypeAttr( properties.getMigrationUpdate() ) );
 
+        Element instantiateElement = createSimpleElement( functionsElement, "function" );
+        instantiateElement.setAttribute( "name", "instantiate_cell" );
         if( !properties.isDefaultInstantiate() )
         {
-            Element instantiateElement = createSimpleElement( functionsElement, "function" );
-            instantiateElement.setAttribute( "name", "instantiate_cell" );
-            instantiateElement.setAttribute( "type", getTypeAttr( properties.getInstantiate() ) );
-            instantiateElement.setAttribute( "format", "java" );
-            instantiateElement.setAttribute( "path", properties.getInstantiateCustom().getName() );
+            instantiateElement.setAttribute( "file", properties.getInstantiateCustom().getName() );
+            instantiateElement.setAttribute( "type", "java" );
         }
+        else
+            instantiateElement.setAttribute( "type", getTypeAttr( properties.getInstantiate() ) );
 
+        Element volumeElement = createSimpleElement( functionsElement, "function" );
+        volumeElement.setAttribute( "name", "volume_update_function" );
         if( !properties.isDefaultVolume() )
         {
-            Element volumeElement = createSimpleElement( functionsElement, "function" );
-            volumeElement.setAttribute( "name", "volume_update_function" );
-            volumeElement.setAttribute( "type", getTypeAttr( properties.getVolumeUpdate() ) );
-            volumeElement.setAttribute( "format", "java" );
-            volumeElement.setAttribute( "path", properties.getVolumeUpdateCustom().getName() );
+            volumeElement.setAttribute( "file", properties.getVolumeUpdateCustom().getName() );
+            volumeElement.setAttribute( "type", "java" );
         }
+        else
+            volumeElement.setAttribute( "type", getTypeAttr( properties.getVolumeUpdate() ) );
 
+        Element velocityElement = createSimpleElement( functionsElement, "function" );
+        velocityElement.setAttribute( "name", "update_velocity" );
         if( !properties.isDefaultVelocity() )
         {
-            Element velocityElement = createSimpleElement( functionsElement, "function" );
-            velocityElement.setAttribute( "name", "update_velocity" );
-            velocityElement.setAttribute( "type", getTypeAttr( properties.getVelocityUpdate() ) );
-            velocityElement.setAttribute( "format", "java" );
-            velocityElement.setAttribute( "path", properties.getVelocityUpdateCustom().getName() );
+            velocityElement.setAttribute( "file", properties.getVelocityUpdateCustom().getName() );
+            velocityElement.setAttribute( "type", "java" );
         }
+        else
+            velocityElement.setAttribute( "type", getTypeAttr( properties.getVelocityUpdate() ) );
 
+        Element contactElement = createSimpleElement( functionsElement, "function" );
+        contactElement.setAttribute( "name", "contact_function" );
         if( !properties.isDefaultContact() )
         {
-            Element contactElement = createSimpleElement( functionsElement, "function" );
-            contactElement.setAttribute( "name", "contact_function" );
+            contactElement.setAttribute( "file", properties.getContactCustom().getName() );
+            contactElement.setAttribute( "type", "java" );
+        }
+        else
             contactElement.setAttribute( "type", getTypeAttr( properties.getContact() ) );
-            contactElement.setAttribute( "format", "java" );
-            contactElement.setAttribute( "path", properties.getContactCustom().getName() );
-        }
 
-        if( !properties.isDefaultMBInteraction() )
-        {
-            Element membraneInteractionElement = createSimpleElement( functionsElement, "function" );
-            membraneInteractionElement.setAttribute( "name", "add_cell_basement_membrane_interactions" );
-            membraneInteractionElement.setAttribute( "type", getTypeAttr( properties.getMembraneInteraction() ) );
-            membraneInteractionElement.setAttribute( "format", "java" );
-            membraneInteractionElement.setAttribute( "path", properties.getMembraneInteractionCustom().getName() );
-        }
-
+        Element membraneInteractionElement = createSimpleElement( functionsElement, "function" );
+        membraneInteractionElement.setAttribute( "name", "add_cell_basement_membrane_interactions" );
         if( !properties.isDefaultMBDistance() )
         {
-            Element membraneDistanceElement = createSimpleElement( functionsElement, "function" );
-            membraneDistanceElement.setAttribute( "name", "calculate_distance_to_membrane" );
-            membraneDistanceElement.setAttribute( "type", getTypeAttr( properties.getMembraneDistance() ) );
-            membraneDistanceElement.setAttribute( "format", "java" );
-            membraneDistanceElement.setAttribute( "path", properties.getMembraneDistanceCustom().getName() );
+            membraneInteractionElement.setAttribute( "file", properties.getMembraneInteractionCustom().getName() );
+            membraneInteractionElement.setAttribute( "type", "java" );
         }
+        else
+            membraneInteractionElement.setAttribute( "type", getTypeAttr( properties.getMembraneInteraction() ) );
+
+        Element membraneDistanceElement = createSimpleElement( functionsElement, "function" );
+        membraneDistanceElement.setAttribute( "name", "calculate_distance_to_membrane" );
+        if( !properties.isDefaultMBDistance() )
+        {
+            membraneDistanceElement.setAttribute( "file", properties.getMembraneDistanceCustom().getName() );
+            membraneDistanceElement.setAttribute( "type", "java" );
+        }
+        else
+            membraneDistanceElement.setAttribute( "type", getTypeAttr( properties.getMembraneDistance() ) );
     }
 
     private String getTypeAttr(String userString)
     {
         if( userString.equals( PhysicellConstants.NOT_SELECTED ) )
             return "NONE";
-        else if( userString.equals( PhysicellConstants.CUSTOM ) )
-            return "CUSTOM";
-        else
-            return "DEFAULT";
+
+        return userString;
     }
 
 }

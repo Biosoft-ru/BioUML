@@ -23,40 +23,47 @@ public class BioUMLFunctionsReader extends FunctionsReader
         {
             String name = functionElement.getAttribute( "name" );
             String type = functionElement.getAttribute( "type" );
-            if( type.equals( "NONE" ) )
-            {
-                info.addFunction( name, null );
-            }
-            else if( type.equals( "CUSTOM" ) )
-            {
-                String path = functionElement.getAttribute( "path" );
-                info.addFunction( name, path );
-            }
+            String path = functionElement.getAttribute( "file" );
+            info.addFunction( name, type, path );
         }
         if( info != null )
             cellFunctions.put( cd.name, info );
     }
 
-    public Map<String, String> getFunctionsInfo(String cd)
+    public Map<String, FunctionInfo> getFunctionsInfo(String cd)
     {
         FunctionsInfo info = cellFunctions.get( cd );
         if( info == null )
-            return new HashMap<String, String>();
+            return new HashMap<String, FunctionInfo>();
         return info.functionPaths;
     }
 
     public static class FunctionsInfo
     {
-        Map<String, String> functionPaths = new HashMap<String, String>();
+        Map<String, FunctionInfo> functionPaths = new HashMap<String, FunctionInfo>();
 
-        public void addFunction(String name, String path)
+        public void addFunction(String name, String type, String path)
         {
-            functionPaths.put( name, path );
+            functionPaths.put( name, new FunctionInfo(name, type, path) );
         }
 
         public boolean isEmpty()
         {
             return functionPaths.isEmpty();
+        }
+    }
+    
+    public static class FunctionInfo
+    {
+        String name;
+        String type;
+        String path;
+     
+        public FunctionInfo(String name, String type, String path)
+        {
+            this.name = name;
+            this.type = type;
+            this.path = path;
         }
     }
 }

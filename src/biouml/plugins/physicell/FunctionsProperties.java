@@ -483,4 +483,57 @@ public class FunctionsProperties extends Option
             }
         }
     }
+    
+    public void setValue(String name, String val)
+    {
+        switch( name )
+        {
+            case "custom_cell_rule":
+            {
+                setCustomRule( val );
+                break;
+            }
+            case "update_migration_bias":
+            {
+                setMigrationUpdate( val );
+                break;
+            }
+            case "update_phenotype":
+            {
+                setPhenotypeUpdate( val );
+                break;
+            }
+            case "instantiate_cell":
+            {
+                setInstantiate( val );
+                break;
+            }
+            case "volume_update_function":
+            {
+                setVolumeUpdate( val);
+                break;
+            }
+            case "update_velocity":
+            {
+                setVelocityUpdate( val );
+                break;
+            }
+            case "contact_function":
+            {
+                setContact( val );
+                break;
+            }
+            case "add_cell_basement_membrane_interactions":
+            {
+                setMembraneInteraction( val );
+                break;
+            }
+            case "calculate_distance_to_membrane":
+            {
+                setMembraneDistance( val );
+                break;
+            }
+        }
+    }
+
 }
