@@ -1,21 +1,24 @@
 package biouml.plugins.physicell;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import biouml.model.DiagramElement;
 import biouml.model.dynamics.EModel;
 
 public class MulticellEModel extends EModel
-{
-    private static final Logger log = Logger.getLogger(MulticellEModel.class.getName());
-    
+{    
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
 
     private DomainOptions domain = new DomainOptions();
     private UserParameters userParmeters = new UserParameters();
     private InitialCondition initialCondition = new InitialCondition();
-    private ReportProperties reportProperties = new ReportProperties();
+    private ReportProperties reportProperties = new ReportProperties(); 
+    private ModelOptions options = new ModelOptions();
+    
+    public ModelOptions getOptions()
+    {
+        return options;
+    }
     
     public ReportProperties getReportProperties()
     {
@@ -87,6 +90,7 @@ public class MulticellEModel extends EModel
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
         emodel.userParmeters = userParmeters.clone();
+        emodel.options = options.clone();
         doClone( emodel );
         emodel.updateCellDefinitions();
         return emodel;
