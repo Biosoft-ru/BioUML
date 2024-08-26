@@ -31,6 +31,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private PropertyInspector parametersInspector = new PropertyInspector();
     private PropertyInspector initialConditionInspector = new PropertyInspector();
     private PropertyInspector reportInspector = new PropertyInspector();
+    private PropertyInspector optionsInspector = new PropertyInspector();
     
     public PhysicellModelViewPart()
     {
@@ -57,6 +58,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         tabbedPane.addTab( "User Parameters", parametersInspector );
         tabbedPane.addTab( "Initial Condition", initialConditionInspector );
         tabbedPane.addTab( "Model Report", reportInspector );
+        tabbedPane.addTab( "Model Options", optionsInspector );
         tabbedPane.addChangeListener( new ChangeListener()
         {
             @Override
@@ -87,6 +89,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         parametersInspector.explore( emodel.getUserParmeters() );
         initialConditionInspector.explore( emodel.getInitialCondition() );
         reportInspector.explore( emodel.getReportProperties() );
+        optionsInspector.explore( emodel.getOptions() );
         initTabbedPane( emodel );
     }
 
