@@ -550,6 +550,9 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
         protected ResultListener[] getResultListeners(SimulationEngine simulationEngine) throws Exception
         {
             SimulationResult res = simulationEngine.generateSimulationResult();
+            if (res == null)
+                return new ResultListener[0];
+            
             currentResults = new ResultWriter( res );
             res.setDiagramPath( executableModel.getParent().getCompletePath() );
             //        if( document instanceof DiagramDocument )

@@ -1,6 +1,7 @@
 package biouml.plugins.physicell;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -9,6 +10,7 @@ import biouml.model.dynamics.plot.PlotInfo;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.standard.simulation.ResultListener;
+import biouml.standard.simulation.SimulationResult;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.Cell;
@@ -279,8 +281,14 @@ public class PhysicellSimulationEngine extends SimulationEngine
             double x = Double.parseDouble( row[0].toString() );
             double y = Double.parseDouble( row[1].toString() );
             double z = Double.parseDouble( row[2].toString() );
-            int code = (int)Double.parseDouble( row[3].toString() );//.toString();
-            Cell.createCell( model.getCellDefinition( code), model, new double[] {x, y, z} );
+            String value = row[3].toString();
+            CellDefinition cd = model.getCellDefinition( value );
+            if( cd == null )
+            {
+                int code = (int)Double.parseDouble( row[3].toString() );
+                cd = model.getCellDefinition( code );
+            }
+            Cell.createCell( cd, model, new double[] {x, y, z} );
         }
     }
 
@@ -350,5 +358,41 @@ public class PhysicellSimulationEngine extends SimulationEngine
     public void setCustomReportGenerator(DataElementPath customReportGenerator)
     {
         this.customReportGenerator = customReportGenerator;
+    }
+
+    @PropertyName ( "Show plot" )
+    public boolean getNeedToShowPlot()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean hasVariablesToPlot()
+    {
+        return false;
+    }
+
+    @Override
+    public List<String> getIncorrectPlotVariables()
+    {
+        return new ArrayList<String>();
+    }
+
+    @Override
+    public ResultListener[] getListeners()
+    {
+        return new ResultListener[0];
+    }
+
+    @Override
+    public SimulationResult generateSimulationResult()
+    {
+        return null;
+    }
+
+    @Override
+    public String[] getVariableNames()
+    {
+        return new String[0];
     }
 }
