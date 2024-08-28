@@ -1,0 +1,85 @@
+ID	exp_data_1
+name	exp_data_1
+referenceType	DefaultReferenceType
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+modifiedDate	1361340811093
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+createdDate	1361340811093
+//
+ID	exp_data_2
+name	exp_data_2
+referenceType	DefaultReferenceType
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+modifiedDate	1361340828687
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+createdDate	1361340828687
+//
+ID	exp_data_3
+persistent.integerIds	true
+name	exp_data_3
+referenceType	DefaultReferenceType
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+modifiedDate	1361340843015
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+persistent.generatedIds	true
+createdDate	1361340843015
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+//
+ID	exp_data
+name	exp_data
+referenceType	DefaultReferenceType
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+modifiedDate	1630309589381
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+createdDate	1630309589381
+//
+
+ID	exp_data
+name	exp_data
+referenceType	DefaultReferenceType
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+modifiedDate	1630309589381
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+createdDate	1630309589381
+//deleted
+ID	exp_data
+name	exp_data
+referenceType	DefaultReferenceType
+file	exp_data
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+value.delimiters	\t
+modifiedDate	1630309607377
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+createdDate	1630309589381
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+//
+
+ID	exp_data
+name	exp_data
+referenceType	DefaultReferenceType
+file	exp_data
+class	ru.biosoft.table.FileTableDataCollection
+plugins	ru.biosoft.table
+value.delimiters	\t
+modifiedDate	1630309607377
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+createdDate	1630309589381
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+species	Unspecified
+//deleted

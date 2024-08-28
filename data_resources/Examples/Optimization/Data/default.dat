@@ -1,0 +1,322 @@
+ID	Diagrams
+name	Diagrams
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647328075871
+PreferedTableImplementation	File
+nextConfig	Diagrams.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410275976
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+ID	Experiments
+name	Experiments
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410296319
+PreferedTableImplementation	File
+nextConfig	Experiments.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+ID	Simulations
+name	Simulations
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647409753850
+PreferedTableImplementation	File
+nextConfig	Simulations.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410275976
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404826965
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404826965
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404919910
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404919910
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404923723
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404923723
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404936825
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404936825
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404938569
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404938569
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404953553
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404953553
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404954695
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404954695
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404970508
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404970508
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404971692
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404971692
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404986307
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//

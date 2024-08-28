@@ -1,0 +1,41 @@
+ID	optimizationInfo
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+createdDate	1647409577526
+plugins	ru.biosoft.table
+modifiedDate	1647409577526
+name	optimizationInfo
+class	ru.biosoft.table.FileTableDataCollection
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	experiment_1_state
+de_transformer	biouml.standard.state.StateTransformer
+createdDate	1647409577555
+plugins	biouml.workbench
+modifiedDate	1647409577555
+class	biouml.standard.state.State
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	experiment_1_sr
+de_transformer	biouml.standard.simulation.access.SimulationResultTransformer
+createdDate	1647409577579
+plugins	biouml.workbench
+modifiedDate	1647409577579
+class	biouml.standard.simulation.SimulationResult
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	experiment_1_chart
+de_transformer	ru.biosoft.graphics.access.FileChartTransformer
+createdDate	1647409577676
+plugins	ru.biosoft.graphics
+modifiedDate	1647409577676
+class	ru.biosoft.graphics.access.ChartDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	experiment_1_plot
+de_transformer	biouml.standard.simulation.plot.access.PlotTransformer
+createdDate	1647409577738
+plugins	biouml.workbench
+modifiedDate	1647409577738
+class	biouml.standard.simulation.plot.Plot
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//

@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model id="diagram_1A" name="The model of CD95 and NF-kB signaling">
+    <annotation>
+      <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+        <rdf:Description rdf:about="#diagram_1A">
+          <bqmodel:is>
+            <rdf:Bag>
+              <rdf:li rdf:resource="urn:miriam:biomodels.db:BIOMD0000000243"/>
+              <rdf:li rdf:resource="urn:miriam:biomodels.db:MODEL1003100001"/>
+            </rdf:Bag>
+          </bqmodel:is>
+          <bqbiol:occursIn>
+            <rdf:Bag>
+              <rdf:li rdf:resource="urn:miriam:taxonomy:9606"/>
+            </rdf:Bag>
+          </bqbiol:occursIn>
+          <bqbiol:isPartOf>
+            <rdf:Bag>
+              <rdf:li rdf:resource="urn:miriam:reactome:REACT_21281"/>
+              <rdf:li rdf:resource="urn:miriam:reactome:REACT_1619"/>
+              <rdf:li rdf:resource="urn:miriam:go:GO%3A0008624"/>
+              <rdf:li rdf:resource="urn:miriam:go:GO%3A0051092"/>
+            </rdf:Bag>
+          </bqbiol:isPartOf>
+          <bqmodel:isDescribedBy>
+            <rdf:Bag>
+              <rdf:li rdf:resource="urn:miriam:pubmed:20212524"/>
+            </rdf:Bag>
+          </bqmodel:isDescribedBy>
+        </rdf:Description>
+      </rdf:RDF>
+      <sbgn xmlns:biouml="http://www.biouml.org/ns">
+        <nodes>
+          <node id="cell" parent="" ref="cell" title="Cell" type="compartment">
+            <nodeLayout height="236" width="457" x="23" y="26"/>
+          </node>
+          <node Structure="" clone="" id="C8" multimer="0" parent="cell" ref="cell.C8" title="pro8" type="macromolecule">
+            <nodeLayout height="40" width="60" x="210" y="125"/>
+          </node>
+          <node Structure="" clone="" id="C8star" multimer="0" parent="cell" ref="cell.C8star" title="casp8" type="macromolecule">
+            <nodeLayout height="40" width="64" x="405" y="183"/>
+          </node>
+          <node Structure="" id="DISC" multimer="0" parent="cell" ref="cell.DISC" showTitle="true" type="complex">
+            <nodeLayout height="34" width="73" x="80" y="125"/>
+          </node>
+          <node Structure="" id="DISCC8" multimer="0" parent="cell" ref="cell.DISCC8" title="DISC:pro8" type="complex">
+            <nodeLayout height="80" width="80" x="135" y="170"/>
+          </node>
+          <node id="DISC_HUMAN" multimer="0" parent="cell.DISCC8" title="DISC" type="macromolecule">
+            <nodeLayout height="30" width="60" x="145" y="180"/>
+          </node>
+          <node id="Q14790_HUMAN" multimer="0" parent="cell.DISCC8" title="pro8" type="macromolecule">
+            <nodeLayout height="30" width="60" x="145" y="210"/>
+          </node>
+          <node Structure="" clone="" id="L" multimer="0" parent="cell" ref="cell.L" title="CD95L" type="macromolecule">
+            <nodeLayout height="40" width="76" x="34" y="40"/>
+          </node>
+          <node Structure="" id="RF" multimer="0" parent="cell" ref="cell.RF" title="CD95R:FADD" type="complex">
+            <nodeLayout height="80" width="98" x="145" y="35"/>
+          </node>
+          <node id="DISC_HUMAN" multimer="0" parent="cell.RF" title="CD95R" type="macromolecule">
+            <nodeLayout height="30" width="78" x="155" y="75"/>
+          </node>
+          <node id="Q13158_HUMAN" multimer="0" parent="cell.RF" title="FADD" type="macromolecule">
+            <nodeLayout height="30" width="78" x="155" y="45"/>
+          </node>
+          <node Structure="" clone="" id="p43p41" multimer="0" parent="cell" ref="cell.p43p41" title="p43/p41" type="macromolecule">
+            <nodeLayout height="40" width="80" x="275" y="185"/>
+          </node>
+          <node id="reaction_1" parent="cell" reactionType="association" ref="reaction_1" title="r1" type="reaction">
+            <nodeLayout height="20" orientation="right" width="20" x="120" y="55"/>
+          </node>
+          <node id="reaction_14" parent="cell" reactionType="process" ref="reaction_14" title="r14" type="reaction">
+            <nodeLayout height="1" orientation="right" width="10" x="365" y="200"/>
+          </node>
+          <node id="reaction_17" parent="cell" reactionType="process" ref="reaction_17" title="r17" type="reaction">
+            <nodeLayout height="20" orientation="right" width="20" x="405" y="150"/>
+          </node>
+          <node id="reaction_17ProductSource" parent="cell" type="source-sink">
+            <nodeLayout height="20" width="20" x="440" y="139"/>
+          </node>
+          <node id="reaction_2" parent="cell" reactionType="association" ref="reaction_2" title="r2" type="reaction">
+            <nodeLayout height="20" orientation="right" width="20" x="170" y="135"/>
+          </node>
+          <node id="reaction_5" parent="cell" reactionType="association" ref="reaction_5" title="r5" type="reaction">
+            <nodeLayout height="10" orientation="right" width="10" x="234" y="200"/>
+          </node>
+          <node id="eq" parent="" type="math-equation">
+            <nodeLayout height="20" width="20" x="35" y="280"/>
+          </node>
+        </nodes>
+        <edges>
+          <edge edgeType="" from="cell.reaction_14" id="reaction_14__C8star_as_product" ref="reaction_14__C8star_as_product" to="cell.C8star" type="relation-chemical"/>
+          <edge edgeType="" from="cell.p43p41" id="reaction_14__p43p41_as_reactant" ref="reaction_14__p43p41_as_reactant" to="cell.reaction_14" type="relation-chemical"/>
+          <edge from="cell.reaction_17" id="reaction_17ProductSourceEdge" ref="reaction_17ProductSourceEdge" to="cell.reaction_17ProductSource" type="production"/>
+          <edge edgeType="" from="cell.C8star" id="reaction_17__C8star_as_reactant" ref="reaction_17__C8star_as_reactant" to="cell.reaction_17" type="relation-chemical"/>
+          <edge edgeType="" from="cell.reaction_1" id="reaction_1__DISC_as_product" ref="reaction_1__DISC_as_product" to="cell.DISC" type="relation-chemical"/>
+          <edge edgeType="" from="cell.L" id="reaction_1__L_as_reactant" ref="reaction_1__L_as_reactant" to="cell.reaction_1" type="relation-chemical"/>
+          <edge edgeType="" from="cell.RF" id="reaction_1__RF_as_reactant" ref="reaction_1__RF_as_reactant" to="cell.reaction_1" type="relation-chemical"/>
+          <edge edgeType="" from="cell.C8" id="reaction_2__C8_as_reactant" ref="reaction_2__C8_as_reactant" to="cell.reaction_2" type="relation-chemical"/>
+          <edge edgeType="" from="cell.reaction_2" id="reaction_2__DISCC8_as_product" ref="reaction_2__DISCC8_as_product" to="cell.DISCC8" type="relation-chemical"/>
+          <edge edgeType="" from="cell.DISC" id="reaction_2__DISC_as_reactant" ref="reaction_2__DISC_as_reactant" to="cell.reaction_2" type="relation-chemical"/>
+          <edge edgeType="" from="cell.C8" id="reaction_5__C8_as_reactant" ref="reaction_5__C8_as_reactant" to="cell.reaction_5" type="relation-chemical"/>
+          <edge edgeType="" from="cell.DISCC8" id="reaction_5__DISCC8_as_reactant" ref="reaction_5__DISCC8_as_reactant" to="cell.reaction_5" type="relation-chemical"/>
+          <edge edgeType="" from="cell.reaction_5" id="reaction_5__p43p41_as_product" ref="reaction_5__p43p41_as_product" to="cell.p43p41" type="relation-chemical"/>
+        </edges>
+        <states/>
+        <viewOptions>
+          <propertyRef name="pathLayouterWrapper" type="ru.biosoft.graph.PathLayouterWrapper">
+            <propertyRef name="pathLayouter" type="ru.biosoft.graph.OrthogonalPathLayouter"/>
+          </propertyRef>
+          <propertyRef elementType="biouml.model.DiagramElementStyleDeclaration" name="styles" type="array"/>
+        </viewOptions>
+        <filters elementType="biouml.model.DiagramFilter" type="[Lbiouml.model.DiagramFilter;"/>
+      </sbgn>
+      <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+        <biouml:diagramInfo/>
+        <biouml:viewOptions autoLayout="false" dependencyEdges="false"/>
+      </biouml:BIOUML>
+    </annotation>
+    <listOfUnitDefinitions>
+      <unitDefinition id="min" name="min">
+        <listOfUnits>
+          <unit exponent="1" kind="second" multiplier="60.0" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_min" name="per_min">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" multiplier="60.0" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_nM_per_min" name="per_nM_per_min">
+        <listOfUnits>
+          <unit exponent="-1" kind="mole" multiplier="1.0" scale="-9"/>
+          <unit exponent="1" kind="litre" multiplier="1.0" scale="0"/>
+          <unit exponent="-1" kind="second" multiplier="60.0" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="nM" name="nM">
+        <listOfUnits>
+          <unit exponent="1" kind="mole" multiplier="1.0" scale="-9"/>
+          <unit exponent="-1" kind="litre" multiplier="1.0" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment constant="false" id="cell" name="Cell" size="1.0" spatialDimensions="3" units="litre">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#cell">
+              <bqbiol:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:go:GO%3A0005623"/>
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cell" height="236" isTitleHidden="false" shape="0" title="Cell" width="457" x="23" y="26"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="C8" initialConcentration="64.47652" name="pro8" sboTerm="SBO:0000245" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#C8">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q14790"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.C8" height="40" isTitleHidden="false" title="pro8" width="60" x="210" y="125"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="C8star" initialConcentration="0.0" name="casp8" sboTerm="SBO:0000245" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#C8star">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q14790"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.C8star" height="40" isTitleHidden="false" title="casp8" width="64" x="405" y="183"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="DISC" initialConcentration="0.0" sboTerm="SBO:0000296" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#DISC">
+              <bqbiol:isPartOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q13158"/>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:P25445"/>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q0VHD7"/>
+                </rdf:Bag>
+              </bqbiol:isPartOf>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.DISC" height="34" isTitleHidden="false" title="DISC" width="73" x="80" y="125"/>
+            <biouml:specieInfo type="complex"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="DISCC8" initialConcentration="0.0" name="DISC:pro8" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#DISCC8">
+              <bqbiol:hasPart>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q0VHD7"/>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q14790"/>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:P25445"/>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q13158"/>
+                </rdf:Bag>
+              </bqbiol:hasPart>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.DISCC8" height="80" isTitleHidden="false" title="DISC:pro8" width="80" x="135" y="170"/>
+            <biouml:specieInfo type="complex"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="L" initialConcentration="113.22" name="CD95L" sboTerm="SBO:0000245" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#L">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q0VHD7"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.L" height="40" isTitleHidden="false" title="CD95L" width="76" x="34" y="40"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="RF" initialConcentration="91.26592" name="CD95R:FADD" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#RF">
+              <bqbiol:hasPart>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q13158"/>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:P25445"/>
+                </rdf:Bag>
+              </bqbiol:hasPart>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.RF" height="80" isTitleHidden="false" title="CD95R:FADD" width="98" x="145" y="35"/>
+            <biouml:specieInfo type="complex"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="cell" constant="false" hasOnlySubstanceUnits="true" id="p43p41" initialConcentration="0.0" name="p43/p41" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#p43p41">
+              <bqbiol:hasPart>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:uniprot:Q14790"/>
+                </rdf:Bag>
+              </bqbiol:hasPart>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cell.p43p41" height="40" isTitleHidden="false" title="p43/p41" width="80" x="275" y="185"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="_CONFLICTS_WITH_TIME_" name="_CONFLICTS_WITH_TIME_" value="0.0"/>
+      <parameter constant="true" id="k1" name="k1" units="per_nM_per_min" value="1.0"/>
+      <parameter constant="true" id="k11" name="k11" units="per_min" value="0.02891451"/>
+      <parameter constant="true" id="k2" name="k2" units="per_nM_per_min" value="1.277248E-4"/>
+      <parameter constant="true" id="k5" name="k5" units="per_nM_per_min" value="5.946569E-4"/>
+      <parameter constant="true" id="k8" name="k8" units="per_nM_per_min" value="8.044378E-4"/>
+      <parameter constant="false" id="pro8_total" name="pro8_total" value="0.0"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="pro8_total">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="eq" height="20" isTitleHidden="false" title="eq" width="20" x="35" y="280"/>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci>C8</ci>
+            <ci>DISCC8</ci>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction fast="false" id="reaction_1" name="r1" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cell.reaction_1" height="0" isTitleHidden="false" title="r1" width="0" x="120" y="55"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="L" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_1__L_as_reactant" inPort="110;62" outPort="120;62" title="reaction_1__L_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+          <speciesReference constant="false" species="RF" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_1__RF_as_reactant" inPort="145;62" outPort="135;62" title="reaction_1__RF_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="DISC" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_1__DISC_as_product" inPort="127;70" outPort="127;125" title="reaction_1__DISC_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>k1</ci>
+                <ci>L</ci>
+              </apply>
+              <ci>RF</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_14" name="r14" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cell.reaction_14" height="0" isTitleHidden="false" title="r14" width="0" x="365" y="200"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="p43p41" stoichiometry="2">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_14__p43p41_as_reactant" inPort="355;207" outPort="365;207" title="reaction_14__p43p41_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="C8star" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_14__C8star_as_product" inPort="380;207" outPort="405;207" title="reaction_14__C8star_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>k8</ci>
+                <ci>p43p41</ci>
+              </apply>
+              <ci>p43p41</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_17" name="r17" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#reaction_17">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:go:GO%3A0030163"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cell.reaction_17" height="0" isTitleHidden="false" title="r17" width="0" x="405" y="150"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="C8star" stoichiometry="1">
+            <annotation>
+              <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+                <rdf:Description rdf:about="#reaction_17">
+                  <bqbiol:isVersionOf>
+                    <rdf:Bag>
+                      <rdf:li rdf:resource="urn:miriam:go:GO%3A0030163"/>
+                    </rdf:Bag>
+                  </bqbiol:isVersionOf>
+                </rdf:Description>
+              </rdf:RDF>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_17__C8star_as_reactant" inPort="412;183" outPort="412;165" title="reaction_17__C8star_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>k11</ci>
+              <ci>C8star</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_2" name="r2" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+            <rdf:Description rdf:about="#reaction_2">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="urn:miriam:go:GO%3A0006461"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cell.reaction_2" height="0" isTitleHidden="false" title="r2" width="0" x="170" y="135"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="C8" stoichiometry="1">
+            <annotation>
+              <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+                <rdf:Description rdf:about="#reaction_2">
+                  <bqbiol:isVersionOf>
+                    <rdf:Bag>
+                      <rdf:li rdf:resource="urn:miriam:go:GO%3A0006461"/>
+                    </rdf:Bag>
+                  </bqbiol:isVersionOf>
+                </rdf:Description>
+              </rdf:RDF>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_2__C8_as_reactant" inPort="210;142" outPort="185;142" title="reaction_2__C8_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+          <speciesReference constant="false" species="DISC" stoichiometry="1">
+            <annotation>
+              <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+                <rdf:Description rdf:about="#reaction_2">
+                  <bqbiol:isVersionOf>
+                    <rdf:Bag>
+                      <rdf:li rdf:resource="urn:miriam:go:GO%3A0006461"/>
+                    </rdf:Bag>
+                  </bqbiol:isVersionOf>
+                </rdf:Description>
+              </rdf:RDF>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_2__DISC_as_reactant" inPort="153;142" outPort="170;142" title="reaction_2__DISC_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="DISCC8" stoichiometry="1">
+            <annotation>
+              <rdf:RDF xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+                <rdf:Description rdf:about="#reaction_2">
+                  <bqbiol:isVersionOf>
+                    <rdf:Bag>
+                      <rdf:li rdf:resource="urn:miriam:go:GO%3A0006461"/>
+                    </rdf:Bag>
+                  </bqbiol:isVersionOf>
+                </rdf:Description>
+              </rdf:RDF>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_2__DISCC8_as_product" inPort="177;150" outPort="177;170" title="reaction_2__DISCC8_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>k2</ci>
+                <ci>DISC</ci>
+              </apply>
+              <ci>C8</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="reaction_5" name="r5" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cell.reaction_5" height="0" isTitleHidden="false" title="r5" width="0" x="234" y="200"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="C8" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_5__C8_as_reactant" inPort="241;165" outPort="241;200" title="reaction_5__C8_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+          <speciesReference constant="false" species="DISCC8" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_5__DISCC8_as_reactant" inPort="215;207" outPort="234;207" title="reaction_5__DISCC8_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="p43p41" stoichiometry="2">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="reaction_5__p43p41_as_product" inPort="249;207" outPort="275;207" title="reaction_5__p43p41_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>k5</ci>
+                <ci>DISCC8</ci>
+              </apply>
+              <ci>C8</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

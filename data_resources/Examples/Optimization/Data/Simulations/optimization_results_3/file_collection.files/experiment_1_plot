@@ -1,0 +1,20 @@
+ID    experiment_1_plot
+PT    experiment_1_plot
+XT    Time
+XTF   {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+XTLF  {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+XAT   Number
+XAR   false
+XFR   0.0
+XTO   220.00000000000003
+YT    Quantity or concentration
+YTF   {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+YTLF  {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+YAT   Number
+YAR   false
+YFR   0.0
+YTO   0.0
+SE    experiment_1_plot {"color":[255,85,85,255],"width":1} casp3 time $CMP0225.PRT001975 data/Examples/Optimization/Data/Simulations/optimization_results_3/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[255,85,85,255],"width":1} casp3_SPACE_exp time casp3 data/Examples/Optimization/Data/Experiments/exp_data_3 EXPERIMENTAL_DATA null
+SE    experiment_1_plot {"color":[85,85,255,255],"width":1} casp9 time $CMP0225.PRT001989 data/Examples/Optimization/Data/Simulations/optimization_results_3/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[85,85,255,255],"width":1} casp9_SPACE_exp time casp9 data/Examples/Optimization/Data/Experiments/exp_data_3 EXPERIMENTAL_DATA null

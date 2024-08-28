@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<state diagram="data/Examples/Optimization/Data/Diagrams/diagram_1C" id="experiment_1_state" title="experiment_1_state">
+<transaction comment="" title="Change property 'role/vars/k1/initialValue' of 'Diagram:The model of CD95 and NF-kB signaling'">
+<propertyChange elementID="" newValue="0.02562409096783736" oldValue="1.0" property="role/vars/k1/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k2/initialValue' of 'Diagram:The model of CD95 and NF-kB signaling'">
+<propertyChange elementID="" newValue="9.453429775789713E-5" oldValue="1.277248E-4" property="role/vars/k2/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k11/initialValue' of 'Diagram:The model of CD95 and NF-kB signaling'">
+<propertyChange elementID="" newValue="0.03510632106493601" oldValue="0.02891451" property="role/vars/k11/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k5/initialValue' of 'Diagram:The model of CD95 and NF-kB signaling'">
+<propertyChange elementID="" newValue="9.999242847615179E-4" oldValue="5.946569E-4" property="role/vars/k5/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k8/initialValue' of 'Diagram:The model of CD95 and NF-kB signaling'">
+<propertyChange elementID="" newValue="8.722620827117769E-4" oldValue="8.044378E-4" property="role/vars/k8/initialValue"/>
+</transaction>
+</state>

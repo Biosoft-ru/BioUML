@@ -1,0 +1,31 @@
+ID	exp_data_3
+OS	
+PLATFORM	
+INFO
+referenceType=DefaultReferenceType
+plugins=ru.biosoft.table
+name=exp_data_3
+species=Unspecified
+persistent.generatedIds=true
+persistent.integerIds=true
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	time; Float; NONE;  time
+#2	casp3; Float; NONE;  casp3
+#3	casp9; Float; NONE;  casp9
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+1	0.0	0.0	0.0
+2	20.0	0.01	0.09
+3	40.0	0.01	0.08
+4	60.0	0.02	0.14
+5	80.0	0.07	0.92
+6	100.0	1.86	17.07
+7	120.0	3.54	26.21
+8	140.0	4.16	29.35
+9	160.0	4.47	31.02
+10	180.0	4.68	32.1
+11	200.0	4.83	32.87
+//
