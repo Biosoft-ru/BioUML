@@ -625,15 +625,15 @@ DiagramSupport.prototype.checkPhysicell = function (callback)
 DiagramSupport.prototype.checkEModel = function (callback)
 {
     var _this = this;
-    if(_this.isPhysicell != undefined)
+    if(_this.isEModel != undefined)
     {
-        callback(_this.isPhysicell);
+        callback(_this.isEModel);
     }
     else
     {
         var info = getDataCollection(this.completeName).getDiagramTypeInfo();
-        _this.isPhysicell = instanceOf(info.modelClass,'biouml.model.dynamics.EModel') ;
-        callback(_this.isPhysicell);
+        _this.isEModel = instanceOf(info.modelClass,'biouml.model.dynamics.EModel') ;
+        callback(_this.isEModel);
     };
 }
 
