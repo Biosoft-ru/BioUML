@@ -622,6 +622,21 @@ DiagramSupport.prototype.checkPhysicell = function (callback)
     };
 }
 
+DiagramSupport.prototype.checkEModel = function (callback)
+{
+    var _this = this;
+    if(_this.isPhysicell != undefined)
+    {
+        callback(_this.isPhysicell);
+    }
+    else
+    {
+        var info = getDataCollection(this.completeName).getDiagramTypeInfo();
+        _this.isPhysicell = instanceOf(info.modelClass,'biouml.model.dynamics.EModel') ;
+        callback(_this.isPhysicell);
+    };
+}
+
 /*
  * Save active diagram every 20 sec if changed (now used for Annotation diagram)
  */

@@ -2698,7 +2698,7 @@ function FbcViewPart(){
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                cdocumentObject.getDiagram().checkPhysicell(callback);
             }
             else
             {
@@ -3034,7 +3034,7 @@ function AntimonyViewPart() {
 //                  else
 //                      callback(false);
 //              });
-                callback(true);
+               documentObject.getDiagram().checkPhysicell(callback);
             }
             else
             {
@@ -3272,7 +3272,7 @@ function ComplexSimulationViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                documentObject.getDiagram().checkPhysicell(callback);
             }
             else
             {
