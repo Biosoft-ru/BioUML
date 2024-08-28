@@ -73,6 +73,7 @@ public class PhysicellSimulator implements Simulator
         this.options = (PhysicellOptions)getOptions();
         this.running = true;
         this.nextReport = 0;
+        this.nextImage = 0;
         this.simulationLog = new StringBuffer();
 
         DataElementPath dep = options.getResultPath();
