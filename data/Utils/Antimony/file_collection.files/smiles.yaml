@@ -1,0 +1,7 @@
+---
+name: smiles
+description: Chemical notation SMILES
+properties:
+  - structure:
+      type: string
+      description: Structure

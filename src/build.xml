@@ -347,6 +347,7 @@
         plugin.kegg,
         plugin.analysiscore,
         plugin.analysis,
+    	plugin.antimony,
         plugin.optimization,
         plugin.optimization.biouml,
         plugin.jri,
@@ -565,6 +566,10 @@
 
     <target name="plugin.bioserver" depends="compile">
         <create.plugin plugin="biouml.plugins.server" source="biouml/plugins/server"/>
+    </target>
+	
+    <target name="plugin.antimony" depends="compile">
+        <create.plugin plugin="biouml.plugins.antimony" source="biouml/plugins/antimony"/>
     </target>
 
     <target name="plugin.download" depends="compile">

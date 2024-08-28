@@ -1,0 +1,17 @@
+---
+name: biouml
+description: BioUML properties
+properties:
+  - bus:
+      type: map
+      values:
+        title:
+          type: string
+          description: Title of bus
+        ports:
+          type: array
+          description: List of ports
+        directed:
+          type: boolean
+          description: Type of connecting edges permitted
+      description: Bus properties
