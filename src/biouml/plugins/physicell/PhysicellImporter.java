@@ -56,7 +56,7 @@ public class PhysicellImporter implements DataElementImporter
 {
     private PhysicellImportProperties properties;
     private Map<String, Node> densityNodes;
-    private Map<String, File> additionalFiles = null;
+    private Map<String, File> additionalFiles = new HashMap<>();
     private BioUMLFunctionsReader functionsReader = new BioUMLFunctionsReader();
     private DataCollection dc;
 
@@ -151,17 +151,18 @@ public class PhysicellImporter implements DataElementImporter
         String cellsFileName = external.path;
         if( cellsFileName == null )
             return;
+        if( cellsFileName.startsWith( "./" ) )
+            cellsFileName = cellsFileName.substring( 2 );
+        
         List<String> cells = new ArrayList<>();
         String tableName = cellsFileName.substring( cellsFileName.lastIndexOf( "/" ) + 1 );
-        if( additionalFiles == null )
+        if( additionalFiles == null || !additionalFiles.containsKey( cellsFileName ))
         {
             File cellsFile = new File( folder, cellsFileName );
             cells = ApplicationUtils.readAsList( cellsFile );
         }
         else
         {
-            if( cellsFileName.startsWith( "./" ) )
-                cellsFileName = cellsFileName.substring( 2 );
             InputStream is = new FileInputStream( additionalFiles.get( cellsFileName ) );
             cells = ApplicationUtils.readAsList( is );
         }
@@ -219,11 +220,11 @@ public class PhysicellImporter implements DataElementImporter
             sp.setDiffusionCoefficient( m.diffusionCoefficients[i] );
             sp.setInitialCondition( m.getOptions().initial_condition_vector[i] );
             sp.setXMin( m.options.Dirichlet_xmin[i]? m.options.Dirichlet_xmin_values[i]: -1 );
-            sp.setXMin( m.options.Dirichlet_xmax[i]? m.options.Dirichlet_xmin_values[i]: -1 );
-            sp.setXMin( m.options.Dirichlet_ymin[i]? m.options.Dirichlet_ymin_values[i]: -1 );
-            sp.setXMin( m.options.Dirichlet_ymax[i]? m.options.Dirichlet_ymax_values[i]: -1 );
-            sp.setXMin( m.options.Dirichlet_zmin[i]? m.options.Dirichlet_zmin_values[i]: -1 );
-            sp.setXMin( m.options.Dirichlet_zmax[i]? m.options.Dirichlet_zmax_values[i]: -1 );
+            sp.setXMax( m.options.Dirichlet_xmax[i]? m.options.Dirichlet_xmax_values[i]: -1 );
+            sp.setYMin( m.options.Dirichlet_ymin[i]? m.options.Dirichlet_ymin_values[i]: -1 );
+            sp.setYMax( m.options.Dirichlet_ymax[i]? m.options.Dirichlet_ymax_values[i]: -1 );
+            sp.setZMin( m.options.Dirichlet_zmin[i]? m.options.Dirichlet_zmin_values[i]: -1 );
+            sp.setZMax( m.options.Dirichlet_zmax[i]? m.options.Dirichlet_zmax_values[i]: -1 );
         }
     }
 

@@ -119,7 +119,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         result.interactions = interactions.clone( de );
         result.transformations = transformations.clone( de );
         result.customData = customData.clone();
-        result.rules = rules.clone();
+        result.rules = rules.clone(de);
         if( result.intracellular != null )
             result.intracellular = intracellular.clone( de );
         return result;

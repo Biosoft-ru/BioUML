@@ -1,8 +1,11 @@
 package biouml.plugins.physicell;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +36,7 @@ import biouml.plugins.sbml.SbmlExporter.SbmlExportProperties;
 import biouml.standard.diagram.DiagramUtility;
 import biouml.standard.diagram.Util;
 import ru.biosoft.access.DataElementExporter;
+import ru.biosoft.access.DataElementExporterRegistry;
 import ru.biosoft.access.FileExporter;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -128,8 +132,9 @@ public class PhysicellExporter implements DataElementExporter
             File elementFile = null;
             try
             {
-                elementFile = TempFiles.file( "zipExport.xnl" );
+                elementFile = TempFiles.file( "zipExport.xml" );
                 this.write( diagram, elementFile );
+                
             }
             catch( Exception e )
             {
@@ -144,7 +149,20 @@ public class PhysicellExporter implements DataElementExporter
                 zip.closeEntry();
                 elementFile.delete();
             }
-
+            
+            if( hasRules( diagram.getRole( MulticellEModel.class ) ) )
+            {
+                File rulesFile =  TempFiles.file( "cell_rules.csv" );
+                exportRules(diagram, rulesFile);
+                if( rulesFile.exists() )
+                {
+                    ZipEntry entry = new ZipEntry( "cell_rules.csv" );
+                    zip.putNextEntry( entry );
+                    GenericZipExporter.copyStream( new FileInputStream( rulesFile ), zip );
+                    zip.closeEntry();
+                    rulesFile.delete();
+                }
+            }
             zip.closeEntry();
         }
         catch( Exception e )
@@ -154,6 +172,10 @@ public class PhysicellExporter implements DataElementExporter
         }
     }
 
+    private void exportRules(Diagram diagram, File file) throws IOException
+    {
+            writeRules( file );
+    }
 
     private List<DataElement> getRelatedElements(DataElement dataElement)
     {
@@ -196,7 +218,7 @@ public class PhysicellExporter implements DataElementExporter
         if( de instanceof TableDataCollection )
         {
             Properties properties = new Properties();
-            //            properties.setProperty( DataElementExporterRegistry.SUFFIX, TableElementExporter.TableExporterProperties );
+            properties.setProperty( DataElementExporterRegistry.SUFFIX, "csv" );
             TableElementExporter exporter = new TableElementExporter();
             exporter.init( properties );
             return exporter;
@@ -270,6 +292,7 @@ public class PhysicellExporter implements DataElementExporter
         writeCellDefinitions( el );
         writeInitialCondition( el );
         writeUserParameters( el );
+        writeRulesElement( el, "cell_rules.csv" );
     }
 
     private Element createSimpleElement(Element parent, String name, String value)
@@ -886,6 +909,51 @@ public class PhysicellExporter implements DataElementExporter
         }
         else
             membraneDistanceElement.setAttribute( "type", getTypeAttr( properties.getMembraneDistance() ) );
+    }
+
+    protected void writeRulesElement(Element parent, String fileName)
+    {
+        Element rulesElement = createSimpleElement( parent, "cell_rules" );
+        Element rulesetsElement = createSimpleElement( rulesElement, "rulesets" );
+        Element rulesetElement = createSimpleElement( rulesetsElement, "ruleset" );
+        rulesetElement.setAttribute( "protocol", "CBHG" );
+        rulesetElement.setAttribute( "version", "2.0" );
+        rulesetElement.setAttribute( "format", "csv" );
+        rulesetElement.setAttribute( "enabled", String.valueOf( hasRules( diagram.getRole( MulticellEModel.class ) ) ) );
+        createSimpleElement( rulesetElement, "folder", "." );
+        createSimpleElement( rulesetElement, "filename", fileName );
+    }
+
+    protected void writeRules(File f) throws IOException
+    {
+        try (BufferedWriter bw = new BufferedWriter( new FileWriter( f ) ))
+        {
+            MulticellEModel role = diagram.getRole( MulticellEModel.class );
+            for( CellDefinitionProperties cd : role.getCellDefinitions() )
+            {
+                RulesProperties rp = cd.getRulesProperties();
+                String cell_type = cd.getName();
+
+                for( RuleProperties rule : rp.getRules() )
+                {
+                    bw.append( cell_type + "," + rule.getSignal() + "," + rule.getDirection() + "," + rule.getBehavior() + ","
+                    // + base_value + "," 
+                            + rule.getSaturationValue() + "," + rule.getHalfMax() + "," + rule.getHillPower() + "," + (rule.isApplyToDead() ? "1.0": "0.0")
+                            + "\n" );
+                }
+            }
+        }
+    }
+
+    private boolean hasRules(MulticellEModel emodel)
+    {
+        for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+        {
+            RulesProperties rp = cd.getRulesProperties();
+            if( rp.getRules().length > 0 )
+                return true;
+        }
+        return false;
     }
 
     private String getTypeAttr(String userString)
