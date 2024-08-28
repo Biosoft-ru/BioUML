@@ -5534,11 +5534,11 @@ function MicroenvironmentViewPart()
                                 _this.saveTable("substrates");
                         });
                     }
-					else if(_this.tableChanged["cell types"])
+					else if(_this.tableChanged["cell_types"])
 					{
 					     createYesNoConfirmDialog( "Cell types table was changed. Do you want to save it?", function(yes){
 					        if(yes)
-					           _this.saveTable("cell types");
+					           _this.saveTable("cell_types");
 					     });
 					 }
                 }
@@ -5557,11 +5557,11 @@ function MicroenvironmentViewPart()
                     _this.saveTable("substrates");
             }); 
         }
-		else if(this.tableChanged["cell types"])
+		else if(this.tableChanged["cell_types"])
 		{
 		     createYesNoConfirmDialog( "Cell types table was changed. Do you want to save it?", function(yes){
 		         if(yes)
-		            _this.saveTable("cell types");
+		            _this.saveTable("cell_types");
 		     }); 
        }
     };
