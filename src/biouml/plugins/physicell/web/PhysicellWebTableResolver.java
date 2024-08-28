@@ -140,9 +140,9 @@ public class PhysicellWebTableResolver extends TableResolver
 
     }
 
-    public static class CellDEfinitionWrapperBeanInfo extends BeanInfoEx2<CellDefinitionWrapper>
+    public static class CellDefinitionWrapperBeanInfo extends BeanInfoEx2<CellDefinitionWrapper>
     {
-        public CellDEfinitionWrapperBeanInfo()
+        public CellDefinitionWrapperBeanInfo()
         {
             super( CellDefinitionWrapper.class );
         }
