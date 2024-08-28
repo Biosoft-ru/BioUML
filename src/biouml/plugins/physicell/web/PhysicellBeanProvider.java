@@ -33,6 +33,8 @@ public class PhysicellBeanProvider implements BeanProvider
             return model.getInitialCondition();
         if( propName.equals( "report_properties" ) )
             return model.getReportProperties();
+        if( propName.equals( "model_options" ) )
+            return model.getOptions();
 
         DiagramElement de = diagram.get( elemName );
         if( de == null || de.getRole() == null || ! ( de.getRole() instanceof CellDefinitionProperties ) )

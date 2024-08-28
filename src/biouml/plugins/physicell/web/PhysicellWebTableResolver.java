@@ -14,6 +14,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
+import ru.biosoft.graphics.Brush;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
@@ -27,38 +28,49 @@ public class PhysicellWebTableResolver extends TableResolver
 
     public PhysicellWebTableResolver(BiosoftWebRequest arguments) throws WebException
     {
-        this.type = arguments.getString(TYPE_PARAMETER);
+        this.type = arguments.getString( TYPE_PARAMETER );
     }
 
     @Override
     public DataCollection<?> getTable(DataElement de) throws Exception
     {
-        if ( "substrates".equals(type) && de instanceof Diagram )
+        if( "substrates".equals( type ) && de instanceof Diagram )
         {
-            Diagram diagram = de.cast(Diagram.class);
-            MulticellEModel model = diagram.getRole(MulticellEModel.class);
-            VectorDataCollection<SubstratePropertiesWrapper> result = new VectorDataCollection<>("Substrates", SubstratePropertiesWrapper.class, null);
-            model.getSubstrates().forEach(sp -> result.put(new SubstratePropertiesWrapper(sp)));
+            Diagram diagram = de.cast( Diagram.class );
+            MulticellEModel model = diagram.getRole( MulticellEModel.class );
+            VectorDataCollection<SubstratePropertiesWrapper> result = new VectorDataCollection<>( "Substrates",
+                    SubstratePropertiesWrapper.class, null );
+            model.getSubstrates().forEach( sp -> result.put( new SubstratePropertiesWrapper( sp ) ) );
             return result;
         }
-        else if ( "rules".equals(type) )
+        else if( "cell_types".equals( type ) && de instanceof Diagram )
+        {
+            Diagram diagram = de.cast( Diagram.class );
+            MulticellEModel model = diagram.getRole( MulticellEModel.class );
+            VectorDataCollection<CellDefinitionWrapper> result = new VectorDataCollection<>( "Cell Types", CellDefinitionWrapper.class,
+                    null );
+            model.getCellDefinitions().forEach( cdp -> result.put( new CellDefinitionWrapper( cdp ) ) );
+            return result;
+        }
+        else if( "rules".equals( type ) )
         {
             DataElementPath fullPath = de.getCompletePath();
             String elemName = fullPath.getName();
             try
             {
-                Diagram diagram = WebDiagramsProvider.getDiagram(fullPath.getParentPath().toString(), false);
-                DiagramElement elem = diagram.get(elemName);
-                CellDefinitionProperties props = (CellDefinitionProperties) elem.getRole();
-                VectorDataCollection<RulesPropertiesWrapper> result = new VectorDataCollection<>("Rules", RulesPropertiesWrapper.class, null);
+                Diagram diagram = WebDiagramsProvider.getDiagram( fullPath.getParentPath().toString(), false );
+                DiagramElement elem = diagram.get( elemName );
+                CellDefinitionProperties props = (CellDefinitionProperties)elem.getRole();
+                VectorDataCollection<RulesPropertiesWrapper> result = new VectorDataCollection<>( "Rules", RulesPropertiesWrapper.class,
+                        null );
                 RuleProperties[] rps = props.getRulesProperties().getRules();
-                for ( int i = 0; i < rps.length; i++ )
+                for( int i = 0; i < rps.length; i++ )
                 {
-                    result.put(new RulesPropertiesWrapper(String.valueOf(i), rps[i]));
+                    result.put( new RulesPropertiesWrapper( String.valueOf( i ), rps[i] ) );
                 }
                 return result;
             }
-            catch (Exception e)
+            catch( Exception e )
             {
 
             }
@@ -66,6 +78,85 @@ public class PhysicellWebTableResolver extends TableResolver
         }
         return null;
     }
+
+    public static class CellDefinitionWrapper implements DataElement
+    {
+        private CellDefinitionProperties cdp;
+
+        public CellDefinitionWrapper(CellDefinitionProperties cdp)
+        {
+            this.cdp = cdp;
+        }
+
+        @PropertyName ( "Name" )
+        public String getName()
+        {
+            return cdp.getName();
+        }
+        public void setName(String name)
+        {
+            //           cdp.setName( name );;
+        }
+
+        @PropertyName ( "Color" )
+        public Brush getColor()
+        {
+            return cdp.getColor();
+        }
+
+        public void setColor(Brush color)
+        {
+            cdp.setColor( color );
+        }
+
+        @PropertyName ( "Initial number" )
+        public int getInitialNumber()
+        {
+            return cdp.getInitialNumber();
+        }
+
+        public void setInitialNumber(int initialNumber)
+        {
+            cdp.setInitialNumber( initialNumber );
+        }
+
+        @PropertyName ( "Comment" )
+        public String getComment()
+        {
+            return cdp.getComment();
+        }
+
+        public void setComment(String comment)
+        {
+            cdp.setComment( comment );
+        }
+
+        @Override
+        public DataCollection<?> getOrigin()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    }
+
+    public static class CellDEfinitionWrapperBeanInfo extends BeanInfoEx2<CellDefinitionWrapper>
+    {
+        public CellDEfinitionWrapperBeanInfo()
+        {
+            super( CellDefinitionWrapper.class );
+        }
+
+        @Override
+        public void initProperties() throws Exception
+        {
+            addReadOnly( "name" );
+            add( "initialNumber" );
+            add( "color" );
+            add( "comment" );
+        }
+    }
+
 
     public static class RulesPropertiesWrapper implements DataElement
     {
@@ -209,7 +300,7 @@ public class PhysicellWebTableResolver extends TableResolver
 
         public SubstratePropertiesWrapper()
         {
-            this.sp = new SubstrateProperties("Empty");
+            this.sp = new SubstrateProperties( "Empty" );
         }
 
         public SubstratePropertiesWrapper(SubstrateProperties sp)
@@ -226,7 +317,7 @@ public class PhysicellWebTableResolver extends TableResolver
 
         public void setName(String name)
         {
-            sp.setName(name);
+            sp.setName( name );
         }
 
         @Override
@@ -235,7 +326,7 @@ public class PhysicellWebTableResolver extends TableResolver
             return null;
         }
 
-        @PropertyName("Initial condition")
+        @PropertyName ( "Initial condition" )
         public double getInitialCondition()
         {
             return sp.getInitialCondition();
@@ -243,10 +334,10 @@ public class PhysicellWebTableResolver extends TableResolver
 
         public void setInitialCondition(double initialCondition)
         {
-            sp.setInitialCondition(initialCondition);
+            sp.setInitialCondition( initialCondition );
         }
 
-        @PropertyName("Decay rate")
+        @PropertyName ( "Decay rate" )
         public double getDecayRate()
         {
             return sp.getDecayRate();
@@ -254,10 +345,10 @@ public class PhysicellWebTableResolver extends TableResolver
 
         public void setDecayRate(double decayRate)
         {
-            sp.setDecayRate(decayRate);
+            sp.setDecayRate( decayRate );
         }
 
-        @PropertyName("Diffusion coefficient")
+        @PropertyName ( "Diffusion coefficient" )
         public double getDiffusionCoefficient()
         {
             return sp.getDiffusionCoefficient();
@@ -265,16 +356,16 @@ public class PhysicellWebTableResolver extends TableResolver
 
         public void setDiffusionCoefficient(double diffusionCoefficient)
         {
-            sp.setDiffusionCoefficient(diffusionCoefficient);
+            sp.setDiffusionCoefficient( diffusionCoefficient );
         }
 
-        @PropertyName("Dirichlet condition")
+        @PropertyName ( "Dirichlet condition" )
         public boolean isDirichletCondition()
         {
             return sp.isDirichletCondition();
         }
 
-        @PropertyName("X min")
+        @PropertyName ( "X min" )
         public double getXMin()
         {
             return sp.getXMin();
@@ -283,8 +374,8 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             this.sp.setXMin( xMin );
         }
-        
-        @PropertyName("X max")
+
+        @PropertyName ( "X max" )
         public double getXMax()
         {
             return sp.getXMax();
@@ -293,18 +384,18 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             this.sp.setXMax( xMax );
         }
-        
-        @PropertyName("Y min")
+
+        @PropertyName ( "Y min" )
         public double getYMin()
         {
             return sp.getYMin();
         }
         public void setYMin(double yMin)
         {
-            this.sp.setYMin (yMin);
+            this.sp.setYMin( yMin );
         }
-        
-        @PropertyName("Y max")
+
+        @PropertyName ( "Y max" )
         public double getYMax()
         {
             return sp.getYMax();
@@ -313,8 +404,8 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             this.sp.setYMax( yMax );
         }
-        
-        @PropertyName("Z min")
+
+        @PropertyName ( "Z min" )
         public double getZMin()
         {
             return sp.getZMin();
@@ -323,15 +414,15 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             this.sp.setZMin( zMin );
         }
-        
-        @PropertyName("Z max")
+
+        @PropertyName ( "Z max" )
         public double getZMax()
         {
             return sp.getZMax();
         }
         public void setZMax(double zMax)
         {
-            this.sp.setZMax(zMax);
+            this.sp.setZMax( zMax );
         }
 
         public boolean isCompleted()
@@ -345,16 +436,16 @@ public class PhysicellWebTableResolver extends TableResolver
     {
         public SubstratePropertiesWrapperBeanInfo()
         {
-            super(SubstratePropertiesWrapper.class);
+            super( SubstratePropertiesWrapper.class );
         }
 
         @Override
         public void initProperties() throws Exception
         {
-            addReadOnly("name", "isCompleted");
-            add("initialCondition");
-            add("decayRate");
-            add("diffusionCoefficient");
+            addReadOnly( "name", "isCompleted" );
+            add( "initialCondition" );
+            add( "decayRate" );
+            add( "diffusionCoefficient" );
             add( "xMin" );
             add( "xMax" );
             add( "yMin" );
