@@ -35,6 +35,7 @@ import biouml.plugins.sbml.SbmlExporter;
 import biouml.plugins.sbml.SbmlExporter.SbmlExportProperties;
 import biouml.standard.diagram.DiagramUtility;
 import biouml.standard.diagram.Util;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataElementExporter;
 import ru.biosoft.access.DataElementExporterRegistry;
 import ru.biosoft.access.FileExporter;
@@ -201,7 +202,7 @@ public class PhysicellExporter implements DataElementExporter
             tryAdd( cdp.getFunctionsProperties().getCustomRuleCustom(), paths );
             tryAdd( cdp.getFunctionsProperties().getMigrationUpdateCustom(), paths );
         }
-        return paths.stream().map( s -> DataElementPath.create( s ).getDataElement() ).toList();
+        return StreamEx.of(paths).map( s -> DataElementPath.create( s ).getDataElement() ).toList();
     }
 
 
