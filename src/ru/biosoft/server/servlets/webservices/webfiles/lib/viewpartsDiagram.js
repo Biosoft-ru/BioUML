@@ -2698,7 +2698,7 @@ function FbcViewPart(){
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                cdocumentObject.getDiagram().checkcell(callback);
+                cdocumentObject.getDiagram().checkEModel(callback);
             }
             else
             {
