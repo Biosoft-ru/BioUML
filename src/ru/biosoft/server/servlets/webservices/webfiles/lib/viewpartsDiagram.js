@@ -5807,7 +5807,7 @@ function MicroenvironmentViewPart()
            });
 	   };
 	   
-	   this.loaddOptions = function()
+	   this.loadOptions = function()
 	      {
 	          queryBioUML("web/bean/get", 
 	          {
