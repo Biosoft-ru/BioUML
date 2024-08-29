@@ -69,6 +69,22 @@ public class DeathProperties extends Option
             result.addDeathModel( rate, cycleProperties.createCycle(), parameters );
         }
     }
+    
+    public Death createDeath() throws Exception
+    {
+        Death result = new Death();
+        result.models.clear();
+        result.parameters.clear();
+        result.rates.clear();
+        for( DeathModelProperties deathModel : deathModels )
+        {
+            double rate = deathModel.getRate();
+            CycleProperties cycleProperties = deathModel.getCycleProperties();
+            DeathParameters parameters = deathModel.getParameters();
+            result.addDeathModel( rate, cycleProperties.createCycle(), parameters );
+        }
+        return result;
+    }
 
     @PropertyName ( "Death models" )
     public DeathModelProperties[] getDeathModels()

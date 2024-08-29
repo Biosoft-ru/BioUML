@@ -18,7 +18,11 @@ public class SubstratePropertiesBeanInfo extends BeanInfoEx2<SubstrateProperties
         add( "initialCondition" );
         add( "decayRate" );
         add( "diffusionCoefficient" );
-        add( "dirichletCondition" );
-        add( "dirichletValue" );
+        add( "xMin" );
+        add( "xMax" );
+        add( "yMin" );
+        add( "yMax" );
+        add( "zMin" );
+        add( "zMax" );
     }
 }

@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import ru.biosoft.util.ExtensionRegistrySupport;
 
 import biouml.model.Diagram;
-import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.EModelRoleSupport;
 
 public class SimulationEngineRegistry extends ExtensionRegistrySupport<SimulationEngineRegistry.EngineInfo>
 {
@@ -53,7 +53,7 @@ public class SimulationEngineRegistry extends ExtensionRegistrySupport<Simulatio
         return new EngineInfo(name, engineClass, type.split(","), prior);
     }
 
-    public static String[] getSimulationEngineNames(EModel emodel)
+    public static String[] getSimulationEngineNames(EModelRoleSupport emodel)
     {
         List<EngineInfo> infos = getSimulationEngineInfos(emodel.getType());
         List<String> names = new ArrayList<>();
@@ -107,7 +107,7 @@ public class SimulationEngineRegistry extends ExtensionRegistrySupport<Simulatio
     {
         try
         {
-            return instance.getExtension(name).getEngineClass().newInstance();
+            return instance.getExtension(name).getEngineClass().getConstructor( ).newInstance();
         }
         catch( Exception ex )
         {
@@ -118,10 +118,10 @@ public class SimulationEngineRegistry extends ExtensionRegistrySupport<Simulatio
 
     public static SimulationEngine getSimulationEngine(Diagram diagram)
     {
-        return getSimulationEngine(getSimulationEngineName((EModel)diagram.getRole()));
+        return getSimulationEngine(getSimulationEngineName((EModelRoleSupport)diagram.getRole()));
     }
 
-    public static String getSimulationEngineName(EModel model)
+    public static String getSimulationEngineName(EModelRoleSupport model)
     {
         try
         {

@@ -66,8 +66,14 @@ public class SubstrateProperties extends InitialElementPropertiesSupport impleme
         result.initialCondition = initialCondition;
         result.diffusionCoefficient = diffusionCoefficient;
         result.decayRate = decayRate;
-        result.dirichletCondition = dirichletCondition;
-        result.dirichletValue = dirichletValue;
+        result.xMin = xMin;
+        result.xMax = xMax;
+        result.yMin = yMin;
+        result.yMax = yMax;
+        result.zMin = zMin;
+        result.zMax = zMax;
+//        result.dirichletCondition = dirichletCondition;
+//        result.dirichletValue = dirichletValue;
         return result;
     }
 
@@ -123,52 +129,62 @@ public class SubstrateProperties extends InitialElementPropertiesSupport impleme
         this.diffusionCoefficient = diffusionCoefficient;
     }
 
-
-    public double getxMin()
+    @PropertyName("X min")
+    public double getXMin()
     {
         return xMin;
     }
-    public void setxMin(double xMin)
+    public void setXMin(double xMin)
     {
         this.xMin = xMin;
     }
-    public double getxMax()
+    
+    @PropertyName("X max")
+    public double getXMax()
     {
         return xMax;
     }
-    public void setxMax(double xMax)
+    public void setXMax(double xMax)
     {
         this.xMax = xMax;
     }
-    public double getyMin()
+    
+    @PropertyName("Y min")
+    public double getYMin()
     {
         return yMin;
     }
-    public void setyMin(double yMin)
+    public void setYMin(double yMin)
     {
         this.yMin = yMin;
     }
-    public double getyMax()
+    
+    @PropertyName("Y max")
+    public double getYMax()
     {
         return yMax;
     }
-    public void setyMax(double yMax)
+    public void setYMax(double yMax)
     {
         this.yMax = yMax;
     }
-    public double getzMin()
+    
+    @PropertyName("Z min")
+    public double getZMin()
     {
         return zMin;
     }
-    public void setzMin(double zMin)
+    public void setZMin(double zMin)
     {
         this.zMin = zMin;
     }
-    public double getzMax()
+    
+    @PropertyName("Z max")
+    public double getZMax()
     {
         return zMax;
     }
-    public void setzMax(double zMax)
+    public void setZMax(double zMax)
     {
         this.zMax = zMax;
     }
@@ -176,21 +192,7 @@ public class SubstrateProperties extends InitialElementPropertiesSupport impleme
     @PropertyName ( "Dirichlet condition" )
     public boolean isDirichletCondition()
     {
-        return dirichletCondition;
-    }
-    public void setDirichletCondition(boolean dirichletCondition)
-    {
-        this.dirichletCondition = dirichletCondition;
-    }
-
-    @PropertyName ( "Dirichlet value" )
-    public double getDirichletValue()
-    {
-        return dirichletValue;
-    }
-    public void setDirichletValue(double dirichletValue)
-    {
-        this.dirichletValue = dirichletValue;
+        return getXMin() > 0 || getXMax() > 0 || getYMin() > 0 || getYMax() > 0 || getZMin() > 0 || getZMax() > 0;
     }
 
     public void setDiagramElement(DiagramElement diagramElement)

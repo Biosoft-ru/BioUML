@@ -23,6 +23,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
+import biouml.plugins.physicell.BioUMLFunctionsReader.FunctionInfo;
 import biouml.plugins.physicell.ode.BioUMLIntraReader;
 import biouml.standard.diagram.DiagramUtility;
 import biouml.standard.type.DiagramInfo;
@@ -55,7 +56,7 @@ public class PhysicellImporter implements DataElementImporter
 {
     private PhysicellImportProperties properties;
     private Map<String, Node> densityNodes;
-    private Map<String, File> additionalFiles = null;
+    private Map<String, File> additionalFiles = new HashMap<>();
     private BioUMLFunctionsReader functionsReader = new BioUMLFunctionsReader();
     private DataCollection dc;
 
@@ -68,7 +69,7 @@ public class PhysicellImporter implements DataElementImporter
     {
         this.dc = dc;
         Diagram result = new PhysicellDiagramType().createDiagram( dc, name, new DiagramInfo( name ) );
-        result.setNotificationEnabled(false);
+        result.setNotificationEnabled( false );
         ModelReader reader = new ModelReader();
         reader.setFunctionsReader( functionsReader );
         BioUMLIntraReader intracellularReader = new BioUMLIntraReader();
@@ -77,21 +78,22 @@ public class PhysicellImporter implements DataElementImporter
         intracellularReader.setAdditionalFiles( additionalFiles );
         reader.setAdditionalFiles( additionalFiles );
         ru.biosoft.physicell.core.Model model = reader.read( f, Model.class );
-  
-        convertSimulationOptions(model, result);
+
+        convertSimulationOptions( model, result );
         convertDomain( model, result );
+        convertOptions( model, result );
         convertParameters( model, result );
         convertSubstrates( model, result );
         convertCellDefinitions( model, result );
         updateCellDefinitions( model, result );
         convertInitial( new File( f.getParent() ), model, result );
-        convertReport(model, result);
-        convertVisualizer(model, result);
+        convertReport( model, result );
+        convertVisualizer( model, result );
         layout( result );
-        result.setNotificationEnabled(true);
+        result.setNotificationEnabled( true );
         return result;
     }
-    
+
     private void convertSimulationOptions(Model model, Diagram result)
     {
         PhysicellSimulationEngine engine = (PhysicellSimulationEngine)DiagramUtility.getEngine( result );
@@ -101,6 +103,8 @@ public class PhysicellImporter implements DataElementImporter
         options.setDiffusionDt( model.getDiffusionDt() );
         options.setMechanicsDt( model.getMechanicsDt() );
         options.setPhenotypeDt( model.getPhenotypeDt() );
+        options.setImageInterval( model.getSaveImgInterval() );
+        options.setReportInterval( model.getSaveFullInterval() );
         options.setCalculateGradient( model.getMicroenvironment().options.calculate_gradients );
         options.setTrackInnerSubstrates( model.getMicroenvironment().options.track_internalized_substrates_in_each_agent );
     }
@@ -108,37 +112,37 @@ public class PhysicellImporter implements DataElementImporter
     private void convertReport(Model model, Diagram result) throws Exception
     {
         ExternalFile external = model.getReportInfo();
-        if (external != null && external.format.equals("java"))
+        if( external != null && external.format.equals( "java" ) )
         {
-            DataElement de = importExternalCode(external.path);
+            DataElement de = importExternalCode( external.path );
             MulticellEModel emodel = result.getRole( MulticellEModel.class );
             emodel.getReportProperties().setReportPath( de.getCompletePath() );
             emodel.getReportProperties().setCustomReport( true );
         }
     }
-    
-    private void convertVisualizer( Model model, Diagram result) throws Exception
+
+    private void convertVisualizer(Model model, Diagram result) throws Exception
     {
         ExternalFile external = model.getVisualizerInfo();
-        if (external != null && external.format.equals("java"))
+        if( external != null && external.format.equals( "java" ) )
         {
-            DataElement de = importExternalCode(external.path);
+            DataElement de = importExternalCode( external.path );
             MulticellEModel emodel = result.getRole( MulticellEModel.class );
-            emodel.getReportProperties().setVisualizerPath(  de.getCompletePath() );
+            emodel.getReportProperties().setVisualizerPath( de.getCompletePath() );
             emodel.getReportProperties().setCustomVisualizer( true );
         }
     }
-    
+
 
     private void convertInitial(File folder, Model model, Diagram result) throws Exception
     {
         ExternalFile external = model.getInitialInfo();
-        if (external == null)
+        if( external == null )
             return;
-        
-        if (external.format.equals("java"))
+
+        if( external.format.equals( "java" ) )
         {
-            DataElement de = importExternalCode(external.path);
+            DataElement de = importExternalCode( external.path );
             MulticellEModel emodel = result.getRole( MulticellEModel.class );
             emodel.getInitialCondition().setCustomCondition( true );
             emodel.getInitialCondition().setCustomConditionCode( de.getCompletePath() );
@@ -147,17 +151,18 @@ public class PhysicellImporter implements DataElementImporter
         String cellsFileName = external.path;
         if( cellsFileName == null )
             return;
+        if( cellsFileName.startsWith( "./" ) )
+            cellsFileName = cellsFileName.substring( 2 );
+        
         List<String> cells = new ArrayList<>();
         String tableName = cellsFileName.substring( cellsFileName.lastIndexOf( "/" ) + 1 );
-        if( additionalFiles == null )
+        if( additionalFiles == null || !additionalFiles.containsKey( cellsFileName ))
         {
             File cellsFile = new File( folder, cellsFileName );
             cells = ApplicationUtils.readAsList( cellsFile );
         }
         else
         {
-            if( cellsFileName.startsWith( "./" ) )
-                cellsFileName = cellsFileName.substring( 2 );
             InputStream is = new FileInputStream( additionalFiles.get( cellsFileName ) );
             cells = ApplicationUtils.readAsList( is );
         }
@@ -184,21 +189,21 @@ public class PhysicellImporter implements DataElementImporter
         c.setCustomCondition( true );
         c.setCustomConditionTable( DataElementPath.create( table ) );
     }
-    
+
     private DataElement importExternalCode(String path) throws IOException
     {
-        File f = new File(path);
+        File f = new File( path );
         String name = f.getName();
-        if (path.startsWith( "./" ) || path.startsWith( ".\\" ))
+        if( path.startsWith( "./" ) || path.startsWith( ".\\" ) )
             path = path.substring( 2 );
-        if (additionalFiles!= null && additionalFiles.containsKey( path ))
-            f = additionalFiles.get( path ); 
+        if( additionalFiles != null && additionalFiles.containsKey( path ) )
+            f = additionalFiles.get( path );
         String code = ApplicationUtils.readAsString( f );
-        JSElement element = new JSElement(dc, name, code);
+        JSElement element = new JSElement( dc, name, code );
         dc.put( element );
         return element;
     }
-    
+
 
     private void convertSubstrates(Model model, Diagram result) throws Exception
     {
@@ -214,7 +219,12 @@ public class PhysicellImporter implements DataElementImporter
             sp.setDecayRate( m.decayRates[i] );
             sp.setDiffusionCoefficient( m.diffusionCoefficients[i] );
             sp.setInitialCondition( m.getOptions().initial_condition_vector[i] );
-//            sp.setDirichletCondition(  );
+            sp.setXMin( m.options.Dirichlet_xmin[i]? m.options.Dirichlet_xmin_values[i]: -1 );
+            sp.setXMax( m.options.Dirichlet_xmax[i]? m.options.Dirichlet_xmax_values[i]: -1 );
+            sp.setYMin( m.options.Dirichlet_ymin[i]? m.options.Dirichlet_ymin_values[i]: -1 );
+            sp.setYMax( m.options.Dirichlet_ymax[i]? m.options.Dirichlet_ymax_values[i]: -1 );
+            sp.setZMin( m.options.Dirichlet_zmin[i]? m.options.Dirichlet_zmin_values[i]: -1 );
+            sp.setZMax( m.options.Dirichlet_zmax[i]? m.options.Dirichlet_zmax_values[i]: -1 );
         }
     }
 
@@ -223,10 +233,11 @@ public class PhysicellImporter implements DataElementImporter
         MulticellEModel emodel = result.getRole( MulticellEModel.class );
         for( String s : model.getParameters() )
         {
-            String val = model.getParameter( s );
+            ru.biosoft.physicell.core.UserParameter userParameter = model.getParameter( s );
             UserParameter p = new UserParameter();
-            p.setName( s );
-            p.setValue( val );
+            p.setName( userParameter.getName() );
+            p.setValue( userParameter.getValue() );
+            p.setDescription( userParameter.getDescription() );
             emodel.addUserParameter( p );
         }
     }
@@ -326,19 +337,26 @@ public class PhysicellImporter implements DataElementImporter
                     cdp.getTransformationsProperties().addTransformation( properties );
                 }
             }
-            Map<String, String> functionsInfo = functionsReader.getFunctionsInfo( cd.name );
-            for( Entry<String, String> functionInfo : functionsInfo.entrySet() )
+            Map<String, FunctionInfo> functionsInfo = functionsReader.getFunctionsInfo( cd.name );
+            for( Entry<String, FunctionInfo> functionInfo : functionsInfo.entrySet() )
             {
                 String name = functionInfo.getKey();
-                String path = functionInfo.getValue();
-                if( path == null )
+                FunctionInfo info = functionInfo.getValue();
+                String type = info.type;
+                if( type.equals( "java" ) )
                 {
-                    cdp.getFunctionsProperties().setNotSelected( name );
-                    continue;
+                    String path = info.path;
+                    DataElement de = importExternalCode( path );
+                    cdp.getFunctionsProperties().setCustom( name, de.getCompletePath() );
                 }
-                DataElement de = importExternalCode( path );
-                cdp.getFunctionsProperties().setCustom( name, de.getCompletePath() );
-
+                else if( type.equals( "NONE" ) )
+                {
+                    cdp.getFunctionsProperties().setNotSelected( "-" );
+                }
+                else
+                {
+                    cdp.getFunctionsProperties().setValue( name, type );
+                }
             }
         }
     }
@@ -359,6 +377,13 @@ public class PhysicellImporter implements DataElementImporter
         domain.setZFrom( options.Z_range[0] );
         domain.setZTo( options.Z_range[1] );
         domain.setUse2D( options.simulate2D );
+    }
+
+    private void convertOptions(Model model, Diagram result)
+    {
+        MulticellEModel emodel = result.getRole( MulticellEModel.class );
+        ModelOptions options = emodel.getOptions();
+        options.setDisableAutomatedAdhesions( model.disableAutomatedSpringAdhesions );
     }
 
     private void layout(Diagram d)

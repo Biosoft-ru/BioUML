@@ -30,6 +30,7 @@ public class PhysicellModelWriter extends ModelXmlWriter
         Element element = doc.createElement( EXECUTABLE_MODEL_ELEMENT );
         element.setAttribute( MODEL_CLASS_ATTR, role.getClass().getName() );
 
+        createOptions( model.getOptions(), element );
         createDomain( model.getDomain(), element );
         createUserParameterList( model.getUserParmeters(), element );
         createInitialCondition( model.getInitialCondition(), element );
@@ -75,6 +76,14 @@ public class PhysicellModelWriter extends ModelXmlWriter
         parent.appendChild( element );
     }
 
+
+    private void createOptions(ModelOptions options, Element parent)
+    {
+        Element element = doc.createElement( "options" );
+        element.setAttribute( "disableAutomatedAdhesion", String.valueOf( options.isDisableAutomatedAdhesions() ) );
+        parent.appendChild( element );
+    }
+    
     private void createDomain(DomainOptions options, Element parent)
     {
         Element element = doc.createElement( "domain" );

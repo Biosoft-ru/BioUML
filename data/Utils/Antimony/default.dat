@@ -1,0 +1,64 @@
+ID	sbgn.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+createdDate	1685686282542
+modifiedDate	1685686282542
+class	ru.biosoft.access.TextDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+
+ID	sbgn.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+createdDate	1685686282542
+modifiedDate	1685686282542
+class	ru.biosoft.access.TextDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	sbgn.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+plugins	ru.biosoft.access
+createdDate	1685686282542
+modifiedDate	1690407077372
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+class	ru.biosoft.access.TextDataElement
+//
+ID	glycan.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+createdDate	1692589782201
+plugins	ru.biosoft.access
+modifiedDate	1692589782201
+class	ru.biosoft.access.TextDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	smiles.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+createdDate	1692676421947
+plugins	ru.biosoft.access
+modifiedDate	1692676421947
+class	ru.biosoft.access.TextDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	biouml.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+createdDate	1695685553411
+plugins	ru.biosoft.access
+modifiedDate	1695685553411
+class	ru.biosoft.access.TextDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+
+ID	biouml.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+createdDate	1695685553411
+plugins	ru.biosoft.access
+modifiedDate	1695685553411
+class	ru.biosoft.access.TextDataElement
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	biouml.yaml
+de_transformer	ru.biosoft.access.support.FileTextTransformer
+plugins	ru.biosoft.access
+createdDate	1695685553411
+modifiedDate	1696558165027
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+class	ru.biosoft.access.TextDataElement
+//

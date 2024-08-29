@@ -8,6 +8,7 @@ public class UserParameter implements Cloneable
     private String type;
     private String units;
     private String value;
+    private String description;
 
     @PropertyName ( "Name" )
     public String getName()
@@ -61,5 +62,15 @@ public class UserParameter implements Cloneable
             e.printStackTrace();
             return null;
         }
+    }
+    
+    @PropertyName("Description")
+    public String getDescription()
+    {
+        return description;
+    }
+    public void setDescription(String description)
+    {
+        this.description = description;
     }
 }

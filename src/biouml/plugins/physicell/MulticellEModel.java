@@ -1,22 +1,26 @@
 package biouml.plugins.physicell;
 
 import java.util.List;
-import java.util.logging.Logger;
 
+import biouml.model.Diagram;
 import biouml.model.DiagramElement;
-import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.EModelRoleSupport;
 
-public class MulticellEModel extends EModel
-{
-    private static final Logger log = Logger.getLogger(MulticellEModel.class.getName());
-    
+public class MulticellEModel extends EModelRoleSupport
+{    
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
 
     private DomainOptions domain = new DomainOptions();
     private UserParameters userParmeters = new UserParameters();
     private InitialCondition initialCondition = new InitialCondition();
-    private ReportProperties reportProperties = new ReportProperties();
-
+    private ReportProperties reportProperties = new ReportProperties(); 
+    private ModelOptions options = new ModelOptions();
+    
+    public ModelOptions getOptions()
+    {
+        return options;
+    }
+    
     public ReportProperties getReportProperties()
     {
         return reportProperties;
@@ -58,6 +62,18 @@ public class MulticellEModel extends EModel
         return domain;
     }
 
+    @Override
+    public Diagram getDiagramElement()
+    {
+        return (Diagram)super.getDiagramElement();
+    }
+
+    @Override
+    public Diagram getParent()
+    {
+        return (Diagram)super.getParent();
+    }
+    
     public List<SubstrateProperties> getSubstrates()
     {
         return this.getDiagramElement().stream().map( n -> n.getRole() ).select( SubstrateProperties.class ).toList();
@@ -87,7 +103,8 @@ public class MulticellEModel extends EModel
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
         emodel.userParmeters = userParmeters.clone();
-        doClone( emodel );
+        emodel.options = options.clone();
+        emodel.comment = comment;
         emodel.updateCellDefinitions();
         return emodel;
     }
@@ -97,11 +114,7 @@ public class MulticellEModel extends EModel
      */
     public void updateCellDefinitions()
     {
-        log.info("Update");
-        for( CellDefinitionProperties cdp : getCellDefinitions() )
-        {
-            log.info( cdp.getName()+" updating. Edges: "+cdp.getDiagramElement().getEdges().length );
+       for( CellDefinitionProperties cdp : getCellDefinitions() )
             cdp.update();
-        }
     }
 }

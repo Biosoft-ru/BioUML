@@ -49,6 +49,7 @@ import biouml.model.Diagram;
 import biouml.model.Module;
 import biouml.model.SubDiagram;
 import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.EModelRoleSupport;
 import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.model.dynamics.plot.PlotInfo;
 import biouml.plugins.simulation.plot.PlotDialog;
@@ -79,7 +80,7 @@ import com.developmentontheedge.log.TextPaneAppender;
 public class SimulationEnginePane extends EditorPartSupport implements ItemListener, PropertyChangeListener
 {
     private JTabbedPane tabbedPane;
-    protected EModel emodel;
+    protected EModelRoleSupport emodel;
 
     public static final String GENERATE_CODE_ACTION = "generate";
     public static final String SIMULATE_ACTION = "simulate";
@@ -91,7 +92,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
     protected Action[] actions;
     private EngineTab engineTab;
     private PlotTab plotTab;
-    
+
     public SimulationEnginePane()
     {
         tabbedPane = new JTabbedPane( SwingConstants.LEFT );
@@ -113,11 +114,11 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
     {
         this.model = model;
         this.document = document;
-        emodel = ( (Diagram)model ).getRole( EModel.class );
+        emodel = ( (Diagram)model ).getRole( EModelRoleSupport.class );
         emodel.addPropertyChangeListener( this );
-        
+
         engineTab = new EngineTab( model, document );
-        plotTab = new PlotTab( model );
+        plotTab = emodel instanceof EModel ? new PlotTab( model ) : null;
         initTabbedPane( model, document );
     }
 
@@ -125,8 +126,10 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
     {
         tabbedPane.removeAll();
 
-        tabbedPane.addTab( "Engine",engineTab.getView() );
-        tabbedPane.addTab( "Plots", plotTab.getView() );
+        tabbedPane.addTab( "Engine", engineTab.getView() );
+
+        if( plotTab != null )
+            tabbedPane.addTab( "Plots", plotTab.getView() );
 
         tabbedPane.addChangeListener( new ChangeListener()
         {
@@ -165,7 +168,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
         {
             return inspector;
         }
-        
+
         public PlotTab(Object model)
         {
             if( model instanceof Diagram )
@@ -211,7 +214,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
     @Override
     public boolean canExplore(Object model)
     {
-        return model instanceof Diagram && ( (Diagram)model ).getRole() instanceof EModel;
+        return model instanceof Diagram && ( (Diagram)model ).getRole() instanceof EModelRoleSupport;
     }
 
     public static class EngineTab extends EditorPartSupport implements ItemListener, PropertyChangeListener
@@ -227,7 +230,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
         private final JLabel engineLabel = new JLabel( MessageBundle.getMessage( "SIMULATION_ENGINE" ) );
         private JSplitPane splitPane = new JSplitPane();
         private final SimulationStatusListener listener = new SimulationStatusListener();
-        protected EModel executableModel;
+        protected EModelRoleSupport executableModel;
         protected SimulationEngine simulationEngine;
         boolean doSimulate;
         protected PropertyInspector inspector = new PropertyInspectorEx();
@@ -247,7 +250,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
             log = Logger.getLogger( getClass().getName() );
             jobControl = new FunctionJobControl( log );
         }
-        
+
         public SimulationEngine getSimulationEngine()
         {
             return simulationEngine;
@@ -279,7 +282,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
             inspector.setComponentModel( ComponentFactory.getModel( simulationEngine, Policy.UI, true ) );
         }
 
-        public EModel getExecutableModel()
+        public EModelRoleSupport getExecutableModel()
         {
             return executableModel;
         }
@@ -350,13 +353,13 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
             add( engineBox );
             add( splitPane );
         }
-        
+
         @Override
         public JComponent getView()
         {
             return this;
         }
-        
+
         @Override
         public Object getModel()
         {
@@ -366,7 +369,7 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
         @Override
         public boolean canExplore(Object model)
         {
-            return model instanceof Diagram && ( (Diagram)model ).getRole() instanceof EModel;
+            return model instanceof Diagram && ( (Diagram)model ).getRole() instanceof EModelRoleSupport;
         }
 
         @Override
@@ -382,10 +385,10 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
                 if( executableModel != null )
                     executableModel.removePropertyChangeListener( inspector );
 
-                executableModel = ( (Diagram)model ).getRole( EModel.class );
+                executableModel = ( (Diagram)model ).getRole( EModelRoleSupport.class );
                 executableModel.addPropertyChangeListener( inspector );
                 inspector.setDefaultNumberFormat( null );
-                
+
                 String[] simulationEngineNames = SimulationEngineRegistry.getSimulationEngineNames( executableModel );
                 if( simulationEngineNames.length == 0 )
                 {
@@ -547,6 +550,9 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
         protected ResultListener[] getResultListeners(SimulationEngine simulationEngine) throws Exception
         {
             SimulationResult res = simulationEngine.generateSimulationResult();
+            if (res == null)
+                return new ResultListener[0];
+            
             currentResults = new ResultWriter( res );
             res.setDiagramPath( executableModel.getParent().getCompletePath() );
             //        if( document instanceof DiagramDocument )

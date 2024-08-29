@@ -26,7 +26,7 @@ public class PhysicellDiagramViewOptions extends DiagramViewOptions
     {
         super( parent );
         this.setDiagramTitleVisible( false );
-        this.setNodeTitleFont( new ColorFont( "Courier", Font.BOLD, 14, Color.black ) );
+        this.setNodeTitleFont( new ColorFont( "Arial", Font.BOLD, 14, Color.black ) );
     }
 
     @PropertyName ( "Cell Definition brush" )

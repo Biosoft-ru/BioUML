@@ -40,6 +40,7 @@ public class PhysicellSimulator implements Simulator
     private boolean running = false;
     protected static final Logger log = Logger.getLogger( Simulator.class.getName() );
     private double nextReport = 0;
+    private double nextImage = 0;
     private DataCollection<DataElement> resultFolder;
     private StringBuffer simulationLog;
 
@@ -72,6 +73,7 @@ public class PhysicellSimulator implements Simulator
         this.options = (PhysicellOptions)getOptions();
         this.running = true;
         this.nextReport = 0;
+        this.nextImage = 0;
         this.simulationLog = new StringBuffer();
 
         DataElementPath dep = options.getResultPath();
@@ -94,7 +96,7 @@ public class PhysicellSimulator implements Simulator
 
         if( options.isSaveVideo() || options.isSaveGIF() )
             videoCollection = DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Video" ) );
-        else if( options.isSaveImage() )
+        if( options.isSaveImage() )
             imagesCollection = DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Image" ) );
 
 
@@ -144,17 +146,37 @@ public class PhysicellSimulator implements Simulator
     public boolean doStep() throws Exception
     {
         double curTime = model.getCurrentTime();
-        while( curTime < nextReport && running )
+        while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
             curTime = model.getCurrentTime();
-        }
-        nextReport += options.getReportInterval();
-        log.info( model.getLog() );
-        simulationLog.append( "\n" + model.getLog() );
+            
+            if( curTime >= nextReport )
+            {
+                nextReport += options.getReportInterval();
+                saveResults( curTime );
+                log.info( model.getLog() );
+                simulationLog.append( "\n" + model.getLog() );
 
-        saveResults( curTime );
+            }
+            
+            if (curTime >= nextImage)
+            {
+                saveImages(curTime);
+                nextImage += options.getImageInterval();
+            }
+            
+        }  
         return false;
+    }
+
+    private void saveImages(double curTime) throws Exception
+    {
+        String suffix = print( curTime, 0 );
+
+        for( Visualizer vis : model.getVisualizers() )
+            updateResult( vis, "Figure_" + suffix );
+
     }
 
     private void saveResults(double curTime) throws Exception
@@ -162,10 +184,6 @@ public class PhysicellSimulator implements Simulator
         String suffix = print( curTime, 0 );
 
         DataCollection<DataElement> densityCollection = (DataCollection)resultFolder.get( "Density" );
-
-        for( Visualizer vis : model.getVisualizers() )
-            updateResult( vis, "Figure_" + suffix );
-
         if( this.options.isSaveReport() )
         {
             TableDataCollection tdc = TableDataCollectionUtils.createTableDataCollection( densityCollection, "Density_" + suffix );
@@ -238,7 +256,7 @@ public class PhysicellSimulator implements Simulator
         }
         catch( Exception ex )
         {
-            log.info( "Simulation failed: "+ ex.getMessage() );
+            log.info( "Simulation failed: " + ex.getMessage() );
         }
     }
 

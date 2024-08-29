@@ -54,6 +54,15 @@ public class RulesProperties extends Option
         for( RuleProperties rule : rules )
         {
             Rules.addRule( model, cd.name, rule.getSignal(), rule.getBehavior(), rule.getDirection(), rule.isApplyToDead() );
+            model.getRules().set_hypothesis_parameters( model, cd.name, rule.getSignal(), rule.getBehavior(), rule.getHalfMax(), rule.getHillPower() );
+//            rules.set_hypothesis_parameters( model, cell_type, signal, behavior, half_max, hill_power );
+            // compare to base behavior value in cell def for discrepancies 
+            double ref_base_value = model.getSignals().getSingleBaseBehavior( model, cd, rule.getBehavior() );
+            Rules.setBehaviorBaseValue( model, cd.name, rule.getBehavior(), ref_base_value );
+            if(  rule.getDirection().equals( "increases" ) )
+                Rules.set_behavior_max_value( model, cd.name, rule.getBehavior(), rule.getSaturationValue() );
+            else
+                Rules.setBehaviorMinValue( model, cd.name, rule.getBehavior(),  rule.getSaturationValue() );
         }
     }
 
@@ -133,13 +142,14 @@ public class RulesProperties extends Option
         this.setRules( newRules );
     }
 
-    @Override
-    public RulesProperties clone()
+    public RulesProperties clone(DiagramElement de)
     {
         RulesProperties result = new RulesProperties();
+        result.setDiagramElement( de );
         RuleProperties[] newRules = new RuleProperties[rules.length];
         for( int i = 0; i < rules.length; i++ )
             newRules[i] = rules[i].clone();
+        result.setRules( newRules );
         return result;
     }
 }

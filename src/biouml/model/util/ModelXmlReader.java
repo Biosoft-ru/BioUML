@@ -20,6 +20,7 @@ import biouml.model.dynamics.Assignment;
 import biouml.model.dynamics.Constraint;
 import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.EModel.DiagramVariableResolver;
+import biouml.model.dynamics.EModelRoleSupport;
 import biouml.model.dynamics.Equation;
 import biouml.model.dynamics.Event;
 import biouml.model.dynamics.Function;
@@ -63,7 +64,7 @@ public class ModelXmlReader extends DiagramXmlSupport
         this.newPaths = newPaths;
     }
 
-    public EModel readModel(Element element)
+    public EModelRoleSupport readModel(Element element)
     {
         EModel model = null;
         try

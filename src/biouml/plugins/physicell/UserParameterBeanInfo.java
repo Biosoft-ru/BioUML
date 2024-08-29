@@ -17,5 +17,6 @@ public class UserParameterBeanInfo extends BeanInfoEx2<UserParameter>
         add( "name" );
         //        add( "type" );
         add( "value" );
+        add("description");
     }
 }

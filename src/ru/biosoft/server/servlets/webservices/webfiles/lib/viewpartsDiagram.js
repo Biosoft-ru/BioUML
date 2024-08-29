@@ -2698,7 +2698,7 @@ function FbcViewPart(){
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -3034,7 +3034,7 @@ function AntimonyViewPart() {
 //                  else
 //                      callback(false);
 //              });
-                callback(true);
+               documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -3272,7 +3272,7 @@ function ComplexSimulationViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -4275,7 +4275,7 @@ function ComplexModelViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                 documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -5400,7 +5400,7 @@ function MicroenvironmentViewPart()
     this.tables = {};
     this.tableObjs = {};
     this.tableChanged = {};
-    this.type="domain"; //4 types: domain, substrates, uparams, initial
+    this.type="domain"; //6 types: domain, substrates, uparams, initial, options, cell types
 
     var _this = this;
     
@@ -5413,19 +5413,25 @@ function MicroenvironmentViewPart()
                 '<ul>'+
                 '<li><a href="#me_domain"><span>Domain</span></a></li>'+
                 '<li><a href="#me_substrates"><span>Substrates</span></a></li>'+
+				'<li><a href="#me_celltypes"><span>Cell Types</span></a></li>'+
                 '<li><a href="#me_uparams"><span>User Parameters</span></a></li>'+
                 '<li><a href="#me_initial"><span>Initial Condition</span></a></li>'+
 				'<li><a href="#me_report"><span>Report Properties</span></a></li>'+
+				'<li><a href="#me_options"><span>Options</span></a></li>'+
                 '</ul>'+
                 '<div id="me_domain" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
                 '<div id="me_substrates" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
+				'<div id="me_celltypes" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
                 '<div id="me_uparams" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
                 '<div id="me_initial" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
 				'<div id="me_report" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_options" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
 				'</div>'+
                 '</div>');
         this.containerDiv.append(tabDiv);
@@ -5445,6 +5451,10 @@ function MicroenvironmentViewPart()
         this.substratesDiv = tabDiv.find("#me_substrates");
         this.tables["substrates"] = $('<div>Loading substrates..</div>');
         this.substratesDiv.append(this.tables["substrates"]);
+		
+		this.celltypesDiv = tabDiv.find("#me_celltypes");
+		this.tables["cell_types"] = $('<div>Loading cell types..</div>');
+		this.celltypesDiv.append(this.tables["cell_types"]);
         
         this.uparamsDiv = tabDiv.find("#me_uparams");
         this.uparamsPI = $('<div id="' + this.tabId + '_pi3">Loading user parameters..</div>').css({"width":"500px", "float":"left"});
@@ -5458,6 +5468,9 @@ function MicroenvironmentViewPart()
 		this.reportPI = $('<div id="' + this.tabId + '_pi5">Loading report properties..</div>').css({"width":"500px", "float":"left"});
 		this.reportDiv.append(this.reportPI);
         
+		this.optionsDiv = tabDiv.find("#me_options");
+		this.optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
+		this.optionsDiv.append(this.optionsPI);
         _.bindAll(this, _.functions(this));
     }
     
@@ -5494,6 +5507,7 @@ function MicroenvironmentViewPart()
                 this.loadUserParameters();
                 this.loadInitialCondition();
 				this.loadReportProperties();
+				this.loadOptions();
             }
         }
     };
@@ -5507,8 +5521,10 @@ function MicroenvironmentViewPart()
                  _this.shownIndex = ui.newTab.index(); 
                  _this.type = _this.show_mode.substring(1+_this.show_mode.indexOf("_"));
                  updateViewPartsToolbar(_this);
-                 if(_this.type=="substrates")
-                    _this.loadTable("substrates");
+                if(_this.type=="substrates")
+                   _this.loadTable("substrates");
+                else if (_this.type=="cell_types")
+			       _this.loadTable("cell_types");
                 else
                 {
                     if(_this.tableChanged["substrates"])
@@ -5518,6 +5534,13 @@ function MicroenvironmentViewPart()
                                 _this.saveTable("substrates");
                         });
                     }
+					else if(_this.tableChanged["cell_types"])
+					{
+					     createYesNoConfirmDialog( "Cell types table was changed. Do you want to save it?", function(yes){
+					        if(yes)
+					           _this.saveTable("cell_types");
+					     });
+					 }
                 }
             }
         });
@@ -5532,14 +5555,20 @@ function MicroenvironmentViewPart()
             createYesNoConfirmDialog( "Substrates table was changed. Do you want to save it?", function(yes){
                 if(yes)
                     _this.saveTable("substrates");
-            });
-            
+            }); 
         }
+		else if(this.tableChanged["cell_types"])
+		{
+		     createYesNoConfirmDialog( "Cell types table was changed. Do you want to save it?", function(yes){
+		         if(yes)
+		            _this.saveTable("cell_types");
+		     }); 
+       }
     };
     
     this.initActions = function(toolbarBlock)
     {
-        if (this.type == "substrates")
+        if (this.type == "substrates" || this.type == "cell_types")
         {
             this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveTable);
             toolbarBlock.append(this.saveAction);     
@@ -5552,7 +5581,9 @@ function MicroenvironmentViewPart()
         this.loadUserParameters();
         this.loadInitialCondition();
 		this.loadReportProperties();
+		this.loadOptions();
         this.loadTable("substrates");
+		this.loadTable("cell_types");
     };
     
     this.loadTable = function(type)
@@ -5775,6 +5806,49 @@ function MicroenvironmentViewPart()
                _this.initReportPropertiesFromJson(data);
            });
 	   };
+	   
+	   this.loadOptions = function()
+	      {
+	          queryBioUML("web/bean/get", 
+	          {
+	              de: "diagram/physicell/" + _this.diagram.completeName + "/stub/options"
+	          }, function(data)
+	          {
+	              _this.data = data;
+	              _this.initOptionsFromJson(data);
+	          }, function(data)
+	          {
+	              _this.tabDiv.html(resources.commonErrorViewpartUnavailable);
+	          });
+	      };
+
+	      this.initOptionsFromJson = function(data)
+	      {
+	          _this.optionsPI.empty();
+	          var beanDPS = convertJSONToDPS(data.values);
+	          _this.optionsPane = new JSPropertyInspector();
+	          _this.optionsPane.setParentNodeId(_this.optionsPI.attr('id'));
+	          _this.optionsPane.setModel(beanDPS);
+	          _this.optionsPane.generate();
+	          _this.optionsPane.addChangeListener(function(ctl,oldval,newval) {
+	              _this.optionsPane.updateModel();
+	              var json = convertDPSToJSON(_this.optionsPane.getModel(), ctl.getModel().getName());
+	              _this.setOptionsFromJson(json);
+	          });
+	      };
+
+	      this.setOptionsFromJson = function(json)
+	      {
+	          queryBioUML("web/bean/set",
+	          {
+	              de: "diagram/physicell/" + _this.diagram.completeName + "/stub/options",
+	              json: json
+	          }, function(data)
+	          {
+	              _this.initOptionsFromJson(data);
+	              _this.diagram.dataCollectionChanged();
+	          });
+	      };
     
     this.saveTable = function(type)
     {

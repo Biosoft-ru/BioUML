@@ -1,0 +1,40 @@
+ID	test_case_1A
+de_transformer	biouml.plugins.optimization.access.OptimizationTransformer
+createdDate	1331625691312
+plugins	biouml.plugins.optimization
+modifiedDate	1331625691312
+class	biouml.plugins.optimization.Optimization
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	test_case_1B
+de_transformer	biouml.plugins.optimization.access.OptimizationTransformer
+createdDate	1331625691312
+plugins	biouml.plugins.optimization
+modifiedDate	1331625691312
+class	biouml.plugins.optimization.Optimization
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	test_case_1C
+de_transformer	biouml.plugins.optimization.access.OptimizationTransformer
+createdDate	1331625691312
+plugins	biouml.plugins.optimization
+modifiedDate	1331625691312
+class	biouml.plugins.optimization.Optimization
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	test_case_2
+de_transformer	biouml.plugins.optimization.access.OptimizationTransformer
+createdDate	1331625691312
+plugins	biouml.plugins.optimization
+modifiedDate	1331625691312
+class	biouml.plugins.optimization.Optimization
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	test_case_3
+de_transformer	biouml.plugins.optimization.access.OptimizationTransformer
+createdDate	1331625691312
+plugins	biouml.plugins.optimization
+modifiedDate	1331625691312
+class	biouml.plugins.optimization.Optimization
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//

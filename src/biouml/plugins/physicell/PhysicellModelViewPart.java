@@ -12,6 +12,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.developmentontheedge.beans.swing.PropertyInspector;
+import com.developmentontheedge.beans.swing.table.RowModel;
 
 import biouml.model.Diagram;
 import ru.biosoft.access.core.DataCollectionEvent;
@@ -30,6 +31,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private PropertyInspector parametersInspector = new PropertyInspector();
     private PropertyInspector initialConditionInspector = new PropertyInspector();
     private PropertyInspector reportInspector = new PropertyInspector();
+    private PropertyInspector optionsInspector = new PropertyInspector();
     
     public PhysicellModelViewPart()
     {
@@ -52,9 +54,11 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         tabbedPane.removeAll();
         tabbedPane.addTab( "Domain", domainInspector );
         tabbedPane.addTab( "Substrates", new SubstrateViewPart( emodel ) );
+        tabbedPane.addTab( "Cell types", new CellDefinitionsViewPart( emodel ) );
         tabbedPane.addTab( "User Parameters", parametersInspector );
         tabbedPane.addTab( "Initial Condition", initialConditionInspector );
         tabbedPane.addTab( "Model Report", reportInspector );
+        tabbedPane.addTab( "Model Options", optionsInspector );
         tabbedPane.addChangeListener( new ChangeListener()
         {
             @Override
@@ -85,6 +89,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         parametersInspector.explore( emodel.getUserParmeters() );
         initialConditionInspector.explore( emodel.getInitialCondition() );
         reportInspector.explore( emodel.getReportProperties() );
+        optionsInspector.explore( emodel.getOptions() );
         initTabbedPane( emodel );
     }
 
@@ -151,5 +156,45 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         Component component = tabbedPane.getSelectedComponent();
         if( component instanceof SubstrateViewPart )
             ( (SubstrateViewPart)component ).update();
+    }
+    
+    public static class SubstrateViewPart extends PhysicellTab
+    {
+        public SubstrateViewPart(MulticellEModel emodel)
+        {
+            super( emodel );
+        }
+
+        @Override
+        protected RowModel getRowModel()
+        {
+            return new ListRowModel( emodel.getSubstrates(), SubstrateProperties.class );
+        }
+
+        @Override
+        protected Object createTemplate()
+        {
+            return new SubstrateProperties( "" );
+        }
+    }
+    
+    public class CellDefinitionsViewPart extends PhysicellTab
+    {
+        public CellDefinitionsViewPart(MulticellEModel emodel)
+        {
+            super( emodel );
+        }
+
+        @Override
+        protected RowModel getRowModel()
+        {
+            return new ListRowModel( emodel.getCellDefinitions(), CellDefinitionProperties.class );
+        }
+
+        @Override
+        protected Object createTemplate()
+        {
+            return new CellDefinitionProperties( "" );
+        }
     }
 }

@@ -14,6 +14,16 @@
 			 />
 	</extension>
 	
+	 <extension id="PhysicellExporter" point="ru.biosoft.access.export">
+		<export
+		    diagramType="biouml.plugins.physicell.PhysicellDiagramType" 
+			format="Physicell Archive (*.zip)" 
+			suffix=".zip"
+			exporter="biouml.plugins.physicell.PhysicellExporter" 
+			description="Physicell Exporter"
+			 />
+	</extension>
+	
 	<extension id="PhysicellArchiveImporter" point="ru.biosoft.access.import">
 		<import 
 			format="Physicell Archive (*.pcl)" 
