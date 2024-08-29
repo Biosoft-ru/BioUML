@@ -373,7 +373,25 @@
         plugin.fs,
         plugin.docker,
 	    plugin.physicell,
-    	plugin.jupyter"
+    	plugin.jupyter,
+    	plugin.illumina,
+        plugin.mirbase,
+        plugin.mirprom,
+    	plugin.metabolics,
+        plugin.antimony,
+        plugin.bindingregions,
+        plugin.machinelearning,
+        plugin.bionetgen,
+        plugin.chipmunk,
+        plugin.gtrd,
+        plugin.gtex,
+        plugin.hemodynamics,
+        plugin.node,
+        plugin.perfectosape,
+        plugin.proteinmodel,
+        plugin.proteome,
+        plugin.sedml,
+        plugin.users"
             />
 
     <target name="plugin.workbench" depends="compile">
@@ -449,7 +467,6 @@
                 <exclude name="ru/biosoft/access/**/*.*" />
                 <exclude name="ru/biosoft/analysis/**/*.*" />
                 <exclude name="ru/biosoft/analysiscore/**/*.*" />
-            	<exclude name="ru/biosoft/bpmn/**/*.*" />
                 <exclude name="ru/biosoft/bsa/**/*.*" />
                 <exclude name="ru/biosoft/bsastats/**/*.*" />
                 <exclude name="ru/biosoft/fs/**/*.*" />
@@ -838,20 +855,92 @@
         <create.plugin plugin="biouml.plugins.expasy" source="biouml/plugins/expasy"/>
     </target>
 
-	<target name="plugin.bpmn" depends="compile">
-        <create.plugin plugin="ru.biosoft.bpmn" source="ru/biosoft/bpmn">
-			<files>
-            	<include name="ru/biosoft/bpmn/**/*.bpmn"/>
-            </files>
-		</create.plugin>
-    </target>
-	
 	<target name="plugin.physicell" depends="compile">
 	        <create.plugin plugin="biouml.plugins.physicell" source="biouml/plugins/physicell"/>
 	</target>
 	
 	<target name="plugin.jupyter" depends="compile">
 	        <create.plugin plugin="biouml.plugins.jupyter" source="biouml/plugins/jupyter"/>
+    </target>
+	
+	<target name="plugin.mirbase" depends="compile">
+        <create.plugin plugin="biouml.plugins.mirbase" source="biouml/plugins/mirbase"/>
+    </target>
+
+    <target name="plugin.mirprom" depends="compile">
+        <create.plugin plugin="biouml.plugins.mirprom" source="biouml/plugins/mirprom"/>
+    </target>
+	
+	<target name="plugin.illumina" depends="compile">
+        <create.plugin plugin="biouml.plugins.illumina" source="biouml/plugins/illumina"/>
+    </target>
+	
+	<target name="plugin.metabolics" depends="compile">
+        <create.plugin plugin="biouml.plugins.metabolics" source="biouml/plugins/metabolics"/>
+    </target>
+	
+	<target name="plugin.sedml" depends="compile">
+        <create.plugin plugin="biouml.plugins.sedml" source="biouml/plugins/sedml"/>
+    </target>
+	
+	<target name="plugin.antimony" depends="compile">
+        <create.plugin plugin="biouml.plugins.antimony" source="biouml/plugins/antimony"/>
+    </target>
+	
+	<target name="plugin.bindingregions" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.bindingregions" source="biouml/plugins/bindingregions"/>
+    </target>
+
+    <target name="plugin.machinelearning" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.machinelearning" source="biouml/plugins/machinelearning"/>
+    </target>
+    
+    <target name="plugin.bionetgen" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.bionetgen" source="biouml/plugins/bionetgen"/>
+    </target>
+
+    <target name="plugin.chipmunk" depends="compile">
+        <create.plugin plugin="biouml.plugins.chipmunk" source="biouml/plugins/chipmunk"/>
+    </target>
+    
+    <target name="plugin.gtrd" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.gtrd" source="biouml/plugins/gtrd"/>
+    </target>
+
+    <target name="plugin.gtex" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.gtex" source="biouml/plugins/gtex"/>
+    </target>
+    
+    <target name="plugin.hemodynamics" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.hemodynamics" source="biouml/plugins/hemodynamics">
+            <src>
+                <include name="biouml/plugins/hemodynamics/SimpleVessel.class" />
+                <include name="biouml/plugins/hemodynamics/ArterialBinaryTreeModel.class" />
+                <include name="biouml/plugins/hemodynamics/TreeTraversal.class" />
+                <include name="biouml/plugins/simulation/Model.class" />
+                <include name="ru/biosoft/math/MathRoutines.class" />
+            </src>
+        </create.plugin>
+    </target>
+    
+    <target name="plugin.node" depends="compile">
+        <create.plugin plugin="biouml.plugins.node" source="biouml/plugins/node"/>
+    </target>
+    
+    <target name="plugin.perfectosape" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.perfectosape" source="biouml/plugins/perfectosape"/>
+    </target>
+    
+    <target name="plugin.proteinmodel" depends="local_settings,compile">
+        <create.plugin plugin="biouml.plugins.proteinmodel" source="biouml/plugins/proteinmodel"/>
+    </target>
+    
+    <target name="plugin.proteome" depends="local_settings,compile">
+        <create.plugin plugin="ru.biosoft.proteome" source="ru/biosoft/proteome"/>
+    </target>
+    
+    <target name="plugin.users" depends="compile">
+        <create.plugin plugin="biouml.plugins.users" source="biouml/plugins/users"/>
     </target>
 	
     <!-- =================================================================== -->
@@ -1200,4 +1289,75 @@
     </target>
 
 
+	<target name="local_settings_tofile" depends="local_settings">
+        <echo file=".local.properties">
+TOPDIR=${TOPDIR}
+SRCDIR=${SRCDIR}
+OUTDIR=${OUTDIR}
+JAVADOC_OUTDIR=${JAVADOC_OUTDIR}
+
+PUBLIC_VERSION = ${PUBLIC_VERSION}
+VERSION = ${VERSION}
+
+#Libraries
+PLUGIN_DIR=${PLUGIN_DIR}
+ECLIPSE_JARS=${ECLIPSE_JARS}
+JSR305=${JSR305}
+RHINO=${RHINO}
+JMAIL=${JMAIL}
+LOG4J=${LOG4J}
+POI=${POI}
+DOTEBEANS=${DOTEBEANS}
+GRAPHICSPLUGIN=${GRAPHICSPLUGIN}
+JFREECHART=${JFREECHART}
+CROMWELL=${CROMWELL}
+JLIBSEDML=${JLIBSEDML}
+BIG=${BIG}
+HTSJDK=${HTSJDK}
+GRAPH=${GRAPH}
+JGRAPH=${JGRAPH}
+JGRAPHADDONS=${JGRAPHADDONS}
+BATIK=${BATIK}
+JUNIT=${JUNIT}
+COMMON=${COMMON}
+APACHE_HTTP=${APACHE_HTTP}
+LUCENE=${LUCENE}
+TOMCAT=${TOMCAT}
+JAMA=${JAMA}
+JTAR=${JTAR}agent
+SYNTAX=${SYNTAX}
+CDK=${CDK}
+CERN=${CERN}
+JSON=${JSON}
+TROVE=${TROVE}
+JSOUP=${JSOUP}
+VELOCITY=${VELOCITY}
+MATH=${MATH}
+GUROBI=${GUROBI}
+GLPK=${GLPK}
+JOBCONTROL=${JOBCONTROL}
+EXCEPTION=${EXCEPTION}
+ACCESSCORE=${ACCESSCORE}
+ACCESSFILE=${ACCESSFILE}
+RTREE=${RTREE}
+UTIL=${UTIL}
+JADE=${JADE}
+            
+MYSQL_JAR=${MYSQL_JAR}
+BCEL_JAR=${BCEL_JAR}
+ENSEMBL_JAR=${ENSEMBL_JAR}
+
+OWLAPI=${OWLAPI}
+
+#misc
+BUILD_CLASSPATH=${BUILD_CLASSPATH}
+RUN_CLASSPATH=${RUN_CLASSPATH}
+
+WORKBENCH=${WORKBENCH}
+BIOUML_WORKBENCH=${BIOUML_WORKBENCH}
+MODULE_DATADIR=${MODULE_DATADIR}
+testui=${testui}
+        </echo>
+    </target>
+	
 </project>
