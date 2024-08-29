@@ -5454,7 +5454,7 @@ function MicroenvironmentViewPart()
 		
 		this.celltypesDiv = tabDiv.find("#me_celltypes");
 		this.tables["cell_types"] = $('<div>Loading cell types..</div>');
-		this.substratesDiv.append(this.tables["cell_types"]);
+		this.celltypesDiv.append(this.tables["cell_types"]);
         
         this.uparamsDiv = tabDiv.find("#me_uparams");
         this.uparamsPI = $('<div id="' + this.tabId + '_pi3">Loading user parameters..</div>').css({"width":"500px", "float":"left"});
@@ -5469,7 +5469,7 @@ function MicroenvironmentViewPart()
 		this.reportDiv.append(this.reportPI);
         
 		this.optionsDiv = tabDiv.find("#me_options");
-		reportPI = $('<div id="' + this.tabId + '_pi6">Loading report properties..</div>').css({"width":"500px", "float":"left"});
+		optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
 		this.optionsDiv.append(this.tables["options"]);
         _.bindAll(this, _.functions(this));
     }
