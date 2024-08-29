@@ -888,10 +888,6 @@
         <create.plugin plugin="biouml.plugins.sedml" source="biouml/plugins/sedml"/>
     </target>
 	
-	<target name="plugin.antimony" depends="compile">
-        <create.plugin plugin="biouml.plugins.antimony" source="biouml/plugins/antimony"/>
-    </target>
-	
 	<target name="plugin.bindingregions" depends="local_settings,compile">
         <create.plugin plugin="biouml.plugins.bindingregions" source="biouml/plugins/bindingregions"/>
     </target>
