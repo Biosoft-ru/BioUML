@@ -4275,7 +4275,7 @@ function ComplexModelViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                 documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
