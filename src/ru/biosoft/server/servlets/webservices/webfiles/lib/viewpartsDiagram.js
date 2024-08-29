@@ -5470,7 +5470,7 @@ function MicroenvironmentViewPart()
         
 		this.optionsDiv = tabDiv.find("#me_options");
 		this.optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
-		this.optionsDiv.append(this.tables["options"]);
+		this.optionsDiv.append(this.optionsPI);
         _.bindAll(this, _.functions(this));
     }
     
