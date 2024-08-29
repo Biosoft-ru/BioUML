@@ -5413,7 +5413,7 @@ function MicroenvironmentViewPart()
                 '<ul>'+
                 '<li><a href="#me_domain"><span>Domain</span></a></li>'+
                 '<li><a href="#me_substrates"><span>Substrates</span></a></li>'+
-				'<li><a href="#me_celltypes"><span>Cell Types</span></a></li>'+
+				'<li><a href="#me_cell_types"><span>Cell Types</span></a></li>'+
                 '<li><a href="#me_uparams"><span>User Parameters</span></a></li>'+
                 '<li><a href="#me_initial"><span>Initial Condition</span></a></li>'+
 				'<li><a href="#me_report"><span>Report Properties</span></a></li>'+
@@ -5423,7 +5423,7 @@ function MicroenvironmentViewPart()
                 '</div>'+
                 '<div id="me_substrates" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
-				'<div id="me_celltypes" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'<div id="me_cell_types" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
 				'</div>'+
                 '<div id="me_uparams" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
@@ -5452,7 +5452,7 @@ function MicroenvironmentViewPart()
         this.tables["substrates"] = $('<div>Loading substrates..</div>');
         this.substratesDiv.append(this.tables["substrates"]);
 		
-		this.celltypesDiv = tabDiv.find("#me_celltypes");
+		this.celltypesDiv = tabDiv.find("#me_cell_types");
 		this.tables["cell_types"] = $('<div>Loading cell types..</div>');
 		this.celltypesDiv.append(this.tables["cell_types"]);
         
