@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<state diagram="data/Examples/Optimization/Data/Diagrams/diagram_2" id="experiment_1_state" title="experiment_1_state">
+<transaction comment="" title="Change property 'role/vars/J9_V10/initialValue' of 'Diagram:Kholodenko2000 - MAPK feedback'">
+<propertyChange elementID="" newValue="0.8279717437555946" oldValue="0.5" property="role/vars/J9_V10/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/J5_V6/initialValue' of 'Diagram:Kholodenko2000 - MAPK feedback'">
+<propertyChange elementID="" newValue="1.4249999515846072" oldValue="0.75" property="role/vars/J5_V6/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/J8_V9/initialValue' of 'Diagram:Kholodenko2000 - MAPK feedback'">
+<propertyChange elementID="" newValue="0.8146733246727003" oldValue="0.5" property="role/vars/J8_V9/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/J0_V1/initialValue' of 'Diagram:Kholodenko2000 - MAPK feedback'">
+<propertyChange elementID="" newValue="2.3843400160180814" oldValue="2.5" property="role/vars/J0_V1/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/J1_V2/initialValue' of 'Diagram:Kholodenko2000 - MAPK feedback'">
+<propertyChange elementID="" newValue="0.2429125497461645" oldValue="0.25" property="role/vars/J1_V2/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/J4_V5/initialValue' of 'Diagram:Kholodenko2000 - MAPK feedback'">
+<propertyChange elementID="" newValue="0.7140837219950684" oldValue="0.75" property="role/vars/J4_V5/initialValue"/>
+</transaction>
+</state>

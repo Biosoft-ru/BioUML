@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" version="4">
+  <model id="diagram_2" name="Kholodenko2000 - MAPK feedback">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <div class="dc:title">Kholodenko2000 - MAPK feedback</div>
+            <div class="dc:description">      <p>Negative feedback and ultrasensitivity can bring about oscillations in the mitogen-activated protein kinase cascades.</p>
+                </div>
+            <div class="dc:bibliographicCitation">      <p>This model is described in the article:</p>
+                <div class="bibo:title">        <a href="http://identifiers.org/pubmed/10712587" title="Access to this publication">Negative feedback and ultrasensitivity can bring about oscillations in the mitogen-activated protein kinase cascades.</a>
+                    </div>
+                <div class="bibo:authorList">Kholodenko BN</div>
+                <div class="bibo:Journal">Eur. J. Biochem. 2000; 267(6):1583-8</div>
+                <p>Abstract:</p>
+                <div class="bibo:abstract">        <p>Functional organization of signal transduction into protein phosphorylation cascades, such as the mitogen-activated protein kinase (MAPK) cascades, greatly enhances the sensitivity of cellular targets to external stimuli. The sensitivity increases multiplicatively with the number of cascade levels, so that a tiny change in a stimulus results in a large change in the response, the phenomenon referred to as ultrasensitivity. In a variety of cell types, the MAPK cascades are imbedded in long feedback loops, positive or negative, depending on whether the terminal kinase stimulates or inhibits the activation of the initial level. Here we demonstrate that a negative feedback loop combined with intrinsic ultrasensitivity of the MAPK cascade can bring about sustained oscillations in MAPK phosphorylation. Based on recent kinetic data on the MAPK cascades, we predict that the period of oscillations can range from minutes to hours. The phosphorylation level can vary between the base level and almost 100% of the total protein. The oscillations of the phosphorylation cascades and slow protein diffusion in the cytoplasm can lead to intracellular waves of phospho-proteins.</p>
+                    </div>
+                </div>
+            <div class="dc:publisher">      <p>This model is hosted on        <a href="http://www.ebi.ac.uk/biomodels/">BioModels Database</a>
+            and identified by:        <a href="http://identifiers.org/biomodels.db/BIOMD0000000010">BIOMD0000000010</a>
+            .        </p>
+                <p>To cite BioModels Database, please use:        <a href="http://identifiers.org/pubmed/20587024" title="Latest BioModels Database publication">BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models</a>
+            .        </p>
+                </div>
+            <div class="dc:license">      <p>To the extent possible under law, all copyright and related or neighbouring rights to this encoded model have been dedicated to the public domain worldwide. Please refer to        <a href="http://creativecommons.org/publicdomain/zero/1.0/" title="Access to: CC0 1.0 Universal (CC0 1.0), Public Domain Dedication">CC0 Public Domain Dedication</a>
+            for more information.        </p>
+                </div>
+      </body>
+    </notes>
+    <annotation>
+      <sbgn xmlns:biouml="http://www.biouml.org/ns">
+        <nodes>
+          <node id="uVol" parent="" ref="uVol" title="" type="compartment">
+            <nodeLayout height="277" width="367" x="33" y="43"/>
+          </node>
+          <node id="J0" parent="uVol" reactionType="process" ref="J0" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="257" y="150"/>
+          </node>
+          <node id="J1" parent="uVol" reactionType="process" ref="J1" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="345" y="240"/>
+          </node>
+          <node id="J2" parent="uVol" reactionType="process" ref="J2" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="270" y="295"/>
+          </node>
+          <node id="J3" parent="uVol" reactionType="process" ref="J3" type="reaction">
+            <nodeLayout height="10" orientation="right" width="10" x="174" y="240"/>
+          </node>
+          <node id="J4" parent="uVol" reactionType="process" ref="J4" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="149" y="220"/>
+          </node>
+          <node id="J5" parent="uVol" reactionType="process" ref="J5" type="reaction">
+            <nodeLayout height="10" orientation="right" width="10" x="232" y="270"/>
+          </node>
+          <node id="J6" parent="uVol" reactionType="process" ref="J6" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="129" y="125"/>
+          </node>
+          <node id="J7" parent="uVol" reactionType="process" ref="J7" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="180" y="85"/>
+          </node>
+          <node id="J8" parent="uVol" reactionType="process" ref="J8" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="190" y="65"/>
+          </node>
+          <node id="J9" parent="uVol" reactionType="process" ref="J9" type="reaction">
+            <nodeLayout height="50" orientation="right" width="50" x="70" y="80"/>
+          </node>
+          <node Structure="" clone="" id="MAPK" multimer="0" parent="uVol" ref="uVol.MAPK" type="macromolecule">
+            <nodeLayout height="40" width="60" x="45" y="120"/>
+          </node>
+          <node Structure="" clone="" id="MAPKP" multimer="0" parent="uVol" ref="uVol.MAPKP" title="MAPK" type="macromolecule">
+            <nodeLayout height="40" width="60" x="100" y="60"/>
+          </node>
+          <node id="P" parent="uVol.MAPKP" type="variable">
+            <nodeLayout height="20" width="20" x="145" y="48"/>
+          </node>
+          <node Structure="" clone="" id="MAPKPP" multimer="0" parent="uVol" ref="uVol.MAPKPP" title="MAPK" type="macromolecule">
+            <nodeLayout height="40" width="60" x="232" y="60"/>
+          </node>
+          <node id="PP" parent="uVol.MAPKPP" type="variable">
+            <nodeLayout height="20" width="20" x="280" y="48"/>
+          </node>
+          <node Structure="" clone="" id="MKK" multimer="0" parent="uVol" ref="uVol.MKK" title="MAPKK" type="macromolecule">
+            <nodeLayout height="40" width="60" x="315" y="265"/>
+          </node>
+          <node Structure="" clone="" id="MKKK" multimer="0" parent="uVol" ref="uVol.MKKK" title="MAPKKK" type="macromolecule">
+            <nodeLayout height="40" width="80" x="295" y="135"/>
+          </node>
+          <node Structure="" clone="" id="MKKKP" multimer="0" parent="uVol" ref="uVol.MKKKP" title="MAPKKK" type="macromolecule">
+            <nodeLayout height="40" width="82" x="220" y="220"/>
+          </node>
+          <node id="P" parent="uVol.MKKKP" type="variable">
+            <nodeLayout height="5" width="20" x="290" y="208"/>
+          </node>
+          <node Structure="" clone="" id="MKKP" multimer="0" parent="uVol" ref="uVol.MKKP" title="MAPKK" type="macromolecule">
+            <nodeLayout height="40" width="71" x="130" y="265"/>
+          </node>
+          <node id="P" parent="uVol.MKKP" type="variable">
+            <nodeLayout height="15" width="15" x="189" y="253"/>
+          </node>
+          <node Structure="" clone="" id="MKKPP" multimer="0" parent="uVol" ref="uVol.MKKPP" title="MAPKK" type="macromolecule">
+            <nodeLayout height="40" width="77" x="125" y="165"/>
+          </node>
+          <node id="PP" parent="uVol.MKKPP" type="variable">
+            <nodeLayout height="5" width="15" x="190" y="153"/>
+          </node>
+        </nodes>
+        <edges>
+          <edge edgeType="catalysis" from="uVol.MAPKPP" id="J0__MAPKPP_as_modifier" ref="J0__MAPKPP_as_modifier" to="uVol.J0" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J0" id="J0__MKKKP_as_product" ref="J0__MKKKP_as_product" to="uVol.MKKKP" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MKKK" id="J0__MKKK_as_reactant" ref="J0__MKKK_as_reactant" to="uVol.J0" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MKKKP" id="J1__MKKKP_as_reactant" ref="J1__MKKKP_as_reactant" to="uVol.J1" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J1" id="J1__MKKK_as_product" ref="J1__MKKK_as_product" to="uVol.MKKK" type="relation-chemical"/>
+          <edge edgeType="catalysis" from="uVol.MKKKP" id="J2__MKKKP_as_modifier" ref="J2__MKKKP_as_modifier" to="uVol.J2" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J2" id="J2__MKKP_as_product" ref="J2__MKKP_as_product" to="uVol.MKKP" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MKK" id="J2__MKK_as_reactant" ref="J2__MKK_as_reactant" to="uVol.J2" type="relation-chemical"/>
+          <edge edgeType="catalysis" from="uVol.MKKKP" id="J3__MKKKP_as_modifier" ref="J3__MKKKP_as_modifier" to="uVol.J3" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J3" id="J3__MKKPP_as_product" ref="J3__MKKPP_as_product" to="uVol.MKKPP" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MKKP" id="J3__MKKP_as_reactant" ref="J3__MKKP_as_reactant" to="uVol.J3" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MKKPP" id="J4__MKKPP_as_reactant" ref="J4__MKKPP_as_reactant" to="uVol.J4" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J4" id="J4__MKKP_as_product" ref="J4__MKKP_as_product" to="uVol.MKKP" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MKKP" id="J5__MKKP_as_reactant" ref="J5__MKKP_as_reactant" to="uVol.J5" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J5" id="J5__MKK_as_product" ref="J5__MKK_as_product" to="uVol.MKK" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J6" id="J6__MAPKP_as_product" ref="J6__MAPKP_as_product" to="uVol.MAPKP" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MAPK" id="J6__MAPK_as_reactant" ref="J6__MAPK_as_reactant" to="uVol.J6" type="relation-chemical"/>
+          <edge edgeType="catalysis" from="uVol.MKKPP" id="J6__MKKPP_as_modifier" ref="J6__MKKPP_as_modifier" to="uVol.J6" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J7" id="J7__MAPKPP_as_product" ref="J7__MAPKPP_as_product" to="uVol.MAPKPP" type="relation-chemical">
+            <path>
+              <segment segmentType="lineTo" x0="196" y0="92"/>
+              <segment segmentType="lineTo" x0="203" y0="92"/>
+              <segment segmentType="quadTo" x0="210" y0="92"/>
+              <segment segmentType="lineTo" x0="210" y0="86"/>
+              <segment segmentType="lineTo" x0="210" y0="83"/>
+              <segment segmentType="quadTo" x0="210" y0="80"/>
+              <segment segmentType="lineTo" x0="221" y0="80"/>
+              <segment segmentType="lineTo" x0="229" y0="80"/>
+            </path>
+          </edge>
+          <edge edgeType="" from="uVol.MAPKP" id="J7__MAPKP_as_reactant" ref="J7__MAPKP_as_reactant" to="uVol.J7" type="relation-chemical"/>
+          <edge edgeType="catalysis" from="uVol.MKKPP" id="J7__MKKPP_as_modifier" ref="J7__MKKPP_as_modifier" to="uVol.J7" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MAPKPP" id="J8__MAPKPP_as_reactant" ref="J8__MAPKPP_as_reactant" to="uVol.J8" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J8" id="J8__MAPKP_as_product" ref="J8__MAPKP_as_product" to="uVol.MAPKP" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.MAPKP" id="J9__MAPKP_as_reactant" ref="J9__MAPKP_as_reactant" to="uVol.J9" type="relation-chemical"/>
+          <edge edgeType="" from="uVol.J9" id="J9__MAPK_as_product" ref="J9__MAPK_as_product" to="uVol.MAPK" type="relation-chemical"/>
+        </edges>
+        <states/>
+        <viewOptions>
+          <propertyRef name="pathLayouterWrapper" type="ru.biosoft.graph.PathLayouterWrapper">
+            <propertyRef name="pathLayouter" type="ru.biosoft.graph.OrthogonalPathLayouter"/>
+          </propertyRef>
+          <propertyRef elementType="biouml.model.DiagramElementStyleDeclaration" name="styles" type="array"/>
+        </viewOptions>
+        <filters elementType="biouml.model.DiagramFilter" type="[Lbiouml.model.DiagramFilter;"/>
+      </sbgn>
+      <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+        <biouml:diagramInfo/>
+        <biouml:simulationInfo type="biouml.plugins.simulation.java.JavaSimulationEngine">
+          <property name="Threads" short-description="Threads" type="int" value="4"/>
+          <property name="algebraicSolver" short-description="algebraicSolver" type="biouml.plugins.simulation.ae.NewtonSolverWrapperEx">
+            <property name="maxIts" short-description="maxIts" type="double" value="20000.0"/>
+            <property name="tolF" short-description="tolF" type="double" value="1.0E-10"/>
+            <property name="tolMin" short-description="tolMin" type="double" value="1.0E-12"/>
+            <property name="tolX" short-description="tolX" type="double" value="1.0E-13"/>
+          </property>
+          <property name="algebraicSolverName" short-description="algebraicSolverName" type="String" value="NewtonSolver"/>
+          <property name="completionTime" short-description="completionTime" type="double" value="100.0"/>
+          <property name="constraintsViolation" short-description="constraintsViolation" type="String" value="Stop simulation"/>
+          <property name="fastReactions" short-description="fastReactions" type="String" value="ODE system"/>
+          <property name="initialTime" short-description="initialTime" type="double" value="0.0"/>
+          <property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.simulation.ode.jvode.JVodeOptions">
+            <property name="atol" short-description="atol" type="double" value="1.0E-20"/>
+            <property name="detectIncorrectNumbers" short-description="detectIncorrectNumbers" type="boolean" value="false"/>
+            <property name="hMaxInv" short-description="hMaxInv" type="double" value="1.0E-100"/>
+            <property name="hMin" short-description="hMin" type="double" value="1.0E-100"/>
+            <property name="iterations" short-description="iterations" type="int" value="0"/>
+            <property name="jacobianApproximation" short-description="jacobianApproximation" type="int" value="0"/>
+            <property name="method" short-description="method" type="int" value="1"/>
+            <property name="ml" short-description="ml" type="int" value="0"/>
+            <property name="mu" short-description="mu" type="int" value="0"/>
+            <property name="rtol" short-description="rtol" type="double" value="1.0E-12"/>
+            <property name="statisticsMode" short-description="statisticsMode" type="String" value="On"/>
+            <property name="stepsLimit" short-description="stepsLimit" type="int" value="100000"/>
+          </property>
+          <property name="solverName" short-description="solverName" type="String" value="JVode"/>
+          <property name="templateType" short-description="templateType" type="String" value="Auto"/>
+          <property name="timeIncrement" short-description="timeIncrement" type="double" value="1.0"/>
+        </biouml:simulationInfo>
+        <biouml:plotInfo>
+          <plot active="true" autoColorNumber="1" title="Plot" xAutoRange="true" xAxisType="Number" yAutoRange="true" yAxisType="Number">
+            <xVariable name="time" path="" title="time"/>
+            <yVariable name="time" path="" pen="1.0;#F55;Solid" title="time" type="Value"/>
+          </plot>
+        </biouml:plotInfo>
+        <biouml:viewOptions autoLayout="false" dependencyEdges="false"/>
+      </biouml:BIOUML>
+    </annotation>
+    <listOfUnitDefinitions>
+      <unitDefinition id="dimensionless" name=""/>
+      <unitDefinition id="substance" name="nanomole">
+        <listOfUnits>
+          <unit kind="mole" scale="-9"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="uVol" name="" size="1.0" spatialDimensions="3" units="volume">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="uVol" height="277" isTitleHidden="false" shape="0" title="" width="367" x="33" y="43"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MAPK" initialConcentration="280.0" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MAPK" height="40" isTitleHidden="false" title="MAPK" width="60" x="45" y="120"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MAPKP" initialConcentration="10.0" name="MAPK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MAPKP" height="40" isTitleHidden="false" title="MAPK" width="60" x="100" y="60"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MAPKPP" initialConcentration="10.0" name="MAPK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MAPKPP" height="40" isTitleHidden="false" title="MAPK" width="60" x="232" y="60"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MKK" initialConcentration="280.0" name="MAPKK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MKK" height="40" isTitleHidden="false" title="MAPKK" width="60" x="315" y="265"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MKKK" initialConcentration="90.0" name="MAPKKK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MKKK" height="40" isTitleHidden="false" title="MAPKKK" width="80" x="295" y="135"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MKKKP" initialConcentration="10.0" name="MAPKKK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MKKKP" height="40" isTitleHidden="false" title="MAPKKK" width="82" x="220" y="220"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MKKP" initialConcentration="10.0" name="MAPKK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MKKP" height="40" isTitleHidden="false" title="MAPKK" width="71" x="130" y="265"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="uVol" hasOnlySubstanceUnits="false" id="MKKPP" initialConcentration="10.0" name="MAPKK" substanceUnits="dimensionless">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="uVol.MKKPP" height="40" isTitleHidden="false" title="MAPKK" width="77" x="125" y="165"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="true" id="J0_K1" name="J0_K1" value="10.0"/>
+      <parameter constant="true" id="J0_Ki" name="J0_Ki" value="9.0"/>
+      <parameter constant="true" id="J0_V1" name="J0_V1" value="2.5"/>
+      <parameter constant="true" id="J0_n" name="J0_n" value="1.0"/>
+      <parameter constant="true" id="J1_KK2" name="J1_KK2" value="8.0"/>
+      <parameter constant="true" id="J1_V2" name="J1_V2" value="0.25"/>
+      <parameter constant="true" id="J2_KK3" name="J2_KK3" value="15.0"/>
+      <parameter constant="true" id="J2_k3" name="J2_k3" value="0.025"/>
+      <parameter constant="true" id="J3_KK4" name="J3_KK4" value="15.0"/>
+      <parameter constant="true" id="J3_k4" name="J3_k4" value="0.025"/>
+      <parameter constant="true" id="J4_KK5" name="J4_KK5" value="15.0"/>
+      <parameter constant="true" id="J4_V5" name="J4_V5" value="0.75"/>
+      <parameter constant="true" id="J5_KK6" name="J5_KK6" value="15.0"/>
+      <parameter constant="true" id="J5_V6" name="J5_V6" value="0.75"/>
+      <parameter constant="true" id="J6_KK7" name="J6_KK7" value="15.0"/>
+      <parameter constant="true" id="J6_k7" name="J6_k7" value="0.025"/>
+      <parameter constant="true" id="J7_KK8" name="J7_KK8" value="15.0"/>
+      <parameter constant="true" id="J7_k8" name="J7_k8" value="0.025"/>
+      <parameter constant="true" id="J8_KK9" name="J8_KK9" value="15.0"/>
+      <parameter constant="true" id="J8_V9" name="J8_V9" value="0.5"/>
+      <parameter constant="true" id="J9_KK10" name="J9_KK10" value="15.0"/>
+      <parameter constant="true" id="J9_V10" name="J9_V10" value="0.5"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="J0" name="J0" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J0" height="0" isTitleHidden="false" title="J0" width="0" x="257" y="150"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MKKK" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J0__MKKK_as_reactant" inPort="295;157" outPort="272;157" title="J0: MKKK as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MKKKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J0__MKKKP_as_product" inPort="264;165" outPort="264;220" title="J0: MKKKP as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="MAPKPP">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J0__MAPKPP_as_modifier" inPort="264;100" outPort="264;150" title="J0: MAPKPP as modifier"/>
+              </biouml:BIOUML>
+            </annotation>
+          </modifierSpeciesReference>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>uVol</ci>
+                  <ci>J0_V1</ci>
+                </apply>
+                <ci>MKKK</ci>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <plus/>
+                  <cn>1.0</cn>
+                  <apply>
+                    <power/>
+                    <apply>
+                      <divide/>
+                      <ci>MAPKPP</ci>
+                      <ci>J0_Ki</ci>
+                    </apply>
+                    <ci>J0_n</ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci>J0_K1</ci>
+                  <ci>MKKK</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J1" name="J1" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J1" height="0" isTitleHidden="false" title="J1" width="0" x="345" y="240"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MKKKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J1__MKKKP_as_reactant" inPort="309;247" outPort="345;247" title="J1: MKKKP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MKKK" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J1__MKKK_as_product" inPort="352;240" outPort="352;175" title="J1: MKKK as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>uVol</ci>
+                  <ci>J1_V2</ci>
+                </apply>
+                <ci>MKKKP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J1_KK2</ci>
+                <ci>MKKKP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J2" name="J2" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J2" height="0" isTitleHidden="false" title="J2" width="0" x="270" y="295"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MKK" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J2__MKK_as_reactant" inPort="315;300" outPort="285;300" title="J2: MKK as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MKKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J2__MKKP_as_product" inPort="270;300" outPort="206;300" title="J2: MKKP as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="MKKKP">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J2__MKKKP_as_modifier" inPort="277;260" outPort="277;295" title="J2: MKKKP as modifier"/>
+              </biouml:BIOUML>
+            </annotation>
+          </modifierSpeciesReference>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>uVol</ci>
+                    <ci>J2_k3</ci>
+                  </apply>
+                  <ci>MKKKP</ci>
+                </apply>
+                <ci>MKK</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J2_KK3</ci>
+                <ci>MKK</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J3" name="J3" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J3" height="0" isTitleHidden="false" title="J3" width="0" x="174" y="240"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MKKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J3__MKKP_as_reactant" inPort="181;265" outPort="181;255" title="J3: MKKP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MKKPP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J3__MKKPP_as_product" inPort="181;240" outPort="181;205" title="J3: MKKPP as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="MKKKP">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J3__MKKKP_as_modifier" inPort="220;247" outPort="189;247" title="J3: MKKKP as modifier"/>
+              </biouml:BIOUML>
+            </annotation>
+          </modifierSpeciesReference>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>uVol</ci>
+                    <ci>J3_k4</ci>
+                  </apply>
+                  <ci>MKKKP</ci>
+                </apply>
+                <ci>MKKP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J3_KK4</ci>
+                <ci>MKKP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J4" name="J4" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J4" height="0" isTitleHidden="false" title="J4" width="0" x="149" y="220"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MKKPP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J4__MKKPP_as_reactant" inPort="156;205" outPort="156;220" title="J4: MKKPP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MKKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J4__MKKP_as_product" inPort="156;235" outPort="156;265" title="J4: MKKP as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>uVol</ci>
+                  <ci>J4_V5</ci>
+                </apply>
+                <ci>MKKPP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J4_KK5</ci>
+                <ci>MKKPP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J5" name="J5" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J5" height="0" isTitleHidden="false" title="J5" width="0" x="232" y="270"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MKKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J5__MKKP_as_reactant" inPort="206;277" outPort="232;277" title="J5: MKKP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MKK" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J5__MKK_as_product" inPort="247;277" outPort="315;277" title="J5: MKK as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>uVol</ci>
+                  <ci>J5_V6</ci>
+                </apply>
+                <ci>MKKP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J5_KK6</ci>
+                <ci>MKKP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J6" name="J6" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J6" height="0" isTitleHidden="false" title="J6" width="0" x="129" y="125"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MAPK" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J6__MAPK_as_reactant" inPort="108;132" outPort="129;132" title="J6: MAPK as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MAPKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J6__MAPKP_as_product" inPort="136;125" outPort="136;100" title="J6: MAPKP as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="MKKPP">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J6__MKKPP_as_modifier" inPort="136;165" outPort="136;140" title="J6: MKKPP as modifier"/>
+              </biouml:BIOUML>
+            </annotation>
+          </modifierSpeciesReference>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>uVol</ci>
+                    <ci>J6_k7</ci>
+                  </apply>
+                  <ci>MKKPP</ci>
+                </apply>
+                <ci>MAPK</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J6_KK7</ci>
+                <ci>MAPK</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J7" name="J7" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J7" height="0" isTitleHidden="false" title="J7" width="0" x="180" y="85"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MAPKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J7__MAPKP_as_reactant" inPort="163;92" outPort="180;92" title="J7: MAPKP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MAPKPP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J7__MAPKPP_as_product" inPort="196;92" outPort="229;80" title="J7: MAPKPP as product">
+                  <path>
+                    <segment segmentType="moveTo" x0="196" y0="92"/>
+                    <segment segmentType="lineTo" x0="203" y0="92"/>
+                    <segment segmentType="quadric" x0="210" y0="92"/>
+                    <segment segmentType="lineTo" x0="210" y0="86"/>
+                    <segment segmentType="lineTo" x0="210" y0="83"/>
+                    <segment segmentType="quadric" x0="210" y0="80"/>
+                    <segment segmentType="lineTo" x0="221" y0="80"/>
+                    <segment segmentType="lineTo" x0="229" y0="80"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="MKKPP">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J7__MKKPP_as_modifier" inPort="187;165" outPort="187;100" title="J7: MKKPP as modifier"/>
+              </biouml:BIOUML>
+            </annotation>
+          </modifierSpeciesReference>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>uVol</ci>
+                    <ci>J7_k8</ci>
+                  </apply>
+                  <ci>MKKPP</ci>
+                </apply>
+                <ci>MAPKP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J7_KK8</ci>
+                <ci>MAPKP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J8" name="J8" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J8" height="0" isTitleHidden="false" title="J8" width="0" x="190" y="65"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MAPKPP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J8__MAPKPP_as_reactant" inPort="232;72" outPort="205;72" title="J8: MAPKPP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MAPKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J8__MAPKP_as_product" inPort="190;72" outPort="163;72" title="J8: MAPKP as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>uVol</ci>
+                  <ci>J8_V9</ci>
+                </apply>
+                <ci>MAPKPP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J8_KK9</ci>
+                <ci>MAPKPP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="J9" name="J9" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="uVol.J9" height="0" isTitleHidden="false" title="J9" width="0" x="70" y="80"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="MAPKP" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J9__MAPKP_as_reactant" inPort="100;87" outPort="85;87" title="J9: MAPKP as reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="MAPK" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="J9__MAPK_as_product" inPort="77;95" outPort="77;120" title="J9: MAPK as product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>uVol</ci>
+                  <ci>J9_V10</ci>
+                </apply>
+                <ci>MAPKP</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>J9_KK10</ci>
+                <ci>MAPKP</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
