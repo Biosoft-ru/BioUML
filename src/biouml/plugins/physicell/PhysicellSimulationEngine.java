@@ -31,6 +31,7 @@ import ru.biosoft.physicell.core.InitialCellsArranger;
 import ru.biosoft.physicell.core.CellFunctions.set_orientation;
 import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
+import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentVisualizer;
@@ -187,13 +188,14 @@ public class PhysicellSimulationEngine extends SimulationEngine
         String cellUpdateType = opts.getCellUpdateType();
         CellContainer container = CellContainer.createCellContainer( m, cellUpdateType, 30 );
         container.setRulesEnabled( true );
-
+      
+        
         List<CellDefinitionProperties> cds = emodel.getCellDefinitions();
         for( int i = 0; i < cds.size(); i++ )
         {
             model.registerCellDefinition( StandardModels.createFromDefault( cds.get( i ).getName(), i, m ) );
         }
-
+        Rules.setupRules( model );
         for( int i = 0; i < cds.size(); i++ )
         {
             CellDefinitionProperties cdp = cds.get( i );
