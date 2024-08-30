@@ -5438,10 +5438,10 @@ function MicroenvironmentViewPart()
         
         tabDiv.addClass( "ui-tabs-vertical ui-helper-clearfix" );
         tabDiv.css("width","auto");
-        tabDiv.find("ul").css({"position":"absolute","border-right":0, "min-height":"300px", "width":"102px"});
+        tabDiv.find("ul").css({"position":"absolute","border-right":0, "min-height":"300px", "width":"107px"});
         
-        tabDiv.find(".complex_vp_container").css({"padding-left":"105px", "padding-right":"5px"});
-        tabDiv.find( "li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" ).css({"width":"100px"});
+        tabDiv.find(".complex_vp_container").css({"padding-left":"110px", "padding-right":"5px"});
+        tabDiv.find( "li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" ).css({"width":"105px"});
         
         
         this.domainDiv = tabDiv.find("#me_domain");
