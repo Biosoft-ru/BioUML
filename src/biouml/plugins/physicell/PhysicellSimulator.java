@@ -120,6 +120,8 @@ public class PhysicellSimulator implements Simulator
 
         if( !this.model.isInit() )
             this.model.init();
+        
+        saveAllResults(this.model);
     }
 
     private static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
@@ -149,25 +151,29 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
-            curTime = model.getCurrentTime();
-            
-            if( curTime >= nextReport )
-            {
-                nextReport += options.getReportInterval();
-                saveResults( curTime );
-                log.info( model.getLog() );
-                simulationLog.append( "\n" + model.getLog() );
-
-            }
-            
-            if (curTime >= nextImage)
-            {
-                saveImages(curTime);
-                nextImage += options.getImageInterval();
-            }
-            
+            saveAllResults( model);
+            curTime += options.getDiffusionDt();
         }  
         return false;
+    }
+    
+    private void saveAllResults(PhysicellModel model) throws Exception
+    {
+        double curTime = model.getCurrentTime();
+        if( curTime >= nextReport )
+        {
+            nextReport += options.getReportInterval();
+            saveResults( curTime );
+            log.info( model.getLog() );
+            simulationLog.append( "\n" + model.getLog() );
+
+        }
+        
+        if (curTime >= nextImage)
+        {
+            saveImages(curTime);
+            nextImage += options.getImageInterval();
+        }
     }
 
     private void saveImages(double curTime) throws Exception
