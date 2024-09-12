@@ -152,7 +152,7 @@ public class IntracellularProperties extends Option
             String code = dictionary.get( variable.getPhenotypeName() );
             if( variable.getType().equals( PhenotypeVariable.INPUT_TYPE ) )
                 inputs.add( code );
-            else if( variable.getType().equals( PhenotypeVariable.INPUT_TYPE ) )
+            else if( variable.getType().equals( PhenotypeVariable.OUTPUT_TYPE ) )
                 outputs.add( code );
             else
             {
@@ -164,9 +164,9 @@ public class IntracellularProperties extends Option
         }
         intracellular.setInputs( inputs.toArray( new String[inputs.size()] ) );
         intracellular.setOutputs( outputs.toArray( new String[outputs.size()] ) );
-        intracellular.setDT( engine.getEngine().getTimeIncrement() );
+        intracellular.setDT( engine.getTimeIncrement() );
         intracellular.setModel( odeModel );
-        InfiniteSpan span = new InfiniteSpan( engine.getEngine().getTimeIncrement() );
+        InfiniteSpan span = new InfiniteSpan( engine.getTimeIncrement() );
         eng.getSimulator().init( odeModel, odeModel.getInitialValues(), span, null, null );
         intracellular.setSolver( eng.getSimulator() );
         cd.phenotype.intracellular = intracellular;
