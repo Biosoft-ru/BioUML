@@ -47,6 +47,8 @@ public class PhysicellSimulator implements Simulator
     private Map<Visualizer, DataCollection<DataElement>> visualizerResult;
     private Map<Visualizer, DataCollection<DataElement>> visualizerImageResult;
 
+    private String format;
+
     @Override
     public SimulatorInfo getInfo()
     {
@@ -120,8 +122,11 @@ public class PhysicellSimulator implements Simulator
 
         if( !this.model.isInit() )
             this.model.init();
-        
-        saveAllResults(this.model);
+
+        int nums = String.valueOf( Math.round( options.getFinalTime()) ).length();
+        format = "%0" + nums + "d";
+
+        saveAllResults( this.model );
     }
 
     private static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
@@ -151,12 +156,12 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
-            saveAllResults( model);
+            saveAllResults( model );
             curTime += options.getDiffusionDt();
-        }  
+        }
         return false;
     }
-    
+
     private void saveAllResults(PhysicellModel model) throws Exception
     {
         double curTime = model.getCurrentTime();
@@ -168,10 +173,10 @@ public class PhysicellSimulator implements Simulator
             simulationLog.append( "\n" + model.getLog() );
 
         }
-        
-        if (curTime >= nextImage)
+
+        if( curTime >= nextImage )
         {
-            saveImages(curTime);
+            saveImages( curTime );
             nextImage += options.getImageInterval();
         }
     }
@@ -187,7 +192,16 @@ public class PhysicellSimulator implements Simulator
 
     private void saveResults(double curTime) throws Exception
     {
-        String suffix = print( curTime, 0 );
+        String suffix;
+        if( options.getReportInterval() >= 1 )
+        {
+            int t = (int)Math.round( curTime );
+            suffix = String.format( format, t );
+        }
+        else
+        {
+            suffix = Double.toString( Math.round(curTime*100)/100);
+        }
 
         DataCollection<DataElement> densityCollection = (DataCollection)resultFolder.get( "Density" );
         if( this.options.isSaveReport() )
@@ -303,7 +317,7 @@ public class PhysicellSimulator implements Simulator
     }
 
     @Override
-    public Options getOptions()
+    public PhysicellOptions getOptions()
     {
         return options;
     }
