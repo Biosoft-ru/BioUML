@@ -265,7 +265,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         if( emodel.getReportProperties().isCustomVisualizer() )
         {
             DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
-            AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer2.class, log.getLogger() );
+            AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer.class, log.getLogger() );
             for( Visualizer v : model.getVisualizers() )
                 v.setAgentVisualizer( visualizer );
         }
