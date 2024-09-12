@@ -1,0 +1,137 @@
+ID	AvoidBoundariesRule.java
+createdDate	1725884842367
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842367
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	WeightedMotility.java
+createdDate	1725884842384
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842384
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PredatorPhenotype.java
+createdDate	1725884842400
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842400
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	AvoidBoundariesRule.java
+createdDate	1725884842367
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842367
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	AvoidBoundariesRule.java
+createdDate	1725884842367
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842413
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	WeightedMotility.java
+createdDate	1725884842384
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842384
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	WeightedMotility.java
+createdDate	1725884842384
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842421
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PreyPhenotype.java
+createdDate	1725884842427
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842427
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	AvoidBoundariesRule.java
+createdDate	1725884842367
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842413
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	AvoidBoundariesRule.java
+createdDate	1725884842367
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842441
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	WeightedMotility.java
+createdDate	1725884842384
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842421
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	WeightedMotility.java
+createdDate	1725884842384
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842450
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PPFInitial.java
+createdDate	1725884842458
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842458
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PPFReport.java
+createdDate	1725884842472
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842472
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PPFVisualizer.java
+createdDate	1725884842485
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884842485
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PredatorPreyFarmer
+createdDate	1725884842500
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	PredatorPreyFarmer
+modifiedDate	1725884842500
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//

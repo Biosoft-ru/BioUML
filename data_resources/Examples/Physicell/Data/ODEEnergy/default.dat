@@ -1,0 +1,920 @@
+ID	Toy_Metabolic_Model.xml
+createdDate	1725886958069
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.sbml.SbmlEModel
+name	Toy_Metabolic_Model.xml
+modifiedDate	1725886958069
+compositeDiagram	false
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.sbgn.SbgnDiagramType
+//
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725886958183
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+ID	ODEVisualizer
+createdDate	1725887212700
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887212700
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	ODEVisualize.java
+createdDate	1725887221187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887221187
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer
+createdDate	1725887212700
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887212700
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+
+ID	ODEVisualize.java
+createdDate	1725887221187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887221187
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualize.java
+createdDate	1725887221187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887231640
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887325771
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887325771
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887335820
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualize.java
+createdDate	1725887221187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887231640
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualize.java
+createdDate	1725887221187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887347831
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887359025
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualize.java
+createdDate	1725887221187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887347831
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial
+createdDate	1725887404431
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887404431
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial
+createdDate	1725887404431
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887404431
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887416947
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887416947
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887530339
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887546570
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887546570
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725891724164
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725891724164
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725891782080
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887530339
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725891841644
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725891841644
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725893348457
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725886958183
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725893690209
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725893348457
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897444254
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897444254
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897485723
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897485723
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897516076
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897516076
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897553986
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897553986
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897579002
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897579002
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897596484
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897596484
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897630883
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897630883
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897661676
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725897661676
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898031520
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725891782080
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898034952
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898031520
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898114846
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887335820
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898188081
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898188081
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEInstantiator.java
+createdDate	1725887325771
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898220534
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898034952
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898237561
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898237561
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898268796
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725887359025
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898311989
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898311989
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898356071
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898356071
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898448999
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725893690209
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725898748079
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725898748079
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725907428828
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Toy_Metabolic_Model.xml
+createdDate	1725886958069
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.sbml.SbmlEModel
+name	Toy_Metabolic_Model.xml
+modifiedDate	1725886958069
+compositeDiagram	false
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.sbgn.SbgnDiagramType
+//deleted
+ID	Toy_Metabolic_Model.xml
+createdDate	1725886958069
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.sbml.SbmlEModel
+name	Toy_Metabolic_Model.xml
+modifiedDate	1725908154048
+compositeDiagram	false
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.sbgn.SbgnDiagramType
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725907428828
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725961005999
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898114846
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725966303836
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1725961005999
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1726050049960
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1726050049960
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1726050069781
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725966303836
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Initial.java
+createdDate	1725887416947
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726068796304
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1726050069781
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	ODEEnergy
+createdDate	1725886958183
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	ODEEnergy
+modifiedDate	1726069580691
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898268796
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726075710010
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726075710010
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726075828512
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726075828512
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726076280309
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726076280309
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Report.java
+createdDate	1725887546570
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726076547872
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725898448999
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726077867320
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726077867320
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726077883325
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726077883325
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	ODEVisualizer.java
+createdDate	1725887359025
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1726077921287
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//

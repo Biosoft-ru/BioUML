@@ -1,0 +1,86 @@
+ID	Epithelial.java
+createdDate	1725882373259
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725882373259
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+
+ID	Epithelial.java
+createdDate	1725882373259
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725882373259
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//deleted
+ID	Epithelial.java
+createdDate	1725884781584
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781584
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	EpithelialInstantiator.java
+createdDate	1725884781603
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781603
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Macrophage.java
+createdDate	1725884781617
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781617
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	MacrophageInstantiator.java
+createdDate	1725884781632
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781632
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	AvoidBoundaries.java
+createdDate	1725884781648
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781648
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Initial.java
+createdDate	1725884781662
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781662
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Visualizer.java
+createdDate	1725884781676
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884781676
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Virus
+createdDate	1725884781708
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Virus
+modifiedDate	1725884781708
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//

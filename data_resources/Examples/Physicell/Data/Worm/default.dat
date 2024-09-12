@@ -1,0 +1,45 @@
+ID	Contact.java
+createdDate	1725882326879
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725882326879
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	WormRule.java
+createdDate	1725882326897
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725882326897
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Initial.java
+createdDate	1725882326913
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725882326913
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Visualizer.java
+createdDate	1725882326929
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725882326929
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Worm
+createdDate	1725882326960
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Worm
+modifiedDate	1725882326960
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//

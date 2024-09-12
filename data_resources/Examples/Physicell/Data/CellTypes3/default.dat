@@ -1,0 +1,53 @@
+ID	PhenotypeA.java
+createdDate	1725884937463
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884937463
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PhenotypeB.java
+createdDate	1725884937477
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884937477
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	PhenotypeC.java
+createdDate	1725884937492
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884937492
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	Initial.java
+createdDate	1725884937507
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884937507
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	RegularVisualizer.java
+createdDate	1725884937520
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.plugins.javascript
+modifiedDate	1725884937520
+de_transformer	ru.biosoft.plugins.javascript.JSTransformer
+class	ru.biosoft.plugins.javascript.JSElement
+//
+ID	CellTypes3
+createdDate	1725884937535
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CellTypes3
+modifiedDate	1725884937535
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
