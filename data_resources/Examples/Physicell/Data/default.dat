@@ -1984,3 +1984,93 @@ plugins	ru.biosoft.access
 modifiedDate	1726077921293
 class	ru.biosoft.access.generic.GenericDataCollection
 //
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077921293
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726123943153
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726123943153
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726139607359
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726139607359
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142259207
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142259207
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142331410
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142331410
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142607597
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142607597
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142617128
+class	ru.biosoft.access.generic.GenericDataCollection
+//
