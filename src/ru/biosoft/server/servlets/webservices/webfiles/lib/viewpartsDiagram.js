@@ -3272,7 +3272,7 @@ function ComplexSimulationViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                documentObject.getDiagram().checkEModel(callback);
+                callback(true);
             }
             else
             {
