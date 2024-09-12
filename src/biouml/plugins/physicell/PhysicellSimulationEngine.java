@@ -50,6 +50,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
     {
         simulator = new PhysicellSimulator();
         simulatorType = "MULTICELL";
+        needToShowPlot = false;
     }
 
     @Override
