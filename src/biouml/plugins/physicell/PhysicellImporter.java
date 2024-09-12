@@ -191,11 +191,11 @@ public class PhysicellImporter implements DataElementImporter
     }
 
     private DataElement importExternalCode(String path) throws IOException
-    {
-        File f = new File( path );
-        String name = f.getName();
+    { 
         if( path.startsWith( "./" ) || path.startsWith( ".\\" ) )
             path = path.substring( 2 );
+        File f = new File( path );
+        String name = f.getName();
         if( additionalFiles != null && additionalFiles.containsKey( path ) )
             f = additionalFiles.get( path );
         String code = ApplicationUtils.readAsString( f );
