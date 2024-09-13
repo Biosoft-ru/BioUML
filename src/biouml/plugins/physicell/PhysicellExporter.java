@@ -201,7 +201,9 @@ public class PhysicellExporter implements DataElementExporter
             tryAdd( cdp.getFunctionsProperties().getVolumeUpdateCustom(), paths );
             tryAdd( cdp.getFunctionsProperties().getCustomRuleCustom(), paths );
             tryAdd( cdp.getFunctionsProperties().getMigrationUpdateCustom(), paths );
+            tryAdd(cdp.getIntracellularProperties().getDiagram(), paths);
         }
+        
         return StreamEx.of( paths ).map( s -> DataElementPath.create( s ).getDataElement() ).toList();
     }
 
@@ -241,7 +243,7 @@ public class PhysicellExporter implements DataElementExporter
         if( de instanceof TableDataCollection )
             return "csv";
         else if( de instanceof Diagram )
-            return "xmls";
+            return "xml";
         return "xml";
     }
 
