@@ -1,42 +1,42 @@
 ID	PhenotypeA.java
 createdDate	1725884937463
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884937463
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	PhenotypeB.java
 createdDate	1725884937477
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884937477
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	PhenotypeC.java
 createdDate	1725884937492
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884937492
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Initial.java
 createdDate	1725884937507
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884937507
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	RegularVisualizer.java
 createdDate	1725884937520
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884937520
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	CellTypes3
 createdDate	1725884937535

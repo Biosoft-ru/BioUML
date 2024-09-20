@@ -1,34 +1,34 @@
 ID	Contact.java
 createdDate	1725882326879
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725882326879
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	WormRule.java
 createdDate	1725882326897
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725882326897
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Initial.java
 createdDate	1725882326913
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725882326913
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Visualizer.java
 createdDate	1725882326929
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725882326929
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Worm
 createdDate	1725882326960

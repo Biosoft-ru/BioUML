@@ -1,34 +1,34 @@
 ID	CargoCellRule.java
 createdDate	1725009413474
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725009413474
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	WorkerCellRule.java
 createdDate	1725009413474
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725009413474
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Initial.java
 createdDate	1725009413489
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725009413489
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	BiorobotsVisualizer.java
 createdDate	1725009413505
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725009413505
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Biorobots
 createdDate	1725009413536

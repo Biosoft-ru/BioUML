@@ -1,58 +1,58 @@
 ID	CD8TcellPhenotype.java
 createdDate	1725884893946
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884893946
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	BacterialPhenotype.java
 createdDate	1725884893961
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884893961
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	DifferentiatedPhenotype.java
 createdDate	1725884893976
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884893976
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	MacrophagePhenotype.java
 createdDate	1725884893988
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884893988
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	NeutrophilPhenotype.java
 createdDate	1725884894001
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884894001
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	StemPhenotype.java
 createdDate	1725884894015
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884894015
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Initial.java
 createdDate	1725884894030
 driver	ru.biosoft.access.generic.DataElementFileTypeDriver
-plugins	ru.biosoft.plugins.javascript
+plugins	biouml.plugins.physicell
 modifiedDate	1725884894030
-de_transformer	ru.biosoft.plugins.javascript.JSTransformer
-class	ru.biosoft.plugins.javascript.JSElement
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
 //
 ID	Interactions
 createdDate	1725884894149
