@@ -156,6 +156,8 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
+            
+            model.executeEvents( );
             saveAllResults( model );
             curTime += options.getDiffusionDt();
         }

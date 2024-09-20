@@ -9,7 +9,8 @@ public class PhysicellConstants
     public static String TYPE_CHEMOTAXIS = "chemotaxis";
     public static String TYPE_INTERACTION = "interaction";
     public static String TYPE_TRANSFORMATION = "transformation";
-
+    public static String TYPE_EVENT = "event";
+    
     public static final String INITIAL_VALUE = "Initial value";
     public static final String NOT_SELECTED = "-";
     public static final String CUSTOM = "Custom...";

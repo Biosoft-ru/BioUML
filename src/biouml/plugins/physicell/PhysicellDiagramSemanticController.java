@@ -81,6 +81,8 @@ public class PhysicellDiagramSemanticController extends DefaultSemanticControlle
             return new CellDefinitionProperties( DefaultSemanticController.generateUniqueName( diagram, "CellDefinition" ) );
         else if( PhysicellConstants.TYPE_SUBSTRATE.equals( type ) )
             return new SubstrateProperties( DefaultSemanticController.generateUniqueName( diagram, "Substrate" ) );
+        else if( PhysicellConstants.TYPE_EVENT.equals( type ) )
+            return new EventProperties( DefaultSemanticController.generateUniqueName( diagram, "Event" ) );
         return null;
     }
 
@@ -105,6 +107,11 @@ public class PhysicellDiagramSemanticController extends DefaultSemanticControlle
         {
             CellDefinitionProperties cdp = PhysicellUtil.validateRole( de, CellDefinitionProperties.class, "cellDefinition" );
             cdp.setDiagramElement( de );
+        }
+        else if( PhysicellConstants.TYPE_EVENT.equals( de.getKernel().getType() ) )
+        {
+            EventProperties ep = PhysicellUtil.validateRole( de, EventProperties.class, "event" );
+            ep.setDiagramElement( de );
         }
         else if( PhysicellConstants.TYPE_SECRETION.equals( de.getKernel().getType() ) )
         {
