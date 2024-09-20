@@ -15,6 +15,8 @@ import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.physicell.javacode.JavaCodeFormatter;
+import biouml.plugins.physicell.javacode.JavaElement;
+import biouml.plugins.research.workflow.engine.ScriptElement;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
@@ -28,7 +30,6 @@ import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.ArrowView.Tip;
 import ru.biosoft.graphics.font.ColorFont;
-import ru.biosoft.plugins.javascript.JSElement;
 
 public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
 {
@@ -103,7 +104,7 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         {
             String text = "No script";
             if( event.getExecutionCodePath() != null )
-                text = event.getExecutionCodePath().getDataElement( JSElement.class ).getContent();
+                text = event.getExecutionCodePath().getDataElement( JavaElement.class ).getContent();
 
             if( event.isFormatCode() )
                 text = new JavaCodeFormatter().format( text );

@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
+import biouml.plugins.physicell.javacode.JavaElement;
 import biouml.plugins.sbml.SbmlExporter;
 import biouml.plugins.sbml.SbmlExporter.SbmlExportProperties;
 import biouml.standard.diagram.DiagramUtility;
@@ -45,7 +46,6 @@ import ru.biosoft.access.generic.GenericZipExporter;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.physicell.core.CycleModel;
 import ru.biosoft.physicell.core.PhaseLink;
-import ru.biosoft.plugins.javascript.JSElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.export.TableElementExporter;
 import ru.biosoft.util.TempFiles;
@@ -216,7 +216,7 @@ public class PhysicellExporter implements DataElementExporter
 
     private DataElementExporter getExporter(DataElement de)
     {
-        if( de instanceof JSElement )
+        if( de instanceof JavaElement )
             return new FileExporter();
         if( de instanceof TableDataCollection )
         {
@@ -238,7 +238,7 @@ public class PhysicellExporter implements DataElementExporter
 
     private String generateExtension(DataElement de)
     {
-        if( de instanceof JSElement )
+        if( de instanceof JavaElement )
             return "java";
         if( de instanceof TableDataCollection )
             return "csv";

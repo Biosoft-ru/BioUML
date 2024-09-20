@@ -24,6 +24,7 @@ import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.physicell.BioUMLFunctionsReader.FunctionInfo;
+import biouml.plugins.physicell.javacode.JavaElement;
 import biouml.plugins.physicell.ode.BioUMLIntraReader;
 import biouml.standard.diagram.DiagramUtility;
 import biouml.standard.type.DiagramInfo;
@@ -47,7 +48,6 @@ import ru.biosoft.physicell.core.Motility;
 import ru.biosoft.physicell.core.Secretion;
 import ru.biosoft.physicell.xml.ModelReader;
 import ru.biosoft.physicell.xml.ModelReader.ExternalFile;
-import ru.biosoft.plugins.javascript.JSElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
@@ -199,7 +199,7 @@ public class PhysicellImporter implements DataElementImporter
         if( additionalFiles != null && additionalFiles.containsKey( path ) )
             f = additionalFiles.get( path );
         String code = ApplicationUtils.readAsString( f );
-        JSElement element = new JSElement( dc, name, code );
+        JavaElement element = new JavaElement( dc, name, code );
         dc.put( element );
         return element;
     }
