@@ -7,6 +7,7 @@ public class JavaCodeFormatter
         StringBuilder builder = new StringBuilder();
         int indentLevel = 0;
 
+        code = clearFormat(code);
         code = code.replace( "@", "|@" );
         code = code.replace( "public", "|public" );
         code = code.replace( "for(", "#" );
@@ -23,17 +24,7 @@ public class JavaCodeFormatter
 
             if( ch == '$' )
             {   
-                builder.append( "<p style=\"color:green;\">" );
-                indent( builder, indentLevel );
-                builder.append( "//");
-                while( ch != '\n' )
-                {
-                    i++;
-                    ch = code.charAt( i );
-                    builder.append( ch );
-                }
-                builder.append( "<p>");
-                newLine( builder, noBrake );
+                handleComment( code, i, builder, indentLevel, noBrake );
                 prev = ';';
                 continue;
             }
@@ -86,18 +77,37 @@ public class JavaCodeFormatter
         String result = builder.toString().trim();
         return result;
     }
+    
+    protected String clearFormat(String code)
+    {
+        return code.replace( "\n", "" ).replace( "\r", "" ).replace( "\t", "" );
+    }
 
+    protected void handleComment(String code, int i, StringBuilder builder, int indentLevel, boolean noBrake)
+    {     
+        indent( builder, indentLevel );
+        builder.append( "//" );
+        char ch = '.';
+        while( ch != '\n' )
+        {
+            i++;
+            ch = code.charAt( i );
+            builder.append( ch );
+        }
+        newLine( builder, noBrake );
+    }
+    
     private void newLine(StringBuilder code, boolean noBrake)
     {
         if( !noBrake )
-            code.append( "<br>" );
+            code.append( "\n" );
     }
 
     private void indent(StringBuilder code, int indentLevel)
     {
         for( int i = 0; i < indentLevel; i++ )
         {
-            code.append( "&emsp;" );
+            code.append( "\t" );
         }
     }
 }

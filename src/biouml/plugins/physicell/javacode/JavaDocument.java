@@ -78,7 +78,7 @@ public class JavaDocument extends Document
         return currentLine;
     }
 
-    public JPanel getJSPanel()
+    public JavaPanel getJavaPanel()
     {
         return jPanel;
     }
@@ -120,6 +120,10 @@ public class JavaDocument extends Document
             action = new RedoAction();
             actionManager.addAction( RedoAction.KEY, action );
             initializer.initAction( action, RedoAction.KEY );
+            
+            action = new FormatCodeAction();
+            actionManager.addAction(FormatCodeAction.KEY, action);
+            initializer.initAction(action, FormatCodeAction.KEY);
 
             updateActionsState();
         }
@@ -127,7 +131,9 @@ public class JavaDocument extends Document
         {
             Action undoAction = actionManager.getAction( UndoAction.KEY );
             Action redoAction = actionManager.getAction( RedoAction.KEY );   
-            return new Action[] {undoAction, redoAction};
+            Action formatAction = actionManager.getAction(FormatCodeAction.KEY);
+            formatAction.putValue(FormatCodeAction.DOCUMENT_ELEMENT, this);
+            return new Action[] {undoAction, redoAction, formatAction};
         }
         return null;
     }

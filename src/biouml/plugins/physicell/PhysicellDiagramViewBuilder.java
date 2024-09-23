@@ -14,14 +14,12 @@ import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.plugins.physicell.javacode.JavaCodeFormatter;
+import biouml.plugins.physicell.javacode.JavaCodeHTMLFormatter;
 import biouml.plugins.physicell.javacode.JavaElement;
-import biouml.plugins.research.workflow.engine.ScriptElement;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.ComplexTextView;
-import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.EllipseView;
 import ru.biosoft.graphics.HtmlView;
 import ru.biosoft.graphics.Pen;
@@ -107,7 +105,7 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
                 text = event.getExecutionCodePath().getDataElement( JavaElement.class ).getContent();
 
             if( event.isFormatCode() )
-                text = new JavaCodeFormatter().format( text );
+                text = new JavaCodeHTMLFormatter().format( text );
             else
                 text = text.replace( "\n", "<br>" ).replace( " ", "&nbsp;" );
 
