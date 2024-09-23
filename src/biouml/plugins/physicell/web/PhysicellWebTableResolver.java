@@ -7,6 +7,7 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.plugins.physicell.CellDefinitionProperties;
+import biouml.plugins.physicell.EventProperties;
 import biouml.plugins.physicell.MulticellEModel;
 import biouml.plugins.physicell.RuleProperties;
 import biouml.plugins.physicell.SubstrateProperties;
@@ -50,6 +51,14 @@ public class PhysicellWebTableResolver extends TableResolver
             VectorDataCollection<CellDefinitionWrapper> result = new VectorDataCollection<>( "Cell Types", CellDefinitionWrapper.class,
                     null );
             model.getCellDefinitions().forEach( cdp -> result.put( new CellDefinitionWrapper( cdp ) ) );
+            return result;
+        }
+        else if( "events".equals( type ) && de instanceof Diagram )
+        {
+            Diagram diagram = de.cast( Diagram.class );
+            MulticellEModel model = diagram.getRole( MulticellEModel.class );
+            VectorDataCollection<EventWrapper> result = new VectorDataCollection<>( "Evrnts", EventWrapper.class, null );
+            model.getEvents().forEach( e -> result.put( new EventWrapper( e ) ) );
             return result;
         }
         else if( "rules".equals( type ) )
@@ -452,6 +461,83 @@ public class PhysicellWebTableResolver extends TableResolver
             add( "yMax" );
             add( "zMin" );
             add( "zMax" );
+        }
+    }
+
+    public static class EventWrapper implements DataElement
+    {
+        private EventProperties ep;
+
+        public EventWrapper(EventProperties ep)
+        {
+            this.ep = ep;
+        }
+
+        @PropertyName ( "Name" )
+        public String getName()
+        {
+            return ep.getName();
+        }
+        public void setName(String name)
+        {
+            //           cdp.setName( name );;
+        }
+
+        @PropertyName ( "Execution time" )
+        public double getExecutionTime()
+        {
+            return ep.getExecutionTime();
+        }
+
+        public void setExecutionTime(double time)
+        {
+            ep.setExecutionTime( time );
+        }
+
+        @PropertyName ( "Description" )
+        public String getDescription()
+        {
+            return ep.getComment();
+        }
+
+        public void setDescription(String description)
+        {
+            ep.setComment( description );
+        }
+
+        @PropertyName ( "Custom code" )
+        public DataElementPath getCustomCode()
+        {
+            return ep.getExecutionCodePath();
+        }
+
+        public void setCustomCode(DataElementPath path)
+        {
+            ep.setExecutionCodePath( path );
+        }
+
+        @Override
+        public DataCollection<?> getOrigin()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    }
+
+    public static class EventWrapperBeanInfo extends BeanInfoEx2<EventWrapper>
+    {
+        public EventWrapperBeanInfo()
+        {
+            super( EventWrapper.class );
+        }
+
+        @Override
+        public void initProperties() throws Exception
+        {
+            addReadOnly( "name" );
+            add( "description" );
+            add( "customCode" );
         }
     }
 
