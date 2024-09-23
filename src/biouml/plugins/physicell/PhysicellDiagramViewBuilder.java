@@ -20,6 +20,7 @@ import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.ComplexTextView;
+import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.EllipseView;
 import ru.biosoft.graphics.HtmlView;
 import ru.biosoft.graphics.Pen;
