@@ -536,6 +536,7 @@ public class PhysicellWebTableResolver extends TableResolver
         public void initProperties() throws Exception
         {
             addReadOnly( "name" );
+            add("executionTime");
             add( "description" );
             add( "customCode" );
         }
