@@ -16,6 +16,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.graphics.Brush;
+import ru.biosoft.graphics.Pen;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
@@ -91,6 +92,7 @@ public class PhysicellWebTableResolver extends TableResolver
     public static class CellDefinitionWrapper implements DataElement
     {
         private CellDefinitionProperties cdp;
+        Pen pen;
 
         public CellDefinitionWrapper(CellDefinitionProperties cdp)
         {
@@ -108,14 +110,15 @@ public class PhysicellWebTableResolver extends TableResolver
         }
 
         @PropertyName ( "Color" )
-        public Brush getColor()
+        public Pen getPen()
         {
-            return cdp.getColor();
+            return new Pen(1, cdp.getColor().getColor());
         }
 
-        public void setColor(Brush color)
+        public void setPen(Pen pen)
         {
-            cdp.setColor( color );
+            this.pen=pen;
+            cdp.setColor( new Brush(pen.getColor()) );
         }
 
         @PropertyName ( "Initial number" )
