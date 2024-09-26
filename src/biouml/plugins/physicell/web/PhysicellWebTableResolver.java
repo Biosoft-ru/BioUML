@@ -112,13 +112,14 @@ public class PhysicellWebTableResolver extends TableResolver
         @PropertyName ( "Color" )
         public Pen getPen()
         {
-            return new Pen(1, cdp.getColor().getColor());
+            return new Pen( 1, cdp.getColor().getColor() );
         }
 
         public void setPen(Pen pen)
         {
-            this.pen=pen;
-            cdp.setColor( new Brush(pen.getColor()) );
+            this.pen = pen;
+            if( pen != null )
+                cdp.setColor( new Brush( pen.getColor() ) );
         }
 
         @PropertyName ( "Initial number" )
@@ -164,7 +165,7 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             addReadOnly( "name" );
             add( "initialNumber" );
-            add( "color" );
+            add( "pen" );
             add( "comment" );
         }
     }
@@ -539,7 +540,7 @@ public class PhysicellWebTableResolver extends TableResolver
         public void initProperties() throws Exception
         {
             addReadOnly( "name" );
-            add("executionTime");
+            add( "executionTime" );
             add( "description" );
             add( "customCode" );
         }
