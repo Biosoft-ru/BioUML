@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.web;
 
+import java.awt.Color;
 import java.util.stream.Stream;
 
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -112,7 +113,7 @@ public class PhysicellWebTableResolver extends TableResolver
         @PropertyName ( "Color" )
         public Pen getPen()
         {
-            return new Pen( 1, cdp.getColor().getColor() );
+            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor() );
         }
 
         public void setPen(Pen pen)
