@@ -42,7 +42,7 @@ public class PlotPane extends JPanel implements PropertyChangeListener, PlotChan
     protected JFreeChart chart;
 
     private ChartPanel chartPanel;
-    private static final Shape circle = new Ellipse2D.Float(0, 0, 6, 6);
+    private static final Shape circle = new Ellipse2D.Float(-3, -3, 6, 6);
 
     private static final Paint[] POSSIBLE_COLORS = new Paint[] {new Color(0xFF, 0x55, 0x55), new Color(0x55, 0x55, 0xFF),
             new Color(0x00, 0xFF, 0x00), Color.pink, ChartColor.DARK_RED, ChartColor.DARK_BLUE, ChartColor.DARK_GREEN,
@@ -445,6 +445,7 @@ public class PlotPane extends JPanel implements PropertyChangeListener, PlotChan
                 else if( nextSeries.getSourceNature().equals(Series.SourceNature.EXPERIMENTAL_DATA) )
                 {
                     renderer.setSeriesLinesVisible(counter, false);
+                    renderer.setSeriesShapesVisible(counter, true);
                     renderer.setSeriesShape(counter, circle);
                 }
                 Pen spec = nextSeries.getSpec();
