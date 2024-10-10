@@ -32,7 +32,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private PropertyInspector initialConditionInspector = new PropertyInspector();
     private PropertyInspector reportInspector = new PropertyInspector();
     private PropertyInspector optionsInspector = new PropertyInspector();
-    
+
     public PhysicellModelViewPart()
     {
         tabbedPane = new JTabbedPane( SwingConstants.LEFT );
@@ -55,6 +55,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         tabbedPane.addTab( "Domain", domainInspector );
         tabbedPane.addTab( "Substrates", new SubstrateViewPart( emodel ) );
         tabbedPane.addTab( "Cell types", new CellDefinitionsViewPart( emodel ) );
+        tabbedPane.addTab( "Events", new EventsViewPart( emodel ) );
         tabbedPane.addTab( "User Parameters", parametersInspector );
         tabbedPane.addTab( "Initial Condition", initialConditionInspector );
         tabbedPane.addTab( "Model Report", reportInspector );
@@ -157,7 +158,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         if( component instanceof SubstrateViewPart )
             ( (SubstrateViewPart)component ).update();
     }
-    
+
     public static class SubstrateViewPart extends PhysicellTab
     {
         public SubstrateViewPart(MulticellEModel emodel)
@@ -177,7 +178,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
             return new SubstrateProperties( "" );
         }
     }
-    
+
     public class CellDefinitionsViewPart extends PhysicellTab
     {
         public CellDefinitionsViewPart(MulticellEModel emodel)
@@ -195,6 +196,26 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         protected Object createTemplate()
         {
             return new CellDefinitionProperties( "" );
+        }
+    }
+    
+    public static class EventsViewPart extends PhysicellTab
+    {
+        public EventsViewPart(MulticellEModel emodel)
+        {
+            super( emodel );
+        }
+
+        @Override
+        protected RowModel getRowModel()
+        {
+            return new ListRowModel( emodel.getEvents(), EventProperties.class );
+        }
+
+        @Override
+        protected Object createTemplate()
+        {
+            return new EventProperties( "" );
         }
     }
 }

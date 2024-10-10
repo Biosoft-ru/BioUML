@@ -1,0 +1,2698 @@
+ID	Diagrams
+name	Diagrams
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647328075871
+PreferedTableImplementation	File
+nextConfig	Diagrams.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410275976
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+ID	Experiments
+name	Experiments
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410296319
+PreferedTableImplementation	File
+nextConfig	Experiments.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+ID	Simulations
+name	Simulations
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647409753850
+PreferedTableImplementation	File
+nextConfig	Simulations.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410275976
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404826965
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404826965
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404919910
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404919910
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404923723
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404923723
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404936825
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404936825
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404938569
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404938569
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404953553
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404953553
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404954695
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404954695
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404970508
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404970508
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404971692
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404971692
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404986307
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//
+
+ID	Diagrams
+name	Diagrams
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647328075871
+PreferedTableImplementation	File
+nextConfig	Diagrams.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+
+ID	Documents
+name	Documents
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1724404986307
+PreferedTableImplementation	File
+nextConfig	Documents.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+
+ID	Experiments
+name	Experiments
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647410296319
+PreferedTableImplementation	File
+nextConfig	Experiments.format.config
+default.config	default.config
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+put-to-repository	false
+//deleted
+
+ID	Simulations
+name	Simulations
+configFile	default.config
+parent-collecion	data\/Examples\/Optimization\/Data
+class	ru.biosoft.access.generic.GenericDataCollection
+plugins	biouml.plugins.research;ru.biosoft.access
+modifiedDate	1647409753850
+PreferedTableImplementation	File
+nextConfig	Simulations.format.config
+default.config	default.config
+put-to-repository	false
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009378282
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009378282
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413474
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413474
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413489
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413489
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413489
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413489
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413505
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413505
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413630
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009432730
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009451720
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009458115
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009462730
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009470456
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009479026
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009486318
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009462730
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326886
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326886
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326903
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326903
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326920
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326920
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326934
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882326934
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882327015
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009470456
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882373268
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882373268
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884492303
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884492303
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781591
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781591
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781609
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781609
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781625
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781625
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781640
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781640
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781655
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781655
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781667
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781667
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781682
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781682
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781780
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009432730
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842374
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842374
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842391
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842391
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842405
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842405
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842433
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842433
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842464
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842464
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842477
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842477
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842491
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842491
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842563
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009451720
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893953
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893953
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893967
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893967
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893982
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893982
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893993
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884893993
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894007
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894007
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894021
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894021
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894035
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894035
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Interactions
+createdDate	1725009451720
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884894257
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009486318
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937469
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937469
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937483
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937483
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937499
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937499
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937513
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937513
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937526
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937526
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937593
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009458115
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884979882
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884979882
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884991870
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009479026
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885047995
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885047995
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885048010
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885048010
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885048212
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885134146
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884991870
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885482319
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885482319
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886498983
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886498983
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886521709
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886521709
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886712548
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886712548
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886732176
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886732176
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886732195
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886732195
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886846493
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886846493
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886848648
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886848648
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897619
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897619
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897636
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897636
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897652
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897652
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897666
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897666
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897756
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885134146
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886958168
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886958168
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886958238
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886958238
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887231644
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887231644
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887335824
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887335824
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887347835
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887347835
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887359029
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887359029
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887361370
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887361370
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887530343
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725887530343
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725891724164
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725891724164
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725891782084
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725891782084
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725891841644
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725891841644
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725893348462
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725893348462
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725893690254
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725893690254
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897444263
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897444263
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897485728
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897485728
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897553996
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897553996
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897579007
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897579007
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897596488
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897596488
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897630887
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897630887
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897661679
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725897661679
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898031527
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898031527
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898034963
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898034963
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898188084
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898188084
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898220537
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898220537
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898237565
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898237565
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898268801
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898268801
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898311994
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898311994
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898356080
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898356080
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898748229
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725898748229
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725907428992
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725907428992
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725908154457
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725908154457
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725961006135
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725961006135
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725966303843
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725966303843
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726050050128
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726050050128
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726068796312
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726068796312
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726069580822
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726069580822
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726075710019
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726075710019
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726075828519
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726075828519
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726076280314
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726076280314
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726076547879
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726076547879
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077867327
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077867327
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077883329
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077883329
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077921293
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726077921293
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726123943153
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726123943153
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726139607359
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726139607359
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142259207
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142259207
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142331410
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142331410
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142607597
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142607597
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	ODEEnergy
+createdDate	1725885134146
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726142617128
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660546011
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660546011
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660587836
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660587836
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660637834
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660637834
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660990095
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726660990095
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661154703
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661154703
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661178941
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661178941
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661197117
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661197117
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661208843
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661208843
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661212050
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661212050
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661220592
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661220592
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661223889
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661223889
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661296858
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661296858
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661353290
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661353290
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661959573
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726661959573
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662039663
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662039663
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662055705
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662055705
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662082974
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662082974
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662089143
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662089143
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662307292
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726662307292
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726663692817
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726663692817
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690247591
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690247591
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690256765
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690256765
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690260968
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690260968
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690281879
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690281879
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690496008
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690496008
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690543958
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690543958
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690576565
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690576565
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690595317
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690595317
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690613384
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726690613384
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726732642287
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726732642287
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733911548
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733911548
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733917216
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733917216
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733933098
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733933098
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733951449
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733951449
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733970378
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726733970378
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734005748
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734005748
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734010118
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734010118
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734016338
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734016338
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734035037
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734035037
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734049598
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734049598
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734089857
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726734089857
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726744208590
+class	ru.biosoft.access.generic.GenericDataCollection
+//

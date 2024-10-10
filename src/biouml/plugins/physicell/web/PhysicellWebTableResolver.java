@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.web;
 
+import java.awt.Color;
 import java.util.stream.Stream;
 
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -7,6 +8,7 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.plugins.physicell.CellDefinitionProperties;
+import biouml.plugins.physicell.EventProperties;
 import biouml.plugins.physicell.MulticellEModel;
 import biouml.plugins.physicell.RuleProperties;
 import biouml.plugins.physicell.SubstrateProperties;
@@ -15,6 +17,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.graphics.Brush;
+import ru.biosoft.graphics.Pen;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
@@ -52,6 +55,14 @@ public class PhysicellWebTableResolver extends TableResolver
             model.getCellDefinitions().forEach( cdp -> result.put( new CellDefinitionWrapper( cdp ) ) );
             return result;
         }
+        else if( "events".equals( type ) && de instanceof Diagram )
+        {
+            Diagram diagram = de.cast( Diagram.class );
+            MulticellEModel model = diagram.getRole( MulticellEModel.class );
+            VectorDataCollection<EventWrapper> result = new VectorDataCollection<>( "Evrnts", EventWrapper.class, null );
+            model.getEvents().forEach( e -> result.put( new EventWrapper( e ) ) );
+            return result;
+        }
         else if( "rules".equals( type ) )
         {
             DataElementPath fullPath = de.getCompletePath();
@@ -82,6 +93,7 @@ public class PhysicellWebTableResolver extends TableResolver
     public static class CellDefinitionWrapper implements DataElement
     {
         private CellDefinitionProperties cdp;
+        Pen pen;
 
         public CellDefinitionWrapper(CellDefinitionProperties cdp)
         {
@@ -99,14 +111,16 @@ public class PhysicellWebTableResolver extends TableResolver
         }
 
         @PropertyName ( "Color" )
-        public Brush getColor()
+        public Pen getPen()
         {
-            return cdp.getColor();
+            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor() );
         }
 
-        public void setColor(Brush color)
+        public void setPen(Pen pen)
         {
-            cdp.setColor( color );
+            this.pen = pen;
+            if( pen != null )
+                cdp.setColor( new Brush( pen.getColor() ) );
         }
 
         @PropertyName ( "Initial number" )
@@ -152,7 +166,7 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             addReadOnly( "name" );
             add( "initialNumber" );
-            add( "color" );
+            add( "pen" );
             add( "comment" );
         }
     }
@@ -452,6 +466,84 @@ public class PhysicellWebTableResolver extends TableResolver
             add( "yMax" );
             add( "zMin" );
             add( "zMax" );
+        }
+    }
+
+    public static class EventWrapper implements DataElement
+    {
+        private EventProperties ep;
+
+        public EventWrapper(EventProperties ep)
+        {
+            this.ep = ep;
+        }
+
+        @PropertyName ( "Name" )
+        public String getName()
+        {
+            return ep.getName();
+        }
+        public void setName(String name)
+        {
+            //           cdp.setName( name );;
+        }
+
+        @PropertyName ( "Execution time" )
+        public double getExecutionTime()
+        {
+            return ep.getExecutionTime();
+        }
+
+        public void setExecutionTime(double time)
+        {
+            ep.setExecutionTime( time );
+        }
+
+        @PropertyName ( "Description" )
+        public String getDescription()
+        {
+            return ep.getComment();
+        }
+
+        public void setDescription(String description)
+        {
+            ep.setComment( description );
+        }
+
+        @PropertyName ( "Custom code" )
+        public DataElementPath getCustomCode()
+        {
+            return ep.getExecutionCodePath();
+        }
+
+        public void setCustomCode(DataElementPath path)
+        {
+            ep.setExecutionCodePath( path );
+        }
+
+        @Override
+        public DataCollection<?> getOrigin()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    }
+
+    public static class EventWrapperBeanInfo extends BeanInfoEx2<EventWrapper>
+    {
+        public EventWrapperBeanInfo()
+        {
+            super( EventWrapper.class );
+        }
+
+        @Override
+        public void initProperties() throws Exception
+        {
+            addReadOnly( "name" );
+            add( "executionTime" );
+            add( "description" );
+            add( "customCode" );
         }
     }
 

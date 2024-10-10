@@ -49,13 +49,13 @@ public class RulesProperties extends Option
         if( rules.length == 0 )
             return;
         model.setRulesEnabled( true );
-        Rules.setupRules( model );
+       
         model.getSignals().setupDictionaries( model );
         for( RuleProperties rule : rules )
         {
             Rules.addRule( model, cd.name, rule.getSignal(), rule.getBehavior(), rule.getDirection(), rule.isApplyToDead() );
             model.getRules().set_hypothesis_parameters( model, cd.name, rule.getSignal(), rule.getBehavior(), rule.getHalfMax(), rule.getHillPower() );
-//            rules.set_hypothesis_parameters( model, cell_type, signal, behavior, half_max, hill_power );
+
             // compare to base behavior value in cell def for discrepancies 
             double ref_base_value = model.getSignals().getSingleBaseBehavior( model, cd, rule.getBehavior() );
             Rules.setBehaviorBaseValue( model, cd.name, rule.getBehavior(), ref_base_value );
@@ -85,7 +85,7 @@ public class RulesProperties extends Option
                 ruleProperties.setHalfMax( rule.getHalfMaxes().get( i ) );
                 ruleProperties.setHillPower( rule.getHillPowers().get( i ) );
                 ruleProperties.setBehavior( rule.getBehavior() );
-                ruleProperties.setSaturationValue( rule.getMaxValue() );
+                ruleProperties.setSaturationValue(rule.getResponses().get( i ) ?  rule.getMaxValue() : rule.getMinValue());
                 ruleProperties.setSignal( rule.getSignals().get( i ) );
                 ruleProperties.setApplyToDead( rule.isAppliesToDead().get( i ) );
                 list.add( ruleProperties );

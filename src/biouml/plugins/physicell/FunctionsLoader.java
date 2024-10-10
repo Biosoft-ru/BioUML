@@ -3,6 +3,7 @@ package biouml.plugins.physicell;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.logging.Logger;
@@ -14,6 +15,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.script.ScriptDataElement;
+import ru.biosoft.physicell.core.Model;
 import ru.biosoft.util.TempFiles;
 
 
@@ -22,6 +24,11 @@ public class FunctionsLoader
     private static String LIBRARY_NAME = "ru.biosoft.physicell_0.9.10.jar";
 
     public static <T> T load(DataElementPath dep, Class<T> c, Logger log) throws Exception
+    {
+        return load( dep, c, log, null );
+    }
+
+    public static <T> T load(DataElementPath dep, Class<T> c, Logger log, Model model) throws Exception
     {
         ScriptDataElement element = dep.getDataElement( ScriptDataElement.class );
         String content = element.getContent();
@@ -55,13 +62,20 @@ public class FunctionsLoader
         compiler.run( null, null, outputStream, "-d", out, "-classpath", libPath, out + "/" + fileName );
         String error = outputStream.toString();
         if( !error.isEmpty() )
-            log.info( "\nCompilation error in java class "+dep.getName()+":\n"+ error );
+            log.info( "\nCompilation error in java class " + dep.getName() + ":\n" + error );
 
         File resultFile = new File( out );
         URL[] url = new URL[] {resultFile.toURI().toURL()};
         try (URLClassLoader cl = new URLClassLoader( url, FunctionsLoader.class.getClassLoader() ))
         {
-            return cl.loadClass( className ).asSubclass( c ).getDeclaredConstructor().newInstance();
+            try
+            {
+                return cl.loadClass( className ).asSubclass( c ).getDeclaredConstructor( Model.class ).newInstance( model );
+            }
+            catch( Exception ex )
+            {
+                return cl.loadClass( className ).asSubclass( c ).getDeclaredConstructor().newInstance();
+            }
         }
     }
 

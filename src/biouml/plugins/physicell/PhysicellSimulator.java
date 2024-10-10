@@ -47,6 +47,8 @@ public class PhysicellSimulator implements Simulator
     private Map<Visualizer, DataCollection<DataElement>> visualizerResult;
     private Map<Visualizer, DataCollection<DataElement>> visualizerImageResult;
 
+    private String format;
+
     @Override
     public SimulatorInfo getInfo()
     {
@@ -120,6 +122,11 @@ public class PhysicellSimulator implements Simulator
 
         if( !this.model.isInit() )
             this.model.init();
+
+        int nums = String.valueOf( Math.round( options.getFinalTime()) ).length();
+        format = "%0" + nums + "d";
+
+        saveAllResults( this.model );
     }
 
     private static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
@@ -149,25 +156,31 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
-            curTime = model.getCurrentTime();
             
-            if( curTime >= nextReport )
-            {
-                nextReport += options.getReportInterval();
-                saveResults( curTime );
-                log.info( model.getLog() );
-                simulationLog.append( "\n" + model.getLog() );
-
-            }
-            
-            if (curTime >= nextImage)
-            {
-                saveImages(curTime);
-                nextImage += options.getImageInterval();
-            }
-            
-        }  
+            model.executeEvents( );
+            saveAllResults( model );
+            curTime += options.getDiffusionDt();
+        }
         return false;
+    }
+
+    private void saveAllResults(PhysicellModel model) throws Exception
+    {
+        double curTime = model.getCurrentTime();
+        if( curTime >= nextReport )
+        {
+            nextReport += options.getReportInterval();
+            saveResults( curTime );
+            log.info( model.getLog() );
+            simulationLog.append( "\n" + model.getLog() );
+
+        }
+
+        if( curTime >= nextImage )
+        {
+            saveImages( curTime );
+            nextImage += options.getImageInterval();
+        }
     }
 
     private void saveImages(double curTime) throws Exception
@@ -181,7 +194,16 @@ public class PhysicellSimulator implements Simulator
 
     private void saveResults(double curTime) throws Exception
     {
-        String suffix = print( curTime, 0 );
+        String suffix;
+        if( options.getReportInterval() >= 1 )
+        {
+            int t = (int)Math.round( curTime );
+            suffix = String.format( format, t );
+        }
+        else
+        {
+            suffix = Double.toString( Math.round(curTime*100)/100);
+        }
 
         DataCollection<DataElement> densityCollection = (DataCollection)resultFolder.get( "Density" );
         if( this.options.isSaveReport() )
@@ -297,7 +319,7 @@ public class PhysicellSimulator implements Simulator
     }
 
     @Override
-    public Options getOptions()
+    public PhysicellOptions getOptions()
     {
         return options;
     }

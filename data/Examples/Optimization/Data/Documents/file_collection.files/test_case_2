@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<optimization diagramPath="data/Examples/Optimization/Data/Documents/test_case_2_diagram" id="test_case_2" optimizedDiagramPath="data/Examples/Optimization/Data/Diagrams/diagram_2">
+<method name="Particle swarm optimization">
+<listOfMethodParameters>
+<property name="applyState" short-description="applyState" type="boolean" value="false"/>
+<property name="diagramPath" short-description="diagramPath" type="dataElementPath" value="data/Examples/Optimization/Data/Diagrams/diagram_2"/>
+<property name="numberOfIterations" short-description="numberOfIterations" type="int" value="200"/>
+<property name="particleNumber" short-description="particleNumber" type="int" value="50"/>
+<property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Demo/Data/optimization_results_2"/>
+</listOfMethodParameters>
+</method>
+<listOfExperiments>
+<experiment name="experiment_1">
+<property name="cellLine" short-description="cellLine" type="String" value=""/>
+<property name="diagramStateName" short-description="diagramStateName" type="String" value="no state"/>
+<property name="experimentType" short-description="experimentType" type="String" value="Time course"/>
+<property name="filePath" short-description="filePath" type="dataElementPath" value="data/Examples/Optimization/Data/Experiments/exp_data_2"/>
+<property name="weightMethod" short-description="weightMethod" type="String" value="Edited"/>
+<listOfParameterConnections>
+<connection>
+<property name="nameInDiagram" short-description="nameInDiagram" type="String" value="time"/>
+<property name="nameInFile" short-description="nameInFile" type="String" value="time"/>
+<property name="relativeTo" short-description="relativeTo" type="int" value="-1"/>
+<property name="subdiagramName" short-description="subdiagramName" type="String" value=""/>
+<property name="weight" short-description="weight" type="double" value="0.0"/>
+</connection>
+<connection>
+<property name="nameInDiagram" short-description="nameInDiagram" type="String" value="$uVol.MKKKP"/>
+<property name="nameInFile" short-description="nameInFile" type="String" value="MAPKKK-P"/>
+<property name="relativeTo" short-description="relativeTo" type="int" value="-1"/>
+<property name="subdiagramName" short-description="subdiagramName" type="String" value=""/>
+<property name="weight" short-description="weight" type="double" value="0.173977"/>
+</connection>
+<connection>
+<property name="nameInDiagram" short-description="nameInDiagram" type="String" value="$uVol.MAPKP"/>
+<property name="nameInFile" short-description="nameInFile" type="String" value="MAPK-P"/>
+<property name="relativeTo" short-description="relativeTo" type="int" value="-1"/>
+<property name="subdiagramName" short-description="subdiagramName" type="String" value=""/>
+<property name="weight" short-description="weight" type="double" value="1.0"/>
+</connection>
+</listOfParameterConnections>
+</experiment>
+</listOfExperiments>
+<listOfConstraints/>
+<listOfSimulationParameters>
+<simulationParameters name="experiment_1">
+<property name="engine" short-description="engine" type="biouml.plugins.simulation.java.JavaSimulationEngine">
+<property name="algebraicSolver" short-description="algebraicSolver" type="biouml.plugins.simulation.ae.NewtonSolverWrapperEx">
+<property name="maxIts" short-description="maxIts" type="double" value="20000.0"/>
+<property name="tolF" short-description="tolF" type="double" value="1.0E-10"/>
+<property name="tolMin" short-description="tolMin" type="double" value="1.0E-12"/>
+<property name="tolX" short-description="tolX" type="double" value="1.0E-13"/>
+</property>
+<property name="algebraicSolverName" short-description="algebraicSolverName" type="String" value="NewtonSolver"/>
+<property name="completionTime" short-description="completionTime" type="double" value="1000.0"/>
+<property name="constraintsViolation" short-description="constraintsViolation" type="String" value="Stop simulation"/>
+<property name="fastReactions" short-description="fastReactions" type="String" value="ODE system"/>
+<property name="initialTime" short-description="initialTime" type="double" value="0.0"/>
+<property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.simulation.ode.jvode.JVodeOptions">
+<property name="atol" short-description="atol" type="double" value="1.0E-20"/>
+<property name="detectIncorrectNumbers" short-description="detectIncorrectNumbers" type="boolean" value="false"/>
+<property name="hMaxInv" short-description="hMaxInv" type="double" value="1.0E-100"/>
+<property name="hMin" short-description="hMin" type="double" value="1.0E-100"/>
+<property name="iterations" short-description="iterations" type="int" value="0"/>
+<property name="jacobianApproximation" short-description="jacobianApproximation" type="int" value="0"/>
+<property name="method" short-description="method" type="int" value="1"/>
+<property name="ml" short-description="ml" type="int" value="0"/>
+<property name="mu" short-description="mu" type="int" value="0"/>
+<property name="rtol" short-description="rtol" type="double" value="1.0E-12"/>
+<property name="statisticsMode" short-description="statisticsMode" type="String" value="On"/>
+<property name="stepsLimit" short-description="stepsLimit" type="int" value="100000"/>
+</property>
+<property name="solverName" short-description="solverName" type="String" value="JVode"/>
+<property name="templateType" short-description="templateType" type="String" value="Auto"/>
+<property name="timeIncrement" short-description="timeIncrement" type="double" value="1.0"/>
+</property>
+<property name="engineName" short-description="engineName" type="String" value="ODE Simulation Engine"/>
+</simulationParameters>
+</listOfSimulationParameters>
+<listOfFittingParameters>
+<parameter>
+<property name="comment" short-description="comment" type="String" value=""/>
+<property name="local" short-description="local" type="boolean" value="false"/>
+<property name="lowerBound" short-description="lowerBound" type="double" value="0.25"/>
+<property name="name" short-description="name" type="String" value="J0_V1"/>
+<property name="parentDiagramName" short-description="parentDiagramName" type="String" value="diagram_2"/>
+<property name="title" short-description="title" type="String" value="J0_V1"/>
+<property name="units" short-description="units" type="String" value=""/>
+<property name="upperBound" short-description="upperBound" type="double" value="4.75"/>
+<property name="value" short-description="value" type="double" value="0.252586"/>
+</parameter>
+<parameter>
+<property name="comment" short-description="comment" type="String" value=""/>
+<property name="local" short-description="local" type="boolean" value="false"/>
+<property name="lowerBound" short-description="lowerBound" type="double" value="0.025"/>
+<property name="name" short-description="name" type="String" value="J1_V2"/>
+<property name="parentDiagramName" short-description="parentDiagramName" type="String" value="diagram_2"/>
+<property name="title" short-description="title" type="String" value="J1_V2"/>
+<property name="units" short-description="units" type="String" value=""/>
+<property name="upperBound" short-description="upperBound" type="double" value="0.475"/>
+<property name="value" short-description="value" type="double" value="0.410616"/>
+</parameter>
+<parameter>
+<property name="comment" short-description="comment" type="String" value=""/>
+<property name="local" short-description="local" type="boolean" value="false"/>
+<property name="lowerBound" short-description="lowerBound" type="double" value="0.075"/>
+<property name="name" short-description="name" type="String" value="J4_V5"/>
+<property name="parentDiagramName" short-description="parentDiagramName" type="String" value="diagram_2"/>
+<property name="title" short-description="title" type="String" value="J4_V5"/>
+<property name="units" short-description="units" type="String" value=""/>
+<property name="upperBound" short-description="upperBound" type="double" value="1.425"/>
+<property name="value" short-description="value" type="double" value="0.50374"/>
+</parameter>
+<parameter>
+<property name="comment" short-description="comment" type="String" value=""/>
+<property name="local" short-description="local" type="boolean" value="false"/>
+<property name="lowerBound" short-description="lowerBound" type="double" value="0.075"/>
+<property name="name" short-description="name" type="String" value="J5_V6"/>
+<property name="parentDiagramName" short-description="parentDiagramName" type="String" value="diagram_2"/>
+<property name="title" short-description="title" type="String" value="J5_V6"/>
+<property name="units" short-description="units" type="String" value=""/>
+<property name="upperBound" short-description="upperBound" type="double" value="1.425"/>
+<property name="value" short-description="value" type="double" value="0.987345"/>
+</parameter>
+<parameter>
+<property name="comment" short-description="comment" type="String" value=""/>
+<property name="local" short-description="local" type="boolean" value="false"/>
+<property name="lowerBound" short-description="lowerBound" type="double" value="0.05"/>
+<property name="name" short-description="name" type="String" value="J8_V9"/>
+<property name="parentDiagramName" short-description="parentDiagramName" type="String" value="diagram_2"/>
+<property name="title" short-description="title" type="String" value="J8_V9"/>
+<property name="units" short-description="units" type="String" value=""/>
+<property name="upperBound" short-description="upperBound" type="double" value="0.95"/>
+<property name="value" short-description="value" type="double" value="0.695592"/>
+</parameter>
+<parameter>
+<property name="comment" short-description="comment" type="String" value=""/>
+<property name="local" short-description="local" type="boolean" value="false"/>
+<property name="lowerBound" short-description="lowerBound" type="double" value="0.05"/>
+<property name="name" short-description="name" type="String" value="J9_V10"/>
+<property name="parentDiagramName" short-description="parentDiagramName" type="String" value="diagram_2"/>
+<property name="title" short-description="title" type="String" value="J9_V10"/>
+<property name="units" short-description="units" type="String" value=""/>
+<property name="upperBound" short-description="upperBound" type="double" value="0.95"/>
+<property name="value" short-description="value" type="double" value="0.745066"/>
+</parameter>
+</listOfFittingParameters>
+<listOfStateInfos>
+<stateInfo path="data/Collaboration/Demo/Data/optimization_results_2/experiment_1_state">
+<listOfSimulationResults>
+<simulationResult path="data/Collaboration/Demo/Data/optimization_results_2/experiment_1_sr"/>
+</listOfSimulationResults>
+</stateInfo>
+</listOfStateInfos>
+</optimization>

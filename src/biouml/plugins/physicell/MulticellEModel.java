@@ -74,6 +74,12 @@ public class MulticellEModel extends EModelRoleSupport
         return (Diagram)super.getParent();
     }
     
+    public List<EventProperties> getEvents()
+    {
+        return this.getDiagramElement().stream().map( n -> n.getRole() ).select( EventProperties.class ).toList();
+    }
+
+    
     public List<SubstrateProperties> getSubstrates()
     {
         return this.getDiagramElement().stream().map( n -> n.getRole() ).select( SubstrateProperties.class ).toList();

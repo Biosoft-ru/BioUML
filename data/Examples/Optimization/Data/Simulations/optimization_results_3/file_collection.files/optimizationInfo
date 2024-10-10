@@ -1,0 +1,23 @@
+ID	optimizationInfo
+OS	
+PLATFORM	
+INFO
+plugins=ru.biosoft.table
+name=optimizationInfo
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	Value; Float; NONE;  Value
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+k4	330.7153393833265
+k4b	347.42493634551806
+k5	0.30035594547565975
+k6f	0.06033739508668955
+k6bf	5.716943612592036
+k7	0.2943941352039739
+Calculation deviation	6.728887374913912E-5
+Penalty function	0.0
+Simulations	25050.0
+//

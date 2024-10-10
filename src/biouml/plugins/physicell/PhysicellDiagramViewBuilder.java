@@ -1,8 +1,11 @@
 package biouml.plugins.physicell;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.RoundRectangle2D;
 
 import javax.annotation.Nonnull;
 
@@ -11,14 +14,19 @@ import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
+import biouml.plugins.physicell.javacode.JavaCodeHTMLFormatter;
+import biouml.plugins.physicell.javacode.JavaElement;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.ComplexTextView;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.EllipseView;
+import ru.biosoft.graphics.HtmlView;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.SimplePath;
+import ru.biosoft.graphics.TextView;
+import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.ArrowView.Tip;
 import ru.biosoft.graphics.font.ColorFont;
 
@@ -35,6 +43,10 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         else if( PhysicellConstants.TYPE_SUBSTRATE.equals( node.getKernel().getType() ) )
         {
             return createSubstanceView( container, node, (PhysicellDiagramViewOptions)options, g );
+        }
+        else if( PhysicellConstants.TYPE_EVENT.equals( node.getKernel().getType() ) )
+        {
+            return createEventView( container, node, (PhysicellDiagramViewOptions)options, g );
         }
         return super.createNodeCoreView( container, node, options, g );
     }
@@ -53,6 +65,78 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         node.setShapeSize( new Dimension( d.width, d.height ) );
         container.add( new EllipseView( getBorderPen( node, options.getNodePen() ), brush, 0, 0, size, size ) );
         container.add( title, CompositeView.X_CC | CompositeView.Y_CC );
+        return false;
+    }
+
+    protected boolean createEventView(CompositeView eventView, Node node, PhysicellDiagramViewOptions options, Graphics g)
+    {
+        EventProperties event = (EventProperties)node.getRole();
+        if( event == null )
+            return false;
+
+        ColorFont titleFont = getTitleFont( node, options.getNodeTitleFont() );
+        Pen pen = getBorderPen( node, options.getNodePen() );
+        int d = 3;
+        int width = 20;
+        int height = 20;
+
+
+        String title = event.getDiagramElement().getTitle();
+        View titleView = new TextView( title, titleFont, g );
+        height = titleView.getBounds().height;
+        width = Math.max( titleView.getBounds().width, width );
+
+        View triggerView = new TextView( "At time: " + event.getExecutionTime(), options.getNodeTitleFont(), g );
+        height += triggerView.getBounds().height + 5;
+        width = Math.max( triggerView.getBounds().width, width );
+
+        View commentView = null;
+        if( !event.getComment().isBlank() )
+        {
+            commentView = new TextView( event.getComment(), options.getNodeTitleFont(), g );
+            height = height + commentView.getBounds().height + 2;
+            width = Math.max( commentView.getBounds().width, width );
+        }
+
+        View codeView = null;
+        if( event.isShowCode() )
+        {
+            String text = "No script";
+            if( event.getExecutionCodePath() != null )
+                text = event.getExecutionCodePath().getDataElement( JavaElement.class ).getContent();
+
+            if( event.isFormatCode() )
+                text = new JavaCodeHTMLFormatter().format( text );
+            else
+                text = text.replace( "\n", "<br>" ).replace( " ", "&nbsp;" );
+
+            codeView = new HtmlView( text, options.getNodeTitleFont(), new Point( 0, 0 ) );
+
+            height = height + codeView.getBounds().height + 2;
+            width = Math.max( codeView.getBounds().width, width );
+        }
+
+
+        BoxView boxView = new BoxView( pen, new Brush( Color.white ),
+                new RoundRectangle2D.Float( 0, 0, width + d * 2 + 5, height + d * 2, 20, 20 ) );
+
+        eventView.add( boxView );
+
+        eventView.add( titleView, CompositeView.X_CC | CompositeView.Y_TT );
+        Point offset = new Point( 5, titleView.getBounds().height + 2 );
+
+        eventView.add( triggerView, CompositeView.X_LL | CompositeView.Y_TT, offset );
+
+        offset.translate( 0, triggerView.getBounds().height + 2 );
+
+        if( commentView != null )
+        {
+            eventView.add( commentView, CompositeView.X_LL | CompositeView.Y_TT, offset );
+            offset.translate( 0, commentView.getBounds().height + 2 );
+        }
+
+        if( codeView != null )
+            eventView.add( codeView, CompositeView.X_LL | CompositeView.Y_TT, offset );
         return false;
     }
 

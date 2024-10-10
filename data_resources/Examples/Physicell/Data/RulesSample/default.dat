@@ -1,0 +1,30 @@
+ID	cells.csv
+createdDate	1725885047978
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.table
+name	cells.csv
+modifiedDate	1725885047978
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+class	ru.biosoft.table.FileTableDataCollection
+//
+ID	Visualizer.java
+createdDate	1725885048004
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725885048004
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	Rules
+createdDate	1725885048151
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Rules
+modifiedDate	1725885048151
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//

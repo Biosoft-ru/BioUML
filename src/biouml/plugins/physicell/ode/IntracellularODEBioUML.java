@@ -159,14 +159,14 @@ public class IntracellularODEBioUML extends IntracellularODE
     }
 
     @Override
-    public void setInputs(String[] outputs)
+    public void setInputs(String[] inputs)
     {
-        this.outputs = outputs;
+        this.inputs = inputs;
     }
 
     @Override
-    public void setOutputs(String[] inputs)
+    public void setOutputs(String[] outputs)
     {
-        this.inputs = inputs;
+        this.outputs = outputs;
     }
 }

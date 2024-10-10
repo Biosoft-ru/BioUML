@@ -1,0 +1,20 @@
+ID    experiment_1_plot
+PT    experiment_1_plot
+XT    Time
+XTF   {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+XTLF  {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+XAT   Number
+XAR   false
+XFR   0.0
+XTO   1100.0
+YT    Quantity or concentration
+YTF   {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+YTLF  {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+YAT   Number
+YAR   false
+YFR   0.0
+YTO   0.0
+SE    experiment_1_plot {"color":[255,85,85,255],"width":1} MAPKKK-P time $uVol.MKKKP data/Examples/Optimization/Data/Simulations/optimization_results_2/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[255,85,85,255],"width":1} MAPKKK-P_SPACE_exp time MAPKKK-P data/Examples/Optimization/Data/Experiments/exp_data_2 EXPERIMENTAL_DATA null
+SE    experiment_1_plot {"color":[85,85,255,255],"width":1} MAPK-P time $uVol.MAPKP data/Examples/Optimization/Data/Simulations/optimization_results_2/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[85,85,255,255],"width":1} MAPK-P_SPACE_exp time MAPK-P data/Examples/Optimization/Data/Experiments/exp_data_2 EXPERIMENTAL_DATA null

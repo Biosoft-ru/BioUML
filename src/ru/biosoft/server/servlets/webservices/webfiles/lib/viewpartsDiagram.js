@@ -3272,7 +3272,7 @@ function ComplexSimulationViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                documentObject.getDiagram().checkEModel(callback);
+                callback(true);
             }
             else
             {
@@ -5414,6 +5414,7 @@ function MicroenvironmentViewPart()
                 '<li><a href="#me_domain"><span>Domain</span></a></li>'+
                 '<li><a href="#me_substrates"><span>Substrates</span></a></li>'+
 				'<li><a href="#me_cell_types"><span>Cell Types</span></a></li>'+
+				'<li><a href="#me_events"><span>Events</span></a></li>'+
                 '<li><a href="#me_uparams"><span>User Parameters</span></a></li>'+
                 '<li><a href="#me_initial"><span>Initial Condition</span></a></li>'+
 				'<li><a href="#me_report"><span>Report Properties</span></a></li>'+
@@ -5424,6 +5425,8 @@ function MicroenvironmentViewPart()
                 '<div id="me_substrates" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
 				'<div id="me_cell_types" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_events" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
 				'</div>'+
                 '<div id="me_uparams" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
@@ -5455,6 +5458,10 @@ function MicroenvironmentViewPart()
 		this.celltypesDiv = tabDiv.find("#me_cell_types");
 		this.tables["cell_types"] = $('<div>Loading cell types..</div>');
 		this.celltypesDiv.append(this.tables["cell_types"]);
+		
+		this.eventsDiv = tabDiv.find("#me_events");
+		this.tables["events"] = $('<div>Loading events..</div>');
+		this.eventsDiv.append(this.tables["events"]);
         
         this.uparamsDiv = tabDiv.find("#me_uparams");
         this.uparamsPI = $('<div id="' + this.tabId + '_pi3">Loading user parameters..</div>').css({"width":"500px", "float":"left"});
@@ -5541,6 +5548,13 @@ function MicroenvironmentViewPart()
 					           _this.saveTable("cell_types");
 					     });
 					 }
+					 else if(_this.tableChanged["events"])
+					 {
+					 	  createYesNoConfirmDialog( "Events table was changed. Do you want to save it?", function(yes){
+					 		if(yes)
+					 			_this.saveTable("events");
+					 	  });
+					  }					 
                 }
             }
         });
@@ -5564,11 +5578,18 @@ function MicroenvironmentViewPart()
 		            _this.saveTable("cell_types");
 		     }); 
        }
+	   else if(this.tableChanged["events"])
+	   {
+	   		     createYesNoConfirmDialog( "Events table was changed. Do you want to save it?", function(yes){
+	   		         if(yes)
+	   		            _this.saveTable("events");
+	   		     }); 
+	   }
     };
     
     this.initActions = function(toolbarBlock)
     {
-        if (this.type == "substrates" || this.type == "cell_types")
+        if (this.type == "substrates" || this.type == "cell_types" || this.type == "events")
         {
             this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveTable);
             toolbarBlock.append(this.saveAction);     
@@ -5584,6 +5605,7 @@ function MicroenvironmentViewPart()
 		this.loadOptions();
         this.loadTable("substrates");
 		this.loadTable("cell_types");
+		this.loadTable("events");
     };
     
     this.loadTable = function(type)
