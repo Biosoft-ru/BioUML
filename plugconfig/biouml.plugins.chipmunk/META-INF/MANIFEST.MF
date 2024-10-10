@@ -10,7 +10,7 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.analysiscore,
  ru.biosoft.bsa,
  ru.biosoft.jobcontrol
-Export-Package: biouml.plugins.chipmunk
+Export-Package: biouml.plugins.chipmunk,
  ru.autosome.assist,
  ru.autosome.di,
  ru.autosome.di.engine,
