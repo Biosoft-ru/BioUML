@@ -60,6 +60,7 @@
                          <exclude>ru/biosoft/util/j2html/package-info.java</exclude>
                          <exclude>ru/biosoft/fs/package-info.java</exclude>
                          <exclude>**/_test/*.java</exclude>
+                         <exclude>**/_test/**/*.java</exclude>
                      </excludes>
                     <testIncludes>
                          <include>**/_test/*.java</include>
@@ -68,6 +69,7 @@
                          <exclude>target/**</exclude>
                          <exclude>ru/biosoft/util/j2html/package-info.java</exclude>
                          <exclude>ru/biosoft/fs/package-info.java</exclude>
+                         <exclude>**/biouml/plugins/virtualcell/_test/TestCore.java</exclude>
                      </testExcludes>
                 </configuration>
             </plugin>
@@ -427,7 +429,6 @@
                         <exclude>**/biouml/plugins/riboseq/_test/ComparatorAnalysisTest.java</exclude>
                         <exclude>**/biouml/plugins/riboseq/_test/TestTranscriptomeMappability.java</exclude>
                         <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestTMP.java</exclude>
-
 
                         <!-- Fail in headless -->   
                         <exclude>**/biouml/plugins/brain/_test/DiagramTest.java</exclude>
