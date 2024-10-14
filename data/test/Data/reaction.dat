@@ -1,0 +1,1772 @@
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000001
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000001
+XX
+NM  R000001: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000001
+TI  sB -pA-> sY
+RV  false
+FS  false
+XX
+XX
+NM  R000001: pA as modifier
+SP  modules/test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000001: sB as reactant
+SP  modules/test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000001: sY as product
+SP  modules/test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+ID  R000002
+TI  sA -> sB
+RV  false
+FS  false
+XX
+XX
+NM  R000002: sA as reactant
+SP  modules/test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000002: sB as product
+SP  modules/test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+ID  R000003
+TI  sB -> sA
+RV  false
+FS  false
+XX
+XX
+NM  R000003: sA as product
+SP  modules/test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000003: sB as reactant
+SP  modules/test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+ID  R000004
+TI  sA -> sB
+RV  false
+FS  false
+XX
+XX
+NM  R000004: sA as reactant
+SP  modules/test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000004: sB as product
+SP  modules/test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+ID  R000005
+TI  sB -> sA
+RV  false
+FS  false
+XX
+XX
+NM  R000005: sA as product
+SP  modules/test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000005: sB as reactant
+SP  modules/test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+ID  R000006
+TI  sY + sA ->
+RV  false
+FS  false
+XX
+XX
+NM  R000006: sA as reactant
+SP  modules/test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000006: sY as reactant
+SP  modules/test/Data/substance/sY
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+ID  R000007
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000007
+TI  -> sA
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: sA as product
+SP  test/Data/substance/sA
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000007
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000007
+TI  sA ->
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000007
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000007
+TI  sA -> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000007
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000007
+TI  sA -pA-> sB
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sB as product
+SP  test/Data/substance/sB
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted
+ID  R000007
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000007: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//
+
+ID  R000007
+TI  sA + sB -pA, sX-> sX + sY
+RV  false
+FS  false
+XX
+FM  rateOfR000007
+XX
+NM  R000007: pA as modifier
+SP  test/Data/protein/pA
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000007: sA as reactant
+SP  test/Data/substance/sA
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sB as reactant
+SP  test/Data/substance/sB
+RL  reactant
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sX as modifier
+SP  test/Data/substance/sX
+RL  modifier
+ST  1
+DN  1
+MD  catalyst
+PT  direct
+XX
+NM  R000007: sX as product
+SP  test/Data/substance/sX
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+NM  R000007: sY as product
+SP  test/Data/substance/sY
+RL  product
+ST  1
+DN  1
+PT  direct
+XX
+//deleted

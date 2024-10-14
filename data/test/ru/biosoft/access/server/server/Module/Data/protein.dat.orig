@@ -1,0 +1,44 @@
+ID  E
+//
+ID  cyclin
+FN  active
+//
+ID  cdc-p
+FN  inactive
+MD  phosphorylated
+//
+ID  cyclin:cdc2-p
+//
+ID  cyclin-p:cdc2
+//
+ID  cyclin:cdc2-p
+MD  phosphorylated
+//
+ID  cyclin-p:cdc2
+MD  phosphorylated
+//
+ID  cdc
+FN  inactive
+//
+ID  cyclin:cdc2-p
+FN  inactive
+MD  phosphorylated
+//
+ID  C
+SN  cyclin
+//
+ID  M-P
+FN  inactive
+MD  phosphorylated
+//
+ID  M
+FN  active
+//
+ID  X-P
+FN  inactive
+MD  phosphorylated
+//
+ID  X
+FN  active
+MD  none
+//

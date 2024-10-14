@@ -1,0 +1,4 @@
+#CHROM	START	END	STRAND
+chr1	10	100	+
+chr1	10	100	-
+chr1	10	100	

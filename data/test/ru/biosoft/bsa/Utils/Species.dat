@@ -1,0 +1,24 @@
+ID:Homo sapiens
+CN  Human
+AB  Hs
+AT  <?xml version="1.0" encoding="UTF-8"?> 
+AT  <dynamicPropertySet> 
+AT      <property name="ensemblPath" type="java.lang.String" value="databases/Ensembl" display-name="ensemblPath" short-description="ensemblPath"/> 
+AT  </dynamicPropertySet> 
+//
+ID:Mus musculus
+CN  Mouse
+AB  Mm
+AT  <?xml version="1.0" encoding="UTF-8"?> 
+AT  <dynamicPropertySet> 
+AT      <property name="ensemblPath" type="java.lang.String" value="databases/EnsemblMouse" display-name="ensemblPath" short-description="ensemblPath"/> 
+AT  </dynamicPropertySet> 
+//
+ID:Rattus norvegicus
+CN  Rat
+AB  Rn
+AT  <?xml version="1.0" encoding="UTF-8"?> 
+AT  <dynamicPropertySet> 
+AT      <property name="ensemblPath" type="java.lang.String" value="databases/EnsemblRat" display-name="ensemblPath" short-description="ensemblPath"/> 
+AT  </dynamicPropertySet> 
+//

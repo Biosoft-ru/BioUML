@@ -1,0 +1,27 @@
+ID	test_1
+OS	
+PLATFORM	
+INFO
+species=Unspecified
+value.delimiters=	
+plugins=ru.biosoft.table
+name=test_1
+referenceType=EntrezGeneTableType
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	B; Float; NONE;  B
+#2	C and D; Text; NONE;  C and D
+#3	B_1; Float; NONE;  B_1
+#4	C and D_1; Text; NONE;  C and D_1
+#5	B_2; Float; NONE;  B_2
+#6	C and D_2; Text; NONE;  C and D_2
+#7	B_3; Float; NONE;  B_3
+#8	C and D_3; Text; NONE;  C and D_3
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+10	12.5	line1
+2	0.002	line2
+3	45.7	line3
+//

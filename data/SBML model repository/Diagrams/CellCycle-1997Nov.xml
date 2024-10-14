@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml level="1" version="1" xmlns="http://www.sbml.org/sbml/level1">
+<model name="NovakTyson1997CellModel">
+<notes/>
+<listOfCompartments>
+<compartment name="cell" units="volume" volume="1.0">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:compartmentInfo color="255,255,255" height="527" shape="0" width="506" x="-35" y="-551"/>
+</annotations>
+</compartment>
+</listOfCompartments>
+<listOfSpecies>
+<specie compartment="cell" initialAmount="0.0" name="Cdc25" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="36" x="8" y="-516"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie boundaryCondition="true" compartment="cell" initialAmount="0.0" name="EmptySet" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="52" x="122" y="-516"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="G1K" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="255" y="-516"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="G1R" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="377" y="-516"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="G2K" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="11" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="G2R" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="133" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="IE" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="255" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="PG2" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="377" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="PG2R" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="33" x="9" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="R" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="133" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="UbE" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="255" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="UbE2" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="31" x="376" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="Wee1" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="32" x="10" y="-129"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.4" name="mass" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="32" x="132" y="-129"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+</listOfSpecies>
+<listOfParameters>
+<parameter name="Reaction1_mu" value="0.00495"/>
+<parameter name="Reaction2_k1" value="0.015"/>
+<parameter name="Reaction3_V2" value="0.25"/>
+<parameter name="Reaction3_V2p" value="0.0075"/>
+<parameter name="Reaction4_k3" value="0.09375"/>
+<parameter name="Reaction5_k4" value="0.1875"/>
+<parameter name="Reaction6_Vw" value="0.35"/>
+<parameter name="Reaction6_Vwp" value="0.035"/>
+<parameter name="Reaction7_V25" value="0.5"/>
+<parameter name="Reaction7_V25p" value="0.025"/>
+<parameter name="Reaction8_k7" value="100.0"/>
+<parameter name="Reaction9_k7r" value="0.1"/>
+<parameter name="Reaction10_k7" value="100.0"/>
+<parameter name="Reaction11_k7r" value="0.1"/>
+<parameter name="Reaction12_Cig1" value="0.0"/>
+<parameter name="Reaction12_k0001" value="0.0"/>
+<parameter name="Reaction12_Kmp" value="0.0010"/>
+<parameter name="Reaction12_kp" value="3.25"/>
+<parameter name="Reaction12_alpha" value="0.25"/>
+<parameter name="Reaction12_beta" value="0.05"/>
+<parameter name="Reaction13_k4" value="0.1875"/>
+<parameter name="Reaction14_V2" value="0.25"/>
+<parameter name="Reaction14_V2p" value="0.0075"/>
+<parameter name="Reaction15_k2p" value="0.05"/>
+<parameter name="Reaction15_V2" value="0.25"/>
+<parameter name="Reaction15_V2p" value="0.0075"/>
+<parameter name="Reaction16_k2p" value="0.05"/>
+<parameter name="Reaction16_V2" value="0.25"/>
+<parameter name="Reaction16_V2p" value="0.0075"/>
+<parameter name="Reaction17_k4" value="0.1875"/>
+<parameter name="Reaction18_k4" value="0.1875"/>
+<parameter name="Reaction19_k5" value="0.00175"/>
+<parameter name="Reaction20_V6" value="7.5"/>
+<parameter name="Reaction20_V6p" value="0.0375"/>
+<parameter name="Reaction21_k8" value="10.0"/>
+<parameter name="Reaction22_k8r" value="0.1"/>
+<parameter name="Reaction23_k6p" value="0.0"/>
+<parameter name="Reaction24_k0002" value="0.0"/>
+<parameter name="Reaction24_Kmu" value="0.01"/>
+<parameter name="Reaction24_ku" value="0.2"/>
+<parameter name="Reaction25_kc" value="1.0"/>
+<parameter name="Reaction25_Kmc" value="0.1"/>
+<parameter name="Reaction25_beta" value="0.05"/>
+<parameter name="Reaction26_ki" value="0.4"/>
+<parameter name="Reaction26_Kmi" value="0.01"/>
+<parameter name="Reaction26_beta" value="0.05"/>
+<parameter name="Reaction27_Kmu2" value="0.05"/>
+<parameter name="Reaction27_ku2" value="1.0"/>
+<parameter name="Reaction27_beta" value="0.05"/>
+<parameter name="Reaction28_Kmwr" value="0.1"/>
+<parameter name="Reaction28_kwr" value="0.25"/>
+<parameter name="Reaction29_kir" value="0.1"/>
+<parameter name="Reaction29_Kmir" value="0.01"/>
+<parameter name="Reaction30_Kmur" value="0.01"/>
+<parameter name="Reaction30_kur" value="0.1"/>
+<parameter name="Reaction31_Kmur2" value="0.05"/>
+<parameter name="Reaction31_kur2" value="0.3"/>
+<parameter name="Reaction32_Kmw" value="0.1"/>
+<parameter name="Reaction32_kw" value="1.0"/>
+<parameter name="Reaction32_beta" value="0.05"/>
+<parameter name="Reaction33_kcr" value="0.25"/>
+<parameter name="Reaction33_Kmcr" value="0.1"/>
+</listOfParameters>
+<listOfReactions>
+<reaction name="Reaction1" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="145" y="-296"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="mass" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction1_mu*mass"/>
+</reaction>
+<reaction name="Reaction10" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="185" y="-275"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="PG2" stoichiometry="1"/>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="PG2R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction10_k7*PG2*R"/>
+</reaction>
+<reaction name="Reaction11" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="185" y="-275"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="PG2R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="PG2" stoichiometry="1"/>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction11_k7r*PG2R"/>
+</reaction>
+<reaction name="Reaction12" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="145" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="R*(Reaction12_k0001 + Reaction12_kp*mass*(Reaction12_Cig1 + Reaction12_alpha*G1K + G2K + Reaction12_beta*PG2))/(Reaction12_Kmp + R)"/>
+</reaction>
+<reaction name="Reaction13" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="84" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G2R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G2K" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G2R*Reaction13_k4"/>
+</reaction>
+<reaction name="Reaction14" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="267" y="-425"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="PG2" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="PG2*(Reaction14_V2p*(1 - UbE) + Reaction14_V2*UbE)"/>
+</reaction>
+<reaction name="Reaction15" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="145" y="-296"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G2R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G2R*(Reaction15_k2p + Reaction15_V2p*(1 - UbE) + Reaction15_V2*UbE)"/>
+</reaction>
+<reaction name="Reaction16" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="83" y="-232"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="PG2R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="PG2R*(Reaction16_k2p + Reaction16_V2p*(1 - UbE) + Reaction16_V2*UbE)"/>
+</reaction>
+<reaction name="Reaction17" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="205" y="-296"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="PG2R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="PG2" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction17_k4*PG2R"/>
+</reaction>
+<reaction name="Reaction18" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="328" y="-490"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G1R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G1K" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G1R*Reaction18_k4"/>
+</reaction>
+<reaction name="Reaction19" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="206" y="-490"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G1K" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction19_k5"/>
+</reaction>
+<reaction name="Reaction2" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="84" y="-425"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G2K" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction2_k1"/>
+</reaction>
+<reaction name="Reaction20" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="206" y="-490"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G1K" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G1K*(Reaction20_V6p*(1 - UbE2) + Reaction20_V6*UbE2)"/>
+</reaction>
+<reaction name="Reaction21" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="267" y="-404"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G1K" stoichiometry="1"/>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G1R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G1K*Reaction21_k8*R"/>
+</reaction>
+<reaction name="Reaction22" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="267" y="-404"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G1R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G1K" stoichiometry="1"/>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G1R*Reaction22_k8r"/>
+</reaction>
+<reaction name="Reaction23" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="267" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G1R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G1R*Reaction23_k6p"/>
+</reaction>
+<reaction name="Reaction24" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="206" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="UbE" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="(Reaction24_k0002 + IE*Reaction24_ku)*(1 - UbE)/(1 + Reaction24_Kmu - UbE)"/>
+</reaction>
+<reaction name="Reaction25" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="84" y="-490"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="Cdc25" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="(1 - Cdc25)*Reaction25_kc*(G2K + Reaction25_beta*PG2)/(1 - Cdc25 + Reaction25_Kmc)"/>
+</reaction>
+<reaction name="Reaction26" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="206" y="-425"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="IE" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="(1 - IE)*Reaction26_ki*(G2K + Reaction26_beta*PG2)/(1 - IE + Reaction26_Kmi)"/>
+</reaction>
+<reaction name="Reaction27" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="266" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="UbE2" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction27_ku2*(1 - UbE2)*(G2K + Reaction27_beta*PG2)/(1 + Reaction27_Kmu2 - UbE2)"/>
+</reaction>
+<reaction name="Reaction28" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="84" y="-296"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="Wee1" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction28_kwr*(1 - Wee1)/(1 + Reaction28_Kmwr - Wee1)"/>
+</reaction>
+<reaction name="Reaction29" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="206" y="-425"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="IE" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="IE*Reaction29_kir/(IE + Reaction29_Kmir)"/>
+</reaction>
+<reaction name="Reaction3" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="84" y="-425"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G2K" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G2K*(Reaction3_V2p*(1 - UbE) + Reaction3_V2*UbE)"/>
+</reaction>
+<reaction name="Reaction30" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="206" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="UbE" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction30_kur*UbE/(Reaction30_Kmur + UbE)"/>
+</reaction>
+<reaction name="Reaction31" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="266" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="UbE2" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction31_kur2*UbE2/(Reaction31_Kmur2 + UbE2)"/>
+</reaction>
+<reaction name="Reaction32" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="84" y="-296"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="Wee1" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction32_kw*Wee1*(G2K + Reaction32_beta*PG2)/(Reaction32_Kmw + Wee1)"/>
+</reaction>
+<reaction name="Reaction33" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="84" y="-490"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="Cdc25" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Cdc25*Reaction33_kcr/(Cdc25 + Reaction33_Kmcr)"/>
+</reaction>
+<reaction name="Reaction4" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="145" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction4_k3"/>
+</reaction>
+<reaction name="Reaction5" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="145" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction5_k4*R"/>
+</reaction>
+<reaction name="Reaction6" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="206" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G2K" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="PG2" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G2K*(Reaction6_Vwp*(1 - Wee1) + Reaction6_Vw*Wee1)"/>
+</reaction>
+<reaction name="Reaction7" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="206" y="-361"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="PG2" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G2K" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="PG2*(Reaction7_V25p*(1 - Cdc25) + Reaction7_V25*Cdc25)"/>
+</reaction>
+<reaction name="Reaction8" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="104" y="-318"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G2K" stoichiometry="1"/>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G2R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G2K*Reaction8_k7*R"/>
+</reaction>
+<reaction name="Reaction9" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="104" y="-318"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="G2R" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="G2K" stoichiometry="1"/>
+<speciesReference species="R" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="G2R*Reaction9_k7r"/>
+</reaction>
+</listOfReactions>
+</model>
+</sbml>

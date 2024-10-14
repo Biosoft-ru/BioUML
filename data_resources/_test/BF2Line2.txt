@@ -1,0 +1,51 @@
+AC  M00024
+XX
+ID  V$E2F_01
+XX
+DT  04.12.1992 (created); ewi.
+DT  12.03.2002 (updated); vma.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  E2F
+XX
+DE  E2F
+XX
+BF  T00221; E2F; Species: human, 
+BF  Homo sapiens.
+BF  T01543; E2F-1; Species: mouse, Mus musculus.
+XX
+P0      A      C      G      T
+01      1      0      0      4      T
+02      2      1      0      2      W
+03      1      2      2      0      S
+04      0      1      4      0      G
+05      0      5      0      0      C
+06      0      0      5      0      G
+07      0      4      1      0      C
+08      0      0      5      0      G
+09      5      0      0      0      A
+10      5      0      0      0      A
+11      5      0      0      0      A
+12      5      0      0      0      A
+13      1      2      0      2      Y
+14      0      0      2      3      K
+15      2      0      3      0      R
+XX
+BA  5 E2F binding sites in 3 E1A-inducible promoters
+XX
+BS  R05457; Start: 12; Length: 15; Gaps:; Orientation: p.
+BS  R05458; Start: 11; Length: 15; Gaps:; Orientation: p.
+BS  R05459; Start: 1; Length: 15; Gaps:; Orientation: p.
+BS  R05460; Start: 1; Length: 15; Gaps:; Orientation: p.
+BS  R05461; Start: 1; Length: 15; Gaps:; Orientation: p.
+XX
+CC  compiled sequences
+XX
+RN  [1]
+RX  MEDLINE; 89252827.
+RA  Thalmeier K., Synovzik H., Mertz R., Winnacker E.-L., Lipp M.
+RT  Nuclear factor E2F mediates basic transcription and trans-activation by E1a
+RT  of the human MYC promoter
+RL  Genes Dev. 3:527-536 (1989).
+XX
+//

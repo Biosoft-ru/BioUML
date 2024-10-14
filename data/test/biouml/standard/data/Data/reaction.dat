@@ -1,0 +1,28 @@
+ID  R000001
+TI  E + B -> D
+RV  false
+FS  false
+XX
+XX
+NM  R000001: B as reactant
+SP  Data/substance/B
+RL  reactant
+ST  1
+PT  direct
+TI  B as reactant
+XX
+NM  R000001: D as product
+SP  Data/compartment/D
+RL  product
+ST  1
+PT  direct
+TI  D as product
+XX
+NM  R000001: E as reactant
+SP  Data/rna/E
+RL  reactant
+ST  1
+PT  direct
+TI  E as reactant
+XX
+//

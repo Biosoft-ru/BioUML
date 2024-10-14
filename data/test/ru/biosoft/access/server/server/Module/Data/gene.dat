@@ -1,0 +1,3348 @@
+GeneNet database. GENE table. v. 2.3.10, 6 May, 2000.
+294 entries.
+
+ID  Af:OLEO
+DT  15-Mar-00.; Kolpakov F.A.; created.
+OS  Avena fatua (oat).
+SN  oleosin BN-III
+NM  oleosin BN-III
+DR  TRRD; G001468; OLEO
+SO  Bn:tapetal
+RF  Antonson P. and Xanthopoulos K.G. 1995
+RF  Keddie J.S. et al., 1994
+//
+ID  At:ACCoxidase
+DT  18.4.2000.; Tana; created.
+OS  Arabidopsis thaliana (mouse ear-cress).
+SN  ACCoxidase
+NM  1-aminocyclopropane-1-carboxylic acid oxidase
+RF  Kende H. and Zeevaart J.A.D., 1997
+//
+ID  At:ACCsinthase
+DT  18.4.2000.; Tana; created.
+OS  Arabidopsis thaliana (mouse ear-cress).
+SN  ACCsinthase
+NM  1-aminocyclopropane-1-carboxylic acid sinthase
+RF  Kende H. and Zeevaart J.A.D., 1997
+//
+ID  At:EM
+DT  08-Feb-99.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  EM
+NM  embryo-specific gene
+DR  TRRD; At:EM; G000847
+SO  At:seed
+//
+ID  At:GLUD12
+DT  05.4.1999.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  Glu-D1-2
+NM  high molecular weight glutenin D1-2
+DR  TRRD;  At:GLUD12; G001279
+SO  At:seed
+RF  Thomas M.S. and Flavell R.B., 1990
+//
+ID  At:HMWGlu12
+DT  20.4.1999.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  HMWGlu12
+NM  HMW-glutenin subunit 12
+CH  1D
+DR  TRRD; At:HMWGLU12; G001293
+SO  At:seed
+RF  Bartels D. and Thompson R.D., 1986
+//
+ID  At:LMWG1D1
+DT  08-Feb-99.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  LMWG1D1
+NM  low molecular weight glutenin 1D1
+CH  1D1
+DR  TRRD;  At:LMWG1D1; G001236
+SO  At:seed
+//
+ID  At:PAL
+DT  21.4.2000.; Tana; created.
+OS  Arabidopsis thaliana (mouse ear-cress).
+SN  PAL
+NM  phenylalanin ammonia-lyase
+RF  Dong X. et al., 1991
+//
+ID  At:PR-1
+DT  03.5.2000.; Tana; created.
+OS  Arabidopsis thaliana (mouse ear-cress).
+SN  PR-1
+NM  patnogene related gene 1
+RF  Zang Y. et al., 1999
+//
+ID  At:npr1
+DT  27.4.2000.; Tana; created.
+OS  Arabidopsis thaliana (mouse ear-cress).
+SN  npr1
+NM  npr1
+RF  Zang Y. et al., 1999
+//
+ID  At:sam-2
+DT  03.5.2000.; Tana; created.
+OS  Arabidopsis thaliana (mouse ear-cress).
+SN  sam-2
+NM  S-adenosylmethionine synthetase 2 
+RF  Peleman J. et al., 1989
+//
+ID  Bn:OLEO
+DT  22.7.1999.; Tana; created.
+DT  26.7.1999.; Tana; updated.
+OS  Brassica napus (oilseed rape).
+SN  oleosin BN-III
+NM  oleosin BN-III
+DR  TRRD; G001468; OLEO
+SO  Bn:tapetal
+RF  Keddie J.S. et al., 1994
+//
+ID  Bt:Cyp11A
+DT  24.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Bos taurus (bovin (cattle)).
+SN  Cyp11A
+NM  Cyp11A
+DR  TRRD; A00497; Bt:CYP11A 
+//
+ID  Bt:Cyp11B
+DT  29.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Bos taurus (bovin (cattle)).
+SN  Cyp11B
+NM  Cyp11B
+DR  TRRD; A00789; Bt:CYP11B1
+SO  Bt:adrenal
+//
+ID  Bt:Cyp11B1
+DT  25.6.1999.; Busygina T.V.; created.
+OS  Bos taurus (bovin (cattle)).
+SN  Cyp11B1
+NM  Cyp11B1
+SO  Bt:adrenal
+//
+ID  Bt:Cyp17
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Bos taurus (bovin (cattle)).
+SN  Cyp17
+NM  Cyp17
+DR  TRRD; A00585; Bt:Cyp17
+SO  Bt:testis
+//
+ID  Cf:AVR9
+DT  04.4.2000.; Tana; created.
+OS  Cladosporium fulvum (cladosporium).
+SN  AVR9
+NM  AVR9
+RF  Snoeijers S.S. et al., 1999
+//
+ID  Cf:Avr9
+DT  04.4.2000.; Tana; created.
+DT  21.4.2000.; Tana; updated.
+OS  Cladosporium fulvum (cladosporium).
+SN  AVR9
+NM  AVR9
+DR  TRRD; Cf:AVR9; A00957
+RF  Snoeijers S.S. et al., 1999
+//
+ID  Cg:HMGR
+DT  30.7.1999.; Ignatieva E.V.; created.
+OS  Cricetulus griseus (Cricetulus griseus).
+SN  HMG-CoAR
+NM  HMG-CoA reductase gene
+SY  3-hydroxy-3-methylglutaryl-CoA reductase gene
+DR  TRRD; A00454; Cg:HMGR
+DR  EMBL; CSLHMG01; L00165; X00494;
+DR  SWISS-PROT; HMDH_CRIGR; P00347
+SO  Cg:liver
+SO  Cg:ovary
+RF  Gil G. et al., 1988
+RF  Osborne T.F. et al., 1988
+//
+ID  Cl:COIB
+DT  02-Feb-99.; Tana; created.
+OS  Coix lacryma-jobi (Job's tears).
+SN  beta-coixin
+NM  17 kDa coixin
+DR  TRRD; G001252; Cj:COIB
+//
+ID  Cr:ORCA2
+DT  22.12.1999; Tana; created.
+OS  Catharanthus roseus (periwinkle).
+SN  Orca2
+NM  octadecanoid-derivative responsiv Catharanthus AP2-domein protein
+RF  Menke F.L.H. et al., 1999
+//
+ID  Cr:STR
+DT  22.12.1999; Tana; created.
+OS  Catharanthus roseus (periwinkle).
+SN  Str
+NM  Strictosidine synthase
+RF  Menke F.L.H. et al., 1999
+//
+ID  Cr:TDC
+DT  03.5.2000.; Tana; created.
+OS  Catharanthus roseus (periwinkle).
+SN  TDC
+NM  tryptophan decarboxylase
+RF  Ouwerkerk P.B.F. et al., 1999
+//
+ID  Cr:Tdc
+DT  03.5.2000.; Tana; created.
+OS  Catharanthus roseus (periwinkle).
+SN  Tdc
+NM  tryptophan decarboxylase
+DR  TRRD;  Cr:TDC; A00971
+CC   TIA biosynthesis
+RF  Ouwerkerk P.B.F. et al., 1999
+//
+ID  Dc:DC8
+DT  02-Feb-99.; Tana; created.
+OS  Daucus carota (carrot).
+SN  DC8
+NM  DC8
+//
+ID  Dm:HSP22
+DT  05.10.1999; Stepanenko I.L.; created.
+OS  Drosophila melanogaster (Drosophila).
+SN  hsp22
+NM  heat shock protein 22
+CH  67B
+DR  TRRD; A00723;
+DR  EMBL; X03888; J01090; J01091; J01098; V00209; 
+SO  Dm:P-transformated germ line
+RF  Klemenz R., Gehring W.J., 1986
+//
+ID  Dm:HSP26
+DT  02.7.1999.; Stepanenko I.L.; created.
+OS  Drosophila melanogaster (Drosophila).
+SN  hsp26
+NM  heat shock protein 26
+CH  67B
+DR  BI EMBL; DMHSP26P; X12505; ST: 401
+DR  DR Flybase; FBgn0001225; Hsp26.
+RF  Sandaltzopopoulos R. et al., 1995
+//
+ID  Dm:HSR
+DT  12.10.1999; Stepanenko I.L.; created.
+OS  Drosophila melanogaster (Drosophila).
+SN  hsr-omega
+NM  hrs-omega
+SY  93D
+CH  III-93D
+DR  TRRD; A00881;
+DR  EMBL;DMHS93D;X04188;ST:495
+RF  [Hovemann B. et al., 1986]
+//
+ID  Gg:AAG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  AAG
+NM  aA-globin
+SY  alphaA-globin, hemoglobin alphaA chain
+DR  EpoDB; 12228;
+DR  EMBL; GGGL03; V00410; J00854; 
+DR  EPD; Gg a'A-globin; 33032
+DR  TRRD; Gg:AAG;G000046;
+//
+ID  Gg:ADG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  ADG
+NM  alpha-D-globin
+SY  alphaD-globin
+DR  EpoDB; 12228;
+DR  EMBL; GGAAAD; X59989; 
+DR  EPD; ; EP11095
+DR  TRRD;Gg:ADG;G000047
+//
+ID  Gg:ALAS-E
+DT  22.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  ALAS-E
+NM  erythroid delta aminolevulinate sythase
+SY  ALAS2
+DR  GenBank; S69605; S69605; ST:
+DR  TRRD; Gg:ALASE
+DR  SWISS-PROT; HEM0_CHICK; P18080;
+RE  erythropoietin
+SO  Gg:Eryth Prog
+//
+ID  Gg:BAG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  BAG
+NM  betaA-globin
+SY  hemoglobin betaA chain
+DR  EMBL;GGGL02;V00409;
+DR  TRRD;Gg:BA;G000051;
+CC  expressed in adult definitive erythroid cells
+//
+ID  Gg:BHG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  BHG
+NM  betaA-globin
+SY  hemoglobin betaH chain
+DR  TRRD;Gg:BHG; G000053;
+DR  Gerd; T00258;
+DR  EMBL; GGBGLH5; X13142; 
+DR  TRRD;Gg:BA;G000051;
+CC  expression of betaH-globin is max at about days 9 - 14 after fertilization
+RF  Rupp R. A. et al., 1988
+//
+ID  Gg:Dc 8
+DT  18-Jan-99.; Tana; created.
+OS  Gallus gallus (chicken).
+SN  DC 8
+NM  DC 8
+SO  Gg:seeds
+CC  embryonic gene
+RF  Baeumlein H. et al., 1994
+//
+ID  Gg:EpoR
+DT  21.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  EpoR
+NM  erythropoietin receptor
+RE  erythropoietin
+SO  Gg:Eryth Prog
+//
+ID  Gg:FUS3
+DT  18-Jan-99.; Tana; created.
+OS  Gallus gallus (chicken).
+SN  FUS3
+NM  FUS3
+DR  TRRD; G000060; Gg:GATA1
+DR  EMBL; M26209;
+//
+ID  Gg:GATA-1
+DT  09.10.97; Ananko E.; created.
+DT  21.6.1999.; Podkolodnaya O.A.; updated.
+OS  Gallus gallus (chicken).
+SN  GATA-1
+NM  GATA-1
+DR  TFGENE; G000060;
+DR  TRRD; G000060; Gg:GATA1
+DR  EMBL; M26209;
+SO  Gg:EEC
+SO  Gg:Eryth Prog
+//
+ID  Gg:H5
+DT  09.10.97; Ananko E.; created.
+XX
+SN  H5
+NM  histone H5
+DR  TFGENE; G000063;
+DR  TRRD; G000063; Gg:H5
+OS  Gallus gallus (chicken).
+XX
+SO  Gg:erythrocyte 
+XX
+RE 
+//
+ID  Gg:Mx
+DT  09.10.97; Ananko E.; created.
+XX
+SN  Mx
+NM  Mx protein
+DR  TRRD; G001088; Gg:MX 
+DR  TFGENE; G001088;
+OS  Gallus gallus (chicken).
+XX
+SO  Gg:fibroblast 
+XX
+RE  IFN-alpha
+RE  IFN-beta
+RE  poly(I).poly(C)
+RE  virus infection (NDV)
+//
+ID  Gg:PG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  PG
+NM  pi-globin
+DR  TRRD;PG;G001169;
+CC  maximal level: embryo 1.5-day to embryo 5-days
+//
+ID  Gg:RG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Gallus gallus (chicken).
+SN  RG
+NM  rho-globin
+DR  EMBL; GGHBBRE; L17432; L11240; 
+DR  TRRD;Gg:RG;G001184;
+DR  TRRD;Gg:BA;G000051;
+CC  expression of ro-globin is max at 5 day of chick development and
+CC  then decreased 10 fold by day 9 
+RF  Minie M.E. et al., 1992
+//
+ID  Gm:11Sglobulin
+DT  20.7.1999.; Tana; created.
+OS  Glycine max (soybean).
+SN  GY2
+NM  glycinin GY2
+DR  TRRD; G001343; Gm:GY2
+//
+ID  Gm:7Salpha
+DT  22.7.1999.; Tana; created.
+OS  Glycine max (soybean).
+SN  congBA
+NM  beta-conglycinin alpha-subunit
+DR  TRRD; G001'285; Gm:CONGBA
+CC  glycoprotein
+RF  Chen Z.-L. et al., 1989
+//
+ID  Gm:7Sglobulin
+DT  20.7.1999.; Tana; created.
+OS  Glycine max (soybean).
+SN  congBB
+NM  beta-conglycinin beta-subunit
+DR  TRRD; G001470; Gm:CONGBB
+CC  glycoprotein
+RF  Chen Z.-L. et al., 1989
+//
+ID Gm:LBC3
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Glycine max (soybean).
+SN Lbc3
+NG leghemoglobin c3
+DR TRRD; G000821; Gm:LBC3
+DR TFGENE; G000821;
+PN P00107
+SO infected cells; C00107 
+RE bacterial infection
+RF [Laursen N.B. et al., 1994]
+//
+ID Gm:N23
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Glycine max (soybean).
+SN N23
+NG nodulin gene N23
+DR TRRD; G001278; Gm:N23
+PN P00108
+SO infected cells; C00107 
+RE bacterial infection
+RF [Jorgensen J.-E. et al., 1991]
+//
+ID Gm:N56
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Glycine max (soybean).
+SN GmN56
+NG nodulin gene N56
+PN P00110
+SO infected cells; C00107 
+RE bacterial infection
+RF [Kouchi H. and Hata S., 1995]
+//
+ID  Gm:OLEOA
+DT  22.7.1999.; Tana; created.
+OS  Glycine max (soybean).
+SN  oleosin A
+NM  oleosin A
+DR  TRRD; G001337; OLEOA
+RF  Rowley D.L and Herman E.M., 1997
+//
+ID Gs:ENOD40
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Glycine max (soybean).
+SN ENOD40
+NG early nodulin gene 40
+PN P00112
+SO primordia ; C00109 
+XX
+RE Nod factor
+RF [Minami E. et al., 1996]
+//
+ID  Hs:9-27
+DT  09.10.97; Ananko E.; created.
+XX
+SN  9-27
+NM  interferon-induced RNA binding protein 9-27
+DR  TFGENE; G000179;
+DR  TRRD; G000179; Hs:9-27
+OS  Homo sapiens (human).
+XX
+SO  Hs:B-cell 
+SO  Hs:HeLa 
+XX
+RE  IFN-alpha
+RE  IFN-gamma
+//
+ID  Hs:A2G
+DT  15.01.98; Ananko E.; created.
+XX
+SN  GLOB-A2
+NM  alpha2-globin
+DR  TFGENE; G001202;
+DR  TRRD; G001202; Hs:A2G
+CH  16
+OS  Homo sapiens (human).
+XX
+SO  Hs:K562 
+SO  Hs:erythroblast 
+SO  Hs:erythrocyte 
+XX
+RE  erythropoietin
+//
+ID  Hs:AG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  AG
+NM  alpha1-globin
+SY  hemoglobin alpha1 chain
+CH  16
+DR  TRRD;Hs:AG;G000195;
+DR  EpoDB; 13964;
+DR  Gerd; T00047;
+DR  GDB; HBA1; 119293;
+DR  EMBL; HSHBA4; J00153; J00079; 
+RE  hemin
+SO  Hs:BM
+SO  Hs:K562
+SO  Hs:erythroblast
+SO  Hs:erythrocyte
+CC  adult globin gene
+//
+ID  Hs:AGG
+DT  15.01.98; Ananko E.; created.
+XX
+SN  AGG
+NM  Agamma globin
+SY  hemoglobin gamma chain
+DR  TFGENE; G000261;
+DR  TRRD; G000261; Hs:AGG
+CH  11, short arm
+OS  Homo sapiens (human).
+XX
+SO  Hs:K562 
+SO  Hs:HEL 
+SO  Hs:erythrocyte 
+SO  Hs:BM
+SO  Hs:liver
+CC  low level in the adult bone marrow
+CC  high level in the fetus liver
+RF  Stamatoyannopoulos G., Nienhis A.W., 1994
+XX
+RE erythropoietin
+//
+ID  Hs:ALAD
+DT  09.10.97; Ananko E.; created.
+XX
+SN  ALAD
+NM  delta-aminolevulinate dehydratase
+SY  porphobilinigen synthase 
+DR  TFGENE; G001186;
+DR  TRRD; G001186; Hs:ALAD 
+CH  9q34
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+SO  Hs:K562 
+XX
+RE 
+//
+ID  Hs:ALAS-E
+DT  22.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  ALAS-E
+NM  erythroid delta aminolevulinate sythase
+SY  ALAS2
+DR  GenBank; AF068624; AF068624; 
+DR  SWISS-PROT; HEM0_HUMAN; P22557;
+DR  TRRD; Hs:ALASE; G001368;
+RE  erythropoietin
+SO  Hs:BM
+SO  Hs:K562
+SO  Hs:P-erythrocyte
+SO  Hs:erythroblast
+SO  Hs:erythroblastPr
+SO  Hs:yolk sac
+//
+ID  Hs:BG
+DT  09.10.97; Ananko E.; created.
+XX
+SN  BG
+NM  hemoglobin beta chain
+SY  beta-globin
+DR  TFGENE; G000215;
+DR  TRRD; G000215; Hs:BG 
+XX
+CH  11, short arm
+XX
+OS  Homo sapiens (human).
+XX
+SO  Hs:K562 
+SO  Hs:HeLa 
+SO  Hs:erythroblast 
+SO  Hs:liver 
+XX
+RE  erythropoietin
+//
+ID  Hs:C-FOS
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  c-fos
+NM  c-fos protooncogene
+DR  TRRD;Hs:CFOS;A00110
+RF  Fisch T.M. et al., 1987
+//
+ID  Hs:C-JUN
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  c-jun 
+NM  c-jun protooncogene
+DR  TRRD;Hs:CJUN;A00182
+RF  Rozek D. and Pfeifer G.P.,1993
+//
+ID  Hs:C-MYC
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  c-myc
+NM  c-myc protooncogene
+DR  TRRD;Hs:CMYC 
+RF  Takimoto M. et al., 1989
+//
+ID Hs:CEBPA
+DT 10.12.98; Ignatieva E.V.
+XX
+SN CEBPA
+NM CCAAT/enhancer binding protein alpha gene
+DR TRRD; G001170; Hs:CEBPA
+PN Hs:CEBPalpha
+XX
+OS  Homo sapiens (human).
+XX
+SO Hs:placenta
+SO Hs:liver
+SO Hs:lung
+SO Hs:pancreas
+SO Hs:small intestine
+SO Hs:colon
+SO Hs:periferal blood leukocytes
+XX
+SO Hs:skeletal muscle
+SO Hs:heart
+SO Hs:spleen
+SO Hs:prostate
+SO Hs:brain
+SO Hs:kidney
+SO Hs:thymus
+SO Hs:testis
+SO Hs:ovary
+XX
+RF Antonson P. and Xanthopoulos K.G., 1995]
+XX
+CC see G001170.001
+//
+ID  Hs:COX-2
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  COX-2
+NM  cyclooxygenase 2 gene
+CH  1q25.2-q25.3
+DR  TRRD;Hs:COX2 ;A00882
+RE  RE A00882.001
+RE  ID Hs:COX2
+RE  RT mRNA
+RE  RI TGF-beta
+RE  FF induction
+RE  RS S4282
+RE  RR [Yang X. et al., 1997]
+RE  RE A00882.002
+RE  ID Hs:COX2
+RE  RT protein
+RE  RN HUVEC
+RE  RI hypoxia
+RE  RH 24 h
+RE  RH 48 h
+RE  FF induction
+RE  RS S4283
+RE  RR [Schmedtje Jr. J.F. et al., 1997]
+RE  RE A00882.003
+RE  ID Hs:COX2
+RE  RT mRNA
+RE  RN HUVEC
+RE  RI hypoxia
+RE  RH 30 min
+RE  RH 4 h
+RE  FF induction
+RE  RR [Schmedtje Jr. J.F. et al., 1997]
+RF  Chinery R. et al., 1998
+RF  Inoue H. et al., 1994
+RF  Inoue H., 1995
+RF  Inoue H., Tanabe T., 1997
+RF  Schmedtje Jr. J.F. et al., 1997
+RF  Yang X. et al., 1997
+//
+ID  Hs:CPO
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  CPO
+NM  coproporphyrinogen oxidase
+SY  CPX
+DR  TRRD; Hs:CPO; G001345
+DR  GenBank; HSCOPRO1; Z34531;
+DR  SWISS-PROT; HEM6_HUMAN; P36551;
+CC  Coproporphyrinogen oxidase (EC 1.3.3.3) 
+CC  catalyzes the sixth step in the heme 
+CC  biosynthetic pathway, the oxidation 
+CC  of coproporphyrinogen III to
+CC   protoporphyrinogen IX.
+RF  Martasek P.,  et al., 1994
+RF  Ponka P. 1997
+//
+ID  Hs:Cyp11A
+DT  15.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Homo sapiens (human).
+SN  Cyp11A
+NM  Cyp11A
+DR  TRRD; A00498; Hs:CYP11A1
+//
+ID  Hs:Cyp11B1
+DT  29.6.1999.; Busygina T.V.; created.
+OS  Homo sapiens (human).
+SN  Cyp11B1
+NM  Cyp11B1
+SO  Hs:adrenal
+//
+ID  Hs:Cyp11B2
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Homo sapiens (human).
+SN  Cyp11B2
+NM  Cyp11B2
+DR  TRRD; A00586; Hs:CYP11B2
+//
+ID  Hs:Cyp19
+DT  25.6.1999.; Busygina T.V.; created.
+DT  30.6.1999.; Busygina T.V.; updated.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Homo sapiens (human).
+SN  Cyp19
+NM  Cyp19
+DR  TRRD; A00152; Hs:CYP19
+SO  Hs:adipose
+SO  Hs:brain
+SO  Hs:ovary
+SO  Hs:placenta
+SO  Hs:testis
+RF  Simpson E.R. et al., 1994
+//
+ID  Hs:Cyp21
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Homo sapiens (human).
+SN  Cyp21
+NM  Cyp21
+DR  TRRD; A00588; Hs:CYP21B
+SO  Hs:adrenal
+//
+ID  Hs:DG
+DT  15.01.98; Ananko E.; created.
+XX
+SN  GLOB-D
+NM  delta-globin
+DR  TFGENE; G000240;
+DR  TRRD; G000240; Hs:DG
+CH  11, short arm
+OS  Homo sapiens (human).
+XX
+SO  Hs:K562
+SO  Hs:erythrocyte
+XX
+RE erythropoietin
+//
+ID  Hs:EKLF
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  EKLF
+NM  erythroid Kruppel-like factor
+//
+ID  Hs:EPO
+DT  09.10.97; Ananko E.; created.
+XX
+SN  EPO 
+NM  erythropoietin 
+DR  TFGENE; G000254;
+DR  TRRD; G000254; Hs:EPO 
+OS  Homo sapiens (human).
+XX
+SO  Hs:Hep3B 
+SO  Hs:Hep3 
+SO  Hs:HeLa 
+XX
+RE  anaemia
+RE  hypoxia
+RE  cobalt chloride
+RE  bleeding 
+//
+ID  Hs:Eglob
+DT  26.12.97; Ananko E.; created.
+XX
+SN  EG
+NM  epsilon-globin
+DR  TFGENE; G000253;
+DR  TRRD; G000253; Hs:EG
+CH  11, short arm
+OS  Homo sapiens (human).
+XX
+SO  Hs:yolk sac 
+SO  Hs:P-erythrocyte
+XX 
+RF  Raich N. et al., 1995
+XX
+RE  erythropoietin
+//
+ID  Hs:EpoR
+DT  09.10.97; Ananko E.; created.
+XX
+SN  EpoR
+NM  erythropoietin receptor
+DR  TFGENE; G001222;
+DR  TRRD; G001222; Hs:EPOR 
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+SO  Hs:HEL 
+SO  Hs:KU812 
+SO  Hs:OCIM1 
+XX
+RE  erythropoietin
+//
+ID  Hs:FCH
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  FCH
+NM  ferrochelatase
+CH  18q21.3
+RF  Ponka P. 1997
+RF  Tugores A. et al., 1994
+//
+ID  Hs:FTH1
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  FTH1
+NM  ferritin, heavy chain
+CH  11q12-q13
+DR  TRRD;Hs:HFER ;A00879
+RE  RE A00879.001
+RE  ID Hs:HFER
+RE  RT mRNA
+RE  RN FLC
+RE  RL present
+RE  RI heme
+RE  FF induction
+RE  RP P01116
+RE  RS S4064
+RE  RR [Marziali G. et al., 1997]
+RE  RE A00879.002
+RE  ID Hs:HFER
+RE  RT mRNA
+RE  RN HeLa
+RE  RL present
+RE  RI okadaic acid
+RE  FF induction
+RE  RS S4064
+RE  RP P01116
+RE  RR [Bevilacqua M.A. et al., 1997a]
+RE  RE A00879.003
+RE  ID Hs:HFER
+RE  RT mRNA
+RE  RN HeLa
+RE  RL present
+RE  RI cAMP
+RE  FF induction
+RE  RS S4064
+RE  RP P01116
+RE  RR [Bevilacqua M.A. et al., 1997b]
+RE  RE A00879.004
+RE  ID Hs:HFER
+RE  RT mRNA
+RE  RN HeLa
+RE  RL present
+RE  RI E1A oncoprotein
+RE  FF repression
+RE  RS S4064
+RE  RP P01116
+RE  RR [Bevilacqua M.A. et al., 1997b]
+RF  Bevilacqua M.A. et al., 1997
+RF  Bevilacqua M.A. et al., 1997a
+RF  Marziali G. et al., 1997
+//
+ID  Hs:GATA-1
+DT  21.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  GATA-1
+NM  GATA-1
+SO  Hs:K562
+SO  Hs:erythroblast
+SO  Hs:erythroblastPr
+SO  Hs:yolk sac
+//
+ID  Hs:GCSH
+DT  21.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  GCSh
+NM  gamma-glutamylcysteine synthetase heavy subunit
+SY  glutamatex-cysteine ligase
+CH  1
+DR  TRRD;Hs:GCSH;
+RF  Mulcahy R.T. et al., 1997
+RF  Tu Z., Anders M.W., 1998
+RF  Urata Y. et al., 1996
+//
+ID  Hs:GPA
+DT  09.10.97; Ananko E.; created.
+XX
+SN  GPA
+NM  glycophorin A
+DR  TFGENE; G001082;
+DR  TRRD; G001082; Hs:GPA 
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE 
+//
+ID  Hs:GPB
+DT  09.10.97; Ananko E.; created.
+XX
+SN  GPB
+NM  glycophorin B
+DR  TFGENE; G000275;
+DR  TRRD; G000275; Hs:GPB 
+OS  Homo sapiens (human).
+XX
+SO  Hs:KU812 
+SO  Hs:K562 
+SO  Hs:HeLa 
+XX
+RE 
+//
+ID  Hs:GPC
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  GPC
+NM  glycophorin C
+DR  TFGENE;G000276;
+DR  TRRD; G000276; Hs:GPC
+DR  EMBL; HSGYPC; X14242;
+SO  Hs:HeLa
+SO  Hs:K562
+SO  Hs:KU812
+//
+ID  Hs:GPD
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  GPD
+NM  glycoprotein D
+SY  major subunit of Duffy blood group
+DR  TRRD; Hs:GPD; G001262
+DR  GenBank; S76830; S76830; 
+SO  Hs:BM
+SO  Hs:erythrocyte
+//
+ID  Hs:GST-Ya
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  GST-Ya
+NM  glutathione S-transferase Ya subunit
+DR  TRRD; Hs:GST; A00265
+RF  Rushmore T.H. et al., 1990
+//
+ID  Hs:GSTP
+DT  14.4.2000.; Stepanenko I.L.; created.
+DT  22.4.2000.; Stepanenko I.L.; updated.
+OS  Homo sapiens (human).
+SN  GSTP
+NM  Glutathione Transferase P
+CH  11q13
+DR  TRRD;Hs:GSTP; A00030
+SO  Hs:HeLa
+RF  Diccianni M.B. et al., 1992
+RF  Xia C. et al., 1996
+//
+ID  Hs:HMGR
+DT  30.7.1999.; Ignatieva E.V.; created.
+OS  Homo sapiens (human).
+SN  HMG-CoAR
+NM  HMG-CoA reductase gene
+SY  3-hydroxy-3-methylglutaryl-CoA reductase gene
+DR  TRRD; A00436; A00436
+DR  EMBL; HSHMGCOB; M15959
+DR  SWISS-PROT; HMDH_HUMAN; P04035
+SO  Hs:T-cell
+SO  Hs:liver
+RF  Lloyd D.B. and Thompson J.F. 1995
+//
+ID  Hs:HO-1
+DT  17.4.2000.; Stepanenko I.L.; created.
+DT  18.4.2000.; Stepanenko I.L.; updated.
+OS  Homo sapiens (human).
+SN  HO-1
+NM  heme oxygenase 1
+DR  TRRD;Hs:HO;A00551
+RF  Elbirt K.K., Bonkovsky H.L., 1999
+RF  Lavrovsky Y. et al., 1993
+RF  Okinaga S. et al., 1996
+//
+ID  Hs:HOXB2
+DT  09.10.97; Ananko E.; created.
+DT  21.6.1999.; Podkolodnaya O.A.; updated.
+OS  Homo sapiens (human).
+SN  HOXB2
+NM  HOXB2 protein
+SY  HOX2H
+CH  17
+DR  TFGENE; G001216;
+DR  EMBL;  HSHOXB2; X78978
+DR  TRRD; G001216; Hs:HOXB2
+RE  retinoic acid
+SO  Hs:HEL
+SO  Hs:K562
+//
+ID  Hs:HSF1
+DT  15.6.1999.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  HSF1
+NM  heat shock factor
+DR  TRRD; AC00574;Hs:HSF1
+SO  Hs:K562
+RF  Amici C. et al., 1992
+//
+ID  Hs:HSF2
+DT  15.6.1999.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  HSF2
+NM  heat shock factor 2
+DR  TRRD; AC00575;Hs:HSF2
+SO  Hs:K562
+RF  Sistonen L. et al., 1994
+//
+ID  Hs:HSP70
+DT  11.5.1999.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  hsp70
+NM  heat shock protein 70
+DR  TRRD; G000286;Hs:HSP70
+SO  Rn:Rat-1
+//
+ID  Hs:HTGL
+DT  11.2.2000.; Ignatieva E.V.; created.
+OS  Homo sapiens (human).
+SN  HTGL
+NM  hepatic triglyceride lipase gene
+//
+ID  Hs:Hs:Cyp11A
+DT  15.6.1999.; Busygina T.V.; created.
+OS  Homo sapiens (human).
+SN  Cyp11A
+NM  Cyp11A
+//
+ID  Hs:ICAM1
+DT  20.4.2000.; Stepanenko I.L.; created.
+DT  25.4.2000.; Stepanenko I.L.; updated.
+OS  Homo sapiens (human).
+SN  ICAM-1
+NM  intercellular adhesion molecule-1
+SY  major group rhinovirus receptor
+SY  HRV
+SY  CD54
+DR  TRRD;Hs:ICAM1;A00302
+RF  Aoudjit F. et al.,1994
+RF  Ledebur H.C. and Parks T.P., 1995
+RF  Muller S. et al., 1995
+RF  Roebuck K.A. et al., 1995
+RF  Roebuck K.A.,1999
+//
+ID  Hs:IDO
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IDO
+NM  indoleamine 2,3-dioxygenase
+DR  TFGENE; G001160;
+DR  TRRD; G001160; Hs:IDO 
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE  IFN-gamma
+RE  IFN-alpha
+RE  IFN-beta
+//
+ID  Hs:IFN-A1
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IFN-A1
+NM  interferon-alpha1
+SY  IFN-alpha1
+DR  TRRD; G000307; Hs:IFNA1
+DR  TFGENE; G000307;
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE  virus infection 
+//
+ID  Hs:IFN-beta
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IFN-beta
+NM  interferon-beta
+DR  TRRD; G000308; Hs:IFNB 
+DR  TFGENE; G000308;
+CH  9
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE  virus infection
+RE  TNF
+RE  IL-1
+RE  dsRNA
+//
+ID  Hs:IFN-gamma
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IFN-gamma
+NM  interferon-gamma
+DR  TRRD; G001174; Hs:IFNG 
+DR  TFGENE; G001174;
+OS  Homo sapiens (human).
+XX
+SO  Hs:Jurkat 
+SO  Hs:T-cell 
+SO  Hs:B-cell 
+XX
+RE  corticosteroids
+RE  prostaglandins
+RE  PMA/ionomycin
+//
+ID  Hs:IL1B
+DT  21.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  IL-1beta
+NM  prointerleukin-1beta
+DR  TRRD;Hs:IL1B;A00263
+RF  Gray J.G. et al., 1993
+RF  Hiscott J. et al., 1993
+//
+ID  Hs:IL2 
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  IL-2
+NM  interleukin-2
+CH   4
+DR  TRRD;Hs:IL6;A00074
+RF  Boise L.H. et al., 1993
+RF  Hoyos B. et al., 1989
+RF  Yaseen N.R. et al., 1994
+//
+ID  Hs:IL6
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  IL-6
+NM  interleukin-6
+SY  beta 2-interferon hepatocyte-stimulating factor
+SY     B-cell differentiation factor 2
+SY     hybridoma or plasmacytoma, growth factor
+SY     T-cell activating factor
+SY     colony-stimulating factor 309
+CH  7p21
+DR  TRRD;Hs:IL6;  A00115
+RF  Matsusaka T. et al., 1993
+RF  Shimizu H. et al., 1990
+RF  Zhang Y. et al., 1990
+//
+ID  Hs:IL8
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  IL-8
+NM  interleukin-8
+CH  4,q12-21
+DR  TRRD;Hs:IL8;A00038
+RE  RE A00038.002
+RE  ID Hs:IL8
+RE  RI IL-1, TNF-alpha, PMA (phorbol 12-myristic 13-acetate) , LPS (lipopolysaccharide)
+RE  FF induction
+RE  RP P00102
+RE  RS S995, S996
+RE  RR [Mahe Y. et al., 1991]
+RE  RR [Stein B. and Baldwin A.S., 1993]
+RE  RR [Stein B. et al., 1993]
+RF  Kunsch C., Rosen C.A., 1993
+RF  Mahe Y. et al., 1991
+RF  Mukaida N. et al., 1990
+RF  Stein B. et al., 1993
+RF  Stein B., Baldwin A.S., 1993
+//
+ID  Hs:IRF-1
+DT  09.10.97; Ananko E.; created.
+DT  11.5.1999.; Kolpakov F.A.; updated.
+OS  Homo sapiens (human).
+SN  IRF-1
+NM  interferon regulatory factor 1
+SY  ISGF2
+CH  5q23-31.1
+DR  TRRD; G000324; Hs:IRF1
+DR  TFGENE; G000324;
+RE  IFN-alpha
+RE  IFN-gamma
+RE  dsRNA
+RE  IL-6
+RE  IFN-beta
+RE  TNF-alpha
+RE  IL-1
+RE  IL-1 alpha
+RE  leukemia inhibitory factor (LIF)
+RE  prolactin
+RE  virus infection (NDV)
+SO  Hs:HeLa
+CC  test mail
+//
+ID  Hs:IRF-2
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IRF-2
+NM  interferon regulatory factor 2
+DR  TRRD; G001056; Hs:IRF2
+DR  TFGENE; G001056;
+DR  EMBL; X15949;
+CH  4q35.1
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE  virus infection (NDV)
+RE  IFN-beta
+RE  IFN-alpha
+//
+ID  Hs:Ku70
+DT  12.5.1999.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  Ku-70 autoantigen
+NM  70-kDa subunit of Ku autoantigen
+RF  Li G.C. et al., 1995
+RF  Yang S.H. et al., 1996
+//
+ID  Hs:LDLR
+DT  02.8.1999.; Ignatieva E.V.; created.
+OS  Homo sapiens (human).
+SN  LDLR
+NM  LDL receptor gene
+DR  TRRD; A00407; Hs:LDLR 
+DR  EMBL; HSLDLR011; L29401; K02573; M10664; N00033
+DR  SWISS-PROT; LDLR_HUMAN; P01130
+SO  Hs:OME
+SO  Hs:PBMC
+RF  Cuthbert J.A. and Lipsky P.E., 1990
+RF  Hamanaka R. et al., 1992
+//
+ID  Hs:MCP1 
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  MCP-1
+NM  monocyte chemoattractant protein-1
+SY  monocyte chemoattractant adn activating factor
+SY     tumor-derived chemotactic factor
+SY     smooth muscle cell chemoattractant factor
+DR  TRRD;Hs:MCP1;A00892
+RE  RE A00892.004
+RE  ID Hs:MCP1
+RE  RU endothelium
+RE  RU smooth muscle
+RE  RI PDGF (platelet-derived growth factor)
+RE  RI TNF-alpha
+RE  RI IL-1
+RE  RI EGF (epidermal growth factor)
+RE  RI IFN-gamma
+RE  FF induction
+RE  RR [Yamamoto K. et al., 1999]
+RF  Rovin B.H. et al., 1997
+RF  Yamamoto K. et al., 1999
+//
+ID  Hs:MDR1 
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  MDR1 
+NM  multidrug resistance gene
+SY  PGY1
+SY     P-glycoprotein gene
+CH  7q21.1
+DR  TRRD;Hs:MDR1;A00171
+RF  Vanhoefer U. et al., 1997
+//
+ID  Hs:OAS
+DT  09.10.97; Ananko E.; created.
+XX
+SN  2'-5' OAS
+NM  2'-5' oligoadenylate synthetase
+SY  2'-5' A synthetase
+DR  TRRD; G000351; Hs:OAS 
+DR  TFGENE; G000351;
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE  IFN-alpha 
+//
+ID Hs:OB
+DT 10.12.98; Ignatieva 
+XX
+SN OB
+NM obese gene
+SY leptin gene
+DR TRRD; G001258; G001258
+PN Hs:OB
+XX
+OS  Homo sapiens (human).
+XX
+SO Hs:adipose
+CC see G001258.001
+RF [Miller S.G. et al., 1996]
+//
+ID  Hs:PBGD
+DT  09.10.97; Ananko E.; created.
+XX
+SN  PBGD
+NM  porphobilinogen ammonia-liase (polymerizing),
+SY  hidroxymethylbilane synthase
+DR  TFGENE; G000359;
+DR  TRRD; G000359; Hs:PBGD 
+CH  11q24.1-q24.2
+XX
+OS  Homo sapiens (human).
+XX
+SO  Hs:K562 
+SO  Hs:HeLa 
+XX
+RE 
+//
+ID  Hs:PPO
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  PPO
+NM  protoporphyrinogen oxidase
+CH  1q23
+CC  Protoporphyrinogen oxidase (EC 1.3.3.4) is the penultimate enzyme
+CC  in the heme biosynthetic pathway, catalyzing the six-electron oxidation
+CC  of protoporphyrinogen to protoporphyrin. A dominantly inherited genetic
+CC  deficiency in this enzyme results in the disease variegate porphyria.
+RF  Ponka P. 1997
+RF  Roberts A.G.
+//
+ID  Hs:PRL1
+DT  12.11.1999; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  PRL-1
+NM  tyrosine phosphatase
+SY  DUSP1
+SY  PTPN10
+SY  MPK1
+SY  CL100
+SY  SY HVH1
+CH  6
+DR  TRRD; A00666
+DR  EMBL; HSCL100; X68277; S46269; ST:234
+DR  GenBank; AF051160; AF051160;ST:
+SO  Hs:fibroblast
+RF  Keyse S.M., Emslie E.A., 1992
+//
+ID  Hs:REF-1
+DT  22.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  redox factor 1
+NM  Apurinic/apyrimidinic endonuclease
+SY  APE
+SY  APEX
+SY  HAP1
+CH  14q11.2-q12
+RF  Akiyama K. et al., 1994
+RF  Grosch S., Kaina B., 1999
+RF  Harrison L. et al., 1995
+//
+ID  Hs:SOD1
+DT  18.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  CuZnSOD
+NM  Cu/Zn superoxide dismutase
+DR  TRRD;Hs:SOD1;A00564
+RF  Kim H.T. et al., 1994
+//
+ID Hs:SREBP2
+DT 10.12.98; Ignatieva E.V.
+XX
+SN SREBP-2
+NM sterol regulatory element-binding protein-2 gene
+DR TRRD; G001331; Hs:SREBP2
+PN Hs:SREBP2
+XX
+OS  Homo sapiens (human).
+XX
+SO Hs:heart
+SO Hs:brain
+SO Hs:lung
+SO Hs:liver
+SO Hs:muscle
+SO Hs:kidney
+SO Hs:adrenal
+CC adult 
+SO Hs:heart
+SO Hs:brain
+SO Hs:lung
+SO Hs:liver
+SO Hs:kidney
+CC fetus 
+SO Hs:HeLa
+RF [Hua X. et al., 1993]
+CC see G001331.014
+CC see G001331.015
+CC see G001331.016
+//
+ID  Hs:SS
+DT  30.7.1999.; Ignatieva E.V.; created.
+OS  Homo sapiens (human).
+SN  SS
+NM  squalene synthase
+SY  farnesyl-diphosphate: farnesyl-diphosphate farnesyltransferase
+DR  TRRD; A00400; Hs:SS  
+SO  Hs:HepG2
+SO  Hs:liver
+RF  Jiang G. et al., 1993
+//
+ID  Hs:STAR
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Homo sapiens (human).
+SN  STAR
+NM  steroidogenic acute regulatory protein
+DR  TRRD; A00488; Hs:STAR
+//
+ID  Hs:TAL1
+DT  09.10.97; Ananko E.; created.
+DT  22.6.1999.; Podkolodnaya O.A.; updated.
+OS  Homo sapiens (human).
+SN  TAL1
+NM  TAL1 protein
+SY  SCL
+SY  TCL5
+CH  1
+DR  TFGENE; G001188;
+DR  TRRD; G001188; Hs:TAL1
+DR  GenBank; STAL1DNA; X81027;
+DR  SWISS-PROT; SCL_HUMAN; P17542;
+RE  erythropoietin
+SO  Hs:Cos
+SO  Hs:HEL
+SO  Hs:HeLa
+SO  Hs:K562
+SO  Hs:NIH3T3
+//
+ID  Hs:TF
+DT  27.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  TF
+NM  tissue factor
+RF  Donovan-Peluso M. et al., 1994
+//
+ID  Hs:TFREC
+DT  27.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  TfR
+NM  transferrin receptor
+DR  TRRD;Hs:TFREC;A00505
+RF  Owen D., Kuhn L.C., 1987
+//
+ID  Hs:TNFA 
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  TNF-alpha
+NM  tumor necrosis factor alpha
+DR  TRRD;Hs:TNFA;A00266 
+RF  Preischl E.E. et al., 1996
+RF  Tsai E.Y. et al., 1996
+RF  Tsai E.Y. et al., 1996a
+RF  Zagariya A. et al., 1998
+//
+ID  Hs:TRX
+DT  22.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  Trx
+NM  Thioredoxin 
+RF  Tonissen K.F., Wells J.R., 1991
+//
+ID  Hs:TSHalpha
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Homo sapiens (human).
+SN  TSHalpha
+NM  thyroid stimulating hormone alpha subunit
+SY  glicoprotein hormones alpha chain
+//
+ID  Hs:TSHbeta
+DT  21.3.2000.; Suslov V.V.; created.
+OS  Homo sapiens (human).
+SN  TSHbeta
+NM  thyroid stimulating hormone beta
+SY  thyrotropin beta
+//
+ID  Hs:URO-D
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  URO-D
+NM  uroporphyrinogen decarboxylase
+CC  There are two transcription start sites but they are used in the same proportion in erythroid and nonerythroid cells
+RF  Romana M. et al., 1987
+//
+ID  Hs:URO-S
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  URO-S
+NM  Uroporphyrinogen III synthase 
+SY  URO-synthase;
+SY  hydroxymethylbilane hydro-lyase (cyclizing) 
+DR  TRRD; G001186; Hs:ALAD
+CC  Uroporphyrinogen III synthase, the fourth 
+CC  enzyme in the heme biosynthetic pathway,
+CC   is responsible for conversion of the linear 
+CC  tetrapyrrole, hydroxymethylbilane, to the cyclic
+CC  tetrapyrrole, uroporphyrinogen III. The deficient
+CC  activity of URO-synthase is the enzymatic defect 
+CC  in the autosomal recessive disorder congenital 
+CC  erythropoietic porphyria
+RF  Tsai S.F. et al.,  1988
+//
+ID  Hs:VCAM1
+DT  25.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  VCAM-1
+NM  vascular cell adhesion molecule 1 gene
+SY  cytokine-inducible adhesion molecule
+DR  TRRD;Hs:VCAM1;A00301
+RE  RE A00301.004
+RE  ID Hs:VCAM1
+RE  RI TNF-alpha, IL-1beta, LPS (lipopolysaccharide)
+RE  FF induction
+RE  RR [Neish A.S. et al., 1995]
+SO  Hs:HUVE
+RF  Khan B.V. et al., 1996
+RF  Marui N. et al., 1993
+RF  Neish A.S. et al., 1995
+RF  Tsao P.S. et al., 1996
+//
+ID  Hs:ZG
+DT  24.6.1999.; Podkolodnaya O.A.; created.
+OS  Homo sapiens (human).
+SN  ZG
+NM  zeta2-globin
+SY  hemoglobin z2 chain
+CH  16
+DR  EpoDB; 13937; 
+DR    Gerd; T00048;
+DR  EPD; Hs z'-globin; 11098   
+DR  GDB; HBZ; 119302
+DR  TRRD;Hs:ZG;G000419;
+SO  Hs:K562
+SO  Hs:P-erythrocyte
+SO  Hs:erythroblast
+SO  Hs:erythroblastPr
+SO  Hs:yolk sac
+CC  Switch zeta- to alpha-globin is at 5-6 weeks .
+CC  Expression of the embryonic ZG normally continues at low levels into adulthood 
+//
+ID  Hs:ferrL
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  ferrL
+NM  apoferritin L
+CH  19q13.3-13.4
+DR  TRRD;Hs:FERRL;A00897
+RF  D'Agostino et al., 1995
+RF  Elia G. et al., 1999
+RF  Martin M.E. et al., 1998
+//
+ID  Hs:iNOS
+DT  26.6.1999.; Ananko E.; created.
+OS  Homo sapiens (human).
+SN  iNOS
+NM  nitric oxide synthase
+DR  TFGENE; G001073;
+DR  TRRD; G001073; Mm:INOS
+RE  IFN-gamma
+RE  LPS
+RE  TNF-alpha
+RE  tissue damage
+//
+ID  Hs:p21 Waf1
+DT  18.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  p21 Waf1
+NM  p21 Waf1 kinase inhibitor
+SY  Cip1   Cdk-interacting protein 1
+CH  6p21.2
+DR  TRRD;Hs:WAF1;A00359
+SO  Hs:KG-1
+SO  Hs:U937
+SO  Hs:fibroblast
+RF  Akashi M. et al., 1995
+RF  Di Leonardo A. et al., 1994
+//
+ID  Hs:p50
+DT  09.10.97; Ananko E.; created.
+XX
+SN  p50
+NM  Nuclear Factor kappa B p50 subunit
+SY  p105
+DR  TRRD; G000356; Hs:P50
+DR  TFGENE; G000356;
+CH  4q(23)-4q(25)
+OS  Homo sapiens (human).
+XX
+SO  Hs:HeLa 
+XX
+RE  LPS
+RE  IFN-gamma
+RE  PMA
+RE  TNF-alpha
+//
+ID  Hs:p53
+DT  18.4.2000.; Stepanenko I.L.; created.
+OS  Homo sapiens (human).
+SN  p53
+NM  p53 tumor suppresser 
+DR  TRRD;Hs:P53;A00307
+SO  Hs:fibroblast
+RF  Di Leonardo A. et al., 1994
+//
+ID  Hv: Acph 1-3
+DT  07.6.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  acid phosphatases 1-3
+NM  acid phosphatases 1-3
+RF  Nielsen G. et al.1986
+//
+ID  Hv:AAMY
+DT  02-Feb-99.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  alpha-amylase
+NM  alpha-amylase
+DR  TRRD; G001335; Hv:AAMY
+//
+ID  Hv:AEP
+DT  06.10.1999; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  AEP
+NM  SH-dependent acid endopeptidase
+SO  Hv:aleurone
+RF  Jones B.L.,et al.,1990.
+//
+ID  Hv:AMY32B
+DT  03.3.2000.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  AMY32b
+NM  alpha-amylase 32b
+DR  TRRD; A00798; Hv:AMY32B
+RF  Rogers J.C. and Rogers S.W., 1992
+//
+ID  Hv:Acph 1-3
+DT  02.6.1999.; Alex; created.
+DT  11.10.1999; Alex; updated.
+OS  Hordeum vulgare (barley).
+SN  acid phosphatases 1-3
+NM  acid phosphatases 1-3
+RF  Gabard K.A.,1986
+//
+ID  Hv:B-hord
+DT  20.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  B1-hord
+NM  B1-hordein
+CH  5
+DR  TRRD; Hv:BHORD; G001361
+SO  Hv:seed
+RF  Giese H. et al., 1983
+//
+ID  Hv:BLT49
+DT  03.5.2000.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  BLT49
+NM  lipid transfer protein gene
+DR  TRRD; Hv:BLT49; A00819
+RF  Dunn M.A. et al., 1998
+//
+ID  Hv:C-hord
+DT  20.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  C-hord
+NM  C-hordein
+DR  TRRD; Hv:CHORD; G001232
+SO  Hv:seed
+RF  Giese H. et al., 1983
+//
+ID  Hv:EBP1
+DT  13.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  EBP1
+NM  cysteine proteinase B1
+DR  TRRD; G001422; Hv:EBP1
+RF  Mikkonen A. et al., 1996
+//
+ID  Hv:EBP2
+DT  13.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  EBP2
+NM  cysteine proteinase B2
+DR  TRRD; G001423; Hv:EBP2
+RF  Mikkonen A. et al., 1996
+//
+ID  Hv:GAmyb
+DT  26.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  GAmyb
+NM  GAmyb
+SO  Hv:seed
+RF  Gubler F. et al., 1995
+//
+ID  Hv:HA1
+DT  13.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  HVA1
+NM  Lea gene HVA1
+DR  TRRD; G001354; Hv:HVA1
+RF  Shen Q. et al., 1996
+//
+ID  Hv:HVA1
+DT  13.4.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  HVA1
+NM  Lea gene HVA1
+DR  TRRD; G001354; Hv:HVA1
+RF  Shen Q. et al., 1996
+//
+ID  Hv:HVA22
+DT  17.11.1999; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  HVA22
+NM  Lea gene HVA22
+//
+ID  Hv:Hv: Acph 1-3
+DT  02.6.1999.; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  acid phosphatases 1-3
+NM  acid phosphatases 1-3
+//
+ID  Hv:LOX
+DT  03.5.2000.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  LOXA
+NM   lipoxygenase 1
+DR  TRRD; A00719; Hv:LOXA.
+RF  Rouster J. et al., 1997
+//
+ID  Hv:SACP
+DT  18.10.1999; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  SACP
+NM  serin-acid carboxypeptidase
+RF  Jones B.L.,et al.,1990.
+//
+ID  Hv:SPY
+DT  19.10.1999; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  SPY
+NM  SPY,negative regulator of gibberellin action
+SO  Hv:aleurone
+RF  Robertson M., et al.,1998
+//
+ID  Hv:acid lipase
+DT  19.11.1999; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  acid lipase
+NM  acid lipase
+//
+ID  Hv:b-glucanase
+DT  27.9.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  b-glucanase
+NM  1-3,1-4 endo beta-glucanase
+//
+ID  Hv:beta-glucanase
+DT  27.9.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  beta-glucanase
+NM  1-3,1-4 endo beta-glucanase
+//
+ID  Hv:br2
+DT  24.3.2000.; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  br2
+NM  brachytic 2
+RF  Aksenovich A.V., 1996
+//
+ID  Hv:eam8
+DT  30.4.1999.; Alex; created.
+DT  02.6.1999.; Alex; updated.
+OS  Hordeum vulgare (barley).
+SN  eam8
+NM  eam8
+RF  Aksenovich A.V., 1996
+RF  Axenovich A.V. et al.1989
+RF  Gustafsson A.et al,1960
+RF  Sogaard B.,1987
+//
+ID  Hv:l-dextr
+DT  27.9.1999.; Tana; created.
+OS  Hordeum vulgare (barley).
+SN  l-dextr
+NM  limit dextrinase
+//
+ID  Hv:uz
+DT  24.3.2000.; Alex; created.
+OS  Hordeum vulgare (barley).
+SN  uz
+NM  uzu
+RF  Aksenovich A.V., 1996
+//
+ID  Le:Cf9
+DT  17.4.2000.; Tana; created.
+OS  Lycopersicon esculentum (tomato).
+SN  Cf9
+NM  Cf9
+RF  Hammond-Kasack K.E. et al., 1998
+//
+ID  Ma:HMGS 
+DT  30.7.1999.; Ignatieva E.V.; created.
+OS  Mesocricetus auratus (Syrian hamster).
+SN  HMGCS
+NM  HMG-CoA synthase gene
+SY  3-hydroxy-3-methylglutaryl coenzyme A synthase gene
+DR  TRRD; A00415; Ma:HMGS
+DR  EMBL; MAHMGC01; M11869
+DR    
+SO  Ma:liver
+SO  Ma:ovary
+RF  Smith J.R. et al., 1988
+//
+ID  Mm:BMG
+DT  09.10.97; Ananko E.; created.
+XX
+SN  BMG
+NM  hemoglobin beta major chain
+SY  betaM-globin
+DR  TFGENE; G000484;
+DR  TRRD; G000484; Mm:BMG 
+OS  Mus musculus (mouse).
+XX
+SO  Mm:J2E 
+SO  Mm:MEL 
+SO  Mm:CV-1 
+XX
+RE  erythropoietin
+//
+ID  Mm:C-FOS
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  c-fos
+NM  c-fos protooncogene
+DR  TRRD;Mm:CFOS;A00107 
+RF  Piette J. and Yaniv M., 1987
+//
+ID  Mm:C-MYC
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  c-myc
+NM  c-myc protooncogene
+DR  TRRD;Mm:CMYC;A00108
+RF  Duyao M.P. et al., 1990
+RF  Kessler D.J. et al., 1992
+//
+ID Mm:CEBPA
+DT 10.12.98; Ignatieva E.V.
+XX
+SN C/EBPalpha
+NM CCAAT/enhancer binding protein alpha gene
+DR TRRD; G000490; Mm:CEBPA
+PN Mm:CEBPalpha_p, Mm:CEBPalpha
+XX
+OS  Mus musculus (mouse).
+XX
+SO Mm:hepatocytes
+SO Mm:adipocytes
+SO Mm:myelomonocytic marrow cells
+SO Mm:parenchymal cells
+SO Mm:mucosal cells
+SO Mm:keratinocytes
+SO Mm:white fat
+SO Mm:brown fat
+SO Mm:liver
+SO Mm:lung
+SO Mm:small intestine
+SO Mm:kidney
+SO Mm:skeletal muscle
+SO Mm:brain
+SO Mm:testis
+SO Mm:spleen
+SO Mm:adrenal
+SO Mm:placenta
+SO Mm:3T3-L1
+SO Mm:3T3-L1 adipocytes
+XX
+RF Birkenmeier E.H. et al., 1989
+RF Legraverend C. et al., 1993
+RF Antonson P. et al., 1995
+RF MacDougald O.A. et al., 1994
+RF Christy R.J. et al., 1991
+XX
+RE dexametasone (repression) G000490.020
+RE insulin (repression)
+XX
+CC see G000490.022
+CC see G000490.024
+//
+ID  Mm:COX-2
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  COX-2
+NM  cyclooxygenase 2
+DR  TRRD;Mm:COX2;A00883
+RE  RE A00883.001
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN MC3T3-E1
+RE  RL present
+RE  RI TNF-alpha
+RE  RH 1 h
+RE  RH 3 h
+RE  RH 6 h
+RE  RH 9 h
+RE  RH 12 h
+RE  RH 24 h
+RE  FF induction
+RE  RS S4287, S4288
+RE  RR [Yamamoto K. et al., 1995]
+RE  RE A00883.002
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN ML-457
+RE  RL present
+RE  RI peroxisome proliferator Wy-14.643
+RE  RI peroxisome proliferator MEHP (mono-ethylhexyl phthalate)
+RE  RI arachidonic acid
+RE  RI peroxisome proliferator ETYA (eicosatetraynoic acid)
+RE  RI peroxisome proliferator clofibrate
+RE  RI peroxisome proliferator ciprofibrate ester
+RE  RI thapsigargin
+RE  RI indomethacin
+RE  FF induction
+RE  RR [Ledwith B.J. et al., 1997]
+RE  RE A00883.003
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN ML-457
+RE  RL present
+RE  RI TPA (12-O-tetradecanoylphorbol-13-acetate)
+RE  RH 1 h
+RE  FF induction
+RE  RR [Ledwith B.J. et al., 1997]
+RE  RE A00883.004
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN ML-457
+RE  RL present
+RE  RI okadaic acid
+RE  RH 10 h
+RE  FF induction
+RE  RR [Ledwith B.J. et al., 1997]
+RE  RE A00883.005
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN ML-457
+RE  RL present
+RE  RI calcium ionophore A 23187
+RE  RH 4 h
+RE  FF induction
+RE  RR [Ledwith B.J. et al., 1997]
+RE  RE A00883.006
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN MC3T3-E1
+RE  RL present
+RE  RI iloprost
+RE  RI PGF2 (prostaglandin F2)
+RE  RH 3 h
+RE  FF induction
+RE  RR [Takahashi Y. et al., 1994]
+RE  RE A00883.007
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN MC3T3-E1
+RE  RL present
+RE  RI TGF-beta
+RE  RI PMA (phorbol 12-myristate 13-acetate)
+RE  RI forskolin
+RE  RH 2 h
+RE  FF induction
+RE  RR [Pilbeam C.C. et al., 1993]
+RE  RE A00883.008
+RE  ID Mm:COX2
+RE  RT mRNA
+RE  RN MC3T3-E1
+RE  RL present
+RE  RI prostaglandin E2
+RE  FF induction
+RE  RR [Pilbeam C.C. et al., 1993]
+RF  Ledwith B.J. et al., 1997
+RF  Yamamoto K. et al., 1995
+//
+ID  Mm:Cyp11A
+DT  24.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Mus musculus (mouse).
+SN  Cyp11A
+NM  Cyp11A
+DR  TRRD; A00561; Mm:CYP11A 
+//
+ID  Mm:Cyp11B1
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Mus musculus (mouse).
+SN  Cyp11B1
+NM  Cyp11B1
+DR  TRRD; A00583; Mm:CYP11B1
+SO  Mm:adrenal
+//
+ID  Mm:Cyp17
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Mus musculus (mouse).
+SN  Cyp17
+NM  Cyp17
+DR  TRRD; A00490; Mm:Cyp17
+SO  Mm:testis
+//
+ID  Mm:Cyp19
+DT  30.6.1999.; Busygina T.V.; created.
+OS  Mus musculus (mouse).
+SN  Cyp19
+NM  Cyp19
+SO  Mm:brain
+SO  Mm:ovary
+SO  Mm:testis
+RF  Simpson E.R. et al., 1994
+//
+ID  Mm:Cyp21
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Mus musculus (mouse).
+SN  Cyp21
+NM  Cyp21
+DR  TRRD; A00790; Mm:CYP21B
+SO  Mm:adrenal
+//
+ID  Mm:EKLF
+DT  09.10.97; Ananko E.; created.
+XX
+SN  EKLF
+NM  erythroid Kruppel-like factor
+DR  TFGENE; G001081;
+DR  TRRD; G001081; Mm:EKLF 
+DR  EMBL; U08199;
+DR  EMBL;  M97200;
+OS  Mus musculus (mouse).
+XX
+SO  Hs:NIH3T3 
+SO  Mm:MEL 
+XX
+RE 
+//
+ID  Mm:EPO
+DT  09.10.97; Ananko E.; created.
+XX
+SN  EPO
+NM  erythropoietin
+DR  TFGENE; G001221;
+DR  TRRD; G001221; Mm:EPO 
+OS  Mus musculus (mouse).
+XX
+SO  Mm:kidney 
+XX
+RE  anaemia
+RE  hypoxia
+RE  cobalt
+RE  bleeding 
+//
+ID  Mm:EpoR
+DT  09.10.97; Ananko E.; created.
+XX
+SN  EpoR 
+NM  erythropoietin receptor
+DR  TFGENE; G000507;
+DR  TRRD; G000507; Mm:EPOR 
+OS  Mus musculus (mouse).
+XX
+SO  Mm:MEL 
+SO  Mm:CB-5 
+SO  Mm:B8/3 
+SO  Mm:15S 
+SO  Mm:FDC-P1 
+SO  Mm:WEIH-3B 
+SO  Mm:CTLL 
+SO  Mm:F9 
+//
+ID  Mm:FCH
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Mus musculus (mouse).
+SN  FCH
+NM  ferrochelatase
+SO  Mm:MEL
+RF  Ponka P. 1997
+RF  Taketani S. et al., 1990
+//
+ID  Mm:FTH
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  FTH
+NM  ferritin heavy chain
+CH  19
+DR  TRRD;Mm:FH;A00511
+RF  Kwak E.L. et al., 1995
+//
+ID  Mm:GATA-1
+DT  09.10.97; Ananko E.; created.
+XX
+SN  GATA-1
+NM  GATA-1
+DR  TFGENE; G000512;
+DR  TRRD; G000512; Mm:GATA1
+DR  EMBL; X15763;
+OS  Mus musculus (mouse).
+XX
+SO  Mm:MEL 
+XX
+RE  erythropoietin 
+//
+ID  Mm:GST-Ya
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  GST-Ya
+NM  glutathione S-transferase Ya subunit
+DR  TRRD; Mm:GST; A00268
+RF  Paulson K.E. et al., 1990
+//
+ID  Mm:HO-1
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  HO-1
+NM  heme oxygenase 1
+SY  haem oxygenase
+DR  TRRD;Mm:HO;A00725
+RF  Alam J. et al., 1995
+RF  Lee P.J. et al., 1997
+//
+ID  Mm:IFN-A11
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IFN-A11
+NM  interferon-alpha11
+SY  IFN-alpha11
+DR  TRRD; G001227; Mm:IFNA11
+DR  TFGENE; G001227;
+OS  Mus musculus (mouse).
+XX
+SO  Mm:B-cell 
+XX
+RE  virus infection
+//
+ID  Mm:IFN-alpha
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IFN-alpha
+NM  interferon-alpha
+DR  TRRD; G001177; Mm:IFNA 
+DR  TFGENE; G001177;
+OS  Mus musculus (mouse).
+XX
+SO  Mm:B-cell 
+XX
+RE  virus infection (NDV)
+RE  poly(I).poly(C)
+RE  dsRNA
+//
+ID  Mm:IFN-beta
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IFN-beta
+NM  Interferon-beta
+DR  TRRD; G000628; Mm:IFNB 
+DR  TFGENE; G000628;
+OS  Mus musculus (mouse).
+XX
+SO  Mm:B-cell 
+XX
+RE  virus infection (NDV)
+RE  poly(I).poly(C)
+RE  dsRNA
+//
+ID  Mm:IL1B
+DT  21.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  IL-1beta
+NM  interleukin-1beta
+CH  2
+DR  TRRD;Mm:IL1B;A00461
+RE  RE A00461.001
+RE  ID Mm:IL1B
+RE  RN monocytes
+RE  RL present
+RE  RI LPS (lipopolysaccharide)
+RE  RI TNF-alpha
+RE  RI IL-2
+RE  RI IL-1
+RE  FF induction
+RE  RR [Godambe S.A. et al., 1994]
+RE  RE A00461.002
+RE  ID Mm:IL1B
+RE  RN monocytes
+RE  RL present
+RE  RI IL-4
+RE  RI IL-6
+RE  RI IL-10
+RE  FF repression
+RE  RR [Godambe S.A. et al., 1994]
+RF  Godambe S.A. et al., 1994
+RF  Godambe S.A. et al., 1995
+//
+ID  Mm:IL2 
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  IL-2
+NM  interleukin 2
+DR  TRRD;Mm:IL2;A00475
+RF  Rooney J.W. et al., 1995
+RF  Schenk H. et al., 1996
+//
+ID  Mm:IRF-1
+DT  09.10.97; Ananko E.; created.
+XX
+SN  IRF-1
+NM  interferon regulatory factor 1
+DR  TRRD; G001058; Mm:IRF1
+DR  TFGENE; G001058;
+OS  Mus musculus (mouse).
+XX
+SO  Mm:T-cell 
+XX
+RE  virus infection
+RE  IFN-beta
+RE  IFN-gamma
+RE  prolactin
+RE  IL-1
+RE  IL-2
+RE  IL-6
+RE  leukemia inhibitory factor (LIF)
+RE  oncostatin M (OSM)
+RE  TNF-alpha
+RE  GM-CSF
+RE  concanavalin A
+RE  TPA
+RE  dsRNA
+RE  PMA 
+XX
+CC  IRF-1 protein expressed in G1 exhibits a half-life of about 25 min,
+CC  whereas in the S phase, the half-life is about 60 min.
+RF  Stevens A.M. et al., 1992 
+//
+ID  Mm:JUNB
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  junB
+NM  oncogene junB
+DR  TRRD;Mm:JUNB;A00095 
+RF  Apel I. et al., 1992
+RF  Perez-Albuerne E.D. et al., 1993
+//
+ID  Mm:JUND 
+DT  19.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  junD
+NM  junD
+DR  TRRD;Mm:JUND 
+//
+ID  Mm:MCP1JE
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  MCP-1/JE
+NM  monocyte chemoattractant protein 1
+SY  JE gene
+DR  TRRD;Mm:MCP1JE;A00903
+RF  Ping D. et al., 1996
+//
+ID  Mm:MDR1
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  mdr1b
+NM  multidrug resistance gene 1b
+SY  P-glycoprotein gene
+SY     mdr1
+DR  TRRD;Mm:MDR1;A00172
+//
+ID  Mm:MIP1A
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  MIP-1 alpha
+NM  macrophage inflammatory protein 1 alpha
+SY  SCI
+SY  TY-5
+SY  SIS-alpha
+SY  heparin-binding chemotaxis protein
+SY  SCYA3
+SY  MIP1A
+CH  11
+DR  TRRD;Mm:MIP1A;A00990
+RF  Shi M.M. et al., 1996
+//
+ID  Mm:MT1
+DT  27.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  MT-I
+NM  metallothionein-I
+CH  8
+DR  TRRD;Mm:MT1;A00080
+RF  Andrews G., 1990
+//
+ID  Mm:OAS
+DT  09.10.97; Ananko E.; created.
+XX
+SN  2'-5' OAS
+NM  2'-5' oligoadenylate synthetase
+SY  2'-5' A synthetase
+DR  TRRD; G000580; Mm:OAS 
+DR  TFGENE; G000580;
+OS  Mus musculus (mouse).
+XX
+SO  Mm:spleen 
+SO  Mm:liver 
+SO  Mm:lung 
+SO  Mm:thymus 
+XX
+RE  IFN-alpha 
+//
+ID Mm:OB
+DT 10.12.98; Ignatieva E.V.
+XX
+SN ob
+NM obese gene
+SY leptin gene
+DR TRRD; G001032; Mm:OB
+PN Mm:OB
+XX
+OS  Mus musculus (mouse).
+XX
+SO Mm:adipose
+SO 3T3-L1 preadipocytes
+SO 3T3-L1 adipocytes
+RF He Y. et al., 1995
+RF Hwang C.S. et al., 1996
+//
+ID  Mm:PBGD
+DT  09.10.97; Ananko E.; created.
+XX
+SN  PBGD
+NM  porphobilinogen ammonia-liase (polymerizing)
+SY  hidroxymethylbilane synthase
+DR  TFGENE; G000584;
+DR  TRRD; G000584; Mm:PBGD 
+OS  Mus musculus (mouse).
+XX
+SO  Mm:CTO 
+SO  Mm:MEL 
+XX
+RE 
+//
+ID  Mm:PKR
+DT  09.10.97; Ananko E.; created.
+XX
+SN  PKR
+NM  dsRNA-dependent cAMP-independent protein serine/threonine kinase
+SY  DAI
+SY  dsRNA-dependent eIF-2alpha protein kinase
+SY  dsI
+SY  P1 kinase
+SY  p65
+SY  p67
+SY  TIK protein
+DR  TRRD; G001168; Mm:PKR 
+DR  TFGENE; G001168;
+CH  17E2
+OS  Mus musculus (mouse).
+XX
+SO  Mm:B-cell 
+XX
+RE  IFN-alpha
+RE  IFN-beta
+RE  IFN-gamma
+RE  virus infection
+//
+ID  Mm:PPO
+DT  23.6.1999.; Podkolodnaya O.A.; created.
+OS  Mus musculus (mouse).
+SN  PPO
+NM  protoporphyrinogen oxidase
+SO  Mm:MEL
+CC  Protoporphyrinogen oxidase (EC 1.3.3.4) is the penultimate enzyme
+CC  in the heme biosynthetic pathway, catalyzing the six-electron oxidation 
+CC  of protoporphyrinogen to protoporphyrin. A dominantly inherited genetic
+CC  deficiency in this enzyme results in the disease variegate porphyria. 
+CC  Northern blot analyses of RNA from uninduced and induced MEL 
+CC  cells as well as mouse hepatoma cells all show two major mRNA
+CC  species of 1.8 and 3.6 kb. 
+RF  Dailey T.A. et a., 1995
+RF  Ponka P. 1997
+//
+ID Mm:SREBP1
+DT 10.12.98; Ignatieva E.V.
+XX
+SN SREBP1
+NM sterol regulatory element-binding protein-2 gene
+SY ADD1
+DR TRRD; G001334; Mm:SREBP1
+PN Mm:SREBP1
+XX
+SO Mm:3T3-F442A
+SO Mm:3T3-L1
+RF Kim J.B. & Spiegelman B.M. 1996
+//
+ID  Mm:STAR
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Mus musculus (mouse).
+SN  STAR
+NM  steroidogenic acute regulatory protein
+DR  TRRD; A00584; Mm:STAR
+//
+ID  Mm:T3Rbeta
+DT  19.3.2000.; Suslov V.V.; created.
+OS  Mus musculus (mouse).
+SN  T3Rbeta
+NM  triiodothyronine receptor beta
+SY  thyroid hormone receptor beta
+SY  thyroid receptor beta
+RF  Wood W.M. et al., 1996
+//
+ID  Mm:TAL1
+DT  09.10.97; Ananko E.; created.
+XX
+SN  TAL1
+NM  TAL1 protein
+SY  SCL
+SY  TCL5
+DR  TFGENE; G001189;
+DR  TRRD; G001189; Mm:TAL1
+CH  4, central part
+OS  Mus musculus (mouse).
+XX
+SO  Mm:MEL 
+SO  Mm:T-cell 
+XX
+RE  erythropoietin 
+XX
+//
+ID  Mm:TF
+DT  27.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  TF
+NM  tissue factor
+DR  TRRD;Mm:TF; A00930
+RF  Felts S.J. et al., 1995
+//
+ID  Mm:TSHbeta
+DT  21.3.2000.; Suslov V.V.; created.
+OS  Mus musculus (mouse).
+SN  TSHbeta
+NM  thyroid stimulating hormone beta
+SY  thyrotropin beta
+//
+ID  Mm:iNOS
+DT  09.10.97; Ananko E.; created.
+XX
+SN  iNOS
+NM  nitric oxide synthase
+SY  NO synthase inducible form
+SY  mac-NOS
+DR  TFGENE; G001073;
+DR  TRRD; G001073; Mm:INOS 
+OS  Mus musculus (mouse).
+XX
+SO  Mm:macrophage 
+XX
+RE  IFN-gamma
+RE  LPS
+RE  TNF-alpha
+RE  tissue damage
+XX
+//
+ID  Mm:p53
+DT  18.4.2000.; Stepanenko I.L.; created.
+OS  Mus musculus (mouse).
+SN  P53
+NM  p53 tumor suppressor 
+DR  TRRD;Mm:P53;A00308
+RF  Wu H., Lozano G., 1994
+//
+ID  Mm:ppTRH
+DT  02.2.2000.; Suslov V.V.; created.
+OS  Mus musculus (mouse).
+SN  ppTRH
+NM  preprothyrotropin releasing hormone
+//
+ID Mt:RIP
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Medicago truncatula (barrel medic)
+SN Rip1
+NG Rhizobium induced peroxidase
+PN P00115
+SO epidermal cells; C00111
+RE Nod factor
+RF [Cook D. et al., 1995]
+//
+ID  Ns:PR-5
+DT  03.5.2000.; Tana; created.
+OS  Nicotiana sylvestris (tobacco).
+SN  PR-5
+NM  pathogenesis related gene
+RF  Sato F. et al., 1996
+//
+ID  Nt:EREBP-2
+DT  03.5.2000.; Tana; created.
+OS  Nicotiana tobacum (tobacco).
+SN  EREBP-2
+NM  ethylene-responsive element binding protein gene
+RF  Ohme-Takagi M. and Shinshi H., 1995
+//
+ID  Nt:GLN2
+DT  21.12.1999; Tana; created.
+DT  20.4.2000.; Tana; updated.
+OS  Nicotiana tobacum (tobacco).
+SN  Gln2
+NM  acidic beta-1,3-glucanase
+SY  PR-2
+RF  van de Rhee M.D. et al., 1993
+//
+ID  Nt:PR-2d
+DT  03.5.2000.; Tana; created.
+OS  Nicotiana tobacum (tobacco).
+SN  PR-2d
+NM  pathogenesis related gene
+RF  Shah J. and Klessing D.F., 1996
+//
+ID  Nt:PR-5
+DT  03.5.2000.; Tana; created.
+OS  Nicotiana tobacum (tobacco).
+SN  PR-5
+NM  pathogenesis related gene
+RF  Sato F. et al., 1996
+//
+ID  Nt:PRB1B
+DT  21.12.1999; Tana; created.
+OS  Nicotiana tobacum (tobacco).
+SN  PRB-1b
+NM  pathogenesis-related protein
+RF  Buttner M. and Singh K.B., 1997
+//
+ID  Nt:STR246C
+DT  03.5.2000.; Tana; created.
+OS  Nicotiana tobacum (tobacco).
+SN  str245C
+NM  str245C
+DR  TRRD; A00619; Nt:STR246C.
+RF  Gough C. et al., 1995
+//
+ID  Nt:WIZZ
+DT  03.5.2000.; Tana; created.
+OS  Nicotiana tobacum (tobacco).
+SN  WIZZ
+NM  wound-induced leucine zipper zinc finger protein gene
+RF  Hara K. et al., 2000
+//
+ID  Oa:Cyp11A
+DT  24.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Ovis aries (sheep).
+SN  Cyp11A
+NM  Cyp11A
+DR  TRRD; A00499; Oa:CYP11A
+//
+ID  Os:AGP
+DT  20.4.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  AGP
+NM  ADP-glucose pyrophosphorylase small subunit
+DR  TRRD; Os:AGP; G001339
+SO  Os:endosperm
+RF  Russell D.A. and Fromm M.E., 1997
+//
+ID  Os:AMY3D
+DT  13.3.2000.; Tana; created.
+OS  Oryza sativa (rice).
+SN  alpha-amylase 3D
+NM  alpha-amylase
+DR  TRRD;Os:AMY3D;  A00966
+RF  Hwang Y.S. et al., 1998
+//
+ID  Os:BZ8
+DT  24.11.1999; Tana; created.
+OS  Oryza sativa (rice).
+SN  BZ8
+NM  rice bZIP protein gene
+//
+ID  Os:EM
+DT  10.9.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  EM
+NM  embryo-specific gene
+DR  TRRD; Os:EM; G001507
+SO  Os:seed
+RF  Nakagawa H. et al., 1996
+//
+ID  Os:GLB1
+DT  08-Feb-99.; Tana; created.
+OS  Oryza sativa (rice).
+SN  Glb-1
+NM  alpha-globulin-1
+DR  TRRD; Os:GLB1; G001231
+//
+ID  Os:GluA-2
+DT  19.4.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  GluA-2
+NM  glutelin A-2
+DR  TRRD; Os:GLUA2; G001234
+SO  Os:endosperm
+RF  Okita T.W. et al., 1989
+//
+ID  Os:GluA-3
+DT  20.4.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  GluA-3
+NM  glutelin A-3
+DR  TRRD; Os:GLUA3; G001230
+SO  Os:endosperm
+RF  Yoshihara T. and Takaiva F., 1996
+//
+ID  Os:GluB1
+DT  30.7.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  GluB-1
+NM  glutelin B-1
+DR  TRRD; G001235; Os:GLUB1
+SO  Os:endosperm
+SO  Os:seed
+RF  Wu H. et al., 1995
+//
+ID  Os:PG5a
+DT  19.4.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  PG5a
+NM  prolamin 5a
+DR  TRRD; Os:PG5A; G001284
+SO  Os:endosperm
+RF  Nakase M. et al., 1996
+//
+ID  Os:RAB16A
+DT  08-Feb-99.; Tana; created.
+OS  Oryza sativa (rice).
+SN  rab-16A
+NM  rab-16A
+DR  TRRD; Os:RAB16A; G000812
+SO  Os:seed
+//
+ID  Os:RAG1
+DT  20.4.1999.; Tana; created.
+OS  Oryza sativa (rice).
+SN  RAG1
+NM  16 kDa albumin G1
+DR  TRRD; Os:RAG1; G001239
+SO  Os:endosperm
+RF  Nakase M. et al., 1996
+//
+ID  Pa:11Sglobulin
+DT  22.7.1999.; Tana; created.
+OS  Prunus amygdalus (almond).
+SN  prunin
+NM  prunin 1
+DR  TRRD; G001484; Pa:PRU1
+SO  Pa:seed
+RF  Garsia-Mas J. et al., 1995
+//
+ID  Pc:PR-1
+DT  03.5.2000.; Tana; created.
+OS  Petroselinum crispum (parsley).
+SN  PR-1
+NM  pathogenesis related gene 1
+DR  TRRD; Pc:PR11;  A00775
+RF  Eulgem T. et al., 1999
+//
+ID  Pc:WRKY1
+DT  03.5.2000.; Tana; created.
+OS  Petroselinum crispum (parsley).
+SN  WRKY1
+NM  WRKY1
+RF  Eulgem T. et al., 1999
+//
+ID  Ps:AvrPto
+DT  09.3.2000.; Tana; created.
+OS  Pseudomonas syringae (Pseudomonas syringae pv. tomato).
+SN  AvrPto
+NM  AvrPto
+//
+ID  Ps:AvrRPM1
+DT  21.4.2000.; Tana; created.
+OS  Pseudomonas syringae pv. maculicola (Pseudomonas syringae pv. maculicola).
+SN  AvrRPM1
+NM  AvrRPM1
+RF  Boyes D.C. et al., 1998
+//
+ID Ps:ENOD12
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Pisum sativum (pea)
+SN PsENOD12
+NG early nodulin gene 12
+PN P00114
+SO root hairs; C00110
+RE Nod factor
+RF [Horvath B. et al., 1993] 
+//
+ID Ps:ENOD5
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Pisum sativum (pea)
+SN PsENOD5
+NG early nodulin gene 5
+PN P00113
+SO root hairs; C00110
+RE Nod factor
+RF [Horvath B. et al., 1993] 
+//
+ID Ps:ENOD7
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Pisum sativum (pea)
+SN PsENOD7
+NG early nodulin gene 7 
+DR TRRD; G001386; Ps:ENOD7
+PN P00109
+CH 1
+SO infected cell; C00108
+RE bacterial infection
+RF [Kozik A. et al., 1996]
+//
+ID  Ps:LEGA
+DT  08-Feb-99.; Tana; created.
+OS  Pisum sativum (pea).
+SN  LegA
+NM  legumin A
+DR  TRRD; Ps:LEGA; G001277
+SO  Ps:seed
+//
+ID Ps:NOD6
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS  Pisum sativum (pea)
+SN PsNOD6
+NG late nodulin gene 6
+PN P00111
+SO infected cell; C00108
+RE bacterial infection
+RF [Kardailsky I. et al., 1993]
+//
+ID  Pv:Alf
+DT  30.7.1999.; Tana; created.
+OS  Phaseolus vulgaris (bean).
+SN  Alf
+NM  Alf
+SO  Pv:cotyledons
+SO  Pv:seed
+RF  Bobb A.J. et al., 1995
+//
+ID  Pv:DLEC2
+DT  02-Feb-99.; Tana; created.
+OS  Phaseolus vulgaris (bean).
+SN  DLEC2
+NM  phytohemagglutinin L-subunit
+SY  leucoagglutinating phytohemagglutinin ,
+SY  PHA-L
+DR  TRRD; G001323; Pv:DLEC2
+//
+ID  Pv:PHASB
+DT  02-Feb-99.; Tana; created.
+OS  Phaseolus vulgaris (bean).
+SN  phasB
+NM  beta-phaseolin
+DR  TRRD; G000671; Pv:PHASB
+//
+ID  Rn: TTF-1
+DT  07.3.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  TTF-1
+NM  thyroid transcription factor-1
+SY  thyroglobulin trans-acting factor 1
+SY  TgTF1
+SY  thyroid nuclear factor-1
+SY  homeobox protein NKX-2.1
+//
+ID  Rn:ALDA
+DT  27.4.2000.; Stepanenko I.L.; created.
+DT  28.4.2000.; Stepanenko I.L.; updated.
+OS  Rattus norvegicus (rat).
+SN  aldolase A
+NM  aldolase A
+DR  TRRD;Rn:ALDA;A00949
+RF  Hermfisse U. et al., 1996
+//
+ID Rn:CEBPA
+DT 10.12.98; Ignatieva E.V.
+XX
+SN CEBPA
+NM CCAAT/enhancer binding protein alpha gene
+DR TRRD; G001192; Rn:CEBPA
+PN Rn:CEBPalpha
+XX
+OS Rattus norvegicus (rat).
+XX
+SO Rn:hepatocytes
+SO Rn:liver
+SO Rn:white fat
+XX
+RE dexamethason (repression)
+XX
+RF Mischoulon D. et al., 1992
+RF MacDougald O.A. et al., 1994
+RF Rana B. et al., 1995
+XX
+CC see G001192.005
+CC see G001192.007
+//
+ID  Rn:COX-2
+DT  17.4.2000.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  COX-2
+NM  cyclooxygenase 2 
+DR  TRRD;Rn:COX2;A00914
+RE  RE A00914.001
+RE  ID Rn:COX2
+RE  RT mRNA
+RE  RN mesangial cells
+RE  RL present
+RE  RI IL-1beta
+RE  RH 2 h
+RE  FF induction
+RE  RR [Rzymkiewicz D. et al., 1994]
+RE  RE A00914.002
+RE  ID Rn:COX2
+RE  RT mRNA
+RE  RN mesangial cells
+RE  RL present
+RE  RI IL-1beta
+RE  RH 18 h
+RE  FF induction
+RE  RR [Rzymkiewicz D. et al., 1994]
+RE  RE A00914.003
+RE  ID Rn:COX2
+RE  RT mRNA
+RE  RN mesangial cells
+RE  RL present
+RE  RI PMA (phorbol 12-myristate 13-acetate)
+RE  FF induction
+RE  RR [Rzymkiewicz D. et al., 1994]
+RE  RE A00914.004
+RE  ID Rn:COX2
+RE  RT mRNA
+RE  RO ovary
+RE  RO follicle
+RE  RN granulosa cells
+RE  RL present
+RE  RI forskolin
+RE  RI FSH
+RE  RI LH
+RE  FF induction
+RE  RP P01190
+RE  RS S4275
+RE  RC Transient transfection assay, reporter gene [Sirois J. et al., 1993]
+RE  RR [Sirois J. et al., 1993]
+RE  RM "A000.001 > A000.002"
+RF  Nanji A.A. et al., 1997
+RF  Sirois J., Richards J.S., 1993
+//
+ID  Rn:Cyp11A
+DT  24.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Rattus norvegicus (rat).
+SN  Cyp11A
+NM  Cyp11A
+DR  TRRD; A00496; Rn:CYP11A 
+//
+ID  Rn:Cyp11B1
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Rattus norvegicus (rat).
+SN  Cyp11B1
+NM  Cyp11B1
+DR  TRRD; A00587; Rn:CYP11B1
+SO  Rn:adrenal
+//
+ID  Rn:Cyp11B2
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Rattus norvegicus (rat).
+SN  Cyp11B2
+NM  Cyp11B2
+DR  TRRD; A00631; Rn:CYP11B2
+SO  Rn:adrenal
+//
+ID  Rn:Cyp17
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Rattus norvegicus (rat).
+SN  Cyp17
+NM  Cyp17
+DR  TRRD; A00565; Rn:Cyp17 
+SO  Rn:testis
+//
+ID  Rn:Cyp19
+DT  25.6.1999.; Busygina T.V.; created.
+DT  27.7.1999.; Busygina T.V.; updated.
+OS  Rattus norvegicus (rat).
+SN  Cyp19
+NM  Cyp19
+DR  TRRD; A00591; Rn:CYP19 
+SO  Rn:ovary
+//
+ID  Rn:FPPS
+DT  30.7.1999.; Ignatieva E.V.; created.
+OS  Rattus norvegicus (rat).
+SN  FPPS 
+NM  farnesyl diphosphate synthase gene
+SY  geranyl-diphosphate: isopentenyl-diphosphate geranyltranstransferase gene
+DR  TRRD; A00408; Rn:FPPS 
+DR  EMBL; RNFARDIPH; M89945
+DR  SWISS-PROT; FPPS_RAT; P05369
+SO  Rn:liver
+SO  Rn:testis
+RF  Spear D.H. et al., 1994
+//
+ID  Rn:GCSH
+DT  21.4.2000.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  GCSh
+NM  gamma-glutamylcysteine synthetase heavy subunit
+SY  glutamate-cysteine ligase
+RF  Lu S.C. et al., 1999
+//
+ID  Rn:GSTP
+DT  14.4.2000.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  GSTP
+NM  Glutathione Transferase P
+DR  TRRD;Rn:GSTP; A00262
+RF  Okuda A. et al., 1989
+//
+ID  Rn:HO-1
+DT  05.10.1999; Stepanenko I.L.; created.
+DT  17.4.2000.; Stepanenko I.L.; updated.
+OS  Rattus norvegicus (rat).
+SN  HO-1
+NM  heme oxygenase 1
+DR  TRRD; A00569;
+DR  TRANSFAC;G000752;
+SO  Rn:C6
+RF  Koizumi T. et al., 1995
+RF  Shibahara S. et al., 1987
+//
+ID  Rn:HSP70
+DT  11.5.1999.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  hsp70
+NM  heat shock protein 70
+DR  TRRD; G001407; Rn:HSP70
+DR  SWISS-PROT; HS71_RAT; Q07439; P42853
+SO  Rn:Rat-1
+//
+ID  Rn:J6
+DT  29.10.1999; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  J6
+NM  J6
+SO  Mm:F9
+RF  Henle K.J. et al., 1994
+//
+ID  Rn:MCP1
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  MCP-1
+NM  monocyte chemoattractant protein-1
+RF  Desai A. et al., 1999
+RF  Ziemann C. et al., 1999
+//
+ID  Rn:MDR1B
+DT  26.4.2000.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN   mdr1b
+NM  multidrug resistance gene 1b
+SY  P-glycoprotein gene
+DR  TRRd;Rn:MDR1B;A00662
+RF  Zhou J. et al., 1997
+//
+ID  Rn:MR
+DT  29.2.2000.; Ignatieva E.V.; created.
+OS  Rattus norvegicus (rat).
+SN  MR
+NM  mineralocorticoid receptor gene
+DR  TRRD; A00848; Rn:MR 
+//
+ID  Rn:NAKA alpha 1 gene
+DT  29.2.2000.; Ignatieva E.V.; created.
+OS  Rattus norvegicus (rat).
+SN  NAKA alpha 1 gene
+NM  Na,K-ATPase alpha 1 subunit gene
+SY  NAKA alpha 1 gene
+SY  ATP1A1
+DR  TRRD; A00013; Rn:ATP1A1 
+//
+ID  Rn:NAKA beta 1 gene
+DT  06.3.2000.; Ignatieva E.V.; created.
+OS  Rattus norvegicus (rat).
+SN  NAKA beta 1 gene
+NM  Na,K-ATPase beta 1 subunit gene
+SY  NAKA beta 1 gene
+SY  ATP1B1
+//
+ID  Rn:NIS
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  NIS
+NM  Na+/I- symporter 
+SY  thyroid sodium/iodide symporter
+SY  thyroid sodium/iodide transporter
+SY  thyroid sodium/iodide cotransporter
+SY  thyroid sodium/iodide exchanger
+//
+ID Rn:NPY
+DT 20.12.98; Ignatieva E.V.
+XX
+SN NPY
+NM neuropeptide Y
+PN Rn:NPY
+XX
+OS  Rattus norvegicus (rat).
+XX
+RE leptin 
+CC decrease
+SO Rn:hypothalamus;
+RF Wang Q. et al., 1997
+//
+ID Rn:OB
+DT  30.7.1999.; Ignatieva E.V.; created.
+OS  Rattus norvegicus (rat).
+SN ob
+NM obese gene
+SY leptin gene
+PN Rn:OB
+SO white fat from epididimus
+RE fasting
+RF MacDougald O.A. et al., 1995b
+CC fasting decreases expression 
+//
+ID  Rn:T3Ralpha
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  T3Ralpha
+NM  triiodothyronine receptor alpha
+SY  thyroid hormone receptor alpha
+SY  thyroid receptor alpha
+//
+ID  Rn:TG
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  TG
+NM  thyroglobulin
+//
+ID  Rn:TPO
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  TPO
+NM  thyroid peroxidase
+SY  thyroperoxidase
+//
+ID  Rn:TSHR
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  TSHR
+NM  thyroid stimulating hormone receptor
+//
+ID  Rn:TSHbeta
+DT  31.1.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  TSHbeta
+NM  thyroid stimulating hormone beta
+SY  thyrotropin beta
+//
+ID  Rn:grp78
+DT  12.11.1999; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  grp78
+NM  78-kD glucose-regulated protein
+DR  TRRD; A00660
+DR  EMBL; RNGRP78; M14866
+SO  Hs:HeLa
+RF  Li W.W. et al., 1997
+//
+ID  Rn:ppTRH
+DT  21.3.2000.; Suslov V.V.; created.
+OS  Rattus norvegicus (rat).
+SN  ppTRH
+NM  preprothyrotropin releasing hormone
+//
+ID  Rn:rRNA
+DT  24.5.1999.; Stepanenko I.L.; created.
+OS  Rattus norvegicus (rat).
+SN  45S rRNA
+NM  ribosomal RNA
+DR  G000682
+SO  Mm:lymphosarcoma cell
+RF  Ghoshal K. and Jacob S.T., 1996
+//
+ID  Sb:KAFA
+DT  05.4.1999.; Tana; created.
+OS  Sorghum bicolor (sorghum).
+SN  alpha-kafirin
+NM  22 kDa alpha-kafirin
+DR  TRRD; G001329;  Sb:KAFA.
+RF  DeRose R.T. et al., 1996
+//
+ID  Sc:CUP1
+DT  27.4.2000.; Stepanenko I.L.; created.
+OS  Saccharomyces cerevisiae (baker's yeast).
+SN  CUP1
+NM  metallothionein
+SY  copper chelatin
+DR  TRRD;Sc:CUP1; A00777
+RF  Liu X., Thiele D.J., 1996
+//
+ID  Sr:GLB3
+DT  05.02.1999.; Stepanenko I.L.; created.
+OS Sesbania
+SN glb3
+NM leghemoglobin 3
+SY Srglb3
+SY Stglb3
+DR TRRD; G000816; Sr:GLB3
+DR TFGENE; G000816;
+PN P00106
+SO infected cells; C00106 
+RE bacterial infection
+RF Szczyglowski K. et al., 1994
+//
+ID  Ta:EM
+DT  17.2.2000.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  EM
+NM  embryo-specific gene
+DR  TRRD; Ta:EM; G000847
+SO  At:seed
+//
+ID  Ta:GLU12
+DT  09.2.2000.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  Glu-D1-2
+NM  high molecular weight glutenin D1-2
+DR  TRRD;  At:GLUD12; G001279
+SO  At:seed
+RF  Thomas M.S. and Flavell R.B., 1990
+//
+ID  Ta:Gai 3
+DT  24.3.2000.; Alex; created.
+OS  Triticum aestivum (wheat).
+SN  Gai 3
+NM  gibberellin insensitivity 3
+RF  Aksenovich A.V., 1996
+//
+ID  Ta:Gai3
+DT  24.3.2000.; Alex; created.
+OS  Triticum aestivum (wheat).
+SN  Gai3
+NM  gibberellin insensitivity
+RF  Aksenovich A.V., 1996
+//
+ID  Ta:HMWGlu1-2
+DT  09.2.2000.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  HMWGlu12
+NM  HMW-glutenin subunit 12
+CH  1D
+DR  TRRD; At:HMWGLU12; G001293
+SO  At:seed
+RF  Bartels D. and Thompson R.D., 1986
+//
+ID  Ta:LMW1D1
+DT  11.2.2000.; Tana; created.
+OS  Triticum aestivum (wheat).
+SN  LMWG1D1
+NM  low molecular weight glutenin 1D1
+CH  1D1
+DR  TRRD;  At:LMWG1D1; G001236
+//
+ID  Ta:PCCtransfer
+DT  15.10.1999; Alex; created.
+OS  Triticum aestivum (wheat).
+SN  PCCtransfer
+NM  phosphoryllcholine-cytidil-transferase
+RF  Hetherington P.R.,et al.,1991
+RF  Vakharia D.N.,1987
+//
+ID  Ta:PCGtransfer
+DT  15.10.1999; Alex; created.
+OS  Triticum aestivum (wheat).
+SN  PCGtransfer
+NM  phosphorylcholine-glyceride-transferase
+RF  Hetherington P.R.,et al.,1991
+RF  Vakharia D.N.,1987
+//
+ID  Vf:LEGA
+DT  05.7.1999.; Tana; created.
+OS  Vicia faba (fava bean).
+SN  LegB4
+NM  legumin B4
+DR  TRRD; Vf:LEGB4; G001344
+RF  Baeumlein H. et al., 1994
+//
+ID  Vf:LEGB4
+DT  05.7.1999.; Tana; created.
+OS  Vicia faba (fava bean).
+SN  LegB4
+NM  legumin B4
+DR  TRRD; Vf:LEGB4; G001344
+RF  Baeumlein H. et al., 1994
+//
+ID  Xl:Dm:HSP23
+DT  02.7.1999.; Stepanenko I.L.; created.
+OS  Xenopus laevis (African clawed frog).
+SN  hsp23
+NM  heat shock protein 23
+CH  67B
+DR  EMBL; DMHSP23G; X03889; J01100; M19543; M19544;
+DR  FLYBASE; FBgn0001224; Hsp23.
+DR  SWISS-PROT; HS23_DROME; P02516
+RF  Mestril R. et al., 1985
+//
+ID  Zm:22Z4
+DT  02-Feb-99.; Tana; created.
+OS  Zea mays (maize).
+SN  alpha-zein
+NM  22 kDa zein
+SY  22Z-4
+DR  TRRD; G000448; Zm:22Z4 
+SO  Zm:Zm:seed
+//
+ID  Zm:B32
+DT  02-Feb-99.; Tana; created.
+OS  Zea mays (maize).
+SN  b32
+NM  32 kd albumin
+DR  TRRD; G000440; Zm:B32
+//
+ID  Zm:C1
+DT  02-Feb-99.; Tana; created.
+DT  30.7.1999.; Tana; updated.
+OS  Zea mays (maize).
+SN  C1
+NM  Colorless 1
+DR  TRRD; G001294; Zm:C1
+RF  Suzuki M. et al., 1997
+//
+ID  Zm:GBS
+DT  19.4.1999.; Tana; created.
+OS  Zea mays (maize).
+SN  GBS
+NM  granule-bound starch synthase
+SY  Waxy
+DR  TRRD; G001291; Zm:GBS
+SO  Zm:seed
+RF  Russell D.A. and Fromm M.E., 1997
+//
+ID  Zm:O2
+DT  02-Feb-99.; Tana; created.
+DT  03.8.1999.; Tana; updated.
+OS  Zea mays (maize).
+SN  O2
+NM  Opaque 2
+DR  TRRD; G001253; Zm:O2
+SO  Zm:seed
+//
+ID  Zm:PPDK1
+DT  02-Feb-99.; Tana; created.
+OS  Zea mays (maize).
+SN  PPDK1
+NM  pyruvate orthophosphate dikinase-1
+DR  TRRD; G001364; Zm:PPDK1
+SO  Zm:seed
+//
+ID  Zm:RAB16
+DT  17.11.1999; Tana; created.
+OS  Zea mays (maize).
+SN  rab16
+NM  maize response to ABA gene 17
+SO  Zm:seed
+//
+ID  Zm:RAB17
+DT  08-Feb-99.; Tana; created.
+OS  Zea mays (maize).
+SN  rab17
+NM  maize response to ABA gene 17
+DR  TRRD; Zm:RAB17; G001355
+SO  Zm:seed
+//
+ID  Zm:RAB28
+DT  09.3.2000.; Tana; created.
+OS  Zea mays (maize).
+SN  rab28
+NM  maize response to ABA gene 28
+SO  Zm:seed
+RF  Busk P.K. et al., 1999
+//
+ID  Zm:VP1
+DT  18.10.1999; Alex; created.
+OS  Zea mays (maize).
+SN  VP1
+NM  Viviparous - 1,transcriptional activator.
+SO  Zm:aleurone
+RF  Hoecker U. et al., 1995
+//
+ID  Zm:ZEIN19
+DT  05.4.1999.; Tana; created.
+OS  Zea mays (maize).
+SN  alpha-zein
+NM  19 kDa zein
+DR  TRRD;G001238;  Zm:ZEIN19.
+SO  Zm:seed
+RF  Maier U.-G. et al., 1987
+//
+ID  Zm:ZEINB
+DT  02-Feb-99.; Tana; created.
+DT  20.7.1999.; Tana; updated.
+OS  Zea mays (maize).
+SN  beta-zein
+NM  14 kDa zein
+DR  TRRD; G001259; Zm:ZEINB
+SO  Zm:seed
+RF  Neto G.C. et al., 1995
+//
+ID  Zm:ZEING
+DT  05.4.1999.; Tana; created.
+OS  Zea mays (maize).
+SN  gamma-zein
+NM  gamma-class 27-kDa zein
+DR  TRRD; G001237; Zm:ZEING.
+SO  Zm:seed
+RF  Marks M.D. et al., 1985
+//

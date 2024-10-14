@@ -1,0 +1,50 @@
+ID  V$MEF2_01
+XX
+DT  19.10.1992 (created); ewi.
+DT  12.03.2002 (updated); vma.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  MEF-2
+XX
+DE  myogenic enhancer factor 2
+XX
+BF  T00505; MEF-2; Species: mouse, Mus musculus.
+BF  T01004; MEF-2; Species: rat, Rattus norvegicus.
+BF  T01005; MEF-2; Species: human, Homo sapiens.
+XX
+P0      A      C      G      T
+01      0      3      1      1      C
+02      0      0      1      4      T
+03      0      4      0      1      C
+04      0      0      0      5      T
+05      5      0      0      0      A
+06      5      0      0      0      A
+07      5      0      0      0      A
+08      5      0      0      0      A
+09      5      0      0      0      A
+10      0      0      0      5      T
+11      5      0      0      0      A
+12      5      0      0      0      A
+13      0      5      0      0      C
+14      0      2      0      3      Y
+15      0      4      0      1      C
+16      0      2      0      3      Y
+XX
+BA  5 elements from 2 different genes (mouse/human/rat mck; rat/chicken mlc)
+XX
+BS  R05148; Start: 1; Length: 16; Gaps:; Orientation: p.
+BS  R05149; Start: 1; Length: 16; Gaps:; Orientation: p.
+BS  R05150; Start: 1; Length: 16; Gaps:; Orientation: p.
+BS  R05151; Start: 1; Length: 16; Gaps:; Orientation: p.
+BS  R05152; Start: 1; Length: 16; Gaps:; Orientation: p.
+XX
+CC  compiled sequences
+XX
+RN  [1]
+RX  MEDLINE; 90097919.
+RA  Gossett L. A., Kelvin D. J., Sternberg E. A., Olson E. N.
+RT  A new myocyte-specific enhancer-binding factor that recognizes a conserved
+RT  element associated with multiple muscle-specific genes
+RL  Mol. Cell. Biol. 9:5022-5033 (1989).
+XX
+//

@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level1" level="1" version="1">
+<model name="repressilator">
+    <annotations>
+		<xmlDiagramType notation="databases/Utils/Diagrams/graphic notations/kitano.xml"/>    
+    </annotations>   
+    <listOfSpecies>
+        <specie name="protein1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="10">
+                    <propertyRef name="proteinType" value="generic"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="80">
+                    <propertyRef name="proteinType" value="receptor"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="150">
+                    <propertyRef name="proteinType" value="ion channel"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein4">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="220">
+                    <propertyRef name="proteinType" value="truncated"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein5">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="290">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein6">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="360">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="homomultimer" value="5"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein7">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="430">
+                    <propertyRef name="proteinType" value="truncated"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein8">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="500">
+                    <propertyRef name="proteinType" value="receptor"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein9">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="570">
+                    <propertyRef name="proteinType" value="ion channel"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein10">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="640">
+                    <propertyRef name="proteinType" value="truncated"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein11">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="10" y="710">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="0.5"/>
+                            <propertyRef name="modification" value="phosporylated"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein12">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="710">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="2.0"/>
+                            <propertyRef name="modification" value="acetylated"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein13">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="710">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="homomultimer" value="3"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-1.5"/>
+                            <propertyRef name="modification" value="ubiquitinated"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein14">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="340" y="710">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="3.0"/>
+                            <propertyRef name="modification" value="methylated"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein15">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="710">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="0.5"/>
+                            <propertyRef name="modification" value="hydroxylated"/>
+                        </propertyRef>
+                        <propertyRef name="residue2" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="2.5"/>
+                            <propertyRef name="modification" value="hydroxylated"/>
+                        </propertyRef>
+                        <propertyRef name="residue3" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-0.5"/>
+                            <propertyRef name="modification" value="hydroxylated"/>
+                        </propertyRef>
+                        <propertyRef name="residue4" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-2.5"/>
+                            <propertyRef name="modification" value="hydroxylated"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein16">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="580" y="710">
+                    <propertyRef name="proteinType" value="generic"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="0.0"/>
+                            <propertyRef name="modification" value="empty"/>
+                        </propertyRef>
+                        <propertyRef name="residue2" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="1.0"/>
+                            <propertyRef name="modification" value="empty"/>
+                        </propertyRef>
+                        <propertyRef name="residue3" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="2.0"/>
+                            <propertyRef name="modification" value="empty"/>
+                        </propertyRef>
+                        <propertyRef name="residue4" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-1.5"/>
+                            <propertyRef name="modification" value="empty"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein17">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="710" y="710">
+                    <propertyRef name="proteinType" value="truncated"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="0.2"/>
+                            <propertyRef name="modification" value="don't care"/>
+                        </propertyRef>
+                        <propertyRef name="residue2" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-0.2"/>
+                            <propertyRef name="modification" value="don't care"/>
+                        </propertyRef>
+                        <propertyRef name="residue3" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="3.0"/>
+                            <propertyRef name="modification" value="don't care"/>
+                        </propertyRef>
+                        <propertyRef name="residue4" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-3.0"/>
+                            <propertyRef name="modification" value="don't care"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+        <specie name="protein18">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="840" y="710">
+                    <propertyRef name="proteinType" value="ion channel"/>
+                    <propertyRef name="residues" type="array">
+                        <propertyRef name="residue1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="angle" value="-2.0"/>
+                            <propertyRef name="modification" value="unknown"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-protein"/>
+            </annotations>
+        </specie>
+
+
+        <specie name="gene1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="10">
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="80">
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="150">
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene4">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="220">
+                    <propertyRef name="hypothetical" value="true"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene5">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="290">
+                    <propertyRef name="geneRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="empty"/>
+                            <propertyRef name="size" value="40"/>
+                            <propertyRef name="position" value="20"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene6">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="360">
+                    <propertyRef name="geneRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="promoter"/>
+                            <propertyRef name="size" value="20"/>
+                            <propertyRef name="position" value="50"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene7">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="430">
+                    <propertyRef name="hypothetical" value="true"/>
+                    <propertyRef name="geneRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="codingRegion"/>
+                            <propertyRef name="size" value="30"/>
+                            <propertyRef name="position" value="40"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene8">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="500">
+                    <propertyRef name="geneRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="transcriptionStartingPointL"/>
+                            <propertyRef name="size" value="40"/>
+                            <propertyRef name="position" value="10"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+        <specie name="gene9">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="120" y="570">
+                    <propertyRef name="homomultimer" value="2"/>
+                    <propertyRef name="geneRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="transcriptionStartingPointR"/>
+                            <propertyRef name="size" value="40"/>
+                            <propertyRef name="position" value="30"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-gene"/>
+            </annotations>
+        </specie>
+
+
+        <specie name="rna1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="10">
+                    <propertyRef name="rnaType" value="generic"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="80">
+                    <propertyRef name="rnaType" value="antisence RNA"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="150">
+                    <propertyRef name="rnaType" value="generic"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna4">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="220">
+                    <propertyRef name="rnaType" value="generic"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna5">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="290">
+                    <propertyRef name="rnaType" value="antisence RNA"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna6">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="360">
+                    <propertyRef name="rnaType" value="generic"/>
+                    <propertyRef name="rnaRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="exon"/>
+                            <propertyRef name="size" value="20"/>
+                            <propertyRef name="position" value="0"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna7">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="430">
+                    <propertyRef name="rnaType" value="generic"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                    <propertyRef name="rnaRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="proteinBindingDomain"/>
+                            <propertyRef name="size" value="40"/>
+                            <propertyRef name="position" value="10"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+        <specie name="rna8">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="230" y="500">
+                    <propertyRef name="rnaType" value="antisence RNA"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                    <propertyRef name="rnaRegions" type="array">
+                        <propertyRef name="region1" type="composite">
+                            <propertyRef name="id" value="id1"/>                    
+                            <propertyRef name="name" value="name1"/>
+                            <propertyRef name="type" value="exon"/>
+                            <propertyRef name="size" value="20"/>
+                            <propertyRef name="position" value="5"/>
+                        </propertyRef>
+                    </propertyRef>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-RNA"/>
+            </annotations>
+        </specie>
+
+
+        <specie name="phenotype1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="340" y="10">
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="semantic-concept-state"/>
+            </annotations>
+        </specie>
+        <specie name="phenotype2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="340" y="80">
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="semantic-concept-state"/>
+            </annotations>
+        </specie>
+        <specie name="phenotype3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="340" y="150">
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="semantic-concept-state"/>
+            </annotations>
+        </specie>
+
+
+        <specie name="substance1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="10">
+                    <propertyRef name="moleculeType" value="simple molecule"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-substance"/>
+            </annotations>
+        </specie>
+        <specie name="C1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="80">
+                    <propertyRef name="moleculeType" value="ion"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-substance"/>
+            </annotations>
+        </specie>
+        <specie name="substance3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="150">
+                    <propertyRef name="moleculeType" value="simple molecule"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-substance"/>
+            </annotations>
+        </specie>
+        <specie name="C2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="220">
+                    <propertyRef name="moleculeType" value="ion"/>
+                    <propertyRef name="hypothetical" value="true"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-substance"/>
+            </annotations>
+        </specie>
+        <specie name="substance5">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="290">
+                    <propertyRef name="moleculeType" value="simple molecule"/>
+                    <propertyRef name="homomultimer" value="3"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-substance"/>
+            </annotations>
+        </specie>
+        <specie name="C3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="450" y="360">
+                    <propertyRef name="moleculeType" value="ion"/>
+                    <propertyRef name="homomultimer" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="molecule-substance"/>
+            </annotations>
+        </specie>
+
+
+        <specie name="degraded1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="560" y="10">
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="degraded"/>
+            </annotations>
+        </specie>
+
+        <specie name="unknown1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="610" y="10">
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="unknown"/>
+            </annotations>
+        </specie>
+        <specie name="unknown2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="610" y="80">
+                    <propertyRef name="homomultimer" value="3"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="unknown"/>
+            </annotations>
+        </specie>
+
+
+        <specie name="compartment1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="710" y="10">
+                    <propertyRef name="compartmentShape" value="0"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="compartment"/>
+            </annotations>
+        </specie>
+        <specie name="compartmant2">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="710" y="210">
+                    <propertyRef name="compartmentShape" value="1"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="compartment"/>
+            </annotations>
+        </specie>
+        <specie name="compartment3">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="710" y="410">
+                    <propertyRef name="compartmentShape" value="2"/>
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="compartment"/>
+            </annotations>
+        </specie>
+
+        <specie name="complex1">
+            <annotations xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:nodeInfo x="940" y="10">
+                </biouml:nodeInfo>
+                <biouml:specieInfo type="complex"/>
+            </annotations>
+        </specie>
+
+    </listOfSpecies>
+</model>
+</sbml>

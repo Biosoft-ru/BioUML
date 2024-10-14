@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Module-Version: May, 2003
+Module-Type-Class: biouml.plugins.sbml.SbmlModuleType
+Module-Name: SBML model repository
+Module-Description: The module contains a number of models that have b
+ een expressed in SBML and published at http://www.sbw-sbml.org.
+

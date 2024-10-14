@@ -1,0 +1,9 @@
+#Wed Dec 04 01:11:47 NOVT 2002
+childrenNodeVisible=false
+transformer=ru.biosoft.bsa.transformer.FastaTransformer
+querySystem=ru.biosoft.bsa.transformer.SequenceQuerySystem
+childrenNodeImage=sequence.gif
+name=fasta
+node-image=sequenceSet.gif
+class=ru.biosoft.access.TransformedDataCollection
+nextConfig=fasta.format.config

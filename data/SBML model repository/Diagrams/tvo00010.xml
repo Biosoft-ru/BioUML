@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level1" version="1" level="1" 
+xmlns:html="http://www.w3.org/1999/xhtml" 
+xmlns:cd="http://www.sbml.org/2002/ns/celldesigner">
+	<model name="tvo00010">
+		<annotations>
+			<cd:modelVersion>1.8</cd:modelVersion>
+			<cd:modelDisplay sizeX="876" sizeY="1177"/>
+			<cd:listOfCompartmentAliases>
+				<cd:compartmentAlias id="ca1" compartment="uVol">
+					<cd:class>SQUARE</cd:class>
+					<cd:bounds x="10" y="10" w="856" h="1157" />
+				</cd:compartmentAlias>
+			</cd:listOfCompartmentAliases>
+			<cd:listOfSpeciesAliases>
+				<cd:speciesAlias id="e0" species="E1_space_2_space_1_space_3" compartmentAlias="ca1">
+					<cd:bounds x="198" y="1010" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e11" species="E2_space_7_space_1_space_2" compartmentAlias="ca1">
+					<cd:bounds x="264" y="240" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e10" species="E2_space_7_space_1_space_2" compartmentAlias="ca1">
+					<cd:bounds x="266" y="303" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e5" species="E2_space_3_space_1_space_12" compartmentAlias="ca1">
+					<cd:bounds x="281" y="877" w="64" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e12" species="E1_space_8_space_1_space_4" compartmentAlias="ca1">
+					<cd:bounds x="338" y="919" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e2" species="E1_space_1_space_1_space_1" compartmentAlias="ca1">
+					<cd:bounds x="338" y="950" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e9" species="E5_space_3_space_1_space_1" compartmentAlias="ca1">
+					<cd:bounds x="352" y="457" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e4" species="E1_space_2_space_4_space_1" compartmentAlias="ca1">
+					<cd:bounds x="390" y="877" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e3" species="E1_space_2_space_4_space_1" compartmentAlias="ca1">
+					<cd:bounds x="502" y="866" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e14" species="E3_space_6_space_1_space_7" compartmentAlias="ca1">
+					<cd:bounds x="511" y="561" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e13" species="E2_space_7_space_2_space_3" compartmentAlias="ca1">
+					<cd:bounds x="560" y="561" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e8" species="E5_space_4_space_2_space_1" compartmentAlias="ca1">
+					<cd:bounds x="560" y="620" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e7" species="E4_space_2_space_1_space_11" compartmentAlias="ca1">
+					<cd:bounds x="560" y="677" w="64" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e6" species="E2_space_7_space_1_space_40" compartmentAlias="ca1">
+					<cd:bounds x="560" y="760" w="64" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="e1" species="E6_space_2_space_1_space_1" compartmentAlias="ca1">
+					<cd:bounds x="129" y="908" w="56" h="15.0"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c0" species="Acetate" compartmentAlias="ca1">
+					<cd:bounds x="152" y="971" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c4" species="_alpha__minus_D_minus_Glucose" compartmentAlias="ca1">
+					<cd:bounds x="222" y="248" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c5" species="_beta__minus_D_minus_Glucose" compartmentAlias="ca1">
+					<cd:bounds x="222" y="330" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c17" species="Ethanol" compartmentAlias="ca1">
+					<cd:bounds x="259" y="977" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c21" species="Acetyl_minus_CoA" compartmentAlias="ca1">
+					<cd:bounds x="265" y="820" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c6" species="Glycerone_space_phosphate" compartmentAlias="ca1">
+					<cd:bounds x="301" y="465" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c24" species="Dihydrolipoamide" compartmentAlias="ca1">
+					<cd:bounds x="305" y="927" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c7" species="_beta__minus_D_minus_Glucose_space_6_minus_phosphate" compartmentAlias="ca1">
+					<cd:bounds x="358" y="330" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c23" species="S_minus_Acetyldihydrolipoamide" compartmentAlias="ca1">
+					<cd:bounds x="359" y="885" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c16" species="Lipoamide" compartmentAlias="ca1">
+					<cd:bounds x="408" y="927" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c20" species="Thiamin_space_diphosphate" compartmentAlias="ca1">
+					<cd:bounds x="472" y="845" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c19" species="_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate" compartmentAlias="ca1">
+					<cd:bounds x="472" y="885" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c22" species="Acetaldehyde" compartmentAlias="ca1">
+					<cd:bounds x="472" y="977" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c8" species="_alpha__minus_D_minus_Glucose_space_6_minus_phosphate" compartmentAlias="ca1">
+					<cd:bounds x="582" y="253" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c9" species="_space_2R_space__minus_2_minus_Hydroxy_minus_3_minus__space_phosphonooxy_space__minus_propanal" compartmentAlias="ca1">
+					<cd:bounds x="582" y="468" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c13" species="_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate" compartmentAlias="ca1">
+					<cd:bounds x="582" y="538" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c12" species="_space_3_minus_Phospho_minus_D_minus_glycerate" compartmentAlias="ca1">
+					<cd:bounds x="582" y="599" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c3" species="_space_2_minus_Phospho_minus_D_minus_glycerate" compartmentAlias="ca1">
+					<cd:bounds x="582" y="657" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c11" species="Phosphoenolpyruvate" compartmentAlias="ca1">
+					<cd:bounds x="582" y="720" w="16" h="16"/>
+				</cd:speciesAlias>
+				<cd:speciesAlias id="c18" species="Pyruvate" compartmentAlias="ca1">
+					<cd:bounds x="582" y="821" w="16" h="16"/>
+				</cd:speciesAlias>
+			</cd:listOfSpeciesAliases>
+		</annotations>
+		<listOfCompartments>
+			<compartment name="default" />
+			<compartment name="uVol" outside="default" />
+		</listOfCompartments>
+		<listOfSpecies>
+			<specie name="E1_space_2_space_1_space_3" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E1_space_2_space_1_space_3</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E2_space_7_space_1_space_2" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E2_space_7_space_1_space_2</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E2_space_3_space_1_space_12" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E2_space_3_space_1_space_12</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E1_space_8_space_1_space_4" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E1_space_8_space_1_space_4</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E1_space_1_space_1_space_1" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E1_space_1_space_1_space_1</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E5_space_3_space_1_space_1" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E5_space_3_space_1_space_1</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E1_space_2_space_4_space_1" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E1_space_2_space_4_space_1</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E3_space_6_space_1_space_7" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E3_space_6_space_1_space_7</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E2_space_7_space_2_space_3" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E2_space_7_space_2_space_3</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E5_space_4_space_2_space_1" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E5_space_4_space_2_space_1</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E4_space_2_space_1_space_11" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E4_space_2_space_1_space_11</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E2_space_7_space_1_space_40" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E2_space_7_space_1_space_40</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="E6_space_2_space_1_space_1" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>GENE</cd:class>
+						<cd:name>E6_space_2_space_1_space_1</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Acetate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Acetate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_alpha__minus_D_minus_Glucose" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_alpha__minus_D_minus_Glucose</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_beta__minus_D_minus_Glucose" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_beta__minus_D_minus_Glucose</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Ethanol" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Ethanol</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Acetyl_minus_CoA" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Acetyl_minus_CoA</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Glycerone_space_phosphate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Glycerone_space_phosphate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Dihydrolipoamide" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Dihydrolipoamide</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_beta__minus_D_minus_Glucose_space_6_minus_phosphate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_beta__minus_D_minus_Glucose_space_6_minus_phosphate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="S_minus_Acetyldihydrolipoamide" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>S_minus_Acetyldihydrolipoamide</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Lipoamide" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Lipoamide</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Thiamin_space_diphosphate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Thiamin_space_diphosphate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Acetaldehyde" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Acetaldehyde</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_alpha__minus_D_minus_Glucose_space_6_minus_phosphate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_alpha__minus_D_minus_Glucose_space_6_minus_phosphate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_space_2R_space__minus_2_minus_Hydroxy_minus_3_minus__space_phosphonooxy_space__minus_propanal" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_space_2R_space__minus_2_minus_Hydroxy_minus_3_minus__space_phosphonooxy_space__minus_propanal</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_space_3_minus_Phospho_minus_D_minus_glycerate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_space_3_minus_Phospho_minus_D_minus_glycerate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="_space_2_minus_Phospho_minus_D_minus_glycerate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>_space_2_minus_Phospho_minus_D_minus_glycerate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Phosphoenolpyruvate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Phosphoenolpyruvate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+			<specie name="Pyruvate" compartment="uVol" initialAmount="0.0">
+				<annotations>
+					<cd:speciesIdentity>
+						<cd:class>ION</cd:class>
+						<cd:name>Pyruvate</cd:name>
+					</cd:speciesIdentity>
+				</annotations>
+			</specie>
+		</listOfSpecies>
+		<listOfReactions>
+			<reaction name="R00710" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>Acetaldehyde</cd:baseReactants>
+					<cd:baseProducts>Acetate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E1_space_2_space_1_space_3" aliases="e0"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="Acetaldehyde">
+						<annotations>
+							<cd:alias>c22</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Acetate">
+						<annotations>
+							<cd:alias>c0</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01600" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_beta__minus_D_minus_Glucose</cd:baseReactants>
+					<cd:baseProducts>_beta__minus_D_minus_Glucose_space_6_minus_phosphate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E2_space_7_space_1_space_2" aliases="e10"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_beta__minus_D_minus_Glucose">
+						<annotations>
+							<cd:alias>c5</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="_beta__minus_D_minus_Glucose_space_6_minus_phosphate">
+						<annotations>
+							<cd:alias>c7</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01512" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_3_minus_Phospho_minus_D_minus_glycerate</cd:baseReactants>
+					<cd:baseProducts>_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E2_space_7_space_2_space_3" aliases="e13"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_3_minus_Phospho_minus_D_minus_glycerate">
+						<annotations>
+							<cd:alias>c12</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate">
+						<annotations>
+							<cd:alias>c13</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01518" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_2_minus_Phospho_minus_D_minus_glycerate</cd:baseReactants>
+					<cd:baseProducts>_space_3_minus_Phospho_minus_D_minus_glycerate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E5_space_4_space_2_space_1" aliases="e8"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_2_minus_Phospho_minus_D_minus_glycerate">
+						<annotations>
+							<cd:alias>c3</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="_space_3_minus_Phospho_minus_D_minus_glycerate">
+						<annotations>
+							<cd:alias>c12</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R00658" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_2_minus_Phospho_minus_D_minus_glycerate</cd:baseReactants>
+					<cd:baseProducts>Phosphoenolpyruvate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E4_space_2_space_1_space_11" aliases="e7"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_2_minus_Phospho_minus_D_minus_glycerate">
+						<annotations>
+							<cd:alias>c3</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Phosphoenolpyruvate">
+						<annotations>
+							<cd:alias>c11</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R00200" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>Pyruvate</cd:baseReactants>
+					<cd:baseProducts>Phosphoenolpyruvate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E2_space_7_space_1_space_40" aliases="e6"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="Pyruvate">
+						<annotations>
+							<cd:alias>c18</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Phosphoenolpyruvate">
+						<annotations>
+							<cd:alias>c11</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R00235" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>Acetate</cd:baseReactants>
+					<cd:baseProducts>Acetyl_minus_CoA</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E6_space_2_space_1_space_1" aliases="e1"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="Acetate">
+						<annotations>
+							<cd:alias>c0</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Acetyl_minus_CoA">
+						<annotations>
+							<cd:alias>c21</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01786" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_alpha__minus_D_minus_Glucose</cd:baseReactants>
+					<cd:baseProducts>_alpha__minus_D_minus_Glucose_space_6_minus_phosphate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E2_space_7_space_1_space_2" aliases="e11"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_alpha__minus_D_minus_Glucose">
+						<annotations>
+							<cd:alias>c4</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="_alpha__minus_D_minus_Glucose_space_6_minus_phosphate">
+						<annotations>
+							<cd:alias>c8</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R02569" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>Acetyl_minus_CoA</cd:baseReactants>
+					<cd:baseProducts>S_minus_Acetyldihydrolipoamide</cd:baseProducts>
+					<cd:listOfReactantLinks>
+						<cd:reactantLink reactant="Dihydrolipoamide" alias="c24"/>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E2_space_3_space_1_space_12" aliases="e5"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="Acetyl_minus_CoA">
+						<annotations>
+							<cd:alias>c21</cd:alias>
+						</annotations>
+					</specieReference>
+					<specieReference specie="Dihydrolipoamide">
+						<annotations>
+							<cd:alias>c24</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="S_minus_Acetyldihydrolipoamide">
+						<annotations>
+							<cd:alias>c23</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01698" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>Dihydrolipoamide</cd:baseReactants>
+					<cd:baseProducts>Lipoamide</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E1_space_8_space_1_space_4" aliases="e12"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="Dihydrolipoamide">
+						<annotations>
+							<cd:alias>c24</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Lipoamide">
+						<annotations>
+							<cd:alias>c16</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R00754" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>Ethanol</cd:baseReactants>
+					<cd:baseProducts>Acetaldehyde</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E1_space_1_space_1_space_1" aliases="e2"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="Ethanol">
+						<annotations>
+							<cd:alias>c17</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Acetaldehyde">
+						<annotations>
+							<cd:alias>c22</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01015" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_2R_space__minus_2_minus_Hydroxy_minus_3_minus__space_phosphonooxy_space__minus_propanal</cd:baseReactants>
+					<cd:baseProducts>Glycerone_space_phosphate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E5_space_3_space_1_space_1" aliases="e9"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_2R_space__minus_2_minus_Hydroxy_minus_3_minus__space_phosphonooxy_space__minus_propanal">
+						<annotations>
+							<cd:alias>c9</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Glycerone_space_phosphate">
+						<annotations>
+							<cd:alias>c6</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R00014" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate</cd:baseReactants>
+					<cd:baseProducts>Thiamin_space_diphosphate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+						<cd:productLink product="Pyruvate" alias="c18"/>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E1_space_2_space_4_space_1" aliases="e3"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate">
+						<annotations>
+							<cd:alias>c19</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="Thiamin_space_diphosphate">
+						<annotations>
+							<cd:alias>c20</cd:alias>
+						</annotations>
+					</specieReference>
+					<specieReference specie="Pyruvate">
+						<annotations>
+							<cd:alias>c18</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R03270" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate</cd:baseReactants>
+					<cd:baseProducts>S_minus_Acetyldihydrolipoamide</cd:baseProducts>
+					<cd:listOfReactantLinks>
+						<cd:reactantLink reactant="Lipoamide" alias="c16"/>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+						<cd:productLink product="Thiamin_space_diphosphate" alias="c20"/>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E1_space_2_space_4_space_1" aliases="e4"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_2_minus__space__alpha__minus_Hydroxyethyl_space_thiamine_space_diphosphate">
+						<annotations>
+							<cd:alias>c19</cd:alias>
+						</annotations>
+					</specieReference>
+					<specieReference specie="Lipoamide">
+						<annotations>
+							<cd:alias>c16</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="S_minus_Acetyldihydrolipoamide">
+						<annotations>
+							<cd:alias>c23</cd:alias>
+						</annotations>
+					</specieReference>
+					<specieReference specie="Thiamin_space_diphosphate">
+						<annotations>
+							<cd:alias>c20</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+			<reaction name="R01515" reversible="true">
+				<annotations>
+					<cd:reactionType>STATE_TRANSITION</cd:reactionType>
+					<cd:baseReactants>_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate</cd:baseReactants>
+					<cd:baseProducts>_space_3_minus_Phospho_minus_D_minus_glycerate</cd:baseProducts>
+					<cd:listOfReactantLinks>
+					</cd:listOfReactantLinks>
+					<cd:listOfProductLinks>
+					</cd:listOfProductLinks>
+					<cd:listOfModification>
+						<cd:modification type="CATALYSIS" modifiers="E3_space_6_space_1_space_7" aliases="e14"/>
+					</cd:listOfModification>
+				</annotations>
+				<listOfReactants>
+					<specieReference specie="_space_3_minus_Phospho_minus_D_minus_glyceroyl_space_phosphate">
+						<annotations>
+							<cd:alias>c13</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfReactants>
+				<listOfProducts>
+					<specieReference specie="_space_3_minus_Phospho_minus_D_minus_glycerate">
+						<annotations>
+							<cd:alias>c12</cd:alias>
+						</annotations>
+					</specieReference>
+				</listOfProducts>
+			</reaction>
+		</listOfReactions>
+	</model>
+</sbml>

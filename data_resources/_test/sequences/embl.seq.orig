@@ -1,0 +1,455 @@
+ID   ADHBADA2   standard; DNA; VRT; 1145 BP.
+XX
+AC   J00923; J00924;
+XX
+DT   13-JUN-1985 (Rel. 06, Created)
+DT   22-NOV-1994 (Rel. 41, Last updated, Version 2)
+XX
+DE   Duck alpha-A-globin gene and 5' flank.
+XX
+KW   alpha-globin; globin.
+XX
+OS   Cairina moschata (duck)
+OC   Eukaryota; Animalia; Metazoa; Chordata; Vertebrata; Aves;
+OC   Neornithes; Neognathae; Anseriformes; Anatidae.
+XX
+RN   [1]
+RP   603-696
+RX   MEDLINE; 83028533.
+RA   Niessing J., Erbil C., Neubauer V.;
+RT   "The isolation and partial characterization of linked alpha-A- and
+RT   alpha-D-globin genes from a duck DNA recombinant library";
+RL   Gene 18:187-191(1982).
+XX
+RN   [2]
+RP   1-1145
+RX   MEDLINE; 83158759.
+RA   Erbil C., Niessing J.;
+RT   "The complete nucleotide sequence of the duck alpha-A-globin
+RT   gene";
+RL   Gene 20:211-217(1982).
+XX
+DR   EPD; 33033; Cm  a'A-globin.
+DR   SWISS-PROT; P01987; HBA_CAIMO.
+XX
+CC   The alpha-A-globin gene is linked to the alpha-D-globin gene. [1]
+CC   compared their alpha-A-globin gene sequence with chicken alpha-A-
+CC   and alpha-S-globin gene sequences, as well as with other avian and
+CC   mammalian alpha-A-globin gene sequences. NCBI gi: 212911
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1145
+FT                   /organism="Cairina moschata"
+FT   prim_transcript 331..1145
+FT                   /note="alpha-A-globin mRNA"
+FT   CDS             join(367..461,612..816,921..1049)
+FT                   /note="alpha-A globin; NCBI gi: 212914"
+FT                   /codon_start=1
+FT   exon            <367..461
+FT                   /note="alpha-A globin"
+FT                   /number=1
+FT   intron          462..611
+FT                   /note="alpha-A-globin intron A"
+FT   exon            612..816
+FT                   /number=2
+FT   intron          817..920
+FT                   /note="alpha-A-globin intron B"
+FT   exon            921..>1049
+FT                   /note="alpha-A globin"
+FT                   /number=3
+XX
+SQ   Sequence 1145 BP; 193 A; 435 C; 291 G; 226 T; 0 other;
+     ctcatgctgg ggttgcctcc ccccctcaaa ccctaacctt aatcccatct cgtgctgggg        60
+     tcagaccccc ctaaccctaa cccagttcat gccgggatca gcccccccaa accctaaccc       120
+     taaacccatc tcgtgccggg gtcagacccc ccccaaccct aaccccgacc ccagttcatg       180
+     ccggggtcgc ccccccccgg tggtgccggt gccgcaggcg gggcagggcg gcggccccgc       240
+     ctggccgagg tccagccgcg acggggcggg cggggcgggg cggcgcccgg gccggcacgg       300
+     ggatataagg ccggcggcac cagtgggggc acccgtgctg ggggctgcca acgcggagct       360
+     gcaaccatgg tgctgtctgc ggctgacaag accaacgtca agggtgtctt ctccaaaatc       420
+     ggtggccatg ctgaggagta tggcgccgag accctggaga ggtaggtgtc tgtccccgtc       480
+     ctttgtccgt ccctgatcct ctcctctcta accccatgct ctcccccacc ataactgtcc       540
+     gtgtcctacc ccaccccatc catcccccct gtccgttgat cccgctggcc ctgactcgct       600
+     ctgctccaca ggatgttcat cgcctacccc cagaccaaga cctacttccc ccactttgac       660
+     ctgcagcacg gctctgctca gatcaaggcc catggcaaga aggtggcggc tgccctagtt       720
+     gaagctgtca accacatcga tgacattgcg ggtgctctct ccaagctcag tgacctccac       780
+     gcccaaaagc tccgtgtgga ccctgtcaac ttcaaagtga gtctggtgac tccccccagc       840
+     tcctcttcag cacccatcct gggccatccg gccacccctt tacctccccc actcgctcac       900
+     cgtctccttt tgcctttcag ttcctgggcc actgcttcct ggtggtggtt gccatccacc       960
+     accccgctgc cctgacccca gaggtccacg cttccctgga caagttcatg tgcgccgtgg      1020
+     gtgctgtgct gactgccaag taccgttaga cggcaccgtg gctagagctg gacccaccct      1080
+     gttgccagcc ttccaactgc aagcagccaa atgatctgaa ataaaatctg ttgcatttgt      1140
+     gctcc                                                                  1145
+//
+ID   AGHBD      standard; DNA; PRI; 1959 BP.
+XX
+AC   M19061;
+XX
+DT   20-FEB-1989 (Rel. 18, Created)
+DT   26-MAY-1992 (Rel. 32, Last updated, Version 4)
+XX
+DE   Spider monkey (A.geoffroyi) delta-globin gene, complete cds.
+XX
+KW   delta globin.
+XX
+OS   Ateles geoffroyi
+OC   Eukaryota; Animalia; Metazoa; Chordata; Vertebrata; Mammalia;
+OC   Theria; Eutheria; Primates; Haplorhini; Platyrrhini; Cebidae;
+OC   Atelinae.
+XX
+RN   [1]
+RP   1-1959
+RX   MEDLINE; 88189005.
+RA   Spritz R.A., Giebel L.B.;
+RT   "The structure and evolution of the spider monkey delta-golbin
+RT   gene";
+RL   Mol. Biol. Evol. 5:21-29(1988).
+XX
+DR   EPD; 25087; Ag d'globin.
+DR   SWISS-PROT; P02044; HBD_ATEGE.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1959
+FT                   /organism="Ateles geoffroyi"
+FT   CDS             join(285..376,505..727,1613..1741)
+FT                   /note="delta-globin"
+FT   prim_transcript 235..1864
+FT                   /note="delta-globin mRNA, introns and exons"
+FT   intron          377..504
+FT                   /note="intron A"
+FT   intron          728..1612
+FT                   /note="intron B"
+XX
+SQ   Sequence 1959 BP; 542 A; 382 C; 423 G; 612 T; 0 other;
+     aaacaactgc tgaaagagtg tggttaggga gtatatgaag aggagacagg gtttctgagt        60
+     caagacacac atgacagaac agccaatctc agggccagtt gaaggaaaca gtgaaatgaa       120
+     ggtgcatttt gcattctcac aaaccaatga aactgcttat cttaaaccaa cctgctcaca       180
+     ggagcaggga gaacaggacc agcataaaag gcagggcagg gctaactgtt gctttgactt       240
+     gcttctgaca taaccgtgtt caatagcaat ctctatcaga caccatggtg catctgactc       300
+     ctgaagagaa agctgccgtt gccgccctgt ggggcaaggt gaacgtggac gaagttggtg       360
+     gtgaggccct gggcaggttg gtatcaaggt tacaaggcag gtttaaggag gtgaatggaa       420
+     gctcggcatg tggaaagaga agactcttga ggttctgaaa gtcacggact ctctctgtcc       480
+     cttgggctgt tttcctaccc tcaggctgct ggtggtctac ccttggaccc agaggttctt       540
+     cgagtccttt ggagatctgt caactcctgc tgctgttatg ggcaacccta aggtgaaggc       600
+     tcatggcaag aaggtgctag gtgcctttag tgatggcctg gctcacctgg acaacctcaa       660
+     gggcaccttt gcccagctga gtgagctgca ctgtgacaag ctgcacgtgg atcctgagaa       720
+     cttcagggtg ggtccaggag atgtttcact tttctccttt tactttctaa tcttacattt       780
+     tggttctttt acccacacat ttttatcatt ttactatatt ttatcattta atgcttctaa       840
+     atttttgtta attttttatt tcaatattct gctttttttc ctttctcaca atcttgctat       900
+     tttaaaaatt aacttattta atatcctgtc tttctctccc aacccactcc cttcattttt       960
+     tcttctctaa ccataactca aattatgcat accagctctc atctgcaatt ctgtacttgg      1020
+     aataatcctt ttgtttctcc acgtggggat gggagaggct ccaactcaaa aaggagaggc      1080
+     atagaatgct gctttagagg ctataaatga tttacaatga ggaataattg aaactttata      1140
+     aattccatag caaatgggat ggaaaggaaa gggaatattt gattatgaaa gattagaaca      1200
+     ttacactgga ggtggggcag atgtcattac taggagacag cccatcatca cattgattaa      1260
+     ttaatttgca tctattaatc tgtttataat aattaatttg tatatgctat atataaaaac      1320
+     aaaattaaaa ctaatttgaa attaatttgt atatagcatt atacagcaca tatagcatat      1380
+     gtgtacatat atagactata tgctagttaa gcacatagag ggtgtgtgtg tatatatata      1440
+     tatattatat gtatgcattc atatatgtgc ttatttatgc tgatgggaat aacctgggga      1500
+     taagttttgt ctaagatttg gacagaaaaa aatgggtgtt ggccaagttt ctcaaaagcc      1560
+     aatctatttc tctgttaacc acatgcatgt atctgcctac ctcttctcac agctcctggg      1620
+     caatgtgctg gtgtgtgtac tggcccgaaa ctttggcaag gaattcaccc cacaggttca      1680
+     ggctgccttt cagaaggtgg tggctggtgt ggccactgct ctggctcaca agtaccattg      1740
+     agatcctgga ctgtttcctg ataaccatga ggagacccta tttctctaga ttctattttc      1800
+     tgaacttggg aacacaatat ttacttcaag ggtatggctt ctacctaata aagaactttc      1860
+     agctgattaa tttcccttat ttcatttttt tgtccaggca tgtaagacgg ttcctgggga      1920
+     tctacagata gggaacactt gtgtctttta caaagaagt                             1959
+//
+ID   AMCHS      standard; DNA; PLN; 3574 BP.
+XX
+AC   X03710;
+XX
+DT   18-NOV-1986 (Rel. 10, Created)
+DT   07-APR-1993 (Rel. 35, Last updated, Version 2)
+XX
+DE   Antirrhinum majus chs gene for chalcone synthase
+XX
+KW   chalcone synthase.
+XX
+OS   Antirrhinum majus
+OC   Eukaryota; Plantae; Embryobionta; Magnoliophyta; Magnoliopsida;
+OC   Asteridae; Scrophulariales; Scrophulariaceae.
+XX
+RN   [1]
+RP   1-3574
+RA   Sommer H., Saedler H.;
+RT   "Structure of the chalcone synthase gene of Antirrhinum majus";
+RL   Mol. Gen. Genet. 202:429-434(1986).
+XX
+DR   EPD; 11005; Am chalcone synthase.
+DR   SWISS-PROT; P06515; CHSY_ANTMA.
+DR   TRANSFAC; R01738; PARS$CHS_020.
+XX
+CC   Data kindly reviewed (26-AUG-1986) by H. Sommer
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..3574
+FT                   /organism="Antirrhinum majus"
+FT   misc_feature    411..438
+FT                   /note="pot. regulatory region"
+FT   repeat_region   438..484
+FT                   /note="imp. direct repeat 1"
+FT   misc_feature    484..490
+FT                   /note="enhancer-like sequence"
+FT   repeat_region   488..543
+FT                   /note="imp. direct repeat 1"
+FT   CAAT_signal     972..978
+FT   repeat_region   1030..1035
+FT                   /note="imp. direct repeat 2 with pot. regulatory function"
+FT   repeat_region   1046..1051
+FT   repeat_region   1058..1063
+FT                   /note="direct repeat 2 with pot. regulatory function"
+FT   TATA_signal     1066..1073
+FT   exon            1101..1356
+FT                   /number=1
+FT   misc_feature    1101..1101
+FT                   /note="transcription start site"
+FT   CDS             join(1179..1356,2078..2385,2597..3283)
+FT                   /product="chalcone synthase"
+FT   intron          1357..2077
+FT                   /number=1
+FT   exon            2078..2385
+FT                   /number=2
+FT   intron          2386..2596
+FT                   /number=2
+FT   exon            2597..3463
+FT                   /number=3
+FT   polyA_signal    3434..3439
+FT   polyA_site      3463..3463
+FT   polyA_site      3464..3464
+FT   misc_signal     3481..3488
+FT                   /note="pot. transcription terminator"
+XX
+SQ   Sequence 3574 BP; 997 A; 652 C; 736 G; 1189 T; 0 other;
+     tttcaaaaat aactctttga acatcttgat ttttgagtga gagttgagac ttctttagga        60
+     ggtaattttg tttcactgtt actcgttttt cttgtagtgg gcatcctggg caaagaccat       120
+     ttctctacta aatattatta tttacaaatg gcttcattta ataccaataa gtatttaaac       180
+     tcatgtaatt atcgaacaat attttggtat ggttataaca aagagagaga ctagtattgt       240
+     agtttactta cgattgattg tacacggggt tatagtttca actaaaagaa acccaaattc       300
+     ttacattttc caagggcctt agtcaattag gtatttcgag gacaatgcaa atgtacagtc       360
+     tagcctttgc caagcataac cagtataaaa cttggctaca tttattgttc tatttcaccc       420
+     taatttcagt acaaatttta ggtcacgtaa attgttaccc catactgact ggctgattat       480
+     tgggtggtta ggtcacacaa attattaccc catacttaaa gactgattaa tgggcgccgg       540
+     gtgccttatt gaatctttac tttgtattat ttagacatac tgaatctcat ctttcacaat       600
+     ttcttaaaca caaattagag tttagcttcg gcgcccggcg gtagaactcc cgataatcac       660
+     tttattctca cttctccatt ttcatattta atcaacacat gtaatatata gctacgtaca       720
+     ataggtcagt ttatactatt attgttgaca tgatatagca cacacagggg ggaggggggc       780
+     gttgtcacat ctaggggcta taatatattt ttttttttat ttatgaataa aggctatagt       840
+     taaacttgta tggtacttga ttgacaaaat tttgtttcta cctattgggc aaaattaggt       900
+     accaaaagga aaataatgta gatggtttga gaggtgagta ctgtaagata aaattccaac       960
+     ccatgtcacg tgccaactga cccgtagcta aagttgttgg cgtcacatac tgaccttgcc      1020
+     tttgctaata accacgtatc tcagctacca tacttggtac catcattata aattcattga      1080
+     tacattttta actttgactc actgaaaaac acttgttcta caacaatcat ctagcacaac      1140
+     cacttccgtc accgccgaat tatcaatttt ataagaaaat ggtgactgtt gaggaggttc      1200
+     gtagggctca gagggctgag ggaccggcca cagttttggc gattggaaca gctactcctg      1260
+     ccaattgcgt tgatcaaagc acttatcctg attattattt ccgaatcact aatagtgaac      1320
+     acatgacgga gctcaaggaa aaattcaagc gcatgtgtaa gatatatgtt acaatttttc      1380
+     ttagttacga attttagttt caatttaatt tcatatgaca tttgccatct tcaaaactga      1440
+     cgttttccac ttttgacctg tttaaaaatt ccaaaaaaag gtaaatttat cttttatgtt      1500
+     tatgtgaggt tctatacttt ttggttaaat cagtggccac aaaatgtacg tttgaaatct      1560
+     acccaaaaat cattaaaaat atattacctt ttttatagtc caagttactt tatattgaat      1620
+     ttctactaaa tgattttctt ggttttttcc ttggccatac atgtgaaaaa atctattgct      1680
+     ccgccttggt tgcgaagatg tagcacgggt gttgcatggt gtttacatgt caacaccggc      1740
+     actgtaaatc actaattact aaatcacttc gtgaaaagat tatagcttgt aaaatttgca      1800
+     tgtaactgtg taacgtgtca ctagtccctc tacaagttgc tccatttggt cattcaagac      1860
+     gtgttgaaag cttattaatc taaagcaact taatcttctt aaattatagt tgtcatatct      1920
+     tcttcataaa acccacaacc ttaacatgtc caaacattta taatactgtt cttaaactgt      1980
+     agaatattaa agaaataatc ctgattataa aaccacatcc tagctaggat ggctaaacag      2040
+     ttttctcacc tacatttcat ttaatttgaa ttatcaggcg ataaatcaaa tatcaagaga      2100
+     cgttacatgc acttaaccga agaaatcctg aaagagaacc ctgccatgtg cgagtacatg      2160
+     gccccttctc tggacgcgag acaagacatt gtggtcgtgg aggttcctcg tctcggcaaa      2220
+     gaagctgccc aaaaagccat taaagagtgg ggccagccca aatccaaaat cacccacttg      2280
+     gtcttttgca ccaccagcgg tgtcgacatg cccggggcag attatcagct caccaaactc      2340
+     ctcggcctac gcccttccgt caaacgtttc atgatgtacc aacaggtacg tactgaaatt      2400
+     tggaactcca atgtgcattt acaaatttat atactttacc aaaacaagct ttgacacaag      2460
+     tagctaggag agatcttttg ttacgcaatt tatctctatt ttggtacaat ttgtgatatt      2520
+     atataaattt taccgtaata aggttaaatt ttgtgggatt gtcatttacg aatttatatt      2580
+     tattatccaa cactagggtt gctttgctgg tggtacggtg ctgcgtatgg cgaaggactt      2640
+     ggcggaaaac aatgccggtg ctcgtgtgtt ggtcgtttgt tccgaaatca ctgccgttac      2700
+     tttccggggc ccggcggaca ctcacttgga tagtttggtg ggtcaagctt tgttcggtga      2760
+     tggtgcagca gcggttatag ttggatccga cccggttgtc ggggtggagc gcccgctttt      2820
+     ccagatcgtt accgcggcgc aaacgcttct gcccgacagt catggtgcaa ttgacgggca      2880
+     tttgagggaa gtggggctga cttttcattt gttgaaggat gttcccgggc tgatctcgaa      2940
+     gaacattgag aagagtttga aggaggcttt tgacccgttg ggtatttcgg attggaattc      3000
+     ggtgttttgg attgctcatc cgggtggccc ggctattctc gaccaggttg aggagaagtt      3060
+     ggggttgaag cccgagaagc tgaggtcgac ccgacaggta ctgagtgagt atgggaacat      3120
+     gtcgagtgct tgtgtgctgt ttattctcga tgagatgagg aagtcttcgg cgaaggaagg      3180
+     gatgagcact actggagaag ggttagattg gggtgttttg ttcgggttcg ggccgggtct      3240
+     cacggtcgag acggtggtgc tgcatagtgt gccgcttaat taattaaaag cccgggttgg      3300
+     gttattttct tatttccgta ataaaaaagt ggacatggtt acctattatt gtgatgtgtg      3360
+     ctgcatgtga gctatattgg cgatttctct cttgtaacgc tttgtacttg tattgtttcg      3420
+     ttgtgatcat tgaaataaag gctatataaa aataatttat gttatttgtt ggtttatgtg      3480
+     tgtgtttttt tttttttttt tttagtcaaa atatttaagt atttctatat aaatcttttg      3540
+     caagtttttt aagtcatgga ggagatgtta tgaa                                  3574
+//
+ID   AMDEFA     standard; DNA; PLN; 4269 BP.
+XX
+AC   X62810;
+XX
+DT   15-JAN-1992 (Rel. 30, Created)
+DT   15-JAN-1992 (Rel. 30, Last updated, Version 2)
+XX
+DE   A.majus deficiens gene for DEF A
+XX
+KW   DEF A protein; deficiens gene.
+XX
+OS   Antirrhinum majus
+OC   Eukaryota; Plantae; Embryobionta; Magnoliophyta; Magnoliopsida;
+OC   Asteridae; Scrophulariales; Scrophulariaceae.
+XX
+RN   [1]
+RX   MEDLINE; 92155166.
+RA   Schwarz-Sommer Z., Hue I., Huijser P., Flor P., Hansen R.,
+RA   Tetens F., Loennig W.E., Saedler H., Sommer H.;
+RT   "Characterization of the Antirrhinum floral homeotic MADS-box gene
+RT   deficiens: evidence for DNA Binding and autoregulation of its
+RT   persistent expression throughout flower development";
+RL   EMBO J. 11:251-263(1992).
+XX
+RN   [2]
+RP   1-4269
+RA   Schwarz-Sommer Z.;
+RT   ;
+RL   Submitted (23-OCT-1991) to the EMBL/GenBank/DDBJ databases.
+RL   Z. Schwarz-Sommer, MPI f. Zuechtungsforschung, Carl von Linne Weg
+RL   10, 5000 Koeln 30, FRG
+XX
+DR   EPD; 35010; Am[deficiens].
+DR   SWISS-PROT; P23706; DEFA_ANTMA.
+DR   TRANSFAC; R01008; T01008.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..4269
+FT                   /organism="Antirrhinum majus"
+FT                   /strain="Sippe50"
+FT                   /clone_lib="EcoRI in lambda NM1149"
+FT   misc_signal     186..196
+FT                   /evidence=EXPERIMENTAL
+FT                   /note="SRE-box"
+FT   mRNA            join(1401..1693,1795..1861,2041..2102,2237..2336,3252..3293
+FT                   ,3396..3440,3702..4111)
+FT                   /gene="deficiens"
+FT   TATA_signal     1369..1382
+FT   exon            1401..1693
+FT                   /number=1
+FT                   /evidence=EXPERIMENTAL
+FT   CDS             join(1506..1693,1795..1861,2041..2102,2237..2336,3252..3293
+FT                   ,3396..3440,3702..3881)
+FT                   /gene="deficiens"
+FT                   /product="DEF A protein"
+FT   misc_signal     1510..1685
+FT                   /note="MADS-box"
+FT   intron          1694..1794
+FT                   /number=1
+FT   exon            1795..1861
+FT                   /number=2
+FT                   /evidence=EXPERIMENTAL
+FT   intron          1862..2040
+FT                   /number=2
+FT   exon            2041..2102
+FT                   /number=3
+FT                   /evidence=EXPERIMENTAL
+FT   intron          2103..2236
+FT                   /number=3
+FT   exon            2237..2336
+FT                   /number=4
+FT                   /evidence=EXPERIMENTAL
+FT   intron          2337..3251
+FT                   /number=4
+FT   exon            3252..3293
+FT                   /number=5
+FT                   /evidence=EXPERIMENTAL
+FT   intron          3294..3395
+FT                   /number=5
+FT   exon            3396..3440
+FT                   /number=6
+FT                   /evidence=EXPERIMENTAL
+FT   intron          3441..3701
+FT                   /number=6
+FT   exon            3702..4111
+FT                   /number=7
+FT                   /evidence=EXPERIMENTAL
+FT   polyA_signal    3882..3887
+FT   polyA_signal    3969..3974
+FT   polyA_site      4059
+FT                   /evidence=EXPERIMENTAL
+FT   polyA_site      4111
+FT                   /evidence=EXPERIMENTAL
+XX
+SQ   Sequence 4269 BP; 1406 A; 673 C; 727 G; 1463 T; 0 other;
+     gatgaggtag ccttagccta gcagagagca tcaattttga cggtgcttta aatgggggga        60
+     cccgataccc aatgaagtgc tattgcactg tgctgtgtgg tggggacttg ataacaagaa       120
+     atgactgatt cttaaattgc tttatcgacc cctgctaacc tcttacatca ctttggcaac       180
+     tctttccttt ttaggtcgca tatggtcgct ggcttaccac tctttatcat cacacccctc       240
+     ttttcttcct cttcattttg tatctatatt tacttttatt acattcgtat ttgtaatgta       300
+     atcttttagt cgaaaatgtt caattttcaa ttctgttctt acctttgtag atttgtaagt       360
+     taatagaaaa actaatatct tacatgattg atttcgaaca tgcatgatta attctctcac       420
+     tttggttaaa atacaacatg atcgttttgt taatcaaact tttcaagaaa aatgatcagt       480
+     agagtatttt caaaattgta agaatggggc ttgtccatag aattgttggt cagcaatact       540
+     agtaacacgg aatgaaaatg tgaaatcaaa aatataaata tgttaacaat gaagaacact       600
+     aaatccacca caattgaaag aaaaccccga attttataaa ggatatgaaa acgagctata       660
+     tatagtttat tagctctatc tctagctatt tgatgtagta gaacaagatg ccctaatatt       720
+     aaagtttgaa aaatctcgaa agtaaacaag ccgcacgaaa caaccgtaac tttggactca       780
+     ttctttcaat tgaggctaat aatttattaa attagacgta tttctgtgat ccacgattga       840
+     tattgaggcc actagttagt ccctagctaa aaccatcgtt gaaggacata gtttcggagc       900
+     gaagtagaag gaaatcgagt gctaactagt aacaaatttt aaagctaaaa tctaatttta       960
+     catgcgagat aaaactactt cgctccgaaa ctatatgtcc ttgaacgatg gttttagcta      1020
+     gggactaact agtggcctca atatcaatgg tggatcacag aaatacgtct aatttaataa      1080
+     attattagcc tcaattgaaa gaatgagtcc aaagttacgg ttgtttcgtg cagcttgttt      1140
+     actttcgaga tttttcaaac tttaatatta gggcatcttg ttctactaca tcaaatagct      1200
+     agagatagag ctaataaaca ttgaactcac aactcgtgaa caaaactttg acgtgtgaca      1260
+     aataaataaa tgttacacat taataatatt tgcaacagac cttctactaa ttaagaatac      1320
+     ttttcccttt tatcttaata gtaccgcaac gatacgtaac atagatagat atatatatat      1380
+     atctattctc ttccttactt catatctgta cttgcaaatc tcaaaatctt atcacagttt      1440
+     taggaaagta aggagagaaa ggaaagctgg aagaagaaaa caagagcagt agtggtagtg      1500
+     gttcgatggc tcgagggaag atccagatta agaggataga gaaccaaaca aacaggcagg      1560
+     tcacctactc caagagaaga aatggtttgt tcaagaaagc acacgagctc tctgttctct      1620
+     gtgatgctaa agtttccatt atcatgatct ccagtactca gaagcttcac gaatacatca      1680
+     gcccaacaac tgcgtacgta cacatctttc tttaactaac aaactaagaa tgtcctctca      1740
+     aaaatataaa tcaaaaatca tcttttgttt gtttgtttgt ttgtttttaa acaggacaaa      1800
+     gcagttattc gatcagtatc agaaggccgt tggagttgat ctatggagct cacactatga      1860
+     ggtttccact tcttagcttc agatctatta catacatata tgcataaatt tttatggaga      1920
+     cgtgataaat atatatatat atatatatat atacagtttg tctaagttta caagatcatc      1980
+     ttgtgtgttt gtgtatgtgt taatatttaa gagagatttt tgcggtgaaa atatgtgcag      2040
+     aaaatgcaag agcacttgaa gaagctgaat gaggtcaaca ggaatctgag gagggagatc      2100
+     aggtacataa attgttacgc ttttatttag caattaaatt tatcaatttg ttgatgttca      2160
+     atcgaacaaa acgggtataa taatttattt ccatttaaaa atatatatat atatctttta      2220
+     actttataat gtgcaggcaa aggatgggtg agagcttgaa cgatctgggc tacgaacaaa      2280
+     ttgtgaatct tattgaagac atggataact ctctcaagct cattcgtgaa agaaaggttt      2340
+     tatttgcttt actttctttc tttgcaaaga aaaacgctct atatctaggg ttttcaaaaa      2400
+     aaaaattctt ctctcagtcg aactaatggt aattgaagcg atgatttttt tttttttttt      2460
+     atatacatat ccaatcttgt atattaaaaa agaaaaagat tgaatctaac agtccacggg      2520
+     atagaaaaaa aaatatatat ttttttaatt gggtagaaaa atattgagaa gatatcatag      2580
+     gaaactatgt cattcataaa gatggtaaaa tcagaaactt tgtctaaacc atggttttat      2640
+     atgcataact tatatgattc gttgtctctt gtcaaaactc ataaaatatt ttttgaaatg      2700
+     atatagataa taaaaatata acaatcaaat ttataaaact tatatactgt gacagactat      2760
+     aaagtcaaga ttgaagaggc atcctaggaa gaaaacaaaa gcctggcact tatagctact      2820
+     attggttcag aatcttaact tctgtgggtt tgataagcat ttcttagttt gcccagtaga      2880
+     taatactaga tagtaaagct aaagatactt cattttagcc ttttcaagaa tcccttagca      2940
+     tctatctacc caaatataac cagcgtatat aaggtttaga ttttgttaag cctagtttat      3000
+     gaggaagtat ttatcaatgg cgttgatgct agaacaacaa attaatattc atatatgtga      3060
+     atcattgcat taatttgttt tacaaatcct ctctacatgt ttcaatatct atacatttac      3120
+     tttgtatata tagttcactt gtgatacact ttacatgtat cttttagatg tttcctactc      3180
+     atcttgatat atatgagact gtgagtttta taaattttcg tatactaatt ccaacgcttc      3240
+     ggtcgtaaca gtacaaagtc atcagtaacc agatcgacac cagcaagaaa aaggtatgta      3300
+     tagtatatcc aagcctcctc aaattttatt taccttttct gtttgattaa tcgttgtgtc      3360
+     atttggatat tgttatcctt tgtttattta tgcaggttag gaatgttgaa gaaatacaca      3420
+     gaaacctggt gcttgaattt gtaagcatct ttttctttaa ttaatcaccc cttttttaag      3480
+     taccattctt acatattctt ctgatgattt acttctataa aaaacgtgta ccttcattat      3540
+     atatcttctc ttcaataatg agcataatga cccaataact cgattgagat ttgagagaag      3600
+     aaactatata tacctgtatt gtatttatca agaatgtcta agttaagacc agcagctagc      3660
+     ctgtatatat atgacatgat acaatgatgt ttaattcgta ggatgcaagg agagaggatc      3720
+     cacactttgg attagttgat aatgaaggtg attataattc tgtccttggt ttcccaaatg      3780
+     gagggcctcg tataatcgcc ctacgcctcc cgactaatca ccatcctact cttcacagcg      3840
+     gagggggctc tgatctcacc acttttgctt tgcttgagta gaattaatgg tatgatcgat      3900
+     atatgttata gattgccgtc atctttaagt gtgtttaatg gagtttgaag aacttaaggt      3960
+     cttgtactaa ttaatgttgg tgtgctgaag aaaaccatga caatatgttg gcgtgttctg      4020
+     tgtatctttt atgtgtgtaa gatgatgact tttattatgg atattatgtt tgggttatgt      4080
+     aagatcagtt tatgggttgt gatttgtgat ttgtcttttt ctatcaacga ttcgattact      4140
+     ccatgcaatg gtgatgcaac gatcgattct ttatctgcat cactgcatgt agaaatgtta      4200
+     aaattagtat ttagtcaaaa agtctggaaa gttcagtaaa atatttgatt ctatttgcta      4260
+     gtagaattc                                                              4269
+//

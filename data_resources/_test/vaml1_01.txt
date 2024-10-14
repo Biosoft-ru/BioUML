@@ -1,0 +1,97 @@
+ID  V$AML1_01
+XX
+DT  05.12.1997 (created); ewi.
+DT  16.02.1998 (updated); ewi.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  AML-1a
+XX
+DE  runt-factor AML-1
+XX
+BF  T02256; AML1a; Species: human, Homo sapiens.
+XX
+P0      A      C      G      T
+01      5      1      2     49      T
+02      2      2     52      1      G
+03      4     14      1     38      T
+04      0      0     57      0      G
+05      1      0     55      1      G
+06      1      4      0     52      T
+XX
+BA  56 suggested binding sites contained in 38 selected sequences
+XX
+BS  R07884; Start: 18; Length: 6; Gaps:; Orientation: p.
+BS  R07885; Start: 30; Length: 6; Gaps:; Orientation: p.
+BS  R07886; Start: 13; Length: 6; Gaps:; Orientation: p.
+BS  R07887; Start: 27; Length: 6; Gaps:; Orientation: n.
+BS  R07888; Start: 2; Length: 6; Gaps:; Orientation: n.
+BS  R07889; Start: 26; Length: 6; Gaps:; Orientation: p.
+BS  R07890; Start: 9; Length: 6; Gaps:; Orientation: p.
+BS  R07891; Start: 15; Length: 6; Gaps:; Orientation: p.
+BS  R07892; Start: 3; Length: 6; Gaps:; Orientation: n.
+BS  R07893; Start: 12; Length: 6; Gaps:; Orientation: p.
+BS  R07894; Start: 26; Length: 6; Gaps:; Orientation: p.
+BS  R07895; Start: 2; Length: 6; Gaps:; Orientation: n.
+BS  R07896; Start: 22; Length: 6; Gaps:; Orientation: p.
+BS  R07897; Start: 6; Length: 6; Gaps:; Orientation: p.
+BS  R07898; Start: 14; Length: 6; Gaps:; Orientation: p.
+BS  R07899; Start: 3; Length: 6; Gaps:; Orientation: n.
+BS  R07900; Start: 24; Length: 6; Gaps:; Orientation: p.
+BS  R07901; Start: 10; Length: 6; Gaps:; Orientation: n.
+BS  R07902; Start: 30; Length: 6; Gaps:; Orientation: p.
+BS  R07903; Start: 2; Length: 6; Gaps:; Orientation: n.
+BS  R07904; Start: 29; Length: 6; Gaps:; Orientation: p.
+BS  R07905; Start: 2; Length: 6; Gaps:; Orientation: n.
+BS  R07906; Start: 7; Length: 6; Gaps:; Orientation: p.
+BS  R07907; Start: 22; Length: 6; Gaps:; Orientation: n.
+BS  R07908; Start: 29; Length: 6; Gaps:; Orientation: p.
+BS  R07909; Start: 30; Length: 6; Gaps:; Orientation: p.
+BS  R07910; Start: 14; Length: 6; Gaps:; Orientation: p.
+BS  R07911; Start: 8; Length: 6; Gaps:; Orientation: p.
+BS  R07912; Start: 28; Length: 6; Gaps:; Orientation: p.
+BS  R07913; Start: 8; Length: 6; Gaps:; Orientation: p.
+BS  R07914; Start: 18; Length: 6; Gaps:; Orientation: p.
+BS  R07915; Start: 19; Length: 6; Gaps:; Orientation: p.
+BS  R07916; Start: 28; Length: 6; Gaps:; Orientation: p.
+BS  R07917; Start: 24; Length: 6; Gaps:; Orientation: p.
+BS  R07918; Start: 15; Length: 6; Gaps:; Orientation: p.
+BS  R07919; Start: 22; Length: 6; Gaps:; Orientation: n.
+BS  R07920; Start: 24; Length: 6; Gaps:; Orientation: p.
+BS  R07921; Start: 3; Length: 6; Gaps:; Orientation: n.
+BS  R07922; Start: 24; Length: 6; Gaps:; Orientation: p.
+BS  R07923; Start: 15; Length: 6; Gaps:; Orientation: p.
+BS  R07924; Start: 9; Length: 6; Gaps:; Orientation: p.
+BS  R07925; Start: 25; Length: 6; Gaps:; Orientation: p.
+BS  R07926; Start: 10; Length: 6; Gaps:; Orientation: p.
+BS  R07927; Start: 30; Length: 6; Gaps:; Orientation: p.
+BS  R07928; Start: 14; Length: 6; Gaps:; Orientation: p.
+BS  R07929; Start: 13; Length: 6; Gaps:; Orientation: n.
+BS  R07930; Start: 25; Length: 6; Gaps:; Orientation: p.
+BS  R07931; Start: 17; Length: 6; Gaps:; Orientation: p.
+BS  R07932; Start: 20; Length: 6; Gaps:; Orientation: p.
+BS  R07933; Start: 4; Length: 6; Gaps:; Orientation: p.
+BS  R07934; Start: 12; Length: 6; Gaps:; Orientation: p.
+BS  R07935; Start: 30; Length: 6; Gaps:; Orientation: p.
+BS  R07936; Start: 24; Length: 6; Gaps:; Orientation: p.
+BS  R07937; Start: 16; Length: 6; Gaps:; Orientation: p.
+BS  R07938; Start: 28; Length: 6; Gaps:; Orientation: p.
+BS  R07939; Start: 2; Length: 6; Gaps:; Orientation: n.
+XX
+CC  sequences that bind to bacterially expressed and immobilized GST-AML-1a
+CC  fusion protein were selected from a pool of random 30-mers by 6 rounds of
+CC  selection and PCR amplification
+XX
+RN  [1]
+RA  TRANSFAC_Team.
+RT  Revisions of TRANSFAC MATRIX entries; URL:
+RT  http://transfac.gbf.de/TRANSFAC/tf_reports/tf_report_1_0001.html
+RL  TRANSFAC Reports 1:0001 (1998).
+RN  [2]
+RX  MEDLINE; 94019307.
+RA  Meyers S., Downing J. R., Hiebert S. W.
+RT  Identification of AML-1 and the (8;21) translocation protein (AML-1/ETO) as
+RT  sequence-specific DNA-binding proteins:the runt homology domain is required
+RT  for DNA binding and protein-protein interactions
+RL  Mol. Cell. Biol. 13:6336-6345 (1993).
+XX
+//

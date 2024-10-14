@@ -1,0 +1,8 @@
+#Wed May 02 09:56:20 NOVST 2007
+transformer=ru.biosoft.bsa.transformer.EmblTransformer
+querySystem=ru.biosoft.bsa.transformer.SequenceQuerySystem
+childrenNodeImage=sequence.gif
+name=embl
+node-image=sequenceSet.gif
+class=ru.biosoft.access.TransformedDataCollection
+nextConfig=embl.format.config

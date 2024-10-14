@@ -1,0 +1,63 @@
+AC  M00014
+XX
+ID  F$REPCAR1_01
+XX
+DT  13.11.1992 (created); ewi.
+DT  12.03.2002 (updated); vma.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  repressor of CAR1 expression
+XX
+DE  repressor of CAR1 expression
+XX
+BF  T00726; repressor of CAR1 expression; Species: yeast, Saccharomyces
+BF  cerevisiae.
+XX
+P0      A      C      G      T
+01      2      3      3      4      N
+02      5      2      2      3      N
+03      2      5      4      4      N
+04      1      0      2     12      T
+05     14      0      0      1      A
+06      2      0     13      0      G
+07      0     15      0      0      C
+08      0     15      0      0      C
+09      2      0     12      1      G
+10      0     14      1      0      C
+11      0     13      2      0      C
+12      5      2      7      1      R
+13     10      2      2      1      A
+14      6      3      5      1      N
+15      6      2      7      0      R
+16      4      4      5      1      N
+17      4      5      4      1      N
+XX
+BA  15 elements; 1 repressing element (CAR1 gene) and 14 homologous binding
+BA  sites
+XX
+BS  R05272; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05273; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05274; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05275; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05276; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05277; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05278; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05279; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05280; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05281; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05282; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05283; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05284; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05285; Start: 1; Length: 17; Gaps:; Orientation: p.
+BS  R05286; Start: 1; Length: 17; Gaps:; Orientation: p.
+XX
+CC  compiled sequences
+XX
+RN  [1]
+RX  MEDLINE; 90318353.
+RA  Luche R. M., Sumrada R., Cooper T. G.
+RT  A cis-acting element present in multiple genes serves as a repressor
+RT  protein binding site for the yeast CAR1 gene
+RL  Mol. Cell. Biol. 10:3884-3895 (1990).
+XX
+//

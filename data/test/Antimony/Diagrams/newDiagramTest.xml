@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model id="newDiagramTest">
+    <listOfCompartments>
+      <compartment constant="true" id="comp" name="comp" size="1.0" spatialDimension="3" units="litre">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo color="0,0,0,0" height="183" shape="0" title="comp" width="589" x="196" y="77"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="comp" constant="false" hasOnlySubstanceUnits="false" id="comp_s1" initialAmount="0.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="50" title="s1" width="50" x="265" y="130">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="comp" constant="true" hasOnlySubstanceUnits="false" id="comp_s2" initialAmount="8.0" substanceUnits="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="50" title="s2" width="50" x="645" y="140">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="c" value="0.0"/>
+      <parameter constant="true" id="g" value="7.0"/>
+      <parameter constant="false" id="m" value="0.0"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction fast="false" id="R000003" name="s1 -&gt; s2" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo height="50" title="s1 -&gt; s2" width="50" x="483" y="179">
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="comp_s1" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=295,y=175]" outPort="java.awt.Point[x=479,y=175]" title="s1 as reactant">
+                  <path>
+                    <segment segmentType="moveTo" x0="295" y0="175"/>
+                    <segment segmentType="lineTo" x0="479" y0="175"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="true" species="comp_s2" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo inPort="java.awt.Point[x=494,y=175]" outPort="java.awt.Point[x=645,y=175]" title="s2 as product">
+                  <path>
+                    <segment segmentType="moveTo" x0="494" y0="175"/>
+                    <segment segmentType="lineTo" x0="645" y0="175"/>
+                  </path>
+                </biouml:edgeInfo>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>g</ci>
+              <apply>
+                <plus/>
+                <ci>c</ci>
+                <ci>m</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

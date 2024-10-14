@@ -1,0 +1,71 @@
+Ascending Aorta	4.00	6.65	6547654.00	
+Aortic Arch I	2.0000	3.9410	4760728.0000	Ascending Aorta
+Brachiocephalic	3.4000	1.3700	2126038.0000	Ascending Aorta
+R. Subclavian I	1.7000	0.9190	2532764.0000	Brachiocephalic
+R. Subclavian I ext	1.7000	0.5620	2533496.0000	R. Subclavian I
+R. Carotid	17.7000	0.4300	2382200.0000	Brachiocephalic
+R. Vertebral	14.8000	0.5400	3399234.0000	R. Subclavian I ext
+R. Subclavian II	21.1000	0.5100	3798480.0000	R. Subclavian I ext
+R. Subclavian II ext	21.1000	0.1750	5067300.0000	R. Subclavian II
+R. Radial	11.7500	0.0530	4869216.0000	R. Subclavian II ext
+R. Radial ext	11.7500	0.0360	4852512.0000	R. Radial
+R. Ulnar I	6.7000	0.1450	5210140.0000	R. Subclavian II ext
+R. Interosseous	7.9000	0.0260	4232488.0000	R. Ulnar I
+R. Ulnar II	17.1000	0.1170	3469104.0000	R. Ulnar I
+R. internal Carotid	8.8000	0.2830	3406188.0000	R. Carotid
+R. internal Carotid ext	8.8000	0.0620	3426616.0000	R. internal Carotid
+R. external Carotid	8.8500	0.2830	3178656.0000	R. Carotid
+R. external Carotid ext	8.8500	0.0620	3198208.0000	R. external Carotid
+Aortic Arch II	3.9000	3.5970	4345176.0000	Aortic Arch I
+L. Carotid	20.8000	0.4300	2335760.0000	Aortic Arch I
+L. internal Carotid	8.8000	0.2830	3406188.0000	L. Carotid
+L. internal Carotid ext	8.8000	0.0620	3426616.0000	L. internal Carotid
+L. external Carotid	8.8500	0.2830	3178656.0000	L. Carotid
+L. external Carotid ext	8.8500	0.0620	3198208.0000	L. external Carotid
+Thoracic Aorta I	5.2000	3.1350	4163280.0000	Aortic Arch II
+L. Subclavian I	3.4000	0.5620	2495280.0000	Aortic Arch II
+Vertebral	14.8000	0.1080	3399234.0000	L. Subclavian I
+L. Subclavian II	21.1000	0.5100	3798480.0000	L. Subclavian I
+L. Subclavian II ext	21.1000	0.0175	506730.0000	L. Subclavian II
+L. Radial	16.7500	0.0530	4869216.0000	L. Subclavian II ext
+L. Radial ext	16.7500	0.0360	4852512.0000	L. Radial
+L. Ulnar I	6.7000	0.1450	5210140.0000	L. Subclavian II ext
+L. Interosseous	7.9000	0.0200	4739200.0000	L. Ulnar I
+L. Ulnar II	17.1000	0.1090	2601726.0000	L. Ulnar I
+Intercostals	4.0000	1.2080	1391616.0000	Thoracic Aorta I
+Intercostals ext	4.0000	0.6790	1387876.0000	Intercostals
+Thoracic Aorta II	10.4000	1.3690	3778842.0000	Thoracic Aorta I
+Abdominal I	5.3000	1.1690	3404128.0000	Thoracic Aorta II
+Celiac I	2.0000	0.1260	2426256.0000	Thoracic Aorta II
+Celiac II	1.0000	0.1260	2426256.0000	Celiac I
+Hepatic	6.6000	0.1520	1851968.0000	Celiac I
+Gastric	7.1000	0.2380	2045848.0000	Celiac II
+Splenic	6.3000	0.1020	1705032.0000	Celiac II
+Superior Mesenteric	5.9000	0.2380	2196264.0000	Abdominal I
+Abdominal II	1.0000	1.0940	3028192.0000	Abdominal I
+L. Renal	3.2000	0.2120	2000432.0000	Abdominal II
+Abdominal III	1.0000	1.0940	3028192.0000	Abdominal II
+R. Renal	3.2000	0.2120	2000432.0000	Abdominal III
+Abdominal IV	10.6000	1.0000	2834880.0000	Abdominal III
+Inferior Mesenteric	5.0000	0.0800	1617280.0000	Abdominal IV
+Abdominal V	1.0000	0.8490	2455308.0000	Abdominal IV
+R. common Iliac	5.9000	0.4050	2268030.0000	Abdominal V
+L. common Iliac	5.8000	0.4050	2268030.0000	Abdominal V
+L. external Iliac	14.4000	0.2755	4009810.0000	L. common Iliac
+L. internal Iliac	5.0000	0.2850	6057960.0000	L. common Iliac
+L. Femoral	22.1500	0.2110	3786184.0000	L. external Iliac
+L. Femoral ext	22.1500	0.1130	3767420.0000	L. external Iliac
+L. deep Femoral	6.3000	0.0910	7124936.0000	L. Femoral ext
+L. deep Femoral ext	6.3000	0.0490	7129108.0000	L. deep Femoral
+L. posterior Tibial	16.0500	0.1260	6824664.0000	L. Femoral ext
+L. posterior Tibial ext	16.0500	0.0620	6756264.0000	L. posterior Tibial
+L. anterior Tibial	34.3000	0.0530	5888300.0000	L. Femoral ext
+R. external Iliac	14.5000	0.2755	4009810.0000	R. common Iliac
+R. internal Iliac	5.1000	0.2850	6057960.0000	R. common Iliac
+R. Femoral	22.2000	0.2110	3786184.0000	R. external Iliac
+R. Femoral ext	22.2000	0.1130	3767420.0000	R. Femoral
+R. deep Femoral	6.3500	0.0910	7124936.0000	R. external Iliac
+R. deep Femoral ext	6.3500	0.0490	7129108.0000	R. deep Femoral
+R. posterior Tibial	16.1500	0.1260	6824664.0000	R. Femoral ext
+R. posterior Tibial ext	16.1500	0.0620	6756264.0000	R. posterior Tibial
+R. anterior Tibial	34.4000	0.0530	5888300.0000	R. Femoral ext
