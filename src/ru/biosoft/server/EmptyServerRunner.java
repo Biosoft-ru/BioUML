@@ -219,13 +219,15 @@ public class EmptyServerRunner implements IApplication
      */
     protected void cofigureJUL()
     {
-        File configFile = new File( "server.lcf" );
+        String serverPath = System.getProperty( "biouml.server.path" );
+        File confDir = new File( serverPath, "conf" );
+        File configFile = new File( confDir, "server.lcf" );
+
         if( !configFile.exists() )
         {
-            String serverPath = System.getProperty( "biouml.server.path" );
-            File confDir = new File( serverPath, "conf" );
-            configFile = new File( confDir, "server.lcf" );
+            configFile = new File( "server.lcf" );
         }
+
         try( InputStream inputStream = new FileInputStream( configFile ) )
         {
             LogManager.getLogManager().readConfiguration( inputStream );
