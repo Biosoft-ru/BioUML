@@ -50,6 +50,9 @@ import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.DynamicPropertySetAsMap;
 import com.developmentontheedge.beans.DynamicPropertySetSupport;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class DiagramXmlWriterTest extends TestCase
 {
     /**
@@ -75,10 +78,10 @@ public class DiagramXmlWriterTest extends TestCase
         String xml = getXML(doc).replaceAll(System.getProperty("line.separator"), "");
 
         String result = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + "<test>"
-                + "<property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
-                + "<property name=\"p2\" short-description=\"p2\" type=\"String\" value=\"value 2\"/>"
-                + "<property name=\"p3\" short-description=\"double property\" type=\"double\" value=\"3.456\"/>" + "</test>";
-        assertEquals(xml, result);
+                + "    <property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
+                + "    <property name=\"p2\" short-description=\"p2\" type=\"String\" value=\"value 2\"/>"
+                + "    <property name=\"p3\" short-description=\"double property\" type=\"double\" value=\"3.456\"/>" + "</test>";
+        assertEquals(result, xml);
     }
 
     /**
@@ -107,10 +110,11 @@ public class DiagramXmlWriterTest extends TestCase
         String xml = getXML(doc).replaceAll(System.getProperty("line.separator"), "");
 
         String result = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + "<test>"
-                + "<property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
-                + "<propertyRef name=\"p2\" value=\"value 2\"/>" + "<propertyRef name=\"p3\" value=\"3.456\"/>" + "</test>";
+                + "    <property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
+                + "    <propertyRef name=\"p2\" value=\"value 2\"/>"
+                + "    <propertyRef name=\"p3\" value=\"3.456\"/>" + "</test>";
 
-        assertEquals(xml, result);
+        assertEquals(result, xml);
     }
 
     /**
@@ -145,14 +149,15 @@ public class DiagramXmlWriterTest extends TestCase
         String xml = getXML(doc).replaceAll(System.getProperty("line.separator"), "");
 
         String result = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + "<test>"
-                + "<property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
-                + "<property name=\"p2\" short-description=\"p2\" type=\"String\" value=\"value 2\"/>"
-                + "<property name=\"p3\" short-description=\"double property\" type=\"double\" value=\"3.456\"/>"
-                + "<property name=\"p_complex\" short-description=\"complex_descr\" type=\"composite\">"
-                + "<property name=\"pp1\" short-description=\"pp1\" type=\"int\" value=\"20\"/>"
-                + "<property name=\"pp2\" short-description=\"pp2\" type=\"String\" value=\"value 2\"/>" + "</property>" + "</test>";
+                + "    <property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
+                + "    <property name=\"p2\" short-description=\"p2\" type=\"String\" value=\"value 2\"/>"
+                + "    <property name=\"p3\" short-description=\"double property\" type=\"double\" value=\"3.456\"/>"
+                + "    <property name=\"p_complex\" short-description=\"complex_descr\" type=\"composite\">"
+                + "        <property name=\"pp1\" short-description=\"pp1\" type=\"int\" value=\"20\"/>"
+                + "        <property name=\"pp2\" short-description=\"pp2\" type=\"String\" value=\"value 2\"/>"
+                + "    </property>" + "</test>";
 
-        assertEquals(xml, result);
+        assertEquals(result, xml);
     }
 
     /**
@@ -200,12 +205,15 @@ public class DiagramXmlWriterTest extends TestCase
         String xml = getXML(doc).replaceAll(System.getProperty("line.separator"), "");
 
         String result = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + "<test>"
-                + "<property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
-                + "<propertyRef name=\"p2\" value=\"value 2\"/>" + "<propertyRef name=\"p3\" value=\"3.456\"/>"
-                + "<propertyRef name=\"p_complex\">" + "<propertyRef name=\"pp1\" value=\"20\"/>"
-                + "<propertyRef name=\"pp2\" value=\"value 2\"/>" + "</propertyRef>" + "</test>";
+                + "    <property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
+                + "    <propertyRef name=\"p2\" value=\"value 2\"/>"
+                + "    <propertyRef name=\"p3\" value=\"3.456\"/>"
+                + "    <propertyRef name=\"p_complex\">"
+                + "        <propertyRef name=\"pp1\" value=\"20\"/>"
+                + "        <propertyRef name=\"pp2\" value=\"value 2\"/>"
+                + "    </propertyRef>" + "</test>";
 
-        assertEquals(xml, result);
+        assertEquals(result, xml);
     }
 
 
@@ -229,12 +237,12 @@ public class DiagramXmlWriterTest extends TestCase
         String xml = getXML(doc).replaceAll(System.getProperty("line.separator"), "");
 
         String result = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + "<test>"
-                + "<property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
-                + "<property name=\"p2\" short-description=\"p2\" type=\"String\" value=\"value 2\"/>"
-                + "<property elementType=\"double\" name=\"p3\" short-description=\"p3\" type=\"array\">" + "<item>123.22</item>"
-                + "<item>345.55</item>" + "</property>" + "</test>";
+                + "    <property name=\"p1\" short-description=\"p1\" type=\"int\" value=\"10\"/>"
+                + "    <property name=\"p2\" short-description=\"p2\" type=\"String\" value=\"value 2\"/>"
+                + "    <property elementType=\"double\" name=\"p3\" short-description=\"p3\" type=\"array\">    " + "    <item>123.22</item>    "
+                + "    <item>345.55</item>" + "    </property>" + "</test>";
 
-        assertEquals(xml, result);
+        assertEquals(result,xml);
     }
 
     /**
@@ -266,13 +274,13 @@ public class DiagramXmlWriterTest extends TestCase
 
         String expected = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
                 + "<test>"
-                + "<property elementType=\"biouml.model.DiagramElementStyle\" name=\"testArray\" short-description=\"testArray\" type=\"array\">"
-                + "<item>" + "<property name=\"brush\" short-description=\"brush\" type=\"brush\" value=\"yellow\"/>"
-                + "<property name=\"font\" short-description=\"font\" type=\"font\" value=\"Arial;0;14;red\"/>"
-                + "<property name=\"pen\" short-description=\"pen\" type=\"pen\" value=\"4.0;black;Solid\"/>" + "</item>" + "<item>"
-                + "<property name=\"brush\" short-description=\"brush\" type=\"brush\" value=\"white\"/>"
-                + "<property name=\"font\" short-description=\"font\" type=\"font\" value=\"Arial;0;12;black\"/>"
-                + "<property name=\"pen\" short-description=\"pen\" type=\"pen\" value=\"1.0;black;Solid\"/>" + "</item>" + "</property>"
+                + "    <property elementType=\"biouml.model.DiagramElementStyle\" name=\"testArray\" short-description=\"testArray\" type=\"array\">    "
+                + "    <item>    " + "        <property name=\"brush\" short-description=\"brush\" type=\"brush\" value=\"yellow\"/>    "
+                + "        <property name=\"font\" short-description=\"font\" type=\"font\" value=\"Arial;0;14;red\"/>    "
+                + "        <property name=\"pen\" short-description=\"pen\" type=\"pen\" value=\"4.0;black;Solid\"/>    " + "    </item>    " + "    <item>"
+                + "            <property name=\"brush\" short-description=\"brush\" type=\"brush\" value=\"white\"/>    "
+                + "        <property name=\"font\" short-description=\"font\" type=\"font\" value=\"Arial;0;12;black\"/>    "
+                + "        <property name=\"pen\" short-description=\"pen\" type=\"pen\" value=\"1.0;black;Solid\"/>    " + "    </item>    " + "</property>"
                 + "</test>";
 
         assertEquals( expected, xml );

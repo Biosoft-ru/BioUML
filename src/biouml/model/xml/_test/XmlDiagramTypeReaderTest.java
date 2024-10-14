@@ -13,6 +13,9 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class XmlDiagramTypeReaderTest extends TestCase
 {
     static String repositoryPath = "../data_resources";
@@ -28,6 +31,8 @@ public class XmlDiagramTypeReaderTest extends TestCase
         {
             System.err.println( "Error init logging: " + e1.getMessage() );
         }
+
+        Environment.setClassLoading( new BiosoftClassLoading() );
     }
 
     public XmlDiagramTypeReaderTest(String name)

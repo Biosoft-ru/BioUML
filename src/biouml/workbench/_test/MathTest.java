@@ -33,11 +33,14 @@ public class MathTest extends TestCase
     public static void testShow()
     {
         JPanel panel = new DPanel();
-        JFrame frame = new JFrame();
-        frame.setSize(WIDTH, HEIGHT);
-        frame.setContentPane(panel);
-        frame.show();
-
+        try
+        { 
+            JFrame frame = new JFrame();
+            frame.setSize(WIDTH, HEIGHT);
+            frame.setContentPane(panel);
+            frame.show();
+        } 
+        catch( java.awt.HeadlessException ignore ) {}        
     }
 
     static class DPanel extends JPanel

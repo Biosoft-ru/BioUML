@@ -24,6 +24,9 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.editor.ViewPane;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 /**
  * Batch unit test for biouml.model package.
  */
@@ -70,37 +73,43 @@ public class XmlDiagramKitanoEdgesTest extends TestCase
 
     public void testXmlDiagram() throws Exception
     {
-        JFrame frame = new JFrame("Kitano test");
-        frame.show();
+        Environment.setClassLoading( new BiosoftClassLoading() );
 
         repository = CollectionFactory.createRepository(repositoryPath);
         XmlDiagramType xdt = XmlDiagramType.getTypeObject("kitano.xml");
 
-        Container content = frame.getContentPane();
-        ViewPane viewPane = new ViewPane();
-
         Diagram diagram = generateTestDiagram(xdt);
-
-        Graphics g = frame.getGraphics();
         DiagramViewBuilder dvb = xdt.getDiagramViewBuilder();
-        CompositeView view = dvb.createDiagramView(diagram, g);
 
-        viewPane.setView(view);
-
-        content.add(viewPane);
-        frame.setSize(1100, 800);
-        frame.addWindowListener(new WindowAdapter()
+        try
         {
-            @Override
-            public void windowClosed(WindowEvent e)
+            JFrame frame = new JFrame("Kitano test");
+            frame.show();
+
+            Container content = frame.getContentPane();
+            ViewPane viewPane = new ViewPane();
+
+            Graphics g = frame.getGraphics();
+            CompositeView view = dvb.createDiagramView(diagram, g);
+
+            viewPane.setView(view);
+
+            content.add(viewPane);
+            frame.setSize(1100, 800);
+            frame.addWindowListener(new WindowAdapter()
             {
-                System.exit(0);
+                @Override
+                public void windowClosed(WindowEvent e)
+                {
+                    System.exit(0);
+                }
+            });
+            while( true )
+            {
+                Thread.sleep(100);
             }
-        });
-        while( true )
-        {
-            Thread.sleep(100);
-        }
+        }  
+        catch( java.awt.HeadlessException ignore ) {}        
     }
 
     private Diagram generateTestDiagram(DiagramType diagramType) throws Exception

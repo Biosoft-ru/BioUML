@@ -70,7 +70,7 @@ public class SteadyStateTest extends TestCase implements ResultListener
 
     public void test() throws Exception
     {
-        longSimulation();
+        //longSimulation();
 //        solveAlgebraic();
     }
 

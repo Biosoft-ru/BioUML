@@ -59,7 +59,7 @@ public class JVodeEventTest extends TestCase
     private static final double ATOL1 = 1.0e-8; /* vector absolute tolerance components */
     private static final double T0 = 0; /* initial time           */
 
-    private static String path = "C://Roberts_dns_result.txt"; // result file
+    private static String path = "target/Roberts_dns_result.txt"; // result file
 
 
     /*

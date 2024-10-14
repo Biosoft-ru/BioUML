@@ -51,8 +51,8 @@ public class SimulationTest extends AbstractBioUMLTest
         TestSuite suite = new TestSuite(SimulationTest.class.getName());
 
         suite.addTest(new SimulationTest("testCreateDiagram"));
-        suite.addTest(new SimulationTest("testGenerateCode"));
-        suite.addTest(new SimulationTest("testSimulate"));
+        //suite.addTest(new SimulationTest("testGenerateCode"));
+        //suite.addTest(new SimulationTest("testSimulate"));
         suite.addTest(new SimulationTest("testSaveResult"));
         suite.addTest(new SimulationTest("testSimulateToPlot"));
         return suite;

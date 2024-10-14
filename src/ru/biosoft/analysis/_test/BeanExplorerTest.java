@@ -35,9 +35,12 @@ public class BeanExplorerTest extends TestCase
         PropertyInspector pi = new PropertyInspector();
         B b = new B();
         pi.explore(b);
-        TestPane pane = new TestPane(pi);
-        pane.doModal();
-        
+        try
+        {
+             TestPane pane = new TestPane(pi);
+             pane.doModal();
+        }
+        catch( java.awt.HeadlessException ignore ) {}        
     }
     
     public static class TestPane extends OkCancelDialog

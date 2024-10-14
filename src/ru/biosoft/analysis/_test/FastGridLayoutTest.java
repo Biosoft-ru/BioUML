@@ -132,82 +132,85 @@ public class FastGridLayoutTest extends TestCase
         //        setEdgeEdge(n, e4, 1);
         setShadowArea();
 
-        // Painting
-        JFrame frame = new JFrame();
-        Brush brush;
-
-        CompositeView view = new CompositeView();
-
-        for( int i = 0; i < w; i++ )
+        try
         {
-            for( int j = 0; j < h; j++ )
+            // Painting
+            JFrame frame = new JFrame();
+            Brush brush;
+
+            CompositeView view = new CompositeView();
+
+            for( int i = 0; i < w; i++ )
             {
-                if( shadowMatrix[i][j] == 0 )
+                for( int j = 0; j < h; j++ )
                 {
-                    brush = new Brush(Color.white);
+                    if( shadowMatrix[i][j] == 0 )
+                    {
+                        brush = new Brush(Color.white);
+                    }
+                    else if( shadowMatrix[i][j] == 1 )
+                    {
+                        brush = new Brush(Color.lightGray);
+                    }
+                    else if( shadowMatrix[i][j] == 2 )
+                    {
+                        brush = new Brush(Color.gray);
+                    }
+                    else if( shadowMatrix[i][j] == 3 )
+                    {
+                        brush = new Brush(Color.darkGray);
+                    }
+                    else
+                    {
+                        brush = new Brush(Color.black);
+                    }
+                    view.add(new BoxView(new Pen(1, Color.gray), brush, i * gridX + gridX / 2, j * gridY + gridY / 2, gridX, gridY));
+                    //Node newNode = new Node("n_" + i + "_" + j, i, j, 20, 30);
+                    //                addNode(view, newNode, new Brush(Color.lightGray));
                 }
-                else if( shadowMatrix[i][j] == 1 )
-                {
-                    brush = new Brush(Color.lightGray);
-                }
-                else if( shadowMatrix[i][j] == 2 )
-                {
-                    brush = new Brush(Color.gray);
-                }
-                else if( shadowMatrix[i][j] == 3 )
-                {
-                    brush = new Brush(Color.darkGray);
-                }
-                else
-                {
-                    brush = new Brush(Color.black);
-                }
-                view.add(new BoxView(new Pen(1, Color.gray), brush, i * gridX + gridX / 2, j * gridY + gridY / 2, gridX, gridY));
-                //Node newNode = new Node("n_" + i + "_" + j, i, j, 20, 30);
-                //                addNode(view, newNode, new Brush(Color.lightGray));
             }
+
+            //        view.add(new LineView(new Pen(1, Color.black), p1Up.x, p1Up.y, p2Up.x, p2Up.y));
+            //        view.add(new LineView(new Pen(1, Color.black), p1Down.x, p1Down.y, p2Down.x, p2Down.y));
+
+            view.add(new LineView(new Pen(1, Color.black), p.x, p.y, p2.x, p2.y));
+            view.add(new LineView(new Pen(1, Color.black), p.x, p.y, p1.x, p1.y));
+
+            //brush = new Brush(Color.magenta);
+            //                addNode(view, n, brush);
+            //brush = new Brush(Color.blue);
+            addNode(view, n1);
+            addNode(view, n2);
+            addNode(view, n3);
+            addNode(view, n4);
+            addNode(view, n5);
+            addNode(view, n6);
+            addNode(view, n7);
+            //        addNode(view, n8, brush);
+            //        addEdge(view, e1);
+            //                addEdge(view, e2);
+            //                addEdge(view, e3);
+            //                addEdge(view, e4);
+            ViewPane pane = new ViewPane();
+            pane.setView(view);
+
+            Dimension dim = new Dimension(w * gridX + 100, h * gridY + 100);
+            outDeltaMap();
+            frame.add(pane, BorderLayout.CENTER);
+            frame.doLayout();
+            frame.setVisible(true);
+            frame.setAlwaysOnTop(true);
+            frame.setMinimumSize(dim);
+            frame.setMaximumSize(dim);
+            frame.setSize(dim);
+            frame.setResizable(true);
+            frame.setLocationRelativeTo(null);
+            frame.setEnabled(true);
+            frame.setFocusable(true);
         }
-
-        //        view.add(new LineView(new Pen(1, Color.black), p1Up.x, p1Up.y, p2Up.x, p2Up.y));
-        //        view.add(new LineView(new Pen(1, Color.black), p1Down.x, p1Down.y, p2Down.x, p2Down.y));
-
-        view.add(new LineView(new Pen(1, Color.black), p.x, p.y, p2.x, p2.y));
-        view.add(new LineView(new Pen(1, Color.black), p.x, p.y, p1.x, p1.y));
-
-        //brush = new Brush(Color.magenta);
-        //                addNode(view, n, brush);
-        //brush = new Brush(Color.blue);
-        addNode(view, n1);
-        addNode(view, n2);
-        addNode(view, n3);
-        addNode(view, n4);
-        addNode(view, n5);
-        addNode(view, n6);
-        addNode(view, n7);
-        //        addNode(view, n8, brush);
-        //        addEdge(view, e1);
-        //                addEdge(view, e2);
-        //                addEdge(view, e3);
-        //                addEdge(view, e4);
-        ViewPane pane = new ViewPane();
-        pane.setView(view);
-
-        Dimension dim = new Dimension(w * gridX + 100, h * gridY + 100);
-        outDeltaMap();
-        frame.add(pane, BorderLayout.CENTER);
-        frame.doLayout();
-        frame.setVisible(true);
-        frame.setAlwaysOnTop(true);
-        frame.setMinimumSize(dim);
-        frame.setMaximumSize(dim);
-        frame.setSize(dim);
-        frame.setResizable(true);
-        frame.setLocationRelativeTo(null);
-        frame.setEnabled(true);
-        frame.setFocusable(true);
-
-
+        catch( java.awt.HeadlessException ignore ) {}        
     }
+
     private void setShadowArea()
     {
         for( int i = 0; i < w; i++ )
