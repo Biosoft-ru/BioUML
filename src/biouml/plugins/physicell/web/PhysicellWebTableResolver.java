@@ -16,6 +16,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
+import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.WebException;
@@ -113,27 +114,27 @@ public class PhysicellWebTableResolver extends TableResolver
         @PropertyName ( "Color outer" )
         public Pen getPenOuter()
         {
-            return new Pen( 1, cdp.getColorOuter() == null? Color.black: cdp.getColorOuter() );
+            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor() );
         }
 
         public void setPenOuter(Pen pen)
         {
             this.penOuter = pen;
             if( pen != null )
-                cdp.setColorOuter( pen.getColor() );
+                cdp.setColor(  new Brush(pen.getColor()) );
         }
         
         @PropertyName ( "Color inner" )
         public Pen getPenInner()
         {
-            return new Pen( 1, cdp.getColorInner() == null? Color.black: cdp.getColorInner() );
+            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor()  );
         }
 
         public void setPenInner(Pen pen)
         {
             this.penInner = pen;
             if( pen != null )
-                cdp.setColorInner( pen.getColor() );
+                cdp.setColor( new Brush(pen.getColor() ));
         }
 
         @PropertyName ( "Initial number" )
