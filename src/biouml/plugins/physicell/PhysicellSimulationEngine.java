@@ -37,7 +37,8 @@ import ru.biosoft.physicell.core.standard.FunctionRegistry;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentVisualizer;
 import ru.biosoft.physicell.ui.Visualizer;
-import ru.biosoft.physicell.ui.Visualizer.Section;
+import ru.biosoft.physicell.ui.Visualizer2D.Section;
+import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 
@@ -164,12 +165,12 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.simulate2D = options.isUse2D();
 
         DefinitionVisualizer defualtVisualizer = new DefinitionVisualizer();
-        for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-            defualtVisualizer.setColor( cd.getName(), cd.getColor() );
+//        for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+//            defualtVisualizer.setColor( cd.getName(), cd.getColor() );
 
         for( String density : m.densityNames )
         {
-            Visualizer v = new Visualizer( null, density, Section.Z, 0 );
+            Visualizer2D v = new Visualizer2D( null, density, Section.Z, 0 );
             v.setStubstrateIndex( m.findDensityIndex( density ) );
             v.setAgentVisualizer( defualtVisualizer );
             model.addVisualizer( v );
@@ -268,7 +269,10 @@ public class PhysicellSimulationEngine extends SimulationEngine
             DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
             AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer.class, log.getLogger(), model );
             for( Visualizer v : model.getVisualizers() )
-                v.setAgentVisualizer( visualizer );
+            {
+                if (v instanceof Visualizer2D)
+                ((Visualizer2D)v).setAgentVisualizer( visualizer );
+            }
         }
 
         for( EventProperties eventProperties : emodel.getEvents() )
