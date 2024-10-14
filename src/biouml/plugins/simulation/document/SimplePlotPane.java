@@ -10,7 +10,9 @@ import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -18,6 +20,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 import biouml.model.dynamics.plot.Curve;
 import biouml.model.dynamics.plot.PlotInfo;
 import biouml.plugins.simulation.ResultPlotPane;
+import biouml.plugins.simulation.plot.PlotPane;
+import biouml.standard.simulation.plot.Plot;
 
 /**
  * @author axec
@@ -43,15 +47,22 @@ public class SimplePlotPane extends JPanel
             );
 
             this.plotInfo = plotInfo;
+            XYPlot xyPlot = chart.getXYPlot();
             xVariable = this.plotInfo.getXVariable().getName();
-            chart.getXYPlot().setBackgroundPaint( Color.white );
+            xyPlot.setBackgroundPaint( Color.white );
             chart.setBackgroundPaint( Color.white );
             XYSeriesCollection dataset = new XYSeriesCollection();
-            chart.getXYPlot().setDataset( dataset );
+            xyPlot.setDataset( dataset );
             XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
             renderer.setDrawSeriesLineAsPath( true );
             ChartPanel chartPanel = new ChartPanel( chart );
             chartPanel.setPreferredSize( new java.awt.Dimension( ix, iy ) );
+            
+            ValueAxis xAxis = PlotPane.generateAxis( Plot.AxisType.getAxisType( plotInfo.getXAxisType() ) );
+            xyPlot.setDomainAxis( xAxis );
+            ValueAxis yAxis = PlotPane.generateAxis( Plot.AxisType.getAxisType( plotInfo.getYAxisType() ) );
+            xyPlot.setRangeAxis( yAxis );
+            
             add( chartPanel );
             if( plotInfo.getExperiments() != null )
                 ResultPlotPane.addExperiments( plotInfo.getExperiments(), renderer, dataset, timeLimit );
