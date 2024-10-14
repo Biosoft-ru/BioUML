@@ -1,0 +1,460 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.biouml</groupId>
+        <artifactId>biouml</artifactId>
+        <version>0.9.10</version>
+        <relativePath>../pom.xml</relativePath> <!-- Adjust the path to the parent POM -->
+    </parent>
+
+    <artifactId>src</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <rootDir>..</rootDir>
+    </properties>
+
+    <build>
+        <sourceDirectory>${rootDir}/src</sourceDirectory>
+        <!--resources>
+            <resource>
+                <directory>${rootDir}/src</directory>
+                 <excludes>
+                      <exclude>target/**</exclude>
+                      <exclude>**/*.java</exclude>
+                 </excludes>
+            </resource>
+        </resources-->
+
+        <testSourceDirectory>${rootDir}/src</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>${rootDir}/src</directory>
+                <includes>
+                     <include>**/_test/resources/*</include>
+                     <include>**/simulation/resources/*</include>
+                 </includes>
+                 <excludes>
+                      <exclude>target/**</exclude>
+                 </excludes>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <!-- Compiler plugin to compile Java code -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <excludes>
+                         <exclude>target/**</exclude>
+                         <exclude>ru/biosoft/util/j2html/package-info.java</exclude>
+                         <exclude>ru/biosoft/fs/package-info.java</exclude>
+                         <exclude>**/_test/*.java</exclude>
+                     </excludes>
+                    <testIncludes>
+                         <include>**/_test/*.java</include>
+                    </testIncludes>
+                    <testExcludes>
+                         <exclude>target/**</exclude>
+                         <exclude>ru/biosoft/util/j2html/package-info.java</exclude>
+                         <exclude>ru/biosoft/fs/package-info.java</exclude>
+                     </testExcludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <configuration>
+                    <systemPropertyVariables>
+                      <java.awt.headless>true</java.awt.headless>
+                    </systemPropertyVariables>
+                    <excludes>
+                        <exclude>**/_test/AutoTest.java</exclude>
+
+                        <!-- ********************************************************** -->
+                        <!-- These are indeed bad and outdated tests, so we ignore them -->
+                        <!-- ********************************************************** -->
+
+                        <exclude>**/ru/biosoft/analysis/_test/RepeatedNamesTest.java</exclude>
+                        <exclude>**/biouml/model/util/_test/TestUniversalXmlTransformer.java</exclude>
+
+                        <!-- ***************************************************** -->
+                        <!-- These are partly broken - some tests inside them pass -->
+                        <!-- ***************************************************** -->
+
+                        <!--exclude>**/ru/biosoft/analysis/_test/AnalysesTest.java</exclude-->
+
+
+                        <!-- ************************************************************************************* -->
+                        <!-- These tests require display. Comment out java.awt.headless above to run them properly -->
+                        <!-- ************************************************************************************* -->
+
+                        <!--exclude>**/ru/biosoft/analysis/_test/BeanExplorerTest.java</exclude-->
+                        <!--exclude>**/ru/biosoft/analysis/_test/FastGridLayoutTest.java</exclude-->
+                        <!--exclude>**/biouml/model/xml/_test/XmlDiagramViewTest.java</exclude-->
+                        <!--exclude>**/biouml/plugins/sbgn/_test/XmlDiagramViewTest.java</exclude-->
+                        <exclude>**/biouml/model/xml/_test/ImageBase64CodeTest.java</exclude>
+
+
+                        <!-- ******************************* -->
+                        <!-- These fail now. Should be fixed -->
+                        <!-- ******************************* -->
+
+                        <exclude>**/biouml/model/_test/TestCompartment.java</exclude>
+                        <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReadWriteTest.java</exclude>
+                        <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoViewTest.java</exclude>
+                        <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReaderTest.java</exclude>
+                        <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoEdgesTest.java</exclude>
+
+
+                        <!-- ********************************************************************** -->
+                        <!-- These tests are broken and/or not properly configured. Should be fixed -->
+                        <!-- ********************************************************************** -->
+
+                        <exclude>**/ru/biosoft/analysis/_test/MakeLayoutHTMLTest.java</exclude>
+                        <exclude>**/ru/biosoft/analysis/_test/MultithreadingLayoutTest.java</exclude>
+                        <exclude>**/ru/biosoft/analysis/_test/MissedValuesRefillTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/galaxy/_test/GalaxyAnalysisParametersTest.java</exclude>
+                        <exclude>**/ru/biosoft/galaxy/_test/ImportExecuteExportTest.java</exclude>
+                        <exclude>**/ru/biosoft/galaxy/_test/FullTest.java</exclude>
+                        <exclude>**/ru/biosoft/galaxy/_test/SimpleTest.java</exclude>
+
+                        <exclude>**/biouml/standard/state/_test/StateTest.java</exclude>
+                        <exclude>**/biouml/standard/filter/_test/FilterTest.java</exclude>
+                        <exclude>**/biouml/standard/simulation/plot/_test/PlotSqlTransformerTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/sedml/_test/TestSedmlExamples.java</exclude>
+	                <exclude>**/biouml/plugins/sedml/_test/TestListOfModelsBuilder.java</exclude>
+	                <exclude>**/biouml/plugins/sedml/_test/AbstractSedmlTest.java</exclude>
+	                <exclude>**/biouml/plugins/sedml/_test/RemoteBiomodelsTest.java</exclude>
+	                <exclude>**/biouml/plugins/sedml/_test/TestSedMlImporter.java</exclude>
+
+	                <exclude>**/biouml/plugins/stochastic/_test/ModelGeneratorTest.java</exclude>
+
+	                <exclude>**/biouml/plugins/antimony/_test/AnnotationAntimonyTest.java</exclude>
+	                <exclude>**/biouml/plugins/antimony/_test/SbgnAntimonyTest.java</exclude>
+	                <exclude>**/biouml/plugins/antimony/_test/TestYAML.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/AntimonyTest.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/AntimonyAnnotationImportTest.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/CompositeAntimonyTest.java</exclude>
+
+
+
+	                <exclude>**/biouml/plugins/agentmodeling/covid19/old/_test/TestAgentPopulationModelOld.java</exclude>
+	                <exclude>**/biouml/plugins/agentmodeling/covid19/old/_test/TestProcessEstimator.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/covid19/_test/TestProcessEstimator.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/covid19/_test/TestAgentModel.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/ArterialTreeTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/AdapterAgentTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/AgentSimulationTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/CellAgentTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/SolodyannikovTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/SolodyannikovKaraaslanTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/KaraaslanTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/TestMortalAgents.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/SteadyStateTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/SchedulerTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/TestCVS.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/TimeScaleTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/ScriptAgentTest.java</exclude>
+	                <exclude>**/biouml.plugins/agentmodeling/_test/TestMortalAgents2.java</exclude>
+	                <exclude>**/biouml/plugins/fbc/_test/ScoreBasedFbcTableBuilderTest.java</exclude>
+	                <exclude>**/biouml/plugins/research/_test/WorkflowTest.java</exclude>
+
+	                <exclude>**/biouml/plugins/bindingregions/_test/TestBindingRegionAnalyses.java</exclude>
+	                <exclude>**/biouml/plugins/bindingregions/_test/TestFiveSiteModel.java</exclude>
+
+	                <exclude>**/biouml/plugins/ensembl/_test/TracksTest.java</exclude>
+	                <exclude>**/biouml/plugins/ensembl/_test/TestHumanGenome.java</exclude>
+
+	                <exclude>**/biouml/plugins/pharm/_test/TestExamples.java</exclude>
+	                <exclude>**/biouml/plugins/pharm/_test/TestSensitivityComplex.java</exclude>
+
+	                <exclude>**/biouml/plugins/simulation/ode/_test/JVodeDirectTest.java</exclude>
+
+	                <exclude>**/biouml/plugins/sbml/_test/SbmlWriterTest.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/_test/TestSbmlImportExport.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/_test/SBGNConverterTest.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/_test/TestSbmlToDml.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/celldesigner/_test/CompareWithPantherTest.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/celldesigner/_test/DownloadPantherImagesTest.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/celldesigner/_test/DownloadPantherXMLTest.java</exclude>
+	                <exclude>**/biouml/plugins/sbml/celldesigner/_test/ImportPantherTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/server/_test/ServerTest.java</exclude>
+                        <exclude>**/biouml/plugins/server/_test/ClientDataCollectionTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/keynodes/_test/KeyNodesTest.java</exclude>
+                        <exclude>**/biouml/plugins/keynodes/_test/ReactomeBioHubTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/simulation/_test/TestSolverResult.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/_test/CompositeSimulationTest.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/_test/ResultSqlTransformerTest.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/_test/TestTableElementPreprocessor.java</exclude>
+
+                        <exclude>**/biouml/plugins/simulation_test/_test/SBMLTest.java</exclude>
+                        <exclude>**/biouml/plugins/simulation_test/_test/SBMLOldTest.java</exclude>
+                        <exclude>**/biouml/plugins/simulation_test/_test/ApoptosisTest.java</exclude>
+                        <exclude>**/biouml/plugins/simulation_test/_test/TestVirtualHuman.java</exclude>
+                        <exclude>**/biouml/plugins/simulation_test/_test/ReaderWriterTest.java</exclude>
+                        <exclude>**/biouml/plugins/simulation_test/_test/LongAutoTest.java</exclude>
+
+                        <exclude>**/biouml/standard/_test/SqlModuleTest.java</exclude>
+
+                        <exclude>**/biouml/standard/simulation/plot/_test/PlotSqlTransformerTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/simulation/plot/_test/PlotPaneTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestConstraintsModel.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestFastReaction.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestStateTransitionModel.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestJavaSimulationEngine.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestCycledEqs.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestEventModel.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestLargeModel.java</exclude>
+                        <exclude>**/biouml/plugins/simulation/java/_test/TestInitialAssignments.java</exclude>
+
+
+                        <exclude>**/biouml/plugins/gtrd/analysis/maos/_test/TestGTRDLoad.java</exclude>
+                        <exclude>**/biouml/plugins/gtrd/_test/HubTest.java</exclude>
+                        <exclude>**/biouml/plugins/gtrd/_test/ImportUniprobeTest.java</exclude>
+                        <exclude>**/biouml/plugins/gtrd/master/sites/json/_test/TestMasterSiteSerializer.java</exclude>
+
+                        <exclude>**/biouml/plugins/sabiork/_test/ConnectionTest.java</exclude>
+                        <exclude>**/biouml/plugins/sabiork/_test/CacheReactionsTest.java</exclude>
+                        <exclude>**/biouml/plugins/sabiork/_test/LoadSBMLTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/plugins/jri/_test/RDirectTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/bsa/bsastats/_test/MicroRNAAlignerTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/analysis/_test/TrackCoverageAnalysisTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/analysis/_test/TestGeneSetToTrack.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/analysis/_test/TrackCoverageAnalysisTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/bsa/transformer/_test/FastaTransformedCollectionTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/transformer/_test/SequenceQuerySystemTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/transformer/_test/GenbankTransformedCollectionTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/transformer/_test/GbEmblTransformedCollectionTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/transformer/_test/EmblTransformedCollectionTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/bsa/_test/AbstractTrackTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/ExportTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/CombinedTrackTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/IntervalTrackImporterTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/BAMTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/LongFastaTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/TestSqlTrack.java</exclude>
+                        <exclude>**/ru/biosoft/templates/_test/TemplatesTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/view/colorscheme/_test/TransformerTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/view/colorscheme/_test/CompositeColorSchemeTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/view/colorscheme/_test/TranscriptionFactorClassKeyGeneratorTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/view/colorscheme/_test/SiteWeightColorSchemeTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/access/_test/TestSqlPagingIterator.java</exclude>
+                        <exclude>**/ru/biosoft/access/_test/TestExceptionHandling.java</exclude>
+                        <exclude>**/ru/biosoft/access/_test/IndexTest.java</exclude>
+                        <exclude>**/ru/biosoft/access/_test/TestSqlConnector.java</exclude>
+                        <exclude>**/ru/biosoft/access/_test/ZipHtmlDataCollectionTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/access/generic/_test/GenericDataCollectionTest.java</exclude>
+
+                        <exclude>**/ru/biosoft/table/_test/SqlQueryTableTest.java</exclude>
+                        <exclude>**/ru/biosoft/table/_test/TableLoadSpeedTest.java</exclude>
+
+                        <exclude>**/biouml/model/dynamics/_test/TestEModel.java</exclude>
+
+                        <exclude>**/biouml/plugins/bionetgen/_test/BionetgenRepresentationFactoryTest.java</exclude>
+                        <exclude>**/biouml/plugins/bionetgen/_test/BionetgenDiagramGeneratorTest.java</exclude>
+                        <exclude>**/biouml/plugins/bionetgen/_test/BionetgenImportExportTest.java</exclude>
+
+                        <exclude>**/biouml/plugins/kegg/access/_test/TestDiagramReader.java</exclude>
+
+                        <exclude>**/biouml/workbench/diagram/_test/ImporterRegistryTest.java</exclude>
+                        <exclude>**/biouml/workbench/_test/HtmlViewPaneTest.java</exclude>
+                        <exclude>**/biouml/workbench/_test/PluginsStructureTest.java</exclude>
+
+                        <!-- Generated by ChatGPT -->   
+
+                        <exclude>**/biouml/plugins/bindingregions/_test/CisRegModuleTest.java</exclude>
+                        <exclude>**/biouml/plugins/bindingregions/_test/TestFiveSiteModels.java</exclude>
+                        <exclude>**/biouml/plugins/bindingregions/_test/TestGatheringGenomeStatistics.java</exclude>
+                        <exclude>**/biouml/plugins/bindingregions/_test/TestSNPAnalyses.java</exclude>
+                        <exclude>**/biouml/plugins/biopax/_test/TestCollectionsGenerator.java</exclude>
+                        <exclude>**/biouml/plugins/biopax/_test/TestBioPaxImporter.java</exclude>
+                        <exclude>**/biouml/plugins/biopax/_test/TestLoad.java</exclude>
+                        <exclude>**/biouml/plugins/cellml/_test/CellMLReaderTest.java</exclude>
+                        <exclude>**/biouml/plugins/cellml/_test/RdfTest.java</exclude>
+                        <exclude>**/biouml/plugins/enrichment/_test/RepositoryHubTest.java</exclude>
+                        <exclude>**/biouml/plugins/ensembl/_test/EnsemblBioHubTest.java</exclude>
+                        <exclude>**/biouml/plugins/ensembl/_test/EnsemblSequenceTest.java</exclude>
+                        <exclude>**/biouml/plugins/ensembl/_test/EnsemblTest.java</exclude>
+                        <exclude>**/biouml/plugins/ensembl/analysis/_test/TestSNPListToTrack.java</exclude>
+                        <exclude>**/biouml/plugins/lucene/_test/BioHubSpeedTest.java</exclude>
+                        <exclude>**/biouml/plugins/lucene/_test/CreateBioHubTest.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/SteadyStateTest.java</exclude>
+                        <exclude>**/biouml/plugins/proteinmodel/_test/ProteinModelTest.java</exclude>
+                        <exclude>**/biouml/plugins/reactome/_test/ReactomeMatchingHubTest.java</exclude>
+                        <exclude>**/biouml/plugins/research/workflow/yaml/_test/TestWorkflowToYamlConverter.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/_test/BAMSitesTest.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/_test/TestCountReadsInTranscripts.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/db/_test/TestExperimentSQLTransformer.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestASiteBuilder.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestOverlappingCDS.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestASiteBuilder.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestAlignmentConverter.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestBuildASiteOffsetTable.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestBuildProfileModel.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestEnsemblTranscriptsProvider.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestPredictStartSites.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/AbstractRiboSeqTest.java</exclude>
+                        <exclude>**/biouml/plugins/sbgn/_test/TestSbgnExamples.java</exclude>
+                        <exclude>**/biouml/plugins/sbgn/sbgnml/_test/TestSbgnMlExportImport.java</exclude>
+                        <exclude>**/biouml/workbench/module/_test/ImportExportModuleTest.java</exclude>
+                        <exclude>**/ru/biosoft/access/_test/DataElementPathTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsastats/_test/MicroRNAAlignerTest.java</exclude>
+                        <exclude>**/ru/biosoft/server/servlets/webservices/_test/TestWebActionsProvider.java</exclude>
+                        <exclude>**/ru/biosoft/server/servlets/webservices/_test/AbstractProviderTest.java</exclude>
+                        <exclude>**/ru/biosoft/templates/_test/FormatterTest.java</exclude>
+                        <exclude>**/ru/biosoft/treetable/_test/TreeTableViewTest.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/AntimonyStageTest.java</exclude>
+                        <exclude>**/biouml/plugins/biopax/_test/BioPAXReaderTest.java</exclude>
+                        <exclude>**/biouml/plugins/biopax/_test/OwlApiReaderTest.java</exclude>
+                        <exclude>**/biouml/plugins/biopax/_test/OwlToTextTest.java</exclude>
+                        <exclude>**/biouml/plugins/brain/_test/DiagramTest.java</exclude>
+                        <exclude>**/biouml/plugins/chemoinformatics/_test/SmilesViewTest.java</exclude>
+                        <exclude>**/biouml/plugins/chemoinformatics/_test/TestSDFImporter.java</exclude>
+                        <exclude>**/biouml/plugins/cytoscape/_test/CytoscapeImporterTest.java</exclude>
+                        <exclude>**/biouml/plugins/ensembl/_test/TestFruitflyGenome.java</exclude>
+                        <exclude>**/biouml/plugins/fbc/_test/FbcAnalysisTest.java</exclude>
+                        <exclude>**/biouml/plugins/fbc/_test/GLPKSolverTest.java</exclude>
+                        <exclude>**/biouml/plugins/glycan/_test/GlycanViewTest.java</exclude>
+                        <exclude>**/biouml/plugins/graphml/_test/TestGraphML.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/ArterialTreeFitTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/PressureTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/PulseWaveValidationTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/SimpleTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/SolodyannikovValidationTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestArterialTree.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestHemodynamicsModel.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestInitialValuesCalculator.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestResultAnalysis.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/UtilTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/VelocityTest.java</exclude>
+                        <exclude>**/biouml/plugins/kegg/access/_test/TestKgmlDiagramReader.java</exclude>
+                        <exclude>**/biouml/plugins/keynodes/_test/AllPathClusteringTest.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/SplitTest.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestCompositeSensitivityAnalysis.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestFlatModel.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestKeyNodesSensitivity.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestMetabolicControlAnalysis.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestPopuationModeling.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestProcessEstimator.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestQuasiSteadyStateAnalysis.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSensitivityAnalysis.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSteadyStateComplex.java</exclude>
+                        <exclude>**/biouml/plugins/optimization/_test/SolodyannikovOptimizationTest.java</exclude>
+                        <exclude>**/biouml/plugins/optimization/_test/TestConstraintOptimization.java</exclude>
+                        <exclude>**/biouml/plugins/optimization/_test/TestRelativeDataOptimization.java</exclude>
+                        <exclude>**/biouml/plugins/optimization/_test/TestSteadyStateOptimization.java</exclude>
+                        <exclude>**/biouml/plugins/optimization/_test/TestTimeCourseOptimization.java</exclude>
+                        <exclude>**/biouml/plugins/perfectosape/_test/TestPerfectosape.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/PopulationSimulationEngineTest.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestAnalyzePopulation.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestFitComplex.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestMixedEffectModelRunner.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPopulationComplex.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPrognosticSystem.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSimulateComplex.java</exclude>
+                        <exclude>**/biouml/plugins/research/workflow/yaml/_test/TestWorkflowToYamlConverter.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/_test/RiboSeqAnalysisTest.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/_test/TestCountReadsInTranscripts.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/db/_test/TestExperimentSQLTransformer.java</exclude>
+                        <exclude>**/biouml/plugins/sbgn/_test/TestSbgnImportExport.java</exclude>
+                        <exclude>**/biouml/plugins/sbgn/_test/TitleParserTest.java</exclude>
+                        <exclude>**/biouml/standard/_test/BioHubQueryEngineTest.java</exclude>
+                        <exclude>**/biouml/standard/_test/DatabaseReferenceEditorTest.java</exclude>
+                        <exclude>**/biouml/standard/_test/SpeciesTest.java</exclude>
+                        <exclude>**/biouml/standard/diagram/_test/ReactionCreationTest.java</exclude>
+                        <exclude>**/biouml/standard/diagram/_test/ReactionPaneTest.java</exclude>
+                        <exclude>**/biouml/standard/diagram/_test/TestCompositePreprocessor.java</exclude>
+                        <exclude>**/biouml/standard/type/_test/StructureViewTest.java</exclude>
+                        <exclude>**/biouml/workbench/module/xml/editor/_test/EditorTest.java</exclude>
+                        <exclude>**/ru/biosoft/access/search/_test/DataSearchTest.java</exclude>
+                        <exclude>**/ru/biosoft/access/support/_test/MultyChoicePaneTest.java</exclude>
+                        <exclude>**/ru/biosoft/fs/_test/TestFileSystemCollection.java</exclude>
+                        <exclude>**/ru/biosoft/galaxy/_test/TestFormatRegistry.java</exclude>
+                        <exclude>**/ru/biosoft/plugins/javascript/_test/TestJSElement.java</exclude>
+                        <exclude>**/ru/biosoft/table/_test/TestSqlTableCreateRaceCondition.java</exclude>
+                        <exclude>**/ru/biosoft/treetable/_test/TestTreeTableTransformer.java</exclude>
+                        <exclude>**/ru/biosoft/treetable/_test/TreeTableViewTest.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/TestAntimonyRepresentationFactory.java</exclude>
+                        <exclude>**/biouml/plugins/glycan/_test/TestGlycobiologyModelsCompare.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestResultAnalysis2.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/VesselAreaFitTest.java</exclude>
+                        <exclude>**/biouml/plugins/lucene/_test/BioHubTest.java</exclude>
+                        <exclude>**/biouml/plugins/lucene/_test/LuceneTest.java</exclude>
+                        <exclude>**/biouml/plugins/lucene/_test/LuceneWebTest.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSensitivityCVModel.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSensitivityCVModel2.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSensitivityCVModel3.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSensitivityCVModel4.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSensitivityCVModel5.java</exclude>
+                        <exclude>**/biouml/plugins/modelreduction/_test/TestSetValues.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/StubModelTest.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPopulationHallow.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPopulationSamplingPruett.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPopulationSolodyannikov.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSensitivityHallow.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSensitivitySolodyannikov.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSimulateComplex2.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSimulateComplex4.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSimulateHallow.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestSimulatePopulation.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestTreatSensitivity.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/_test/ComparatorAnalysisTest.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/_test/TestTranscriptomeMappability.java</exclude>
+                        <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestTMP.java</exclude>
+
+
+                        <!-- Fail in headless -->   
+                        <exclude>**/biouml/plugins/brain/_test/DiagramTest.java</exclude>
+
+                        <!-- These actually pass but they are interactive -->   
+                        <exclude>**/ru/biosoft/math/_test/FormulaViewTest.java</exclude>
+                        <exclude>**/ru/biosoft/math/_test/ExpressionEditorTest.java</exclude>
+                        <exclude>**/biouml/model/dynamics/_test/SimpleEventTest.java</exclude>
+                        <exclude>**/biouml/model/dynamics/_test/StateTest.java</exclude>
+                        <exclude>**/biouml/model/_test/ArrayAttributeViewTest.java</exclude>
+                        <exclude>**/biouml/model/_test/AttributeViewTest.java</exclude>
+                        <exclude>**/biouml/workbench/_test/ViewEditorPaneTest.java</exclude>
+
+                        <!-- These are very long -->   
+                        <exclude>**/biouml/plugins/sbml/_test/SbmlBiomodelsUploadTest.java</exclude>
+                        <exclude>**/biouml/plugins/sbml/biomodels/_test/DownloadBiomodelsTest.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPopulationSampling2D.java</exclude>
+                        <exclude>**/biouml/plugins/pharm/_test/TestPopulationSampling.java</exclude>
+                        <exclude>**/biouml/plugins/bionetgen/_test/BionetgenSimulationTest.java</exclude>
+                        <exclude>**/biouml/plugins/bionetgen/_test/BionetgenLargeModelTest.java</exclude>
+                        <exclude>**/biouml/plugins/bionetgen/_test/LongAutoTest.java</exclude>
+                        <exclude>**/biouml/plugins/bionetgen/_test/BionetgenDiagramDeployerTest.java</exclude>
+
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

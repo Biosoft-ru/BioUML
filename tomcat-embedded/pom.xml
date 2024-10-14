@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.biouml</groupId>
+    <artifactId>tomcat-embedded</artifactId>
+    <version>0.9.10</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <rootDir>${maven.multiModuleProjectDirectory}</rootDir>
+        <biouml.war>${rootDir}/target/biouml.war</biouml.war>
+        <bioumlweb.war>${rootDir}/target/bioumlweb.war</bioumlweb.war>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>7.0.109</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-logging-juli</artifactId>
+            <version>7.0.109</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <version>7.0.109</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>javax.servlet.jsp-api</artifactId>
+            <version>2.3.3</version> 
+            <scope>provided</scope>
+        </dependency-->
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Плагин для сборки jar с зависимостями -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.biouml.tomcat.Embedded</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Exec Maven Plugin to run Java class -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>org.biouml.tomcat.Embedded</mainClass>
+                    <environmentVariables>
+                       <CATALINA_HOME>${rootDir}/target/tomcat</CATALINA_HOME>
+                    </environmentVariables>
+                    <systemProperties>
+                        <property>
+                            <key>java.security.policy</key>
+                            <value>${rootDir}/target/biouml.policy</value>
+                        </property>
+                        <property>
+                            <key>catalina.home</key>
+                            <value>${rootDir}/target/tomcat</value>
+                        </property>
+                        <property>
+                            <key>biouml.http.port</key>
+                            <value>8080</value>
+                        </property>
+                        <property>
+                            <key>biouml.war</key>
+                            <value>${biouml.war}</value>
+                        </property>
+                        <property>
+                            <key>bioumlweb.war</key>
+                            <value>${bioumlweb.war}</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

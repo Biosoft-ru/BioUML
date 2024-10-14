@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ru.biosoft.workbench.editors</artifactId>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.biouml</groupId>
+        <artifactId>biouml</artifactId>
+        <version>0.9.10</version>
+        <relativePath>../../pom.xml</relativePath> <!-- Adjust the path to the parent POM -->
+    </parent>
+
+    <properties>
+        <rootDir>../..</rootDir>
+        <pluginDir>${rootDir}/plugconfig/${project.artifactId}</pluginDir>
+        <biouml.plugin.jar.excludes>ru/biosoft/server/servlets/**</biouml.plugin.jar.excludes>  
+        <biouml.plugin.jar.excludes.extra1>ru/biosoft/server/tomcat/**</biouml.plugin.jar.excludes.extra1>  
+    </properties>
+
+
+    <dependencies>
+        <!-- Depend on the compiled classes from the parent module -->
+        <dependency>
+            <groupId>org.biouml</groupId>
+            <artifactId>src</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Plugin to manipulate properties -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Jar plugin to package the plugin into a jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+
+            <!-- Plugin to run custom tasks like deleting files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
