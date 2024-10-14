@@ -28,6 +28,7 @@ import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.ui.GIFGenerator;
 import ru.biosoft.physicell.ui.ResultGenerator;
 import ru.biosoft.physicell.ui.Visualizer;
+import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
@@ -104,7 +105,8 @@ public class PhysicellSimulator implements Simulator
 
         for( Visualizer v : this.model.getVisualizers() )
         {
-            v.setSaveImage( options.isSaveImage() );
+            if (v instanceof Visualizer2D)
+            ((Visualizer2D)v).setSaveImage( options.isSaveImage() );
 
             if( options.isSaveGIF() )
                 v.addResultGenerator( new GIFGenerator( TempFiles.file( v.getName() + ".gif" ) ) );
