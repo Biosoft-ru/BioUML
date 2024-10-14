@@ -16,7 +16,6 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
-import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.WebException;
@@ -93,8 +92,9 @@ public class PhysicellWebTableResolver extends TableResolver
     public static class CellDefinitionWrapper implements DataElement
     {
         private CellDefinitionProperties cdp;
-        Pen pen;
-
+        Pen penOuter;
+        Pen penInner;
+        
         public CellDefinitionWrapper(CellDefinitionProperties cdp)
         {
             this.cdp = cdp;
@@ -110,17 +110,30 @@ public class PhysicellWebTableResolver extends TableResolver
             //           cdp.setName( name );;
         }
 
-        @PropertyName ( "Color" )
-        public Pen getPen()
+        @PropertyName ( "Color outer" )
+        public Pen getPenOuter()
         {
-            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor() );
+            return new Pen( 1, cdp.getColorOuter() == null? Color.black: cdp.getColorOuter() );
         }
 
-        public void setPen(Pen pen)
+        public void setPenOuter(Pen pen)
         {
-            this.pen = pen;
+            this.penOuter = pen;
             if( pen != null )
-                cdp.setColor( new Brush( pen.getColor() ) );
+                cdp.setColorOuter( pen.getColor() );
+        }
+        
+        @PropertyName ( "Color inner" )
+        public Pen getPenInner()
+        {
+            return new Pen( 1, cdp.getColorInner() == null? Color.black: cdp.getColorInner() );
+        }
+
+        public void setPenInner(Pen pen)
+        {
+            this.penInner = pen;
+            if( pen != null )
+                cdp.setColorInner( pen.getColor() );
         }
 
         @PropertyName ( "Initial number" )

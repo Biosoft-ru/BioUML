@@ -7,23 +7,36 @@ import biouml.model.DiagramElement;
 import biouml.model.dynamics.EModelRoleSupport;
 
 public class MulticellEModel extends EModelRoleSupport
-{    
+{
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
-
+    
     private DomainOptions domain = new DomainOptions();
     private UserParameters userParmeters = new UserParameters();
     private InitialCondition initialCondition = new InitialCondition();
-    private ReportProperties reportProperties = new ReportProperties(); 
+    private ReportProperties reportProperties = new ReportProperties();
     private ModelOptions options = new ModelOptions();
+    private VisualizerProperties visualizerProperties = new VisualizerProperties();
+
     
+    public MulticellEModel()
+    {
+        reportProperties.setModel( this );
+        visualizerProperties.setEModel( this );
+    }
+
     public ModelOptions getOptions()
     {
         return options;
     }
-    
+
     public ReportProperties getReportProperties()
     {
         return reportProperties;
+    }
+    
+    public VisualizerProperties getVisualizerProperties()
+    {
+        return visualizerProperties;
     }
 
     public UserParameters getUserParmeters()
@@ -49,6 +62,8 @@ public class MulticellEModel extends EModelRoleSupport
     public MulticellEModel(DiagramElement diagramElement)
     {
         super( diagramElement );
+        reportProperties.setModel( this );
+        visualizerProperties.setEModel( this );
     }
 
     @Override
@@ -73,13 +88,13 @@ public class MulticellEModel extends EModelRoleSupport
     {
         return (Diagram)super.getParent();
     }
-    
+
     public List<EventProperties> getEvents()
     {
         return this.getDiagramElement().stream().map( n -> n.getRole() ).select( EventProperties.class ).toList();
     }
 
-    
+
     public List<SubstrateProperties> getSubstrates()
     {
         return this.getDiagramElement().stream().map( n -> n.getRole() ).select( SubstrateProperties.class ).toList();
@@ -108,6 +123,7 @@ public class MulticellEModel extends EModelRoleSupport
         emodel.domain = domain.clone();
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
+        reportProperties.setModel( emodel );
         emodel.userParmeters = userParmeters.clone();
         emodel.options = options.clone();
         emodel.comment = comment;
@@ -120,7 +136,7 @@ public class MulticellEModel extends EModelRoleSupport
      */
     public void updateCellDefinitions()
     {
-       for( CellDefinitionProperties cdp : getCellDefinitions() )
+        for( CellDefinitionProperties cdp : getCellDefinitions() )
             cdp.update();
     }
 }

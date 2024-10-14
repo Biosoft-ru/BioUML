@@ -78,7 +78,6 @@ public class PhysicellModel implements Model
     public void init() throws Exception
     {
         model.init( false );
-
         isInit = true;
     }
 

@@ -6,6 +6,8 @@ import javax.swing.Action;
 
 import biouml.plugins.physicell.CellDefinitionViewPart.AddRuleAction;
 import biouml.plugins.physicell.CellDefinitionViewPart.RemoveRuleAction;
+import biouml.plugins.physicell.PhysicellModelViewPart.AddVisualizerAction;
+import biouml.plugins.physicell.PhysicellModelViewPart.RemoveVisualizerAction;
 
 public class MessageBundle extends ListResourceBundle
 {
@@ -13,14 +15,25 @@ public class MessageBundle extends ListResourceBundle
     protected Object[][] getContents()
     {
         return new Object[][] {
-                {AddRuleAction.KEY + Action.SMALL_ICON, "addRule.gif"},
+                {AddRuleAction.KEY + Action.SMALL_ICON, "add.gif"},
                 {AddRuleAction.KEY + Action.NAME, "Add Rule"},
                 {AddRuleAction.KEY + Action.SHORT_DESCRIPTION, "Add new rule"},
                 {AddRuleAction.KEY + Action.ACTION_COMMAND_KEY, "add-rule"},
-                {RemoveRuleAction.KEY + Action.SMALL_ICON, "removeRule.gif"},
+                
+                {RemoveRuleAction.KEY + Action.SMALL_ICON, "remove.gif"},
                 {RemoveRuleAction.KEY + Action.NAME, "Remove Rule"},
                 {RemoveRuleAction.KEY + Action.SHORT_DESCRIPTION, "Remove selected rule"},
-                {RemoveRuleAction.KEY + Action.ACTION_COMMAND_KEY, "remove-rule"},};
+                {RemoveRuleAction.KEY + Action.ACTION_COMMAND_KEY, "remove-rule"},
+                
+                {AddVisualizerAction.KEY + Action.SMALL_ICON, "add.gif"},
+                {AddVisualizerAction.KEY + Action.NAME, "Add Visualizer"},
+                {AddVisualizerAction.KEY + Action.SHORT_DESCRIPTION, "Add new visualizer"},
+                {AddVisualizerAction.KEY + Action.ACTION_COMMAND_KEY, "add-visualizer"},
+                
+                {RemoveVisualizerAction.KEY + Action.SMALL_ICON, "remove.gif"},
+                {RemoveVisualizerAction.KEY + Action.NAME, "Remove Visualizer"},
+                {RemoveVisualizerAction.KEY + Action.SHORT_DESCRIPTION, "Remove new visualizer"},
+                {RemoveVisualizerAction.KEY + Action.ACTION_COMMAND_KEY, "remove-visualizer"}};
     }
 
     /**

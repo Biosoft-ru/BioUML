@@ -2,22 +2,32 @@ package biouml.plugins.physicell;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.developmentontheedge.application.Application;
+import com.developmentontheedge.application.action.ActionInitializer;
+import com.developmentontheedge.application.action.ActionManager;
 import com.developmentontheedge.beans.swing.PropertyInspector;
+import com.developmentontheedge.beans.swing.PropertyInspectorEx;
 import com.developmentontheedge.beans.swing.table.RowModel;
 
 import biouml.model.Diagram;
+import biouml.model.Node;
+import biouml.plugins.physicell.CellDefinitionViewPart.AddRuleAction;
+import biouml.plugins.physicell.CellDefinitionViewPart.RemoveRuleAction;
 import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataCollectionVetoException;
+import ru.biosoft.graphics.editor.SelectionManager;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.PluggedEditorsTabbedPane;
 import ru.biosoft.gui.ViewPartSupport;
@@ -27,11 +37,18 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private JTabbedPane tabbedPane;
     private MulticellEModel emodel;
 
+    private Action addVisualizerAction;
+    private Action removeVisualizerAction;
+
     private PropertyInspector domainInspector = new PropertyInspector();
     private PropertyInspector parametersInspector = new PropertyInspector();
     private PropertyInspector initialConditionInspector = new PropertyInspector();
-    private PropertyInspector reportInspector = new PropertyInspector();
+    private PropertyInspector reportInspector = new PropertyInspectorEx();
     private PropertyInspector optionsInspector = new PropertyInspector();
+
+    private VisualizerTab visualizerTab = new VisualizerTab();
+
+    private Action[] actions;
 
     public PhysicellModelViewPart()
     {
@@ -59,6 +76,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         tabbedPane.addTab( "User Parameters", parametersInspector );
         tabbedPane.addTab( "Initial Condition", initialConditionInspector );
         tabbedPane.addTab( "Model Report", reportInspector );
+        tabbedPane.addTab( "Visualizer", visualizerTab );
         tabbedPane.addTab( "Model Options", optionsInspector );
         tabbedPane.addChangeListener( new ChangeListener()
         {
@@ -103,6 +121,25 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     @Override
     public Action[] getActions()
     {
+        Component c = tabbedPane.getSelectedComponent();
+        if( c instanceof VisualizerTab )
+        {
+            ActionManager actionManager = Application.getActionManager();
+            if( actions == null )
+            {
+                ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
+                addVisualizerAction = new AddVisualizerAction();
+                actionManager.addAction( AddVisualizerAction.KEY, addVisualizerAction );
+                initializer.initAction( addVisualizerAction, AddVisualizerAction.KEY );
+
+                removeVisualizerAction = new RemoveVisualizerAction();
+                actionManager.addAction( RemoveVisualizerAction.KEY, removeVisualizerAction );
+                initializer.initAction( removeVisualizerAction, RemoveVisualizerAction.KEY );
+
+                actions = new Action[] {addVisualizerAction, removeVisualizerAction};
+            }
+            return actions;
+        }
         return new Action[0];
     }
 
@@ -198,7 +235,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
             return new CellDefinitionProperties( "" );
         }
     }
-    
+
     public static class EventsViewPart extends PhysicellTab
     {
         public EventsViewPart(MulticellEModel emodel)
@@ -218,4 +255,49 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
             return new EventProperties( "" );
         }
     }
+
+
+    /**
+     * Adds new empty visualizer to the model
+     */
+    public class AddVisualizerAction extends AbstractAction
+    {
+        public static final String KEY = "Add visualizer";
+
+        public AddVisualizerAction()
+        {
+            super( KEY );
+            setEnabled( true );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+
+            visualizerTab.addVisualizer();
+            update( );
+        }
+    }
+
+    /**
+     * Removes selected visualizer from the model
+     */
+    public class RemoveVisualizerAction extends AbstractAction
+    {
+        public static final String KEY = "Remove visualizer";
+
+        public RemoveVisualizerAction()
+        {
+            super( KEY );
+            setEnabled( true );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            visualizerTab.removeSelectedVisualizer();
+            update( );
+        }
+    }
+
 }
