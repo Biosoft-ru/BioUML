@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml level="1" version="1" xmlns="http://www.sbml.org/sbml/level1">
+<model name="ATitle">
+<listOfCompartments>
+<compartment name="uVol" units="volume" volume="1.0">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:compartmentInfo color="255,255,255" height="398" shape="0" width="390" x="-35" y="-422"/>
+</annotations>
+</compartment>
+</listOfCompartments>
+<listOfSpecies>
+<specie compartment="uVol" initialAmount="280.0" name="MAPK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="32" x="11" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="10.0" name="MAPK_P" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="47" x="129" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="10.0" name="MAPK_PP" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="55" x="250" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="280.0" name="MKK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="31" x="12" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="90.0" name="MKKK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="33" x="136" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="10.0" name="MKKK_P" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="48" x="253" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="10.0" name="MKK_P" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="40" x="7" y="-129"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="uVol" initialAmount="10.0" name="MKK_PP" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="48" x="166" y="-127"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+</listOfSpecies>
+<listOfParameters>
+<parameter name="J0_V1" value="2.5"/>
+<parameter name="J0_Ki" value="9.0"/>
+<parameter name="J0_n" value="1.0"/>
+<parameter name="J0_K1" value="10.0"/>
+<parameter name="J1_V2" value="0.25"/>
+<parameter name="J1_KK2" value="8.0"/>
+<parameter name="J2_k3" value="0.025"/>
+<parameter name="J2_KK3" value="15.0"/>
+<parameter name="J3_k4" value="0.025"/>
+<parameter name="J3_KK4" value="15.0"/>
+<parameter name="J4_V5" value="0.75"/>
+<parameter name="J4_KK5" value="15.0"/>
+<parameter name="J5_V6" value="0.75"/>
+<parameter name="J5_KK6" value="15.0"/>
+<parameter name="J6_k7" value="0.025"/>
+<parameter name="J6_KK7" value="15.0"/>
+<parameter name="J7_k8" value="0.025"/>
+<parameter name="J7_KK8" value="15.0"/>
+<parameter name="J8_V9" value="0.5"/>
+<parameter name="J8_KK9" value="15.0"/>
+<parameter name="J9_V10" value="0.5"/>
+<parameter name="J9_KK10" value="15.0"/>
+</listOfParameters>
+<listOfReactions>
+<reaction name="J0" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="212" y="-285"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MKKK" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MKKK_P" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J0_V1*MKKK/((1 + (MAPK_PP/J0_Ki)^J0_n)*(J0_K1 + MKKK))"/>
+</reaction>
+<reaction name="J1" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="210" y="-180"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MKKK_P" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MKKK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J1_V2*MKKK_P/(J1_KK2 + MKKK_P)"/>
+</reaction>
+<reaction name="J2" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="60" y="-172"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MKK" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MKK_P" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J2_k3*MKKK_P*MKK/(J2_KK3 + MKK)"/>
+</reaction>
+<reaction name="J3" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="98" y="-75"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MKK_P" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MKK_PP" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J3_k4*MKKK_P*MKK_P/(J3_KK4 + MKK_P)"/>
+</reaction>
+<reaction name="J4" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="99" y="-123"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MKK_PP" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MKK_P" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J4_V5*MKK_PP/(J4_KK5 + MKK_PP)"/>
+</reaction>
+<reaction name="J5" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="-10" y="-174"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MKK_P" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MKK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J5_V6*MKK_P/(J5_KK6 + MKK_P)"/>
+</reaction>
+<reaction name="J6" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="82" y="-329"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPK" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPK_P" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J6_k7*MKK_PP*MAPK/(J6_KK7 + MAPK)"/>
+</reaction>
+<reaction name="J7" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="211" y="-414"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPK_P" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPK_PP" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J7_k8*MKK_PP*MAPK_P/(J7_KK8 + MAPK_P)"/>
+</reaction>
+<reaction name="J8" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="213" y="-333"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPK_PP" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPK_P" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J8_V9*MAPK_PP/(J8_KK9 + MAPK_PP)"/>
+</reaction>
+<reaction name="J9" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="13" x="88" y="-403"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPK_P" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="J9_V10*MAPK_P/(J9_KK10 + MAPK_P)"/>
+</reaction>
+</listOfReactions>
+</model>
+</sbml>

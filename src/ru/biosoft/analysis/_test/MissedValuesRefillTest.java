@@ -14,6 +14,10 @@ import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
+
 public class MissedValuesRefillTest extends TestCase
 {
     public MissedValuesRefillTest(String name)
@@ -33,6 +37,8 @@ public class MissedValuesRefillTest extends TestCase
      */
     public void test() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         CollectionFactory.createRepository("../data_resources");
 
         TransformedDataCollection microarray = (TransformedDataCollection)CollectionFactory.getDataElement("data/microarray/");

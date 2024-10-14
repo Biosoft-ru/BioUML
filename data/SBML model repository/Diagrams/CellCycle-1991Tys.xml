@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml level="1" version="1" xmlns="http://www.sbml.org/sbml/level1">
+<model name="Tyson1991CellModel">
+<notes/>
+<listOfCompartments>
+<compartment name="cell" units="volume" volume="1.0">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:compartmentInfo color="255,255,255" height="398" shape="0" width="384" x="-35" y="-422"/>
+</annotations>
+</compartment>
+</listOfCompartments>
+<listOfSpecies>
+<specie compartment="cell" initialAmount="0.0" name="C2" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="-3" y="-397"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="1.0" name="CP" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="135" y="-398"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie boundaryCondition="true" compartment="cell" initialAmount="0.0" name="EmptySet" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="52" x="244" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="M" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="11" y="-258"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="Y" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="193" y="-128"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.0" name="YP" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="282" y="-213"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="cell" initialAmount="0.3" name="pM" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="13" y="-107"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+</listOfSpecies>
+<listOfParameters>
+<parameter name="Reaction1_k6" value="1.0"/>
+<parameter name="Reaction2_k8notP" value="1000000.0"/>
+<parameter name="Reaction3_k9" value="1000.0"/>
+<parameter name="Reaction4_k3" value="200.0"/>
+<parameter name="Reaction5_k5notP" value="0.0"/>
+<parameter name="Reaction6_k1aa" value="0.015"/>
+<parameter name="Reaction7_k2" value="0.0"/>
+<parameter name="Reaction8_k7" value="0.6"/>
+<parameter name="Reaction9_k4" value="180.0"/>
+<parameter name="Reaction9_k4prime" value="0.018"/>
+</listOfParameters>
+<listOfReactions>
+<reaction name="Reaction1" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="104" y="-275"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="M" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="C2" stoichiometry="1"/>
+<specieReference specie="YP" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction1_k6*M"/>
+</reaction>
+<reaction name="Reaction2" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="78" y="-401"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="C2" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="CP" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="C2*Reaction2_k8notP"/>
+</reaction>
+<reaction name="Reaction3" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="82" y="-345"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="CP" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="C2" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="CP*Reaction3_k9"/>
+</reaction>
+<reaction name="Reaction4" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="141" y="-161"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="CP" stoichiometry="1"/>
+<specieReference specie="Y" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="pM" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="CP*Reaction4_k3*Y"/>
+</reaction>
+<reaction name="Reaction5" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="-5" y="-179"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="M" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="pM" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction5_k5notP*M"/>
+</reaction>
+<reaction name="Reaction6" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="220" y="-274"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="EmptySet" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="Y" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction6_k1aa"/>
+</reaction>
+<reaction name="Reaction7" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="195" y="-337"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="Y" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction7_k2*Y"/>
+</reaction>
+<reaction name="Reaction8" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="289" y="-289"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="YP" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="EmptySet" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction8_k7*YP"/>
+</reaction>
+<reaction name="Reaction9" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="40" y="-157"/>
+</annotations>
+<listOfReactants>
+<specieReference specie="pM" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<specieReference specie="M" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="pM*(Reaction9_k4prime + Reaction9_k4*pM^2)"/>
+</reaction>
+</listOfReactions>
+</model>
+</sbml>

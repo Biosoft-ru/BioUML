@@ -1,186 +1,247 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<sbml xmlns="http://www.sbml.org/sbml/level2" level="2" version="1">
-	<model id="EnzymaticReaction" name="EnzymaticReaction"
-		sboTerm="SBO:0000004">
-		<annotation xmlns:biouml="http://www.biouml.org/ns" />
-		<listOfCompartmentTypes>
-			<compartmentType id="mitochondria" />
-		</listOfCompartmentTypes>
-		<listOfCompartments>
-			<compartment id="cell" size="190.0" units="volume">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:compartmentInfo color="255,255,255"
-						height="70" shape="0" width="70" x="0" y="0" />
-				</annotation>
-			</compartment>
-			<compartment id="cytosol" size="1.0E-14" units="volume">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:compartmentInfo color="255,255,255"
-						height="269" shape="0" width="366" x="140" y="0" />
-				</annotation>
-			</compartment>
-			<compartment compartmentType="mitochondria" id="m1"
-				size="0.013" units="volume">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:compartmentInfo color="255,255,255"
-						height="70" shape="0" width="70" x="576" y="0" />
-				</annotation>
-			</compartment>
-			<compartment compartmentType="mitochondria" id="m2"
-				size="0.013" units="volume">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:compartmentInfo color="255,255,255"
-						height="70" shape="0" width="70" x="716" y="0" />
-				</annotation>
-			</compartment>
-			<compartment compartmentType="mitochondria" id="m3"
-				size="0.013" units="volume">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:compartmentInfo color="255,255,255"
-						height="70" shape="0" width="70" x="856" y="0" />
-				</annotation>
-			</compartment>
-			<compartment compartmentType="mitochondria" id="m4"
-				size="0.013" units="volume">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:compartmentInfo color="255,255,255"
-						height="70" shape="0" width="70" x="996" y="0" />
-				</annotation>
-			</compartment>
-		</listOfCompartments>
-		<listOfSpeciesTypes>
-			<speciesType id="Glucose" />
-			<speciesType id="Glucose_6_P" />
-		</listOfSpeciesTypes>
-		<listOfSpecies>
-			<species compartment="cytosol" id="cytosol_E"
-				initialAmount="5.0E-21" substanceUnits="substance">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:nodeInfo height="50" width="50" x="140"
-						y="1" />
-					<biouml:specieInfo type="molecule-substance" />
-				</annotation>
-			</species>
-			<species compartment="cytosol" id="cytosol_ES"
-				initialAmount="0.0" speciesType="Glucose"
-				substanceUnits="substance">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:nodeInfo height="50" width="50" x="259"
-						y="1">
-						<property name="speciesType"
-							short-description="speciesType" type="composite" />
-					</biouml:nodeInfo>
-					<biouml:specieInfo type="molecule-substance" />
-				</annotation>
-			</species>
-			<species compartment="cytosol" id="cytosol_P"
-				initialAmount="0.0" speciesType="Glucose"
-				substanceUnits="substance">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:nodeInfo height="50" width="50" x="372"
-						y="1">
-						<property name="speciesType"
-							short-description="speciesType" type="composite" />
-					</biouml:nodeInfo>
-					<biouml:specieInfo type="molecule-substance" />
-				</annotation>
-			</species>
-			<species compartment="cytosol" id="cytosol_S"
-				initialAmount="1.0E-20" speciesType="Glucose_6_P"
-				substanceUnits="substance">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:nodeInfo height="50" width="50" x="140"
-						y="130">
-						<property name="speciesType"
-							short-description="speciesType" type="composite" />
-					</biouml:nodeInfo>
-					<biouml:specieInfo type="molecule-substance" />
-				</annotation>
-			</species>
-		</listOfSpecies>
-		<listOfParameters>
-			<parameter constant="false" id="time" value="0.0" />
-			<parameter constant="false" id="veq_kon" value="1000000.0" />
-			<parameter constant="false" id="veq_koff" value="0.2" />
-			<parameter constant="false" id="vcat_kcat" value="0.1" />
-		</listOfParameters>
-		<listOfReactions>
-			<reaction id="vcat" reversible="false">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:nodeInfo height="50" width="50" x="271"
-						y="27">
-						<property name="sboTerm"
-							short-description="sboTerm" type="String" value="" />
-					</biouml:nodeInfo>
-				</annotation>
-				<listOfReactants>
-					<speciesReference species="cytosol_ES"
-						stoichiometry="1" />
-				</listOfReactants>
-				<listOfProducts>
-					<speciesReference species="cytosol_E"
-						stoichiometry="1" />
-					<speciesReference species="cytosol_P"
-						stoichiometry="1" />
-				</listOfProducts>
-				<kineticLaw>
-					<math>
-						<apply>
-							<times />
-							<apply>
-								<times />
-								<ci>cytosol</ci>
-								<ci>vcat_kcat</ci>
-							</apply>
-							<ci>cytosol_ES</ci>
-						</apply>
-					</math>
-				</kineticLaw>
-			</reaction>
-			<reaction id="veq">
-				<annotation xmlns:biouml="http://www.biouml.org/ns">
-					<biouml:nodeInfo height="50" width="50" x="195"
-						y="70">
-						<property name="sboTerm"
-							short-description="sboTerm" type="String" value="" />
-					</biouml:nodeInfo>
-				</annotation>
-				<listOfReactants>
-					<speciesReference species="cytosol_E"
-						stoichiometry="1" />
-					<speciesReference species="cytosol_S"
-						stoichiometry="1" />
-				</listOfReactants>
-				<listOfProducts>
-					<speciesReference species="cytosol_ES"
-						stoichiometry="1" />
-				</listOfProducts>
-				<kineticLaw>
-					<math>
-						<apply>
-							<times />
-							<ci>cytosol</ci>
-							<apply>
-								<minus />
-								<apply>
-									<times />
-									<apply>
-										<times />
-										<ci>veq_kon</ci>
-										<ci>cytosol_E</ci>
-									</apply>
-									<ci>cytosol_S</ci>
-								</apply>
-								<apply>
-									<times />
-									<ci>veq_koff</ci>
-									<ci>cytosol_ES</ci>
-								</apply>
-							</apply>
-						</apply>
-					</math>
-				</kineticLaw>
-			</reaction>
-		</listOfReactions>
-	</model>
+<sbml xmlns="http://www.sbml.org/sbml/level2" level="2" version="2">
+  <model id="simple_l2v2" name="EnzymaticReaction" sboTerm="SBO:0000004">
+    <annotation>
+      <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+        <biouml:diagramInfo/>
+        <biouml:viewOptions autoLayout="false" dependencyEdges="false"/>
+      </biouml:BIOUML>
+    </annotation>
+    <listOfCompartmentTypes>
+      <compartmentType id="mitochondria" name="mitochondria"/>
+    </listOfCompartmentTypes>
+    <listOfCompartments>
+      <compartment id="cell" name="cell" size="190.0" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cell" height="140" isTitleHidden="false" shape="0" title="cell" width="560" x="0" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment compartmentType="mitochondria" id="m1" name="m1" outside="cell" size="0.013" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cell.m1" height="70" isTitleHidden="false" shape="0" title="m1" width="70" x="0" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment compartmentType="mitochondria" id="m2" name="m2" outside="cell" size="0.013" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cell.m2" height="70" isTitleHidden="false" shape="0" title="m2" width="70" x="140" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment compartmentType="mitochondria" id="m3" name="m3" outside="cell" size="0.013" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cell.m3" height="70" isTitleHidden="false" shape="0" title="m3" width="70" x="280" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment compartmentType="mitochondria" id="m4" name="m4" outside="cell" size="0.013" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cell.m4" height="70" isTitleHidden="false" shape="0" title="m4" width="70" x="420" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment id="cytosol" name="cytosol" size="1.0E-14" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="cytosol" height="267" isTitleHidden="false" shape="0" title="cytosol" width="366" x="630" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpeciesTypes>
+      <speciesType id="Glucose" name="Glucose"/>
+      <speciesType id="Glucose_6_P" name="Glucose_6_P"/>
+    </listOfSpeciesTypes>
+    <listOfSpecies>
+      <species compartment="cytosol" hasOnlySubstanceUnits="false" id="E" initialAmount="5.0E-21">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cytosol.E" height="0" isTitleHidden="false" title="E" width="0" x="630" y="1"/>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="cytosol" hasOnlySubstanceUnits="false" id="ES" initialAmount="0.0" speciesType="Glucose">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cytosol.ES" height="0" isTitleHidden="false" title="ES" width="0" x="749" y="1">
+              <property name="speciesType" short-description="speciesType" type="biouml.standard.type.BaseSupport">
+                <property name="attributes" short-description="attributes" type="composite"/>
+                <property name="name" short-description="name" type="String" value="Glucose"/>
+                <property name="nameInParent" short-description="nameInParent" type="String"/>
+                <property name="notificationEnabled" short-description="notificationEnabled" type="boolean" value="true"/>
+                <property name="origin" short-description="origin" type="composite"/>
+                <property name="parent" short-description="parent" type="composite"/>
+                <property name="propagationEnabled" short-description="propagationEnabled" type="boolean" value="true"/>
+                <property name="title" short-description="title" type="String" value="Glucose"/>
+                <property name="type" short-description="type" type="String" value="speciesType"/>
+              </property>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="cytosol" hasOnlySubstanceUnits="false" id="P" initialAmount="0.0" speciesType="Glucose">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cytosol.P" height="0" isTitleHidden="false" title="P" width="0" x="862" y="1">
+              <property name="speciesType" short-description="speciesType" type="biouml.standard.type.BaseSupport">
+                <property name="attributes" short-description="attributes" type="composite"/>
+                <property name="name" short-description="name" type="String" value="Glucose"/>
+                <property name="nameInParent" short-description="nameInParent" type="String"/>
+                <property name="notificationEnabled" short-description="notificationEnabled" type="boolean" value="true"/>
+                <property name="origin" short-description="origin" type="composite"/>
+                <property name="parent" short-description="parent" type="composite"/>
+                <property name="propagationEnabled" short-description="propagationEnabled" type="boolean" value="true"/>
+                <property name="title" short-description="title" type="String" value="Glucose"/>
+                <property name="type" short-description="type" type="String" value="speciesType"/>
+              </property>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="cytosol" hasOnlySubstanceUnits="false" id="S" initialAmount="1.0E-20" speciesType="Glucose_6_P">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="cytosol.S" height="0" isTitleHidden="false" title="S" width="0" x="630" y="128">
+              <property name="speciesType" short-description="speciesType" type="biouml.standard.type.BaseSupport">
+                <property name="attributes" short-description="attributes" type="composite"/>
+                <property name="name" short-description="name" type="String" value="Glucose_6_P"/>
+                <property name="nameInParent" short-description="nameInParent" type="String"/>
+                <property name="notificationEnabled" short-description="notificationEnabled" type="boolean" value="true"/>
+                <property name="origin" short-description="origin" type="composite"/>
+                <property name="parent" short-description="parent" type="composite"/>
+                <property name="propagationEnabled" short-description="propagationEnabled" type="boolean" value="true"/>
+                <property name="title" short-description="title" type="String" value="Glucose_6_P"/>
+                <property name="type" short-description="type" type="String" value="speciesType"/>
+              </property>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="k" name="k" value="0.0"/>
+      <parameter constant="false" id="k2" name="k2" value="0.0"/>
+      <parameter constant="false" id="k3" name="k3" value="0.0"/>
+      <parameter constant="true" id="vcat_kcat" name="vcat_kcat" value="0.1"/>
+      <parameter constant="true" id="veq_koff" name="veq_koff" value="0.2"/>
+      <parameter constant="true" id="veq_kon" name="veq_kon" value="1000000.0"/>
+      <parameter constant="false" id="x" name="x" value="0.0"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="vcat" name="" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cytosol.vcat" height="0" isTitleHidden="false" title="" width="0" x="761" y="26"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="ES" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="vcat__ES_as_reactant" title="vcat__ES_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="E" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="vcat__E_as_product" title="vcat__E_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+          <speciesReference species="P" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="vcat__P_as_product" title="vcat__P_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>cytosol</ci>
+                <ci>vcat_kcat</ci>
+              </apply>
+              <ci>ES</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="veq" name="">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="cytosol.veq" height="0" isTitleHidden="false" title="" width="0" x="685" y="68"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="E" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="veq__E_as_reactant" title="veq__E_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+          <speciesReference species="S" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="veq__S_as_reactant" title="veq__S_as_reactant"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="ES" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="veq__ES_as_product" title="veq__ES_as_product"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>cytosol</ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>veq_kon</ci>
+                    <ci>E</ci>
+                  </apply>
+                  <ci>S</ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci>veq_koff</ci>
+                  <ci>ES</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
 </sbml>

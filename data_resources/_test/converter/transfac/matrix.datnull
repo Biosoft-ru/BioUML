@@ -1,0 +1,259 @@
+VV  TRANSFAC MATRIX TABLE, Release 4.4 - licensed - 2000-11-10
+XX
+//
+AC  M00001
+XX
+ID  V$MYOD_01
+XX
+DT  19.10.1992 (created); ewi.
+DT  22.10.1997 (updated); dbo.
+XX
+NA  MyoD
+XX
+DE  myoblast determination gene product
+XX
+BF  T00526; MyoD; Species: mouse, Mus musculus.
+XX
+P0      A      C      G      T
+01      1      2      2      0      S
+02      2      1      2      0      R
+03      3      0      1      1      A
+04      0      5      0      0      C
+05      5      0      0      0      A
+06      0      0      4      1      G
+07      0      1      4      0      G
+08      0      0      0      5      T
+09      0      0      5      0      G
+10      0      1      2      2      K
+11      0      2      0      3      Y
+12      1      0      3      1      G
+XX
+BA  5 functional elements in 3 genes
+XX
+CC  no comment
+XX
+//
+AC  M00002
+XX
+ID  V$E47_01
+XX
+DT  19.10.1992 (created); ewi.
+DT  18.07.2000 (updated); ewi.
+XX
+NA  E47
+XX
+DE  E47
+XX
+BF  T00207; E47; Species: human, Homo sapiens.
+XX
+P0      A      C      G      T
+01      4      4      3      0      V
+02      2      5      4      0      S
+03      3      2      4      2      N
+04      2      0      9      0      G
+05      0     11      0      0      C
+06     11      0      0      0      A
+07      0      0     11      0      G
+08      1      2      8      0      G
+09      0      0      0     11      T
+10      0      0     11      0      G
+11      0      0      4      7      K
+12      1      4      3      3      N
+13      1      6      2      2      C
+14      1      4      4      2      N
+15      1      4      2      3      N
+XX
+BA  11 selected strong binding sites for E47, E47-MyoD, E12+MyoD 
+BA  and (weak) for E12
+XX
+BS  R05108; Start: 3; Length: 15; Gaps: -; Orientation: p.
+BS  R05109; Start: 1; Length: 15; Gaps: -; Orientation: p.
+BS  R05110; Start: 5; Length: 15; Gaps: -; Orientation: p.
+BS  R05111; Start: 5; Length: 15; Gaps: -; Orientation: p.
+BS  R05112; Start: 8; Length: 15; Gaps: -; Orientation: p.
+BS  R05113; Start: 9; Length: 15; Gaps: -; Orientation: p.
+BS  R05114; Start: 8; Length: 15; Gaps: -; Orientation: p.
+BS  R05115; Start: 7; Length: 15; Gaps: -; Orientation: p.
+BS  R05116; Start: 11; Length: 15; Gaps: -; Orientation: p.
+BS  R05117; Start: 5; Length: 15; Gaps: -; Orientation: p.
+BS  R05118; Start: 5; Length: 15; Gaps: -; Orientation: p.
+XX
+CC  Group I in [1]; 5 sites selected in vitro for binding 
+CC  to E12N (=N-terminally truncated E12); matrix corrected 
+CC  according to the published sequences
+XX
+RN  [1]
+RX  MEDLINE; 91105861.
+RA  Sun X.-H., Baltimore D.
+RT  An inhibitory domain of E12 transcription factor prevents 
+RT  DNA binding in E12 homodimers but not in E12 heterodimers
+RL  Cell 64:459-470 (1991).
+XX
+//
+AC  M00003
+XX
+ID  V$VMYB_01
+XX
+DT  19.10.1992 (created); ewi.
+DT  16.10.1995 (updated); dbo.
+XX
+NA  v-Myb
+XX
+DE  v-Myb
+XX
+BF  T00895; v-Myb; Species: AMV, avian myeloblastosis virus.
+XX
+P0      A      C      G      T
+01     14      3      4      3      A
+02     13      3      5      3      A
+03      2      7      1     14      Y
+04     24      0      0      0      A
+05     24      0      0      0      A
+06      0     24      0      0      C
+07      1      0     17      6      G
+08      0      1     22      1      G
+09     12      5      3      4      N
+10     11      5      2      6      N
+XX
+BA  21 sites isolated from total chromatin + 3 sites from mim-1 promoter
+XX
+BS  R05119; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05120; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05121; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05122; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05123; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05124; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05125; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05126; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05127; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05128; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05129; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05130; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05131; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05132; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05133; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05134; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05135; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05136; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05137; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05138; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05139; Start: 1; Length: 10; Gaps: -; Orientation: p.
+BS  R05140; Start: 10; Length: 10; Gaps: -; Orientation: p.
+BS  R05141; Start: 10; Length: 10; Gaps: -; Orientation: p.
+BS  R05142; Start: 9; Length: 10; Gaps: -; Orientation: p.
+XX
+RN  [1]
+RX  MEDLINE; 90090611.
+RA  Ness S. A., Marknell A., Graf T.
+RT  The v-myb oncogene product binds to and activates 
+RT  the promyelocyte-specific mim-1 gene
+RL  Cell 59:1115-1125 (1989).
+RN  [2]
+RX  MEDLINE; 89040179.
+RA  Biedenkapp H., Borgmeyer U., Sippel A., Klempnauer K.-H.
+RT  Viral myb oncogene encodes a sequence-specific DNA-binding activity
+RL  Nature 335:835-837 (1988).
+XX
+//
+AC  M00004
+XX
+ID  V$CMYB_01
+XX
+DT  19.10.1992 (created); ewi.
+DT  16.10.1995 (updated); dbo.
+XX
+NA  c-Myb
+XX
+DE  c-Myb
+XX
+BF  T00138; c-Myb; Species: mouse, Mus musculus.
+XX
+P0      A      C      G      T
+01      1     12      6      8      N
+02      6     15      5      1      C
+03      6     10      9      5      N
+04     16      5     14      3      R
+05     16     11      8      2      N
+06      9     16      8     16      N
+07      8      4     34      5      G
+08     20      1     25      5      R
+09      4     49      2      5      C
+10     18     18     20      4      N
+11      0      0     60      0      G
+12      0      0      0     60      T
+13      0      0      0     60      T
+14     11      1     47      1      G
+15      6      6     21      5      G
+16      1      7     15     11      K
+17      2      2     12      4      G
+18      1      0     11      1      G
+XX
+BA  9 c-Myb binding sites in SV40 DNA + 51 selected single binding sites
+XX
+CC  Matrix of [2] has been inverted to be compatible
+XX
+RN  [1]
+RX  MEDLINE; 90154009.
+RA  Nakagoshi H., Nagase T., Kanei-Ishii C., Ueno Y., Ishii S.
+RT  Binding of the c-myb proto-oncogene product to the 
+RT  simian virus 40 enhancer stimulates transcription
+RL  J. Biol. Chem. 265:3479-3483 (1990).
+RN  [2]
+RX  MEDLINE; 91319551.
+RA  Howe K. M., Watson R. J.
+RT  Nucleotide preferences in sequence-specific recognition 
+RT  of DNA by c-myb protein
+RL  Nucleic Acids Res. 19:3913-3919 (1991).
+XX
+//
+AC  M00005
+XX
+ID  V$AP4_01
+XX
+DT  19.10.1992 (created); ewi.
+DT  16.10.1995 (updated); ewi.
+XX
+NA  AP-4
+XX
+DE  activator protein 4
+XX
+BF  T00036; AP-4; Species: human, Homo sapiens.
+XX
+P0      A      C      G      T
+01      3      0      0      2      W
+02      1      1      3      0      G
+03      3      1      1      0      A
+04      2      1      2      0      R
+05      1      2      0      2      Y
+06      0      5      0      0      C
+07      5      0      0      0      A
+08      0      0      5      0      G
+09      0      5      0      0      C
+10      0      0      1      4      T
+11      0      1      4      0      G
+12      0      2      1      2      Y
+13      1      0      3      1      G
+14      0      0      5      0      G
+15      1      1      1      2      N
+16      1      4      0      0      C
+17      2      1      1      1      N
+18      0      0      3      2      K
+XX
+BA  5 elements from 5 genes
+XX
+BS  R05143; Start: 7; Length: 18; Gaps: -; Orientation: p.
+BS  R05144; Start: 7; Length: 18; Gaps: -; Orientation: p.
+BS  R05145; Start: 7; Length: 18; Gaps: -; Orientation: p.
+BS  R05146; Start: 7; Length: 18; Gaps: -; Orientation: p.
+BS  R05147; Start: 7; Length: 18; Gaps: -; Orientation: p.
+XX
+CC  compiled sequences
+XX
+RN  [1]
+RX  MEDLINE; 88189275.
+RA  Mermod N., Williams T. J., Tjian R.
+RT  Enhancer binding factors AP-4 and AP-1 act in concert 
+RT  to activate SV40 late transcription in vitro
+RL  Nature 332:557-561 (1988).
+XX
+//

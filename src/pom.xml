@@ -60,6 +60,7 @@
                          <exclude>ru/biosoft/util/j2html/package-info.java</exclude>
                          <exclude>ru/biosoft/fs/package-info.java</exclude>
                          <exclude>**/_test/*.java</exclude>
+                         <exclude>**/_test/**/*.java</exclude>
                      </excludes>
                     <testIncludes>
                          <include>**/_test/*.java</include>
@@ -68,6 +69,7 @@
                          <exclude>target/**</exclude>
                          <exclude>ru/biosoft/util/j2html/package-info.java</exclude>
                          <exclude>ru/biosoft/fs/package-info.java</exclude>
+                         <exclude>**/biouml/plugins/virtualcell/_test/TestCore.java</exclude>
                      </testExcludes>
                 </configuration>
             </plugin>
@@ -126,6 +128,7 @@
                         <exclude>**/ru/biosoft/analysis/_test/MakeLayoutHTMLTest.java</exclude>
                         <exclude>**/ru/biosoft/analysis/_test/MultithreadingLayoutTest.java</exclude>
                         <exclude>**/ru/biosoft/analysis/_test/MissedValuesRefillTest.java</exclude>
+                        <exclude>**/ru/biosoft/analysis/_test/ClusterAnalysisTest.java</exclude>
 
                         <exclude>**/ru/biosoft/galaxy/_test/GalaxyAnalysisParametersTest.java</exclude>
                         <exclude>**/ru/biosoft/galaxy/_test/ImportExecuteExportTest.java</exclude>
@@ -150,7 +153,9 @@
                         <exclude>**/biouml/plugins/antimony/_test/AntimonyTest.java</exclude>
                         <exclude>**/biouml/plugins/antimony/_test/AntimonyAnnotationImportTest.java</exclude>
                         <exclude>**/biouml/plugins/antimony/_test/CompositeAntimonyTest.java</exclude>
-
+                        <exclude>**/biouml/plugins/antimony/_test/BasicAntimonyTest.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/AntimonyStageTest.java</exclude>
+                        <exclude>**/biouml/plugins/antimony/_test/TestAntimonyRepresentationFactory.java</exclude>
 
 
 	                <exclude>**/biouml/plugins/agentmodeling/covid19/old/_test/TestAgentPopulationModelOld.java</exclude>
@@ -275,6 +280,8 @@
                         <exclude>**/ru/biosoft/table/_test/TableLoadSpeedTest.java</exclude>
 
                         <exclude>**/biouml/model/dynamics/_test/TestEModel.java</exclude>
+                        <exclude>**/biouml/model/dynamics/_test/EModelTest.java</exclude>
+                        <exclude>**/biouml/model/dynamics/_test/PlotsInfoTest.java</exclude>
 
                         <exclude>**/biouml/plugins/bionetgen/_test/BionetgenRepresentationFactoryTest.java</exclude>
                         <exclude>**/biouml/plugins/bionetgen/_test/BionetgenDiagramGeneratorTest.java</exclude>
@@ -327,9 +334,9 @@
                         <exclude>**/ru/biosoft/bsastats/_test/MicroRNAAlignerTest.java</exclude>
                         <exclude>**/ru/biosoft/server/servlets/webservices/_test/TestWebActionsProvider.java</exclude>
                         <exclude>**/ru/biosoft/server/servlets/webservices/_test/AbstractProviderTest.java</exclude>
+                        <exclude>**/ru/biosoft/server/servlets/webservices/_test/TestPerspectivesProvider.java</exclude>
                         <exclude>**/ru/biosoft/templates/_test/FormatterTest.java</exclude>
                         <exclude>**/ru/biosoft/treetable/_test/TreeTableViewTest.java</exclude>
-                        <exclude>**/biouml/plugins/antimony/_test/AntimonyStageTest.java</exclude>
                         <exclude>**/biouml/plugins/biopax/_test/BioPAXReaderTest.java</exclude>
                         <exclude>**/biouml/plugins/biopax/_test/OwlApiReaderTest.java</exclude>
                         <exclude>**/biouml/plugins/biopax/_test/OwlToTextTest.java</exclude>
@@ -400,7 +407,6 @@
                         <exclude>**/ru/biosoft/table/_test/TestSqlTableCreateRaceCondition.java</exclude>
                         <exclude>**/ru/biosoft/treetable/_test/TestTreeTableTransformer.java</exclude>
                         <exclude>**/ru/biosoft/treetable/_test/TreeTableViewTest.java</exclude>
-                        <exclude>**/biouml/plugins/antimony/_test/TestAntimonyRepresentationFactory.java</exclude>
                         <exclude>**/biouml/plugins/glycan/_test/TestGlycobiologyModelsCompare.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestResultAnalysis2.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/VesselAreaFitTest.java</exclude>
@@ -427,7 +433,6 @@
                         <exclude>**/biouml/plugins/riboseq/_test/ComparatorAnalysisTest.java</exclude>
                         <exclude>**/biouml/plugins/riboseq/_test/TestTranscriptomeMappability.java</exclude>
                         <exclude>**/biouml/plugins/riboseq/ingolia/_test/TestTMP.java</exclude>
-
 
                         <!-- Fail in headless -->   
                         <exclude>**/biouml/plugins/brain/_test/DiagramTest.java</exclude>

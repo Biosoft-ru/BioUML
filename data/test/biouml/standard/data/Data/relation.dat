@@ -1,0 +1,12 @@
+ID  gene/G->rna/E
+IN  gene/G
+OUT rna/E
+//
+ID  substance/A->compartment/C
+IN  substance/A
+OUT compartment/C
+//
+ID  gene/G->protein/P
+IN  gene/G
+OUT protein/P
+//

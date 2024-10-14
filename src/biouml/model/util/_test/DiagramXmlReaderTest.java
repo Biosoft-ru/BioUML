@@ -40,6 +40,9 @@ import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.font.ColorFont;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class DiagramXmlReaderTest extends TestCase
 {
     Document parse(String xml) throws ParserConfigurationException, Exception, IOException
@@ -354,6 +357,8 @@ public class DiagramXmlReaderTest extends TestCase
 
     public void testReadingWithoutKernels() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         CollectionFactory.createRepository("../data/test/biouml/standard");
         String diagramCode = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
                 +"<dml appVersion=\"0.7.7\" version=\"0.7.7\">"

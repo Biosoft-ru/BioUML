@@ -1,0 +1,540 @@
+|taxon||
+|eukaryota||
+/eukaryota|animalia||
+/eukaryota/animalia/metazoa|chordata||
+/eukaryota/animalia/metazoa/chordata|vertebrata||
+/eukaryota/animalia/metazoa/chordata/vertebrata|actinopterygii||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii|neopterygii||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii|teleostei||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei|euteleostei||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei/euteleostei|acanthopterygii||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei/euteleostei/acanthopterygii|percomorpha||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei/euteleostei/acanthopterygii/percomorpha|tetraodontiformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei/euteleostei/acanthopterygii/percomorpha/tetraodontiformes|tetraodontoidei||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei/euteleostei/acanthopterygii/percomorpha/tetraodontiformes/tetraodontoidei|tetraodontidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/actinopterygii/neopterygii/teleostei/euteleostei/acanthopterygii/percomorpha/tetraodontiformes/tetraodontoidei/tetraodontidae|Japanese pufferfish, Fugu rubripes||Japanese pufferfish|Fugu rubripes
+/eukaryota/animalia/metazoa/chordata/vertebrata|amphibia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia|lissamphibia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia|anura||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura|archeobatrachia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura/archeobatrachia|pipoidea||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura/archeobatrachia/pipoidea|pipidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura/archeobatrachia/pipoidea/pipidae|Kenyan clawed frog, Xenopus borealis||Kenyan clawed frog|Xenopus borealis
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura/archeobatrachia/pipoidea/pipidae|clawed frog, Xenopus||clawed frog|Xenopus
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura/archeobatrachia/pipoidea/pipidae|clawed frog, Xenopus laevis||clawed frog|Xenopus laevis
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/anura/archeobatrachia/pipoidea/pipidae|western clawed frog, Xenopus tropicalis||western clawed frog|Xenopus tropicalis
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia|caudata||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/caudata|salamandroidea||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/caudata/salamandroidea|salamandridae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/caudata/salamandroidea/salamandridae|notophthalmus||
+/eukaryota/animalia/metazoa/chordata/vertebrata/amphibia/lissamphibia/caudata/salamandroidea/salamandridae/notophthalmus|newt, Notophthalmus viridescens||newt|Notophthalmus viridescens
+/eukaryota/animalia/metazoa/chordata/vertebrata|archosauria||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria|aves||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria/aves|neognathae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria/aves/neognathae|passeriformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria/aves/neognathae/passeriformes|fringillidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria/aves/neognathae/passeriformes/fringillidae|carduelinae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria/aves/neognathae/passeriformes/fringillidae/carduelinae|serinus||
+/eukaryota/animalia/metazoa/chordata/vertebrata/archosauria/aves/neognathae/passeriformes/fringillidae/carduelinae/serinus|canary, Serinus canaria||canary|Serinus canaria
+/eukaryota/animalia/metazoa/chordata/vertebrata|aves||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves|neornithes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes|neognathae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae|anseriformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/anseriformes|anatidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/anseriformes/anatidae|duck, Cairina moschata||duck|Cairina moschata
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae|galliformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/galliformes|meleagridae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/galliformes/meleagridae|turkey, Meleagris gallopavo||turkey|Meleagris gallopavo
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/galliformes|phasianidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/galliformes/phasianidae|Japanese quail, Coturnix coturnix japonica||Japanese quail|Coturnix coturnix japonica
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/galliformes/phasianidae|chick, Gallus gallus||chick|Gallus gallus
+/eukaryota/animalia/metazoa/chordata/vertebrata/aves/neornithes/neognathae/galliformes/phasianidae|quail, Coturnix coturnix||quail|Coturnix coturnix
+/eukaryota/animalia/metazoa/chordata/vertebrata|osteichthyes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes|actinopterygii||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii|cypriniformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii/cypriniformes|cyprinoidei||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii/cypriniformes/cyprinoidei|cyprinidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii/cypriniformes/cyprinoidei/cyprinidae|zebra fish, Brachydanio rerio||zebra fish|Brachydanio rerio
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii|salmoniformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii/salmoniformes|salmonodei||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii/salmoniformes/salmonodei|salmonidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/osteichthyes/actinopterygii/salmoniformes/salmonodei/salmonidae|rainbow trout, Oncorhynchus mykiss||rainbow trout|Oncorhynchus mykiss
+/eukaryota/animalia/metazoa/chordata/vertebrata|tetrapoda||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda|mammalia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia|eutheria||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria|artiodactyla||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla|ruminantia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla/ruminantia|pecora||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla/ruminantia/pecora|bovidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla/ruminantia/pecora/bovidae|cattle, Bos taurus||cattle|Bos taurus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla/ruminantia/pecora/bovidae|sheep, Ovis aries||sheep|Ovis aries
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla|suiformes||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla/suiformes|suidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/artiodactyla/suiformes/suidae|domestic pig, Sus scrofa||domestic pig|Sus scrofa
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria|carnivora||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora|caniformia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/caniformia|canoidea||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/caniformia/canoidea|canidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/caniformia/canoidea/canidae|dog, Canis familiaris (Canis canis)||dog|Canis familiaris (Canis canis)
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/caniformia|musteloidea||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/caniformia/musteloidea|mustelidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/caniformia/musteloidea/mustelidae|mink, Mustela vison||mink|Mustela vison
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora|feliforma||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/feliforma|felidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/carnivora/feliforma/felidae|cat, Felis silvestris catus||cat|Felis silvestris catus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria|lagomorpha||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/lagomorpha|leporidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/lagomorpha/leporidae|rabbit, Oryctolagus cuniculus||rabbit|Oryctolagus cuniculus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria|primates||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates|haplorhini||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates/haplorhini|catarrhini||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates/haplorhini/catarrhini|cercopithecidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates/haplorhini/catarrhini/cercopithecidae|cercopithecinae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates/haplorhini/catarrhini/cercopithecidae/cercopithecinae|monkey, Cercopithecus aethiops||monkey|Cercopithecus aethiops
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates/haplorhini/catarrhini|hylobatidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates/haplorhini/catarrhini/hylobatidae|gibbon ape, Hylobates lar||gibbon ape|Hylobates lar
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/primates|human, Homo sapiens||human|Homo sapiens
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria|rodentia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia|hystricomorpha||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/hystricomorpha|caviidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/hystricomorpha/caviidae|caviinae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/hystricomorpha/caviidae/caviinae|guinea pig, Cavia sp.||guinea pig|Cavia sp.
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia|myomorpha||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha|cricetidae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae|cricetinae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae/cricetinae|cricetini||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae/cricetinae/cricetini|Chinese hamster (Gray hamster), Cricetulus griseus||Chinese hamster (Gray hamster)|Cricetulus griseus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae/cricetinae/cricetini|golden (Syrian) hamster, Mesocricetus auratus||golden (Syrian) hamster|Mesocricetus auratus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae/cricetinae/cricetini|hamster, Cricetulus sp.||hamster|Cricetulus sp.
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae/cricetinae|cricetini.||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/cricetidae/cricetinae/cricetini.|long-tailed hamster, Cricetulus longicaudatus||long-tailed hamster|Cricetulus longicaudatus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha|muridae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae|murinae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae/murinae|mouse, Mus domesticus Torino strain||mouse|Mus domesticus Torino strain
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae/murinae|mouse, Mus musculus||mouse|Mus musculus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae/murinae|mouse, Mus spec.||mouse|Mus spec.
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae/murinae|rat, Rattus norvegicus||rat|Rattus norvegicus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae/murinae|rat, Rattus rattus||rat|Rattus rattus
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/eutheria/rodentia/myomorpha/muridae/murinae|rat, Rattus spec.||rat|Rattus spec.
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia|metatheria||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/metatheria|marsupialia||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/metatheria/marsupialia|marsupicarnivora||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/metatheria/marsupialia/marsupicarnivora|dasyuridae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/metatheria/marsupialia/marsupicarnivora/dasyuridae|phascogalinae||
+/eukaryota/animalia/metazoa/chordata/vertebrata/tetrapoda/mammalia/metatheria/marsupialia/marsupicarnivora/dasyuridae/phascogalinae|dunnart, Sminthopsis macroura||dunnart|Sminthopsis macroura
+/eukaryota|dictyosteliida||
+/eukaryota/dictyosteliida|dictyostelium.||
+/eukaryota/dictyosteliida/dictyostelium.|slime mold, Dictyostelium discoideum||slime mold|Dictyostelium discoideum
+/eukaryota|metazoa||
+/eukaryota/metazoa|annelida||
+/eukaryota/metazoa/annelida|clitellata||
+/eukaryota/metazoa/annelida/clitellata|hirudinida||
+/eukaryota/metazoa/annelida/clitellata/hirudinida|hirudinea||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea|arynchobdellida||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/arynchobdellida|hirudiniformes||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/arynchobdellida/hirudiniformes|hirudinidae||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/arynchobdellida/hirudiniformes/hirudinidae|hirudo||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/arynchobdellida/hirudiniformes/hirudinidae/hirudo|medicinal leech, Hirudo medicinalis||medicinal leech|Hirudo medicinalis
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea|rhynchobdellida||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/rhynchobdellida|glossiphoniidae||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/rhynchobdellida/glossiphoniidae|helobdella||
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/rhynchobdellida/glossiphoniidae/helobdella|leech, Helobdella robusta||leech|Helobdella robusta
+/eukaryota/metazoa/annelida/clitellata/hirudinida/hirudinea/rhynchobdellida/glossiphoniidae/helobdella|leech, Helobdella triserialis||leech|Helobdella triserialis
+/eukaryota/metazoa/annelida|polychaeta||
+/eukaryota/metazoa/annelida/polychaeta|palpata||
+/eukaryota/metazoa/annelida/polychaeta/palpata|aciculata||
+/eukaryota/metazoa/annelida/polychaeta/palpata/aciculata|phyllodocida||
+/eukaryota/metazoa/annelida/polychaeta/palpata/aciculata/phyllodocida|nereididae||
+/eukaryota/metazoa/annelida/polychaeta/palpata/aciculata/phyllodocida/nereididae|nereis||
+/eukaryota/metazoa/annelida/polychaeta/palpata/aciculata/phyllodocida/nereididae/nereis|sandworm, Nereis virens||sandworm|Nereis virens
+/eukaryota/metazoa|arthropoda||
+/eukaryota/metazoa/arthropoda|chelicerata||
+/eukaryota/metazoa/arthropoda/chelicerata|arachnida||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida|araneae||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida/araneae|araneomorphae||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida/araneae/araneomorphae|entelegynae||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida/araneae/araneomorphae/entelegynae|lycosoidea||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida/araneae/araneomorphae/entelegynae/lycosoidea|ctenidae||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida/araneae/araneomorphae/entelegynae/lycosoidea/ctenidae|cupiennius||
+/eukaryota/metazoa/arthropoda/chelicerata/arachnida/araneae/araneomorphae/entelegynae/lycosoidea/ctenidae/cupiennius|spider, Cupiennius salei||spider|Cupiennius salei
+/eukaryota/metazoa/arthropoda|crustacea||
+/eukaryota/metazoa/arthropoda/crustacea|branchiopoda||
+/eukaryota/metazoa/arthropoda/crustacea/branchiopoda|anostraca||
+/eukaryota/metazoa/arthropoda/crustacea/branchiopoda/anostraca|artemiidae||
+/eukaryota/metazoa/arthropoda/crustacea/branchiopoda/anostraca/artemiidae|artemia||
+/eukaryota/metazoa/arthropoda/crustacea/branchiopoda/anostraca/artemiidae/artemia|brine shrimp, Artemia franciscana||brine shrimp|Artemia franciscana
+/eukaryota/metazoa/arthropoda/crustacea|malacostraca||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca|eumalacostraca||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca|eucarida||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/eucarida|decapoda||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/eucarida/decapoda|dendrobranchiata||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/eucarida/decapoda/dendrobranchiata|penaeoidea||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/eucarida/decapoda/dendrobranchiata/penaeoidea|penaeidae||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/eucarida/decapoda/dendrobranchiata/penaeoidea/penaeidae|metapenaeus.||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/eucarida/decapoda/dendrobranchiata/penaeoidea/penaeidae/metapenaeus.|greasyback shrimp (sand shrimp), Metapenaeus ensis||greasyback shrimp (sand shrimp)|Metapenaeus ensis
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca|peracarida||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/peracarida|isopoda||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/peracarida/isopoda|oniscidea||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/peracarida/isopoda/oniscidea|porcellionidae||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/peracarida/isopoda/oniscidea/porcellionidae|porcellio||
+/eukaryota/metazoa/arthropoda/crustacea/malacostraca/eumalacostraca/peracarida/isopoda/oniscidea/porcellionidae/porcellio|woodlouse, Porcellio scaber||woodlouse|Porcellio scaber
+/eukaryota/metazoa/arthropoda|hexapoda||
+/eukaryota/metazoa/arthropoda/hexapoda|insecta||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta|pterygota||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota|neoptera||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera|endopterygota||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota|diptera||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera|brachycera||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/brachycera|muscomorpha||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/brachycera/muscomorpha|oestroidea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/brachycera/muscomorpha/oestroidea|calliphoridae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/brachycera/muscomorpha/oestroidea/calliphoridae|lucilia.||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/brachycera/muscomorpha/oestroidea/calliphoridae/lucilia.|greenbottle fly (Australian sheep blowfly), Lucilia cuprina||greenbottle fly (Australian sheep blowfly)|Lucilia cuprina
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera|nematocera||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera|chironomoidea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/chironomoidea|chironomidae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/chironomoidea/chironomidae|chironominae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/chironomoidea/chironomidae/chironominae|chironomus.||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/chironomoidea/chironomidae/chironominae/chironomus.|midge, Chironomus tentans||midge|Chironomus tentans
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera|culicoidea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/culicoidea|culicidae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/culicoidea/culicidae|culicinae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/culicoidea/culicidae/culicinae|culicini||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/culicoidea/culicidae/culicinae/culicini|aedes.||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/diptera/nematocera/culicoidea/culicidae/culicinae/culicini/aedes.|yellowfever mosquito, Aedes aegypti||yellowfever mosquito|Aedes aegypti
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota|lepidoptera||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera|glossata||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata|ditrysia||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia|noctuoidea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/noctuoidea|noctuidae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/noctuoidea/noctuidae|heliothinae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/noctuoidea/noctuidae/heliothinae|heliothis.||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/noctuoidea/noctuidae/heliothinae/heliothis.|noctuid moth (owlet moth), Heliothis virescens||noctuid moth (owlet moth)|Heliothis virescens
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia|pyraloidea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/pyraloidea|pyralidae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/pyraloidea/pyralidae|galleriinae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/pyraloidea/pyralidae/galleriinae|galleria||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/pyraloidea/pyralidae/galleriinae/galleria|wax moth, Galleria mellonella||wax moth|Galleria mellonella
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia|sphingiodea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/sphingiodea|sphingidae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/sphingiodea/sphingidae|sphinginae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/sphingiodea/sphingidae/sphinginae|manduca||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/sphingiodea/sphingidae/sphinginae/manduca|tobacco hawkmoth (tobacco hornworm), Manduca sexta||tobacco hawkmoth (tobacco hornworm)|Manduca sexta
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia|tortricoidea||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/tortricoidea|tortricidae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/tortricoidea/tortricidae|tortricinae||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/tortricoidea/tortricidae/tortricinae|choristoneura.||
+/eukaryota/metazoa/arthropoda/hexapoda/insecta/pterygota/neoptera/endopterygota/lepidoptera/glossata/ditrysia/tortricoidea/tortricidae/tortricinae/choristoneura.|spruce budworm, Choristoneura fumiferana||spruce budworm|Choristoneura fumiferana
+/eukaryota/metazoa|chordata||
+/eukaryota/metazoa/chordata|cephalochordata||
+/eukaryota/metazoa/chordata/cephalochordata|branchiostomidae||
+/eukaryota/metazoa/chordata/cephalochordata/branchiostomidae|branchiostoma||
+/eukaryota/metazoa/chordata/cephalochordata/branchiostomidae/branchiostoma|Amphioxus (Florida lancelet), Branchiostoma floridae||Amphioxus (Florida lancelet)|Branchiostoma floridae
+/eukaryota/metazoa/chordata|craniata||
+/eukaryota/metazoa/chordata/craniata|vertebrata||
+/eukaryota/metazoa/chordata/craniata/vertebrata|Vertebrata||Vertebrata|
+/eukaryota/metazoa/chordata/craniata/vertebrata|chondrichthyes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes|elasmobranchii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii|neoselachii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii/neoselachii|galeomorphii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii/neoselachii/galeomorphii|heterodontoidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii/neoselachii/galeomorphii/heterodontoidea|heterodontiformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii/neoselachii/galeomorphii/heterodontoidea/heterodontiformes|heterodontidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii/neoselachii/galeomorphii/heterodontoidea/heterodontiformes/heterodontidae|heterodontus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/chondrichthyes/elasmobranchii/neoselachii/galeomorphii/heterodontoidea/heterodontiformes/heterodontidae/heterodontus|horn shark, Heterodontus francisci||horn shark|Heterodontus francisci
+/eukaryota/metazoa/chordata/craniata/vertebrata|euteleostomi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi|actinopterygii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii|neopterygii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii|teleostei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei|anguilliformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/anguilliformes|anguillidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/anguilliformes/anguillidae|anguilla.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/anguilliformes/anguillidae/anguilla.|Japanese eel, Anguilla japonica||Japanese eel|Anguilla japonica
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei|euteleostei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei|neoteleostei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei|acanthomorpha||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha|acanthopterygii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii|percomorpha||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha|atherinomorpha||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha|beloniformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/beloniformes|adrianichthyidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/beloniformes/adrianichthyidae|oryziinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/beloniformes/adrianichthyidae/oryziinae|oryzias||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/beloniformes/adrianichthyidae/oryziinae/oryzias|medaka, Oryzias latipes||medaka|Oryzias latipes
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha|cyprinodontiformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/cyprinodontiformes|fundulidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/cyprinodontiformes/fundulidae|fundulus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/atherinomorpha/cyprinodontiformes/fundulidae/fundulus|killifish, Fundulus heteroclitus||killifish|Fundulus heteroclitus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha|perciformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes|labroidei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/labroidei|cichlidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/labroidei/cichlidae|oreochromis.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/labroidei/cichlidae/oreochromis.|Israeli tilapia, Oreochromis aureus||Israeli tilapia|Oreochromis aureus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/labroidei/cichlidae/oreochromis.|Nile tilapia, Oreochromis niloticus (Tilapia nilotica)||Nile tilapia|Oreochromis niloticus (Tilapia nilotica)
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes|percoidei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei|sciaenidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei/sciaenidae|micropogonias.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei/sciaenidae/micropogonias.|atlantic croaker, Micropogonias undulatus||atlantic croaker|Micropogonias undulatus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei|sparidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei/sparidae|pagrus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei/sparidae/pagrus.|red sea bream, Pagrus major (Chrysophrys major)||red sea bream|Pagrus major (Chrysophrys major)
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei/sparidae|sparus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/perciformes/percoidei/sparidae/sparus.|gilthead sea bream, Sparus aurata||gilthead sea bream|Sparus aurata
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha|pleuronectiformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes|pleuronectoidei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes/pleuronectoidei|paralichthyidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes/pleuronectoidei/paralichthyidae|paralichthys.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes/pleuronectoidei/paralichthyidae/paralichthys.|Japanese flounder, Paralichthys olivaceus||Japanese flounder|Paralichthys olivaceus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes/pleuronectoidei|pleuronectidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes/pleuronectoidei/pleuronectidae|hippoglossus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/neoteleostei/acanthomorpha/acanthopterygii/percomorpha/pleuronectiformes/pleuronectoidei/pleuronectidae/hippoglossus|halibut, Hippoglossus hippoglossus||halibut|Hippoglossus hippoglossus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei|ostariophysi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi|cypriniformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes|cyprinoidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea|cyprinidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea/cyprinidae|cyprininae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea/cyprinidae/cyprininae|cyprinus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea/cyprinidae/cyprininae/cyprinus|common carp, Cyprinus carpio||common carp|Cyprinus carpio
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei|protacanthopterygii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/protacanthopterygii|salmoniformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/protacanthopterygii/salmoniformes|salmonidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/protacanthopterygii/salmoniformes/salmonidae|oncorhynchus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/protacanthopterygii/salmoniformes/salmonidae/oncorhynchus.|chinook salmon, Oncorhynchus tschawytscha||chinook salmon|Oncorhynchus tschawytscha
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/protacanthopterygii/salmoniformes/salmonidae|salmo||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/protacanthopterygii/salmoniformes/salmonidae/salmo|atlantic salmon, Salmo salar||atlantic salmon|Salmo salar
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei|ostariophysi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/ostariophysi|siluriformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/ostariophysi/siluriformes|ictaluridae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/ostariophysi/siluriformes/ictaluridae|ictalurus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/actinopterygii/neopterygii/teleostei/ostariophysi/siluriformes/ictaluridae/ictalurus.|channel catfish, Ictalurus punctatus||channel catfish|Ictalurus punctatus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi|amphibia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia|batrachia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia|anura||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia/anura|neobatrachia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia/anura/neobatrachia|ranoidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia/anura/neobatrachia/ranoidea|ranidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia/anura/neobatrachia/ranoidea/ranidae|rana.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia/anura/neobatrachia/ranoidea/ranidae/rana.|bull frog, Rana catesbeiana||bull frog|Rana catesbeiana
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/amphibia/batrachia/anura/neobatrachia/ranoidea/ranidae/rana.|frog, Rana rugosa||frog|Rana rugosa
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi|archosauria||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria|aves||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves|neognathae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae|passeriformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes|estrildidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes/estrildidae|estrildinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes/estrildidae/estrildinae|taeniopygia.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes/estrildidae/estrildinae/taeniopygia.|zebra finch, Poephila guttata (Taeniopygia guttata)||zebra finch|Poephila guttata (Taeniopygia guttata)
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes|sturnidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes/sturnidae|sturnus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/archosauria/aves/neognathae/passeriformes/sturnidae/sturnus|starling, Sturnus vulgaris||starling|Sturnus vulgaris
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi|lepidosauria||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria|squamata||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria/squamata|scleroglossa||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria/squamata/scleroglossa|scincomorpha||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria/squamata/scleroglossa/scincomorpha|teiioidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria/squamata/scleroglossa/scincomorpha/teiioidea|teiidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria/squamata/scleroglossa/scincomorpha/teiioidea/teiidae|aspidoscelis.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/lepidosauria/squamata/scleroglossa/scincomorpha/teiioidea/teiidae/aspidoscelis.|desert grassland whiptail lizard, Cnemidophorus uniparens||desert grassland whiptail lizard|Cnemidophorus uniparens
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi|mammalia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia|Mammalia||Mammalia|
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia|eutheria||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria|carnivora||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/carnivora|fissipedia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/carnivora/fissipedia|hyaenidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/carnivora/fissipedia/hyaenidae|crocuta||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/carnivora/fissipedia/hyaenidae/crocuta|spotted hyena, Crocuta crocuta||spotted hyena|Crocuta crocuta
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria|cetartiodactyla||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/cetartiodactyla|suina||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/cetartiodactyla/suina|suidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/cetartiodactyla/suina/suidae|sus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/cetartiodactyla/suina/suidae/sus.|pig, Sus scrofa||pig|Sus scrofa
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria|perissodactyla||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/perissodactyla|equidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/perissodactyla/equidae|equus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/perissodactyla/equidae/equus.|horse, Equus caballus||horse|Equus caballus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/perissodactyla/equidae|horse, Equus spec.||horse|Equus spec.
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria|primates||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates|catarrhini||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini|cercopithecidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/cercopithecidae|cercopithecinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/cercopithecidae/cercopithecinae|macaca||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/cercopithecidae/cercopithecinae/macaca|macaque, Macaca fascicularis||macaque|Macaca fascicularis
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/cercopithecidae/cercopithecinae|papio.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/cercopithecidae/cercopithecinae/papio.|baboon, Papio hamadryas||baboon|Papio hamadryas
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini|hominidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/hominidae|pan||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/catarrhini/hominidae/pan|chimpanzee, Pan troglodytes||chimpanzee|Pan troglodytes
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates|platyrrhini||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini|callitrichidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/callitrichidae|callithrix||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/callitrichidae/callithrix|common marmoset, Callithrix jacchus||common marmoset|Callithrix jacchus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/callitrichidae|saguinus.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/callitrichidae/saguinus.|cotton-top tamarin, Saguinus oedipus||cotton-top tamarin|Saguinus oedipus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini|cebidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae|aotinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/aotinae|aotus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/aotinae/aotus|Ma's night monkey, Aotus nancymaae||Ma's night monkey|Aotus nancymaae
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae|atelinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/atelinae|ateles||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/atelinae/ateles|Chamek spider monkey, Ateles belzebuth chamek||Chamek spider monkey|Ateles belzebuth chamek
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae|cebinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/cebinae|saimiri||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/cebinae/saimiri|Bolivian squirrel monkey, Saimiri boliviensis boliviensis||Bolivian squirrel monkey|Saimiri boliviensis boliviensis
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/cebinae|saimiri.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/platyrrhini/cebidae/cebinae/saimiri.|common squirrel monkey, Saimiri sciureus||common squirrel monkey|Saimiri sciureus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates|strepsirhini||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/strepsirhini|lemuridae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/strepsirhini/lemuridae|eulemur||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/primates/strepsirhini/lemuridae/eulemur|lemur, Eulemur fulvus collaris||lemur|Eulemur fulvus collaris
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria|rodentia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia|hystricognathi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/hystricognathi|caviidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/hystricognathi/caviidae|cavia.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/hystricognathi/caviidae/cavia.|guinea pig, Cavia porcellus||guinea pig|Cavia porcellus
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia|sciurognathi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/sciurognathi|sciuridae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae|sciurinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae/sciurinae|marmota.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae/sciurinae/marmota.|woodchuck, Marmota monax||woodchuck|Marmota monax
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae/sciurinae|tamias.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae/sciurinae/tamias.|chipmunk, Tamias asiaticus (sibiricus)||chipmunk|Tamias asiaticus (sibiricus)
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria|scandentia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/scandentia|tupaiidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/scandentia/tupaiidae|tupaia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/mammalia/eutheria/scandentia/tupaiidae/tupaia|common tree shrew, Tupaia glis belangeri||common tree shrew|Tupaia glis belangeri
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi|testudines||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/testudines|cryptodira||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/testudines/cryptodira|testudinoidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/testudines/cryptodira/testudinoidea|emydidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/testudines/cryptodira/testudinoidea/emydidae|trachemys.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/euteleostomi/testudines/cryptodira/testudinoidea/emydidae/trachemys.|turtle, Trachemys scripta||turtle|Trachemys scripta
+/eukaryota/metazoa/chordata/craniata/vertebrata|hyperoartia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/hyperoartia|petromyzontiformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/hyperoartia/petromyzontiformes|petromyzontidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/hyperoartia/petromyzontiformes/petromyzontidae|petromyzon||
+/eukaryota/metazoa/chordata/craniata/vertebrata/hyperoartia/petromyzontiformes/petromyzontidae/petromyzon|sea lamprey, Petromyzon marinus||sea lamprey|Petromyzon marinus
+/eukaryota/metazoa/chordata/craniata/vertebrata|teleostomi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi|euteleostomi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi|actinopterygii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii|neopterygii||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii|teleostei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei|euteleostei||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei|ostariophysi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi|cypriniformes||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes|cyprinoidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea|cyprinidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea/cyprinidae|cyprininae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea/cyprinidae/cyprininae|carassius||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/actinopterygii/neopterygii/teleostei/euteleostei/ostariophysi/cypriniformes/cyprinoidea/cyprinidae/cyprininae/carassius|goldfish, Carassius auratus||goldfish|Carassius auratus
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi|amphibia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/amphibia|batrachia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/amphibia/batrachia|caudata||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/amphibia/batrachia/caudata|salamandroidea||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/amphibia/batrachia/caudata/salamandroidea|ambystomatidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/amphibia/batrachia/caudata/salamandroidea/ambystomatidae|ambystoma||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/amphibia/batrachia/caudata/salamandroidea/ambystomatidae/ambystoma|axolotl, Ambystoma mexicanum||axolotl|Ambystoma mexicanum
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi|mammalia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia|eutheria||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria|carnivora||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/carnivora|fissipedia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/carnivora/fissipedia|felidae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/carnivora/fissipedia/felidae|felis.||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/carnivora/fissipedia/felidae/felis.|wild cat, Felis silvestris||wild cat|Felis silvestris
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria|rodentia||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/rodentia|sciurognathi||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/rodentia/sciurognathi|sciuridae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae|sciurinae||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae/sciurinae|spermophilus||
+/eukaryota/metazoa/chordata/craniata/vertebrata/teleostomi/euteleostomi/mammalia/eutheria/rodentia/sciurognathi/sciuridae/sciurinae/spermophilus|Beechey ground squirrel, Spermophilus beecheyi||Beechey ground squirrel|Spermophilus beecheyi
+/eukaryota/metazoa/chordata|urochordata||
+/eukaryota/metazoa/chordata/urochordata|ascidiacea||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea|phlebobranchia||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/phlebobranchia|ascidiidae||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/phlebobranchia/ascidiidae|phallusia||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/phlebobranchia/ascidiidae/phallusia|Phallusia mammilata||Phallusia mammilata|
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/phlebobranchia|cionidae||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/phlebobranchia/cionidae|ciona||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/phlebobranchia/cionidae/ciona|sea squirt, Ciona intestinalis||sea squirt|Ciona intestinalis
+/eukaryota/metazoa/chordata/urochordata/ascidiacea|stolidobranchia||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/stolidobranchia|pyuridae||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/stolidobranchia/pyuridae|halocynthia||
+/eukaryota/metazoa/chordata/urochordata/ascidiacea/stolidobranchia/pyuridae/halocynthia|sea squirt, Halocynthia roretzi||sea squirt|Halocynthia roretzi
+/eukaryota/metazoa|cnidaria||
+/eukaryota/metazoa/cnidaria|hydrozoa||
+/eukaryota/metazoa/cnidaria/hydrozoa|hydroida||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida|anthomedusae||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae|eleutheriidae||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/eleutheriidae|eleutheria||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/eleutheriidae/eleutheria|Eleutheria dichotoma||Eleutheria dichotoma|
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae|hydractiniidae||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydractiniidae|podocoryne||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydractiniidae/podocoryne|Podocoryne carnea||Podocoryne carnea|
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae|hydridae||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydridae|chlorohydra||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydridae/chlorohydra|Chlorohydra viridissima||Chlorohydra viridissima|
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydridae|hydra||
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydridae/hydra|hydra, Hydra littoralis||hydra|Hydra littoralis
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydridae/hydra|hydra, Hydra magnipapillata||hydra|Hydra magnipapillata
+/eukaryota/metazoa/cnidaria/hydrozoa/hydroida/anthomedusae/hydridae/hydra|hydra, Hydra vulgaris||hydra|Hydra vulgaris
+/eukaryota/metazoa/cnidaria|scyphozoa||
+/eukaryota/metazoa/cnidaria/scyphozoa|semaeostomeae||
+/eukaryota/metazoa/cnidaria/scyphozoa/semaeostomeae|pelagiidae||
+/eukaryota/metazoa/cnidaria/scyphozoa/semaeostomeae/pelagiidae|chrysaora||
+/eukaryota/metazoa/cnidaria/scyphozoa/semaeostomeae/pelagiidae/chrysaora|sea nettle, Chrysaora quinquecirrha||sea nettle|Chrysaora quinquecirrha
+/eukaryota/metazoa|echinodermata||
+/eukaryota/metazoa/echinodermata|asterozoa||
+/eukaryota/metazoa/echinodermata/asterozoa|asteroidea||
+/eukaryota/metazoa/echinodermata/asterozoa/asteroidea|forcipulatacea||
+/eukaryota/metazoa/echinodermata/asterozoa/asteroidea/forcipulatacea|forcipulatida||
+/eukaryota/metazoa/echinodermata/asterozoa/asteroidea/forcipulatacea/forcipulatida|asteriidae||
+/eukaryota/metazoa/echinodermata/asterozoa/asteroidea/forcipulatacea/forcipulatida/asteriidae|asterias||
+/eukaryota/metazoa/echinodermata/asterozoa/asteroidea/forcipulatacea/forcipulatida/asteriidae/asterias|Northern sea star, Asterias vulgaris||Northern sea star|Asterias vulgaris
+/eukaryota/metazoa|hemichordata||
+/eukaryota/metazoa/hemichordata|ptychodera||
+/eukaryota/metazoa/hemichordata/ptychodera|acorn worm, Ptychodera flava||acorn worm|Ptychodera flava
+/eukaryota/metazoa|mollusca||
+/eukaryota/metazoa/mollusca|cephalopoda||
+/eukaryota/metazoa/mollusca/cephalopoda|coleoidea||
+/eukaryota/metazoa/mollusca/cephalopoda/coleoidea|teuthoida||
+/eukaryota/metazoa/mollusca/cephalopoda/coleoidea/teuthoida|myopsida||
+/eukaryota/metazoa/mollusca/cephalopoda/coleoidea/teuthoida/myopsida|loliginidae||
+/eukaryota/metazoa/mollusca/cephalopoda/coleoidea/teuthoida/myopsida/loliginidae|loligo||
+/eukaryota/metazoa/mollusca/cephalopoda/coleoidea/teuthoida/myopsida/loliginidae/loligo|squid, Loligo opalescens||squid|Loligo opalescens
+/eukaryota/metazoa|nematoda||
+/eukaryota/metazoa/nematoda|chromadorea||
+/eukaryota/metazoa/nematoda/chromadorea|diplogasterida||
+/eukaryota/metazoa/nematoda/chromadorea/diplogasterida|neodiplogasteridae||
+/eukaryota/metazoa/nematoda/chromadorea/diplogasterida/neodiplogasteridae|pristionchus||
+/eukaryota/metazoa/nematoda/chromadorea/diplogasterida/neodiplogasteridae/pristionchus|Pristionchus pacificus||Pristionchus pacificus|
+/eukaryota/metazoa/nematoda/chromadorea|spirurida||
+/eukaryota/metazoa/nematoda/chromadorea/spirurida|filarioidea||
+/eukaryota/metazoa/nematoda/chromadorea/spirurida/filarioidea|onchocercidae||
+/eukaryota/metazoa/nematoda/chromadorea/spirurida/filarioidea/onchocercidae|brugia||
+/eukaryota/metazoa/nematoda/chromadorea/spirurida/filarioidea/onchocercidae/brugia|Brugia Malayi||Brugia Malayi|
+/eukaryota/metazoa|nemertea||
+/eukaryota/metazoa/nemertea|anopla||
+/eukaryota/metazoa/nemertea/anopla|heteronemertea||
+/eukaryota/metazoa/nemertea/anopla/heteronemertea|lineidae||
+/eukaryota/metazoa/nemertea/anopla/heteronemertea/lineidae|lineus||
+/eukaryota/metazoa/nemertea/anopla/heteronemertea/lineidae/lineus|ribbonworm, Lineus sanguineus||ribbonworm|Lineus sanguineus
+/eukaryota/metazoa|platyhelminthes||
+/eukaryota/metazoa/platyhelminthes|neodermata||
+/eukaryota/metazoa/platyhelminthes/neodermata|trematoda||
+/eukaryota/metazoa/platyhelminthes/neodermata/trematoda|digenea||
+/eukaryota/metazoa/platyhelminthes/neodermata/trematoda/digenea|strigeidida||
+/eukaryota/metazoa/platyhelminthes/neodermata/trematoda/digenea/strigeidida|schistosomatoidea||
+/eukaryota/metazoa/platyhelminthes/neodermata/trematoda/digenea/strigeidida/schistosomatoidea|schistosomatidae||
+/eukaryota/metazoa/platyhelminthes/neodermata/trematoda/digenea/strigeidida/schistosomatoidea/schistosomatidae|schistosoma||
+/eukaryota/metazoa/platyhelminthes/neodermata/trematoda/digenea/strigeidida/schistosomatoidea/schistosomatidae/schistosoma|Schistosoma mansoni||Schistosoma mansoni|
+/eukaryota/metazoa|porifera||
+/eukaryota/metazoa/porifera|demospongiae||
+/eukaryota/metazoa/porifera/demospongiae|ceractinomorpha||
+/eukaryota/metazoa/porifera/demospongiae/ceractinomorpha|haplosclerida||
+/eukaryota/metazoa/porifera/demospongiae/ceractinomorpha/haplosclerida|spongillidae||
+/eukaryota/metazoa/porifera/demospongiae/ceractinomorpha/haplosclerida/spongillidae|ephydatia||
+/eukaryota/metazoa/porifera/demospongiae/ceractinomorpha/haplosclerida/spongillidae/ephydatia|sponge, Ephydatia fluviatilis||sponge|Ephydatia fluviatilis
+/eukaryota/metazoa/porifera/demospongiae|tetractinomorpha||
+/eukaryota/metazoa/porifera/demospongiae/tetractinomorpha|astrophorida||
+/eukaryota/metazoa/porifera/demospongiae/tetractinomorpha/astrophorida|geodiidae||
+/eukaryota/metazoa/porifera/demospongiae/tetractinomorpha/astrophorida/geodiidae|geodia||
+/eukaryota/metazoa/porifera/demospongiae/tetractinomorpha/astrophorida/geodiidae/geodia|sponge, Geodia cydonium||sponge|Geodia cydonium

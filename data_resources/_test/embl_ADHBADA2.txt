@@ -1,0 +1,51 @@
+ID   ADHBADA2
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   CDS             367..461
+FT                   /codon_start=1
+FT                   /note="alpha-A globin; NCBI gi: 212914"
+FT   CDS             612..816
+FT                   /codon_start=1
+FT                   /note="alpha-A globin; NCBI gi: 212914"
+FT   CDS             921..1049
+FT                   /codon_start=1
+FT                   /note="alpha-A globin; NCBI gi: 212914"
+FT   exon            <367..461
+FT                   /note="alpha-A globin"
+FT                   /number=1
+FT   exon            612..816
+FT                   /number=2
+FT   exon            921..>1049
+FT                   /note="alpha-A globin"
+FT                   /number=3
+FT   intron          462..611
+FT                   /note="alpha-A-globin intron A"
+FT   intron          817..920
+FT                   /note="alpha-A-globin intron B"
+FT   prim_transcript 331..1145
+FT                   /note="alpha-A-globin mRNA"
+
+XX
+SQ   Sequence 1145 BP; 193 A; 435 C; 291 G; 226 T; 0 other;
+     ctcatgctgg ggttgcctcc ccccctcaaa ccctaacctt aatcccatct cgtgctgggg        60
+     tcagaccccc ctaaccctaa cccagttcat gccgggatca gcccccccaa accctaaccc       120
+     taaacccatc tcgtgccggg gtcagacccc ccccaaccct aaccccgacc ccagttcatg       180
+     ccggggtcgc ccccccccgg tggtgccggt gccgcaggcg gggcagggcg gcggccccgc       240
+     ctggccgagg tccagccgcg acggggcggg cggggcgggg cggcgcccgg gccggcacgg       300
+     ggatataagg ccggcggcac cagtgggggc acccgtgctg ggggctgcca acgcggagct       360
+     gcaaccatgg tgctgtctgc ggctgacaag accaacgtca agggtgtctt ctccaaaatc       420
+     ggtggccatg ctgaggagta tggcgccgag accctggaga ggtaggtgtc tgtccccgtc       480
+     ctttgtccgt ccctgatcct ctcctctcta accccatgct ctcccccacc ataactgtcc       540
+     gtgtcctacc ccaccccatc catcccccct gtccgttgat cccgctggcc ctgactcgct       600
+     ctgctccaca ggatgttcat cgcctacccc cagaccaaga cctacttccc ccactttgac       660
+     ctgcagcacg gctctgctca gatcaaggcc catggcaaga aggtggcggc tgccctagtt       720
+     gaagctgtca accacatcga tgacattgcg ggtgctctct ccaagctcag tgacctccac       780
+     gcccaaaagc tccgtgtgga ccctgtcaac ttcaaagtga gtctggtgac tccccccagc       840
+     tcctcttcag cacccatcct gggccatccg gccacccctt tacctccccc actcgctcac       900
+     cgtctccttt tgcctttcag ttcctgggcc actgcttcct ggtggtggtt gccatccacc       960
+     accccgctgc cctgacccca gaggtccacg cttccctgga caagttcatg tgcgccgtgg      1020
+     gtgctgtgct gactgccaag taccgttaga cggcaccgtg gctagagctg gacccaccct      1080
+     gttgccagcc ttccaactgc aagcagccaa atgatctgaa ataaaatctg ttgcatttgt      1140
+     gctcc
+//

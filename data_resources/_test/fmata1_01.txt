@@ -1,0 +1,51 @@
+ID  F$MATA1_01
+XX
+DT  18.10.1994 (created); ewi.
+DT  16.10.1995 (updated); ewi.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  MATa1
+XX
+DE  mating factor a1
+XX
+BF  T00488; MATa1; Species: yeast, Saccharomyces cerevisiae.
+XX
+P0      A      C      G      T
+01      0      1      1     12      T
+02      0      0     14      0      G
+03     14      0      0      0      A
+04      0      0      0     14      T
+05      0      0     14      0      G
+06      1      2      0     11      T
+07     10      0      3      1      A
+08      6      2      4      2      N
+09      5      4      1      4      N
+10      2      1      1     10      T
+XX
+BA  a1 half-sites of 14 hsg operators of 4 genes
+XX
+BS  R05553; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05554; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05555; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05556; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05557; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05558; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05559; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05560; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05561; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05562; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05563; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05564; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05565; Start: 1; Length: 10; Gaps:; Orientation: p.
+BS  R05566; Start: 1; Length: 10; Gaps:; Orientation: p.
+XX
+CC  compiled sequences
+XX
+RN  [1]
+RX  MEDLINE; 94185650.
+RA  Goutte C., Johnson A. D.
+RT  Recognition of a DNA operator by a dimer composed of two different
+RT  homeodomain proteins
+RL  EMBO J. 13:1434-1442 (1994).
+XX
+//

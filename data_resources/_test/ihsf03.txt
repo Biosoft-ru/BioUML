@@ -1,0 +1,43 @@
+AC  M00164
+XX
+ID  I$HSF_03
+XX
+DT  22.06.1995 (created); ewi.
+DT  27.03.2001 (updated); vma.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  HSF
+XX
+DE  heat shock factor (Drosophila)
+XX
+BF  T00386; HSTF; Species: fruit fly, Drosophila melanogaster.
+XX
+P0      A      C      G      T
+01     31     14      4      1      A
+02      0      0     50      0      G
+03     48      2      0      0      A
+04     43      1      5      1      A
+05     23      1     14     12      N
+06     31     14      4      1      A
+07      0      0     50      0      G
+08     48      2      0      0      A
+09     43      1      5      1      A
+10     23      1     14     12      N
+11     12     14      1     23      N
+12      1      5      1     43      T
+13      0      0      2     48      T
+14      0     50      0      0      C
+15      1      4     14     31      T
+XX
+BA  50 functional genomic HSEs
+XX
+CC  triple repeat of the 5-bp unit <M00028> in NGAANNGAANNTTCN orientation
+XX
+RN  [1]
+RX  MEDLINE; 94167242.
+RA  Fernandes M., Xiao H., Lis J. T.
+RT  Fine structure analyses of the Drosophila and Saccharomyces heat shock
+RT  factor-heat shock element interactions
+RL  Nucleic Acids Res. 22:167-173 (1994).
+XX
+//

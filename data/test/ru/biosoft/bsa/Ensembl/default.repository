@@ -1,0 +1,4 @@
+#Sat Nov 22 14:24:10 CET 2003
+name=Ensembl
+class=ru.biosoft.access.LocalRepository
+configAltRoot=biouml.plugins.ensembl:db

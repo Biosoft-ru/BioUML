@@ -1,0 +1,6 @@
+# Length(cm) Area (cm^2) beta (kg/s^2) 
+1 	4.0	5.983	388000
+
+
+
+	

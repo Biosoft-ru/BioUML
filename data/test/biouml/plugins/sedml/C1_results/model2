@@ -1,0 +1,1452 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2" level="2" version="1">
+  <model id="Circadian_Chaos__model2_" name="Leloup1999_CircClock">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <p>This model originates from BioModels Database: A Database of Annotated Published Models. It is copyright (c) 2005-2009 The BioModels Team.      <br/>
+          For more information see the      <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>
+          .      <br/>
+          To cite BioModels Database, please use      <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?tool=pubmed&amp;pubmedid=16381960" target="_blank">Le Novère N., Bornstein B., Broicher A., Courtot M., Donizelli M., Dharuri H., Li L., Sauro H., Schilstra M., Shapiro B., Snoep J.L., Hucka M. (2006) BioModels Database: A Free, Centralized Database of Curated, Published, Quantitative Kinetic Models of Biochemical and Cellular Systems Nucleic Acids Res., 34: D689-D691.</a>
+                </p>
+      </body>
+    </notes>
+    <annotation>
+      <sbgn xmlns:biouml="http://www.biouml.org/ns" notation="databases/Utils/Diagrams/graphic notations/sbml_sbgn.xml">
+        <nodes>
+          <node closeup="" compartmentType="" id="Cell" parent="" ref="Cell" title="cytoplasm" type="compartment">
+            <nodeLayout height="562" width="1237" x="0" y="0"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node clone="" id="CC" multimer="0" parent="Cell" ref="Cell.CC" title="Cytosolic PER-TIM Complex" type="unspecified">
+            <nodeLayout height="40" width="60" x="12" y="140"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node clone="" id="Mp" multimer="0" parent="Cell" ref="Cell.Mp" title="PER mRNA" type="unspecified">
+            <nodeLayout height="40" width="60" x="303" y="140"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="Mp_degradation" orientation="right" parent="Cell" reactionType="process" ref="Mp_degradation" type="reaction">
+            <nodeLayout x="382" y="165"/>
+          </node>
+          <node id="Mp_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="412" y="195"/>
+          </node>
+          <node clone="" id="Mt" multimer="0" parent="Cell" ref="Cell.Mt" title="TIM mRNA" type="unspecified">
+            <nodeLayout height="40" width="60" x="553" y="140"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="Mt_degradation" orientation="right" parent="Cell" reactionType="process" ref="Mt_degradation" type="reaction">
+            <nodeLayout x="629" y="165"/>
+          </node>
+          <node id="Mt_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="659" y="195"/>
+          </node>
+          <node clone="" id="P0" multimer="0" parent="Cell" ref="Cell.P0" title="PER Protein (unphosphorylated)" type="unspecified">
+            <nodeLayout height="40" width="60" x="741" y="140"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="P0_degradation" orientation="right" parent="Cell" reactionType="process" ref="P0_degradation" type="reaction">
+            <nodeLayout x="876" y="165"/>
+          </node>
+          <node id="P0_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="906" y="195"/>
+          </node>
+          <node id="P0_production" orientation="right" parent="Cell" reactionType="process" ref="P0_production" type="reaction">
+            <nodeLayout x="826" y="165"/>
+          </node>
+          <node id="P0_productionReactantSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="856" y="150"/>
+          </node>
+          <node id="P0_to_P1" orientation="right" parent="Cell" reactionType="process" ref="P0_to_P1" type="reaction">
+            <nodeLayout x="455" y="239"/>
+          </node>
+          <node clone="" id="P1" multimer="0" parent="Cell" ref="Cell.P1" title="PER Protein (mono-phosphorylated)" type="unspecified">
+            <nodeLayout height="40" width="60" x="35" y="281"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="P1_degradation" orientation="right" parent="Cell" reactionType="process" ref="P1_degradation" type="reaction">
+            <nodeLayout x="135" y="313"/>
+          </node>
+          <node id="P1_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="165" y="343"/>
+          </node>
+          <node id="P1_to_P0" orientation="right" parent="Cell" reactionType="process" ref="P1_to_P0" type="reaction">
+            <nodeLayout x="455" y="239"/>
+          </node>
+          <node id="P1_to_P2" orientation="right" parent="Cell" reactionType="process" ref="P1_to_P2" type="reaction">
+            <nodeLayout x="208" y="313"/>
+          </node>
+          <node clone="" id="P2" multimer="0" parent="Cell" ref="Cell.P2" title="PER Protein (bi-phosphorylated)" type="unspecified">
+            <nodeLayout height="40" width="60" x="289" y="281"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="P2_degradation" orientation="right" parent="Cell" reactionType="process" ref="P2_degradation" type="reaction">
+            <nodeLayout x="382" y="313"/>
+          </node>
+          <node id="P2_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="412" y="343"/>
+          </node>
+          <node id="P2_to_P1" orientation="right" parent="Cell" reactionType="process" ref="P2_to_P1" type="reaction">
+            <nodeLayout x="208" y="313"/>
+          </node>
+          <node id="PT_complex_degradation" orientation="right" parent="Cell" reactionType="process" ref="PT_complex_degradation" type="reaction">
+            <nodeLayout x="135" y="165"/>
+          </node>
+          <node id="PT_complex_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="165" y="195"/>
+          </node>
+          <node id="PT_complex_formation" orientation="right" parent="Cell" reactionType="association" ref="PT_complex_formation" type="reaction">
+            <nodeLayout x="167" y="310"/>
+          </node>
+          <node clone="" id="T0" multimer="0" parent="Cell" ref="Cell.T0" title="TIM Protein (unphosphorylated)" type="unspecified">
+            <nodeLayout height="40" width="60" x="497" y="281"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="T0_degradation" orientation="right" parent="Cell" reactionType="process" ref="T0_degradation" type="reaction">
+            <nodeLayout x="629" y="306"/>
+          </node>
+          <node id="T0_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="659" y="336"/>
+          </node>
+          <node id="T0_production" orientation="right" parent="Cell" reactionType="process" ref="T0_production" type="reaction">
+            <nodeLayout x="579" y="306"/>
+          </node>
+          <node id="T0_productionReactantSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="609" y="291"/>
+          </node>
+          <node id="T0_to_T1" orientation="right" parent="Cell" reactionType="process" ref="T0_to_T1" type="reaction">
+            <nodeLayout x="702" y="309"/>
+          </node>
+          <node clone="" id="T1" multimer="0" parent="Cell" ref="Cell.T1" title="TIM Protein (mono-phosphorylated)" type="unspecified">
+            <nodeLayout height="40" width="60" x="779" y="281"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="T1_degradation" orientation="right" parent="Cell" reactionType="process" ref="T1_degradation" type="reaction">
+            <nodeLayout x="876" y="313"/>
+          </node>
+          <node id="T1_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="906" y="343"/>
+          </node>
+          <node id="T1_to_T0" orientation="right" parent="Cell" reactionType="process" ref="T1_to_T0" type="reaction">
+            <nodeLayout x="702" y="309"/>
+          </node>
+          <node id="T1_to_T2" orientation="right" parent="Cell" reactionType="process" ref="T1_to_T2" type="reaction">
+            <nodeLayout x="455" y="383"/>
+          </node>
+          <node clone="" id="T2" multimer="0" parent="Cell" ref="Cell.T2" title="TIM Protein (bi-phosphorylated)" type="unspecified">
+            <nodeLayout height="40" width="60" x="42" y="422"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="T2_degradation" orientation="right" parent="Cell" reactionType="process" ref="T2_degradation" type="reaction">
+            <nodeLayout x="135" y="454"/>
+          </node>
+          <node id="T2_degradationProductSource" parent="Cell" type="source-sink">
+            <nodeLayout height="30" width="30" x="165" y="484"/>
+          </node>
+          <node id="T2_to_T1" orientation="right" parent="Cell" reactionType="process" ref="T2_to_T1" type="reaction">
+            <nodeLayout x="455" y="383"/>
+          </node>
+          <node closeup="" compartmentType="" id="compartment_0000002" parent="Cell" ref="Cell.compartment_0000002" title="nucleus" type="compartment">
+            <nodeLayout height="140" width="356" x="0" y="0"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node clone="" id="Cn" multimer="0" parent="Cell.compartment_0000002" ref="Cell.compartment_0000002.Cn" title="Nuclear PER-TIM Complex" type="unspecified">
+            <nodeLayout height="40" width="60" x="0" y="1"/>
+            <nodePaint color="rgba(0,0,0,0)"/>
+          </node>
+          <node id="PTnucl_complex_degradation" orientation="right" parent="Cell.compartment_0000002" reactionType="process" ref="PTnucl_complex_degradation" type="reaction">
+            <nodeLayout x="120" y="26"/>
+          </node>
+          <node id="PTnucl_complex_degradationProductSource" parent="Cell.compartment_0000002" type="source-sink">
+            <nodeLayout height="30" width="30" x="150" y="56"/>
+          </node>
+          <node id="Mp_production" orientation="right" parent="" reactionType="process" ref="Mp_production" type="reaction">
+            <nodeLayout x="332" y="165"/>
+          </node>
+          <node id="Mp_productionReactantSource" parent="" type="source-sink">
+            <nodeLayout height="30" width="30" x="362" y="150"/>
+          </node>
+          <node id="Mt_production" orientation="right" parent="" reactionType="process" ref="Mt_production" type="reaction">
+            <nodeLayout x="579" y="165"/>
+          </node>
+          <node id="Mt_productionReactantSource" parent="" type="source-sink">
+            <nodeLayout height="30" width="30" x="609" y="150"/>
+          </node>
+          <node id="PT_complex_nucleation" orientation="right" parent="" reactionType="process" ref="PT_complex_nucleation" type="reaction">
+            <nodeLayout x="77" y="95"/>
+          </node>
+          <node id="metaid_0000023" parent="" type="equation">
+            <nodeLayout x="0" y="562"/>
+          </node>
+          <node id="metaid_0000024" parent="" type="equation">
+            <nodeLayout x="428" y="562"/>
+          </node>
+        </nodes>
+        <edges>
+          <edge from="Cell.Mp" id="Mp_degradation: Mp as reactant" kernelType="relation-chemical" ref="Mp_degradation: Mp as reactant" to="Cell.Mp_degradation" type="reaction"/>
+          <edge from="Cell.Mp_degradation" id="Mp_degradationProductSourceEdge" kernelType="production" ref="Mp_degradationProductSourceEdge" to="Cell.Mp_degradationProductSource" type="reaction"/>
+          <edge from="Cell.Mt" id="Mt_degradation: Mt as reactant" kernelType="relation-chemical" ref="Mt_degradation: Mt as reactant" to="Cell.Mt_degradation" type="reaction"/>
+          <edge from="Cell.Mt_degradation" id="Mt_degradationProductSourceEdge" kernelType="production" ref="Mt_degradationProductSourceEdge" to="Cell.Mt_degradationProductSource" type="reaction"/>
+          <edge from="Cell.P0" id="P0_degradation: P0 as reactant" kernelType="relation-chemical" ref="P0_degradation: P0 as reactant" to="Cell.P0_degradation" type="reaction"/>
+          <edge from="Cell.P0_degradation" id="P0_degradationProductSourceEdge" kernelType="production" ref="P0_degradationProductSourceEdge" to="Cell.P0_degradationProductSource" type="reaction"/>
+          <edge edgeType="catalysis" from="Cell.Mp" id="P0_production: Mp as modifier" kernelType="relation-chemical" ref="P0_production: Mp as modifier" to="Cell.P0_production" type="reaction"/>
+          <edge from="Cell.P0_production" id="P0_production: P0 as product" kernelType="relation-chemical" ref="P0_production: P0 as product" to="Cell.P0" type="reaction"/>
+          <edge from="Cell.P0_productionReactantSource" id="P0_productionReactantSourceEdge" kernelType="consumption" ref="P0_productionReactantSourceEdge" to="Cell.P0_production" type="reaction"/>
+          <edge from="Cell.P0" id="P0_to_P1: P0 as reactant" kernelType="relation-chemical" ref="P0_to_P1: P0 as reactant" to="Cell.P0_to_P1" type="reaction"/>
+          <edge from="Cell.P0_to_P1" id="P0_to_P1: P1 as product" kernelType="relation-chemical" ref="P0_to_P1: P1 as product" to="Cell.P1" type="reaction"/>
+          <edge from="Cell.P1" id="P1_degradation: P1 as reactant" kernelType="relation-chemical" ref="P1_degradation: P1 as reactant" to="Cell.P1_degradation" type="reaction"/>
+          <edge from="Cell.P1_degradation" id="P1_degradationProductSourceEdge" kernelType="production" ref="P1_degradationProductSourceEdge" to="Cell.P1_degradationProductSource" type="reaction"/>
+          <edge from="Cell.P1_to_P0" id="P1_to_P0: P0 as product" kernelType="relation-chemical" ref="P1_to_P0: P0 as product" to="Cell.P0" type="reaction"/>
+          <edge from="Cell.P1" id="P1_to_P0: P1 as reactant" kernelType="relation-chemical" ref="P1_to_P0: P1 as reactant" to="Cell.P1_to_P0" type="reaction"/>
+          <edge from="Cell.P1" id="P1_to_P2: P1 as reactant" kernelType="relation-chemical" ref="P1_to_P2: P1 as reactant" to="Cell.P1_to_P2" type="reaction"/>
+          <edge from="Cell.P1_to_P2" id="P1_to_P2: P2 as product" kernelType="relation-chemical" ref="P1_to_P2: P2 as product" to="Cell.P2" type="reaction"/>
+          <edge from="Cell.P2" id="P2_degradation: P2 as reactant" kernelType="relation-chemical" ref="P2_degradation: P2 as reactant" to="Cell.P2_degradation" type="reaction"/>
+          <edge from="Cell.P2_degradation" id="P2_degradationProductSourceEdge" kernelType="production" ref="P2_degradationProductSourceEdge" to="Cell.P2_degradationProductSource" type="reaction"/>
+          <edge from="Cell.P2_to_P1" id="P2_to_P1: P1 as product" kernelType="relation-chemical" ref="P2_to_P1: P1 as product" to="Cell.P1" type="reaction"/>
+          <edge from="Cell.P2" id="P2_to_P1: P2 as reactant" kernelType="relation-chemical" ref="P2_to_P1: P2 as reactant" to="Cell.P2_to_P1" type="reaction"/>
+          <edge from="Cell.CC" id="PT_complex_degradation: CC as reactant" kernelType="relation-chemical" ref="PT_complex_degradation: CC as reactant" to="Cell.PT_complex_degradation" type="reaction"/>
+          <edge from="Cell.PT_complex_degradation" id="PT_complex_degradationProductSourceEdge" kernelType="production" ref="PT_complex_degradationProductSourceEdge" to="Cell.PT_complex_degradationProductSource" type="reaction"/>
+          <edge from="Cell.PT_complex_formation" id="PT_complex_formation: CC as product" kernelType="relation-chemical" ref="PT_complex_formation: CC as product" to="Cell.CC" type="reaction"/>
+          <edge from="Cell.P2" id="PT_complex_formation: P2 as reactant" kernelType="relation-chemical" ref="PT_complex_formation: P2 as reactant" to="Cell.PT_complex_formation" type="reaction"/>
+          <edge from="Cell.T2" id="PT_complex_formation: T2 as reactant" kernelType="relation-chemical" ref="PT_complex_formation: T2 as reactant" to="Cell.PT_complex_formation" type="reaction"/>
+          <edge from="Cell.T0" id="T0_degradation: T0 as reactant" kernelType="relation-chemical" ref="T0_degradation: T0 as reactant" to="Cell.T0_degradation" type="reaction"/>
+          <edge from="Cell.T0_degradation" id="T0_degradationProductSourceEdge" kernelType="production" ref="T0_degradationProductSourceEdge" to="Cell.T0_degradationProductSource" type="reaction"/>
+          <edge edgeType="catalysis" from="Cell.Mt" id="T0_production: Mt as modifier" kernelType="relation-chemical" ref="T0_production: Mt as modifier" to="Cell.T0_production" type="reaction"/>
+          <edge from="Cell.T0_production" id="T0_production: T0 as product" kernelType="relation-chemical" ref="T0_production: T0 as product" to="Cell.T0" type="reaction"/>
+          <edge from="Cell.T0_productionReactantSource" id="T0_productionReactantSourceEdge" kernelType="consumption" ref="T0_productionReactantSourceEdge" to="Cell.T0_production" type="reaction"/>
+          <edge from="Cell.T0" id="T0_to_T1: T0 as reactant" kernelType="relation-chemical" ref="T0_to_T1: T0 as reactant" to="Cell.T0_to_T1" type="reaction"/>
+          <edge from="Cell.T0_to_T1" id="T0_to_T1: T1 as product" kernelType="relation-chemical" ref="T0_to_T1: T1 as product" to="Cell.T1" type="reaction"/>
+          <edge from="Cell.T1" id="T1_degradation: T1 as reactant" kernelType="relation-chemical" ref="T1_degradation: T1 as reactant" to="Cell.T1_degradation" type="reaction"/>
+          <edge from="Cell.T1_degradation" id="T1_degradationProductSourceEdge" kernelType="production" ref="T1_degradationProductSourceEdge" to="Cell.T1_degradationProductSource" type="reaction"/>
+          <edge from="Cell.T1_to_T0" id="T1_to_T0: T0 as product" kernelType="relation-chemical" ref="T1_to_T0: T0 as product" to="Cell.T0" type="reaction"/>
+          <edge from="Cell.T1" id="T1_to_T0: T1 as reactant" kernelType="relation-chemical" ref="T1_to_T0: T1 as reactant" to="Cell.T1_to_T0" type="reaction"/>
+          <edge from="Cell.T1" id="T1_to_T2: T1 as reactant" kernelType="relation-chemical" ref="T1_to_T2: T1 as reactant" to="Cell.T1_to_T2" type="reaction"/>
+          <edge from="Cell.T1_to_T2" id="T1_to_T2: T2 as product" kernelType="relation-chemical" ref="T1_to_T2: T2 as product" to="Cell.T2" type="reaction"/>
+          <edge from="Cell.T2" id="T2_degradation: T2 as reactant" kernelType="relation-chemical" ref="T2_degradation: T2 as reactant" to="Cell.T2_degradation" type="reaction"/>
+          <edge from="Cell.T2_degradation" id="T2_degradationProductSourceEdge" kernelType="production" ref="T2_degradationProductSourceEdge" to="Cell.T2_degradationProductSource" type="reaction"/>
+          <edge from="Cell.T2_to_T1" id="T2_to_T1: T1 as product" kernelType="relation-chemical" ref="T2_to_T1: T1 as product" to="Cell.T1" type="reaction"/>
+          <edge from="Cell.T2" id="T2_to_T1: T2 as reactant" kernelType="relation-chemical" ref="T2_to_T1: T2 as reactant" to="Cell.T2_to_T1" type="reaction"/>
+          <edge from="Cell.compartment_0000002.Cn" id="PTnucl_complex_degradation: Cn as reactant" kernelType="relation-chemical" ref="PTnucl_complex_degradation: Cn as reactant" to="Cell.compartment_0000002.PTnucl_complex_degradation" type="reaction"/>
+          <edge from="Cell.compartment_0000002.PTnucl_complex_degradation" id="PTnucl_complex_degradationProductSourceEdge" kernelType="production" ref="PTnucl_complex_degradationProductSourceEdge" to="Cell.compartment_0000002.PTnucl_complex_degradationProductSource" type="reaction"/>
+          <edge edgeType="catalysis" from="Cell.compartment_0000002.Cn" id="Mp_production: Cn as modifier" kernelType="relation-chemical" ref="Mp_production: Cn as modifier" to="Mp_production" type="reaction"/>
+          <edge from="Mp_production" id="Mp_production: Mp as product" kernelType="relation-chemical" ref="Mp_production: Mp as product" to="Cell.Mp" type="reaction"/>
+          <edge from="Mp_productionReactantSource" id="Mp_productionReactantSourceEdge" kernelType="consumption" ref="Mp_productionReactantSourceEdge" to="Mp_production" type="reaction"/>
+          <edge edgeType="catalysis" from="Cell.compartment_0000002.Cn" id="Mt_production: Cn as modifier" kernelType="relation-chemical" ref="Mt_production: Cn as modifier" to="Mt_production" type="reaction"/>
+          <edge from="Mt_production" id="Mt_production: Mt as product" kernelType="relation-chemical" ref="Mt_production: Mt as product" to="Cell.Mt" type="reaction"/>
+          <edge from="Mt_productionReactantSource" id="Mt_productionReactantSourceEdge" kernelType="consumption" ref="Mt_productionReactantSourceEdge" to="Mt_production" type="reaction"/>
+          <edge from="Cell.CC" id="PT_complex_nucleation: CC as reactant" kernelType="relation-chemical" ref="PT_complex_nucleation: CC as reactant" to="PT_complex_nucleation" type="reaction"/>
+          <edge from="PT_complex_nucleation" id="PT_complex_nucleation: Cn as product" kernelType="relation-chemical" ref="PT_complex_nucleation: Cn as product" to="Cell.compartment_0000002.Cn" type="reaction"/>
+        </edges>
+        <viewOptions>
+          <propertyRef name="autoLayout" value="true"/>
+          <propertyRef name="dependencyEdges" value="false"/>
+          <propertyRef name="drawOnFly" value="false"/>
+          <propertyRef name="gridOptions" type="ru.biosoft.graphics.editor.GridOptions">
+            <propertyRef name="cellSize" value="20"/>
+            <propertyRef name="gridStyle" value="POINTS"/>
+            <propertyRef name="showGrid" value="true"/>
+            <propertyRef name="stepSize" value="5"/>
+            <propertyRef name="useDefault" value="true"/>
+          </propertyRef>
+          <propertyRef name="options">
+            <propertyRef name="sourceSinkSize" value="30;30"/>
+            <propertyRef name="sourceSinkBrush" value="#E15064:#DC2350"/>
+            <propertyRef name="macromoleculeBrush" value="#EAFFD8:#D4FFAA"/>
+            <propertyRef name="nucleicBrush" value="#B4FFFF:#A0F0F0"/>
+            <propertyRef name="perturbingBrush" value="#FFB4FF:#F0A0F0"/>
+            <propertyRef name="unspecifiedBrush" value="#F5E164:#F5C80A"/>
+            <propertyRef name="simpleChemicalBrush" value="#D282AA:#BE5A96"/>
+            <propertyRef name="complexBrush" value="#5ABEC8:#3CB4BE"/>
+            <propertyRef name="compartmentBrush" value="#F0F0F0"/>
+            <propertyRef name="compartmentPen" value="4.0;#969696;Solid"/>
+            <propertyRef name="compartmentPenIn" value="1.0;#C8C8C8;Solid"/>
+            <propertyRef name="compartmentPenOut" value="2.0;white;Solid"/>
+            <propertyRef name="unitOfInfoSize" value="40;20"/>
+            <propertyRef name="unitOfInfoBrush" value="white"/>
+            <propertyRef name="variableSize" value="20;20"/>
+            <propertyRef name="variableBrush" value="white"/>
+            <propertyRef name="edgePen" value="1.0;#646464;Solid"/>
+            <propertyRef name="edgeTipBrush" value="#787878"/>
+            <propertyRef name="phenotypeBrush" value="#F0F0FF:#C8B4FF"/>
+            <propertyRef name="nodeTitleFont" value="Arial;0;12;black"/>
+            <propertyRef name="customTitleFont" value="Arial;1;18;black"/>
+            <propertyRef name="portTitleFont" value="Arial;1;12;#7A378B"/>
+            <propertyRef name="formulaFont" value="Arial;0;11;black"/>
+            <propertyRef name="eventTitleFont" value="Arial;1;11;black"/>
+            <propertyRef name="eventPen" value="1.0;black;Solid"/>
+            <propertyRef name="highlight1Brush" value="#CCF"/>
+            <propertyRef name="highlight2Brush" value="#FFCECE"/>
+            <propertyRef name="highlight3Brush" value="#FFCEFF"/>
+            <propertyRef name="addSourceSink" value="true"/>
+            <propertyRef name="nodeTitleLimit" value="1000.0"/>
+            <propertyRef name="automoveReactions" value="false"/>
+            <propertyRef name="autodeleteReactions" value="false"/>
+            <propertyRef name="orientedReactions" value="false"/>
+          </propertyRef>
+        </viewOptions>
+      </sbgn>
+      <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+        <biouml:diagramInfo completeName="Circadian Chaos (model2)"/>
+        <biouml:simulationInfo completionTime="380.0" initialTime="0.0" timeIncrement="0.38"/>
+        <biouml:viewOptions autoLayout="true" dependencyEdges="false"/>
+      </biouml:BIOUML>
+    </annotation>
+    <listOfUnitDefinitions>
+      <unitDefinition id="substance" name="nanomole (default)">
+        <listOfUnits>
+          <unit kind="mole" scale="-9"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="time" name="hour (default)">
+        <listOfUnits>
+          <unit kind="second" multiplier="3600.0"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="Cell" name="cytoplasm" size="1.0" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo color="rgba(0,0,0,0)" completeName="Cell" height="562" shape="0" title="cytoplasm" width="1237" x="0" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+      <compartment id="compartment_0000002" name="nucleus" outside="Cell" size="1.0" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo color="rgba(0,0,0,0)" completeName="Cell.compartment_0000002" height="140" shape="0" title="nucleus" width="356" x="0" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="CC" initialConcentration="0.0" name="Cytosolic PER-TIM Complex">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.CC" height="40" title="Cytosolic PER-TIM Complex" width="60" x="12" y="140">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="Mp" initialConcentration="0.0" name="PER mRNA">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.Mp" height="40" title="PER mRNA" width="60" x="303" y="140">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="Mt" initialConcentration="0.0" name="TIM mRNA">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.Mt" height="40" title="TIM mRNA" width="60" x="553" y="140">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="P0" initialConcentration="0.0" name="PER Protein (unphosphorylated)">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P0" height="40" title="PER Protein (unphosphorylated)" width="60" x="741" y="140">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="P1" initialConcentration="0.0" name="PER Protein (mono-phosphorylated)">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P1" height="40" title="PER Protein (mono-phosphorylated)" width="60" x="35" y="281">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="P2" initialConcentration="0.0" name="PER Protein (bi-phosphorylated)">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P2" height="40" title="PER Protein (bi-phosphorylated)" width="60" x="289" y="281">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="T0" initialConcentration="0.0" name="TIM Protein (unphosphorylated)">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T0" height="40" title="TIM Protein (unphosphorylated)" width="60" x="497" y="281">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="T1" initialConcentration="0.0" name="TIM Protein (mono-phosphorylated)">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T1" height="40" title="TIM Protein (mono-phosphorylated)" width="60" x="779" y="281">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="Cell" hasOnlySubstanceUnits="false" id="T2" initialConcentration="0.0" name="TIM Protein (bi-phosphorylated)">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T2" height="40" title="TIM Protein (bi-phosphorylated)" width="60" x="42" y="422">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species compartment="compartment_0000002" hasOnlySubstanceUnits="false" id="Cn" initialConcentration="0.0" name="Nuclear PER-TIM Complex">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.compartment_0000002.Cn" height="40" title="Nuclear PER-TIM Complex" width="60" x="0" y="1">
+              <property name="BodyColor" short-description="BodyColor" type="color" value="rgba(0,0,0,0)"/>
+              <property name="sboTerm" short-description="sboTerm" type="String" value=""/>
+              <property name="titleFont" short-description="titleFont" type="font" value="Arial;1;18;black"/>
+              <property name="useDefaultFont" short-description="useDefaultFont" type="boolean" value="true"/>
+            </biouml:nodeInfo>
+            <biouml:specieInfo type="molecule-substance"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="true" id="Mp_degradation_K_mP" value="0.2"/>
+      <parameter constant="true" id="Mp_degradation_V_mP" value="0.7"/>
+      <parameter constant="true" id="Mp_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="Mp_production_K_IP" value="1.0"/>
+      <parameter constant="true" id="Mp_production_n" value="4.0"/>
+      <parameter constant="true" id="Mp_production_v_sP" value="1.0"/>
+      <parameter constant="true" id="Mt_degradation_K_mT" value="0.2"/>
+      <parameter constant="true" id="Mt_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="Mt_production_K_IT" value="1.0"/>
+      <parameter constant="true" id="Mt_production_V_sT" value="1.0"/>
+      <parameter constant="true" id="Mt_production_n" value="4.0"/>
+      <parameter constant="true" id="P0_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="P0_production_k_sP" value="0.9"/>
+      <parameter constant="true" id="P0_to_P1_K1_P" value="2.0"/>
+      <parameter constant="true" id="P0_to_P1_V_1P" value="8.0"/>
+      <parameter constant="true" id="P1_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="P1_to_P0_K_2P" value="2.0"/>
+      <parameter constant="true" id="P1_to_P0_V_2P" value="1.0"/>
+      <parameter constant="true" id="P1_to_P2_K_3P" value="2.0"/>
+      <parameter constant="true" id="P1_to_P2_V_3P" value="8.0"/>
+      <parameter constant="true" id="P2_degradation_K_dP" value="0.2"/>
+      <parameter constant="true" id="P2_degradation_V_dP" value="2.0"/>
+      <parameter constant="true" id="P2_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="P2_to_P1_K_4P" value="2.0"/>
+      <parameter constant="true" id="P2_to_P1_V_4P" value="1.0"/>
+      <parameter constant="true" id="PT_complex_degradation_k_dC" value="0.01"/>
+      <parameter constant="true" id="PT_complex_formation_k3" value="1.2"/>
+      <parameter constant="true" id="PT_complex_formation_k4" value="0.6"/>
+      <parameter constant="true" id="PT_complex_nucleation_k1" value="0.6"/>
+      <parameter constant="true" id="PT_complex_nucleation_k2" value="0.2"/>
+      <parameter constant="true" id="PTnucl_complex_degradation_k_dN" value="0.01"/>
+      <parameter constant="false" id="Pt" name="Total Per" value="0.0"/>
+      <parameter constant="true" id="T0_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="T0_production_k_sT" value="0.9"/>
+      <parameter constant="true" id="T0_to_T1_K_1T" value="2.0"/>
+      <parameter constant="true" id="T0_to_T1_V_1T" value="8.0"/>
+      <parameter constant="true" id="T1_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="T1_to_T0_K_2T" value="2.0"/>
+      <parameter constant="true" id="T1_to_T0_V_2T" value="1.0"/>
+      <parameter constant="true" id="T1_to_T2_K_3T" value="2.0"/>
+      <parameter constant="true" id="T1_to_T2_V_3T" value="8.0"/>
+      <parameter constant="true" id="T2_degradation_K_dT" value="0.2"/>
+      <parameter constant="true" id="T2_degradation_k_d" value="0.01"/>
+      <parameter constant="true" id="T2_to_T1_K_4T" value="2.0"/>
+      <parameter constant="true" id="T2_to_T1_V_4T" value="1.0"/>
+      <parameter constant="false" id="Tt" name="Total Tim" value="0.0"/>
+      <parameter constant="true" id="V_dT" name="&lt;p&gt;V_dT=2 (physiological oscillations); 4.8 (chaos); 3.8 or 2 (biorhythmicity example)&lt;/p&gt;" value="4.8">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <p>V_dT=2 (physiological oscillations); 4.8 (chaos); 3.8 or 2 (biorhythmicity example)</p>
+          </body>
+        </notes>
+      </parameter>
+      <parameter constant="true" id="V_mT" name="&lt;p&gt;V_mT=.7 (physiological oscillations); 0.28 (chaos); .4 or .99 (biorhythmicity example)&lt;/p&gt;" value="0.28">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <p>V_mT=.7 (physiological oscillations); 0.28 (chaos); .4 or .99 (biorhythmicity example)</p>
+          </body>
+        </notes>
+      </parameter>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="metaid_0000023" variable="Pt">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="metaid_0000023" title="metaid_0000023" x="0" y="562"/>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <plus/>
+              <apply>
+                <plus/>
+                <apply>
+                  <plus/>
+                  <ci>CC</ci>
+                  <ci>Cn</ci>
+                </apply>
+                <ci>P0</ci>
+              </apply>
+              <ci>P1</ci>
+            </apply>
+            <ci>P2</ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule metaid="metaid_0000024" variable="Tt">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="metaid_0000024" title="metaid_0000024" x="428" y="562"/>
+          </biouml:BIOUML>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <plus/>
+              <apply>
+                <plus/>
+                <apply>
+                  <plus/>
+                  <ci>CC</ci>
+                  <ci>Cn</ci>
+                </apply>
+                <ci>T0</ci>
+              </apply>
+              <ci>T1</ci>
+            </apply>
+            <ci>T2</ci>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="Mp_degradation" name="Mp_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.Mp_degradation" title="Mp_degradation" x="382" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="Mp" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>Mp_degradation_k_d</ci>
+                </apply>
+                <ci>Mp</ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>Cell</ci>
+                    <ci>Mp_degradation_V_mP</ci>
+                  </apply>
+                  <ci>Mp</ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci>Mp_degradation_K_mP</ci>
+                  <ci>Mp</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Mt_degradation" name="Mt_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.Mt_degradation" title="Mt_degradation" x="629" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="Mt" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>Mt_degradation_k_d</ci>
+                </apply>
+                <ci>Mt</ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>Cell</ci>
+                    <ci>V_mT</ci>
+                  </apply>
+                  <ci>Mt</ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci>Mt_degradation_K_mT</ci>
+                  <ci>Mt</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P0_degradation" name="P0_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P0_degradation" title="P0_degradation" x="876" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P0" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>P0_degradation_k_d</ci>
+              </apply>
+              <ci>P0</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P0_production" name="P0_production" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P0_production" title="P0_production" x="826" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference species="P0" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="Mp"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>P0_production_k_sP</ci>
+              </apply>
+              <ci>Mp</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P0_to_P1" name="P0_to_P1" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P0_to_P1" title="P0_to_P1" x="455" y="239">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P0" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P1" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>P0_to_P1_V_1P</ci>
+                </apply>
+                <ci>P0</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>P0_to_P1_K1_P</ci>
+                <ci>P0</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P1_degradation" name="P1_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P1_degradation" title="P1_degradation" x="135" y="313">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P1" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>P1_degradation_k_d</ci>
+              </apply>
+              <ci>P1</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P1_to_P0" name="P1_to_P0" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P1_to_P0" title="P1_to_P0" x="455" y="239">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P1" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P0" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>P1_to_P0_V_2P</ci>
+                </apply>
+                <ci>P1</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>P1_to_P0_K_2P</ci>
+                <ci>P1</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P1_to_P2" name="P1_to_P2" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P1_to_P2" title="P1_to_P2" x="208" y="313">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P1" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P2" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>P1_to_P2_V_3P</ci>
+                </apply>
+                <ci>P1</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>P1_to_P2_K_3P</ci>
+                <ci>P1</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P2_degradation" name="P2_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P2_degradation" title="P2_degradation" x="382" y="313">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P2" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>P2_degradation_k_d</ci>
+                </apply>
+                <ci>P2</ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>Cell</ci>
+                    <ci>P2_degradation_V_dP</ci>
+                  </apply>
+                  <ci>P2</ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci>P2_degradation_K_dP</ci>
+                  <ci>P2</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="P2_to_P1" name="P2_to_P1" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.P2_to_P1" title="P2_to_P1" x="208" y="313">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P2" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="P1" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>P2_to_P1_V_4P</ci>
+                </apply>
+                <ci>P2</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>P2_to_P1_K_4P</ci>
+                <ci>P2</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PT_complex_degradation" name="PT_complex_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.PT_complex_degradation" title="PT_complex_degradation" x="135" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="CC" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>PT_complex_degradation_k_dC</ci>
+              </apply>
+              <ci>CC</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PT_complex_formation" name="PT_complex_formation">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.PT_complex_formation" title="PT_complex_formation" x="167" y="310">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="P2" stoichiometry="1"/>
+          <speciesReference species="T2" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CC" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>Cell</ci>
+                    <ci>PT_complex_formation_k3</ci>
+                  </apply>
+                  <ci>P2</ci>
+                </apply>
+                <ci>T2</ci>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>PT_complex_formation_k4</ci>
+                </apply>
+                <ci>CC</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T0_degradation" name="T0_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T0_degradation" title="T0_degradation" x="629" y="306">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T0" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>T0_degradation_k_d</ci>
+              </apply>
+              <ci>T0</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T0_production" name="T0_production" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T0_production" title="T0_production" x="579" y="306">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference species="T0" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="Mt"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>T0_production_k_sT</ci>
+              </apply>
+              <ci>Mt</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T0_to_T1" name="T0_to_T1" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T0_to_T1" title="T0_to_T1" x="702" y="309">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T0" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="T1" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>T0_to_T1_V_1T</ci>
+                </apply>
+                <ci>T0</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>T0_to_T1_K_1T</ci>
+                <ci>T0</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T1_degradation" name="T1_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T1_degradation" title="T1_degradation" x="876" y="313">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T1" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>Cell</ci>
+                <ci>T1_degradation_k_d</ci>
+              </apply>
+              <ci>T1</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T1_to_T0" name="T1_to_T0" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T1_to_T0" title="T1_to_T0" x="702" y="309">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T1" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="T0" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>T1_to_T0_V_2T</ci>
+                </apply>
+                <ci>T1</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>T1_to_T0_K_2T</ci>
+                <ci>T1</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T1_to_T2" name="T1_to_T2" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T1_to_T2" title="T1_to_T2" x="455" y="383">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T1" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="T2" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>T1_to_T2_V_3T</ci>
+                </apply>
+                <ci>T1</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>T1_to_T2_K_3T</ci>
+                <ci>T1</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T2_degradation" name="T2_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T2_degradation" title="T2_degradation" x="135" y="454">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T2" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>T2_degradation_k_d</ci>
+                </apply>
+                <ci>T2</ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <times/>
+                    <ci>Cell</ci>
+                    <ci>V_dT</ci>
+                  </apply>
+                  <ci>T2</ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci>T2_degradation_K_dT</ci>
+                  <ci>T2</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="T2_to_T1" name="T2_to_T1" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.T2_to_T1" title="T2_to_T1" x="455" y="383">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="T2" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="T1" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>T2_to_T1_V_4T</ci>
+                </apply>
+                <ci>T2</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>T2_to_T1_K_4T</ci>
+                <ci>T2</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PTnucl_complex_degradation" name="PTnucl_complex_degradation" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Cell.compartment_0000002.PTnucl_complex_degradation" title="PTnucl_complex_degradation" x="120" y="26">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="Cn" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <times/>
+                <ci>compartment_0000002</ci>
+                <ci>PTnucl_complex_degradation_k_dN</ci>
+              </apply>
+              <ci>Cn</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Mp_production" name="Mp_production" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Mp_production" title="Mp_production" x="332" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference species="Mp" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="Cn"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>Mp_production_v_sP</ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci>Mp_production_K_IP</ci>
+                  <ci>Mp_production_n</ci>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <apply>
+                  <power/>
+                  <ci>Mp_production_K_IP</ci>
+                  <ci>Mp_production_n</ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci>Cn</ci>
+                  <ci>Mp_production_n</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Mt_production" name="Mt_production" reversible="false">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="Mt_production" title="Mt_production" x="579" y="165">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference species="Mt" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="Cn"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>Mt_production_V_sT</ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci>Mt_production_K_IT</ci>
+                  <ci>Mt_production_n</ci>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <apply>
+                  <power/>
+                  <ci>Mt_production_K_IT</ci>
+                  <ci>Mt_production_n</ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci>Cn</ci>
+                  <ci>Mt_production_n</ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PT_complex_nucleation" name="PT_complex_nucleation">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="PT_complex_nucleation" title="PT_complex_nucleation" x="77" y="95">
+              <property name="orientation" short-description="orientation" type="String" value="right"/>
+              <property name="text" short-description="text" type="String" value=""/>
+            </biouml:nodeInfo>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="CC" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Cn" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>Cell</ci>
+                  <ci>PT_complex_nucleation_k1</ci>
+                </apply>
+                <ci>CC</ci>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <ci>compartment_0000002</ci>
+                  <ci>PT_complex_nucleation_k2</ci>
+                </apply>
+                <ci>Cn</ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

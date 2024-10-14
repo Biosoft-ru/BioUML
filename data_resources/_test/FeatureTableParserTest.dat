@@ -1,0 +1,46 @@
+     mRNA            join(1401..1693,1795..1861,2041..2102,2237..2336,3252..3293
+                     ,3396..3440,3702..4111)
+    intron           123^124                   
+    intron           145^177                   
+    intron           J00194:(100..202)         
+    intron           <1..888                   
+    intron           (122.133)..(204.221)      
+    variation        complement(407)
+    variation        join(407,408,222)
+    variation        407
+                     /note="SNP variant; alleles= `A/C'"
+                     /db_xref="dbSNP:169757"
+    intron           (122.133)..(204.221)      
+    intron           (23.45)..600              
+    intron           (102.110)                 
+    intron           join(12..78,134..202)     
+    intron           complement(join(2691..4571,4918..5163))
+    intron           join(complement(4918..5163),complement(2691..4571))
+    intron           complement(34..(122.126)) 
+    source           1..281116
+                     /organism="Homo sapiens"
+                     /db_xref="taxon:9606"
+                     /chromosome="21"
+                     /map="21p"
+     source          1..281116
+                     /note="Accession AL163201 sequenced by Human chromosome 21
+                     sequencing consortium (RIKEN,IMB,GBF,Keio,MPIMG)"
+                     /organism="Homo sapiens"
+                     /db_xref="taxon:9606"
+                     /db_xref="GI:7717240"
+     variation       599
+                     /note="SNP variant; alleles= `C/T'"
+                     /db_xref="dbSNP:169758"
+     variation       673
+                     /note="SNP variant; alleles= `C/T'"
+                     /db_xref="dbSNP:210498"
+     source          1..1959
+                     /organism="Ateles geoffroyi"
+     CDS             join(285..376,505..727,1613..1741)
+                     /note="delta-globin"
+     prim_transcript 235..1864
+                     /note="delta-globin mRNA, introns and exons"
+     intron          377..504
+                     /note="intron A"
+     intron          728..1612
+                     /note="intron B"

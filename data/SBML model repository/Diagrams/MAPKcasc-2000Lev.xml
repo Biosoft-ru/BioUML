@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml level="1" version="1" xmlns="http://www.sbml.org/sbml/level1">
+<model name="MAPK_in_Solution">
+<notes/>
+<listOfCompartments>
+<compartment name="Cytoplasm" units="volume" volume="1.0">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:compartmentInfo color="255,255,255" height="729" shape="0" width="934" x="-102" y="-687"/>
+</annotations>
+</compartment>
+</listOfCompartments>
+<listOfSpecies>
+<specie compartment="Cytoplasm" initialAmount="0.3" name="MAPK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="32" x="-39" y="-652"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MAPKMAPKPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="81" x="90" y="-674"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.3" name="MAPKPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="49" x="269" y="-667"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MAPKp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="39" x="432" y="-672"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MAPKpMAPKPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="88" x="580" y="-651"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MAPKpMEKpp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="78" x="-88" y="-527"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MAPKpp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="46" x="282" y="-382"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MAPKppMEKpp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="85" x="108" y="-387"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.2" name="MEK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="732" y="-626"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MEKMEKPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="67" x="740" y="-537"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.2" name="MEKPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="42" x="-74" y="-412"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MEKp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="32" x="375" y="-225"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MEKpMEKPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="74" x="537" y="-242"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MEKpRAFp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="62" x="694" y="-306"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MEKpp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="39" x="743" y="-434"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="MEKppRAFp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="69" x="-82" y="-248"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.4" name="RAF" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="-59" y="-115"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.1" name="RAFK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="31" x="737" y="-201"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.3" name="RAFPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="40" x="521" y="-32"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="RAFRAFK" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="54" x="679" y="-61"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="RAFp" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="30" x="33" y="-27"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+<specie compartment="Cytoplasm" initialAmount="0.0" name="RAFpRAFPH" units="substance">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="59" width="70" x="227" y="-34"/>
+<biouml:specieInfo type="molecule-substance"/>
+</annotations>
+</specie>
+</listOfSpecies>
+<listOfParameters>
+<parameter name="Reaction1_a1" value="1.0"/>
+<parameter name="Reaction2_d1" value="0.4"/>
+<parameter name="Reaction3_k1" value="0.1"/>
+<parameter name="Reaction4_a2" value="0.5"/>
+<parameter name="Reaction5_d2" value="0.5"/>
+<parameter name="Reaction6_k2" value="0.1"/>
+<parameter name="Reaction7_a3" value="3.3"/>
+<parameter name="Reaction8_d3" value="0.42"/>
+<parameter name="Reaction9_k3" value="0.1"/>
+<parameter name="Reaction10_a4" value="10.0"/>
+<parameter name="Reaction11_d4" value="0.8"/>
+<parameter name="Reaction12_k4" value="0.1"/>
+<parameter name="Reaction13_a5" value="3.3"/>
+<parameter name="Reaction14_d5" value="0.4"/>
+<parameter name="Reaction15_k5" value="0.1"/>
+<parameter name="Reaction16_a6" value="10.0"/>
+<parameter name="Reaction17_d6" value="0.8"/>
+<parameter name="Reaction18_k6" value="0.1"/>
+<parameter name="Reaction19_a7" value="20.0"/>
+<parameter name="Reaction20_d7" value="0.6"/>
+<parameter name="Reaction21_k7" value="0.1"/>
+<parameter name="Reaction22_a8" value="5.0"/>
+<parameter name="Reaction23_d8" value="0.4"/>
+<parameter name="Reaction24_k8" value="0.1"/>
+<parameter name="Reaction25_a9" value="20.0"/>
+<parameter name="Reaction26_d9" value="0.6"/>
+<parameter name="Reaction27_k9" value="0.1"/>
+<parameter name="Reaction28_a10" value="5.0"/>
+<parameter name="Reaction29_d10" value="0.4"/>
+<parameter name="Reaction30_k10" value="0.1"/>
+</listOfParameters>
+<listOfReactions>
+<reaction name="Reaction1" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="405" y="-98"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="RAF" stoichiometry="1"/>
+<speciesReference species="RAFK" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="RAFRAFK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction1_a1*RAF*RAFK"/>
+</reaction>
+<reaction name="Reaction10" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="129" y="-212"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKp" stoichiometry="1"/>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKpRAFp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction10_a4*MEKp*RAFp"/>
+</reaction>
+<reaction name="Reaction11" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="332" y="-313"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKpRAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKp" stoichiometry="1"/>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction11_d4*MEKpRAFp"/>
+</reaction>
+<reaction name="Reaction12" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="628" y="-386"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKpRAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction12_k4*MEKpRAFp"/>
+</reaction>
+<reaction name="Reaction13" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="67" y="-330"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKPH" stoichiometry="1"/>
+<speciesReference species="MEKp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKpMEKPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction13_a5*MEKp*MEKPH"/>
+</reaction>
+<reaction name="Reaction14" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="73" y="-299"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKpMEKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKPH" stoichiometry="1"/>
+<speciesReference species="MEKp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction14_d5*MEKpMEKPH"/>
+</reaction>
+<reaction name="Reaction15" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="621" y="-314"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKpMEKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction15_k5*MEKpMEKPH"/>
+</reaction>
+<reaction name="Reaction16" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="220" y="-176"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKppRAFp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction16_a6*MEKpp*RAFp"/>
+</reaction>
+<reaction name="Reaction17" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="226" y="-237"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKppRAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction17_d6*MEKppRAFp"/>
+</reaction>
+<reaction name="Reaction18" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="-7" y="-289"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKppRAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction18_k6*MEKppRAFp"/>
+</reaction>
+<reaction name="Reaction19" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="106" y="-537"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPK" stoichiometry="1"/>
+<speciesReference species="MAPKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKMAPKPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction19_a7*MAPK*MAPKPH"/>
+</reaction>
+<reaction name="Reaction2" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="459" y="-171"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="RAFRAFK" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="RAF" stoichiometry="1"/>
+<speciesReference species="RAFK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction2_d1*RAFRAFK"/>
+</reaction>
+<reaction name="Reaction20" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="149" y="-578"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKMAPKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPK" stoichiometry="1"/>
+<speciesReference species="MAPKPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction20_d7*MAPKMAPKPH"/>
+</reaction>
+<reaction name="Reaction21" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="291" y="-573"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKMAPKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction21_k7*MAPKMAPKPH"/>
+</reaction>
+<reaction name="Reaction22" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="566" y="-461"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKp" stoichiometry="1"/>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKpMEKpp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction22_a8*MAPKp*MEKpp"/>
+</reaction>
+<reaction name="Reaction23" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="321" y="-505"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKpMEKpp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKp" stoichiometry="1"/>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction23_d8*MAPKpMEKpp"/>
+</reaction>
+<reaction name="Reaction24" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="9" y="-536"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKpMEKpp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPK" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction24_k8*MAPKpMEKpp"/>
+</reaction>
+<reaction name="Reaction25" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="516" y="-554"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKPH" stoichiometry="1"/>
+<speciesReference species="MAPKp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKpMAPKPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction25_a9*MAPKp*MAPKPH"/>
+</reaction>
+<reaction name="Reaction26" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="521" y="-601"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKpMAPKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKPH" stoichiometry="1"/>
+<speciesReference species="MAPKp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction26_d9*MAPKpMAPKPH"/>
+</reaction>
+<reaction name="Reaction27" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="395" y="-536"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKpMAPKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKpp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction27_k9*MAPKpMAPKPH"/>
+</reaction>
+<reaction name="Reaction28" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="389" y="-412"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKpp" stoichiometry="1"/>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKppMEKpp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction28_a10*MAPKpp*MEKpp"/>
+</reaction>
+<reaction name="Reaction3" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="324" y="-129"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="RAFRAFK" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction3_k1*RAFRAFK"/>
+</reaction>
+<reaction name="Reaction30" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="279" y="-538"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKppMEKpp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction30_k10*MAPKppMEKpp"/>
+</reaction>
+<reaction name="Reaction4" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="318" y="-74"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="RAFPH" stoichiometry="1"/>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="RAFpRAFPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction4_a2*RAFp*RAFPH"/>
+</reaction>
+<reaction name="Reaction5" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="222" y="-83"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="RAFpRAFPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="RAFPH" stoichiometry="1"/>
+<speciesReference species="RAFp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction5_d2*RAFpRAFPH"/>
+</reaction>
+<reaction name="Reaction6" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="53" y="-172"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="RAFpRAFPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="RAF" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction6_k2*RAFpRAFPH"/>
+</reaction>
+<reaction name="Reaction7" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="126" y="-446"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEK" stoichiometry="1"/>
+<speciesReference species="MEKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKMEKPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction7_a3*MEK*MEKPH"/>
+</reaction>
+<reaction name="Reaction8" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="247" y="-438"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKMEKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEK" stoichiometry="1"/>
+<speciesReference species="MEKPH" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction8_d3*MEKMEKPH"/>
+</reaction>
+<reaction name="Reaction9" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="56" x="499" y="-353"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MEKMEKPH" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MEKp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction9_k3*MEKMEKPH"/>
+</reaction>
+<reaction name="Reaction29" reversible="false">
+<annotations xmlns:biouml="http://www.biouml.org/ns">
+<biouml:nodeInfo height="22" width="63" x="409" y="-447"/>
+</annotations>
+<listOfReactants>
+<speciesReference species="MAPKppMEKpp" stoichiometry="1"/>
+</listOfReactants>
+<listOfProducts>
+<speciesReference species="MAPKpp" stoichiometry="1"/>
+<speciesReference species="MEKpp" stoichiometry="1"/>
+</listOfProducts>
+<kineticLaw formula="Reaction29_d10*MAPKppMEKpp"/>
+</reaction>
+</listOfReactions>
+</model>
+</sbml>

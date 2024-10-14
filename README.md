@@ -8,6 +8,15 @@ Manually install JARs as decribed in [install_old_jars.md](install_old_jars.md)
  mvn package -DskipTests
 ```
 
+Also JPhysiCell must be built and installed separately
+
+```sh
+cd ..
+git clone git@github.com:Biosoft-ru/JPhysiCell.git
+mvn install
+cd -
+```
+
 # To Run
 
 First, start mysql server. The command below is for docker but you can easiliy adopt it to your situation

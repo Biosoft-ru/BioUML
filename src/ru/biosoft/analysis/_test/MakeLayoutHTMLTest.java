@@ -25,8 +25,8 @@ import junit.framework.Test;
 
 public class MakeLayoutHTMLTest extends TestCase
 {
-    static String path = "C:/projects/java/BioUML/src/ru/biosoft/analysis/_test/LayoutTestControl";
-    static String imagePath = "C:/projects/java/BioUML/src/ru/biosoft/analysis/_test/LayoutTestControl";
+    static String path = "ru/biosoft/analysis/_test/LayoutTestControl";
+    static String imagePath = "ru/biosoft/analysis/_test/LayoutTestControl";
     
     public static final String repositoryPath1 = "../data";
     public static final String repositoryPath2 = "../data_resources";

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" level="3" version="2">
+  <model id="antimony" name="bistable">
+    <annotation>
+      <antimony text="//------------------------------------------&#10;//Bistable Switch&#10;//Two genes down-regulate one another. Hill coefficient = 2&#10;//input x can be used to upregulate one of the genes&#10;//------------------------------------------&#10;&#10;model bistable&#10;   species g1, g2;&#10;   species s1, s2;&#10;   r1: -&gt; s1; k1*(1 + x)/(1 + k2*s2^2) //gene 1 makes protein s1 at this rate&#10;   r2: s1 -&gt; ; k0*s1                       //protein 1 degrades&#10;   r3: -&gt; s2; k3/(1 + k4*s1^2)         //gene 2 makes protein s2&#10;   r4: s2 -&gt; ; k0*s2                       //protein s2 degrades&#10;&#10;   k0 = 0.1         //parameters in the model&#10;   k1 = 1&#10;   k2 = 1&#10;   k3 = 1&#10;   k4 = 1&#10;   s2 = 1.0;&#10;end" version="2.0"/>
+      <sbgn xmlns:biouml="http://www.biouml.org/ns">
+        <nodes>
+          <node Structure="" id="g1" multimer="0" parent="" ref="g1" type="macromolecule">
+            <nodeLayout height="40" width="70" x="0" y="0"/>
+          </node>
+          <node Structure="" id="g2" multimer="0" parent="" ref="g2" type="macromolecule">
+            <nodeLayout height="40" width="70" x="0" y="90"/>
+          </node>
+          <node id="r1" parent="" reactionType="process" ref="r1" type="reaction">
+            <nodeLayout height="15" orientation="top" width="15" x="225" y="215"/>
+          </node>
+          <node id="r1ReactantSource" parent="" type="source-sink">
+            <nodeLayout height="30" width="30" x="120" y="205"/>
+          </node>
+          <node id="r2" parent="" reactionType="process" ref="r2" type="reaction">
+            <nodeLayout height="15" orientation="top" width="15" x="225" y="10"/>
+          </node>
+          <node id="r2ProductSource" parent="" type="source-sink">
+            <nodeLayout height="30" width="30" x="120" y="0"/>
+          </node>
+          <node id="r3" parent="" reactionType="process" ref="r3" type="reaction">
+            <nodeLayout height="15" orientation="top" width="15" x="425" y="215"/>
+          </node>
+          <node id="r3ReactantSource" parent="" type="source-sink">
+            <nodeLayout height="30" width="30" x="320" y="205"/>
+          </node>
+          <node id="r4" parent="" reactionType="process" ref="r4" type="reaction">
+            <nodeLayout height="15" orientation="top" width="15" x="425" y="10"/>
+          </node>
+          <node id="r4ProductSource" parent="" type="source-sink">
+            <nodeLayout height="30" width="30" x="320" y="0"/>
+          </node>
+          <node Structure="" id="s1" multimer="0" parent="" ref="s1" type="macromolecule">
+            <nodeLayout height="40" width="70" x="200" y="100"/>
+          </node>
+          <node Structure="" id="s2" multimer="0" parent="" ref="s2" type="macromolecule">
+            <nodeLayout height="40" width="70" x="400" y="100"/>
+          </node>
+        </nodes>
+        <edges>
+          <edge from="r1ReactantSource" id="r1ReactantSourceEdge" ref="r1ReactantSourceEdge" to="r1" type="consumption"/>
+          <edge edgeType="" from="r1" id="r1__s1_as_product" ref="r1__s1_as_product" to="s1" type="relation-chemical"/>
+          <edge from="r2" id="r2ProductSourceEdge" ref="r2ProductSourceEdge" to="r2ProductSource" type="production"/>
+          <edge edgeType="" from="s1" id="r2__s1_as_reactant" ref="r2__s1_as_reactant" to="r2" type="relation-chemical"/>
+          <edge from="r3ReactantSource" id="r3ReactantSourceEdge" ref="r3ReactantSourceEdge" to="r3" type="consumption"/>
+          <edge edgeType="" from="r3" id="r3__s2_as_product" ref="r3__s2_as_product" to="s2" type="relation-chemical"/>
+          <edge from="r4" id="r4ProductSourceEdge" ref="r4ProductSourceEdge" to="r4ProductSource" type="production"/>
+          <edge edgeType="" from="s2" id="r4__s2_as_reactant" ref="r4__s2_as_reactant" to="r4" type="relation-chemical"/>
+        </edges>
+        <states/>
+        <viewOptions>
+          <propertyRef name="pathLayouterWrapper" type="ru.biosoft.graph.PathLayouterWrapper">
+            <propertyRef name="pathLayouter" type="ru.biosoft.graph.OrthogonalPathLayouter"/>
+          </propertyRef>
+          <propertyRef elementType="biouml.model.DiagramElementStyleDeclaration" name="styles" type="array"/>
+        </viewOptions>
+        <filters elementType="biouml.model.DiagramFilter" type="[Lbiouml.model.DiagramFilter;"/>
+      </sbgn>
+      <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+        <biouml:diagramInfo/>
+        <biouml:viewOptions autoLayout="false" dependencyEdges="false"/>
+      </biouml:BIOUML>
+    </annotation>
+    <listOfCompartments>
+      <compartment constant="false" id="default" name="antimony" size="1" spatialDimensions="3">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:compartmentInfo completeName="default" height="215" isDefault="true" isTitleHidden="false" shape="0" title="antimony" width="470" x="0" y="0"/>
+          </biouml:BIOUML>
+        </annotation>
+      </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="g1" initialAmount="0.0">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="g1" height="40" isTitleHidden="false" title="g1" width="70" x="0" y="0"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="g2" initialAmount="0.0">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="g2" height="40" isTitleHidden="false" title="g2" width="70" x="0" y="90"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="s1" initialAmount="0.0">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="s1" height="40" isTitleHidden="false" title="s1" width="70" x="200" y="100"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="s2" initialAmount="1.0">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:nodeInfo completeName="s2" height="40" isTitleHidden="false" title="s2" width="70" x="400" y="100"/>
+            <biouml:specieInfo type="macromolecule"/>
+          </biouml:BIOUML>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="__rate_r1" name="$$rate_r1" value="0.0"/>
+      <parameter constant="false" id="__rate_r2" name="$$rate_r2" value="0.0"/>
+      <parameter constant="false" id="__rate_r3" name="$$rate_r3" value="0.0"/>
+      <parameter constant="false" id="__rate_r4" name="$$rate_r4" value="0.0"/>
+      <parameter constant="false" id="k0" name="k0" value="0.1"/>
+      <parameter constant="false" id="k1" name="k1" value="1.0"/>
+      <parameter constant="false" id="k2" name="k2" value="1.0"/>
+      <parameter constant="false" id="k3" name="k3" value="1.0"/>
+      <parameter constant="false" id="k4" name="k4" value="1.0"/>
+      <parameter constant="false" id="x" name="x" value="0.0"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="r1" name="r1" reversible="true">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="r1" height="0" isTitleHidden="false" title="r1" width="0" x="225" y="215"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference constant="false" species="s1" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="r1__s1_as_product" inPort="232;215" outPort="232;140" title="s1"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci>k1</ci>
+                <apply>
+                  <plus/>
+                  <cn>1</cn>
+                  <ci>x</ci>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn>1</cn>
+                <apply>
+                  <times/>
+                  <ci>k2</ci>
+                  <apply>
+                    <power/>
+                    <ci>s2</ci>
+                    <cn>2</cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r2" name="r2" reversible="true">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="r2" height="0" isTitleHidden="false" title="r2" width="0" x="225" y="10"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="s1" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="r2__s1_as_reactant" inPort="232;100" outPort="232;25" title="s1"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>k0</ci>
+              <ci>s1</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r3" name="r3" reversible="true">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="r3" height="0" isTitleHidden="false" title="r3" width="0" x="425" y="215"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfProducts>
+          <speciesReference constant="false" species="s2" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="r3__s2_as_product" inPort="432;215" outPort="432;140" title="s2"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <ci>k3</ci>
+              <apply>
+                <plus/>
+                <cn>1</cn>
+                <apply>
+                  <times/>
+                  <ci>k4</ci>
+                  <apply>
+                    <power/>
+                    <ci>s1</ci>
+                    <cn>2</cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r4" name="r4" reversible="true">
+        <annotation>
+          <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+            <biouml:reactionInfo/>
+            <biouml:nodeInfo completeName="r4" height="0" isTitleHidden="false" title="r4" width="0" x="425" y="10"/>
+          </biouml:BIOUML>
+        </annotation>
+        <listOfReactants>
+          <speciesReference constant="false" species="s2" stoichiometry="1">
+            <annotation>
+              <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
+                <biouml:edgeInfo edgeID="r4__s2_as_reactant" inPort="432;100" outPort="432;25" title="s2"/>
+              </biouml:BIOUML>
+            </annotation>
+          </speciesReference>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci>k0</ci>
+              <ci>s2</ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
