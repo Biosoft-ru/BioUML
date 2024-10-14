@@ -58,9 +58,10 @@ public class InteractiveSimulation extends BaseSupport implements ResultListener
         }
 
         this.diagram = diagram;
-        this.plots = DiagramUtility.getPlotsInfo( diagram ).clone( emodel );
+        this.plots = DiagramUtility.getPlotsInfo( diagram );
         if (plots == null)
             plots = new PlotsInfo(emodel);
+        plots = plots.clone( emodel );
         
         model = engine.createModel();
         if( model == null )
