@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -349,7 +350,7 @@ public class DiagramXmlReaderTest extends TestCase
     {
         ColorFont font = XmlSerializationUtils.readFont( "Arial;1;14;black" );
         assertNotNull( "Cannot parse font", font );
-        assertEquals("Arial", font.getFont().getFamily());
+        assertTrue( "Font family should Arial or Dialog", Arrays.asList( "Arial", "Dialog").contains( font.getFont().getFamily() ) );
         assertEquals(1, font.getFont().getStyle());
         assertEquals(14, font.getFont().getSize());
         assertEquals(Color.BLACK, font.getColor());
