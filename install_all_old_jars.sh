@@ -197,3 +197,11 @@ mvn install:install-file \
   -Dpackaging=jar \
   -Dfile=plugins/ru.biosoft.physicell_0.9.10.jar \
   -DgeneratePom=true
+
+mvn install:install-file \
+  -DgroupId=gnu.trove \
+  -DartifactId=trove \
+  -Dversion=3.0.3p1 \
+  -Dpackaging=jar \
+  -Dfile=plugins/gnu.trove_3.0.3.jar \
+  -DgeneratePom=true
