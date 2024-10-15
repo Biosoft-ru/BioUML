@@ -25,4 +25,3 @@ for jar in "${cdk_jars[@]}"; do
      -Dfile=plugins/org.openscience.cdk_1.3.5/cdk-$jar.jar \
      -DgeneratePom=true
 done
-
