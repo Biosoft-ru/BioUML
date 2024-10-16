@@ -1,4 +1,4 @@
-name: Run tests on commit
+name: Tests in main branch
 
 # Trigger this workflow on pushes to the main branch or any pull requests
 on:
