@@ -271,7 +271,6 @@
                         <exclude>**/ru/biosoft/access/_test/TestExceptionHandling.java</exclude>
                         <exclude>**/ru/biosoft/access/_test/IndexTest.java</exclude>
                         <exclude>**/ru/biosoft/access/_test/TestSqlConnector.java</exclude>
-                        <exclude>**/ru/biosoft/access/_test/ZipHtmlDataCollectionTest.java</exclude>
 
                         <exclude>**/ru/biosoft/access/generic/_test/GenericDataCollectionTest.java</exclude>
 
@@ -360,7 +359,6 @@
                         <exclude>**/biouml/plugins/hemodynamics/_test/UtilTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/VelocityTest.java</exclude>
                         <exclude>**/biouml/plugins/kegg/access/_test/TestKgmlDiagramReader.java</exclude>
-                        <exclude>**/biouml/plugins/keynodes/_test/AllPathClusteringTest.java</exclude>
                         <exclude>**/biouml/plugins/modelreduction/_test/SplitTest.java</exclude>
                         <exclude>**/biouml/plugins/modelreduction/_test/TestCompositeSensitivityAnalysis.java</exclude>
                         <exclude>**/biouml/plugins/modelreduction/_test/TestFlatModel.java</exclude>
