@@ -177,7 +177,6 @@
 	                <exclude>**/biouml.plugins/agentmodeling/_test/ScriptAgentTest.java</exclude>
 	                <exclude>**/biouml.plugins/agentmodeling/_test/TestMortalAgents2.java</exclude>
 	                <exclude>**/biouml/plugins/fbc/_test/ScoreBasedFbcTableBuilderTest.java</exclude>
-	                <exclude>**/biouml/plugins/research/_test/WorkflowTest.java</exclude>
 
 	                <exclude>**/biouml/plugins/bindingregions/_test/TestBindingRegionAnalyses.java</exclude>
 	                <exclude>**/biouml/plugins/bindingregions/_test/TestFiveSiteModel.java</exclude>
