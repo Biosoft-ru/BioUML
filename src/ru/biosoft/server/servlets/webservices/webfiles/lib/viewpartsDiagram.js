@@ -4130,11 +4130,13 @@ function ComplexSimulationViewPart()
         }, 
         function(data)
         {
+            /*
             if(_this.dialogDiv[0])
             {
                 _this.dialogDiv[0].dialog("close");
                 _this.dialogDiv[0].remove();
             }
+            */
             let procId = getElementName(_this.currentProcess);
             let simTabid = "simulationTabs_" + procId;
             let logId = "log_container_" + procId;
