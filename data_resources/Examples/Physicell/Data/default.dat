@@ -2696,3 +2696,700 @@ plugins	ru.biosoft.access
 modifiedDate	1726744208590
 class	ru.biosoft.access.generic.GenericDataCollection
 //
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725009413630
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729106354607
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729106354607
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Biorobots
+createdDate	1725009378282
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729107899225
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1726744208590
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerBiorobots
+createdDate	1726660546011
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108448806
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884937593
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108463762
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725886897756
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108480602
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884842563
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	PredatorPreyFarmer
+createdDate	1725009432730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108516514
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725885048212
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108525856
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725884781780
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108535033
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1725882327015
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108546841
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108588117
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108588117
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108815825
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108815825
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108907408
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108907408
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108912040
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108912040
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108938200
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108938200
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108965879
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108965879
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108990160
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108990160
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109020543
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109020543
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109070085
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109070085
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109093728
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109093728
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109149375
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109149375
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109284609
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109284609
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109594814
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109594814
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109663538
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109663538
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109856691
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109856691
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109870744
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729109870744
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110058566
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110058566
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110073266
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110073266
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110084137
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110084137
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110133659
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110133659
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110209916
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110209916
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110250351
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110250351
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110253693
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110253693
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110265782
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110265782
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110269954
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110269954
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110279362
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110279362
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110282740
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110282740
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110334425
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110334425
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110359683
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110359683
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110551969
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110551969
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110778750
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110778750
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110823393
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110823393
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110840431
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110840431
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110850593
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110850593
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110872656
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729110872656
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729111772641
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729111772641
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729113894345
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729113894345
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CancerImmune
+createdDate	1729108588117
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729113927250
+class	ru.biosoft.access.generic.GenericDataCollection
+//

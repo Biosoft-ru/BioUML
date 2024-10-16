@@ -135,3 +135,20 @@ cloneForEdit	true
 class	biouml.model.Diagram
 diagramType	biouml.plugins.physicell.PhysicellDiagramType
 //
+
+ID	PPFVisualizer.java
+createdDate	1725884842485
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725884842485
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	PPFVisualizer.java
+createdDate	1725884842485
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108516507
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//

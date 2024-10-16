@@ -3,9 +3,9 @@ import java.awt.Color;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.Model;
-import ru.biosoft.physicell.ui.AgentVisualizer2;
+import ru.biosoft.physicell.ui.AgentColorer;
 
-public class Visualizer extends AgentVisualizer2
+public class Visualizer extends AgentColorer
 {
     @Override
     public Color[] findColors(Cell pCell)

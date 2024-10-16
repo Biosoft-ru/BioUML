@@ -51,3 +51,20 @@ cloneForEdit	true
 class	biouml.model.Diagram
 diagramType	biouml.plugins.physicell.PhysicellDiagramType
 //
+
+ID	RegularVisualizer.java
+createdDate	1725884937520
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725884937520
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	RegularVisualizer.java
+createdDate	1725884937520
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108463753
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//

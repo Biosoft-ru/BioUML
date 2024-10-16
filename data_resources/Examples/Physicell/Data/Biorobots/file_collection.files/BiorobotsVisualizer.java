@@ -4,10 +4,10 @@ import java.util.Map;
 
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.Model;
-import ru.biosoft.physicell.ui.AgentVisualizer2;
+import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.xml.ModelReader;
 
-public class BiorobotsVisualizer extends AgentVisualizer2
+public class BiorobotsVisualizer implements AgentColorer
 {
     private boolean isInit = false;
     Map<Integer, Color> colors = new HashMap<>();

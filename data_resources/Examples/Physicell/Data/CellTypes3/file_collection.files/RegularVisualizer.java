@@ -2,10 +2,10 @@ import ru.biosoft.physicell.core.PhysiCellConstants;
 import ru.biosoft.physicell.core.Model;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.xml.ModelReader;
-import ru.biosoft.physicell.ui.AgentVisualizer2;
+import ru.biosoft.physicell.ui.AgentColorer;
 import java.awt.Color;
 
-public class RegularVisualizer extends AgentVisualizer2
+public class RegularVisualizer extends AgentColorer
 {
     private Model model;
     private Color aColor;

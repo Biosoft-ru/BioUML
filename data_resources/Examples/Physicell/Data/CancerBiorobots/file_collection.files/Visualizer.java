@@ -4,9 +4,9 @@ import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.Model;
 import ru.biosoft.physicell.core.SignalBehavior;
-import ru.biosoft.physicell.ui.AgentVisualizer;
+import ru.biosoft.physicell.ui.AgentColorer;
 
-public class Visualizer extends AgentVisualizer
+public class Visualizer extends AgentColorer
 {
     private SignalBehavior signals;
 
