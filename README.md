@@ -7,16 +7,13 @@ Ensure that you have at least Java 11
 Manually install JARs as decribed in [install_old_jars.md](install_old_jars.md)
 
 ```sh
- mvn package -DskipTests
+./install_all_old_jars.sh 
 ```
 
-Also JPhysiCell must be built and installed separately
+Now build BioUML
 
 ```sh
-cd ..
-git clone git@github.com:Biosoft-ru/JPhysiCell.git
-mvn install
-cd -
+mvn package -DskipTests
 ```
 
 # To Run

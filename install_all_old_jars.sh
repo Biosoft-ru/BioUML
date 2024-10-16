@@ -6,7 +6,7 @@ owl_jars=("api" "apibinding" "impl" "util" "rdfxmlrenderer")
 
 # Iterate over the list and execute a command for each element
 for jar in "${owl_jars[@]}"; do
-   mvn install:install-file \
+   mvn -N install:install-file \
      -DgroupId=owlapi \
      -DartifactId=$jar \
      -Dversion=1.0 \
@@ -19,7 +19,7 @@ cdk_jars=("interfaces" "data" "core" "extra" "io" "ioformats" "nonotify" "isomor
 
 # Iterate over the list and execute a command for each element
 for jar in "${cdk_jars[@]}"; do
-   mvn install:install-file \
+   mvn -N install:install-file \
      -DgroupId=org.openscience.cdk \
      -DartifactId=cdk-$jar \
      -Dversion=1.3.5 \
@@ -30,7 +30,7 @@ done
 
 ## it.sauronsoftware.ftp4j
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=it.sauronsoftware \
   -DartifactId=ftp4j \
   -Dversion=1.6 \
@@ -40,7 +40,7 @@ mvn install:install-file \
 
 ## net.sf.samtools
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=net.sf.samtools \
   -DartifactId=samtools \
   -Dversion=1.62 \
@@ -50,7 +50,7 @@ mvn install:install-file \
 
 ## org.gnu.glpk
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=org.gnu.glpk \
   -DartifactId=glpk-java \
   -Dversion=1.12.0 \
@@ -60,7 +60,7 @@ mvn install:install-file \
 
 ## gurobi
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=gurobi \
   -DartifactId=gurobi \
   -Dversion=6.0.5 \
@@ -70,7 +70,7 @@ mvn install:install-file \
 
 ## sabioclient
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=sabioclient \
   -DartifactId=sabioclient \
   -Dversion=1.0 \
@@ -80,7 +80,7 @@ mvn install:install-file \
 
 ## chipmunk
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=chipmunk \
   -DartifactId=chipmunk \
   -Dversion=1.0 \
@@ -88,7 +88,9 @@ mvn install:install-file \
   -Dfile=plugconfig/biouml.plugins.chipmunk/chipmunk.jar \
   -DgeneratePom=true
 
-mvn install:install-file \
+## ensj
+
+mvn -N install:install-file \
   -DgroupId=org.ensembl \
   -DartifactId=ensj \
   -Dversion=39.2 \
@@ -96,7 +98,9 @@ mvn install:install-file \
   -Dfile=plugins/org.ensembl.ensj_39.2/ensj-39.2.jar \
   -DgeneratePom=true
 
-mvn install:install-file \
+## jdbm
+
+mvn -N install:install-file \
   -DgroupId=jdbm \
   -DartifactId=jdbm \
   -Dversion=2.0 \
@@ -106,7 +110,7 @@ mvn install:install-file \
 
 ## org.openscience.jchempaint
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=org.openscience.jchempaint \
   -DartifactId=jchempaint \
   -Dversion=3.1.2 \
@@ -114,7 +118,7 @@ mvn install:install-file \
   -Dfile=plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar \
   -DgeneratePom=true
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=org.openscience.jchempaint \
   -DartifactId=cdk-jchempaint \
   -Dversion=1.3.5 \
@@ -124,7 +128,7 @@ mvn install:install-file \
 
 ## smack
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=jivesoftware \
   -DartifactId=smack \
   -Dversion=1.0.0 \
@@ -132,7 +136,7 @@ mvn install:install-file \
   -Dfile=plugins/org.jivesoftware.smack_1.0.0/smack.jar \
   -DgeneratePom=true
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=jivesoftware \
   -DartifactId=smackx \
   -Dversion=1.0.0 \
@@ -142,7 +146,7 @@ mvn install:install-file \
 
 ## jgraph
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=jgraph \
   -DartifactId=jgraph \
   -Dversion=5.1 \
@@ -152,7 +156,7 @@ mvn install:install-file \
 
 ## jlibsedml
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=org.jlibsedml \
   -DartifactId=jlibsedml \
   -Dversion=2.2.1 \
@@ -162,7 +166,7 @@ mvn install:install-file \
 
 ## jetbrains big
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=org.jetbrains.bio \
   -DartifactId=big \
   -Dversion=0.9.1p6-patched \
@@ -172,7 +176,7 @@ mvn install:install-file \
 
 ## htsjdk
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=com.github.samtools \
   -DartifactId=htsjdk \
   -Dversion=2.20.3-4-g87ac4d3-SNAPSHOT \
@@ -182,7 +186,7 @@ mvn install:install-file \
 
 ## io.github.spencerpark
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=io.github.spencerpark \
   -DartifactId=jupyter \
   -Dversion=2.3.0 \
@@ -190,18 +194,22 @@ mvn install:install-file \
   -Dfile=plugconfig/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar \
   -DgeneratePom=true
 
-mvn install:install-file \
-  -DgroupId=ru.biosoft.physicell \
-  -DartifactId=physicell \
-  -Dversion=1.0-SNAPSHOT \
-  -Dpackaging=jar \
-  -Dfile=plugins/ru.biosoft.physicell_0.9.10.jar \
-  -DgeneratePom=true
+## GNU trove
 
-mvn install:install-file \
+mvn -N install:install-file \
   -DgroupId=gnu.trove \
   -DartifactId=trove \
   -Dversion=3.0.3p1 \
   -Dpackaging=jar \
   -Dfile=plugins/gnu.trove_3.0.3.jar \
+  -DgeneratePom=true
+
+## JPhysiCell 
+
+mvn -N install:install-file \
+  -DgroupId=ru.biosoft.physicell \
+  -DartifactId=physicell \
+  -Dversion=1.0-SNAPSHOT \
+  -Dpackaging=jar \
+  -Dfile=plugins/ru.biosoft.physicell_0.9.10.jar \
   -DgeneratePom=true
