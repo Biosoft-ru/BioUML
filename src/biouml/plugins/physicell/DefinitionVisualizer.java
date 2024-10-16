@@ -1,16 +1,14 @@
 package biouml.plugins.physicell;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.physicell.core.Cell;
-import ru.biosoft.physicell.ui.AgentVisualizer2;
+import ru.biosoft.physicell.ui.AgentColorer;
 
-public class DefinitionVisualizer extends AgentVisualizer2
+public class DefinitionVisualizer implements AgentColorer
 {
     private Map<String, Brush> typeToColor = new HashMap<>();
 

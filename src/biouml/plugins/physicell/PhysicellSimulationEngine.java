@@ -35,9 +35,10 @@ import ru.biosoft.physicell.core.ReportGenerator;
 import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
 import ru.biosoft.physicell.core.standard.StandardModels;
-import ru.biosoft.physicell.ui.AgentVisualizer;
+import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.Visualizer;
 import ru.biosoft.physicell.ui.Visualizer2D.Section;
+import ru.biosoft.physicell.ui.render.Visualizer3D;
 import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
@@ -164,17 +165,30 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
-        DefinitionVisualizer defualtVisualizer = new DefinitionVisualizer();
-//        for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-//            defualtVisualizer.setColor( cd.getName(), cd.getColor() );
+        AgentColorer colorer;
 
-        for( String density : m.densityNames )
+        VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
+        if( visualizerProperties.getProperties().length > 0 )
         {
-            Visualizer2D v = new Visualizer2D( null, density, Section.Z, 0 );
-            v.setStubstrateIndex( m.findDensityIndex( density ) );
-            v.setAgentVisualizer( defualtVisualizer );
-            model.addVisualizer( v );
+            colorer = new DefaultColorer( visualizerProperties );
         }
+        else
+        {
+            colorer = new DefinitionVisualizer();
+            for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+                ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+        }
+        if( options.isUse2D() )
+        {
+            for( String density : m.densityNames )
+            {
+
+                model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
+                        .setAgentColorer( colorer ) );
+            }
+        }
+        else
+            model.addVisualizer( new Visualizer3D( null, "3d" ).setAgentColorer( colorer ) );
 
         PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
         model.setDiffusionDt( opts.getDiffusionDt() );
@@ -190,7 +204,6 @@ public class PhysicellSimulationEngine extends SimulationEngine
         String cellUpdateType = opts.getCellUpdateType();
         CellContainer container = CellContainer.createCellContainer( m, cellUpdateType, 30 );
         container.setRulesEnabled( true );
-
 
         List<CellDefinitionProperties> cds = emodel.getCellDefinitions();
         for( int i = 0; i < cds.size(); i++ )
@@ -267,11 +280,10 @@ public class PhysicellSimulationEngine extends SimulationEngine
         if( emodel.getReportProperties().isCustomVisualizer() )
         {
             DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
-            AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer.class, log.getLogger(), model );
+            colorer = FunctionsLoader.load( dep, AgentColorer.class, log.getLogger(), model );
             for( Visualizer v : model.getVisualizers() )
             {
-                if (v instanceof Visualizer2D)
-                ((Visualizer2D)v).setAgentVisualizer( visualizer );
+                v.setAgentColorer( colorer );
             }
         }
 
