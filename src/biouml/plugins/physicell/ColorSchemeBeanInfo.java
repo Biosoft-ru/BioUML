@@ -12,10 +12,12 @@ public class ColorSchemeBeanInfo extends BeanInfoEx2<ColorScheme>
     @Override
     public void initProperties()
     {
-
-        add( "outerColor" );
-        add( "borderPen" );
-        add( "innerColor" );
-        add( "innerBorderPen" );
+        add( "name" );
+        add( "color" );
+        add("border");
+        property( "borderColor" ).readOnly( "noBorder" ).add();
+        add("core");
+        property( "coreColor" ).readOnly( "noCore" ).add();
+        property( "coreBorderColor" ).readOnly( "noCore" ).add();
     }
 }

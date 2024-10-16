@@ -21,13 +21,9 @@ import com.developmentontheedge.beans.swing.PropertyInspectorEx;
 import com.developmentontheedge.beans.swing.table.RowModel;
 
 import biouml.model.Diagram;
-import biouml.model.Node;
-import biouml.plugins.physicell.CellDefinitionViewPart.AddRuleAction;
-import biouml.plugins.physicell.CellDefinitionViewPart.RemoveRuleAction;
 import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataCollectionVetoException;
-import ru.biosoft.graphics.editor.SelectionManager;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.PluggedEditorsTabbedPane;
 import ru.biosoft.gui.ViewPartSupport;
@@ -40,14 +36,16 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private Action addVisualizerAction;
     private Action removeVisualizerAction;
 
+    private Action addColorSchemeAction;
+    private Action removeColorSchemeAction;
+
     private PropertyInspector domainInspector = new PropertyInspector();
     private PropertyInspector parametersInspector = new PropertyInspector();
     private PropertyInspector initialConditionInspector = new PropertyInspector();
     private PropertyInspector reportInspector = new PropertyInspectorEx();
     private PropertyInspector optionsInspector = new PropertyInspector();
-
-    private VisualizerTab visualizerTab = new VisualizerTab();
-
+    private VisualizerTab visualizerTab;
+    private ColorSchemesTab colorSchemeTab;
     private Action[] actions;
 
     public PhysicellModelViewPart()
@@ -68,6 +66,8 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
 
     private void initTabbedPane(MulticellEModel emodel)
     {
+        visualizerTab = new VisualizerTab( emodel );
+        colorSchemeTab = new ColorSchemesTab( emodel );
         tabbedPane.removeAll();
         tabbedPane.addTab( "Domain", domainInspector );
         tabbedPane.addTab( "Substrates", new SubstrateViewPart( emodel ) );
@@ -77,6 +77,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         tabbedPane.addTab( "Initial Condition", initialConditionInspector );
         tabbedPane.addTab( "Model Report", reportInspector );
         tabbedPane.addTab( "Visualizer", visualizerTab );
+        tabbedPane.addTab( "Color schemes", colorSchemeTab );
         tabbedPane.addTab( "Model Options", optionsInspector );
         tabbedPane.addChangeListener( new ChangeListener()
         {
@@ -125,19 +126,31 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         if( c instanceof VisualizerTab )
         {
             ActionManager actionManager = Application.getActionManager();
-            if( actions == null )
-            {
-                ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
-                addVisualizerAction = new AddVisualizerAction();
-                actionManager.addAction( AddVisualizerAction.KEY, addVisualizerAction );
-                initializer.initAction( addVisualizerAction, AddVisualizerAction.KEY );
+            ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
+            addVisualizerAction = new AddVisualizerAction();
+            actionManager.addAction( AddVisualizerAction.KEY, addVisualizerAction );
+            initializer.initAction( addVisualizerAction, AddVisualizerAction.KEY );
 
-                removeVisualizerAction = new RemoveVisualizerAction();
-                actionManager.addAction( RemoveVisualizerAction.KEY, removeVisualizerAction );
-                initializer.initAction( removeVisualizerAction, RemoveVisualizerAction.KEY );
+            removeVisualizerAction = new RemoveVisualizerAction();
+            actionManager.addAction( RemoveVisualizerAction.KEY, removeVisualizerAction );
+            initializer.initAction( removeVisualizerAction, RemoveVisualizerAction.KEY );
 
-                actions = new Action[] {addVisualizerAction, removeVisualizerAction};
-            }
+            actions = new Action[] {addVisualizerAction, removeVisualizerAction};
+            return actions;
+        }
+        else if( c instanceof ColorSchemesTab )
+        {
+            ActionManager actionManager = Application.getActionManager();
+            ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
+            addColorSchemeAction = new AddColorSchemeAction();
+            actionManager.addAction( AddColorSchemeAction.KEY, addColorSchemeAction );
+            initializer.initAction( addColorSchemeAction, AddColorSchemeAction.KEY );
+
+            removeColorSchemeAction = new RemoveColorSchemeAction();
+            actionManager.addAction( RemoveColorSchemeAction.KEY, removeColorSchemeAction );
+            initializer.initAction( removeColorSchemeAction, RemoveColorSchemeAction.KEY );
+
+            actions = new Action[] {addColorSchemeAction, removeColorSchemeAction};
             return actions;
         }
         return new Action[0];
@@ -275,7 +288,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         {
 
             visualizerTab.addVisualizer();
-            update( );
+            update();
         }
     }
 
@@ -296,7 +309,50 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         public void actionPerformed(ActionEvent e)
         {
             visualizerTab.removeSelectedVisualizer();
-            update( );
+            update();
+        }
+    }
+
+    /**
+     * Adds new empty visualizer to the model
+     */
+    public class AddColorSchemeAction extends AbstractAction
+    {
+        public static final String KEY = "Add color scheme";
+
+        public AddColorSchemeAction()
+        {
+            super( KEY );
+            setEnabled( true );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+
+            colorSchemeTab.addColorScheme();
+            update();
+        }
+    }
+
+    /**
+     * Removes selected visualizer from the model
+     */
+    public class RemoveColorSchemeAction extends AbstractAction
+    {
+        public static final String KEY = "Remove color scheme";
+
+        public RemoveColorSchemeAction()
+        {
+            super( KEY );
+            setEnabled( true );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            //            visualizerTab.removeSelectedVisualizer();
+            update();
         }
     }
 

@@ -10,26 +10,30 @@ import com.developmentontheedge.beans.swing.table.RowModel;
 import biouml.plugins.physicell.RulesTab.ListRowModel;
 import ru.biosoft.gui.TabularPropertiesEditor;
 
-public class VisualizerTab extends TabularPropertiesEditor
+public class ColorSchemesTab extends TabularPropertiesEditor
 {
-    private VisualizerProperties properties;
+//    private ColorScheme[] schemes;
+    private MulticellEModel model;
     private Object template;
 
-    public VisualizerTab(MulticellEModel emodel)
+    public ColorSchemesTab(MulticellEModel emodel)
     {
-        this.properties = new VisualizerProperties();
-        this.properties.setEModel( emodel );
+        this.model = emodel;
     }
 
     public void explore(VisualizerProperties properties)
     {
-        this.properties = properties;
         update();
     }
 
-    public void addVisualizer()
+    public void addColorScheme()
     {
-        properties.addVisualizer();
+        ColorScheme[] schemes = model.getColorSchemes();
+        int l = schemes.length;
+        ColorScheme[] newSchemes = new ColorScheme[l + 1];
+        newSchemes[l] = new ColorScheme();
+        System.arraycopy( schemes, 0, newSchemes, 0, l );
+       model.setColorSchemes(newSchemes);
         update();
     }
 
@@ -38,7 +42,6 @@ public class VisualizerTab extends TabularPropertiesEditor
         int index = getTable().getSelectedRow();
         if( index < 0 )
             return;
-        properties.removeVisualizer( index );
         update();
     }
 
@@ -50,18 +53,18 @@ public class VisualizerTab extends TabularPropertiesEditor
 
     protected RowModel getRowModel()
     {
-        return new ListRowModel( Arrays.asList( properties.getProperties() ), CellDefinitionVisualizerProperties.class );
+        return new ListRowModel( Arrays.asList( model.getColorSchemes()), ColorScheme.class );
     }
 
     protected Object createTemplate()
     {
-        return new CellDefinitionVisualizerProperties();
+        return new ColorScheme();
     }
 
     protected Object getTemplate()
     {
         if( template == null )
-            template = createTemplate();
+            template = new ColorScheme();
         return template;
     }
 }

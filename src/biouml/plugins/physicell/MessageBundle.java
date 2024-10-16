@@ -6,7 +6,9 @@ import javax.swing.Action;
 
 import biouml.plugins.physicell.CellDefinitionViewPart.AddRuleAction;
 import biouml.plugins.physicell.CellDefinitionViewPart.RemoveRuleAction;
+import biouml.plugins.physicell.PhysicellModelViewPart.AddColorSchemeAction;
 import biouml.plugins.physicell.PhysicellModelViewPart.AddVisualizerAction;
+import biouml.plugins.physicell.PhysicellModelViewPart.RemoveColorSchemeAction;
 import biouml.plugins.physicell.PhysicellModelViewPart.RemoveVisualizerAction;
 
 public class MessageBundle extends ListResourceBundle
@@ -32,8 +34,18 @@ public class MessageBundle extends ListResourceBundle
                 
                 {RemoveVisualizerAction.KEY + Action.SMALL_ICON, "remove.gif"},
                 {RemoveVisualizerAction.KEY + Action.NAME, "Remove Visualizer"},
-                {RemoveVisualizerAction.KEY + Action.SHORT_DESCRIPTION, "Remove new visualizer"},
-                {RemoveVisualizerAction.KEY + Action.ACTION_COMMAND_KEY, "remove-visualizer"}};
+                {RemoveVisualizerAction.KEY + Action.SHORT_DESCRIPTION, "Remove selected visualizer"},
+                {RemoveVisualizerAction.KEY + Action.ACTION_COMMAND_KEY, "remove-visualizer"},
+                
+                {AddColorSchemeAction.KEY + Action.SMALL_ICON, "add.gif"},
+                {AddColorSchemeAction.KEY + Action.NAME, "Add Color scheme"},
+                {AddColorSchemeAction.KEY + Action.SHORT_DESCRIPTION, "Add new color scheme"},
+                {AddColorSchemeAction.KEY + Action.ACTION_COMMAND_KEY, "add-color-scheme"},
+                
+                {RemoveColorSchemeAction.KEY + Action.SMALL_ICON, "remove.gif"},
+                {RemoveColorSchemeAction.KEY + Action.NAME, "Remove Color scheme"},
+                {RemoveColorSchemeAction.KEY + Action.SHORT_DESCRIPTION, "Remove selected color scheme"},
+                {RemoveColorSchemeAction.KEY + Action.ACTION_COMMAND_KEY, "remove-color-scheme"}};
     }
 
     /**

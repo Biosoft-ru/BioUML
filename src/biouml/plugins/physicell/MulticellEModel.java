@@ -9,15 +9,15 @@ import biouml.model.dynamics.EModelRoleSupport;
 public class MulticellEModel extends EModelRoleSupport
 {
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
-    
+
     private DomainOptions domain = new DomainOptions();
     private UserParameters userParmeters = new UserParameters();
     private InitialCondition initialCondition = new InitialCondition();
     private ReportProperties reportProperties = new ReportProperties();
     private ModelOptions options = new ModelOptions();
     private VisualizerProperties visualizerProperties = new VisualizerProperties();
+    private ColorScheme[] schemes = new ColorScheme[0];
 
-    
     public MulticellEModel()
     {
         reportProperties.setModel( this );
@@ -33,11 +33,21 @@ public class MulticellEModel extends EModelRoleSupport
     {
         return reportProperties;
     }
-    
+
     public VisualizerProperties getVisualizerProperties()
     {
         return visualizerProperties;
     }
+    
+    public ColorScheme[] getColorSchemes()
+    {
+        return schemes;
+    }
+    public void setColorSchemes(ColorScheme[]  schemes)
+    {
+        this.schemes = schemes;
+    }
+
 
     public UserParameters getUserParmeters()
     {

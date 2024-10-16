@@ -6,49 +6,126 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 public class ColorScheme
 {
-    private Color outerColor;
-    private Color borderPen;
-    private Color innerColor;
-    private Color innerBorderPen;
+    private String name = "Unknown";
+    private Color color = Color.gray;
+    private Color borderColor = Color.black;
+    private Color coreColor = Color.darkGray;
+    private Color coreBorderColor = Color.black;
+    private boolean core = false;
+    private boolean border = true;
+    
+    public ColorScheme()
+    {
 
-    @PropertyName ( "Outer Color" )
-    public Color getOuterColor()
-    {
-        return outerColor;
-    }
-    public void setOuterColor(Color outerColor)
-    {
-        this.outerColor = outerColor;
     }
 
-    @PropertyName ( "Border color" )
-    public Color getBorderPen()
+    public ColorScheme(String name, Color color, Color borderColor, Color coreColor, Color coreBorderColor)
     {
-        return borderPen;
+        this.name = name;
+        this.color = color;
+        this.borderColor = borderColor;
+        this.coreBorderColor = coreBorderColor;
     }
-    public void setBorderPen(Color borderPen)
+
+    @PropertyName ( "Name" )
+    public String getName()
     {
-        this.borderPen = borderPen;
+        return name;
+    }
+    public void setName(String name)
+    {
+        this.name = name;
     }
 
     @PropertyName ( "Inner Color" )
-    public Color getInnerColor()
+    public Color getColor()
     {
-        return innerColor;
+        return color;
     }
-    public void setInnerColor(Color innerColor)
+    public void setColor(Color color)
     {
-        this.innerColor = innerColor;
-    }
-
-    @PropertyName ( "Inner Border color" )
-    public Color getInnerBorderPen()
-    {
-        return innerBorderPen;
-    }
-    public void setInnerBorderPen(Color innerBorderPen)
-    {
-        this.innerBorderPen = innerBorderPen;
+        this.color = color;
     }
 
+    @PropertyName ( "Border color" )
+    public Color getBorderColor()
+    {
+        return border? borderColor: color;
+    }
+    public void setBorderColor(Color borderColor)
+    {
+        this.borderColor = borderColor;
+    }
+
+    @PropertyName ( "Core border Color" )
+    public Color getCoreBorderColor()
+    {
+        return core? coreBorderColor: color;
+    }
+    public void setCoreBorderColor(Color coreBorderColor)
+    {
+        this.coreBorderColor = coreBorderColor;
+    }
+
+    @PropertyName ( "Core color" )
+    public Color getCoreColor()
+    {
+        return core? coreColor: color;
+    }
+    public void setCoreColor(Color coreColor)
+    {
+        this.coreColor = coreColor;
+    }
+
+    public ColorScheme clone()
+    {
+        return new ColorScheme( name, color, borderColor, coreColor, coreBorderColor );
+    }
+
+    public ColorScheme offset(ColorScheme scheme, double p)
+    {
+        Color color = offset( getColor(), scheme.getColor(), p );
+        Color borderColor = offset( getBorderColor(), scheme.getBorderColor(), p );
+        Color coreColor = offset( getCoreColor(), scheme.getCoreColor(), p );
+        Color coreBorderColor = offset( getCoreBorderColor(), scheme.getCoreBorderColor(), p );
+        return new ColorScheme( name, color, borderColor, coreColor, coreBorderColor );
+    }
+
+    private Color offset(Color from, Color to, double p)
+    {
+        int r = (int) ( from.getRed() + ( to.getRed() - from.getRed() ) * p );
+        int g = (int) ( from.getGreen() + ( to.getGreen() - from.getGreen() ) * p );
+        int b = (int) ( from.getBlue() + ( to.getBlue() - from.getBlue() ) * p );
+        return new Color( r, g, b );
+    }
+
+    @PropertyName("Has core")
+    public boolean isCore()
+    {
+        return core;
+    }
+    public void setCore(boolean core)
+    {
+        this.core = core;
+    }
+    
+    public boolean noCore()
+    {
+        return !isCore();
+    }
+
+    @PropertyName("Has border")
+    public boolean isBorder()
+    {
+        return border;
+    }
+    public void setBorder(boolean border)
+    {
+        this.border = border;
+    }
+    
+    public boolean noBorder()
+    {
+        return !isBorder();
+    }
 }
