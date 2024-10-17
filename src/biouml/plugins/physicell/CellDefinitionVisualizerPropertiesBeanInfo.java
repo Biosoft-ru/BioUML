@@ -17,7 +17,7 @@ public class CellDefinitionVisualizerPropertiesBeanInfo extends BeanInfoEx2<Cell
         property( "type" ).tags( bean -> bean.getTypes() ).add();
         property( "signal" ).tags( bean -> bean.getSignals() ).add();
         property( "color1" ).tags( bean -> bean.getColorSchemes()).add();
-        property( "color2" ).tags( bean -> bean.getColorSchemes()).add();
+        property( "color2" ).tags( bean -> bean.getColorSchemes()).readOnly("isOneColor").add();
         add( "min" );
         add( "max" );
     }

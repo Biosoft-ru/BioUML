@@ -8,10 +8,13 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.plugins.physicell.CellDefinitionProperties;
+import biouml.plugins.physicell.CellDefinitionVisualizerProperties;
+import biouml.plugins.physicell.ColorScheme;
 import biouml.plugins.physicell.EventProperties;
 import biouml.plugins.physicell.MulticellEModel;
 import biouml.plugins.physicell.RuleProperties;
 import biouml.plugins.physicell.SubstrateProperties;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -59,8 +62,24 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             Diagram diagram = de.cast( Diagram.class );
             MulticellEModel model = diagram.getRole( MulticellEModel.class );
-            VectorDataCollection<EventWrapper> result = new VectorDataCollection<>( "Evrnts", EventWrapper.class, null );
+            VectorDataCollection<EventWrapper> result = new VectorDataCollection<>( "Events", EventWrapper.class, null );
             model.getEvents().forEach( e -> result.put( new EventWrapper( e ) ) );
+            return result;
+        }
+        else if( "color_schemes".equals( type ) && de instanceof Diagram )
+        {
+            Diagram diagram = de.cast( Diagram.class );
+            MulticellEModel model = diagram.getRole( MulticellEModel.class );
+            VectorDataCollection<ColorSchemeWrapper> result = new VectorDataCollection<>( "Color schemes", ColorSchemeWrapper.class, null );
+            Stream.of( model.getColorSchemes() ).forEach( cs -> result.put( new ColorSchemeWrapper( cs ) ) );
+            return result;
+        }
+        else if( "visualizers".equals( type ) && de instanceof Diagram )
+        {
+            Diagram diagram = de.cast( Diagram.class );
+            MulticellEModel model = diagram.getRole( MulticellEModel.class );
+            VectorDataCollection<VisualizerPropertiesWrapper> result = new VectorDataCollection<>( "Visualizers", VisualizerPropertiesWrapper.class, null );
+            Stream.of( model.getVisualizerProperties().getProperties()).forEach( vp -> result.put( new VisualizerPropertiesWrapper( vp ) ) );
             return result;
         }
         else if( "rules".equals( type ) )
@@ -95,7 +114,7 @@ public class PhysicellWebTableResolver extends TableResolver
         private CellDefinitionProperties cdp;
         Pen penOuter;
         Pen penInner;
-        
+
         public CellDefinitionWrapper(CellDefinitionProperties cdp)
         {
             this.cdp = cdp;
@@ -114,27 +133,27 @@ public class PhysicellWebTableResolver extends TableResolver
         @PropertyName ( "Color outer" )
         public Pen getPenOuter()
         {
-            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor() );
+            return new Pen( 1, cdp.getColor() == null ? Color.black : cdp.getColor().getColor() );
         }
 
         public void setPenOuter(Pen pen)
         {
             this.penOuter = pen;
             if( pen != null )
-                cdp.setColor(  new Brush(pen.getColor()) );
+                cdp.setColor( new Brush( pen.getColor() ) );
         }
-        
+
         @PropertyName ( "Color inner" )
         public Pen getPenInner()
         {
-            return new Pen( 1, cdp.getColor() == null? Color.black: cdp.getColor().getColor()  );
+            return new Pen( 1, cdp.getColor() == null ? Color.black : cdp.getColor().getColor() );
         }
 
         public void setPenInner(Pen pen)
         {
             this.penInner = pen;
             if( pen != null )
-                cdp.setColor( new Brush(pen.getColor() ));
+                cdp.setColor( new Brush( pen.getColor() ) );
         }
 
         @PropertyName ( "Initial number" )
@@ -561,4 +580,262 @@ public class PhysicellWebTableResolver extends TableResolver
         }
     }
 
+    public static class ColorSchemeWrapper implements DataElement
+    {
+        private ColorScheme cs;
+
+        public ColorSchemeWrapper(ColorScheme cs)
+        {
+            this.cs = cs;
+        }
+
+        @PropertyName ( "Name" )
+        public String getName()
+        {
+            return cs.getName();
+        }
+        public void setName(String name)
+        {
+            cs.setName( name );
+        }
+
+        @PropertyName ( "Has border" )
+        public boolean isBorder()
+        {
+            return cs.isBorder();
+        }
+        public void setBorder(boolean border)
+        {
+            cs.setBorder( border );
+        }
+
+        @PropertyName ( "Has core" )
+        public boolean isCore()
+        {
+            return cs.isCore();
+        }
+        public void setCore(boolean core)
+        {
+            cs.setCore( core );
+        }
+
+        @PropertyName ( "Color" )
+        public Color getColor()
+        {
+            return cs.getColor();
+        }
+        public void setColor(Color color)
+        {
+            cs.setColor( color );
+        }
+
+        @PropertyName ( "Border Color" )
+        public Color getBorderColor()
+        {
+            return cs.getBorderColor();
+        }
+        public void setBorderColor(Color color)
+        {
+            cs.setBorderColor( color );
+        }
+
+        @PropertyName ( "Core Color" )
+        public Color getCoreColor()
+        {
+            return cs.getCoreColor();
+        }
+        public void setCoreColor(Color color)
+        {
+            cs.setCoreColor( color );
+        }
+
+        @PropertyName ( "Core Border Color" )
+        public Color getCoreBorderColor()
+        {
+            return cs.getCoreBorderColor();
+        }
+        public void setCoreBorderColor(Color color)
+        {
+            cs.setCoreBorderColor( color );
+        }
+
+        @Override
+        public DataCollection<?> getOrigin()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    }
+
+    public static class ColorSchemeWrapperBeanInfo extends BeanInfoEx2<ColorSchemeWrapper>
+    {
+        public ColorSchemeWrapperBeanInfo()
+        {
+            super( ColorSchemeWrapper.class );
+        }
+
+        @Override
+        public void initProperties() throws Exception
+        {
+            add( "name" );
+            add( "color" );
+            add( "border" );
+            property( "borderColor" ).readOnly( "noBorder" ).add();
+            add( "core" );
+            property( "coreColor" ).readOnly( "noCore" ).add();
+            property( "coreBorderColor" ).readOnly( "noCore" ).add();
+        }
+    }
+
+    public static class VisualizerPropertiesWrapper implements DataElement
+    {
+        private CellDefinitionVisualizerProperties properties;
+
+        public VisualizerPropertiesWrapper(CellDefinitionVisualizerProperties properties)
+        {
+            this.properties = properties;
+        }
+
+        @PropertyName ( "Cell Type" )
+        public String getCellType()
+        {
+            return properties.getCellType();
+        }
+        public void setCellType(String cellType)
+        {
+            this.properties.setCellType( cellType );
+        }
+
+        @PropertyName ( "Color type" )
+        public String getType()
+        {
+            return properties.getType();
+        }
+        public void setType(String type)
+        {
+            properties.setType( type );
+        }
+
+        @PropertyName ( "Signal" )
+        public String getSignal()
+        {
+            return properties.getSignal();
+        }
+        public void setSignal(String signal)
+        {
+            properties.setSignal( signal );
+        }
+
+        @PropertyName ( "Min value" )
+        public double getMin()
+        {
+            return properties.getMin();
+        }
+        public void setMin(double min)
+        {
+            properties.setMin( min );
+        }
+
+        @PropertyName ( "Max value" )
+        public double getMax()
+        {
+            return properties.getMax();
+        }
+        public void setMax(double max)
+        {
+            this.properties.setMax( max );
+        }
+
+        @PropertyName ( "Color 1" )
+        public String getColor1()
+        {
+            return properties.getColor1();
+        }
+        public void setColor1(String color1)
+        {
+            this.properties.setColor1( color1 );
+        }
+
+        @PropertyName ( "Color 2" )
+        public String getColor2()
+        {
+            return properties.getColor2();
+        }
+        public void setColor2(String color2)
+        {
+            this.properties.setColor2( color2 );
+        }
+
+        @PropertyName ( "Priority" )
+        public double getPriority()
+        {
+            return properties.getPriority();
+        }
+        public void setPriority(double priority)
+        {
+            this.properties.setPriority( priority );
+        }
+
+        public boolean isOneColor()
+        {
+            return properties.isOneColor();
+        }
+
+        public StreamEx<String> getCellTypes()
+        {
+            return properties.getCellTypes();
+        }
+
+        public StreamEx<String> getSignals()
+        {
+            return properties.getSignals();
+        }
+
+        public StreamEx<String> getTypes()
+        {
+            return properties.getTypes();
+        }
+
+        public StreamEx<String> getColorSchemes()
+        {
+            return properties.getColorSchemes();
+        }
+
+        @Override
+        public String getName()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public DataCollection<?> getOrigin()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+
+    public static class VisualizerPropertiesWrapperBeanInfo extends BeanInfoEx2<VisualizerPropertiesWrapper>
+    {
+        public VisualizerPropertiesWrapperBeanInfo()
+        {
+            super( VisualizerPropertiesWrapper.class );
+        }
+
+        @Override
+        public void initProperties()
+        {
+            property( "cellType" ).tags( bean -> bean.getCellTypes() ).add();
+            add( "priority" );
+            property( "type" ).tags( bean -> bean.getTypes() ).add();
+            property( "signal" ).tags( bean -> bean.getSignals() ).add();
+            property( "color1" ).tags( bean -> bean.getColorSchemes() ).add();
+            property( "color2" ).tags( bean -> bean.getColorSchemes() ).readOnly( "isOneColor" ).add();
+            add( "min" );
+            add( "max" );
+        }
+
+    }
 }

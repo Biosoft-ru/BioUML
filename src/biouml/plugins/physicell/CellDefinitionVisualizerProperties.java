@@ -130,6 +130,8 @@ public class CellDefinitionVisualizerProperties extends Option
     @PropertyName ( "Color 2" )
     public String getColor2()
     {
+        if( isOneColor() )
+            return color1;
         return color2;
     }
     public void setColor2(String color2)
@@ -150,7 +152,7 @@ public class CellDefinitionVisualizerProperties extends Option
 
     public boolean isOneColor()
     {
-        return type.equals( "One color" );
+        return !type.equals( GRADIENT );
     }
 
     public ColorScheme calculate(Cell cell)
@@ -162,21 +164,21 @@ public class CellDefinitionVisualizerProperties extends Option
         else if( type.equals( GRADIENT ) )
         {
             double signal = getSignal( cell );
-            ColorScheme scheme1 = getScheme(color1);
-            ColorScheme scheme2 = getScheme(color2);
-            return scheme1.offset( scheme2, (signal-min)/(max-min) );
+            ColorScheme scheme1 = getScheme( color1 );
+            ColorScheme scheme2 = getScheme( color2 );
+            return scheme1.offset( scheme2, ( signal - min ) / ( max - min ) );
         }
         else if( type.equals( LARGER_THAN_MAX ) )
         {
             double signal = getSignal( cell );
-            if (signal >= max)
-                return getScheme(color1);
+            if( signal >= max )
+                return getScheme( color1 );
         }
         else if( type.equals( SMALLER_THAN_MIN ) )
         {
             double signal = getSignal( cell );
-            if (signal <= min)
-                return getScheme(color1);
+            if( signal <= min )
+                return getScheme( color1 );
         }
         return null;
     }

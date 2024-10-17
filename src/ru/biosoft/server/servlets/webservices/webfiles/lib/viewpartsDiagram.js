@@ -5421,6 +5421,8 @@ function MicroenvironmentViewPart()
                 '<li><a href="#me_initial"><span>Initial Condition</span></a></li>'+
 				'<li><a href="#me_report"><span>Report Properties</span></a></li>'+
 				'<li><a href="#me_options"><span>Options</span></a></li>'+
+				'<li><a href="#me_color_schemes"><span>Color Schemes</span></a></li>'+
+				'<li><a href="#me_visualizers"><span>Cell visualizers</span></a></li>'+
                 '</ul>'+
                 '<div id="me_domain" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
@@ -5437,6 +5439,10 @@ function MicroenvironmentViewPart()
 				'<div id="me_report" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
 				'</div>'+
 				'<div id="me_options" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_color_schemes" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_visualizers" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
 				'</div>'+
                 '</div>');
         this.containerDiv.append(tabDiv);
@@ -5480,6 +5486,15 @@ function MicroenvironmentViewPart()
 		this.optionsDiv = tabDiv.find("#me_options");
 		this.optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
 		this.optionsDiv.append(this.optionsPI);
+		
+		this.colorschemesDiv = tabDiv.find("#me_color_schemes");
+		this.tables["color_schemes"] = $('<div>Loading color schemes..</div>');
+		this.colorschemesDiv.append(this.tables["color_schemes"]);
+				
+		this.visualizersDiv = tabDiv.find("#me_visualizers");
+		this.tables["visualizers"] = $('<div>Loading cell visualizers..</div>');
+		this.visualizersDiv.append(this.tables["visualizers"]);
+		
         _.bindAll(this, _.functions(this));
     }
     
@@ -5530,10 +5545,14 @@ function MicroenvironmentViewPart()
                  _this.shownIndex = ui.newTab.index(); 
                  _this.type = _this.show_mode.substring(1+_this.show_mode.indexOf("_"));
                  updateViewPartsToolbar(_this);
-                if(_this.type=="substrates")
+                if(_this.type == "substrates")
                    _this.loadTable("substrates");
-                else if (_this.type=="cell_types")
+                else if (_this.type == "cell_types")
 			       _this.loadTable("cell_types");
+				else if (_this.type == "color_schemes")
+				   _this.loadTable("color_schemes");
+				else if (_this.type == "visualizers")
+				   _this.loadTable("visualizers");
                 else
                 {
                     if(_this.tableChanged["substrates"])
@@ -5556,6 +5575,20 @@ function MicroenvironmentViewPart()
 					 		if(yes)
 					 			_this.saveTable("events");
 					 	  });
+					  }	
+					  else if(_this.tableChanged["color_schemes"])
+					  {
+					  	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+					  		   if(yes)
+					  	           _this.saveTable("color_schemes");
+					       });
+					  }	
+					  else if(_this.tableChanged["visualizers"])
+					  {
+					  	    createYesNoConfirmDialog( "Visualizers table was changed. Do you want to save it?", function(yes){
+					  		   if(yes)
+					  	           _this.saveTable("visualizers");
+					       });
 					  }					 
                 }
             }
@@ -5582,16 +5615,30 @@ function MicroenvironmentViewPart()
        }
 	   else if(this.tableChanged["events"])
 	   {
-	   		     createYesNoConfirmDialog( "Events table was changed. Do you want to save it?", function(yes){
-	   		         if(yes)
-	   		            _this.saveTable("events");
-	   		     }); 
+	   		 createYesNoConfirmDialog( "Events table was changed. Do you want to save it?", function(yes){
+	   		     if(yes)
+	   		        _this.saveTable("events");
+	   		 }); 
 	   }
+	   else if(this.tableChanged["color_schemes"])
+	   {
+	   	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+	   	   		if(yes)
+	   	   		   _this.saveTable("color_schemes");
+	   	    }); 
+	   }
+	   else if(this.tableChanged["visualizers"])
+	   {
+		   	 createYesNoConfirmDialog( "Cell Visualier table was changed. Do you want to save it?", function(yes){
+		   	   	 if(yes)
+		   	   		_this.saveTable("visualizers");
+		   	 }); 
+		}
     };
     
     this.initActions = function(toolbarBlock)
     {
-        if (this.type == "substrates" || this.type == "cell_types" || this.type == "events")
+        if (this.type == "substrates" || this.type == "cell_types" || this.type == "events" || this.type == "color_schemes"  || this.type == "visualizers")
         {
             this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveTable);
             toolbarBlock.append(this.saveAction);     
@@ -5608,6 +5655,8 @@ function MicroenvironmentViewPart()
         this.loadTable("substrates");
 		this.loadTable("cell_types");
 		this.loadTable("events");
+		this.loadTable("color_schemes");
+		this.loadTable("visualizers");
     };
     
     this.loadTable = function(type)
