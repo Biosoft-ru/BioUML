@@ -6007,10 +6007,10 @@ function MicroenvironmentViewPart()
 		
 	 this.addVisualizerActionClick = function()
 	 {
-	     queryBioUML("web/physicell/add_scheme",
+	     queryBioUML("web/physicell/add_visualizer",
 	     function(data)
 	     {
-	         _this.loadTable("color_schemes");
+	         _this.loadTable("visualizers");
 	     },
 	     function(data)
 	     {
@@ -6023,7 +6023,7 @@ function MicroenvironmentViewPart()
 	      var selectedRows = getSelectedRowNumbers(_this.tableObjs["visualizers"]);
 	      if(selectedRows.length==0)
 	          return;
-	      queryBioUML("web/physicell/add_visualizer",
+	      queryBioUML("web/physicell/remove_visualizer",
 	      {
 	          "index": selectedRows[0]
 	      }, function(data)

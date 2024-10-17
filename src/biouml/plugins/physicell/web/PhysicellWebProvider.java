@@ -17,10 +17,11 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
     {
         String action = arguments.getAction();
         Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
-        String nodeName = arguments.getString( "node" );
+        
 
         if( "add_rule".equals( action ) || "remove_rule".equals( action ) )
         {
+            String nodeName = arguments.getString( "node" );
             DiagramElement de = diagram.get( nodeName );
             if( de == null || de.getRole() == null || ! ( de.getRole() instanceof CellDefinitionProperties ) )
             {
