@@ -38,16 +38,40 @@ public class MulticellEModel extends EModelRoleSupport
     {
         return visualizerProperties;
     }
-    
+
     public ColorScheme[] getColorSchemes()
     {
         return schemes;
     }
-    public void setColorSchemes(ColorScheme[]  schemes)
+    public void setColorSchemes(ColorScheme[] schemes)
     {
         this.schemes = schemes;
     }
 
+    public void addColorScheme()
+    {
+        int l = schemes.length;
+        ColorScheme[] newSchemes = new ColorScheme[l + 1];
+        newSchemes[l] = new ColorScheme();
+        System.arraycopy( schemes, 0, newSchemes, 0, l );
+        setColorSchemes( newSchemes );
+    }
+    
+    public void removeColorScheme(int index)
+    {
+        int l = schemes.length;
+        ColorScheme[] newSchemes = new ColorScheme[l - 1];
+        if( index == 0 )
+            System.arraycopy( schemes, 1, newSchemes, 0, l - 1 );
+        else if( index == l - 1 )
+            System.arraycopy( schemes, 0, newSchemes, 0, l - 1 );
+        else
+        {
+            System.arraycopy( schemes, 0, newSchemes, 0, index );
+            System.arraycopy( schemes, index + 1, newSchemes, index, l - index - 1 );
+        }
+        this.setColorSchemes( newSchemes );
+    }
 
     public UserParameters getUserParmeters()
     {

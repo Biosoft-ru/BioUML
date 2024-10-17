@@ -5643,6 +5643,23 @@ function MicroenvironmentViewPart()
             this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveTable);
             toolbarBlock.append(this.saveAction);     
         }
+		
+		if (this.type == "color_schemes")
+		{
+			this.addAction = createToolbarButton("Add scheme", "icon_plus.gif", this.addSchemeActionClick);
+			toolbarBlock.append(this.addAction);
+			         
+			this.removeAction = createToolbarButton("Remove scheme", "removefilter.gif", this.removeSchemeActionClick);
+		    toolbarBlock.append(this.removeAction);
+		}
+		else if (this.type == "visualizers")
+        {
+			this.addAction = createToolbarButton("Add visualizer", "icon_plus.gif", this.addVisualizerActionClick);
+			toolbarBlock.append(this.addAction);
+						         
+			this.removeAction = createToolbarButton("Remove visualizer", "removefilter.gif", this.removeVisuaizerActionClick);
+			toolbarBlock.append(this.removeAction);		
+		}		
     };
     
     this.diagramChanged = function()
@@ -5955,6 +5972,70 @@ function MicroenvironmentViewPart()
             }, true);
         }
     };
+	
+	this.addSchemeActionClick = function()
+	{
+	    queryBioUML("web/physicell/add_scheme", addParams,
+	    function(data)
+	    {
+	        _this.loadTable("color_schemes");
+	    },
+	    function(data)
+	    {
+	        logger.error(data.message);
+	    });
+	};
+	    
+	this.removeSchemeActionClick = function()
+	{
+	     var selectedRows = getSelectedRowNumbers(_this.tableObjs["color_schemes"]);
+	     if(selectedRows.length==0)
+	         return;
+	     queryBioUML("web/physicell/remove_scheme",
+	     {
+	         "index": selectedRows[0]
+	     }, function(data)
+	     {
+	         _this.diagram.setChanged(true);
+	         _this.loadTable("color_schemes");
+	     },
+	     function(data)
+	     {
+	         logger.error(data.message);
+	     });
+	 };
+		
+	 this.addVisualizerActionClick = function()
+	 {
+	     queryBioUML("web/physicell/add_scheme", addParams,
+	     function(data)
+	     {
+	         _this.loadTable("color_schemes");
+	     },
+	     function(data)
+	     {
+	         logger.error(data.message);
+	     });
+	 };
+	     
+	 this.removeVisualizerActionClick = function()
+	 {
+	      var selectedRows = getSelectedRowNumbers(_this.tableObjs["visualizers"]);
+	      if(selectedRows.length==0)
+	          return;
+	      queryBioUML("web/physicell/add_visualizer",
+	      {
+	          "index": selectedRows[0]
+	      }, function(data)
+	      {
+	          _this.diagram.setChanged(true);
+	          _this.loadTable("visualizers");
+	      },
+	      function(data)
+	      {
+	          logger.error(data.message);
+	      });
+	  };		
     
 }
 

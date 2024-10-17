@@ -12,7 +12,6 @@ import ru.biosoft.gui.TabularPropertiesEditor;
 
 public class ColorSchemesTab extends TabularPropertiesEditor
 {
-//    private ColorScheme[] schemes;
     private MulticellEModel model;
     private Object template;
 
@@ -28,12 +27,7 @@ public class ColorSchemesTab extends TabularPropertiesEditor
 
     public void addColorScheme()
     {
-        ColorScheme[] schemes = model.getColorSchemes();
-        int l = schemes.length;
-        ColorScheme[] newSchemes = new ColorScheme[l + 1];
-        newSchemes[l] = new ColorScheme();
-        System.arraycopy( schemes, 0, newSchemes, 0, l );
-       model.setColorSchemes(newSchemes);
+        model.addColorScheme();
         update();
     }
 
@@ -42,6 +36,7 @@ public class ColorSchemesTab extends TabularPropertiesEditor
         int index = getTable().getSelectedRow();
         if( index < 0 )
             return;
+        model.removeColorScheme( index );
         update();
     }
 
@@ -53,7 +48,7 @@ public class ColorSchemesTab extends TabularPropertiesEditor
 
     protected RowModel getRowModel()
     {
-        return new ListRowModel( Arrays.asList( model.getColorSchemes()), ColorScheme.class );
+        return new ListRowModel( Arrays.asList( model.getColorSchemes() ), ColorScheme.class );
     }
 
     protected Object createTemplate()
