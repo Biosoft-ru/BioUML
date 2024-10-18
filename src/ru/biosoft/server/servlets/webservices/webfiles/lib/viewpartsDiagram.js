@@ -5553,8 +5553,7 @@ function MicroenvironmentViewPart()
 				   _this.loadTable("color_schemes");
 				else if (_this.type == "visualizers")
 				   _this.loadTable("visualizers");
-                else
-                {
+
                     if(_this.tableChanged["substrates"])
                     {
                         createYesNoConfirmDialog( "Substrates table was changed. Do you want to save it?", function(yes){
@@ -5590,7 +5589,7 @@ function MicroenvironmentViewPart()
 					  	           _this.saveTable("visualizers");
 					       });
 					  }					 
-                }
+                
             }
         });
         this.containerDiv.find("#melinkedTabs").tabs("option", "active", _this.shownIndex);
