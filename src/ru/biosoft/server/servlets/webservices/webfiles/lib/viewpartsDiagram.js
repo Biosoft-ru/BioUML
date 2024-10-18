@@ -5976,8 +5976,8 @@ function MicroenvironmentViewPart()
 	this.addSchemeActionClick = function()
 	{
 		var addParams = {
-		          de: _this.diagram.completeName,
-		      };
+		    de: _this.diagram.completeName,
+		};
 	    queryBioUML("web/physicell/add_scheme", addParams,
 	    function(data)
 	    {
@@ -6010,7 +6010,10 @@ function MicroenvironmentViewPart()
 		
 	 this.addVisualizerActionClick = function()
 	 {
-	     queryBioUML("web/physicell/add_visualizer",
+		 var addParams = {
+		    de: _this.diagram.completeName,
+		 };
+	     queryBioUML("web/physicell/add_visualizer", addParams,
 	     function(data)
 	     {
 	         _this.loadTable("visualizers");

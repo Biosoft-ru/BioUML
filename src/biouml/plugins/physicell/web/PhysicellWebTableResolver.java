@@ -78,8 +78,13 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             Diagram diagram = de.cast( Diagram.class );
             MulticellEModel model = diagram.getRole( MulticellEModel.class );
-            VectorDataCollection<VisualizerPropertiesWrapper> result = new VectorDataCollection<>( "Visualizers", VisualizerPropertiesWrapper.class, null );
-            Stream.of( model.getVisualizerProperties().getProperties()).forEach( vp -> result.put( new VisualizerPropertiesWrapper( vp ) ) );
+            VectorDataCollection<VisualizerPropertiesWrapper> result = new VectorDataCollection<>( "Visualizers",
+                    VisualizerPropertiesWrapper.class, null );
+            CellDefinitionVisualizerProperties[] properties = model.getVisualizerProperties().getProperties();
+            for( int i = 0; i < properties.length; i++ )
+            {
+                result.put( new VisualizerPropertiesWrapper( String.valueOf( i ), properties[i] ) );
+            }
             return result;
         }
         else if( "rules".equals( type ) )
@@ -681,20 +686,26 @@ public class PhysicellWebTableResolver extends TableResolver
             add( "name" );
             add( "color" );
             add( "border" );
-            property( "borderColor" ).readOnly( "noBorder" ).add();
+            add( "borderColor" );
             add( "core" );
-            property( "coreColor" ).readOnly( "noCore" ).add();
-            property( "coreBorderColor" ).readOnly( "noCore" ).add();
+            add( "coreColor" );
+            add( "coreBorderColor" );
+            //            property( "borderColor" ).readOnly( "noBorder" ).add();
+            //            add( "core" );
+            //            property( "coreColor" ).readOnly( "noCore" ).add();
+            //            property( "coreBorderColor" ).readOnly( "noCore" ).add();
         }
     }
 
     public static class VisualizerPropertiesWrapper implements DataElement
     {
         private CellDefinitionVisualizerProperties properties;
-
-        public VisualizerPropertiesWrapper(CellDefinitionVisualizerProperties properties)
+        private String name;
+        
+        public VisualizerPropertiesWrapper(String name, CellDefinitionVisualizerProperties properties)
         {
             this.properties = properties;
+            this.name = name;
         }
 
         @PropertyName ( "Cell Type" )
@@ -805,8 +816,7 @@ public class PhysicellWebTableResolver extends TableResolver
         @Override
         public String getName()
         {
-            // TODO Auto-generated method stub
-            return null;
+            return name;
         }
 
         @Override

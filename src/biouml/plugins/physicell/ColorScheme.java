@@ -13,7 +13,12 @@ public class ColorScheme
     private Color coreBorderColor = Color.black;
     private boolean core = false;
     private boolean border = true;
-    
+
+    public ColorScheme(String name)
+    {
+        this.name = name;
+    }
+
     public ColorScheme()
     {
 
@@ -50,7 +55,7 @@ public class ColorScheme
     @PropertyName ( "Border color" )
     public Color getBorderColor()
     {
-        return border? borderColor: color;
+        return border ? borderColor : color;
     }
     public void setBorderColor(Color borderColor)
     {
@@ -60,7 +65,7 @@ public class ColorScheme
     @PropertyName ( "Core border Color" )
     public Color getCoreBorderColor()
     {
-        return core? coreBorderColor: color;
+        return core ? coreBorderColor : color;
     }
     public void setCoreBorderColor(Color coreBorderColor)
     {
@@ -70,7 +75,7 @@ public class ColorScheme
     @PropertyName ( "Core color" )
     public Color getCoreColor()
     {
-        return core? coreColor: color;
+        return core ? coreColor : color;
     }
     public void setCoreColor(Color coreColor)
     {
@@ -99,7 +104,7 @@ public class ColorScheme
         return new Color( r, g, b );
     }
 
-    @PropertyName("Has core")
+    @PropertyName ( "Has core" )
     public boolean isCore()
     {
         return core;
@@ -108,13 +113,13 @@ public class ColorScheme
     {
         this.core = core;
     }
-    
+
     public boolean noCore()
     {
         return !isCore();
     }
 
-    @PropertyName("Has border")
+    @PropertyName ( "Has border" )
     public boolean isBorder()
     {
         return border;
@@ -123,7 +128,7 @@ public class ColorScheme
     {
         this.border = border;
     }
-    
+
     public boolean noBorder()
     {
         return !isBorder();
