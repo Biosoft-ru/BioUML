@@ -5975,7 +5975,10 @@ function MicroenvironmentViewPart()
 	
 	this.addSchemeActionClick = function()
 	{
-	    queryBioUML("web/physicell/add_scheme",
+		var addParams = {
+		          de: _this.diagram.completeName,
+		      };
+	    queryBioUML("web/physicell/add_scheme", addParams,
 	    function(data)
 	    {
 	        _this.loadTable("color_schemes");
