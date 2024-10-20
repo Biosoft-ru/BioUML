@@ -625,43 +625,43 @@ public class PhysicellWebTableResolver extends TableResolver
         }
 
         @PropertyName ( "Color" )
-        public Color getColor()
+        public Pen getColor()
         {
-            return cs.getColor();
+            return new Pen(1, cs.getColor());
         }
-        public void setColor(Color color)
+        public void setColor(Pen color)
         {
-            cs.setColor( color );
+            cs.setColor( color.getColor() );
         }
 
         @PropertyName ( "Border Color" )
-        public Color getBorderColor()
+        public Pen getBorderColor()
         {
-            return cs.getBorderColor();
+            return new Pen(1, cs.getBorderColor());
         }
-        public void setBorderColor(Color color)
+        public void setBorderColor(Pen color)
         {
-            cs.setBorderColor( color );
+            cs.setBorderColor( color.getColor() );
         }
 
         @PropertyName ( "Core Color" )
-        public Color getCoreColor()
+        public Pen getCoreColor()
         {
-            return cs.getCoreColor();
+            return new Pen(1,cs.getCoreColor());
         }
-        public void setCoreColor(Color color)
+        public void setCoreColor(Pen color)
         {
-            cs.setCoreColor( color );
+            cs.setCoreColor( color.getColor() );
         }
 
         @PropertyName ( "Core Border Color" )
-        public Color getCoreBorderColor()
+        public Pen getCoreBorderColor()
         {
-            return cs.getCoreBorderColor();
+            return new Pen(1, cs.getCoreBorderColor());
         }
-        public void setCoreBorderColor(Color color)
+        public void setCoreBorderColor(Pen color)
         {
-            cs.setCoreBorderColor( color );
+            cs.setCoreBorderColor( color.getColor() );
         }
 
         @Override
