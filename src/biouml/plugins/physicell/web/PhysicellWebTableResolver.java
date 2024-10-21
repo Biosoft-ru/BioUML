@@ -21,6 +21,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
+import ru.biosoft.graphics.PenEditor;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
@@ -684,12 +685,12 @@ public class PhysicellWebTableResolver extends TableResolver
         public void initProperties() throws Exception
         {
             add( "name" );
-            add( "color" );
-            add( "border" );
-            add( "borderColor" );
+            add( "color", PenEditor.class );
+            add( "border");
+            add( "borderColor", PenEditor.class );
             add( "core" );
-            add( "coreColor" );
-            add( "coreBorderColor" );
+            add( "coreColor", PenEditor.class );
+            add( "coreBorderColor", PenEditor.class );
             //            property( "borderColor" ).readOnly( "noBorder" ).add();
             //            add( "core" );
             //            property( "coreColor" ).readOnly( "noCore" ).add();
