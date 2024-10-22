@@ -35,6 +35,10 @@ public class PhysicellBeanProvider implements BeanProvider
             return model.getReportProperties();
         if( propName.equals( "options" ) )
             return model.getOptions();
+        if( propName.equals( "color_schemes" ) )
+            return model.getColorSchemes();
+        if( propName.equals( "visualizers" ) )
+            return model.getVisualizerProperties();
 
         DiagramElement de = diagram.get( elemName );
         if( de == null || de.getRole() == null || ! ( de.getRole() instanceof CellDefinitionProperties ) )
