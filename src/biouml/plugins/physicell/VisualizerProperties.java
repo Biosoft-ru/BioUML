@@ -73,5 +73,14 @@ public class VisualizerProperties extends Option
         }
         this.setProperties( newVisualizers );
     }
-
+    
+    public VisualizerProperties clone(MulticellEModel emodel)
+    {
+        VisualizerProperties result = new VisualizerProperties();
+        result.setEModel( emodel );
+        result.properties = new CellDefinitionVisualizerProperties[properties.length];
+        for (int i=0; i<properties.length; i++)
+            result.properties[i] = properties[i].clone( emodel );
+        return result;
+    }
 }

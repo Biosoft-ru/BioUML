@@ -166,6 +166,12 @@ public class MulticellEModel extends EModelRoleSupport
         reportProperties.setModel( emodel );
         emodel.userParmeters = userParmeters.clone();
         emodel.options = options.clone();
+        
+        emodel.schemes = new ColorScheme[schemes.length];
+        for (int i=0; i<schemes.length; i++)
+            emodel.schemes[i] = schemes[i].clone();
+
+        emodel.visualizerProperties = visualizerProperties.clone( emodel );
         emodel.comment = comment;
         emodel.updateCellDefinitions();
         return emodel;

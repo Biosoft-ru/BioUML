@@ -202,4 +202,18 @@ public class CellDefinitionVisualizerProperties extends Option
         }
         return null;
     }
+    
+    public CellDefinitionVisualizerProperties clone(MulticellEModel emodel)
+    {
+        CellDefinitionVisualizerProperties result = new CellDefinitionVisualizerProperties( );
+        result.setModel( emodel );
+        result.setCellType( cellType );
+        result.setType( type);
+        result.setColor1( color1 );
+        result.setColor2( color2 );
+        result.setMax( max );
+        result.setMin( min );
+        result.setPriority( priority );
+        return result;
+    }
 }

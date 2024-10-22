@@ -84,7 +84,10 @@ public class ColorScheme
 
     public ColorScheme clone()
     {
-        return new ColorScheme( name, color, borderColor, coreColor, coreBorderColor );
+        ColorScheme result = new ColorScheme( name, color, borderColor, coreColor, coreBorderColor );
+        result.setBorder( border );
+        result.setCore( core );
+        return result;
     }
 
     public ColorScheme offset(ColorScheme scheme, double p)
@@ -132,5 +135,5 @@ public class ColorScheme
     public boolean noBorder()
     {
         return !isBorder();
-    }
+    }         
 }
