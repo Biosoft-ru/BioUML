@@ -6,6 +6,7 @@ import org.w3c.dom.Element;
 import biouml.model.Diagram;
 import biouml.model.Role;
 import biouml.model.util.ModelXmlWriter;
+import ru.biosoft.util.ColorUtils;
 
 public class PhysicellModelWriter extends ModelXmlWriter
 {
@@ -34,23 +35,68 @@ public class PhysicellModelWriter extends ModelXmlWriter
         createDomain( model.getDomain(), element );
         createUserParameterList( model.getUserParmeters(), element );
         createInitialCondition( model.getInitialCondition(), element );
-        createReport(model.getReportProperties(), element);
+        createReport( model.getReportProperties(), element );
+        createColorSchemes( model.getColorSchemes(), element );
+        createVisualizerProperties( model.getVisualizerProperties(), element );
         setComment( element, model.getComment() );
         return element;
     }
 
+    private void createColorSchemes(ColorScheme[] schemes, Element parent)
+    {
+        Element element = doc.createElement( "colorSchemes" );
+        for( ColorScheme scheme : schemes )
+        {
+            Element colorScheme = doc.createElement( "colorScheme" );
+            colorScheme.setAttribute( "name", scheme.getName() );
+
+            colorScheme.setAttribute( "color", ColorUtils.paintToString( scheme.getColor() ) );
+
+            if( scheme.isBorder() )
+                colorScheme.setAttribute( "borderColor", ColorUtils.paintToString( scheme.getBorderColor() ) );
+
+            if( scheme.isCore() )
+            {
+                colorScheme.setAttribute( "coreBorderColor", ColorUtils.paintToString( scheme.getCoreBorderColor() ) );
+                colorScheme.setAttribute( "coreColor", ColorUtils.paintToString( scheme.getCoreColor() ) );
+            }
+            element.appendChild( colorScheme );
+        }
+        if( element.hasChildNodes() )
+            parent.appendChild( element );
+    }
+
+    private void createVisualizerProperties(VisualizerProperties visualizers, Element parent)
+    {
+        Element element = doc.createElement( "visualizers" );
+        for( CellDefinitionVisualizerProperties visualizer : visualizers.getProperties() )
+        {
+            Element visualizerElement = doc.createElement( "visualizer" );
+            visualizerElement.setAttribute( "cellType", visualizer.getCellType() );
+            visualizerElement.setAttribute( "priority", String.valueOf( visualizer.getPriority() ) );
+            visualizerElement.setAttribute( "type", String.valueOf( visualizer.getType() ) );
+            visualizerElement.setAttribute( "color1", String.valueOf( visualizer.getColor1() ) );
+            visualizerElement.setAttribute( "color2", String.valueOf( visualizer.getColor2() ) );
+            visualizerElement.setAttribute( "min", String.valueOf( visualizer.getMin() ) );
+            visualizerElement.setAttribute( "max", String.valueOf( visualizer.getMax() ) );
+            element.appendChild( visualizerElement );
+        }
+        if( element.hasChildNodes() )
+            parent.appendChild( element );
+    }
+
     private void createReport(ReportProperties report, Element parent)
     {
-        if (report.isDefaultReport() && report.isDefaultVisualizer())
+        if( report.isDefaultReport() && report.isDefaultVisualizer() )
             return;
-        Element element = doc.createElement( "report" );        
+        Element element = doc.createElement( "report" );
         if( report.isCustomReport() && report.getReportPath() != null )
             element.setAttribute( "customReport", report.getReportPath().toString() );
         if( report.isCustomVisualizer() && report.getVisualizerPath() != null )
             element.setAttribute( "customVisualizer", report.getVisualizerPath().toString() );
         parent.appendChild( element );
     }
-    
+
     private void createInitialCondition(InitialCondition initialCondition, Element parent)
     {
         if( initialCondition.isDefaultCondition() )
@@ -83,7 +129,7 @@ public class PhysicellModelWriter extends ModelXmlWriter
         element.setAttribute( "disableAutomatedAdhesion", String.valueOf( options.isDisableAutomatedAdhesions() ) );
         parent.appendChild( element );
     }
-    
+
     private void createDomain(DomainOptions options, Element parent)
     {
         Element element = doc.createElement( "domain" );

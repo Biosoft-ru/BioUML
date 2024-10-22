@@ -15,13 +15,9 @@ public class ColorSchemesTab extends TabularPropertiesEditor
     private MulticellEModel model;
     private Object template;
 
-    public ColorSchemesTab(MulticellEModel emodel)
+    public void explore(MulticellEModel emodel)
     {
         this.model = emodel;
-    }
-
-    public void explore(VisualizerProperties properties)
-    {
         update();
     }
 

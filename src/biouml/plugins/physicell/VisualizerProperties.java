@@ -10,8 +10,6 @@ public class VisualizerProperties extends Option
 
     public void VisualizerProperties()
     {
-        properties = new CellDefinitionVisualizerProperties[1];
-        properties[0] = new CellDefinitionVisualizerProperties();
     }
     
     public void setEModel(MulticellEModel emodel)
@@ -45,9 +43,14 @@ public class VisualizerProperties extends Option
      */
     public void addVisualizer()
     {
+        addVisualizer( new CellDefinitionVisualizerProperties());
+    }
+    
+    public void addVisualizer(CellDefinitionVisualizerProperties visualizer)
+    {
         int l = properties.length;
         CellDefinitionVisualizerProperties[] newVisualizer = new CellDefinitionVisualizerProperties[l + 1];
-        newVisualizer[l] = new CellDefinitionVisualizerProperties();
+        newVisualizer[l] = visualizer;
         System.arraycopy( properties, 0, newVisualizer, 0, l );
         this.setProperties( newVisualizer );
     }

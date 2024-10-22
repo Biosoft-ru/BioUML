@@ -173,12 +173,14 @@ public class CellDefinitionVisualizerProperties extends Option
             double signal = getSignal( cell );
             if( signal >= max )
                 return getScheme( color1 );
+            return null;
         }
         else if( type.equals( SMALLER_THAN_MIN ) )
         {
             double signal = getSignal( cell );
             if( signal <= min )
                 return getScheme( color1 );
+            return null;
         }
         return null;
     }

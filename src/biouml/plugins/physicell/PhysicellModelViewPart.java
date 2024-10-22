@@ -44,8 +44,9 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private PropertyInspector initialConditionInspector = new PropertyInspector();
     private PropertyInspector reportInspector = new PropertyInspectorEx();
     private PropertyInspector optionsInspector = new PropertyInspector();
-    private VisualizerTab visualizerTab;
-    private ColorSchemesTab colorSchemeTab;
+    private VisualizerTab visualizerTab = new VisualizerTab();
+    private ColorSchemesTab colorSchemeTab = new ColorSchemesTab();
+
     private Action[] actions;
 
     public PhysicellModelViewPart()
@@ -66,8 +67,6 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
 
     private void initTabbedPane(MulticellEModel emodel)
     {
-        visualizerTab = new VisualizerTab( emodel );
-        colorSchemeTab = new ColorSchemesTab( emodel );
         tabbedPane.removeAll();
         tabbedPane.addTab( "Domain", domainInspector );
         tabbedPane.addTab( "Substrates", new SubstrateViewPart( emodel ) );
@@ -110,6 +109,8 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         initialConditionInspector.explore( emodel.getInitialCondition() );
         reportInspector.explore( emodel.getReportProperties() );
         optionsInspector.explore( emodel.getOptions() );
+        visualizerTab.explore( emodel.getVisualizerProperties() );
+        colorSchemeTab.explore( emodel );
         initTabbedPane( emodel );
     }
 
@@ -351,7 +352,7 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            //            visualizerTab.removeSelectedVisualizer();
+            colorSchemeTab.removeSelectedVisualizer();
             update();
         }
     }

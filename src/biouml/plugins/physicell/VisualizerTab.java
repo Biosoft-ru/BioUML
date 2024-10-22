@@ -15,10 +15,9 @@ public class VisualizerTab extends TabularPropertiesEditor
     private VisualizerProperties properties;
     private Object template;
 
-    public VisualizerTab(MulticellEModel emodel)
+    public VisualizerTab()
     {
-        this.properties = new VisualizerProperties();
-        this.properties.setEModel( emodel );
+//        this.properties = emodel.getVisualizerProperties();
     }
 
     public void explore(VisualizerProperties properties)

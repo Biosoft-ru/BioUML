@@ -48,13 +48,19 @@ public class MulticellEModel extends EModelRoleSupport
         this.schemes = schemes;
     }
 
-    public void addColorScheme()
+    public void addColorScheme(ColorScheme scheme)
     {
         int l = schemes.length;
         ColorScheme[] newSchemes = new ColorScheme[l + 1];
-        newSchemes[l] = new ColorScheme(String.valueOf( l ));
+        newSchemes[l] = scheme;
         System.arraycopy( schemes, 0, newSchemes, 0, l );
         setColorSchemes( newSchemes );
+    }
+    
+    public void addColorScheme()
+    {
+        int l = schemes.length;
+        addColorScheme( new ColorScheme(String.valueOf( l )));
     }
     
     public void removeColorScheme(int index)
