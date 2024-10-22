@@ -721,7 +721,10 @@ public class SbgnSemanticController extends CompositeSemanticController implemen
     @Override
     public String validateName(String name)
     {
-        return SbmlSupport.castStringToSId(name);
+        String result = SbmlSupport.castStringToSId( name );
+        if( name.startsWith( "$$" ) )
+            result = "$$" + result;
+        return name;
     }
 
     @Override
