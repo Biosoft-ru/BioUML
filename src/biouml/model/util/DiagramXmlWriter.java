@@ -382,6 +382,11 @@ public class DiagramXmlWriter extends DiagramXmlSupport implements DiagramWriter
     {
         this.stream = stream;
     }
+    
+    public void setStream(OutputStream stream)
+    {
+        this.stream = stream;
+    }
 
     /**
      * This constructor is used to store Diagram object to XML Element

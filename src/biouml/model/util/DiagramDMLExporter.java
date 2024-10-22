@@ -31,7 +31,8 @@ public class DiagramDMLExporter extends DiagramExporter
     {
         try (FileOutputStream fos = new FileOutputStream( file ))
         {
-            DiagramXmlWriter writer = new DiagramXmlWriter( fos );
+            DiagramXmlWriter writer = diagram.getType().getDiagramWriter();
+            writer.setStream( fos );
             writer.setReplacements( newPaths );
             writer.write( diagram );
         }
