@@ -29,6 +29,7 @@ public class ColorScheme
         this.name = name;
         this.color = color;
         this.borderColor = borderColor;
+        this.coreColor = coreColor;
         this.coreBorderColor = coreBorderColor;
     }
 
