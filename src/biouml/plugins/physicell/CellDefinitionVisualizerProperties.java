@@ -214,6 +214,7 @@ public class CellDefinitionVisualizerProperties extends Option
         result.setMax( max );
         result.setMin( min );
         result.setPriority( priority );
+        result.setSignal( signal );
         return result;
     }
 }
