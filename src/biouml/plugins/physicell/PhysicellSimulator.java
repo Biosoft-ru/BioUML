@@ -125,7 +125,7 @@ public class PhysicellSimulator implements Simulator
         if( !this.model.isInit() )
             this.model.init();
 
-        int nums = String.valueOf( Math.round( options.getFinalTime()) ).length();
+        int nums = String.valueOf( Math.round( options.getFinalTime()) ).length()+1;
         format = "%0" + nums + "d";
 
         saveAllResults( this.model );
