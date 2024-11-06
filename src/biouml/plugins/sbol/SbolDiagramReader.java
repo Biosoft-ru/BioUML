@@ -46,8 +46,17 @@ public class SbolDiagramReader
         Set<ComponentDefinition> components = doc.getComponentDefinitions();
         for ( ComponentDefinition cd : components )
         {
-            Node compNode = new Node(diagram, new SbolBase(cd));
-            diagram.put(compNode);
+            SbolBase base = new SbolBase(cd);
+            Node node = new Node(diagram, base);
+            node.setUseCustomImage(true);
+            String icon = SbolUtil.getSbolImagePath(cd);
+            //TODO: correct image path
+            node.getAttributes()
+                    .add(new DynamicProperty("node-image", String.class, "biouml.plugins.sbol:biouml/plugins/sbol/resources/" + icon + ".png"));
+            //.add(new DynamicProperty("node-image", String.class,
+            //       SbolDiagramReader.class.getResource("resources/" + icon + ".png").toString()));
+            diagram.put(node);
         }
     }
+
 }

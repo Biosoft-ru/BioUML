@@ -13,6 +13,11 @@
 			 />
 	</extension>
 	
+	<extension point="ru.biosoft.access.transformer">
+      <transformer name="SBOL diagram" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.sbol.SbolDiagramTransformer" />
+    </extension>
+	
 	 <!--extension id="SbolExporter" point="ru.biosoft.access.export">
 		<export
 		    diagramType="biouml.plugins.physicell.PhysicellDiagramType" 
