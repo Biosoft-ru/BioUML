@@ -44,7 +44,7 @@ public class SbolImporter implements DataElementImporter
             else
             {
                 String lcname = file.getName().toLowerCase();
-                if ( lcname.endsWith(".rdf") || lcname.endsWith(".ttl") || lcname.endsWith(".nt") || lcname.endsWith(".jsonld") || lcname.endsWith(".rj") )
+                if ( lcname.endsWith(".sbol") || lcname.endsWith(".rdf") || lcname.endsWith(".ttl") || lcname.endsWith(".nt") || lcname.endsWith(".jsonld") || lcname.endsWith(".rj") )
                     return ACCEPT_HIGHEST_PRIORITY;
                 else if ( lcname.endsWith(".xml") )
                     return ACCEPT_MEDIUM_PRIORITY;
