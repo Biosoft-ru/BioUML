@@ -1,6 +1,7 @@
 package biouml.plugins.sbol;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Set;
 
 import org.sbolstandard.core2.ComponentDefinition;
@@ -50,11 +51,7 @@ public class SbolDiagramReader
             Node node = new Node(diagram, base);
             node.setUseCustomImage(true);
             String icon = SbolUtil.getSbolImagePath(cd);
-            //TODO: correct image path
-            node.getAttributes()
-                    .add(new DynamicProperty("node-image", String.class, "biouml.plugins.sbol:biouml/plugins/sbol/resources/" + icon + ".png"));
-            //.add(new DynamicProperty("node-image", String.class,
-            //       SbolDiagramReader.class.getResource("resources/" + icon + ".png").toString()));
+            node.getAttributes().add(new DynamicProperty("node-image", URL.class, SbolDiagramReader.class.getResource("resources/" + icon + ".png")));
             diagram.put(node);
         }
     }

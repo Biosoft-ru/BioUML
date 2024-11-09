@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 
 import javax.swing.ImageIcon;
 
@@ -11,7 +12,7 @@ import biouml.model.DefaultDiagramViewBuilder;
 import biouml.model.Node;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.ImageView;
-import ru.biosoft.util.ApplicationUtils;
+import ru.biosoft.util.IconUtils;
 
 public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 {
@@ -23,9 +24,9 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         Image image = null;
         //try to load buffered image from repository
-        String imgPath = node.getAttributes().getValueAsString("node-image");
+        URL imgPath = (URL) node.getAttributes().getValue("node-image");
         Dimension size = node.getShapeSize();
-        ImageIcon icon = ApplicationUtils.getImageIcon(imgPath);
+        ImageIcon icon = IconUtils.getImageIcon(imgPath);
         if ( icon != null )
         {
             image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -38,7 +39,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
             return null;
 
         ImageView imageView = new ImageView(image, node.getLocation().x, node.getLocation().y, size.width, size.height);
-        imageView.setPath(imgPath);
+        imageView.setPath(imgPath.toString());
 
         cView = new CompositeView();
         cView.add(imageView);
