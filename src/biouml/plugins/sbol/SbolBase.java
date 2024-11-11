@@ -17,6 +17,11 @@ public class SbolBase implements Base
     {
         sbolObject = so;
     }
+    
+    public void setSbolObject(Identified id)
+    {
+        this.sbolObject = id;
+    }
 
     @Override
     public String getName()
