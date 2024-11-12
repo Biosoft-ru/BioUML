@@ -127,6 +127,10 @@ public class Backbone extends SbolBase implements InitialElementProperties
         Compartment result = new Compartment( compartment, this );
         result.setLocation( location );
         compartment.put( result );
+        
+        if( viewPane != null )
+            viewPane.completeTransaction();
+
         return new DiagramElementGroup( result );
     }
 
