@@ -23,30 +23,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         boolean isNotificationEnabled = parent.isNotificationEnabled();
         parent.setNotificationEnabled( isNotificationEnabled );
-        //
-        //            if( PhysicellConstants.TYPE_SECRETION.equals( type ) )
-        //            {
-        //                new CreateEdgeAction().createEdge( pt, viewEditor, new SecretionCreator() );
-        //                return null;
-        //            }
-        //            if( PhysicellConstants.TYPE_CHEMOTAXIS.equals( type ) )
-        //            {
-        //                new CreateEdgeAction().createEdge( pt, viewEditor, new ChemotaxisCreator() );
-        //                return null;
-        //            }
-        //            if( PhysicellConstants.TYPE_INTERACTION.equals( type ) )
-        //            {
-        //                new CreateEdgeAction().createEdge( pt, viewEditor, new InteractionCreator() );
-        //                return null;
-        //            }
-        //            if( PhysicellConstants.TYPE_TRANSFORMATION.equals( type ) )
-        //            {
-        //                new CreateEdgeAction().createEdge( pt, viewEditor, new TransformationCreator() );
-        //                return null;
-        //            }
-        //            else if( Type.TYPE_NOTE.equals( type ) )
-        //                return super.createInstance( parent, type, pt, viewEditor );
-        //
+
         try
         {
             Object properties = getPropertiesByType( parent, type, pt );
@@ -74,6 +51,8 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         if (Backbone.class.equals( type ))
             return new Backbone();
+        else if (SequenceFeature.class.equals( type ))
+            return new SequenceFeature();
         //            Diagram diagram = Diagram.getDiagram( compartment );
         //            if( PhysicellConstants.TYPE_CELL_DEFINITION.equals( type ) )
         //                return new CellDefinitionProperties( DefaultSemanticController.generateUniqueName( diagram, "CellDefinition" ) );
@@ -87,7 +66,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     @Override
     public boolean isResizable(DiagramElement diagramElement)
     {
-        return false;
+        return diagramElement instanceof Compartment;
     }
 
     @Override

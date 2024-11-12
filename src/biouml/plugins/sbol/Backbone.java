@@ -1,5 +1,6 @@
 package biouml.plugins.sbol;
 
+import java.awt.Dimension;
 import java.awt.Point;
 import java.net.URI;
 
@@ -37,8 +38,8 @@ public class Backbone extends SbolBase implements InitialElementProperties
     private String topologyType = "Linear";
     private String type = "DNA";
     private String role = "Sequence feature";
-    private String name;
-    private String title;
+    private String name = "Backbone";
+    private String title = "Backbone";
 
     @Override
     public String getName()
@@ -125,9 +126,11 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
         this.isCreated = true;
         Compartment result = new Compartment( compartment, this );
+
+        result.setShapeSize( new Dimension( 50, 50 ) );
         result.setLocation( location );
         compartment.put( result );
-        
+
         if( viewPane != null )
             viewPane.completeTransaction();
 
