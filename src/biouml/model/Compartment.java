@@ -583,11 +583,11 @@ public class Compartment extends Node implements DataCollection<DiagramElement>
             DiagramType type = Diagram.getDiagram( compartment ).getType();
 
             // clone internal nodes
-            stream(Node.class).map( node -> node.clone( compartment, node.getName(), type.needCloneKernel( node.getKernel() ) ) )
+            stream(Node.class).map( node -> node.clone( compartment, node.getName(), type != null? type.needCloneKernel( node.getKernel()): false ) )
                     .forEach( compartment::put );
 
             // clone internal edges
-            stream( Edge.class ).map( edge -> edge.clone( compartment, edge.getName(), type.needCloneKernel( edge.getKernel() ) ) )
+            stream( Edge.class ).map( edge -> edge.clone( compartment, edge.getName(),type != null? type.needCloneKernel( edge.getKernel() ): false ) )
                     .forEach( compartment::put );
 
             super.doClone(compartment);
