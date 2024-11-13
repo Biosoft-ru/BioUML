@@ -73,7 +73,7 @@ public class SbolUtil
         dnaRegionToImage = Collections.unmodifiableMap(aMap);
     }
     
-    private static final Map<String, URI> featurTypeToURI;
+    private static final Map<String, URI> featurRoleToURI;
 
     static
     {
@@ -112,17 +112,17 @@ public class SbolUtil
         bMap.put("Origin of transfer", so.getURIbyId("SO:0000724"));
         bMap.put("Protease site", so.getURIbyId("SO:0001956"));
 
-        featurTypeToURI = Collections.unmodifiableMap(bMap);
+        featurRoleToURI = Collections.unmodifiableMap(bMap);
     }
     
     public static URI getURIByRole(String name)
     {
-        return featurTypeToURI.get( name );
+        return featurRoleToURI.get( name );
     }
     
-    public static String[] getFeatureTypes()
+    public static String[] getFeatureRoles()
     {
-        return featurTypeToURI.keySet().toArray( String[]::new );
+        return featurRoleToURI.keySet().stream().sorted().toArray( String[]::new );
     }
 
     //private static OWLOntology ontology = null;

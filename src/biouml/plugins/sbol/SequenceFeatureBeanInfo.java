@@ -15,7 +15,7 @@ public class SequenceFeatureBeanInfo extends BeanInfoEx2<SequenceFeature>
         addReadOnly( "name", "isCreated" );
         add( "title" );
         addWithTags( "type", Backbone.types);
-        addWithTags( "role", SbolUtil.getFeatureTypes() );
+        addWithTags( "role", SbolUtil.getFeatureRoles() );
         add("private");
     }
 }

@@ -11,6 +11,7 @@ import org.sbolstandard.core2.SBOLDocument;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
+import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
@@ -112,6 +113,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
+        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( doc != null && doc instanceof SBOLDocument )
         {

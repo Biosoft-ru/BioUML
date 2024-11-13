@@ -9,9 +9,11 @@ import com.developmentontheedge.application.Application;
 
 import biouml.model.Compartment;
 import biouml.model.DefaultSemanticController;
+import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
+import biouml.standard.type.Base;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.PropertiesDialog;
 
@@ -47,19 +49,30 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     }
 
     @Override
+    public boolean canAccept(Compartment compartment, DiagramElement de)
+    {
+        Base deBase = de.getKernel();
+        Base compartmentBase = compartment.getKernel();
+
+        if( deBase instanceof SequenceFeature )
+        {
+            return compartmentBase instanceof Backbone;
+        }
+        else if( deBase instanceof Backbone )
+        {
+            return compartment instanceof Diagram;
+        }
+
+        return false;
+    }
+
+    @Override
     public Object getPropertiesByType(Compartment compartment, Object type, Point point)
     {
-        if (Backbone.class.equals( type ))
+        if( Backbone.class.equals( type ) )
             return new Backbone();
-        else if (SequenceFeature.class.equals( type ))
+        else if( SequenceFeature.class.equals( type ) )
             return new SequenceFeature();
-        //            Diagram diagram = Diagram.getDiagram( compartment );
-        //            if( PhysicellConstants.TYPE_CELL_DEFINITION.equals( type ) )
-        //                return new CellDefinitionProperties( DefaultSemanticController.generateUniqueName( diagram, "CellDefinition" ) );
-        //            else if( PhysicellConstants.TYPE_SUBSTRATE.equals( type ) )
-        //                return new SubstrateProperties( DefaultSemanticController.generateUniqueName( diagram, "Substrate" ) );
-        //            else if( PhysicellConstants.TYPE_EVENT.equals( type ) )
-        //                return new EventProperties( DefaultSemanticController.generateUniqueName( diagram, "Event" ) );
         return null;
     }
 
