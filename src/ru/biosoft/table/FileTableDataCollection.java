@@ -42,7 +42,7 @@ public class FileTableDataCollection extends StandardTableDataCollection
     /**
      * Max size size for not indexed collection
      */
-    public static final int SIZE_LIMIT = 10 * 1024 * 1024;
+    public static final int SIZE_LIMIT = 100 * 1024 * 1024;
 
     /**
      * Indicates when use BTreeIndex
@@ -90,13 +90,14 @@ public class FileTableDataCollection extends StandardTableDataCollection
             if( useIndex )
             {
                 //init indexed collection
-                loadMetaInfoFromFile(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
                 properties.put(EntryCollection.BLOCK_START_INDEXED_PROPERTY, TableDataTagCommand.DATA_TAG);
                 properties.put(EntryCollection.BLOCK_END_INDEXED_PROPERTY, "//");
                 properties.put(EntryCollection.ENTRY_ID_PROPERTY, "");
                 properties.put(EntryCollection.ENTRY_START_PROPERTY, "");
                 properties.put(EntryCollection.ENTRY_END_PROPERTY, "");
                 indexedCollection = new IndexedCollection(parent, properties, file);
+                loadMetaInfoFromFile(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+
             }
             else
             {
@@ -231,9 +232,10 @@ public class FileTableDataCollection extends StandardTableDataCollection
     {
         if( useIndex )
         {
-            throw new UnsupportedOperationException("sort method is unsupported yet for indexed tables");
+            //throw new UnsupportedOperationException("sort method is unsupported yet for indexed tables");
         }
-        super.sortTable(columnNumber, dir);
+        else
+            super.sortTable(columnNumber, dir);
     }
 
     @Override
