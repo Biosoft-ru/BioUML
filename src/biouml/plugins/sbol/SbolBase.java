@@ -4,11 +4,12 @@ package biouml.plugins.sbol;
 import org.sbolstandard.core2.Identified;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
+import com.developmentontheedge.beans.Option;
 
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
 
-public class SbolBase implements Base
+public class SbolBase extends Option implements Base 
 {
 
     private Identified sbolObject = null;
@@ -16,6 +17,11 @@ public class SbolBase implements Base
     public SbolBase(Identified so)
     {
         sbolObject = so;
+    }
+    
+    public void setSbolObject(Identified id)
+    {
+        this.sbolObject = id;
     }
 
     @Override

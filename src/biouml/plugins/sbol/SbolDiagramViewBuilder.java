@@ -63,18 +63,23 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
     public boolean createCompartmentCoreView(CompositeView container, Compartment compartment, DiagramViewOptions options, Graphics g)
     {
         Dimension shapeSize = compartment.getShapeSize();
-        BoxView shapeView = new BoxView(null, getBrush(compartment, new Brush(Color.yellow)),
+        BoxView shapeView = new BoxView(null, getBrush(compartment, new Brush(Color.yellow.brighter())),
                 new Rectangle(0, 0, shapeSize.width, shapeSize.height));
         shapeView.setLocation(compartment.getLocation());
-        container.add(shapeView);
+//        container.add(shapeView);
         // create compartment shape view
         Pen boldPen = new Pen(2, Color.black);
-        LineView compView = new LineView(boldPen, 0, 0, (float) compartment.getShapeSize().getWidth(), 0);
-        container.add(compView, CompositeView.X_CC | CompositeView.Y_BB, new Point(0, 5));
-        container.setModel(compartment);
+        CompositeView view = new CompositeView();
+        LineView lineView = new LineView(boldPen, 0, 0, (float) compartment.getShapeSize().getWidth(), 0);
+        
+        view.add( shapeView );
+        view.add( lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point(0, 5));
+        
+        container.add(view);
+        view.setModel(compartment);
 
-        compView.setModel(compartment);
-        compView.setActive(true);
+//        compView.setModel(compartment);
+        view.setActive(true);
         return false;
     }
 

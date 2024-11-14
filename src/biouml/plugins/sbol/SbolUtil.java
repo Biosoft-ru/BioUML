@@ -17,7 +17,8 @@ public class SbolUtil
     public static final String SBOL_DOCUMENT_PROPERTY = "sbol_document";
 
     private static final Map<URI, String> dnaRegionToImage;
-
+    private static SequenceOntology so = new SequenceOntology();
+    
     static
     {
         Map<URI, String> aMap = new HashMap<>();
@@ -70,6 +71,58 @@ public class SbolUtil
         aMap.put(so.getURIbyId("SO:0001956"), "protease-site");
 
         dnaRegionToImage = Collections.unmodifiableMap(aMap);
+    }
+    
+    private static final Map<String, URI> featurRoleToURI;
+
+    static
+    {
+        Map<String, URI> bMap = new HashMap<>();
+        bMap.put("Promoter", SequenceOntology.PROMOTER);
+        bMap.put("CDS",SequenceOntology.CDS);
+        bMap.put("Terminator", SequenceOntology.TERMINATOR);
+        bMap.put("Insulator", SequenceOntology.INSULATOR);
+        bMap.put("Origin of replication", SequenceOntology.ORIGIN_OF_REPLICATION);
+        bMap.put("Primer binding site", SequenceOntology.PRIMER_BINDING_SITE);
+        bMap.put("Ribosome entry site", SequenceOntology.RIBOSOME_ENTRY_SITE);
+        bMap.put("Nuclease site", SequenceOntology.RESTRICTION_ENZYME_RECOGNITION_SITE);
+        bMap.put("Engineered region", SequenceOntology.ENGINEERED_REGION);
+        bMap.put("Unknown", SequenceOntology.SEQUENCE_FEATURE);
+      
+        bMap.put("NCRNA",so.getURIbyId("SO:0001263"));
+        bMap.put("Blunt restriction site", so.getURIbyId("SO:0001691"));
+        bMap.put("Five prime sticky resitriction site", so.getURIbyId("SO:0001975"));
+        bMap.put("Location protein", so.getURIbyId("SO:0001237"));
+        bMap.put("Location DNA",so.getURIbyId("SO:0001236"));
+        bMap.put("Location RNA",so.getURIbyId("SO:0000699"));
+        bMap.put("Poly A",so.getURIbyId("SO:0000553"));
+        bMap.put("Protein stability element", so.getURIbyId("SO:0001955"));
+        bMap.put("RNA stability element", so.getURIbyId("SO:0001979"));
+        bMap.put("Assembly scar", so.getURIbyId("SO:0001953"));
+        bMap.put("Operator", so.getURIbyId("SO:0000409"));
+        bMap.put("Aptamer", so.getURIbyId("SO:0000031"));
+        bMap.put("transcription end", so.getURIbyId("SO:0000616"));
+        bMap.put("Riboneclease site", so.getURIbyId("SO:0001977"));
+        bMap.put("Translation end", so.getURIbyId("SO:0000327"));
+        bMap.put("Signature", so.getURIbyId("SO:0001978"));
+        bMap.put("Five prime overhang", so.getURIbyId("SO:0001932"));
+        bMap.put("Three prime sticky restriction site", so.getURIbyId("SO:0001976"));
+        bMap.put("Specific recombination site",so.getURIbyId("SO:0000299"));
+        bMap.put("Three prime overhang", so.getURIbyId("SO:0001933"));
+        bMap.put("Origin of transfer", so.getURIbyId("SO:0000724"));
+        bMap.put("Protease site", so.getURIbyId("SO:0001956"));
+
+        featurRoleToURI = Collections.unmodifiableMap(bMap);
+    }
+    
+    public static URI getURIByRole(String name)
+    {
+        return featurRoleToURI.get( name );
+    }
+    
+    public static String[] getFeatureRoles()
+    {
+        return featurRoleToURI.keySet().stream().sorted().toArray( String[]::new );
     }
 
     //private static OWLOntology ontology = null;
