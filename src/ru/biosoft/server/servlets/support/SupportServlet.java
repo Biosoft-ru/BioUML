@@ -521,68 +521,71 @@ public class SupportServlet extends AbstractJSONServlet
                         DataCollection dataCollection = (DataCollection)research.get(Module.DATA);
                         research = DataCollectionUtils.fetchPrimaryCollectionPrivileged(research);
                         String localPath = research.getInfo().getProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY);
-                        dataCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged(dataCollection);
-                        String jdbcUrl = dataCollection.getInfo().getProperty(SqlDataCollection.JDBC_URL_PROPERTY);
+                        String dbName = null;
+                        if ( dataCollection != null )
+                        {
+                            dataCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged(dataCollection);
+                            String jdbcUrl = dataCollection.getInfo().getProperty(SqlDataCollection.JDBC_URL_PROPERTY);
 
-                        String dbName = jdbcUrl;
-                        int ind = jdbcUrl.lastIndexOf('/');
-                        if( ind != -1 )
-                        {
-                            dbName = jdbcUrl.substring(ind + 1);
-                        }
-                        ind = dbName.lastIndexOf('?');
-                        if( ind != -1 )
-                        {
-                            dbName = dbName.substring(0, ind);
-                        }
-
-                        try
-                        {
-                            //make a backup before removing
-                            String backupAddr = Application.getGlobalValue("BackupFolder");
-                            if( !backupAddr.equals("BackupFolder") )
+                            dbName = jdbcUrl;
+                            int ind = jdbcUrl.lastIndexOf('/');
+                            if ( ind != -1 )
                             {
-                                File backupFolder = new File(backupAddr);
-                                if( !backupFolder.exists() )
-                                {
-                                    backupFolder.mkdirs();
-                                }
-                                File src = new File(localPath);
-                                String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
-                                File dst = new File(backupFolder, date + "_" + src.getName());
+                                dbName = jdbcUrl.substring(ind + 1);
+                            }
+                            ind = dbName.lastIndexOf('?');
+                            if ( ind != -1 )
+                            {
+                                dbName = dbName.substring(0, ind);
+                            }
 
-                                if( "Linux".equals( System.getProperty( "os.name" ) ) )
+                            try
+                            {
+                                //make a backup before removing
+                                String backupAddr = Application.getGlobalValue("BackupFolder");
+                                if ( !backupAddr.equals("BackupFolder") )
                                 {
-                                    log.info( "Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'..." );
-                                    ProcessBuilder processBuilder = new ProcessBuilder();
-                                    processBuilder.command( "mv", localPath, dst.getAbsolutePath() ); 
-                                    Process proc = processBuilder.start();
-                                    proc.waitFor(); 
-                                }
-                                else
-                                { 
-                                    ApplicationUtils.copyFolder(dst, src);
-                                }
+                                    File backupFolder = new File(backupAddr);
+                                    if ( !backupFolder.exists() )
+                                    {
+                                        backupFolder.mkdirs();
+                                    }
+                                    File src = new File(localPath);
+                                    String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
+                                    File dst = new File(backupFolder, date + "_" + src.getName());
 
-                                File dumpPath = new File(dst, "_dump.sql");
-                                List<String> cmd = new ArrayList<>();
-                                cmd.add("mysqldump");
-                                String user = Application.getGlobalValue( "BackupUser", "root" );
-                                String password = Application.getGlobalValue( "BackupPassword", "root" );
-                                cmd.add( "-u" + user );
-                                cmd.add( "-p" + password );
-                                cmd.add(dbName);
-                                Runtime rt = Runtime.getRuntime();
-                                String[] cmdArray = cmd.toArray(new String[cmd.size()]);
-                                Process proc = rt.exec(cmdArray);
-                                ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
+                                    if ( "Linux".equals(System.getProperty("os.name")) )
+                                    {
+                                        log.info("Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
+                                        ProcessBuilder processBuilder = new ProcessBuilder();
+                                        processBuilder.command("mv", localPath, dst.getAbsolutePath());
+                                        Process proc = processBuilder.start();
+                                        proc.waitFor();
+                                    }
+                                    else
+                                    {
+                                        ApplicationUtils.copyFolder(dst, src);
+                                    }
+
+                                    File dumpPath = new File(dst, "_dump.sql");
+                                    List<String> cmd = new ArrayList<>();
+                                    cmd.add("mysqldump");
+                                    String user = Application.getGlobalValue("BackupUser", "root");
+                                    String password = Application.getGlobalValue("BackupPassword", "root");
+                                    cmd.add("-u" + user);
+                                    cmd.add("-p" + password);
+                                    cmd.add(dbName);
+                                    Runtime rt = Runtime.getRuntime();
+                                    String[] cmdArray = cmd.toArray(new String[cmd.size()]);
+                                    Process proc = rt.exec(cmdArray);
+                                    ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                log.log(Level.SEVERE, "cannot create backup copy", e);
                             }
                         }
-                        catch( Exception e )
-                        {
-                            log.log(Level.SEVERE, "cannot create backup copy", e);
-                        }
-
                         parentDC.remove(projectName);
                         //remove all files manually
                         if( localPath != null )
@@ -591,8 +594,11 @@ public class SupportServlet extends AbstractJSONServlet
                             ApplicationUtils.removeDir(file);
                         }
 
-                        Connection rootConnection = GlobalDatabaseManager.getDatabaseConnection();
-                        SqlUtil.execute( rootConnection, "DROP DATABASE "+dbName );
+                        if ( dbName != null )
+                        {
+                            Connection rootConnection = GlobalDatabaseManager.getDatabaseConnection();
+                            SqlUtil.execute(rootConnection, "DROP DATABASE " + dbName);
+                        }
                         return null;
                     }
                 });
