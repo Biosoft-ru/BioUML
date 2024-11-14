@@ -15,9 +15,9 @@ import biouml.model.DiagramElementGroup;
 import biouml.model.DiagramType;
 import biouml.model.ModelDefinition;
 import biouml.model.SubDiagram;
-import biouml.standard.diagram.Bus;
 import biouml.standard.diagram.SimpleBusProperties;
 import biouml.standard.type.DiagramInfo;
+import biouml.standard.type.Stub;
 
 /** @author Ilya */
 public class SbgnCompositeSemanticController extends SbgnSemanticController
@@ -143,7 +143,7 @@ public class SbgnCompositeSemanticController extends SbgnSemanticController
     {
         if( type.equals( SubDiagram.class.getName() ) )
             return new SbgnSubDiagramProperties( Diagram.getDiagram( compartment ) );
-        else if (type.equals( Bus.class ))
+        else if (type.equals( Stub.Bus.class.getName() ) || type instanceof Class && Stub.Bus.class.isAssignableFrom( (Class<?>)type ))
             return new SimpleBusProperties( Diagram.getDiagram( compartment ) );
         if( ModelDefinition.class.equals(type) )
             return new ModelDefinitionProperties(generateUniqueNodeName(Diagram.getDiagram(compartment), Type.TYPE_MODEL_DEFINITION));
