@@ -173,22 +173,13 @@ public class SbolUtil
         return "unspecified-glyph";
     }
 
-    //    private static synchronized void initOntology()
-    //    {
-    //        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-    //        try
-    //        {
-    //            ontology = manager.loadOntologyFromPhysicalURI(SbolUtil.class.getResource("resources/so.owl").toURI());
-    //        }
-    //        catch (OWLOntologyCreationException e)
-    //        {
-    //            // TODO Auto-generated catch block
-    //            e.printStackTrace();
-    //        }
-    //        catch (URISyntaxException e)
-    //        {
-    //            // TODO Auto-generated catch block
-    //            e.printStackTrace();
-    //        }
-    //    }
+    public static SbolBase getKernelByComponentDefinition(ComponentDefinition cd)
+    {
+        if ( cd.containsType(ComponentDefinition.DNA_REGION) && cd.getComponents().size() > 0 )
+        {
+            return new Backbone(cd);
+        }
+        return new SbolBase(cd);
+    }
+
 }
