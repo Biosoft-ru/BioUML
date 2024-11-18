@@ -89,6 +89,8 @@ public class SbolDiagramReader
         }
     }
 
+    private static int xSize = 48, ySize = 52;
+
     private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, SbolBase> kernels)
     {
         Set<Component> components = cd.getComponents();
@@ -96,7 +98,7 @@ public class SbolDiagramReader
         {
             //Fill as compartment
             Compartment compartment = new Compartment(diagram, kernels.get(cd.getName()));
-            compartment.setShapeSize(new Dimension(48 * components.size() + 10, 48 + 10));
+            compartment.setShapeSize(new Dimension(xSize * components.size() + 10, ySize));
             int lX = 0, lY = 20;
             Point location = new Point(lX, lY);
             compartment.setLocation(location);
@@ -113,7 +115,7 @@ public class SbolDiagramReader
                 {
                     Node node = new Node(diagram, base);
                     node.setUseCustomImage(true);
-                    Point nodeLocation = new Point(lX + 48 * (i++), lY + 5);
+                    Point nodeLocation = new Point(lX + xSize * (i++), lY);
                     node.setLocation(nodeLocation);
                     String icon = SbolUtil.getSbolImagePath(cdNode);
                     node.getAttributes()
