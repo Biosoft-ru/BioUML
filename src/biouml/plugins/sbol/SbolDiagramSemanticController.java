@@ -62,6 +62,10 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             return compartment instanceof Diagram;
         }
+        else if( deBase instanceof MolecularSpecies )
+        {
+            return compartment instanceof Diagram;
+        }
 
         return false;
     }
@@ -69,17 +73,24 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     @Override
     public Object getPropertiesByType(Compartment compartment, Object type, Point point)
     {
-        if( Backbone.class.equals( type ) )
-            return new Backbone();
-        else if( SequenceFeature.class.equals( type ) )
-            return new SequenceFeature();
+        try
+        {
+            if( type instanceof Class )
+            {
+                return ( (Class)type ).getConstructor().newInstance();
+            }
+        }
+        catch( Exception ex )
+        {
+
+        }
         return null;
     }
 
     @Override
     public boolean isResizable(DiagramElement diagramElement)
     {
-        return diagramElement instanceof Compartment;
+        return true;
     }
 
     @Override
