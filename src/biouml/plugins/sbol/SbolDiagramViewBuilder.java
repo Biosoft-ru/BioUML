@@ -96,10 +96,10 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         LineView lineView = new LineView( boldPen, 0, 0, (float)compartment.getShapeSize().getWidth(), 0 );
 
         view.add( shapeView );
-        view.add( lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point( 0, 5 ) );
-
-        container.add( view );
-        view.setModel( compartment );
+        view.add(lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point(0, 14));
+        
+        container.add(view);
+        view.setModel(compartment);
 
         view.setActive( true );
         return false;
