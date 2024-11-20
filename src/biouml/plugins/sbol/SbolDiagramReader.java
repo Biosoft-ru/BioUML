@@ -1,6 +1,7 @@
 package biouml.plugins.sbol;
 
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.io.File;
 import java.net.URI;
@@ -16,19 +17,18 @@ import java.util.Set;
 
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
-import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.RestrictionType;
 import org.sbolstandard.core2.SBOLDocument;
 import org.sbolstandard.core2.SBOLReader;
 import org.sbolstandard.core2.SBOLValidationException;
 import org.sbolstandard.core2.SequenceConstraint;
-import org.sbolstandard.examples.Sbol2Terms.component;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
+import biouml.model.DiagramElement;
 import biouml.model.Node;
 import biouml.standard.type.DiagramInfo;
 import ru.biosoft.access.core.DataCollection;
@@ -67,7 +67,7 @@ public class SbolDiagramReader
         for ( ComponentDefinition cd : components )
         {
             SbolBase base = SbolUtil.getKernelByComponentDefinition(cd);
-            kernels.put(cd.getName(), base);
+            kernels.put(cd.getPersistentIdentity().toString(), base);
         }
         //        for ( ModuleDefinition md : mds )
         //        {
@@ -79,17 +79,28 @@ public class SbolDiagramReader
         //            }
         //        }
         parseComponentDefinitions(components, diagram, kernels);
+        arrangeDiagram(diagram, doc, kernels);
     }
 
     private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, SbolBase> kernels)
     {
+        Set<URI> subComponents = new HashSet<>();
+        cds.stream().forEach(cd -> {
+            cd.getComponents().stream().forEach(c -> {
+                subComponents.add(c.getDefinition().getPersistentIdentity());
+                return;
+            });
+            return;
+        });
         for ( ComponentDefinition cd : cds )
         {
+            if ( subComponents.contains(cd.getPersistentIdentity()) )
+                continue;
             parseComponentDefinition(cd, diagram, kernels);
         }
     }
 
-    private static int xSize = 48, ySize = 52;
+
 
     private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, SbolBase> kernels)
     {
@@ -97,29 +108,31 @@ public class SbolDiagramReader
         if ( !components.isEmpty() )
         {
             //Fill as compartment
-            Compartment compartment = new Compartment(diagram, kernels.get(cd.getName()));
+            Compartment compartment = new Compartment(diagram, kernels.get(cd.getPersistentIdentity().toString()));
             compartment.setShapeSize(new Dimension(xSize * components.size() + 10, ySize));
-            int lX = 0, lY = 20;
-            Point location = new Point(lX, lY);
-            compartment.setLocation(location);
-            int i = 0;
+
             Collection<URI> ordered = orderComponents(cd.getSequenceConstraints());
+            //TODO: check if required
             Iterator<URI> iter = ordered.iterator();
             while ( iter.hasNext() )
             //for ( Component component : components )
             {
                 Component component = cd.getComponent(iter.next());
                 ComponentDefinition cdNode = component.getDefinition();
-                SbolBase base = kernels.get(cdNode.getName());
+                SbolBase base = kernels.get(cdNode.getPersistentIdentity().toString());
                 if ( base != null )
                 {
                     Node node = new Node(diagram, base);
                     node.setUseCustomImage(true);
-                    Point nodeLocation = new Point(lX + xSize * (i++), lY);
-                    node.setLocation(nodeLocation);
+
                     String icon = SbolUtil.getSbolImagePath(cdNode);
                     node.getAttributes()
                             .add(new DynamicProperty("node-image", URL.class, SbolDiagramReader.class.getResource("resources/" + icon + ".png")));
+                    //composite node
+                    if ( !cdNode.getComponents().isEmpty() )
+                    {
+                        node.getAttributes().add(new DynamicProperty("isComposite", Boolean.class, true));
+                    }
                     compartment.put(node);
                 }
             }
@@ -156,6 +169,52 @@ public class SbolDiagramReader
             start = precedes.get(start);
         }
         return res;
+    }
+
+    public static void arrangeDiagram(Diagram diagram, SBOLDocument doc, Map<String, SbolBase> kernels)
+    {
+        Graphics g = com.developmentontheedge.application.ApplicationUtils.getGraphics();
+        diagram.setView(null);
+        diagram.getType().getDiagramViewBuilder().createDiagramView(diagram, g);
+        arrangeElements(diagram, doc.getComponentDefinitions(), kernels);
+        diagram.setView(null);
+    }
+
+    private static int xSize = 48, ySize = 52;
+
+    private static void arrangeElements(Diagram diagram, Set<ComponentDefinition> cds, Map<String, SbolBase> kernels)
+    {
+        int lY = 10;
+        for ( ComponentDefinition cd : cds )
+        {
+            Set<Component> components = cd.getComponents();
+            if ( components.isEmpty() )
+                continue;
+            DiagramElement de = diagram.findDiagramElement(kernels.get(cd.getPersistentIdentity().toString()).getName());
+            if ( de == null || !(de instanceof Compartment) )
+                continue;
+            int lX = 0;
+            Compartment compartment = (Compartment) de;
+            Point location = new Point(lX, lY);
+            compartment.setLocation(location);
+
+            Collection<URI> ordered = orderComponents(cd.getSequenceConstraints());
+            Iterator<URI> iter = ordered.iterator();
+            int i = 0;
+            while ( iter.hasNext() )
+            {
+
+                Component component = cd.getComponent(iter.next());
+                ComponentDefinition cdNode = component.getDefinition();
+                Node node = compartment.findNode(kernels.get(cdNode.getPersistentIdentity().toString()).getName());
+                if ( node != null )
+                {
+                    Point nodeLocation = new Point(lX + xSize * (i++), lY);
+                    node.setLocation(nodeLocation);
+                }
+            }
+            lY += compartment.getView().getBounds().height + 20;
+        }
     }
 
 }

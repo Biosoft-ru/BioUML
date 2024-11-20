@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.Map;
 
 import javax.swing.ImageIcon;
 
@@ -17,10 +18,12 @@ import biouml.model.DiagramViewOptions;
 import biouml.model.Node;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
+import ru.biosoft.graphics.ComplexTextView;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.ImageView;
 import ru.biosoft.graphics.LineView;
 import ru.biosoft.graphics.Pen;
+import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.IconUtils;
 
 public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
@@ -52,6 +55,20 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         cView = new CompositeView();
         cView.add(imageView);
+
+        if ( node.getAttributes().getValue("isComposite") != null )
+        {
+            URL imgCompPath = this.getClass().getResource("resources/composite.png");
+            ImageIcon iconComp = IconUtils.getImageIcon(imgCompPath);
+            Image imageComp = new BufferedImage(iconComp.getIconWidth(), iconComp.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+            imageComp.getGraphics().drawImage(iconComp.getImage(), 0, 0, null);
+            Dimension sizeComp = new Dimension(iconComp.getIconWidth(), iconComp.getIconHeight());
+            ImageView compNodeImageView = new ImageView(imageComp, node.getLocation().x, node.getLocation().y + size.height, sizeComp.width,
+                    sizeComp.height);
+            compNodeImageView.setPath(imgCompPath.toString());
+            cView.add(compNodeImageView);
+        }
+
         cView.setModel(node);
         cView.setActive(true);
         cView.setLocation(node.getLocation());
@@ -66,8 +83,6 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         BoxView shapeView = new BoxView(null, getBrush(compartment, new Brush(Color.yellow.brighter())),
                 new Rectangle(0, 0, shapeSize.width, shapeSize.height));
         shapeView.setLocation(compartment.getLocation());
-//        container.add(shapeView);
-        // create compartment shape view
         Pen boldPen = new Pen(2, Color.black);
         CompositeView view = new CompositeView();
         LineView lineView = new LineView(boldPen, 0, 0, (float) compartment.getShapeSize().getWidth(), 0);
@@ -77,10 +92,28 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         
         container.add(view);
         view.setModel(compartment);
-
-//        compView.setModel(compartment);
         view.setActive(true);
         return false;
+    }
+
+    @Override
+    protected void createNodeTitle(CompositeView view, Node node, DiagramViewOptions options, Graphics g)
+    {
+        int maxStringSize = options.getNodeTitleLimit();
+        Map<String, ColorFont> fontRegistry = options.getFontRegistry();
+        String text = node.getTitle();
+        String baseText = text;
+        int length = text.length();
+        ColorFont font = getTitleFont(node, options.getNodeTitleFont());
+        int limit = (int) Math.max(0, 48 - Math.min(options.getNodeTitleMargin().x, maxStringSize));
+        ComplexTextView titleView = new ComplexTextView(text, font, fontRegistry, ComplexTextView.TEXT_ALIGN_CENTER, maxStringSize, g);
+        while ( text.length() > 3 && (titleView.getBounds().getWidth() > limit) )
+        {
+            length--;
+            text = baseText.substring(0, length).concat("...");
+            titleView = new ComplexTextView(text, font, fontRegistry, ComplexTextView.TEXT_ALIGN_CENTER, maxStringSize, g);
+        }
+        view.add(titleView, CompositeView.X_CC | CompositeView.Y_BT, options.getNodeTitleMargin());
     }
 
 }

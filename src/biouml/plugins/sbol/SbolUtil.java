@@ -70,6 +70,8 @@ public class SbolUtil
         aMap.put(so.getURIbyId("SO:0000724"), "origin-of-transfer");
         aMap.put(so.getURIbyId("SO:0001956"), "protease-site");
 
+        aMap.put(so.getURIbyId("SO:0000288"), "engineered-region");
+
         dnaRegionToImage = Collections.unmodifiableMap(aMap);
     }
     
