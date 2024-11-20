@@ -71,6 +71,7 @@
                         <include name="@{source}/**/*.gif" />
                         <include name="@{source}/**/*.jpg" />
                         <include name="@{source}/**/*.png" />
+                        <include name="@{source}/**/*.svg" />
                         <include name="@{source}/**/*.css" />
                         <include name="@{source}/**/*.txt" />
                         <include name="@{source}/**/*.R" />

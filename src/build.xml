@@ -72,7 +72,7 @@
         <property name="GRAPH" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.graph/graph.jar" />
         <property name="JGRAPH" value="${PLUGIN_DIR}/org.jgraph.jgraph_5.1/jgraph.jar" />
         <property name="JGRAPHADDONS" value="${PLUGIN_DIR}/org.jgraph.jgraphaddons_1.0.3/jgraphaddons.jar" />
-        <property name="BATIK" value="${PLUGIN_DIR}/org.apache.batik_1.7/batik-all.jar" />
+        <property name="BATIK" value="${PLUGIN_DIR}/org.apache.batik_1.7/batik-all.jar;${PLUGIN_DIR}/org.apache.batik_1.7/xml-apis-ext.jar" />
         <property name="LUCENE" value="${PLUGIN_DIR}/org.apache.lucene_9.11.1/lucene-core-9.11.1.jar;${PLUGIN_DIR}/org.apache.lucene_9.11.1/lucene-analysis-common-9.11.1.jar;${PLUGIN_DIR}/org.apache.lucene_9.11.1/lucene-highlighter-9.11.1.jar;${PLUGIN_DIR}/org.apache.lucene_9.11.1/lucene-queryparser-9.11.1.jar;${PLUGIN_DIR}/org.apache.lucene_9.11.1/lucene-queries-9.11.1.jar;${PLUGIN_DIR}/org.apache.lucene_9.11.1/lucene-memory-9.11.1.jar" />
         <property name="TOMCAT" value="${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/bootstrap.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/catalina.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/commons-beanutils.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/commons-digester.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/commons-modeler.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/jakarta-regexp-1.3.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/jasper-compiler.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/jasper-runtime.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/mx4j-jmx.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/naming-common.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/naming-factory.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/naming-resources.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/servlet.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/servlets-common.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/servlets-default.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/servlets-invoker.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/servlets-manager.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/tomcat-coyote.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/tomcat-http11.jar;${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcat/tomcat-util.jar" />
         <property name="CERN" value="${PLUGIN_DIR}/cern.jet.random_1.3.0/colt.jar" />
@@ -217,7 +217,7 @@
             <exclude name="**/_test/*.java" />
         </javac>
         <copy todir="${OUTDIR}">
-        	<fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml">
+        	<fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.svg,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml">
         	    <exclude name="**/large/"/>
         	</fileset>
         </copy>

@@ -119,8 +119,9 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         node.setUseCustomImage( true );
         node.setLocation( location );
         String icon = SbolUtil.getSbolImagePath( cd );
+        node.setShapeSize( new Dimension(32, 14) );
         node.getAttributes()
-                .add( new DynamicProperty( "node-image", URL.class, SbolDiagramReader.class.getResource( "resources/" +  icon + ".png" ) ) );
+                .add( new DynamicProperty( "node-image", URL.class, SbolDiagramReader.class.getResource( "resources/protein.svg" )));//+  icon + ".png" ) ) );
 
         SemanticController semanticController = diagram.getType().getSemanticController();
         if( !semanticController.canAccept( compartment, node ) )
