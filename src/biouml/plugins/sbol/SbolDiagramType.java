@@ -28,7 +28,7 @@ public class SbolDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getNodeTypes()
     {
-        return new Object[] {Backbone.class, SequenceFeature.class};
+        return new Object[] {Backbone.class, SequenceFeature.class, MolecularSpecies.class};
     }
 
     @Override
