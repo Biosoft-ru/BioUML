@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementSupport;
+import ru.biosoft.access.core.DerivedDataCollection;
+import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.Repository;
 import ru.biosoft.journal.Journal;
 import biouml.model.DiagramType;
@@ -51,6 +54,17 @@ public class ResearchModuleType extends DataElementSupport implements ModuleType
             try
             {
                 DataCollection<?> journalCollection = (DataCollection<?>)module.get(JOURNAL_COLLECTION);
+                journalCollection.setNotificationEnabled(false);
+                SecurityManager.runPrivileged(() -> {
+                    DataCollection<?> primaryJournalCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged(journalCollection);
+                    primaryJournalCollection.setNotificationEnabled(false);
+                    if ( primaryJournalCollection instanceof DerivedDataCollection )
+                    {
+                        DataCollection<?> primaryJournalCollection2 = ((DerivedDataCollection) primaryJournalCollection).getPrimaryCollection();
+                        primaryJournalCollection2.setNotificationEnabled(false);
+                    }
+                    return null;
+                });
                 researchJournal = new DataCollectionJournal(journalCollection);
             }
             catch( Exception e )
