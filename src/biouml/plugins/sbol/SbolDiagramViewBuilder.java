@@ -9,13 +9,11 @@ import java.awt.Rectangle;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-
 import javax.swing.ImageIcon;
 
-import org.apache.batik.dom.svg.SVGDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -49,29 +47,35 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         //try to load buffered image from repository
         URL imgPath = (URL)node.getAttributes().getValue( "node-image" );
         Dimension size = node.getShapeSize();
-        ImageIcon icon = IconUtils.getImageIcon( imgPath );
-        int width = Math.max( icon.getIconWidth(), size.width );
-        int height = Math.max( icon.getIconHeight(), size.height );
+      
+        int width = size.width;//.max( icon.getIconWidth(), size.width );
+        int height = size.height;//Math.max( icon.getIconHeight(), size.height );
 
-        node.setShapeSize( new Dimension( width, height ) );
-        if( icon != null )
-        {
-            image = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
-            image.getGraphics().drawImage( icon.getImage(), 0, 0, width, height, null );
-        }
-        else
-            return null;
+//        node.setShapeSize( new Dimension( width, height ) );
+
 
         if( imgPath.toString().endsWith( ".svg" ) )
         {
             try
             {
-                image = this.rasterize( new File( imgPath.getFile() ) );
+                InputStream settings = getClass().getResourceAsStream( "resources/markup-cropped.svg" );
+                image = rasterize( settings, width, height );
             }
             catch( Exception ex )
             {
                 ex.printStackTrace();
             }
+        }
+        else
+        {
+            ImageIcon icon = IconUtils.getImageIcon( imgPath );
+            if( icon != null )
+            {
+                image = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
+                image.getGraphics().drawImage( icon.getImage(), 0, 0, width, height, null );
+            }
+            else
+                return null;
         }
         ImageView imageView = new ImageView( image, node.getLocation().x, node.getLocation().y, width, height );
         imageView.setPath( imgPath.toString() );
@@ -96,10 +100,10 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         LineView lineView = new LineView( boldPen, 0, 0, (float)compartment.getShapeSize().getWidth(), 0 );
 
         view.add( shapeView );
-        view.add(lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point(0, 14));
-        
-        container.add(view);
-        view.setModel(compartment);
+        view.add( lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point( 0, 14 ) );
+
+        container.add( view );
+        view.setModel( compartment );
 
         view.setActive( true );
         return false;
@@ -196,16 +200,11 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
     }
 
 
-    public static BufferedImage rasterize(File svgFile) throws IOException
+    public static BufferedImage rasterize(InputStream svgFile, int width, int height) throws IOException
     {
 
         final BufferedImage[] imagePointer = new BufferedImage[1];
 
-        // Rendering hints can't be set programatically, so
-        // we override defaults with a temporary stylesheet.
-        // These defaults emphasize quality and precision, and
-        // are more similar to the defaults of other SVG viewers.
-        // SVG documents can still override these defaults.
         String css = "svg {" + "shape-rendering: geometricPrecision;" + "text-rendering:  geometricPrecision;"
                 + "color-rendering: optimizeQuality;" + "image-rendering: optimizeQuality;" + "}";
         File cssFile = File.createTempFile( "batik-default-override-", ".css" );
@@ -213,15 +212,17 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         TranscodingHints transcoderHints = new TranscodingHints();
         transcoderHints.put( ImageTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE );
-        transcoderHints.put( ImageTranscoder.KEY_DOM_IMPLEMENTATION, SVGDOMImplementation.getDOMImplementation() );
+        transcoderHints.put( ImageTranscoder.KEY_DOM_IMPLEMENTATION, SVGDomImplementation.getDOMImplementation() );
         transcoderHints.put( ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI, SVGConstants.SVG_NAMESPACE_URI );
         transcoderHints.put( ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg" );
         transcoderHints.put( ImageTranscoder.KEY_USER_STYLESHEET_URI, cssFile.toURI().toString() );
+        transcoderHints.put( ImageTranscoder.KEY_WIDTH, (float)width );
+        transcoderHints.put( ImageTranscoder.KEY_HEIGHT, (float)height );
 
         try
         {
 
-            TranscoderInput input = new TranscoderInput( new FileInputStream( svgFile ) );
+            TranscoderInput input = new TranscoderInput( svgFile );
 
             ImageTranscoder t = new ImageTranscoder()
             {
