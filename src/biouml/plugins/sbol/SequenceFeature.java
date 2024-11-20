@@ -138,7 +138,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 
         this.isCreated = true;
 
-        int y = compartment.getLocation().y + 5;
+        int y = compartment.getLocation().y;
         int x = compartment.isEmpty() ? compartment.getLocation().x
                 : StreamEx.of( compartment.getNodes() ).mapToInt( n -> n.getLocation().x ).max().orElse( 0 ) + 48;
 
