@@ -32,6 +32,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public Backbone(Identified so)
     {
         super( so );
+        setName(so.getDisplayId());
     }
 
     private boolean isCreated = false;;
