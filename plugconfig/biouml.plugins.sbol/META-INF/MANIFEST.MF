@@ -15,5 +15,6 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.exception,
  ru.biosoft.jobcontrol,
  org.apache.batik,
+ org.apache.commons.io,
  ru.biosoft.workbench
 Export-Package: biouml.plugins.sbol
