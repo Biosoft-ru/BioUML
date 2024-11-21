@@ -5,4 +5,17 @@
 		<diagramType class="biouml.plugins.virtualcell.diagram.VirtualCellDiagramType" />
 	</extension>
 	
+	<extension id="SolverType" point="biouml.plugins.simulation.solver">
+		<solver class="biouml.plugins.virtualcell.VirtualCellSimulator"
+			displayName="Virtual Cell Solver" type="VirtualCell" />
+	</extension>
+
+	<extension id="EngineType" point="biouml.plugins.simulation.engine">
+		<engine class="biouml.plugins.virtualcell.VirtualCellSimulationEngine"
+			displayName="VirtualCell Simulation Engine"
+	        emodelType="ODE EModel"
+			priority="10"
+		/>
+	</extension>
+	
 </plugin>
