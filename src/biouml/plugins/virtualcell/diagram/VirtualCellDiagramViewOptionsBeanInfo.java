@@ -14,5 +14,6 @@ public class VirtualCellDiagramViewOptionsBeanInfo extends BeanInfoEx2<VirtualCe
     {
         add( "processBrush" );
         add( "datasetBrush" );
+        add("nodeTitleFont");
     }
 }
