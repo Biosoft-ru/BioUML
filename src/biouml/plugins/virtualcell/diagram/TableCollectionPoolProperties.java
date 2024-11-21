@@ -67,7 +67,8 @@ public class TableCollectionPoolProperties extends Option implements InitialElem
     {
         Object oldValue = this.path;
         this.path = path;
-        this.tdc = path.getDataElement( TableDataCollection.class );
+        if( path != null )
+            this.tdc = path.getDataElement( TableDataCollection.class );
         this.firePropertyChange( "Path", oldValue, path );
         this.firePropertyChange( "*", null, null );
     }
@@ -77,7 +78,7 @@ public class TableCollectionPoolProperties extends Option implements InitialElem
     {
         return node;
     }
-    
+
     public void setDiagramElement(Node node)
     {
         this.node = node;
