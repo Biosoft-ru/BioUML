@@ -2,13 +2,13 @@ package biouml.plugins.virtualcell.simulation;
 
 import biouml.plugins.agentmodeling.SimulationAgent;
 import biouml.plugins.simulation.Span;
-import biouml.plugins.virtualcell.diagram.TableCollectionDataSetProperties;
+import biouml.plugins.virtualcell.diagram.TableCollectionPoolProperties;
 
 public class ProcessAgent extends SimulationAgent
 {
 
-    private TableCollectionDataSetProperties[] inputs;
-    private TableCollectionDataSetProperties[] outputs;
+    private TableCollectionPoolProperties[] inputs;
+    private TableCollectionPoolProperties[] outputs;
     
     public ProcessAgent(String name, Span span)
     {

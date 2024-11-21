@@ -4,11 +4,11 @@ import ru.biosoft.access.repository.DataElementPathEditor;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
-public class TableCollectionDataSetPropertiesBeanInfo extends BeanInfoEx2<TableCollectionDataSetProperties>
+public class TableCollectionPoolPropertiesBeanInfo extends BeanInfoEx2<TableCollectionPoolProperties>
 {
-    public TableCollectionDataSetPropertiesBeanInfo()
+    public TableCollectionPoolPropertiesBeanInfo()
     {
-        super( TableCollectionDataSetProperties.class );
+        super( TableCollectionPoolProperties.class );
     }
 
     @Override

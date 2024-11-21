@@ -16,6 +16,8 @@ public class VirtualCellDiagramViewOptions extends DiagramViewOptions
     {
         super( parent );
         setDiagramTitleVisible( false );
+        this.setMaxTitleSize( Integer.MAX_VALUE);
+        this.setNodeTitleLimit( Integer.MAX_VALUE );
     }
 
     private Brush processBrush = new Brush( new Color(190, 190, 255) );

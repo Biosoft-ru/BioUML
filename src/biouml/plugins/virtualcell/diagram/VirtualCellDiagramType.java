@@ -9,6 +9,9 @@ import biouml.model.Diagram;
 import biouml.model.DiagramTypeSupport;
 import biouml.model.DiagramViewBuilder;
 import biouml.model.SemanticController;
+import biouml.model.dynamics.EModel;
+import biouml.model.util.DiagramXmlReader;
+import biouml.model.util.DiagramXmlWriter;
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
 
@@ -20,13 +23,14 @@ public class VirtualCellDiagramType extends DiagramTypeSupport
     public @Nonnull Diagram createDiagram(DataCollection<?> origin, String diagramName, Base kernel) throws Exception
     {
         Diagram diagram = super.createDiagram( origin, diagramName, kernel );
+        diagram.setRole( new EModel(diagram) );
         return diagram;
     }
 
     @Override
     public Object[] getNodeTypes()
     {
-        return new Object[] {"Pool", "Process"};
+        return new Object[] {"Pool", "Translation", "ProteinDegradation", "Population"};
     }
 
     @Override
@@ -57,15 +61,15 @@ public class VirtualCellDiagramType extends DiagramTypeSupport
         return true;
     }
 
-//    @Override
-//    public DiagramXmlWriter getDiagramWriter()
-//    {
-//        return new PhysicellDiagramWriter();
-//    }
+    @Override
+    public DiagramXmlWriter getDiagramWriter()
+    {
+        return new VirtualCellDiagramWriter();
+    }
 
-//    @Override
-//    public DiagramXmlReader getDiagramReader()
-//    {
-//        return new PhysicellDiagramReader();
-//    }
+    @Override
+    public DiagramXmlReader getDiagramReader()
+    {
+        return new VirtualCellDiagramReader();
+    }
 }

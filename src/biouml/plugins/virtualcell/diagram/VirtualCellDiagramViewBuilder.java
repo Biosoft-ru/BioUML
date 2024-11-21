@@ -29,16 +29,22 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
     @Override
     public boolean createNodeCoreView(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
     {
-        if( node.getRole() instanceof TableCollectionDataSetProperties )
+        if( node.getRole() instanceof TableCollectionPoolProperties )
             return createDataSetView( container, node, (VirtualCellDiagramViewOptions)options, g );
         else if( node.getRole() instanceof ProcessProperties )
+            return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
+        else if( node.getRole() instanceof TranslationProperties )
+            return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
+        else if( node.getRole() instanceof ProteinDegradationProperties )
+            return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
+        else if( node.getRole() instanceof PopulationProperties )
             return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
         return super.createNodeCoreView( container, node, options, g );
     }
 
     public boolean createDataSetView(CompositeView container, Node node, VirtualCellDiagramViewOptions options, Graphics g)
     {
-        Dimension d = new Dimension( node.getShapeSize() );
+        Dimension d = node.getShapeSize();
         if( d.width <= 0 || d.height <= 0 )
         {
             d.width = 70;
@@ -46,29 +52,32 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
             node.setShapeSize( d );
         }
 
-        Brush brush = DefaultDiagramViewBuilder.getBrush( node, options.getDatasetBrush() );
         Pen pen = getBorderPen( node, options.getNodePen() );
+        Brush brush = DefaultDiagramViewBuilder.getBrush( node, options.getProcessBrush() );
+        ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
+        int titleMargin = 10;
 
+        ComplexTextView title = null;
+        if( node.isShowTitle() )
+        {
+            title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, g, 1000000 );
+            Rectangle textRect = title.getBounds();
+            d.width = Math.max( d.width, textRect.width + titleMargin );
+            d.height = Math.max( d.height, textRect.height + titleMargin );
+        }
+
+        CompositeView baseView = new CompositeView();
         int xOffset = 15;
         int[] x = new int[] {0, xOffset, d.width - xOffset, d.width, d.width - xOffset, xOffset};
         int[] y = new int[] {d.height / 2, 0, 0, d.height / 2, d.height, d.height};
-
-        CompositeView baseView = new CompositeView();
         PolygonView polygon = new PolygonView( pen, brush, x, y );
+
         baseView.add( polygon );
         container.add( baseView );
 
-        ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
+        if( title != null )
+            container.add( title, CompositeView.X_CC | CompositeView.Y_CC, new Point( 0, 0 ) );
 
-        String titleStr = node.getTitle();
-        if( !titleStr.isEmpty() && node.isShowTitle() )
-        {
-            ComplexTextView title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(),
-                    ComplexTextView.TEXT_ALIGN_CENTER, g, Integer.MAX_VALUE );
-
-            int yMode = ( title.getBounds().height + 10 ) < d.height ? CompositeView.Y_BB : CompositeView.Y_TT;
-            container.add( title, CompositeView.X_CC | yMode, new Point( 0, 0 ) );
-        }
         baseView.setModel( node );
         baseView.setActive( true );
         container.setModel( node );
@@ -88,15 +97,14 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
         }
 
         Pen pen = getBorderPen( node, options.getNodePen() );
-
+        Brush brush = DefaultDiagramViewBuilder.getBrush( node, options.getProcessBrush() );
         ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
         int titleMargin = 10;
 
         ComplexTextView title = null;
         if( node.isShowTitle() )
         {
-            title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, g,
-                    Integer.MAX_VALUE );
+            title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, g, 1000000 );
             Rectangle textRect = title.getBounds();
             d.width = Math.max( d.width, textRect.width + titleMargin );
             d.height = Math.max( d.height, textRect.height + titleMargin );
@@ -104,10 +112,10 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         CompositeView baseView = new CompositeView();
 
-        Brush brush = DefaultDiagramViewBuilder.getBrush( node, options.getProcessBrush() );
         int round = Math.max( Math.min( Math.min( d.width, d.height ) / 3, 20 ), 2 );
+        BoxView view = new BoxView( pen, brush, new RoundRectangle2D.Float( 0, 0, d.width, d.height, round, round ) );
 
-        baseView.add( new BoxView( pen, brush, new RoundRectangle2D.Float( 0, 0, d.width, d.height, round, round ) ) );
+        baseView.add( view );
         container.add( baseView );
 
         if( title != null )
@@ -136,13 +144,11 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
         view.setModel( edge );
         view.setActive( true );
         return view;
-
-        //        return super.createEdgeView( edge, options, g );
     }
-    
+
     @Override
     public DiagramViewOptions createDefaultDiagramViewOptions()
     {
-        return new VirtualCellDiagramViewOptions(null);
+        return new VirtualCellDiagramViewOptions( null );
     }
 }

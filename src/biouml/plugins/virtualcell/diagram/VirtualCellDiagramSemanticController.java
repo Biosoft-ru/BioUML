@@ -56,9 +56,15 @@ public class VirtualCellDiagramSemanticController extends DefaultSemanticControl
     public Object getPropertiesByType(Compartment compartment, Object type, Point point)
     {
         if( type.equals( "Pool" ) )
-            return new TableCollectionDataSetProperties( DefaultSemanticController.generateUniqueName( compartment, "Pool" ) );
+            return new TableCollectionPoolProperties( DefaultSemanticController.generateUniqueName( compartment, "Pool" ) );
         else if( type.equals( "Process" ) )
             return new ProcessProperties( DefaultSemanticController.generateUniqueName( compartment, "Process" ) );
+        else if( type.equals( "Translation" ) )
+            return new TranslationProperties( DefaultSemanticController.generateUniqueName( compartment, "Translation" ) );
+        else if( type.equals( "ProteinDegradation" ) )
+            return new ProteinDegradationProperties( DefaultSemanticController.generateUniqueName( compartment, "Protein Degradation" ) );
+        else if( type.equals( "Population" ) )
+            return new PopulationProperties( DefaultSemanticController.generateUniqueName( compartment, "Population" ) );
         return null;
     }
 

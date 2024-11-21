@@ -6,7 +6,6 @@ import org.w3c.dom.Element;
 import biouml.model.Diagram;
 import biouml.model.Role;
 import biouml.model.util.ModelXmlWriter;
-import ru.biosoft.util.ColorUtils;
 
 public class VirtualCellModelWriter extends ModelXmlWriter
 {
@@ -42,6 +41,32 @@ public class VirtualCellModelWriter extends ModelXmlWriter
                 child.setAttribute( "path", processProperties.getDiagramPath().toString() );
             element.appendChild( child );
         }
+        
+        for( TranslationProperties processProperties : diagram.recursiveStream().map( de -> de.getRole() ).select( TranslationProperties.class ) )
+        {
+            Element child = doc.createElement( "translation" );
+            child.setAttribute( "name", processProperties.getName() );
+            if( processProperties.getTranslationRates() != null )
+                child.setAttribute( "path", processProperties.getTranslationRates().toString() );
+            element.appendChild( child );
+        }
+        
+        for( ProteinDegradationProperties processProperties : diagram.recursiveStream().map( de -> de.getRole() ).select( ProteinDegradationProperties.class ) )
+        {
+            Element child = doc.createElement( "protein_degradation" );
+            child.setAttribute( "name", processProperties.getName() );
+            if( processProperties.getDegradationRates() != null )
+                child.setAttribute( "degradation_rates", processProperties.getDegradationRates().toString() );
+            element.appendChild( child );
+        }
+        
+        for( PopulationProperties processProperties : diagram.recursiveStream().map( de -> de.getRole() ).select( PopulationProperties.class ) )
+        {
+            Element child = doc.createElement( "population" );
+            child.setAttribute( "name", processProperties.getName() );
+            element.appendChild( child );
+        }
+        
         if( element.hasChildNodes() )
             parent.appendChild( element );
     }
@@ -49,8 +74,8 @@ public class VirtualCellModelWriter extends ModelXmlWriter
     private void createPools(Diagram diagram, Element parent)
     {
         Element element = doc.createElement( "pools" );
-        for( TableCollectionDataSetProperties properties : diagram.recursiveStream().map( de -> de.getRole() )
-                .select( TableCollectionDataSetProperties.class ) )
+        for( TableCollectionPoolProperties properties : diagram.recursiveStream().map( de -> de.getRole() )
+                .select( TableCollectionPoolProperties.class ) )
         {
             Element child = doc.createElement( "pool" );
             child.setAttribute( "name", properties.getName() );
@@ -61,16 +86,4 @@ public class VirtualCellModelWriter extends ModelXmlWriter
         if( element.hasChildNodes() )
             parent.appendChild( element );
     }
-
-//    private void createConnections(Diagram diagram, Element parent)
-//    {
-//        if( report.isDefaultReport() && report.isDefaultVisualizer() )
-//            return;
-//        Element element = doc.createElement( "report" );
-//        if( report.isCustomReport() && report.getReportPath() != null )
-//            element.setAttribute( "customReport", report.getReportPath().toString() );
-//        if( report.isCustomVisualizer() && report.getVisualizerPath() != null )
-//            element.setAttribute( "customVisualizer", report.getVisualizerPath().toString() );
-//        parent.appendChild( element );
-//    }
 }
