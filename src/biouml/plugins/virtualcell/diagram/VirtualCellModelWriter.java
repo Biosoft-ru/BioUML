@@ -27,7 +27,7 @@ public class VirtualCellModelWriter extends ModelXmlWriter
 
         createProcesses( diagram, element );
         createPools( diagram, element );
-        createConnections( diagram, element );
+//        createConnections( diagram, element );
         return element;
     }
 
@@ -62,15 +62,15 @@ public class VirtualCellModelWriter extends ModelXmlWriter
             parent.appendChild( element );
     }
 
-    private void createConnections(Diagram diagram, Element parent)
-    {
-        if( report.isDefaultReport() && report.isDefaultVisualizer() )
-            return;
-        Element element = doc.createElement( "report" );
-        if( report.isCustomReport() && report.getReportPath() != null )
-            element.setAttribute( "customReport", report.getReportPath().toString() );
-        if( report.isCustomVisualizer() && report.getVisualizerPath() != null )
-            element.setAttribute( "customVisualizer", report.getVisualizerPath().toString() );
-        parent.appendChild( element );
-    }
+//    private void createConnections(Diagram diagram, Element parent)
+//    {
+//        if( report.isDefaultReport() && report.isDefaultVisualizer() )
+//            return;
+//        Element element = doc.createElement( "report" );
+//        if( report.isCustomReport() && report.getReportPath() != null )
+//            element.setAttribute( "customReport", report.getReportPath().toString() );
+//        if( report.isCustomVisualizer() && report.getVisualizerPath() != null )
+//            element.setAttribute( "customVisualizer", report.getVisualizerPath().toString() );
+//        parent.appendChild( element );
+//    }
 }
