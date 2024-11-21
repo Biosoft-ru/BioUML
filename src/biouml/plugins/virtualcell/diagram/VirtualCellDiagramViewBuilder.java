@@ -53,7 +53,7 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
         }
 
         Pen pen = getBorderPen( node, options.getNodePen() );
-        Brush brush = DefaultDiagramViewBuilder.getBrush( node, options.getProcessBrush() );
+        Brush brush = DefaultDiagramViewBuilder.getBrush( node, options.getDatasetBrush() );
         ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
         int titleMargin = 10;
 
@@ -137,7 +137,7 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
         if( edge.getPath() == null )
             Diagram.getDiagram( edge ).getType().getSemanticController().recalculateEdgePath( edge );
         Pen pen = getBorderPen( edge, options.getConnectionPen() );
-        Brush brush = new Brush( Color.white );
+        Brush brush = new Brush( Color.black );
         CompositeView view = new ArrowView( pen, brush, edge.getSimplePath(), null, ArrowView.createTriangleTip( pen, brush, 15, 5 ) );
 
         edge.setView( view );
