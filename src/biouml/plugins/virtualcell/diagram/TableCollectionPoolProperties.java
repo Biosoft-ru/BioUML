@@ -87,7 +87,10 @@ public class TableCollectionPoolProperties extends Option implements InitialElem
     public Role clone(DiagramElement de)
     {
         // TODO Auto-generated method stub
-        return new TableCollectionPoolProperties( name );
+        TableCollectionPoolProperties result = new TableCollectionPoolProperties( name );
+        result.setDiagramElement( (Node)de );
+        result.setPath( path );
+        return result;
     }
 
     @Override
