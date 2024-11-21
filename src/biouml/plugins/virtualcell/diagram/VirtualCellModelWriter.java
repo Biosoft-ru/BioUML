@@ -47,7 +47,7 @@ public class VirtualCellModelWriter extends ModelXmlWriter
             Element child = doc.createElement( "translation" );
             child.setAttribute( "name", processProperties.getName() );
             if( processProperties.getTranslationRates() != null )
-                child.setAttribute( "path", processProperties.getTranslationRates().toString() );
+                child.setAttribute( "translation_rates", processProperties.getTranslationRates().toString() );
             element.appendChild( child );
         }
         
