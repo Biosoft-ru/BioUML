@@ -2,6 +2,9 @@ package biouml.plugins.virtualcell.simulation;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import ru.biosoft.access.core.DataElementPath;
@@ -12,6 +15,7 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.Role;
+import biouml.model.dynamics.plot.PlotInfo;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.plugins.simulation.Simulator;
@@ -22,6 +26,7 @@ import biouml.plugins.virtualcell.diagram.ProteinDegradationProperties;
 import biouml.plugins.virtualcell.diagram.TableCollectionPoolProperties;
 import biouml.plugins.virtualcell.diagram.TranslationProperties;
 import biouml.standard.simulation.ResultListener;
+import biouml.standard.simulation.SimulationResult;
 
 /**
  * @author Damag
@@ -32,9 +37,10 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
 {
 
     private DataElementPath resultPath;
-    private double timeIncrement;
-    private double timeCompletion;
+    private double timeIncrement = 1;
+    private double timeCompletion = 100;
 
+    @PropertyName ( "Time increment" )
     public double getTimeIncrement()
     {
         return timeIncrement;
@@ -45,6 +51,7 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
         this.timeIncrement = timeIncrement;
     }
 
+    @PropertyName ( "Completion time" )
     public double getTimeCompletion()
     {
         return timeCompletion;
@@ -67,44 +74,82 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
     {
         diagram = null;
         simulatorType = "VirtualCell";
+        this.simulator = new VirtualCellSimulator();
     }
 
     @Override
     public Model createModel() throws Exception
     {
+        Map<String, MapPool> createdPools = new HashMap<>();
+
         VirtualCellModel model = new VirtualCellModel();
-        for (Node node: diagram.recursiveStream().select( Node.class ))
+        for( Node node : diagram.recursiveStream().select( Node.class ) )
         {
             Role role = node.getRole();
-            if (role instanceof TableCollectionPoolProperties)
+            if( role instanceof TableCollectionPoolProperties )
             {
-                MapPool pool = new MapPool(node.getName());
-                DataElementPath path = ( (TableCollectionPoolProperties)role ).getPath();
-                if (path != null)
+                TableCollectionPoolProperties properties = (TableCollectionPoolProperties)role;
+                MapPool pool = new MapPool( node.getName() );
+                pool.setSaved( properties.isShouldBeSaved() );
+                pool.setSaveStep( properties.getSaveStep() );
+                DataElementPath path = properties.getPath();
+                if( path != null )
                     pool.load( path.getDataElement( TableDataCollection.class ), "Value" );
-
-            }
-            else if (role instanceof TranslationProperties)
-            {
-                TranslationAgent translationAgent = new TranslationAgent( node.getName(),  new UniformSpan( 0, timeCompletion, timeIncrement ) );
-                model.addAgent( translationAgent );
-            }
-            else if (role instanceof ProteinDegradationProperties)
-            {
-                
-            }
-            else if (role instanceof PopulationProperties)
-            {
-                
+                model.addPool( pool );
+                createdPools.put( node.getName(), pool );
             }
         }
-        return null;
+
+        for( Node node : diagram.recursiveStream().select( Node.class ) )
+        {
+            Role role = node.getRole();
+            if( role instanceof TranslationProperties )
+            {
+                TranslationAgent translationAgent = new TranslationAgent( node.getName(),
+                        new UniformSpan( 0, timeCompletion, timeIncrement ) );
+                
+                TableDataCollection parameters = ((TranslationProperties)role).getTranslationRates().getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool("rates");
+                parametersPool.load( parameters, "Value" );
+                translationAgent.addParametersPool( "rates", parametersPool );
+                
+                for( Node otherNode : node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        translationAgent.addInpuPool( "RNA", pool );
+                        translationAgent.initPoolVariables( pool );
+                    }
+                }
+                for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        translationAgent.addOutputPool( "Protein", pool );
+                    }
+                }
+                model.addAgent( translationAgent );
+            }
+            else if( role instanceof ProteinDegradationProperties )
+            {
+
+            }
+            else if( role instanceof PopulationProperties )
+            {
+
+            }
+        }
+        return model;
     }
 
     @Override
     public String simulate(Model model, ResultListener[] resultListeners) throws Exception
     {
         Span span = new UniformSpan( 0, timeCompletion, timeIncrement );
+        ( (VirtualCellSimulator)simulator ).setResultPath( resultPath );
+        simulator.init( model, null, span, resultListeners, jobControl );
         simulator.start( model, span, resultListeners, jobControl );
         return null;
     }
@@ -135,12 +180,6 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
     public void setSolver(Object solver)
     {
         this.simulator = (Simulator)solver;
-    }
-
-    @Override
-    public boolean hasVariablesToPlot()
-    {
-        return false;
     }
 
     @Override
@@ -179,5 +218,47 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
     public void setResultPath(DataElementPath resultPath)
     {
         this.resultPath = resultPath;
+    }
+
+    @PropertyName ( "Show plot" )
+    public boolean getNeedToShowPlot()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean hasVariablesToPlot()
+    {
+        return false;
+    }
+
+    @Override
+    public PlotInfo[] getPlots()
+    {
+        return new PlotInfo[] {};
+    }
+
+    @Override
+    public List<String> getIncorrectPlotVariables()
+    {
+        return new ArrayList<String>();
+    }
+
+    @Override
+    public ResultListener[] getListeners()
+    {
+        return new ResultListener[0];
+    }
+
+    @Override
+    public SimulationResult generateSimulationResult()
+    {
+        return null;
+    }
+
+    @Override
+    public String[] getVariableNames()
+    {
+        return new String[0];
     }
 }

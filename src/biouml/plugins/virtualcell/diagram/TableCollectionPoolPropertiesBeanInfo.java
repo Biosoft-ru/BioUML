@@ -16,5 +16,7 @@ public class TableCollectionPoolPropertiesBeanInfo extends BeanInfoEx2<TableColl
     {
         add( "name" );
         property( DataElementPathEditor.registerInput( "path", beanClass, TableDataCollection.class, false ) ).add();
+        add("shouldBeSaved");
+        add("saveStep");
     }
 }

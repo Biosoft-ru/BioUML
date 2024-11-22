@@ -82,6 +82,11 @@ public class VirtualCellModelWriter extends ModelXmlWriter
             if( properties.getPath() != null )
                 child.setAttribute( "path", properties.getPath().toString() );
             element.appendChild( child );
+            if (properties.isShouldBeSaved())
+            {
+                child.setAttribute( "should_be_saved", "true" );
+                child.setAttribute( "save_step", String.valueOf(properties.getSaveStep()) );
+            }
         }
         if( element.hasChildNodes() )
             parent.appendChild( element );

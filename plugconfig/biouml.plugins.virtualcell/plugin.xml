@@ -6,15 +6,15 @@
 	</extension>
 	
 	<extension id="SolverType" point="biouml.plugins.simulation.solver">
-		<solver class="biouml.plugins.virtualcell.VirtualCellSimulator"
+		<solver class="biouml.plugins.virtualcell.simulation.VirtualCellSimulator"
 			displayName="Virtual Cell Solver" type="VirtualCell" />
 	</extension>
 
 	<extension id="EngineType" point="biouml.plugins.simulation.engine">
-		<engine class="biouml.plugins.virtualcell.VirtualCellSimulationEngine"
+		<engine class="biouml.plugins.virtualcell.simulation.VirtualCellSimulationEngine"
 			displayName="VirtualCell Simulation Engine"
 	        emodelType="ODE EModel"
-			priority="10"
+			priority="0.1"
 		/>
 	</extension>
 	

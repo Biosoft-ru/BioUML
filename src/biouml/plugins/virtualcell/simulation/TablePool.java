@@ -2,7 +2,6 @@ package biouml.plugins.virtualcell.simulation;
 
 import biouml.plugins.virtualcell.core.Pool;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
@@ -10,6 +9,7 @@ import ru.biosoft.table.TableDataCollectionUtils;
 public class TablePool extends Pool
 {
     private final String columnName = "Value";
+    boolean shouldBeSaved = false;
     private TableDataCollection tdc;
     private int columnIndex;
 

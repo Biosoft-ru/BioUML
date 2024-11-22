@@ -16,6 +16,7 @@ import biouml.plugins.simulation.SimulatorInfo;
 import biouml.plugins.simulation.SimulatorProfile;
 import biouml.plugins.simulation.Span;
 import biouml.standard.simulation.ResultListener;
+import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.jobcontrol.FunctionJobControl;
@@ -32,7 +33,7 @@ public class VirtualCellSimulator implements Simulator
 
     private VirtualCellModel model;
 
-    protected List<SimulationAgent> agents = new ArrayList<>(); //the same array as in model
+    protected List<ProcessAgent> agents = new ArrayList<>(); //the same array as in model
     protected List<MapPool> pools = new ArrayList<>();
 
     protected double currentTime = 0;
@@ -76,14 +77,27 @@ public class VirtualCellSimulator implements Simulator
         agent.iterate();
     }
 
+    public void setResultPath(DataElementPath resultPath)
+    {
+        this.resultPath = resultPath;
+    }
+
+
     private void execute(MapPool pool) throws Exception
     {
-        DataCollection tdc = poolToCollection.get( pool.getName() );
-        String suffix = Double.toString( Math.round( currentTime * 100 ) / 100 );
-        String resultName = pool.getName() + "_" + suffix;
-        DataElementPath dep = DataElementPath.create( tdc, resultName );
+        if( !pool.isSaved() )
+            return;
 
-        pool.save( dep, "Value" );
+        double step = pool.getSaveStep();
+
+        if( Math.round( currentTime % step ) == 0 )
+        {
+            DataCollection tdc = poolToCollection.get( pool.getName() );
+            String suffix = String.format( format, (int)Math.round( currentTime ) );
+            String resultName = pool.getName() + "_" + suffix;
+            DataElementPath dep = DataElementPath.create( tdc, resultName );
+            pool.save( dep, "Value" );
+        }
     }
 
     @Override
@@ -103,10 +117,34 @@ public class VirtualCellSimulator implements Simulator
     @Override
     public void init(Model model, double[] x0, Span tspan, ResultListener[] listeners, FunctionJobControl jobControl) throws Exception
     {
+        currentTime = 0;
         completionTime = tspan.getTimeFinal();
         timeIncrement = tspan.getTime( 1 ) - tspan.getTimeStart();
         int nums = String.valueOf( Math.round( completionTime ) ).length() + 1;
         format = "%0" + nums + "d";
+        DataCollectionUtils.createSubCollection( resultPath );
+        this.model = (VirtualCellModel)model;
+        this.pools = this.model.getPools();
+        this.agents = this.model.getAgents();
+        this.isAlive = true;
+        for( MapPool pool : pools )
+        {
+            init( (MapPool)pool );
+        }
+        
+        for( ProcessAgent agent : agents )
+        {
+            agent.init();
+        }
+
+    }
+
+    private void init(MapPool pool) throws Exception
+    {
+        if( !pool.isSaved() )
+            return;
+        DataCollection poolCollection = DataCollectionUtils.createSubCollection( resultPath.getChildPath( pool.getName() ) );
+        this.poolToCollection.put( pool.getName(), poolCollection );
     }
 
     @Override

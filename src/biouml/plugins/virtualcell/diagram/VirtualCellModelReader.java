@@ -96,6 +96,14 @@ public class VirtualCellModelReader extends ModelXmlReader
             String path = poolElement.getAttribute( "path" );
             if( !path.isEmpty() )
                 role.setPath( DataElementPath.create( path ) );
+            
+            String isSaved = poolElement.getAttribute( "should_be_saved");
+            if (isSaved.equals( "true" ))
+                role.setShouldBeSaved( true );
+            
+            String step = poolElement.getAttribute( "save_step");
+            if (!step.isEmpty())
+                role.setSaveStep( Double.parseDouble( step ) );
             node.setRole( role );
         }
     }

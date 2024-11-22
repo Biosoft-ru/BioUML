@@ -1,8 +1,6 @@
 package biouml.plugins.virtualcell.simulation;
 
 import biouml.plugins.simulation.Span;
-import biouml.plugins.virtualcell.core.Pool;
-
 
 public class TranslationAgent extends ProcessAgent
 {
@@ -29,7 +27,7 @@ public class TranslationAgent extends ProcessAgent
     {
 
         int index = nameToIndex.get( name );
-        if( name.equals( "RNA" ) )
+        if( variable.equals( "RNA" ) )
             rna[index] = value;
         else
             rates[index] = value;
@@ -41,13 +39,14 @@ public class TranslationAgent extends ProcessAgent
         int index = nameToIndex.get( name );
         return molecules[index];
     }
-
+    
     @Override
-    public void initPoolVariables(Pool pool)
+    public void initPoolVariables(MapPool pool)
     {
         super.initPoolVariables( pool );
         rates = new double[nameToIndex.size()];
         molecules = new double[nameToIndex.size()];
+        rna = new double[nameToIndex.size()];
     }
 
 }

@@ -4,15 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import biouml.plugins.agentmodeling.SimulationAgent;
 import biouml.plugins.simulation.Model;
 
 public class VirtualCellModel implements Model
 {
-    protected List<SimulationAgent> agents = new ArrayList<>();
+    protected List<ProcessAgent> agents = new ArrayList<>();
     protected List<MapPool> pools = new ArrayList<>();
 
-    public void addAgent(SimulationAgent agent)
+    public void addAgent(ProcessAgent agent)
     {
         agents.add( agent );
     }
@@ -22,7 +21,7 @@ public class VirtualCellModel implements Model
         pools.add( pool );
     }
 
-    public List<SimulationAgent> getAgents()
+    public List<ProcessAgent> getAgents()
     {
         return agents;
     }

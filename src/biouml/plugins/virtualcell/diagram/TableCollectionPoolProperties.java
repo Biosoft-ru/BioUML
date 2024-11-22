@@ -23,6 +23,10 @@ public class TableCollectionPoolProperties extends Option implements InitialElem
     private String name;
     private DataElementPath path;
     private TableDataCollection tdc;
+    private boolean shouldBeSaved = false;
+    private double saveStep = 0;
+  
+
     private Node node;
 
     public TableCollectionPoolProperties(String name)
@@ -72,7 +76,29 @@ public class TableCollectionPoolProperties extends Option implements InitialElem
         this.firePropertyChange( "Path", oldValue, path );
         this.firePropertyChange( "*", null, null );
     }
+    
+    @PropertyName("Should be saved")
+    public boolean isShouldBeSaved()
+    {
+        return shouldBeSaved;
+    }
 
+    public void setShouldBeSaved(boolean shouldBeSaved)
+    {
+        this.shouldBeSaved = shouldBeSaved;
+    }
+
+    @PropertyName("Save step")
+    public double getSaveStep()
+    {
+        return saveStep;
+    }
+
+    public void setSaveStep(double saveStep)
+    {
+        this.saveStep = saveStep;
+    }
+    
     @Override
     public DiagramElement getDiagramElement()
     {

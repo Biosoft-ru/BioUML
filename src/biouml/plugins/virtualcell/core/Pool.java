@@ -26,5 +26,4 @@ public class Pool extends VectorDataCollection
 	{
 		// stub
 	}
-	
 }

@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 
 import biouml.plugins.agentmodeling.SimulationAgent;
 import biouml.plugins.simulation.Span;
-import biouml.plugins.virtualcell.core.Pool;
 
 /**
  * @author Axec
@@ -17,9 +16,9 @@ public abstract class ProcessAgent extends SimulationAgent
      * ID to index
      */
     Map<String, Integer> nameToIndex = new HashMap<>();
-    Map<String, Pool> parametersMap = new HashMap<>();
-    Map<String, Pool> inputMap = new HashMap<>();
-    Map<String, Pool> outputMap = new HashMap<>();
+    Map<String, MapPool> parametersMap = new HashMap<>();
+    Map<String, MapPool> inputMap = new HashMap<>();
+    Map<String, MapPool> outputMap = new HashMap<>();
 
     double delta;
 
@@ -29,18 +28,18 @@ public abstract class ProcessAgent extends SimulationAgent
         delta = span.getTime( 1 ) - span.getTimeStart();
     }
 
-    public void addInpuPool(String variable, Pool pool)
+    public void addInpuPool(String variable, MapPool pool)
     {
         inputMap.put( variable, pool );
         
     }
 
-    public void addOutputPool(String variable, Pool pool)
+    public void addOutputPool(String variable, MapPool pool)
     {
         outputMap.put( variable, pool );
     }
 
-    public void addParametersPool(String variable, Pool pool)
+    public void addParametersPool(String variable, MapPool pool)
     {
         parametersMap.put( variable, pool );
     }
@@ -59,16 +58,16 @@ public abstract class ProcessAgent extends SimulationAgent
 
     public void init()
     {
-        Pool pool = inputMap.values().iterator().next();
-        if( pool != null )
-            initPoolVariables(pool);
+        MapPool pool = inputMap.values().iterator().next();
+        if( pool instanceof MapPool )
+            initPoolVariables((MapPool)pool);
         initParameters();
     }
 
-    public void initPoolVariables(Pool pool)
+    public void initPoolVariables(MapPool pool)
     {
         int index = 0;
-        for( Object name : pool.getNameList() )
+        for( String name : pool.getNames() )
         {
             nameToIndex.put( name.toString(), index++ );
         }
@@ -76,27 +75,27 @@ public abstract class ProcessAgent extends SimulationAgent
 
     public void initParameters()
     {
-        for( Entry<String, Pool> e : parametersMap.entrySet() )
+        for( Entry<String, MapPool> e : parametersMap.entrySet() )
             read( e.getKey(), e.getValue() );
     }
 
     public void read()
     {
-        for( Entry<String, Pool> e : inputMap.entrySet() )
+        for( Entry<String, MapPool> e : inputMap.entrySet() )
             read( e.getKey(), e.getValue() );
     }
 
     public void write()
     {
-        for( Entry<String, Pool> e : outputMap.entrySet() )
+        for( Entry<String, MapPool> e : outputMap.entrySet() )
             write( e.getKey(), e.getValue() );
     }
 
-    public void write(String variable, Pool pool)
+    public void write(String variable, MapPool pool)
     {
-        if( pool instanceof TablePool )
+        if( pool instanceof MapPool )
         {
-            TablePool tp = (TablePool)pool;
+            MapPool tp = (MapPool)pool;
 
             for( String name : nameToIndex.keySet() )
             {
@@ -106,11 +105,11 @@ public abstract class ProcessAgent extends SimulationAgent
         }
     }
 
-    public void read(String variable, Pool pool)
+    public void read(String variable, MapPool pool)
     {
-        if( pool instanceof TablePool )
+        if( pool instanceof MapPool )
         {
-            TablePool tp = (TablePool)pool;
+            MapPool tp = (MapPool)pool;
 
             for( String name : nameToIndex.keySet() )
             {
