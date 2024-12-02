@@ -6,7 +6,9 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -25,17 +27,26 @@ import org.apache.commons.io.FileUtils;
 
 import biouml.model.Compartment;
 import biouml.model.DefaultDiagramViewBuilder;
+import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
+import biouml.model.Edge;
 import biouml.model.Node;
+import biouml.plugins.sbgn.SbgnDiagramViewOptions;
+import biouml.plugins.sbgn.Type;
+import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.ComplexTextView;
 import ru.biosoft.graphics.CompositeView;
+import ru.biosoft.graphics.EllipseView;
 import ru.biosoft.graphics.ImageView;
 import ru.biosoft.graphics.LineView;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.graphics.PolygonView;
+import ru.biosoft.graphics.SimplePath;
+import ru.biosoft.graphics.View;
+import ru.biosoft.graphics.ArrowView.Tip;
 import ru.biosoft.util.IconUtils;
 
 public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
@@ -46,23 +57,25 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
     {
         CompositeView cView = null;
 
-        Image image = null;
+        BufferedImage image = null;
         //try to load buffered image from repository
-        URL imgPath = (URL)node.getAttributes().getValue( "node-image" );
+        String imgPath = node.getAttributes().getValueAsString("node-image");
         Dimension size = node.getShapeSize();
       
         int width = size.width;//.max( icon.getIconWidth(), size.width );
         int height = size.height;//Math.max( icon.getIconHeight(), size.height );
-
+        int vertShift = 0;
 //        node.setShapeSize( new Dimension( width, height ) );
 
 
-        if( imgPath.toString().endsWith( ".svg" ) )
+        if ( !imgPath.toString().endsWith(".png") )
         {
             try
             {
-                InputStream settings = getClass().getResourceAsStream( "resources/markup-cropped.svg" );
+                //InputStream settings = getClass().getResourceAsStream( "resources/markup-cropped.svg" );
+                InputStream settings = getClass().getResourceAsStream("resources/" + imgPath + ".svg");
                 image = rasterize( settings, width, height );
+                vertShift = SbolUtil.getVerticalShift(imgPath);
             }
             catch( Exception ex )
             {
@@ -80,12 +93,25 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
             else
                 return null;
         }
-        ImageView imageView = new ImageView( image, node.getLocation().x, node.getLocation().y, width, height );
+        if ( node.getAttributes().getValue("isReverse") != null )
+        {
+            AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+            tx.translate(-image.getWidth(null), 0);
+            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            image = op.filter(image, null);
+        }
+        ImageView imageView = new ImageView(image, node.getLocation().x, node.getLocation().y + vertShift, width, height);
         imageView.setPath( imgPath.toString() );
 
         cView = new CompositeView();
         cView.add(imageView);
-
+        //TODO: make better solution, now we have to enter invisible box for image to be shifted
+        BoxView bv = new BoxView(getBorderPen(node, new Pen()), null, node.getLocation().x, node.getLocation().y, width, vertShift);
+        bv.setVisible(false);
+        cView.add(bv);
+        bv = new BoxView(null, new Brush(new Color(10, 200, 50, 100)), node.getLocation().x, node.getLocation().y + vertShift, width,
+                height);
+        //cView.add(bv);
         if ( node.getAttributes().getValue("isComposite") != null )
         {
             URL imgCompPath = this.getClass().getResource("resources/composite.png");
@@ -118,7 +144,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         LineView lineView = new LineView( boldPen, 0, 0, (float)compartment.getShapeSize().getWidth(), 0 );
 
         view.add( shapeView );
-        view.add( lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point( 0, 14 ) );
+        view.add(lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point(0, 14));
 
         container.add( view );
         view.setModel( compartment );
@@ -153,6 +179,10 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         {
             return createMolecularSpecies( container, node, options, g );
         }
+        else if ( node.getKernel().getType().equals(Type.TYPE_SOURCE_SINK) )
+        {
+            return createSourceSinkView(container, node, options, g);
+        }
         return super.createNodeCoreView( container, node, options, g );
     }
 
@@ -179,6 +209,15 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
             }
         }
         return true;
+    }
+
+    public boolean createSourceSinkView(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
+    {
+        Dimension d = new Dimension(8, 8);
+        Pen pen = getBorderPen(node, options.getNodePen());
+        container.add(new EllipseView(pen, new Brush(Color.white), 0, 0, d.width, d.height));
+        container.add(new LineView(pen, new Point(3, d.height + 3), new Point(d.width - 3, -3)));
+        return false;
     }
 
     private boolean createProteinView(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
@@ -292,4 +331,53 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         return imagePointer[0];
     }
+
+    @Override
+    public CompositeView createEdgeView(Edge edge, DiagramViewOptions options, Graphics g)
+    {
+        CompositeView view = new CompositeView();
+        Pen pen = getBorderPen(edge, options.getDefaultPen());
+
+        if ( edge.getPath() == null )
+            Diagram.getDiagram(edge).getType().getSemanticController().recalculateEdgePath(edge);
+
+        SimplePath path = edge.getSimplePath();
+        String edgeType = edge.getKernel().getType();
+        Brush brush = new Brush(Color.white);
+        Tip tip = null;
+
+        switch (edgeType)
+        {
+        case SbolUtil.TYPE_CONTROL:
+            tip = ArrowView.createDiamondTip(pen, brush, 5, 10, 5);
+            break;
+        case SbolUtil.TYPE_STIMULATION:
+            tip = ArrowView.createTriangleTip(pen, brush, 15, 5);
+            break;
+        //        case Type.TYPE_CATALYSIS:
+        //            tip = ArrowView.createEllipseTip(pen, brush, 6);
+        //            break;
+        case SbolUtil.TYPE_INHIBITION:
+            brush = new Brush(pen.getColor());
+            tip = ArrowView.createLineTip(pen, brush, 3, 8);
+            break;
+        case SbolUtil.TYPE_PROCESS:
+            tip = ArrowView.createTriggerTip(pen, brush, 19, 8, 4, 3);
+            break;
+        default:
+            tip = ArrowView.createSimpleTip(pen, 6, 4);
+        }
+
+        View arrow = new ArrowView(pen, null, path, null, tip);
+
+        arrow.setModel(edge);
+        arrow.setActive(true);
+        view.add(arrow);
+
+        view.setModel(edge);
+        view.setActive(false);
+
+        return view;
+    }
+
 }

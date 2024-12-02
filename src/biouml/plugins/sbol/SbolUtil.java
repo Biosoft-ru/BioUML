@@ -21,8 +21,19 @@ public class SbolUtil
     private static final Map<URI, String> dnaRegionToImage;
     private static final Map<String, URI> featurRoleToURI;
     private static final Map<String, URI> speciesToURI;
+    private static final Map<String, Integer> verticalShift;
+
+    public static final String TYPE_INHIBITION = "inhibition";
+    public static final String TYPE_STIMULATION = "stimulation";
+    public static final String TYPE_CONTROL = "control";
+    public static final String TYPE_PROCESS = "process";
+    public static final String TYPE_DEGRADATION = "degradation";
+    public static final String TYPE_BIOCHEMICAL_REACTION = "degradation";
+    public static final String TYPE_NON_COVALENT_BINDING = "non-covalent binding";
+    public static final String TYPE_GENETIC_PRODUCTION = "genetic production";
 
     private static SequenceOntology so = new SequenceOntology();
+
 
     static
     {
@@ -129,6 +140,45 @@ public class SbolUtil
         speciesToURI = Collections.unmodifiableMap( sMap );
     }
 
+    static
+    {
+        Map<String, Integer> aMap = new HashMap<>();
+        aMap.put("promoter", 0);
+        aMap.put("cds", 18);
+        aMap.put("terminator", 5);
+        aMap.put("insulator", 2);
+        aMap.put("origin-of-replication", 18);
+        aMap.put("primer-binding-site", 16);
+        aMap.put("ribosome-entry-site", 8);
+        aMap.put("nuclease-site", 0);
+        aMap.put("engineered-region", 8);
+        aMap.put("no-glyph-assigned", 8);
+        aMap.put("ncrna", 16);
+        aMap.put("blunt-restriction-site", 18);
+        aMap.put("five-prime-sticky-restriction-site", 18);
+        aMap.put("location-protein", 0);
+        aMap.put("location-dna", 0);
+        aMap.put("location-rna", 0);
+        aMap.put("polyA", 8);
+        aMap.put("protein-stability-element", 0);
+        aMap.put("rna-stability-element", 0);
+        aMap.put("assembly-scar", 18);
+        aMap.put("operator", 18);
+        aMap.put("aptamer", 0);
+        aMap.put("transcription-end", 0);
+        aMap.put("ribonuclease-site", 0);
+        aMap.put("translation-end", 0);
+        aMap.put("signature", 4);
+        aMap.put("five-prime-overhang", 18);
+        aMap.put("three-prime-sticky-restriction-site", 18);
+        aMap.put("specific-recombination-site", 18);
+        aMap.put("three-prime-overhang", 18);
+        aMap.put("origin-of-transfer", 18);
+        aMap.put("protease-site", 0);
+
+        verticalShift = Collections.unmodifiableMap(aMap);
+    }
+
 
     public static URI getSpeciesURIByType(String type)
     {
@@ -193,13 +243,18 @@ public class SbolUtil
         return "unspecified-glyph";
     }
 
-    public static SbolBase getKernelByComponentDefinition(ComponentDefinition cd)
+    public static SbolBase getKernelByComponentDefinition(ComponentDefinition cd, boolean isTopLevel)
     {
-        if ( cd.containsType(ComponentDefinition.DNA_REGION) && cd.getComponents().size() > 0 )
+        if ( cd.containsType(ComponentDefinition.DNA_REGION) && cd.getComponents().size() > 0 && isTopLevel )
         {
             return new Backbone(cd);
         }
         return new SbolBase(cd);
+    }
+
+    public static int getVerticalShift(String imgPath)
+    {
+        return verticalShift.getOrDefault(imgPath, 0);
     }
 
 }

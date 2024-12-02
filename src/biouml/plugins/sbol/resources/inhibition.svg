@@ -16,11 +16,11 @@
    height="0.5in"
    id="svg2"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="small-molecule.svg"
-   inkscape:export-filename="/Users/jakebeal/projects/SBOL/SBOLv-realizations/Glyphs/FunctionalComponents/small-molecule/stadium-specification.png"
+   sodipodi:docname="inhibition.svg"
+   inkscape:export-filename="/Users/jakebeal/projects/SBOL/SBOLv-realizations/Glyphs/Interactions/Inhibition/inhibition-specification.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300"><metadata
-     id="metadata12"><rdf:RDF><cc:Work
+     id="metadata14"><rdf:RDF><cc:Work
          rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><sodipodi:namedview
      pagecolor="#ffffff"
@@ -31,14 +31,14 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="944"
-     inkscape:window-height="738"
-     id="namedview10"
+     inkscape:window-width="1013"
+     inkscape:window-height="770"
+     id="namedview12"
      showgrid="false"
      units="in"
-     inkscape:zoom="13.350176"
-     inkscape:cx="22.603028"
-     inkscape:cy="27.618455"
+     inkscape:zoom="9.44"
+     inkscape:cx="25"
+     inkscape:cy="20.037848"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
@@ -46,17 +46,18 @@
      id="defs4"><style
        type="text/css"
        id="style6"><![CDATA[
-      path,circle,polygon {
+      path,circle {
         stroke:#000000;
         stroke-width: 3;
         stroke-linecap: round;
         stroke-linejoin: round;
         fill: none
-      }]]></style></defs><rect
-     style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2.0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-     id="rect4135"
-     width="31.759876"
-     height="13.857493"
-     x="6.620059"
-     y="15.571251"
-     ry="6.9287467" /></svg>
+      }]]></style></defs><path
+     style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.99999988;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     d="m 8.954485,22.605929 26.483047,0"
+     id="path4137"
+     inkscape:connector-curvature="0" /><path
+     style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.99999988;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     d="m 35.54551,18.474574 0,8.050846"
+     id="path4135"
+     inkscape:connector-curvature="0" /></svg>

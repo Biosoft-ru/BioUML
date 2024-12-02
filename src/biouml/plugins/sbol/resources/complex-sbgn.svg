@@ -16,8 +16,8 @@
    height="0.5in"
    id="svg2"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="small-molecule.svg"
-   inkscape:export-filename="/Users/jakebeal/projects/SBOL/SBOLv-realizations/Glyphs/FunctionalComponents/small-molecule/stadium-specification.png"
+   sodipodi:docname="complex-sbgn.svg"
+   inkscape:export-filename="corneredrect-specification.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300"><metadata
      id="metadata12"><rdf:RDF><cc:Work
@@ -52,11 +52,7 @@
         stroke-linecap: round;
         stroke-linejoin: round;
         fill: none
-      }]]></style></defs><rect
-     style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2.0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-     id="rect4135"
-     width="31.759876"
-     height="13.857493"
-     x="6.620059"
-     y="15.571251"
-     ry="6.9287467" /></svg>
+      }]]></style></defs><path
+     style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.99999988;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 10.134766 15.570312 L 6.6191406 19.085938 L 6.6191406 25.914062 L 10.134766 29.429688 L 34.865234 29.429688 L 38.380859 25.914062 L 38.380859 19.085938 L 34.865234 15.570312 L 10.134766 15.570312 z "
+     id="rect4135" /></svg>

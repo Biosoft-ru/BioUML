@@ -16,5 +16,7 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.jobcontrol,
  org.apache.batik,
  org.apache.commons.io,
- ru.biosoft.workbench
+ ru.biosoft.graph,
+ ru.biosoft.workbench,
+ biouml.workbench.graph
 Export-Package: biouml.plugins.sbol

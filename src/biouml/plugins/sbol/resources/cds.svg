@@ -16,8 +16,8 @@
    height="0.5in"
    id="svg2"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="small-molecule.svg"
-   inkscape:export-filename="/Users/jakebeal/projects/SBOL/SBOLv-realizations/Glyphs/FunctionalComponents/small-molecule/stadium-specification.png"
+   sodipodi:docname="cds.svg"
+   inkscape:export-filename="/Users/jakebeal/projects/SBOL/SBOLv-realizations/Glyphs/cds/cds-specification.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300"><metadata
      id="metadata12"><rdf:RDF><cc:Work
@@ -31,14 +31,14 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="944"
-     inkscape:window-height="738"
+     inkscape:window-width="942"
+     inkscape:window-height="693"
      id="namedview10"
      showgrid="false"
      units="in"
-     inkscape:zoom="13.350176"
-     inkscape:cx="22.603028"
-     inkscape:cy="27.618455"
+     inkscape:zoom="9.44"
+     inkscape:cx="25"
+     inkscape:cy="24.576271"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
@@ -46,17 +46,15 @@
      id="defs4"><style
        type="text/css"
        id="style6"><![CDATA[
-      path,circle,polygon {
+      path,circle {
         stroke:#000000;
         stroke-width: 3;
         stroke-linecap: round;
         stroke-linejoin: round;
         fill: none
-      }]]></style></defs><rect
-     style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2.0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-     id="rect4135"
-     width="31.759876"
-     height="13.857493"
-     x="6.620059"
-     y="15.571251"
-     ry="6.9287467" /></svg>
+      }]]></style></defs><path
+     d="m 5.2562231,33.900582 23.6111729,0 10.876433,-11.400584 -10.876433,-11.400585 -23.6111729,0 z"
+     id="path8"
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke:#000000;stroke-width:2.99544764;stroke-linecap:round;stroke-linejoin:round"
+     sodipodi:nodetypes="cccccc" /></svg>
