@@ -73,7 +73,10 @@ public class VirtualCellModelReader extends ModelXmlReader
                     node.setRole( proteinDegradationProperties );
                     break;
                 case "population":
-                    PopulationProperties populationProperties = new PopulationProperties( name );      
+                    PopulationProperties populationProperties = new PopulationProperties( name );
+                    String coefficients = processElement.getAttribute( "coefficients" );
+                    if( !coefficients.isEmpty()  )
+                        populationProperties.setCoeffs( DataElementPath.create( coefficients ) );
                     populationProperties.setDiagramElement( node );
                     node.setRole( populationProperties );
                     break;

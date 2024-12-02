@@ -134,11 +134,61 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
             }
             else if( role instanceof ProteinDegradationProperties )
             {
-
+                ProteinDegradationAgent proteinDegradationAgent = new ProteinDegradationAgent( node.getName(),
+                        new UniformSpan( 0, timeCompletion, timeIncrement ) );
+                
+                TableDataCollection parameters = ((ProteinDegradationProperties)role).getDegradationRates().getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool("rates");
+                parametersPool.load( parameters, "Value" );
+                proteinDegradationAgent.addParametersPool( "rates", parametersPool );
+                
+                for( Node otherNode : node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        proteinDegradationAgent.addInpuPool( "Protein", pool );
+                        proteinDegradationAgent.initPoolVariables( pool );
+                    }
+                }
+                for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        proteinDegradationAgent.addOutputPool( "Protein", pool );
+                    }
+                }
+                model.addAgent( proteinDegradationAgent );
             }
             else if( role instanceof PopulationProperties )
             {
-
+                PopulationAgent populationAgent = new PopulationAgent( node.getName(),
+                        new UniformSpan( 0, timeCompletion, timeIncrement ) );
+                
+                TableDataCollection parameters = ((PopulationProperties)role).getCoeffs().getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool("coeffs");
+                parametersPool.load( parameters, "Value" );
+                populationAgent.addParametersPool( "coeffs", parametersPool );
+                
+                for( Node otherNode : node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        populationAgent.addInpuPool( "Protein", pool );
+                        populationAgent.initPoolVariables( pool );
+                    }
+                }
+                for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        populationAgent.addOutputPool( "Population", pool );
+                    }
+                }
+                model.addAgent( populationAgent );
             }
         }
         return model;

@@ -64,6 +64,8 @@ public class VirtualCellModelWriter extends ModelXmlWriter
         {
             Element child = doc.createElement( "population" );
             child.setAttribute( "name", processProperties.getName() );
+            if( processProperties.getCoeffs() != null )
+                child.setAttribute( "coefficients", processProperties.getCoeffs().toString() );
             element.appendChild( child );
         }
         

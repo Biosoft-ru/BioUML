@@ -3,6 +3,7 @@ package biouml.plugins.virtualcell.diagram;
 import java.awt.Dimension;
 import java.awt.Point;
 
+import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
 import biouml.model.DiagramElement;
@@ -11,12 +12,15 @@ import biouml.model.InitialElementProperties;
 import biouml.model.Node;
 import biouml.model.Role;
 import biouml.standard.type.Stub;
+import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 
-public class PopulationProperties implements InitialElementProperties, Role
+public class PopulationProperties implements InitialElementProperties, DataOwner
 {
     private String name;
     private Node node;
+    
+    private DataElementPath coeffs;
     
     public PopulationProperties(String name)
     {
@@ -61,7 +65,26 @@ public class PopulationProperties implements InitialElementProperties, Role
     public Role clone(DiagramElement de)
     {
         PopulationProperties result = new PopulationProperties(name);
+        result.coeffs = coeffs;
         result.setDiagramElement((Node)de);
         return result;
+    }
+    
+    @PropertyName("Coefficients")
+    public DataElementPath getCoeffs()
+    {
+        return coeffs;
+    }
+
+    public void setCoeffs(DataElementPath coeffs)
+    {
+        this.coeffs = coeffs;
+    }
+
+    @Override
+    public String[] getNames()
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

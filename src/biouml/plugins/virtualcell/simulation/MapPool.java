@@ -41,6 +41,8 @@ public class MapPool
     public void load(TableDataCollection tdc, String column)
     {
         int index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column} )[0];
+        if (index == -1)
+            index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column.toLowerCase()} )[0];//dirty hack
         for( RowDataElement rde : tdc )
         {
             double value = (double)rde.getValues()[index];
