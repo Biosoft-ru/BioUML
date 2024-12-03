@@ -239,6 +239,10 @@ public class SbolUtil
                 return "simple-chemical-circle";
             else if( cd.containsType( ComponentDefinition.COMPLEX ) )
                 return "complex-sbgn";
+            else if ( cd.containsType(ComponentDefinition.RNA_MOLECULE) )
+                return "ssNA";
+            else if ( cd.containsType(ComponentDefinition.DNA_MOLECULE) )
+                return "dsNA";
         }
         return "unspecified-glyph";
     }
