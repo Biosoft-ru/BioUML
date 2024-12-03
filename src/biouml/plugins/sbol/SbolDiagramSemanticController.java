@@ -14,10 +14,12 @@ import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
+import biouml.model.DiagramType;
 import biouml.model.Edge;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
 import biouml.standard.type.Base;
+import biouml.standard.type.Stub;
 import ru.biosoft.graph.Path;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.PropertiesDialog;
@@ -72,6 +74,8 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             return compartment instanceof Diagram;
         }
 
+        if ( de instanceof Edge )
+            return true;
         return false;
     }
 
@@ -185,9 +189,23 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     }
 
     @Override
-    public void moveInCompartment(Node de, Compartment movingCompartment, Dimension offset)
+    public void recalculateEdgePath(Edge edge)
     {
-        // TODO Auto-generated method stub
-        super.moveInCompartment(de, movingCompartment, offset);
+        Diagram diagram = Diagram.getDiagram(edge);
+        DiagramType diagramType = diagram.getType();
+        if ( diagramType == null )
+            return;
+        Node inNode = edge.getInput();
+        Node outNode = edge.getOutput();
+        //edge inside compartment
+        if ( edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
+        {
+            Point in = new Point();
+            Point out = new Point();
+            diagramType.getDiagramViewBuilder().calculateInOut(edge, in, out);
+            edge.setPath(new Path(new int[] { in.x, in.x, out.x, out.x }, new int[] { in.y, in.y - 20, out.y - 20, out.y }, 4));
+        }
+        else
+            super.recalculateEdgePath(edge);
     }
 }

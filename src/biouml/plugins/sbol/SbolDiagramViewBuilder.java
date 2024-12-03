@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
+
 import javax.swing.ImageIcon;
 
 import org.apache.batik.transcoder.TranscoderException;
@@ -31,9 +32,10 @@ import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.plugins.sbgn.SbgnDiagramViewOptions;
 import biouml.plugins.sbgn.Type;
+import biouml.standard.type.Stub;
 import ru.biosoft.graphics.ArrowView;
+import ru.biosoft.graphics.ArrowView.Tip;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.ComplexTextView;
@@ -42,11 +44,10 @@ import ru.biosoft.graphics.EllipseView;
 import ru.biosoft.graphics.ImageView;
 import ru.biosoft.graphics.LineView;
 import ru.biosoft.graphics.Pen;
-import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.graphics.PolygonView;
 import ru.biosoft.graphics.SimplePath;
 import ru.biosoft.graphics.View;
-import ru.biosoft.graphics.ArrowView.Tip;
+import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.IconUtils;
 
 public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
@@ -292,7 +293,9 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         transcoderHints.put( ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI, SVGConstants.SVG_NAMESPACE_URI );
         transcoderHints.put( ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg" );
         transcoderHints.put( ImageTranscoder.KEY_USER_STYLESHEET_URI, cssFile.toURI().toString() );
-        transcoderHints.put( ImageTranscoder.KEY_WIDTH, (float)width );
+        if ( width > 0 )
+            transcoderHints.put(ImageTranscoder.KEY_WIDTH, (float) width);
+        if ( height > 0 )
         transcoderHints.put( ImageTranscoder.KEY_HEIGHT, (float)height );
 
         try
@@ -378,6 +381,26 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         view.setActive(false);
 
         return view;
+    }
+
+    @Override
+    public boolean calculateInOut(Edge edge, Point in, Point out)
+    {
+        super.calculateInOut(edge, in, out, 0, 0);
+
+        Node inNode = edge.getInput();
+        Node outNode = edge.getOutput();
+
+        if ( edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
+        {
+            Rectangle inBounds = inNode.getView().getBounds();
+            Rectangle outBounds = outNode.getView().getBounds();
+            in.x = inBounds.x + inBounds.width / 2;
+            in.y = inBounds.y;
+            out.x = outBounds.x + outBounds.width / 2;
+            out.y = outBounds.y;
+        }
+        return true;
     }
 
 }

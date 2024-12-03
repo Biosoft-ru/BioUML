@@ -423,12 +423,23 @@ public class SbolDiagramReader
         }
 
         layoutDiagram(diagram, getLayouter());
-        //        for ( DiagramElement de : diagram )
-        //        {
-            //            if( de instanceof Edge && !de.isFixed() )
-            //                diagram.getType().getSemanticController().recalculateEdgePath((Edge)de);
+        for ( DiagramElement de : diagram )
+        {
+            if ( de instanceof Edge && !de.isFixed() )
+                diagram.getType().getSemanticController().recalculateEdgePath((Edge) de);
+            if ( de instanceof Compartment && de.getKernel() instanceof Backbone )
+            {
+                Compartment compartment = (Compartment) de;
+                compartment.stream(Edge.class).forEach(edge -> {if(!edge.isFixed())
+                    {
+                        edge.setPath(null);
+                        diagram.getType().getSemanticController().recalculateEdgePath(edge);
+                    }
+                    return;
+                });
+            }
             //de.setFixed(false);
-            //        }
+        }
         //Arrange other non-DNA nodes (proteins, small molecules, etc) with layouter
 
 
