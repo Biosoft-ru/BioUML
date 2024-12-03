@@ -6,12 +6,15 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.SBOLDocument;
 import org.sbolstandard.core2.SBOLReader;
 import org.sbolstandard.core2.SBOLValidationException;
+
+import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.model.Node;
@@ -35,6 +38,7 @@ import ru.biosoft.jobcontrol.FunctionJobControl;
 public class SbolImporter implements DataElementImporter
 {
     private SbolImportProperties properties = null;
+    protected static final Logger log = Logger.getLogger(SbolImporter.class.getName());
     @Override
     public int accept(DataCollection<?> parent, File file)
     {
@@ -47,10 +51,27 @@ public class SbolImporter implements DataElementImporter
                 if ( lcname.endsWith(".sbol") || lcname.endsWith(".rdf") || lcname.endsWith(".ttl") || lcname.endsWith(".nt") || lcname.endsWith(".jsonld") || lcname.endsWith(".rj") )
                     return ACCEPT_HIGHEST_PRIORITY;
                 else if ( lcname.endsWith(".xml") )
-                    return ACCEPT_MEDIUM_PRIORITY;
+                {
+                    if ( isSbolFile(file) )
+                        return ACCEPT_HIGHEST_PRIORITY;
+                }
             }
         ;
         return ACCEPT_UNSUPPORTED;
+    }
+
+    private boolean isSbolFile(File file)
+    {
+        try
+        {
+            String header = ApplicationUtils.readAsString(file, 1000);
+            return (header.indexOf("<?xml") > -1 && header.indexOf("xmlns:sbol") > -1);
+        }
+        catch (Throwable t)
+        {
+            log.log(Level.SEVERE, "SBOL file check accept error :", t);
+        }
+        return false;
     }
 
     @Override
