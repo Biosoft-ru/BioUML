@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -41,8 +42,10 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.model.util.ImageGenerator;
+import biouml.plugins.sbgn.SBGNPropertyConstants;
 import biouml.plugins.sbgn.Type;
 import biouml.standard.type.DiagramInfo;
+import biouml.standard.type.Reaction;
 import biouml.standard.type.Stub;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import ru.biosoft.access.core.DataCollection;
@@ -52,6 +55,12 @@ import ru.biosoft.graph.Graph;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.OrthogonalPathLayouter;
 import ru.biosoft.graph.PathwayLayouter;
+import ru.biosoft.graphics.BoxView;
+import ru.biosoft.graphics.Brush;
+import ru.biosoft.graphics.CompositeView;
+import ru.biosoft.graphics.EllipseView;
+import ru.biosoft.graphics.PolygonView;
+import ru.biosoft.graphics.TextView;
 import ru.biosoft.util.DPSUtils;
 
 public class SbolDiagramReader
@@ -116,13 +125,12 @@ public class SbolDiagramReader
 
             for ( Interaction interaction : interactions )
             {
-                Node from = null, to = null;
+                Set<Node> from = null, to = null;
                 String type = SbolUtil.TYPE_PROCESS;
                 if ( interaction.getTypes().contains(SystemsBiologyOntology.INHIBITION) )
                 {
-                    //inhibition (direct edge)
                     //sbolcanvas allow only INHIBITOR role refinement
-                    from = getParticipantNode(
+                    from = getParticipantNodes(
                             Set.of(SystemsBiologyOntology.INHIBITOR, 
                                     SystemsBiologyOntology.COMPETITIVE_INHIBITOR,
                                     SystemsBiologyOntology.NON_COMPETITIVE_INHIBITOR,
@@ -135,12 +143,12 @@ public class SbolDiagramReader
                                     SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the INHIBITION reaction (not stated if it is in or out)
                                     ),
                             interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNode(Set.of(SystemsBiologyOntology.INHIBITED), interaction.getParticipations(), diagram, kernels);
+                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.INHIBITED), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_INHIBITION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.STIMULATION) )
                 {
-                    from = getParticipantNode(
+                    from = getParticipantNodes(
                             Set.of(SystemsBiologyOntology.STIMULATOR,
                                     SystemsBiologyOntology.CATALYST,
                                     SystemsBiologyOntology.ENZYMATIC_CATALYST,
@@ -155,19 +163,39 @@ public class SbolDiagramReader
                                     sbo.getURIbyId("SBO:0000637"), //non-allosteric activator
                                     SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the STIMULATION reaction (not stated if it is in or out)
                             ), interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNode(Set.of(SystemsBiologyOntology.STIMULATED), interaction.getParticipations(), diagram, kernels);
+                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.STIMULATED), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_STIMULATION;
+                }
+                else if ( interaction.getTypes().contains(SystemsBiologyOntology.DEGRADATION) )
+                {
+                    if ( interaction.getParticipations().size() != 1 )
+                        log.info("Control interation has wrong number of components, " + interaction.getParticipations().size());
+                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.REACTANT), interaction.getParticipations(), diagram, kernels);
+                    if ( from != null )
+                    {
+                        String name = DefaultSemanticController.generateUniqueNodeName(diagram, "Degradation product");
+                        Node degradationNode = new Node(diagram, new Stub(null, name, Type.TYPE_SOURCE_SINK));
+                        to = Set.of(degradationNode);
+                        diagram.put(degradationNode);
+                    }
+                    type = SbolUtil.TYPE_DEGRADATION;
+                }
+                else if ( interaction.getTypes().contains(SystemsBiologyOntology.CONTROL) )
+                {
+                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIER), interaction.getParticipations(), diagram, kernels);
+                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIED), interaction.getParticipations(), diagram, kernels);
+                    type = SbolUtil.TYPE_CONTROL;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.BIOCHEMICAL_REACTION) )
                 {
-                    from = getParticipantNode(
+                    from = getParticipantNodes(
                             Set.of(
                                 SystemsBiologyOntology.REACTANT,
                                 SystemsBiologyOntology.MODIFIER
                             ), 
                             interaction.getParticipations(), diagram, kernels);
                     
-                    to = getParticipantNode(
+                    to = getParticipantNodes(
                             Set.of(
                                     SystemsBiologyOntology.PRODUCT,
                                     SystemsBiologyOntology.MODIFIED
@@ -177,53 +205,76 @@ public class SbolDiagramReader
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.NON_COVALENT_BINDING) )
                 {
-                    from = getParticipantNode(
+                    from = getParticipantNodes(
                             Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
                             interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNode(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
+                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_NON_COVALENT_BINDING;
-                }
-                else if ( interaction.getTypes().contains(SystemsBiologyOntology.CONTROL) )
-                {
-                    from = getParticipantNode(Set.of(SystemsBiologyOntology.MODIFIER), interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNode(Set.of(SystemsBiologyOntology.MODIFIED), interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_CONTROL;
-                }
-                else if ( interaction.getTypes().contains(SystemsBiologyOntology.DEGRADATION) )
-                {
-                    //inhibition (direct edge)
-                    if ( interaction.getParticipations().size() != 1 )
-                        log.info("Control interation has wrong number of components, " + interaction.getParticipations().size());
-                    from = getParticipantNode(Set.of(SystemsBiologyOntology.REACTANT), interaction.getParticipations(), diagram, kernels);
-                    if ( from != null )
-                    {
-                        String name = DefaultSemanticController.generateUniqueNodeName(diagram, "Degradation product");
-                        to = new Node(diagram, new Stub(null, name, Type.TYPE_SOURCE_SINK));
-                        diagram.put(to);
-                    }
-                    type = SbolUtil.TYPE_DEGRADATION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.GENETIC_PRODUCTION) )
                 {
-                    from = getParticipantNode(Set.of(SystemsBiologyOntology.PROMOTER, SystemsBiologyOntology.TEMPLATE), interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNode(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
+                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.PROMOTER, SystemsBiologyOntology.TEMPLATE), interaction.getParticipations(), diagram, kernels);
+                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT, SystemsBiologyOntology.SIDE_PRODUCT), interaction.getParticipations(), diagram, kernels);
 
                     type = SbolUtil.TYPE_GENETIC_PRODUCTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.PROCESS) )
                 {
-                    from = getParticipantNode(
+                    from = getParticipantNodes(
                             Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
                             interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNode(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
+                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_PROCESS;
                 }
 
-                if ( from != null && to != null )
+                if ( from != null && to != null && from.size() > 0 && to.size() > 0 )
                 {
-                    Edge result = new Edge(new Stub(null, from.getName() + " -> " + to.getName(),type), from, to);
-                    result.getOrigin().put(result);
-                    //diagram.put(result);
+                    Iterator<Node> fromIter = from.iterator();
+                    Iterator<Node> toIter = to.iterator();
+
+                    if ( from.size() == 1 && to.size() == 1 ) //only one node from each side, can do without reaction node
+                    {
+                        Node fromNode = fromIter.next();
+                        Node toNode = toIter.next();
+                        Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + toNode.getName(), type), fromNode, toNode);
+                        result.getOrigin().put(result);
+                        //diagram.put(result);
+                    }
+                    else
+                    {
+                        String title = interaction.getName() != null ? interaction.getName() : interaction.getDisplayId();
+                        Reaction reaction = new Reaction(null, interaction.getDisplayId());
+                        reaction.setTitle(title);
+                        Node interactionNode = new Node(diagram, reaction);
+                        interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
+                        interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+                        interactionNode.setUseCustomImage(true);
+                        diagram.put(interactionNode);
+                        while ( fromIter.hasNext() )
+                        {
+                            Node fromNode = fromIter.next();
+                            Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + interactionNode.getName(), type), fromNode, interactionNode);
+                            result.getOrigin().put(result);
+                        }
+                        while ( toIter.hasNext() )
+                        {
+                            Node toNode = toIter.next();
+                            Edge result = new Edge(new Stub(null, interactionNode.getName() + " -> " + toNode.getName(), type), interactionNode, toNode);
+                            result.getOrigin().put(result);
+                        }
+                    }
+                }
+                else
+                {
+                    //only interaction node should be placed
+                    String title = interaction.getName() != null ? interaction.getName() : interaction.getDisplayId();
+                    Reaction reaction = new Reaction(null, interaction.getDisplayId());
+                    reaction.setTitle(title);
+                    Node interactionNode = new Node(diagram, reaction);
+                    interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
+                    interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+                    interactionNode.setUseCustomImage(true);
+                    diagram.put(interactionNode);
                 }
             }
 
@@ -231,19 +282,17 @@ public class SbolDiagramReader
 
     }
 
-    private static Node getParticipantNode(Set<URI> types, Set<Participation> participants, Diagram diagram, Map<String, SbolBase> kernels)
+    private static Set<Node> getParticipantNodes(Set<URI> types, Set<Participation> participants, Diagram diagram, Map<String, SbolBase> kernels)
     {
-        for ( Participation pt : participants )
-        {
-            if ( pt.getRoles().stream().anyMatch(types::contains) )
-            {
-                DiagramElement de = diagram
-                        .findDiagramElement(kernels.get(pt.getParticipantDefinition().getPersistentIdentity().toString()).getName());
-                if ( de != null && de instanceof Node )
-                    return (Node) de;
-            }
-        }
-        return null;
+        return participants.stream().filter(pt -> {
+            return pt.getRoles().stream().anyMatch(types::contains);
+        }).map(pt -> {
+            DiagramElement de = diagram.findDiagramElement(kernels.get(pt.getParticipantDefinition().getPersistentIdentity().toString()).getName());
+            if ( de != null && de instanceof Node )
+                return (Node) de;
+            else
+                return null;
+        }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, SbolBase> kernels)
@@ -279,12 +328,12 @@ public class SbolDiagramReader
             Compartment compartment = new Compartment(diagram, kernels.get(cd.getPersistentIdentity().toString()));
             compartment.setShapeSize(new Dimension(xSize * components.size() + 10, ySize + 30));
             compartment.getAttributes().add(DPSUtils.createHiddenReadOnly(Node.INNER_NODES_PORT_FINDER_ATTR, Boolean.class, true));
-            Collection<URI> ordered = orderComponents(cd.getSequenceConstraints());
-            Iterator<URI> iter = ordered.iterator();
+            Collection<Component> ordered = orderComponents(cd);
+            Iterator<Component> iter = ordered.iterator();
             while ( iter.hasNext() )
             //for ( Component component : components )
             {
-                Component component = cd.getComponent(iter.next());
+                Component component = iter.next();
                 ComponentDefinition cdNode = component.getDefinition();
                 SbolBase base = kernels.get(cdNode.getPersistentIdentity().toString());
                 if ( base != null )
@@ -334,12 +383,12 @@ public class SbolDiagramReader
     }
 
     //The position of the subject Component MUST precede that of the object Component.
-    private static Collection<URI> orderComponents(Set<SequenceConstraint> scs)
+    private static Collection<Component> orderComponents(ComponentDefinition cd)
     {
         Map<URI, URI> precedes = new HashMap<>();
         Set<URI> objects = new HashSet<>();
         Set<URI> subjects = new HashSet<>();
-        for ( SequenceConstraint sc : scs )
+        for ( SequenceConstraint sc : cd.getSequenceConstraints() )
         {
             if ( RestrictionType.PRECEDES.equals(sc.getRestriction()) )
             {
@@ -351,12 +400,12 @@ public class SbolDiagramReader
         subjects.removeAll(objects);
         if ( subjects.size() != 1 )
             //TODO: some parallel chains occured or circular structure found
-            return precedes.keySet();
-        List<URI> res = new ArrayList<>();
+            return cd.getComponents();
+        List<Component> res = new ArrayList<>();
         URI start = subjects.iterator().next();
         while ( start != null )
         {
-            res.add(start);
+            res.add(cd.getComponent(start));
             start = precedes.get(start);
         }
         return res;
@@ -391,13 +440,13 @@ public class SbolDiagramReader
             compartment.setLocation(location);
             //compartment.setFixed(true);
 
-            Collection<URI> ordered = orderComponents(cd.getSequenceConstraints());
-            Iterator<URI> iter = ordered.iterator();
+            Collection<Component> ordered = orderComponents(cd);
+            Iterator<Component> iter = ordered.iterator();
             int i = 0;
             while ( iter.hasNext() )
             {
 
-                Component component = cd.getComponent(iter.next());
+                Component component = iter.next();
                 ComponentDefinition cdNode = component.getDefinition();
                 Node node = compartment.findNode(kernels.get(cdNode.getPersistentIdentity().toString()).getName());
                 if ( node != null )

@@ -8,7 +8,9 @@ import java.util.Map;
 
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.Identified;
+import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.SequenceOntology;
+import org.sbolstandard.core2.SystemsBiologyOntology;
 
 import biouml.standard.type.Type;
 
@@ -243,6 +245,17 @@ public class SbolUtil
                 return "ssNA";
             else if ( cd.containsType(ComponentDefinition.DNA_MOLECULE) )
                 return "dsNA";
+
+        }
+        else if ( sbolObject instanceof Interaction )
+        {
+            Interaction inter = (Interaction) sbolObject;
+            if ( inter.containsType(SystemsBiologyOntology.GENETIC_PRODUCTION) )
+                return "process";
+            else if ( inter.containsType(SystemsBiologyOntology.DISSOCIATION) )
+                return "dissociation";
+            else if ( inter.containsType(SystemsBiologyOntology.BIOCHEMICAL_REACTION) || inter.containsType(SystemsBiologyOntology.NON_COVALENT_BINDING) )
+                return "association";
         }
         return "unspecified-glyph";
     }
