@@ -62,4 +62,9 @@ public class SbolBase extends Option implements Base
         return null;
     }
 
+    public Identified getSbolObject()
+    {
+        return sbolObject;
+    }
+
 }

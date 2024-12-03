@@ -3,14 +3,17 @@ package biouml.plugins.sbol;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.net.URI;
-import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.Identified;
+import org.sbolstandard.core2.RestrictionType;
 import org.sbolstandard.core2.RoleIntegrationType;
 import org.sbolstandard.core2.SBOLDocument;
+import org.sbolstandard.core2.SequenceConstraint;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -129,12 +132,23 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         URI uriRole = SbolUtil.getURIByRole( role );
         ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( "biouml", getName(), "1",
                 ComponentDefinition.DNA_REGION );
-
         cd.addRole( uriRole );
-        Component component = cd.createComponent( getName(), isPrivate ? AccessType.PRIVATE : AccessType.PUBLIC,
-                ComponentDefinition.DNA_REGION );
-        component.setRoleIntegration( RoleIntegrationType.OVERRIDEROLES );
-        component.addRole( uriRole );
+
+        if ( compartment.getKernel() instanceof SbolBase )
+        {
+            Identified so = ((SbolBase) compartment.getKernel()).getSbolObject();
+            if ( so instanceof ComponentDefinition )
+            {
+                ComponentDefinition parentCd = ((ComponentDefinition) so);
+                Component component = parentCd.createComponent(getName() + "_1", isPrivate ? AccessType.PRIVATE : AccessType.PUBLIC, cd.getIdentity());
+                component.setRoleIntegration(RoleIntegrationType.OVERRIDEROLES);
+                component.addRole(uriRole);
+                //Add order constraint
+                Component lastComponent = getLastComponent(parentCd);
+                if ( lastComponent != null )
+                    parentCd.createSequenceConstraint(getName() + "_sc", RestrictionType.PRECEDES, lastComponent.getDisplayId(), component.getDisplayId());
+            }
+        }
 
         this.isCreated = true;
 
@@ -142,14 +156,13 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         int x = compartment.isEmpty() ? compartment.getLocation().x
                 : StreamEx.of( compartment.getNodes() ).mapToInt( n -> n.getLocation().x ).max().orElse( 0 ) + 48;
 
-        this.setSbolObject( component );
+        this.setSbolObject(cd);
         Node node = new Node( compartment, this );
         node.setUseCustomImage( true );
         Point nodeLocation = new Point( x, y );
         node.setLocation( nodeLocation );
-        String icon = SbolUtil.getSbolImagePath( cd );
-        node.getAttributes()
-                .add( new DynamicProperty( "node-image", URL.class, SbolDiagramReader.class.getResource( "resources/" + icon + ".png" ) ) );
+        String icon = SbolUtil.getSbolImagePath(cd);
+        node.getAttributes().add(new DynamicProperty("node-image", String.class, icon));
 
         SemanticController semanticController = diagram.getType().getSemanticController();
         if( !semanticController.canAccept(compartment, node) )
@@ -164,6 +177,28 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
             viewPane.completeTransaction();
 
         return new DiagramElementGroup( node );
+    }
+
+    private Component getLastComponent(ComponentDefinition cd)
+    {
+        Component lastComponent = null;
+        if ( !cd.getComponents().isEmpty() )
+        {
+            Set<URI> objects = new HashSet<>();
+            Set<URI> subjects = new HashSet<>();
+            for ( SequenceConstraint sc : cd.getSequenceConstraints() )
+            {
+                if ( RestrictionType.PRECEDES.equals(sc.getRestriction()) )
+                {
+                    objects.add(sc.getObjectURI());
+                    subjects.add(sc.getSubjectURI());
+                }
+            }
+            objects.removeAll(subjects);
+            if ( objects.size() == 1 )
+                lastComponent = cd.getComponent(objects.iterator().next());
+        }
+        return lastComponent;
     }
 
     public boolean isCreated()
