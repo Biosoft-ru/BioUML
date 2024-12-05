@@ -17,7 +17,7 @@ public class ProteinDegradationAgent extends ProcessAgent
     {
         for( int i = 0; i < molecules.length; i++ )
         {
-            molecules[i] = molecules[i] - rates[i]  * delta;
+            molecules[i] = molecules[i] - rates[i]  * molecules[i]*delta;
         }
     }
 

@@ -18,7 +18,7 @@ public class TranslationAgent extends ProcessAgent
     {
         for( int i = 0; i < molecules.length; i++ )
         {
-            molecules[i] = molecules[i] + rates[i] * rna[i] * delta;
+            molecules[i] += rates[i] * rna[i] * delta;
         }
     }
 
@@ -29,6 +29,8 @@ public class TranslationAgent extends ProcessAgent
         int index = nameToIndex.get( name );
         if( variable.equals( "RNA" ) )
             rna[index] = value;
+        else if( variable.equals( "Protein" ) )
+            molecules[index] = value;
         else
             rates[index] = value;
     }
@@ -39,7 +41,7 @@ public class TranslationAgent extends ProcessAgent
         int index = nameToIndex.get( name );
         return molecules[index];
     }
-    
+
     @Override
     public void initPoolVariables(MapPool pool)
     {
@@ -48,5 +50,4 @@ public class TranslationAgent extends ProcessAgent
         molecules = new double[nameToIndex.size()];
         rna = new double[nameToIndex.size()];
     }
-
 }

@@ -7,7 +7,7 @@ public class PopulationAgent extends ProcessAgent
     private double[] coefficients;
     private double[] molecules;
     private double[] population;
-
+    
     public PopulationAgent(String name, Span span)
     {
         super( name, span );
@@ -37,7 +37,7 @@ public class PopulationAgent extends ProcessAgent
     public double getValue(String variable, String name)
     {
         int index = nameToIndex.get( name );
-        return molecules[index];
+        return population[index];
     }
 
     @Override

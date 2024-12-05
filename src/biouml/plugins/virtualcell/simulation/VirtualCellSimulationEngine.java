@@ -128,6 +128,7 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                     {
                         MapPool pool = createdPools.get( otherNode.getName() );
                         translationAgent.addOutputPool( "Protein", pool );
+                        translationAgent.addInpuPool( "Protein", pool );
                     }
                 }
                 model.addAgent( translationAgent );

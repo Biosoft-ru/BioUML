@@ -133,7 +133,6 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
     @Override
     public @Nonnull CompositeView createEdgeView(Edge edge, DiagramViewOptions options, Graphics g)
     {
-
         if( edge.getPath() == null )
             Diagram.getDiagram( edge ).getType().getSemanticController().recalculateEdgePath( edge );
         Pen pen = getBorderPen( edge, options.getConnectionPen() );
