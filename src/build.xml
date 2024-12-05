@@ -392,7 +392,8 @@
         plugin.proteinmodel,
         plugin.proteome,
         plugin.sedml,
-        plugin.users"
+        plugin.users,
+    	plugin.virtualcell"
             />
 
     <target name="plugin.workbench" depends="compile">
@@ -816,6 +817,11 @@
         <create.plugin plugin="biouml.plugins.agentmodeling" source="biouml/plugins/agentmodeling"/>
     </target>
 	
+    <target name="plugin.virtualcell" depends="compile">
+        <create.plugin plugin="biouml.plugins.virtualcell" source="biouml/plugins/virtualcell"/>
+    </target>
+	
+        	
     <target name="plugin.fbc" depends="compile">
         <create.plugin plugin="biouml.plugins.fbc" source="biouml/plugins/fbc">
 	    	<files>
