@@ -30,34 +30,42 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 
 import biouml.model.Diagram;
-import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.model.dynamics.plot.Curve;
 import biouml.model.dynamics.plot.PlotInfo;
 import biouml.model.dynamics.plot.PlotVariable;
+import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.plugins.server.access.AccessProtocol;
 import biouml.plugins.simulation.ResultPlotPane;
+import biouml.plugins.simulation.SimulationAnalysis;
+import biouml.plugins.simulation.SimulationAnalysisParameters;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.plugins.simulation.SimulationEngineWrapper;
 import biouml.plugins.simulation.document.InputParameter;
 import biouml.plugins.simulation.document.InteractiveSimulation;
 import biouml.standard.diagram.DiagramUtility;
+import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
 import biouml.standard.simulation.StochasticSimulationResult;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.jobcontrol.ClassJobControl;
 import ru.biosoft.jobcontrol.JobControl;
+import ru.biosoft.jobcontrol.JobControlEvent;
+import ru.biosoft.jobcontrol.JobControlListenerAdapter;
 import ru.biosoft.server.JSONUtils;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebException;
+import ru.biosoft.server.servlets.webservices.WebJob;
 import ru.biosoft.server.servlets.webservices.WebServicesServlet;
 import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.server.servlets.webservices.providers.WebBeanProvider;
 import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
+import ru.biosoft.tasks.TaskInfo;
+import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.Util;
 
 public class SimulationProvider extends WebJSONProviderSupport
 {
@@ -67,8 +75,12 @@ public class SimulationProvider extends WebJSONProviderSupport
         switch(arguments.getAction())
         {
             case "simulate":
-                simulateDiagram(arguments.getDataElement( Diagram.class ), arguments.getJSONArray("engine"), response);
+            {
+                //simulateDiagram(arguments.getDataElement( Diagram.class ), arguments.getJSONArray("engine"), response);
+                String jobID = arguments.get("jobID");
+                simulateDiagramWithAnalysis(arguments.getDataElement(Diagram.class), jobID, arguments.getJSONArray("engine"), response);
                 return;
+            }
             case "status":
                 sendSimulationStatus(arguments.getString(AccessProtocol.KEY_DE), response);
                 return;
@@ -114,29 +126,19 @@ public class SimulationProvider extends WebJSONProviderSupport
     }
 
     private boolean logInitialized = false;
-    private static ConcurrentHashMap<String, SimulationJobControl> logToJC;
     private static ConcurrentHashMap<String, StringBuffer> buffers;
+    private static ConcurrentHashMap<String, SimulationWebResultHandler> job2handler;
+
     private void initLogging()
     {
-        if( logInitialized )
+        if ( logInitialized )
             return;
 
-        synchronized( this )
+        synchronized (this)
         {
-            if( logInitialized )
+            if ( logInitialized )
                 return;
-            logToJC = new ConcurrentHashMap<>();
-            buffers = new ConcurrentHashMap<>();
-            SessionWriter writer = new SessionWriter();
-            Handler webLogHandler = new WriterHandler( writer, new PatternFormatter( "%4$s - %5$s%n" ) );
-            webLogHandler.setLevel( Level.ALL );
-
-            String[] categoryNames = new String[] {"biouml.plugins.simulation"};
-            for( int i = 0; i < categoryNames.length; i++ )
-            {
-                Logger cat = Logger.getLogger( categoryNames[i] );
-                cat.addHandler( webLogHandler );
-            }
+            job2handler = new ConcurrentHashMap<String, SimulationWebResultHandler>();
             logInitialized = true;
         }
 
@@ -156,14 +158,6 @@ public class SimulationProvider extends WebJSONProviderSupport
         @Override
         public void flush() throws IOException
         {
-            String curSession = SecurityManager.getSession();
-            SimulationJobControl jc = logToJC.get( curSession );
-            if( jc != null )
-            {
-                StringBuffer buffer = buffers.computeIfAbsent( curSession, s -> new StringBuffer() );
-                jc.addJobMessage( buffer.toString() );
-                buffer.setLength( 0 );
-            }
 
         }
 
@@ -174,84 +168,124 @@ public class SimulationProvider extends WebJSONProviderSupport
     }
 
     /**
-     * Start diagram simulation
-     * @throws Exception 
+     * Start diagram simulation via SimulationAnalysis
+     * @throws IOException
      */
-    private void simulateDiagram(Diagram diagram, JSONArray jsonParams, JSONResponse response) throws Exception
+
+    private void simulateDiagramWithAnalysis(Diagram diagram, String jobID, JSONArray jsonParams, JSONResponse response) throws IOException
     {
         initLogging();
-        //move diagram from weak map to stable map
-        WebServicesServlet.getSessionCache().setObjectChanged(diagram.getCompletePath().toString(), diagram);
-
         SimulationEngineWrapper simulationEngineWrapper = new SimulationEngineWrapper(diagram);
         JSONUtils.correctBeanOptions(simulationEngineWrapper, jsonParams);
-
         SimulationEngine simulationEngine = simulationEngineWrapper.getEngine();
-        SimulationJobControl jobControl = new SimulationJobControl(simulationEngine);
 
-        String curSession = SecurityManager.getSession();
-        logToJC.put( curSession, jobControl );
-        buffers.put( curSession, new StringBuffer() );
+        SimulationAnalysis method = new SimulationAnalysis(diagram, "Simulation analysis");
+        SimulationAnalysisParameters simulationParameters = method.getParameters();
+        simulationParameters.setSimulationEngine(simulationEngine);
 
-        Thread t = new Thread(jobControl);
-        WebSession.addThread(t);
-        t.setPriority(Thread.MIN_PRIORITY);
-        t.start();
+        SimulationWebResultHandler swrh = new SimulationWebResultHandler(simulationEngine);
+        for ( ResultListener listener : swrh.getResultListeners(diagram.getCompletePath()) )
+            method.addResultListenerList(listener);
+        job2handler.put(jobID, swrh);
 
-        String processName = "beans/process/" + Util.getUniqueId();
-        WebServicesServlet.getSessionCache().addObject(processName, jobControl, true);
-        response.sendStringArray(new String[] {processName, String.valueOf(simulationEngine.getPlots().length)});
+        final WebJob webJob = WebJob.getWebJob(jobID);
+        final Logger log = webJob.getJobLogger();
+        method.setLogger(log);
+        ClassJobControl jobControl = method.getJobControl();
+        Writer writer = new Writer()
+        {
+            StringBuffer buffer = new StringBuffer();
+
+            @Override
+            public void close() throws IOException
+            {
+            }
+
+            @Override
+            public void flush() throws IOException
+            {
+                webJob.addJobMessage(buffer.toString());
+                buffer = new StringBuffer();
+            }
+
+            @Override
+            public void write(char[] bytes, int offset, int len) throws IOException
+            {
+                buffer.append(bytes, offset, len);
+            }
+        };
+
+        final Handler webLogHandler = new WriterHandler(writer, new PatternFormatter("%4$s - %5$s%n"));
+        webLogHandler.setLevel(Level.ALL);
+
+        final Logger cat = Logger.getLogger("biouml.plugins.simulation");
+        cat.addHandler(webLogHandler);
+
+        log.setLevel(Level.ALL);
+        log.addHandler(webLogHandler);
+
+        TaskManager taskManager = TaskManager.getInstance();
+        TaskInfo taskInfo = taskManager.addAnalysisTask(method, false);
+        webJob.setTask(taskInfo);
+        taskInfo.setTransient("parameters", method.getParameters());
+
+        jobControl.addListener(new JobControlListenerAdapter()
+        {
+            @Override
+            public void jobTerminated(JobControlEvent event)
+            {
+                log.removeHandler(webLogHandler);
+                cat.removeHandler(webLogHandler);
+            }
+        });
+        taskManager.runTask(taskInfo);
+        response.sendStringArray(new String[] { jobID, String.valueOf(simulationEngine.getPlots().length) });
     }
 
     /**
-     * Get simulation status by JobControl name
-     * @throws IOException 
+     * Get simulation status by web job ID
+     * 
+     * @throws IOException
      */
     private static void sendSimulationStatus(String jobId, JSONResponse response) throws IOException
     {
-        Object jobControlObj = WebServicesServlet.getSessionCache().getObject(jobId);
-        if( jobControlObj instanceof SimulationJobControl )
+        WebJob webJob = WebJob.getWebJob(jobId);
+        JobControl jobControl = webJob.getJobControl();
+        SimulationWebResultHandler swrh = job2handler.get(jobId);
+        if ( swrh != null )
         {
-            SimulationJobControl jobControl = (SimulationJobControl)jobControlObj;
-            String errorStr = jobControl.getErrorMessage();
-            if( errorStr == null )
+            int status = jobControl.getStatus();
+            String[] imageNames = null;
+            BufferedImage[] resultImages = swrh.generateResultImage();
+            if ( resultImages != null )
             {
-                int status = jobControl.getStatus();
-                String[] imageNames = null;
-                BufferedImage[] resultImages = jobControl.generateResultImage();
-                if( resultImages != null )
+                imageNames = new String[resultImages.length + 1];
+                for ( int i = 0; i < resultImages.length; i++ )
                 {
-                    imageNames = new String[resultImages.length + 1];
-                    for( int i= 0; i<resultImages.length; i++)
-                    {
-                        imageNames[i] = jobId + "_img_"+i;
-                        WebSession.getCurrentSession().putImage(imageNames[i], resultImages[i]);
-                    }
-                    String message = jobControl.getJobMessage();
-                    imageNames[imageNames.length - 1] = message;
+                    imageNames[i] = jobId + "_img_" + i;
+                    WebSession.getCurrentSession().putImage(imageNames[i], resultImages[i]);
                 }
-
-                if( status < JobControl.COMPLETED )
-                {
-                    int percent = jobControl.getPreparedness();
-                    response.sendStatus( status, percent, imageNames );
-                }
-                else if( status == JobControl.COMPLETED || status == JobControl.TERMINATED_BY_REQUEST )
-                {
-                    //WebServicesServlet.getSessionCache().removeObject(jobId);
-                    response.sendStatus( status, 100, imageNames );
-                }
-                else if( status == JobControl.TERMINATED_BY_ERROR ) //ended with non-processed error in log
-                {
-                    String message = jobControl.getJobMessage();
-                    if( message == null )
-                        message = "Can not simulate model. Error not specified.";
-                    response.error( message );
-                }
+                String message = webJob.getJobMessage();
+                imageNames[imageNames.length - 1] = message;
             }
-            else
+
+            if ( status < JobControl.COMPLETED )
             {
-                response.error(errorStr);
+                int percent = swrh.getPreparedness();
+                response.sendStatus(status, percent, imageNames);
+            }
+            else if ( status == JobControl.COMPLETED || status == JobControl.TERMINATED_BY_REQUEST )
+            {
+                //job2handler.remove(jobId);
+                response.sendStatus(status, 100, imageNames);
+            }
+            else if ( status == JobControl.TERMINATED_BY_ERROR ) //ended with non-processed error in log
+            {
+                //job2handler.remove(jobId);
+                String message = webJob.getJobMessage();
+                if ( message == null )
+                    message = "Can not simulate model. Error not specified.";
+                response.error(message);
             }
         }
         else
@@ -262,18 +296,17 @@ public class SimulationProvider extends WebJSONProviderSupport
     
     private static void stopSimulation(String jobId, JSONResponse response) throws IOException
     {
-        Object jobControlObj = WebServicesServlet.getSessionCache().getObject(jobId);
-        if( jobControlObj instanceof SimulationJobControl )
+        WebJob webJob = WebJob.getWebJob(jobId);
+        JobControl jobControl = webJob.getJobControl();
+        SimulationWebResultHandler swrh = job2handler.get(jobId);
+        if ( swrh != null )
         {
-            SimulationJobControl jobControl = (SimulationJobControl)jobControlObj;
             jobControl.terminate();
-            String message = jobControl.getJobMessage();
+            String message = webJob.getJobMessage();
             if( message == null )
                 message = "Can not simulate model. Error not specified.";
+            //job2handler.remove(jobId);
             response.sendStringArray( "Simulation terminated", message );
-            String curSession = SecurityManager.getSession();
-            logToJC.remove( curSession );
-            buffers.remove( curSession );
         }
         else
         {
@@ -281,23 +314,17 @@ public class SimulationProvider extends WebJSONProviderSupport
         }
     }
     
-    private static void sendSimulationResult(String resultDe, JSONResponse response) throws IOException
+    private static void sendSimulationResult(String jobId, JSONResponse response) throws IOException
     {
-        Object cachedObj = WebServicesServlet.getSessionCache().getObject( resultDe );
+        SimulationWebResultHandler swrh = job2handler.get(jobId);
         SimulationResult simulationResult = null;
-        if( cachedObj instanceof SimulationJobControl )
+        if ( swrh != null )
         {
-            SimulationJobControl jobControl = (SimulationJobControl)cachedObj;
-            simulationResult = jobControl.getSimulationResult();
+            simulationResult = swrh.getSimulationResult();
         }
-        else if( cachedObj instanceof SimulationResult )
+        else
         {
-            //branch is not used, added for future work with cached SimulationResult
-            simulationResult = (SimulationResult)cachedObj;
-        }
-        else if( cachedObj == null )
-        {
-            DataElementPath simulationResultPath = DataElementPath.create( resultDe );
+            DataElementPath simulationResultPath = DataElementPath.create(jobId);
             simulationResult = simulationResultPath.optDataElement( SimulationResult.class );
         }
 
@@ -308,7 +335,7 @@ public class SimulationProvider extends WebJSONProviderSupport
         }
         else
         {
-            response.error( "Invalid process ID specified: " + resultDe );
+            response.error("Invalid process ID specified: " + jobId);
         }
     }
 
@@ -390,11 +417,10 @@ public class SimulationProvider extends WebJSONProviderSupport
      */
     private void saveSimulationResult(DataElementPath dataElementPath, String jobID, JSONResponse response) throws IOException
     {
-        Object cachedObj = WebServicesServlet.getSessionCache().getObject( jobID );
-        if( cachedObj instanceof SimulationJobControl )
+        SimulationWebResultHandler swrh = job2handler.get(jobID);
+        if ( swrh != null )
         {
-            SimulationJobControl jobControl = (SimulationJobControl)cachedObj;
-            SimulationResult tmpResult = jobControl.getSimulationResult();         
+            SimulationResult tmpResult = swrh.getSimulationResult();
             SimulationResult simulationResult = tmpResult.clone( dataElementPath.getParentCollection(), dataElementPath.getName( ));            
             CollectionFactoryUtils.save( simulationResult );
             response.sendString( "ok" );

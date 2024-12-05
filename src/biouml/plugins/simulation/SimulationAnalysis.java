@@ -109,29 +109,24 @@ public class SimulationAnalysis extends AnalysisMethodSupport<SimulationAnalysis
 
         SimulationResult result;
         ResultWriter writer = null;
+        jobControl.setPreparedness(5);
         if( resultPath != null )
         {
             result = new SimulationResult(resultPath.optParentCollection(), resultPath.getName());
             writer = new ResultWriter(result);
             writer.setSkipPoints( skipPoints );
-
             engine.initSimulationResult( result );
-            jobControl.setPreparedness(5);
-
             listeners.add(writer);
             writer.start(model);
-            jobControl.pushProgress(10, 95);
-            jobControl.setPercentStep(100.0 / ( engine.getCompletionTime() - engine.getInitialTime() ));
-
             for( PropertyChangeListener l : listenersList )
             {
                 listeners.add(new ResultListenerAdapter(l, result));
             }
         }
 
+        jobControl.pushProgress(10, 95);
+        jobControl.setPercentStep(100.0 / (engine.getCompletionTime() - engine.getInitialTime()));
         listeners.addAll(resultListenerList);
-
-
         try
         {
             if( !engine.isTerminated() )
@@ -142,6 +137,7 @@ public class SimulationAnalysis extends AnalysisMethodSupport<SimulationAnalysis
             engine.log.error("ERROR_SIMULATION", new String[] {engine.getDiagram().getName(), e.toString()}, e);
             return null;
         }
+
         jobControl.popProgress();
         if( resultPath != null && writer != null )
         {

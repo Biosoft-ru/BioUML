@@ -4005,9 +4005,11 @@ function ComplexSimulationViewPart()
         {
             var dps = _this.enginePane.getModel();
             var json = convertDPSToJSON(dps);
+            var jobID = rnd();
             queryBioUML("web/simulation/simulate", 
             {
                 de: _this.currentObject.completeName,
+                jobID: jobID,
                 engine: json
             }, function(data)
             {
@@ -4062,7 +4064,7 @@ function ComplexSimulationViewPart()
                             
                         },
                         beforeClose: function( event, ui ) {
-                            _this.stopSimulation();
+                            //_this.stopSimulation();
                         }
                         ,
                         open: function(event, ui){
@@ -4156,7 +4158,8 @@ function ComplexSimulationViewPart()
                 {
                     de: _this.currentProcess
                 },
-                function(){
+                function(data){
+                    updateLog(_this.mainLogDiv, data.values[1] + data.values[0]);
                     for(var i=0; i<_this.n; i++)
                     {
                         if(_this.dialogDiv[0])
