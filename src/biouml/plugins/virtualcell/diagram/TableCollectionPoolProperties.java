@@ -116,6 +116,8 @@ public class TableCollectionPoolProperties extends Option implements InitialElem
         // TODO Auto-generated method stub
         TableCollectionPoolProperties result = new TableCollectionPoolProperties( name );
         result.setDiagramElement( (Node)de );
+        result.setSaveStep( saveStep );
+        result.setShouldBeSaved( shouldBeSaved );
         result.setPath( path );
         return result;
     }
