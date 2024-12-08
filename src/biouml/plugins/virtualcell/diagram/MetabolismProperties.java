@@ -12,10 +12,12 @@ import biouml.model.InitialElementProperties;
 import biouml.model.Node;
 import biouml.model.Role;
 import biouml.standard.type.Stub;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 
-public class MetabolismProperties implements InitialElementProperties, DataOwner
+public class MetabolismProperties implements InitialElementProperties, DataOwner, DataElement
 {
     private String name;
     private Node node;
@@ -98,6 +100,12 @@ public class MetabolismProperties implements InitialElementProperties, DataOwner
     public String[] getNames()
     {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DataCollection<?> getOrigin()
+    {
         return null;
     }
 }

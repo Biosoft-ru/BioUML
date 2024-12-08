@@ -12,10 +12,12 @@ import biouml.model.InitialElementProperties;
 import biouml.model.Node;
 import biouml.model.Role;
 import biouml.standard.type.Stub;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 
-public class TranslationProperties implements InitialElementProperties, DataOwner
+public class TranslationProperties implements InitialElementProperties, DataOwner, DataElement
 {
     private String name;
     private Node node;
@@ -85,5 +87,12 @@ public class TranslationProperties implements InitialElementProperties, DataOwne
     public void setTranslationRates(DataElementPath translationRates)
     {
         this.translationRates = translationRates;
+    }
+
+    @Override
+    public DataCollection<?> getOrigin()
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
