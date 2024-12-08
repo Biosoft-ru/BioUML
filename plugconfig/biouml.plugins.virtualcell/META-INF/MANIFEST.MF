@@ -11,6 +11,7 @@ Require-Bundle: org.eclipse.osgi,
  biouml.plugins.sbml,
  biouml.plugins.simulation,
  biouml.plugins.agentmodeling,
+ biouml.plugins.fbc,
  com.developmentontheedge.beans,
  com.developmentontheedge.util,
  ru.biosoft.access,
@@ -24,5 +25,6 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.jobcontrol,
  ru.biosoft.server.servlets;resolution:=optional,
  ru.biosoft.workbench,
- ru.biosoft.workbench.editors
+ ru.biosoft.workbench.editors,
+ org.gnu.glpk
 Export-Package: biouml.plugins.virtualcell
