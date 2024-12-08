@@ -31,7 +31,7 @@ public abstract class ProcessAgent extends SimulationAgent
     public void addInpuPool(String variable, MapPool pool)
     {
         inputMap.put( variable, pool );
-        
+
     }
 
     public void addOutputPool(String variable, MapPool pool)
@@ -58,9 +58,12 @@ public abstract class ProcessAgent extends SimulationAgent
 
     public void init()
     {
-        MapPool pool = inputMap.values().iterator().next();
-        if( pool instanceof MapPool )
-            initPoolVariables((MapPool)pool);
+        if( !inputMap.isEmpty() )
+        {
+            MapPool pool = inputMap.values().iterator().next();
+            if( pool instanceof MapPool )
+                initPoolVariables( (MapPool)pool );
+        }
         initParameters();
     }
 

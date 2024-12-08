@@ -16,11 +16,14 @@ import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.Role;
 import biouml.model.dynamics.plot.PlotInfo;
+import biouml.plugins.fbc.FbcModel;
+import biouml.plugins.fbc.GLPKModelCreator;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.plugins.simulation.Simulator;
 import biouml.plugins.simulation.Span;
 import biouml.plugins.simulation.UniformSpan;
+import biouml.plugins.virtualcell.diagram.MetabolismProperties;
 import biouml.plugins.virtualcell.diagram.PopulationProperties;
 import biouml.plugins.virtualcell.diagram.ProteinDegradationProperties;
 import biouml.plugins.virtualcell.diagram.TableCollectionPoolProperties;
@@ -107,12 +110,13 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
             {
                 TranslationAgent translationAgent = new TranslationAgent( node.getName(),
                         new UniformSpan( 0, timeCompletion, timeIncrement ) );
-                
-                TableDataCollection parameters = ((TranslationProperties)role).getTranslationRates().getDataElement( TableDataCollection.class );
-                MapPool parametersPool = new MapPool("rates");
+
+                TableDataCollection parameters = ( (TranslationProperties)role ).getTranslationRates()
+                        .getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool( "rates" );
                 parametersPool.load( parameters, "Value" );
                 translationAgent.addParametersPool( "rates", parametersPool );
-                
+
                 for( Node otherNode : node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ) )
                 {
                     if( otherNode.getRole() instanceof TableCollectionPoolProperties )
@@ -137,12 +141,13 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
             {
                 ProteinDegradationAgent proteinDegradationAgent = new ProteinDegradationAgent( node.getName(),
                         new UniformSpan( 0, timeCompletion, timeIncrement ) );
-                
-                TableDataCollection parameters = ((ProteinDegradationProperties)role).getDegradationRates().getDataElement( TableDataCollection.class );
-                MapPool parametersPool = new MapPool("rates");
+
+                TableDataCollection parameters = ( (ProteinDegradationProperties)role ).getDegradationRates()
+                        .getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool( "rates" );
                 parametersPool.load( parameters, "Value" );
                 proteinDegradationAgent.addParametersPool( "rates", parametersPool );
-                
+
                 for( Node otherNode : node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ) )
                 {
                     if( otherNode.getRole() instanceof TableCollectionPoolProperties )
@@ -166,12 +171,12 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
             {
                 PopulationAgent populationAgent = new PopulationAgent( node.getName(),
                         new UniformSpan( 0, timeCompletion, timeIncrement ) );
-                
-                TableDataCollection parameters = ((PopulationProperties)role).getCoeffs().getDataElement( TableDataCollection.class );
-                MapPool parametersPool = new MapPool("coeffs");
+
+                TableDataCollection parameters = ( (PopulationProperties)role ).getCoeffs().getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool( "coeffs" );
                 parametersPool.load( parameters, "Value" );
                 populationAgent.addParametersPool( "coeffs", parametersPool );
-                
+
                 for( Node otherNode : node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ) )
                 {
                     if( otherNode.getRole() instanceof TableCollectionPoolProperties )
@@ -190,6 +195,33 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                     }
                 }
                 model.addAgent( populationAgent );
+            }
+            else if( role instanceof MetabolismProperties )
+            {
+                MetabolismAgent metabolismAgent = new MetabolismAgent( node.getName(),
+                        new UniformSpan( 0, timeCompletion, timeIncrement ) );
+
+                Diagram diagram = ( (MetabolismProperties)role ).getDiagramPath().getDataElement( Diagram.class );
+                MapPool parametersPool = new MapPool( "Constraints" );
+                parametersPool.loadFromParameters( diagram );
+                
+                GLPKModelCreator modelCreator = new GLPKModelCreator();
+                FbcModel fbcModel = modelCreator.createModel( diagram );
+                metabolismAgent.setModel( fbcModel );
+                
+//                metabolismAgent.addParametersPool( "rates", parametersPool );
+
+                for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        pool.loadFromRates( diagram );
+                        metabolismAgent.addOutputPool( "Rates", pool );
+                        metabolismAgent.initPoolVariables( pool );
+                    }
+                }
+                model.addAgent( metabolismAgent );
             }
         }
         return model;

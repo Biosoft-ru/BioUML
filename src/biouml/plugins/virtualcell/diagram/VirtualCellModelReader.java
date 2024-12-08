@@ -80,6 +80,17 @@ public class VirtualCellModelReader extends ModelXmlReader
                     populationProperties.setDiagramElement( node );
                     node.setRole( populationProperties );
                     break;
+                case "metabolism":
+                    MetabolismProperties metabolismProperties = new MetabolismProperties( name );
+                    String model = processElement.getAttribute( "model" );
+                    if( !model.isEmpty()  )
+                        metabolismProperties.setDiagramPath( DataElementPath.create( model ) );
+                    String table = processElement.getAttribute( "table" );
+                    if( !table.isEmpty()  )
+                        metabolismProperties.setTablePath( DataElementPath.create( table ) );
+                    metabolismProperties.setDiagramElement( node );
+                    node.setRole( metabolismProperties );
+                    break;
             }
         }
 

@@ -30,7 +30,7 @@ public class VirtualCellDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getNodeTypes()
     {
-        return new Object[] {"Pool", "Translation", "ProteinDegradation", "Population"};
+        return new Object[] {"Pool", "Translation", "ProteinDegradation", "Population", "Metabolism"};
     }
 
     @Override

@@ -65,6 +65,8 @@ public class VirtualCellDiagramSemanticController extends DefaultSemanticControl
             return new ProteinDegradationProperties( DefaultSemanticController.generateUniqueName( compartment, "Protein Degradation" ) );
         else if( type.equals( "Population" ) )
             return new PopulationProperties( DefaultSemanticController.generateUniqueName( compartment, "Population" ) );
+        else if( type.equals( "Metabolism" ) )
+            return new MetabolismProperties( DefaultSemanticController.generateUniqueName( compartment, "Metabolism" ) );
         return null;
     }
 

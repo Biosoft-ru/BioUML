@@ -69,6 +69,17 @@ public class VirtualCellModelWriter extends ModelXmlWriter
             element.appendChild( child );
         }
         
+        for( MetabolismProperties processProperties : diagram.recursiveStream().map( de -> de.getRole() ).select( MetabolismProperties.class ) )
+        {
+            Element child = doc.createElement( "metabolism" );
+            child.setAttribute( "name", processProperties.getName() );
+            if( processProperties.getDiagramPath() != null )
+                child.setAttribute( "model", processProperties.getDiagramPath().toString() );
+            if( processProperties.getTablePath() != null )
+                child.setAttribute( "table", processProperties.getTablePath().toString() );
+            element.appendChild( child );
+        }
+        
         if( element.hasChildNodes() )
             parent.appendChild( element );
     }

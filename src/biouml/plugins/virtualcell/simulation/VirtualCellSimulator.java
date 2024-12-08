@@ -35,7 +35,8 @@ public class VirtualCellSimulator implements Simulator
 
     protected List<ProcessAgent> agents = new ArrayList<>(); //the same array as in model
     protected List<MapPool> pools = new ArrayList<>();
-
+    protected Map<String, Double> nextSave = new HashMap<>();
+    private double OUTPUT_STEP_ERROR = 0.0001;
     protected double currentTime = 0;
     protected double completionTime = 100;
     protected double timeIncrement = 1;
@@ -68,7 +69,6 @@ public class VirtualCellSimulator implements Simulator
         return currentTime < completionTime && isAlive;
     }
 
-
     private void execute(SimulationAgent agent) throws Exception
     {
         if( !agent.isAlive() )
@@ -88,15 +88,16 @@ public class VirtualCellSimulator implements Simulator
         if( !pool.isSaved() )
             return;
 
-        double step = pool.getSaveStep();
-
-        if( Math.round( currentTime % step ) == 0 )
+        String poolName = pool.getName();
+        double nextSavePoint = nextSave.get( poolName );
+        if( Math.abs( currentTime - nextSavePoint ) < OUTPUT_STEP_ERROR )
         {
-            DataCollection tdc = poolToCollection.get( pool.getName() );
+            DataCollection tdc = poolToCollection.get( poolName );
             String suffix = String.format( format, (int)Math.round( currentTime ) );
-            String resultName = pool.getName() + "_" + suffix;
+            String resultName = poolName + "_" + suffix;
             DataElementPath dep = DataElementPath.create( tdc, resultName );
             pool.save( dep, "Value" );
+            nextSave.put( poolName, currentTime + pool.getSaveStep() );
         }
     }
 
@@ -131,18 +132,21 @@ public class VirtualCellSimulator implements Simulator
         {
             init( (MapPool)pool );
         }
-        
+
         for( ProcessAgent agent : agents )
         {
             agent.init();
         }
 
+        for( MapPool pool : pools )
+            execute( pool );
     }
 
     private void init(MapPool pool) throws Exception
     {
         if( !pool.isSaved() )
             return;
+        this.nextSave.put( pool.getName(), pool.getSaveStep() );
         DataCollection poolCollection = DataCollectionUtils.createSubCollection( resultPath.getChildPath( pool.getName() ) );
         this.poolToCollection.put( pool.getName(), poolCollection );
     }
@@ -153,7 +157,6 @@ public class VirtualCellSimulator implements Simulator
         // TODO Auto-generated method stub
 
     }
-
 
     @Override
     public void stop()
@@ -191,5 +194,4 @@ public class VirtualCellSimulator implements Simulator
         // TODO Auto-generated method stub
 
     }
-
 }
