@@ -7,6 +7,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -43,6 +44,7 @@ import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.EllipseView;
 import ru.biosoft.graphics.ImageView;
 import ru.biosoft.graphics.LineView;
+import ru.biosoft.graphics.PathView;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.PolygonView;
 import ru.biosoft.graphics.SimplePath;
@@ -136,17 +138,64 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
     @Override
     public boolean createCompartmentCoreView(CompositeView container, Compartment compartment, DiagramViewOptions options, Graphics g)
     {
+        if ( !(options instanceof SbolDiagramViewOptions) )
+            return super.createCompartmentCoreView(container, compartment, options, g);
+
         Dimension shapeSize = compartment.getShapeSize();
+
+        boolean isCircular = compartment.getAttributes().getValue("isCircular").equals(true);
+        boolean isWithChromLocus = compartment.getAttributes().getValue("isWithChromLocus").equals(true);
+        boolean hasEnds = isWithChromLocus || isCircular;
         BoxView shapeView = new BoxView(null, getBrush(compartment, new Brush(Color.yellow.brighter())),
                 new Rectangle(0, 0, shapeSize.width, shapeSize.height));
         shapeView.setLocation(compartment.getLocation());
-        Pen boldPen = new Pen(2, Color.black);
+        Pen backbonePen = ((SbolDiagramViewOptions) options).getBackbonePen();
+        int vertShift = (int) Math.round(backbonePen.getWidth()) - 1;
         CompositeView view = new CompositeView();
-        LineView lineView = new LineView( boldPen, 0, 0, (float)compartment.getShapeSize().getWidth(), 0 );
-
-        view.add( shapeView );
+        int lineWidth = shapeSize.width;//hasEnds ? shapeSize.width - 20 : shapeSize.width;
+        int lineStart = 0;// hasEnds ? 10 : 0;
+        LineView lineView = new LineView(backbonePen, lineStart, 0, lineWidth, 0);
+        view.add(shapeView);
         view.add(lineView, CompositeView.X_CC | CompositeView.Y_BB, new Point(0, 14));
 
+        if ( isCircular )
+        {
+            //                InputStream imageStream = getClass().getResourceAsStream("resources/circular-plasmid.svg");
+            //                BufferedImage image = rasterize(imageStream, 0, 0);
+            //                ImageView imageView = new ImageView(image, compartment.getLocation().x, compartment.getLocation().y, image.getWidth(), image.getHeight());
+            //                imageView.setPath("circular-plasmid");
+            //view.add(imageView, CompositeView.X_LL | CompositeView.Y_BB);
+
+            GeneralPath path = new GeneralPath();
+            path.moveTo(0, 0);
+            path.quadTo(30, 0, 30, 8);
+            path.quadTo(30, 13, 8, 14);
+            view.add(new PathView(backbonePen, path), CompositeView.X_RL | CompositeView.Y_BB, new Point(0, vertShift));
+
+            GeneralPath path2 = new GeneralPath();
+            path2.moveTo(30, 0);
+            path2.quadTo(0, 0, 0, 8);
+            path2.quadTo(0, 13, 22, 14);
+            view.add(new PathView(backbonePen, path2), CompositeView.X_LR | CompositeView.Y_BB, new Point(0, vertShift));
+
+        }
+        else if ( isWithChromLocus )
+        {
+            GeneralPath path = new GeneralPath();
+            path.moveTo(0, 0);
+            path.quadTo(30, 0, 30, 6);
+            path.curveTo(30, 10, 2, 10, 2, 14);
+            path.quadTo(2, 18, 32, 18);
+            view.add(new PathView(backbonePen, path), CompositeView.X_RL | CompositeView.Y_BB, new Point(0, vertShift - 4));
+
+            GeneralPath path2 = new GeneralPath();
+            path2.moveTo(32, 0);
+            path2.quadTo(2, 0, 2, 6);
+            path2.curveTo(2, 10, 30, 10, 30, 14);
+            path2.quadTo(30, 18, 0, 18);
+            view.add(new PathView(backbonePen, path2), CompositeView.X_LR | CompositeView.Y_BB);
+        }
+        
         container.add( view );
         view.setModel( compartment );
 
@@ -401,6 +450,12 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
             out.y = outBounds.y;
         }
         return true;
+    }
+
+    @Override
+    public DiagramViewOptions createDefaultDiagramViewOptions()
+    {
+        return new SbolDiagramViewOptions(null);
     }
 
 }

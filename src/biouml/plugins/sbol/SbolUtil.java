@@ -12,6 +12,8 @@ import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.SequenceOntology;
 import org.sbolstandard.core2.SystemsBiologyOntology;
 
+import biouml.standard.type.Base;
+import biouml.standard.type.Stub;
 import biouml.standard.type.Type;
 
 public class SbolUtil
@@ -33,9 +35,12 @@ public class SbolUtil
     public static final String TYPE_BIOCHEMICAL_REACTION = "degradation";
     public static final String TYPE_NON_COVALENT_BINDING = "non-covalent binding";
     public static final String TYPE_GENETIC_PRODUCTION = "genetic production";
+    public static final String TYPE_CIRCULAR_END = "circular-plasmid end";
+    public static final String TYPE_CIRCULAR_START = "circular-plasmid start";
 
     private static SequenceOntology so = new SequenceOntology();
-
+    public static URI ROLE_CIRCULAR = null;
+    public static URI ROLE_CHROMOSOMAL_LOCUS = null;
 
     static
     {
@@ -88,6 +93,9 @@ public class SbolUtil
         aMap.put( so.getURIbyId( "SO:0000724" ), "origin-of-transfer" );
         aMap.put( so.getURIbyId( "SO:0001956" ), "protease-site" );
         aMap.put( so.getURIbyId( "SO:0000288" ), "engineered-region");
+        aMap.put( so.getURIbyId( "SO:0000830" ), "chromosomal-locus");
+        aMap.put( so.getURIbyId( "SO:0000755" ), "circular-plasmid");
+        
 
         dnaRegionToImage = Collections.unmodifiableMap(aMap);
     }
@@ -129,6 +137,12 @@ public class SbolUtil
         bMap.put( "Three prime overhang", so.getURIbyId( "SO:0001933" ) );
         bMap.put( "Origin of transfer", so.getURIbyId( "SO:0000724" ) );
         bMap.put( "Protease site", so.getURIbyId( "SO:0001956" ) );
+        
+        ROLE_CHROMOSOMAL_LOCUS = so.getURIbyId( "SO:0000830" );
+        bMap.put( "Chromosomal locus", ROLE_CHROMOSOMAL_LOCUS );
+        ROLE_CIRCULAR = so.getURIbyId( "SO:0000755" );
+        bMap.put( "Circular plasmid",  ROLE_CIRCULAR);
+        
 
         featurRoleToURI = Collections.unmodifiableMap( bMap );
     }
@@ -260,7 +274,7 @@ public class SbolUtil
         return "unspecified-glyph";
     }
 
-    public static SbolBase getKernelByComponentDefinition(ComponentDefinition cd, boolean isTopLevel)
+    public static Base getKernelByComponentDefinition(ComponentDefinition cd, boolean isTopLevel)
     {
         if ( cd.containsType(ComponentDefinition.DNA_REGION) && cd.getComponents().size() > 0 && isTopLevel )
         {

@@ -42,8 +42,8 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.model.util.ImageGenerator;
-import biouml.plugins.sbgn.SBGNPropertyConstants;
 import biouml.plugins.sbgn.Type;
+import biouml.standard.type.Base;
 import biouml.standard.type.DiagramInfo;
 import biouml.standard.type.Reaction;
 import biouml.standard.type.Stub;
@@ -55,12 +55,6 @@ import ru.biosoft.graph.Graph;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.OrthogonalPathLayouter;
 import ru.biosoft.graph.PathwayLayouter;
-import ru.biosoft.graphics.BoxView;
-import ru.biosoft.graphics.Brush;
-import ru.biosoft.graphics.CompositeView;
-import ru.biosoft.graphics.EllipseView;
-import ru.biosoft.graphics.PolygonView;
-import ru.biosoft.graphics.TextView;
 import ru.biosoft.util.DPSUtils;
 
 public class SbolDiagramReader
@@ -93,13 +87,13 @@ public class SbolDiagramReader
 
     private static void fillDiagramByDocument(SBOLDocument doc, Diagram diagram)
     {
-        Map<String, SbolBase> kernels = new HashMap<>();
+        Map<String, Base> kernels = new HashMap<>();
         Set<ModuleDefinition> mds = doc.getRootModuleDefinitions();
         Set<ComponentDefinition> components = doc.getComponentDefinitions();
         Set<ComponentDefinition> topLevels = getTopLevelComponentDefinitions(doc);
         for ( ComponentDefinition cd : components )
         {
-            SbolBase base = SbolUtil.getKernelByComponentDefinition(cd, topLevels.contains(cd));
+            Base base = SbolUtil.getKernelByComponentDefinition(cd, topLevels.contains(cd));
             kernels.put(cd.getPersistentIdentity().toString(), base);
         }
         //        for ( ModuleDefinition md : mds )
@@ -117,7 +111,7 @@ public class SbolDiagramReader
         arrangeDiagram(diagram, doc, kernels);
     }
 
-    private static void parseInteractions(Set<ModuleDefinition> mds, Diagram diagram, Map<String, SbolBase> kernels)
+    private static void parseInteractions(Set<ModuleDefinition> mds, Diagram diagram, Map<String, Base> kernels)
     {
         for ( ModuleDefinition md : mds )
         {
@@ -282,7 +276,7 @@ public class SbolDiagramReader
 
     }
 
-    private static Set<Node> getParticipantNodes(Set<URI> types, Set<Participation> participants, Diagram diagram, Map<String, SbolBase> kernels)
+    private static Set<Node> getParticipantNodes(Set<URI> types, Set<Participation> participants, Diagram diagram, Map<String, Base> kernels)
     {
         return participants.stream().filter(pt -> {
             return pt.getRoles().stream().anyMatch(types::contains);
@@ -295,7 +289,7 @@ public class SbolDiagramReader
         }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
-    private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, SbolBase> kernels)
+    private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, Base> kernels)
     {
 
         for ( ComponentDefinition cd : cds )
@@ -319,23 +313,35 @@ public class SbolDiagramReader
     }
 
 
-    private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, SbolBase> kernels)
+    private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, Base> kernels)
     {
         Set<Component> components = cd.getComponents();
         if ( !components.isEmpty() )
         {
             //Fill as compartment
             Compartment compartment = new Compartment(diagram, kernels.get(cd.getPersistentIdentity().toString()));
-            compartment.setShapeSize(new Dimension(xSize * components.size() + 10, ySize + 30));
             compartment.getAttributes().add(DPSUtils.createHiddenReadOnly(Node.INNER_NODES_PORT_FINDER_ATTR, Boolean.class, true));
-            Collection<Component> ordered = orderComponents(cd);
-            Iterator<Component> iter = ordered.iterator();
+            //Collection<Component> ordered = orderComponents(cd);
+            //Iterator<Component> iter = ordered.iterator();
+            Iterator<Component> iter = components.iterator();
+            boolean isCircular = false;
+            boolean isWithChromLocus = false;
             while ( iter.hasNext() )
             //for ( Component component : components )
             {
                 Component component = iter.next();
                 ComponentDefinition cdNode = component.getDefinition();
-                SbolBase base = kernels.get(cdNode.getPersistentIdentity().toString());
+                if ( cdNode.getRoles().contains(SbolUtil.ROLE_CIRCULAR) )
+                {
+                    isCircular = true;
+                    continue;
+                }
+                if ( cdNode.getRoles().contains(SbolUtil.ROLE_CHROMOSOMAL_LOCUS) )
+                {
+                    isWithChromLocus = true;
+                    continue;
+                }
+                Base base = kernels.get(cdNode.getPersistentIdentity().toString());
                 if ( base != null )
                 {
                     Node node = new Node(compartment, base);
@@ -344,6 +350,7 @@ public class SbolDiagramReader
                     String icon = SbolUtil.getSbolImagePath(cdNode);
                     node.getAttributes()
                             .add(new DynamicProperty("node-image", String.class, icon));
+
                     //composite node
                     //TODO: create new diagram for this node and store in attributes
                     if ( !cdNode.getComponents().isEmpty() )
@@ -362,13 +369,38 @@ public class SbolDiagramReader
                     node.setShapeSize(new Dimension(xSize, ySize));
                     //node.setLocation(new Point(20, 20));
                     compartment.put(node);
+                    //                    if ( cdNode.getRoles().contains(SbolUtil.ROLE_CIRCULAR) )
+                    //                    {
+                    //                        isCircular = true;
+                    //                        //Circular plasmid component occurs only once as the end backbone component, but node should be added twice with normal and reverse orientation
+                    //                        Node circularEnd = node.clone(compartment, node.getName() + "_start", new Stub(null, node.getName() + "_start", SbolUtil.TYPE_CIRCULAR_START));
+                    //                        circularEnd.setShowTitle(false);
+                    //                        compartment.put(circularEnd);
+                    //
+                    //                        node.setShowTitle(false);
+                    //                        node.getAttributes().add(new DynamicProperty("isReverse", Boolean.class, true));
+                    //                    }
+
+                    //                    if ( cdNode.getRoles().contains(SbolUtil.ROLE_CHROMOSOMAL_LOCUS) )
+                    //                    {
+                    //                        node.setShowTitle(false);
+                    //                        if ( cd.getSequenceConstraints().stream().noneMatch(con -> con.getObject().equals(cdNode)) )
+                    //                                node.getAttributes().add(new DynamicProperty("isReverse", Boolean.class, true));
+                    //                    }
+
                 }
+
             }
+            compartment.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, isCircular));
+            compartment.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, isWithChromLocus));
+            int extWidth = 0;//isCircular || isWithChromLocus ? 2 * xSize : 0;
+            compartment.setShapeSize(new Dimension(xSize * compartment.getSize() + extWidth + 10, ySize + 30));
+
             diagram.put(compartment);
         }
         else
         {
-            SbolBase base = kernels.get(cd.getPersistentIdentity().toString());
+            Base base = kernels.get(cd.getPersistentIdentity().toString());
             if ( base != null )
             {
                 Node node = new Node(diagram, base);
@@ -411,7 +443,7 @@ public class SbolDiagramReader
         return res;
     }
 
-    public static void arrangeDiagram(Diagram diagram, SBOLDocument doc, Map<String, SbolBase> kernels)
+    public static void arrangeDiagram(Diagram diagram, SBOLDocument doc, Map<String, Base> kernels)
     {
         Graphics g = com.developmentontheedge.application.ApplicationUtils.getGraphics();
         diagram.setView(null);
@@ -422,7 +454,7 @@ public class SbolDiagramReader
 
     private static int xSize = 45, ySize = 45;
 
-    private static void arrangeElements(Diagram diagram, Set<ComponentDefinition> cds, Map<String, SbolBase> kernels)
+    private static void arrangeElements(Diagram diagram, Set<ComponentDefinition> cds, Map<String, Base> kernels)
     {
         int lY = 10;
         //Arrange DNA molecules
@@ -434,15 +466,32 @@ public class SbolDiagramReader
             DiagramElement de = diagram.findDiagramElement(kernels.get(cd.getPersistentIdentity().toString()).getName());
             if ( de == null || !(de instanceof Compartment) )
                 continue;
-            int lX = 5;
             Compartment compartment = (Compartment) de;
+
+            int lX = 5;
+            int nodePos = lX + 5;
+            //+ ((compartment.getAttributes().getValue("isCircular").equals(true) || compartment.getAttributes().getValue("isWithChromLocus").equals(true)) ? xSize : 0);
             Point location = new Point(lX, lY);
             compartment.setLocation(location);
-            //compartment.setFixed(true);
+
+            int i = 0;
+
+            Set<String> nodeNames = new HashSet<>(compartment.getNameList());
+
+            //Add starting extra nodes
+            
+            //            Node circularStart = compartment.stream(Node.class).findFirst(n -> SbolUtil.TYPE_CIRCULAR_START.equals(n.getKernel().getType())).orElse(null);
+            //            if ( circularStart != null )
+            //            {
+            //                Point nodeLocation = new Point(0, lY);
+            //                circularStart.setLocation(nodeLocation);
+            //                nodeNames.remove(circularStart.getName());
+            //            }
+            //            boolean hasCircular = circularStart != null ;
+            //            Node circularEnd = null;
 
             Collection<Component> ordered = orderComponents(cd);
             Iterator<Component> iter = ordered.iterator();
-            int i = 0;
             while ( iter.hasNext() )
             {
 
@@ -451,10 +500,50 @@ public class SbolDiagramReader
                 Node node = compartment.findNode(kernels.get(cdNode.getPersistentIdentity().toString()).getName());
                 if ( node != null )
                 {
-                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 20);
+                    //                    if ( hasCircular && SbolUtil.TYPE_CIRCULAR_END.equals(node.getKernel().getType()) )
+                    //                    {
+                    //                        circularEnd = node;
+                    //                        nodeNames.remove(node.getName());
+                    //                        continue; //will be processed last 
+                    //                    }
+                    Point nodeLocation = new Point(nodePos + xSize * (i++), lY + 20);
                     node.setLocation(nodeLocation);
+                    nodeNames.remove(node.getName());
                 }
             }
+
+            //Add not ordered components
+            Set<Component> nonOrdered = new HashSet<>(components);
+            nonOrdered.removeAll(ordered);
+            for ( Component component : nonOrdered )
+            {
+                ComponentDefinition cdNode = component.getDefinition();
+                Node node = compartment.findNode(kernels.get(cdNode.getPersistentIdentity().toString()).getName());
+                if ( node != null )
+                {
+                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 20);
+                    node.setLocation(nodeLocation);
+                    nodeNames.remove(node.getName());
+                }
+            }
+
+            //Add other extra nodes
+            for ( String nodeName : nodeNames )
+            {
+                DiagramElement node = compartment.get(nodeName);
+                if ( node != null && node instanceof Node )
+                {
+                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 20);
+                    ((Node) node).setLocation(nodeLocation);
+                }
+            }
+
+            //            //Add circular end
+            //            if ( circularEnd != null )
+            //            {
+            //                Point nodeLocation = new Point(lX + xSize * (i++), lY);
+            //                circularEnd.setLocation(nodeLocation);
+            //            }
             lY += compartment.getView().getBounds().height + 50;
         }
         int xSingleNodes = 5;
