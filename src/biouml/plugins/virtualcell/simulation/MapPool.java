@@ -47,7 +47,7 @@ public class MapPool
     public void load(TableDataCollection tdc, String column)
     {
         int index = -1;
-        if( column != null )
+        if( column != null && tdc.getColumnModel().hasColumn( column ))
         {
             index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column} )[0];
             if( index == -1 )
