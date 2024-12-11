@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -14,6 +16,7 @@ import one.util.streamex.StreamEx;
 
 public class TranscriptionAgent extends ProcessAgent
 {
+    Map<String, Integer> tfToIndex = new HashMap<>();
     private double[] prediction;
     private Set<String> tfs;
 
@@ -22,10 +25,7 @@ public class TranscriptionAgent extends ProcessAgent
         super( name, span );
     }
     
-    public void setTranscriptionFactors(Set<String> tfs)
-    {
-        this.tfs = tfs;
-    }
+
 
     @Override
     public void doStep()
@@ -130,5 +130,18 @@ public class TranscriptionAgent extends ProcessAgent
             e.printStackTrace();
             return null;
         }
+    }
+    
+    @Override
+    public void initParameters()
+    {
+        MapPool tfPool = parametersMap.get( "Transcription Factors" );
+        this.tfs =  tfPool.getNames();
+    }
+    
+    @Override  
+    public void read(String variable, MapPool pool)
+    {
+
     }
 }
