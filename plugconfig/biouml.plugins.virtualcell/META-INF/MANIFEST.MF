@@ -26,5 +26,6 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.server.servlets;resolution:=optional,
  ru.biosoft.workbench,
  ru.biosoft.workbench.editors,
- org.gnu.glpk
+ org.gnu.glpk,
+ json
 Export-Package: biouml.plugins.virtualcell
