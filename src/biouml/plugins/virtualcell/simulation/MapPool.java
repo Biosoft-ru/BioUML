@@ -17,18 +17,18 @@ import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
 
-public class MapPool 
+public class MapPool
 {
     private Map<String, Double> values = new HashMap<>();
-    private boolean isSaved =false;
+    private boolean isSaved = false;
     private double saveStep;
     private String name;
-    
+
     public MapPool(String name)
     {
         this.name = name;
     }
-    
+
     public Set<String> getNames()
     {
         return values.keySet();
@@ -46,12 +46,18 @@ public class MapPool
 
     public void load(TableDataCollection tdc, String column)
     {
-        int index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column} )[0];
-        if (index == -1)
-            index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column.toLowerCase()} )[0];//dirty hack
+        int index = -1;
+        if( column != null )
+        {
+            index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column} )[0];
+            if( index == -1 )
+                index = TableDataCollectionUtils.getColumnIndexes( tdc, new String[] {column.toLowerCase()} )[0];//dirty hack
+        }
         for( RowDataElement rde : tdc )
         {
-            double value = (double)rde.getValues()[index];
+            double value = 0;
+            if( index != -1 )
+                value = (double)rde.getValues()[index];
             String name = rde.getName();
             values.put( name, value );
         }
@@ -61,18 +67,18 @@ public class MapPool
      */
     public void loadFromParameters(Diagram diagram)
     {
-        for (Variable var: diagram.getRole( EModel.class ).getVariables())
+        for( Variable var : diagram.getRole( EModel.class ).getVariables() )
         {
-            if (var instanceof VariableRole)
+            if( var instanceof VariableRole )
                 continue;
             double value = var.getInitialValue();
             values.put( name, value );
         }
     }
-    
+
     public void loadFromRates(Diagram diagram)
     {
-        for (Reaction r: DiagramUtility.getReactions( diagram ))
+        for( Reaction r : DiagramUtility.getReactions( diagram ) )
         {
             values.put( r.getName(), 0.0 );
         }
@@ -88,7 +94,7 @@ public class MapPool
         }
         tdc.getOrigin().put( tdc );
     }
-    
+
     public boolean isSaved()
     {
         return isSaved;
@@ -108,10 +114,10 @@ public class MapPool
     {
         this.saveStep = saveStep;
     }
-    
+
     public String getName()
     {
         return name;
     }
-    
+
 }

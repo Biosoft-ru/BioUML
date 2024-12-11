@@ -17,15 +17,13 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 
-public class MetabolismProperties implements InitialElementProperties, DataOwner, DataElement
+public class TranscriptionProperties implements InitialElementProperties, DataOwner, DataElement
 {
     private String name;
     private Node node;
-    
-    private DataElementPath diagramPath;
-    private DataElementPath tablePath;
-    
-    public MetabolismProperties(String name)
+    private DataElementPath transcriptionFactors;
+
+    public TranscriptionProperties(String name)
     {
         this.name = name;
     }
@@ -33,7 +31,7 @@ public class MetabolismProperties implements InitialElementProperties, DataOwner
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
-        Node result = new Node( compartment, new Stub( compartment, name, "Metabolism" ) );
+        Node result = new Node( compartment, new Stub( compartment, name, "Transcription" ) );
         this.node = result;
         result.setRole( this );
         result.setLocation( location );
@@ -63,38 +61,15 @@ public class MetabolismProperties implements InitialElementProperties, DataOwner
     {
         this.node = node;
     }
-    
+
     @Override
     public Role clone(DiagramElement de)
     {
-        MetabolismProperties result = new MetabolismProperties(name);
-        result.diagramPath = diagramPath;
-        result.tablePath = tablePath;
-        result.setDiagramElement((Node)de);
+        TranscriptionProperties result = new TranscriptionProperties( name );
+        result.setDiagramElement( (Node)de );
         return result;
     }
-    
-    @PropertyName("Model path")
-    public DataElementPath getDiagramPath()
-    {
-        return diagramPath;
-    }
 
-    public void setDiagramPath(DataElementPath diagramPath)
-    {
-        this.diagramPath = diagramPath;
-    }
-
-    @PropertyName("Table path")
-    public DataElementPath getTablePath()
-    {
-        return tablePath;
-    }
-
-    public void setTablePath(DataElementPath tablePath)
-    {
-        this.tablePath = tablePath;
-    }
 
     @Override
     public String[] getNames()
@@ -107,5 +82,16 @@ public class MetabolismProperties implements InitialElementProperties, DataOwner
     public DataCollection<?> getOrigin()
     {
         return null;
+    }
+
+    @PropertyName("Transcription factors")
+    public DataElementPath getTranscriptionFactors()
+    {
+        return transcriptionFactors;
+    }
+
+    public void setTranscriptionFactors(DataElementPath transcriptionFactors)
+    {
+        this.transcriptionFactors = transcriptionFactors;
     }
 }

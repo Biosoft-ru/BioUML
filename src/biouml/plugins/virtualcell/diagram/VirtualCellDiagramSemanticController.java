@@ -67,6 +67,8 @@ public class VirtualCellDiagramSemanticController extends DefaultSemanticControl
             return new PopulationProperties( DefaultSemanticController.generateUniqueName( compartment, "Population" ) );
         else if( type.equals( "Metabolism" ) )
             return new MetabolismProperties( DefaultSemanticController.generateUniqueName( compartment, "Metabolism" ) );
+        else if( type.equals( "Transcription" ) )
+            return new TranscriptionProperties( DefaultSemanticController.generateUniqueName( compartment, "Transcription" ) );
         return null;
     }
 

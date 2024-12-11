@@ -41,6 +41,8 @@ public class VirtualCellDiagramViewBuilder extends DefaultDiagramViewBuilder
             return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
         else if( node.getRole() instanceof MetabolismProperties )
             return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
+        else if( node.getRole() instanceof TranscriptionProperties )
+            return createProcessView( container, node, (VirtualCellDiagramViewOptions)options, g );
         return super.createNodeCoreView( container, node, options, g );
     }
 

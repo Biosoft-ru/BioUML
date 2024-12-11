@@ -80,6 +80,15 @@ public class VirtualCellModelWriter extends ModelXmlWriter
             element.appendChild( child );
         }
         
+        for( TranscriptionProperties processProperties : diagram.recursiveStream().map( de -> de.getRole() ).select( TranscriptionProperties.class ) )
+        {
+            Element child = doc.createElement( "transcription" );
+            child.setAttribute( "name", processProperties.getName() );
+            if( processProperties.getTranscriptionFactors() != null )
+                child.setAttribute( "transcriptionFactors", processProperties.getTranscriptionFactors().toString() );
+            element.appendChild( child );
+        }
+        
         if( element.hasChildNodes() )
             parent.appendChild( element );
     }

@@ -27,6 +27,7 @@ import biouml.plugins.virtualcell.diagram.MetabolismProperties;
 import biouml.plugins.virtualcell.diagram.PopulationProperties;
 import biouml.plugins.virtualcell.diagram.ProteinDegradationProperties;
 import biouml.plugins.virtualcell.diagram.TableCollectionPoolProperties;
+import biouml.plugins.virtualcell.diagram.TranscriptionProperties;
 import biouml.plugins.virtualcell.diagram.TranslationProperties;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
@@ -222,6 +223,27 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                     }
                 }
                 model.addAgent( metabolismAgent );
+            }
+            else if( role instanceof TranscriptionProperties )
+            {
+                TranscriptionAgent transcriptionAgent = new TranscriptionAgent( node.getName(),
+                        new UniformSpan( 0, timeCompletion, timeIncrement ) );
+
+                TableDataCollection tfs = ( (TranscriptionProperties)role ).getTranscriptionFactors().getDataElement( TableDataCollection.class );
+                MapPool parametersPool = new MapPool( "Tfs" );
+                parametersPool.load( tfs, null );       
+                transcriptionAgent.addParametersPool( "Transcription Factors", parametersPool );
+                
+                for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
+                {
+                    if( otherNode.getRole() instanceof TableCollectionPoolProperties )
+                    {
+                        MapPool pool = createdPools.get( otherNode.getName() );
+                        transcriptionAgent.addOutputPool( "Transcriprion rate", pool );
+                        transcriptionAgent.initPoolVariables( pool );
+                    }
+                }
+                model.addAgent( transcriptionAgent );
             }
         }
         return model;

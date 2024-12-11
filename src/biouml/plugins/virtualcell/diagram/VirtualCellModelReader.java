@@ -91,6 +91,14 @@ public class VirtualCellModelReader extends ModelXmlReader
                     metabolismProperties.setDiagramElement( node );
                     node.setRole( metabolismProperties );
                     break;
+                case "transcription":
+                    TranscriptionProperties transcriptionProperties = new TranscriptionProperties( name );
+                    String tfs = processElement.getAttribute( "transcriptionFactors" );
+                    if( !tfs.isEmpty()  )
+                        transcriptionProperties.setTranscriptionFactors( DataElementPath.create( tfs ) );         
+                    transcriptionProperties.setDiagramElement( node );
+                    node.setRole( transcriptionProperties );
+                    break;
             }
         }
 

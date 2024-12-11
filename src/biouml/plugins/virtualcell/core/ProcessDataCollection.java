@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import biouml.plugins.virtualcell.diagram.MetabolismProperties;
 import biouml.plugins.virtualcell.diagram.PopulationProperties;
 import biouml.plugins.virtualcell.diagram.ProteinDegradationProperties;
+import biouml.plugins.virtualcell.diagram.TranscriptionProperties;
 import biouml.plugins.virtualcell.diagram.TranslationProperties;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
@@ -27,6 +28,7 @@ public class ProcessDataCollection extends VectorDataCollection<DataElement>
         elements.put( "Population", new PopulationProperties("Population") );
         elements.put( "Translation", new TranslationProperties("Translation") );
         elements.put( "Protein Degradation", new ProteinDegradationProperties("Protein Degradation") );
+        elements.put( "Transcription", new TranscriptionProperties("Transcription") );
     }
 
     @Override
