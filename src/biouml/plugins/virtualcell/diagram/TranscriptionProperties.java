@@ -66,6 +66,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
     public Role clone(DiagramElement de)
     {
         TranscriptionProperties result = new TranscriptionProperties( name );
+        result.setTranscriptionFactors( transcriptionFactors );
         result.setDiagramElement( (Node)de );
         return result;
     }
