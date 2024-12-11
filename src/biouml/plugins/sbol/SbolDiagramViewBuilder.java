@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.swing.ImageIcon;
 
 import org.apache.batik.transcoder.TranscoderException;
@@ -35,6 +36,7 @@ import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.sbgn.Type;
 import biouml.standard.type.Stub;
+import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.ArrowView.Tip;
 import ru.biosoft.graphics.BoxView;
@@ -141,6 +143,9 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         if ( !(options instanceof SbolDiagramViewOptions) )
             return super.createCompartmentCoreView(container, compartment, options, g);
 
+        if ( !(compartment.getKernel() instanceof Backbone) )
+            return super.createCompartmentCoreView(container, compartment, options, g);
+
         Dimension shapeSize = compartment.getShapeSize();
 
         boolean isCircular = compartment.getAttributes().getValue("isCircular").equals(true);
@@ -201,6 +206,45 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         view.setActive( true );
         return false;
+    }
+
+    @Override
+    public @Nonnull
+    CompositeView createCompartmentView(Compartment compartment, DiagramViewOptions options, Graphics g)
+    {
+        if ( (compartment.getKernel() instanceof Backbone) )
+            return super.createCompartmentView(compartment, options, g);
+
+        boolean notificationEnabled = false;
+        if ( compartment.isNotificationEnabled() )
+        {
+            notificationEnabled = true;
+            compartment.setNotificationEnabled(false);
+        }
+
+        CompositeView result = null;
+
+        try
+        {
+            if ( compartment.isUseCustomImage() )
+            {
+                result = createImageView(compartment, g);
+            }
+        }
+        catch (Exception ex)
+        {
+            log.info("Error during compartment image creation: name = " + compartment.getCompleteNameInDiagram() + ", error: " + ExceptionRegistry.translateException(ex));
+        }
+
+        if ( result == null )
+            return super.createCompartmentView(compartment, options, g);
+
+        createNodeTitle(result, compartment, options, g);
+
+        if ( notificationEnabled )
+            compartment.setNotificationEnabled(true);
+
+        return result;
     }
 
     @Override
@@ -442,8 +486,9 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         if ( edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
         {
-            Rectangle inBounds = inNode.getView().getBounds();
-            Rectangle outBounds = outNode.getView().getBounds();
+            Rectangle inBounds = getNodeBounds(edge.getInput());
+            Rectangle outBounds = getNodeBounds(edge.getOutput());
+
             in.x = inBounds.x + inBounds.width / 2;
             in.y = inBounds.y;
             out.x = outBounds.x + outBounds.width / 2;

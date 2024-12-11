@@ -3,7 +3,10 @@ package biouml.plugins.sbol;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -63,7 +66,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
         if( deBase instanceof SequenceFeature )
         {
-            return compartmentBase instanceof Backbone;
+            return compartmentBase instanceof Backbone || (compartmentBase instanceof SequenceFeature && compartment.getOrigin() == de.getOrigin());
         }
         else if( deBase instanceof Backbone )
         {
@@ -116,7 +119,9 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             if ( de.getKernel() instanceof Backbone )
                 return super.move(de, newParent, offset, oldBounds);
             Node node = (Node) de;
-            Compartment parent = (Compartment) node.getOrigin();
+            Compartment parent = node.getCompartment();
+            if ( newParent.getKernel() instanceof SequenceFeature )
+                newParent = newParent.getCompartment();
             if ( parent.getKernel() instanceof Backbone )
             {
                 //do not move outside parent backbone
@@ -136,11 +141,12 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                         Point nlocation = ((Node) n).getLocation();
                         int nX = nlocation.x;
                         int nW = (int) (Math.ceil(((Node) n).getShapeSize().getWidth()));
-
-                        if ( oldX > newX && nX <= newX && nX + nW >= newX )
-                            return oldX - nX - nW + 1;
-                        else if ( oldX < newX && nX <= newX && nX + nW >= newX )
-                            return nX + nW + 1 - width - oldX;
+                        if ( nX == oldX )
+                            return 0;
+                        if ( oldX > newX && nX <= newX && nX + nW > newX )
+                            return oldX - nX - nW;
+                        else if ( oldX < newX && nX <= newX && nX + nW > newX )
+                            return nX + nW - oldX - width;
                         return 0;
                     }
                     return 0;
@@ -148,6 +154,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                 int shift = oldX > newX ? -dx : dx;
                 if ( dx == 0 )
                     return new Dimension(0, 0);
+                Set<Edge> edges = new HashSet<>();
                 parent.stream().forEach(n -> {
                     if ( n instanceof Node )
                     {
@@ -158,19 +165,25 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                         {
                             nlocation.translate(shift, 0);
                             ((Node) n).setLocation(nlocation);
+                            edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
                         }
                         else if ( oldX > newX && nX > newX && nX < oldX + width )
                         {
                             nlocation.translate(width, 0);
                             ((Node) n).setLocation(nlocation);
+                            edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
                         }
-                        else if ( oldX < newX && nX > oldX && nX < newX )
+                        else if ( oldX < newX && nX > oldX && nX <= newX )
                         {
                             nlocation.translate(-width, 0);
                             ((Node) n).setLocation(nlocation);
+                            edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
                         }
-                        //TODO: move edges
-                        //TODO: change "precedes" property
+                        edges.stream().forEach(e -> {
+                            e.setPath(null);
+                            recalculateEdgePath(e);
+                            return;
+                        });
                     }
                 });
                 return new Dimension(dx, 0);
@@ -198,7 +211,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         Node inNode = edge.getInput();
         Node outNode = edge.getOutput();
         //edge inside compartment
-        if ( edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
+        if ( edge.getPath() == null && edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
         {
             Point in = new Point();
             Point out = new Point();

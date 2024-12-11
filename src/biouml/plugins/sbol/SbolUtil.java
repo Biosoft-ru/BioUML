@@ -69,7 +69,6 @@ public class SbolUtil
         //aMap.put(SequenceOntology.CIRCULAR, "promoter");
         //aMap.put(SequenceOntology.DNA, "promoter");
         //aMap.put(SequenceOntology.RNA, "promoter");
-        SequenceOntology so = new SequenceOntology();
         aMap.put( so.getURIbyId( "SO:0001263" ), "ncrna" );
         aMap.put( so.getURIbyId( "SO:0001691" ), "blunt-restriction-site" );
         aMap.put( so.getURIbyId( "SO:0001975" ), "five-prime-sticky-restriction-site" );
@@ -139,9 +138,9 @@ public class SbolUtil
         bMap.put( "Protease site", so.getURIbyId( "SO:0001956" ) );
         
         ROLE_CHROMOSOMAL_LOCUS = so.getURIbyId( "SO:0000830" );
-        bMap.put( "Chromosomal locus", ROLE_CHROMOSOMAL_LOCUS );
+        //bMap.put( "Chromosomal locus", ROLE_CHROMOSOMAL_LOCUS );
         ROLE_CIRCULAR = so.getURIbyId( "SO:0000755" );
-        bMap.put( "Circular plasmid",  ROLE_CIRCULAR);
+        //bMap.put( "Circular plasmid",  ROLE_CIRCULAR);
         
 
         featurRoleToURI = Collections.unmodifiableMap( bMap );
@@ -276,9 +275,12 @@ public class SbolUtil
 
     public static Base getKernelByComponentDefinition(ComponentDefinition cd, boolean isTopLevel)
     {
-        if ( cd.containsType(ComponentDefinition.DNA_REGION) && cd.getComponents().size() > 0 && isTopLevel )
+        if ( cd.containsType(ComponentDefinition.DNA_REGION) )
         {
-            return new Backbone(cd);
+            if ( cd.getComponents().size() > 0 && isTopLevel )
+                return new Backbone(cd);
+            else
+                return new SequenceFeature(cd);
         }
         return new SbolBase(cd);
     }

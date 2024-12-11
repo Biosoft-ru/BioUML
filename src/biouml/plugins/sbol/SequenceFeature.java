@@ -46,6 +46,8 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     public SequenceFeature(Identified so)
     {
         super( so );
+        name = super.getName();
+        title = super.getTitle();
     }
 
     @Override

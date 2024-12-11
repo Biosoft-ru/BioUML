@@ -344,7 +344,7 @@ public class SbolDiagramReader
                 Base base = kernels.get(cdNode.getPersistentIdentity().toString());
                 if ( base != null )
                 {
-                    Node node = new Node(compartment, base);
+                    Compartment node = new Compartment(compartment, base);
                     node.setUseCustomImage(true);
 
                     String icon = SbolUtil.getSbolImagePath(cdNode);
@@ -464,7 +464,7 @@ public class SbolDiagramReader
             if ( components.isEmpty() )
                 continue;
             DiagramElement de = diagram.findDiagramElement(kernels.get(cd.getPersistentIdentity().toString()).getName());
-            if ( de == null || !(de instanceof Compartment) )
+            if ( de == null || !(de instanceof Compartment && de.getKernel() instanceof Backbone) )
                 continue;
             Compartment compartment = (Compartment) de;
 
