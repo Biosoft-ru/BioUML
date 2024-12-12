@@ -50,17 +50,14 @@ public class TranscriptionAgent extends ProcessAgent
     private void parseResponse(String response)
     {
         JSONObject json = new JSONObject( response );
-        String content = json.keys().next();
-        JSONObject jsonContent = new JSONObject( content );
-        String[] names = JSONObject.getNames( jsonContent );
-        Object obje = jsonContent.get( names[0] );
-        JSONObject jsonObje = (JSONObject)obje;
-        String[] ns = JSONObject.getNames( jsonObje );
-
+        String[] names = JSONObject.getNames( json );
+        String valueName = names[0];
+        JSONObject obje = json.getJSONObject( valueName );
+        String[] ns = JSONObject.getNames( obje );
         for( String name : ns )
         {
             int index = nameToIndex.get( name );
-            prediction[index] = Double.parseDouble( jsonObje.get( name ).toString() );
+            prediction[index] = Double.parseDouble( obje.get( name ).toString() );
         }
     }
 
