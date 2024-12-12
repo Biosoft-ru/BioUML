@@ -17,7 +17,7 @@ import one.util.streamex.StreamEx;
 
 public class TranscriptionAgent extends ProcessAgent
 {
-    protected static final Logger log = Logger.getLogger(TranscriptionAgent.class.getName());
+    protected static final Logger log = Logger.getLogger( TranscriptionAgent.class.getName() );
     Map<String, Integer> tfToIndex = new HashMap<>();
     private double[] prediction;
     private Set<String> tfs;
@@ -26,7 +26,7 @@ public class TranscriptionAgent extends ProcessAgent
     {
         super( name, span );
     }
-    
+
 
 
     @Override
@@ -49,19 +49,18 @@ public class TranscriptionAgent extends ProcessAgent
 
     private void parseResponse(String response)
     {
-        log.info( response.substring( 0, 10 ) );
         JSONObject json = new JSONObject( response );
+        String content = json.keys().next();
+        JSONObject jsonContent = new JSONObject( content );
+        String[] names = JSONObject.getNames( jsonContent );
+        Object obje = jsonContent.get( names[0] );
+        JSONObject jsonObje = (JSONObject)obje;
+        String[] ns = JSONObject.getNames( jsonObje );
 
-        String[] names = JSONObject.getNames( json );
-        log.info("NAMES: "+StreamEx.of(names).joining(",") );
-        String valueName = names[1];
-        JSONObject values = json.getJSONObject( valueName );
-        JSONObject keys = json.getJSONObject( "hgnc" );
-
-        for( String name : JSONObject.getNames( keys ) )
+        for( String name : ns )
         {
             int index = nameToIndex.get( name );
-            prediction[index] = Double.parseDouble( values.get( name ).toString() );
+            prediction[index] = Double.parseDouble( jsonObje.get( name ).toString() );
         }
     }
 
@@ -87,10 +86,10 @@ public class TranscriptionAgent extends ProcessAgent
             con.setDoInput( true );
             con.setDoOutput( true );
 
-            String tfString = "[\""+StreamEx.of( tfs ).joining("\",\"")+"\"]";
-            
-            
-            String jsonInputString = "{\"line\": \"K562\", \"model\": \"FC\", \"tf_list\": "+tfString+"}";
+            String tfString = "[\"" + StreamEx.of( tfs ).joining( "\",\"" ) + "\"]";
+
+
+            String jsonInputString = "{\"line\": \"K562\", \"model\": \"FC\", \"tf_list\": " + tfString + "}";
 
             //            String jsonInputString = "{\"line\":\"value\", \"name\":\"John\"}";
 
@@ -135,15 +134,15 @@ public class TranscriptionAgent extends ProcessAgent
             return null;
         }
     }
-    
+
     @Override
     public void initParameters()
     {
         MapPool tfPool = parametersMap.get( "Transcription Factors" );
-        this.tfs =  tfPool.getNames();
+        this.tfs = tfPool.getNames();
     }
-    
-    @Override  
+
+    @Override
     public void read(String variable, MapPool pool)
     {
 
