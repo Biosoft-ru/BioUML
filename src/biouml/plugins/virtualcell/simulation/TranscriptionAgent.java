@@ -66,7 +66,7 @@ public class TranscriptionAgent extends ProcessAgent
         try
         {
             String url = "http://10.25.70.231:8841/api/start";
-            //            String url = "http://localhost:5000/api/start";
+//                        String url = "http://localhost:5000/api/start";
 
             // Create a URL object from the string
             URL obj = new URL( url );
@@ -99,7 +99,7 @@ public class TranscriptionAgent extends ProcessAgent
 
             // Get the response code
             int responseCode = con.getResponseCode();
-            System.out.println( "Response Code: " + responseCode );
+//            System.out.println( "Response Code: " + responseCode );
 
             // If the response is successful, read the response
             if( responseCode == HttpURLConnection.HTTP_OK )
@@ -115,7 +115,7 @@ public class TranscriptionAgent extends ProcessAgent
                 in.close();
 
                 // Print the response
-                System.out.println( "Response: " + response.toString() );
+//                System.out.println( "Response: " + response.toString() );
                 return response.toString();
             }
             else
@@ -143,5 +143,12 @@ public class TranscriptionAgent extends ProcessAgent
     public void read(String variable, MapPool pool)
     {
 
+    }
+    
+    @Override
+    public void initPoolVariables(MapPool pool)
+    {
+        super.initPoolVariables( pool );
+        prediction = new double[nameToIndex.size()];
     }
 }
