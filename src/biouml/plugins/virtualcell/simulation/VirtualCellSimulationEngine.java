@@ -229,6 +229,9 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                 TranscriptionAgent transcriptionAgent = new TranscriptionAgent( node.getName(),
                         new UniformSpan( 0, timeCompletion, timeIncrement ) );
 
+                transcriptionAgent.setLine( ((TranscriptionProperties)role).getLine() );
+                transcriptionAgent.setModel( ((TranscriptionProperties)role).getModel() );
+                
                 TableDataCollection tfs = ( (TranscriptionProperties)role ).getTranscriptionFactors().getDataElement( TableDataCollection.class );
                 MapPool parametersPool = new MapPool( "Tfs" );
                 parametersPool.load( tfs, null );       
