@@ -83,7 +83,7 @@ public class TranscriptionAgent extends ProcessAgent
             con.setDoInput( true );
             con.setDoOutput( true );
 
-            String tfString = "["+StreamEx.of( tfs ).joining(",")+"]";
+            String tfString = "[\""+StreamEx.of( tfs ).joining("\",\"")+"\"]";
             
             
             String jsonInputString = "{\"line\": \"K562\", \"model\": \"FC\", \"tf_list\": "+tfString+"}";
