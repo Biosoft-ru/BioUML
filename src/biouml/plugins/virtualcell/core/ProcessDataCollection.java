@@ -12,6 +12,7 @@ import biouml.plugins.virtualcell.diagram.PopulationProperties;
 import biouml.plugins.virtualcell.diagram.ProteinDegradationProperties;
 import biouml.plugins.virtualcell.diagram.TranscriptionProperties;
 import biouml.plugins.virtualcell.diagram.TranslationProperties;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.VectorDataCollection;
@@ -64,6 +65,6 @@ public class ProcessDataCollection extends VectorDataCollection<DataElement>
     @Override
     public @Nonnull List<String> getNameList()
     {
-        return elements.keySet().stream().toList();
+        return StreamEx.of( elements.keySet()).toList();
     }
 }
