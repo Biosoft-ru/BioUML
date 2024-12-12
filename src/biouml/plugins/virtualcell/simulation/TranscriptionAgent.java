@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
@@ -16,6 +17,7 @@ import one.util.streamex.StreamEx;
 
 public class TranscriptionAgent extends ProcessAgent
 {
+    protected static final Logger log = Logger.getLogger(TranscriptionAgent.class.getName());
     Map<String, Integer> tfToIndex = new HashMap<>();
     private double[] prediction;
     private Set<String> tfs;
@@ -47,9 +49,11 @@ public class TranscriptionAgent extends ProcessAgent
 
     private void parseResponse(String response)
     {
+        log.info( response.substring( 0, 10 ) );
         JSONObject json = new JSONObject( response );
 
         String[] names = JSONObject.getNames( json );
+        log.info("NAMES: "+StreamEx.of(names).joining(",") );
         String valueName = names[1];
         JSONObject values = json.getJSONObject( valueName );
         JSONObject keys = json.getJSONObject( "hgnc" );
