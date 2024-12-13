@@ -21,6 +21,7 @@ import biouml.model.DiagramType;
 import biouml.model.Edge;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
+import biouml.standard.diagram.Util;
 import biouml.standard.type.Base;
 import biouml.standard.type.Stub;
 import ru.biosoft.graph.Path;
@@ -131,6 +132,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                 }
                 Point location = node.getLocation();
                 int oldX = location.x;
+                //TODO: discuss how to get size, from view or from shape size
                 int width = (int) (Math.ceil(((Node) de).getShapeSize().getWidth()));
 
                 location.translate(offset.width, 0);
@@ -179,12 +181,12 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                             ((Node) n).setLocation(nlocation);
                             edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
                         }
-                        edges.stream().forEach(e -> {
-                            e.setPath(null);
-                            recalculateEdgePath(e);
-                            return;
-                        });
                     }
+                });
+                edges.stream().forEach(e -> {
+                    e.setPath(null);
+                    recalculateEdgePath(e);
+                    return;
                 });
                 return new Dimension(dx, 0);
             }
@@ -220,5 +222,61 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         }
         else
             super.recalculateEdgePath(edge);
+    }
+
+    @Override
+    public boolean remove(DiagramElement de) throws Exception
+    {
+        if ( de instanceof Diagram )
+            return false;
+        Compartment parent = de.getCompartment();
+        //remove one of the sequence elements
+        if ( de instanceof Node && parent.getKernel() instanceof Backbone )
+        {
+            //TODO: discuss how to get size, from view or from shape size
+            int width = (int) (Math.ceil(((Node) de).getShapeSize().getWidth()));
+            Point location = ((Node) de).getLocation();
+            Set<Edge> edges = new HashSet<>();
+            parent.stream().forEach(n -> {
+                if ( n instanceof Node )
+                {
+                    Point nlocation = ((Node) n).getLocation();
+                    int nX = nlocation.x;
+                    //move all elements after the removing node
+                    if ( nX > location.x )
+                    {
+                        nlocation.translate(-width, 0);
+                        ((Node) n).setLocation(nlocation);
+                        edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
+                    }
+                }
+            });
+            edges.stream().forEach(e -> {
+                e.setPath(null);
+                recalculateEdgePath(e);
+                return;
+            });
+            for ( Edge edge : Util.getEdges((Node) de) )
+                edge.getOrigin().remove(edge.getName());
+
+            if ( de instanceof Compartment )
+                ((Compartment) de).clear();
+
+            SbolUtil.removeSbolObjectFromDiagram(de);
+
+            // remove diagramElement
+            parent.remove(de.getName());
+            Dimension d = new Dimension(parent.getShapeSize().width - width, parent.getShapeSize().height);
+            parent.setShapeSize(d);
+
+            return true;
+        }
+        //remove backbone
+        else
+        {
+            SbolUtil.removeSbolObjectFromDiagram(de);
+            return super.remove(de);
+        }
+
     }
 }

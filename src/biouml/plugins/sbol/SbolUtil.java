@@ -6,12 +6,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
+import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.Interaction;
+import org.sbolstandard.core2.ModuleDefinition;
+import org.sbolstandard.core2.SBOLDocument;
+import org.sbolstandard.core2.SBOLValidationException;
+import org.sbolstandard.core2.SequenceAnnotation;
+import org.sbolstandard.core2.SequenceConstraint;
 import org.sbolstandard.core2.SequenceOntology;
 import org.sbolstandard.core2.SystemsBiologyOntology;
 
+import biouml.model.Diagram;
+import biouml.model.DiagramElement;
+import biouml.model.Edge;
 import biouml.standard.type.Base;
 import biouml.standard.type.Stub;
 import biouml.standard.type.Type;
@@ -288,6 +298,101 @@ public class SbolUtil
     public static int getVerticalShift(String imgPath)
     {
         return verticalShift.getOrDefault(imgPath, 0);
+    }
+
+    public static boolean removeSbolObjectFromDiagram(DiagramElement de)
+    {
+        Diagram diagram = Diagram.getDiagram(de);
+        Object doc = diagram.getAttributes().getValue(SbolUtil.SBOL_DOCUMENT_PROPERTY);
+        if ( doc == null || !(doc instanceof SBOLDocument) )
+            return false;
+        if ( de instanceof Edge )
+        {
+            //TODO: remove interaction edge
+            return false;
+        }
+        if ( !(de.getKernel() instanceof SbolBase) )
+            return false;
+        return removeSbolObjectFromDocument((SBOLDocument) doc, ((SbolBase) de.getKernel()).getSbolObject().getIdentity());
+    }
+
+    public static boolean removeSbolObjectFromDocument(SBOLDocument doc, URI uri)
+    {
+        for ( ComponentDefinition cd : doc.getComponentDefinitions() )
+        {
+            Component compToRemove = null;
+            for ( Component component : cd.getComponents() )
+            {
+                if ( component.getDefinitionURI().equals(uri) )
+                {
+                    compToRemove = component;
+                    break;
+                }
+            }
+            if ( compToRemove == null )
+                continue;
+            for ( SequenceAnnotation sa : cd.getSequenceAnnotations() )
+            {
+                if ( sa.isSetComponent() && sa.getComponentURI().equals(compToRemove.getIdentity()) )
+                {
+                    cd.removeSequenceAnnotation(sa);
+                }
+            }
+            for ( SequenceConstraint sc : cd.getSequenceConstraints() )
+            {
+                if ( sc.getSubjectURI().equals(compToRemove.getIdentity()) )
+                {
+                    cd.removeSequenceConstraint(sc);
+                }
+                if ( sc.getObjectURI().equals(compToRemove.getIdentity()) )
+                {
+                    cd.removeSequenceConstraint(sc);
+                }
+            }
+            try
+            {
+                cd.removeComponent(compToRemove);
+            }
+            catch (SBOLValidationException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        for ( ModuleDefinition md : doc.getModuleDefinitions() )
+        {
+            for ( FunctionalComponent c : md.getFunctionalComponents() )
+            {
+                if ( c.getDefinitionURI().equals(uri) )
+                {
+                    try
+                    {
+                        md.removeFunctionalComponent(c);
+                    }
+                    catch (SBOLValidationException e)
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        ComponentDefinition cd = doc.getComponentDefinition(uri);
+        if ( cd == null )
+            return false;
+        try
+        {
+            doc.removeComponentDefinition(cd);
+        }
+        catch (SBOLValidationException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
 }

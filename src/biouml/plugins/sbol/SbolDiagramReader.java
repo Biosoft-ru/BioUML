@@ -394,7 +394,7 @@ public class SbolDiagramReader
             compartment.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, isCircular));
             compartment.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, isWithChromLocus));
             int extWidth = 0;//isCircular || isWithChromLocus ? 2 * xSize : 0;
-            compartment.setShapeSize(new Dimension(xSize * compartment.getSize() + extWidth + 10, ySize + 30));
+            compartment.setShapeSize(new Dimension(xSize * compartment.getSize() + extWidth + 10, ySize + 20));
 
             diagram.put(compartment);
         }
@@ -506,7 +506,7 @@ public class SbolDiagramReader
                     //                        nodeNames.remove(node.getName());
                     //                        continue; //will be processed last 
                     //                    }
-                    Point nodeLocation = new Point(nodePos + xSize * (i++), lY + 20);
+                    Point nodeLocation = new Point(nodePos + xSize * (i++), lY + 10);
                     node.setLocation(nodeLocation);
                     nodeNames.remove(node.getName());
                 }
@@ -521,7 +521,7 @@ public class SbolDiagramReader
                 Node node = compartment.findNode(kernels.get(cdNode.getPersistentIdentity().toString()).getName());
                 if ( node != null )
                 {
-                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 20);
+                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 10);
                     node.setLocation(nodeLocation);
                     nodeNames.remove(node.getName());
                 }
@@ -533,7 +533,7 @@ public class SbolDiagramReader
                 DiagramElement node = compartment.get(nodeName);
                 if ( node != null && node instanceof Node )
                 {
-                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 20);
+                    Point nodeLocation = new Point(lX + xSize * (i++), lY + 10);
                     ((Node) node).setLocation(nodeLocation);
                 }
             }

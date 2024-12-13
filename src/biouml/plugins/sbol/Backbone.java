@@ -8,6 +8,7 @@ import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.SBOLDocument;
 
+import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
@@ -129,8 +130,10 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
         this.isCreated = true;
         Compartment result = new Compartment( compartment, this );
+        result.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, getTopologyType().equals("Circular")));
+        result.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, false));
 
-        result.setShapeSize( new Dimension( 50, 50 ) );
+        result.setShapeSize(new Dimension(45 + 10, 45 + 20));
         result.setLocation( location );
         compartment.put( result );
 

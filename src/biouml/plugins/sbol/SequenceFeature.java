@@ -121,10 +121,16 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     {
         Diagram diagram = Diagram.getDiagram( compartment );
         
-        if (compartment instanceof Diagram) //try to fix wrong compartment
+        if ( compartment.getKernel() instanceof SequenceFeature )
+        {
+            compartment = compartment.getCompartment();
+        }
+
+        if ( compartment instanceof Diagram || !(compartment.getKernel() instanceof Backbone) ) //try to fix wrong compartment
         {
            compartment = diagram.recursiveStream().select( Compartment.class ).filter( de->de.getKernel() instanceof Backbone ).findAny().orElse( diagram );
         }
+
         setName( DefaultSemanticController.generateUniqueName( diagram, name ) ); 
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( ! ( doc instanceof SBOLDocument ) )
@@ -154,15 +160,16 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 
         this.isCreated = true;
 
-        int y = compartment.getLocation().y;
-        int x = compartment.isEmpty() ? compartment.getLocation().x
-                : StreamEx.of( compartment.getNodes() ).mapToInt( n -> n.getLocation().x ).max().orElse( 0 ) + 48;
+        int y = compartment.getLocation().y + 10;
+        int x = compartment.isEmpty() ? compartment.getLocation().x + 5
+                : StreamEx.of(compartment.getNodes()).mapToInt(n -> n.getLocation().x).max().orElse(0) + 45;
 
         this.setSbolObject(cd);
-        Node node = new Node( compartment, this );
+        Compartment node = new Compartment(compartment, this);
         node.setUseCustomImage( true );
         Point nodeLocation = new Point( x, y );
         node.setLocation( nodeLocation );
+        node.setShapeSize(new Dimension(45, 45));
         String icon = SbolUtil.getSbolImagePath(cd);
         node.getAttributes().add(new DynamicProperty("node-image", String.class, icon));
 
@@ -171,9 +178,10 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         {
             return DiagramElementGroup.EMPTY_EG;
         }
-        
-        compartment.put( node );
-        compartment.setShapeSize( new Dimension( compartment.getShapeSize().width + 48, compartment.getShapeSize().height ) );
+        int width = compartment.isEmpty() ? 45 + 10 : compartment.getShapeSize().width + 45;
+
+        compartment.put(node);
+        compartment.setShapeSize(new Dimension(width, compartment.getShapeSize().height));
 
         if( viewPane != null )
             viewPane.completeTransaction();
