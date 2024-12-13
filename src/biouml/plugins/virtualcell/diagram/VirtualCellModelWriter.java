@@ -86,6 +86,9 @@ public class VirtualCellModelWriter extends ModelXmlWriter
             child.setAttribute( "name", processProperties.getName() );
             if( processProperties.getTranscriptionFactors() != null )
                 child.setAttribute( "transcriptionFactors", processProperties.getTranscriptionFactors().toString() );
+            
+            child.setAttribute( "model", processProperties.getModel());
+            child.setAttribute( "line", processProperties.getLine());
             element.appendChild( child );
         }
         

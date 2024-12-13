@@ -97,6 +97,12 @@ public class VirtualCellModelReader extends ModelXmlReader
                     if( !tfs.isEmpty()  )
                         transcriptionProperties.setTranscriptionFactors( DataElementPath.create( tfs ) );         
                     transcriptionProperties.setDiagramElement( node );
+                    
+                    String line = processElement.getAttribute( "line" );
+                    transcriptionProperties.setLine( line );
+                    
+                    String modelName = processElement.getAttribute( "model" );
+                    transcriptionProperties.setModel( modelName );
                     node.setRole( transcriptionProperties );
                     break;
             }

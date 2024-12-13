@@ -22,6 +22,18 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
     private String name;
     private Node node;
     private DataElementPath transcriptionFactors;
+    private String line = getLines()[0];
+    private String model = getModels()[0];
+
+    public static String[] getLines()
+    {
+        return new String[] {"K562"};
+    }
+
+    public static String[] getModels()
+    {
+        return new String[] {"FC", "CB", "CNN"};
+    }
 
     public TranscriptionProperties(String name)
     {
@@ -68,6 +80,8 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
         TranscriptionProperties result = new TranscriptionProperties( name );
         result.setTranscriptionFactors( transcriptionFactors );
         result.setDiagramElement( (Node)de );
+        result.setModel( model );
+        result.setLine( line );
         return result;
     }
 
@@ -85,7 +99,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
         return null;
     }
 
-    @PropertyName("Transcription factors")
+    @PropertyName ( "Transcription factors" )
     public DataElementPath getTranscriptionFactors()
     {
         return transcriptionFactors;
@@ -94,5 +108,27 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
     public void setTranscriptionFactors(DataElementPath transcriptionFactors)
     {
         this.transcriptionFactors = transcriptionFactors;
+    }
+
+    @PropertyName ( "Cell line" )
+    public String getLine()
+    {
+        return line;
+    }
+
+    public void setLine(String line)
+    {
+        this.line = line;
+    }
+
+    @PropertyName ( "Model" )
+    public String getModel()
+    {
+        return model;
+    }
+
+    public void setModel(String model)
+    {
+        this.model = model;
     }
 }
