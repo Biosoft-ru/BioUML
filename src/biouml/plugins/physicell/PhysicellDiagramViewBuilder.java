@@ -91,7 +91,7 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         width = Math.max( triggerView.getBounds().width, width );
 
         View commentView = null;
-        if( !event.getComment().isBlank() )
+        if( !event.getComment().isEmpty()
         {
             commentView = new TextView( event.getComment(), options.getNodeTitleFont(), g );
             height = height + commentView.getBounds().height + 2;
