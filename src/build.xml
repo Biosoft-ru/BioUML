@@ -376,7 +376,6 @@
         plugin.docker,
         plugin.physicell,
         plugin.jupyter,
-        plugin.beakerx,
         plugin.illumina,
         plugin.mirbase,
         plugin.mirprom,
