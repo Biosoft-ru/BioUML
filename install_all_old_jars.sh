@@ -213,3 +213,13 @@ mvn -N install:install-file \
   -Dpackaging=jar \
   -Dfile=plugins/ru.biosoft.physicell_0.9.10.jar \
   -DgeneratePom=true
+
+## BeakerX
+
+mvn -N install:install-file \
+  -DgroupId=com.twosigma \
+  -DartifactId=beakerx \
+  -Dversion=1.0 \
+  -Dpackaging=jar \
+  -Dfile=plugconfig/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar \
+  -DgeneratePom=true

@@ -55,7 +55,7 @@
         <property name="LOG4J" value="${PLUGIN_DIR}/org.apache.log4j_1.2.12.jar" />
         <property name="POI" value="${PLUGIN_DIR}/org.apache.poi_3.17/poi-3.17.jar;${PLUGIN_DIR}/org.apache.poi_3.17/poi-ooxml-3.17.jar;${PLUGIN_DIR}/org.apache.poi_3.17/poi-ooxml-schemas-3.17.jar;${PLUGIN_DIR}/org.apache.poi_3.17/poi-scratchpad-3.17.jar;${PLUGIN_DIR}/org.apache.poi_3.17/ooxml-lib/curvesapi-1.04.jar;${PLUGIN_DIR}/org.apache.poi_3.17/ooxml-lib/xmlbeans-2.6.0.jar" />
         <property name="DOTEBEANS" value="${PLUGIN_DIR}/com.developmentontheedge.beans-3.0.4.jar" />
-    	<property name="GRAPHICSPLUGIN" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.graphics/ru.biosoft.core-2.0.0.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.graphics/ru.biosoft.editor-2.0.0.jar" />
+        <property name="GRAPHICSPLUGIN" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.graphics/ru.biosoft.core-2.0.0.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.graphics/ru.biosoft.editor-2.0.0.jar" />
         <property name="BELOGGER" value="${PLUGIN_DIR}/com.beanexplorer.logging_0.0.1.jar" />
         <property name="JMAIL" value="${PLUGIN_DIR}/javax.mail_1.4.3.jar" />
         <property name="JFREECHART" value="${PLUGIN_DIR}/org.jfree_1.5.0/jfreechart-1.5.0.jar;${PLUGIN_DIR}/org.jfree_1.5.0/jcommon-1.0.24.jar" />
@@ -94,19 +94,20 @@
         <property name="VELOCITY" value="${PLUGIN_DIR}/org.apache.velocity_1.6.2.jar" />
         <property name="MATH" value="${PLUGIN_DIR}/org.apache.commons.math3_3.3.jar" />
         <property name="GUROBI" value="${PLUGIN_DIR}/gurobi/gurobi.jar" />
-    	<property name="GLPK" value="${PLUGIN_DIR}/glpk/glpk-java-1.12.0.jar" />
+        <property name="GLPK" value="${PLUGIN_DIR}/glpk/glpk-java-1.12.0.jar" />
         <property name="SABIO" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.sabiork/sabioclient.jar" />
         <property name="SMACK" value="${PLUGIN_DIR}/org.jivesoftware.smack_1.0.0/smack.jar;${PLUGIN_DIR}/org.jivesoftware.smack_1.0.0/smackx.jar" />
         <property name="PICARD" value="${PLUGIN_DIR}/net.sf.samtools_1.62.jar;" />
-    	<property name="JOBCONTROL" value="${PLUGIN_DIR}/ru.biosoft.jobcontrol-2.0.0.jar;" />
-    	<property name="EXCEPTION" value="${PLUGIN_DIR}/ru.biosoft.exception-1.0.0.jar;" />
-    	<property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar;" />
-    	<property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-1.0.0.jar;" />
-    	<property name="RTREE" value="${PLUGIN_DIR}/ru.biosoft.rtree-0.0.1.jar" />
-    	<property name="UTIL" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.util-1.0.0.jar" />
-    	<property name="JUPYTER_BASE_KERNEL" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar" />
-    	<property name="DOCKER_JARS" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-core-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-api-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-transport-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-transport-httpclient5-3.2.13.jar" />
-    	<property name="MINIO_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.server/minio-8.0.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/okhttp-3.14.9.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/okio-1.17.2.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/simple-xml-2.7.1.jar" />
+        <property name="JOBCONTROL" value="${PLUGIN_DIR}/ru.biosoft.jobcontrol-2.0.0.jar;" />
+        <property name="EXCEPTION" value="${PLUGIN_DIR}/ru.biosoft.exception-1.0.0.jar;" />
+        <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar;" />
+        <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-1.0.0.jar;" />
+        <property name="RTREE" value="${PLUGIN_DIR}/ru.biosoft.rtree-0.0.1.jar" />
+        <property name="UTIL" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.util-1.0.0.jar" />
+        <property name="JUPYTER_BASE_KERNEL" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar" />
+    	<property name="BEAKERX_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar" />
+        <property name="DOCKER_JARS" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-core-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-api-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-transport-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-transport-httpclient5-3.2.13.jar" />
+        <property name="MINIO_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.server/minio-8.0.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/okhttp-3.14.9.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/okio-1.17.2.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/simple-xml-2.7.1.jar" />
                 
         <property name="JUNIT" value="${PLUGIN_DIR}/junit_3.8.1/junit.jar" />
         <property name="testui" value="swingui" />
@@ -116,13 +117,13 @@
         <property name="APACHE_HTTP" value="${PLUGIN_DIR}/org.apache.http_4.5/fluent-hc-4.5.jar;${PLUGIN_DIR}/org.apache.http_4.5/httpclient-4.5.jar;${PLUGIN_DIR}/org.apache.http_4.5/httpclient-cache-4.5.jar;${PLUGIN_DIR}/org.apache.http_4.5/httpcore-4.4.4.jar;${PLUGIN_DIR}/org.apache.http_4.5/httpmime-4.5.jar" />
         <property name="FTPCLIENT" value="${PLUGIN_DIR}/it.sauronsoftware.ftp4j_1.6.jar" />
         <property name="JERICHO" value="${PLUGIN_DIR}/net.htmlparser.jericho_3.2.jar" />
-    	<property name="JADE" value="${PLUGIN_DIR}/jade/jade.jar" />
-    	<property name="PHYSICELL" value="${PLUGIN_DIR}/ru.biosoft.physicell_0.9.10.jar" />
-    	<property name="PHYSICELL_JARS" value = "${PLUGIN_CONFIG_DIR}/biouml.plugins.physicell/jcodec-0.2.5.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.physicell/jcodec-javase-0.2.5.jar" />
+        <property name="JADE" value="${PLUGIN_DIR}/jade/jade.jar" />
+        <property name="PHYSICELL" value="${PLUGIN_DIR}/ru.biosoft.physicell_0.9.10.jar" />
+        <property name="PHYSICELL_JARS" value = "${PLUGIN_CONFIG_DIR}/biouml.plugins.physicell/jcodec-0.2.5.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.physicell/jcodec-javase-0.2.5.jar" />
         <!-- misc -->
 
         <!-- ROSUDA must go before CHEMPAINT as they have conflicting classes -->
-        <property name="BUILD_CLASSPATH" value=".;${ECLIPSE_JARS};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${RHINO};${JMAIL};${LOG4J};${DOTEBEANS};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${BIG};${ROSUDA};${GRAPH};${JGRAPH};${JGRAPHADDONS};${BATIK};${JAMA};${JTAR};${JDBM};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${CERN};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${CHIPMUNK};${PERFECTOSAPE};${FTPCLIENT};${JERICHO};${SMACK};${JUNIT};${PICARD};${JSOUP};${YAML};${BCEL_JAR};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${ACCESSCORE};${ACCESSFILE};${RTREE};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${PHYSICELL_JARS}" />
+        <property name="BUILD_CLASSPATH" value=".;${ECLIPSE_JARS};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${RHINO};${JMAIL};${LOG4J};${DOTEBEANS};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${BIG};${ROSUDA};${GRAPH};${JGRAPH};${JGRAPHADDONS};${BATIK};${JAMA};${JTAR};${JDBM};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${CERN};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${CHIPMUNK};${PERFECTOSAPE};${FTPCLIENT};${JERICHO};${SMACK};${JUNIT};${PICARD};${JSOUP};${YAML};${BCEL_JAR};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${ACCESSCORE};${ACCESSFILE};${RTREE};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${PHYSICELL_JARS};${BEAKERX_JARS}" />
         <property name="RUN_CLASSPATH" value=".;${OUTDIR};${DOTEBEANS};${ACCESSCORE};${ACCESSFILE};${BELOGGER};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${LOG4J};${RHINO};${JMAIL};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${BIG};${GRAPH};${JGRAPH};${JGRAPHADDONS};${JAMA};${ROSUDA};${JTAR};${JDBM};${BATIK};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${FTPCLIENT};${CHIPMUNK};${PERFECTOSAPE};${JERICHO};${SMACK};${CERN};${JUNIT};${PICARD};${JSOUP};${YAML};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${RTREE};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS}" />
 
         <property name="WORKBENCH" value="${PLUGIN_DIR}/ru.biosoft.workbench_${VERSION}" />
@@ -175,11 +176,11 @@
                 <exclude name="ru.biosoft.exception*.jar"/>
                 <exclude name="ru.biosoft.rtree*.jar"/>
                 <exclude name="ru.biosoft.jobcontrol*.jar"/>
-            	<exclude name="ru.biosoft.access.core*.jar"/>
-            	<exclude name="ru.biosoft.access.file*.jar"/>
-            	<exclude name="ru.biosoft.physicell*.jar"/>
-            	<exclude name="biouml.plugins.cwl*.jar"/>
-            	
+                <exclude name="ru.biosoft.access.core*.jar"/>
+                <exclude name="ru.biosoft.access.file*.jar"/>
+                <exclude name="ru.biosoft.physicell*.jar"/>
+                <exclude name="biouml.plugins.cwl*.jar"/>
+                
                 <include name="com.developmentontheedge.server*.jar"/>
                 <include name="com.developmentontheedge.util*.jar"/>
                 
@@ -216,18 +217,18 @@
             <exclude name="**/_test/*.java" />
         </javac>
         <copy todir="${OUTDIR}">
-        	<fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml">
-        	    <exclude name="**/large/"/>
-        	</fileset>
+            <fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml">
+                <exclude name="**/large/"/>
+            </fileset>
         </copy>
-    	<if>
+        <if>
             <equals arg1="${USE_LARGE_ICONS}" arg2="true"/>
-    	    <then>
+            <then>
                 <copy todir="${OUTDIR}" overwrite="true">
-            	    <fileset dir="${SRCDIR}" includes="**/large/*"/>
-            		<mapper type="regexp" from="^(.*)/large/(.*)" to="\1/\2" />
-       	        </copy>
-    	    </then>
+                    <fileset dir="${SRCDIR}" includes="**/large/*"/>
+                    <mapper type="regexp" from="^(.*)/large/(.*)" to="\1/\2" />
+                   </copy>
+            </then>
         </if>
         <echo message="Preprocessing templates..." />
         <copy todir="${OUTDIR}">
@@ -310,7 +311,7 @@
         plugin.workbench.editors,
         plugin.graphics,
         plugin.graph,
-    	plugin.biosoft.graph,
+        plugin.biosoft.graph,
         plugin.access,
         plugin.table,
         plugin.treetable,       
@@ -347,7 +348,7 @@
         plugin.kegg,
         plugin.analysiscore,
         plugin.analysis,
-    	plugin.antimony,
+        plugin.antimony,
         plugin.optimization,
         plugin.optimization.biouml,
         plugin.jri,
@@ -356,7 +357,7 @@
         plugin.templates,
         plugin.agentmodeling,
         plugin.fbc,
-    	plugin.fbc.server,
+        plugin.fbc.server,
         plugin.research,
         plugin.reactome,
         plugin.chemoinformatics,
@@ -373,12 +374,13 @@
         plugin.riboseq,
         plugin.fs,
         plugin.docker,
-	    plugin.physicell,
-    	plugin.jupyter,
-    	plugin.illumina,
+        plugin.physicell,
+        plugin.jupyter,
+        plugin.beakerx,
+        plugin.illumina,
         plugin.mirbase,
         plugin.mirprom,
-    	plugin.metabolics,
+        plugin.metabolics,
         plugin.antimony,
         plugin.bindingregions,
         plugin.machinelearning,
@@ -393,7 +395,7 @@
         plugin.proteome,
         plugin.sedml,
         plugin.users,
-    	plugin.virtualcell"
+        plugin.virtualcell"
             />
 
     <target name="plugin.workbench" depends="compile">
@@ -408,9 +410,9 @@
             </filterset>
         </copy>
         <antcall target="generate.splash">
-    	    <param name="LOGO_FILE_NAME" value="AboutLogo.png"/>
-        	<param name="EXPANDED" value="false"/>
-        	<param name="LOGO_PATH" value="biouml/workbench/resources/;ru/biosoft/server/servlets/webservices/webfiles/images/"/>
+            <param name="LOGO_FILE_NAME" value="AboutLogo.png"/>
+            <param name="EXPANDED" value="false"/>
+            <param name="LOGO_PATH" value="biouml/workbench/resources/;ru/biosoft/server/servlets/webservices/webfiles/images/"/>
         </antcall>
         <create.plugin plugin="biouml.workbench" source="biouml">
             <files>
@@ -439,18 +441,18 @@
         <create.plugin plugin="biouml.splash"  source="biouml/splash"/>
     </target>
 
-	<target name="generate.splash" depends="local_settings">
-	    <java classname="biouml.workbench.GenerateSplash" dir="." fork="yes">
-	        <classpath>
-	            <pathelement path="${RUN_CLASSPATH}"/>
-	        </classpath>
-	        <arg value="${PUBLIC_VERSION}"/>
-	        <arg value="${LOGO_FILE_NAME}"/>
-	    	<arg value="${EXPANDED}"/>
-	        <arg value="${LOGO_PATH}"/>
-	    </java>
-	</target>
-	
+    <target name="generate.splash" depends="local_settings">
+        <java classname="biouml.workbench.GenerateSplash" dir="." fork="yes">
+            <classpath>
+                <pathelement path="${RUN_CLASSPATH}"/>
+            </classpath>
+            <arg value="${PUBLIC_VERSION}"/>
+            <arg value="${LOGO_FILE_NAME}"/>
+            <arg value="${EXPANDED}"/>
+            <arg value="${LOGO_PATH}"/>
+        </java>
+    </target>
+    
     <target name="plugin.dote" depends="compile">
         <create.plugin plugin="com.developmentontheedge.util" source="com/developmentontheedge">
             <files>
@@ -491,7 +493,7 @@
     <target name="biosoft.workbench.plugins" depends="compile">
         <create.plugin plugin="ru.biosoft.plugins" source="ru/biosoft/plugins">
             <files>
-            	<exclude name="ru/biosoft/plugins/docker/**" />
+                <exclude name="ru/biosoft/plugins/docker/**" />
                 <exclude name="ru/biosoft/plugins/graph/**" />
                 <exclude name="ru/biosoft/plugins/javascript/**" />
                 <exclude name="ru/biosoft/plugins/jri/**" />
@@ -509,9 +511,9 @@
         <create.plugin plugin="ru.biosoft.graphics" source="ru/biosoft/graphics">
             <files>
                 <include name="ru/biosoft/graphics/**/*.class"/>
-            	<include name="ru/biosoft/graphics/**/*.gif"/>
+                <include name="ru/biosoft/graphics/**/*.gif"/>
             </files>
-    	</create.plugin>
+        </create.plugin>
     </target>
 
     <target name="plugin.fs" depends="compile">
@@ -538,7 +540,7 @@
         </create.plugin>
     </target>
 
-	<target name="plugin.table" depends="compile">
+    <target name="plugin.table" depends="compile">
         <create.plugin plugin="ru.biosoft.table" source="ru/biosoft/table"/>
     </target>
 
@@ -585,7 +587,7 @@
     <target name="plugin.bioserver" depends="compile">
         <create.plugin plugin="biouml.plugins.server" source="biouml/plugins/server"/>
     </target>
-	
+    
     <target name="plugin.antimony" depends="compile">
         <create.plugin plugin="biouml.plugins.antimony" source="biouml/plugins/antimony"/>
     </target>
@@ -816,23 +818,23 @@
     <target name="plugin.agentmodeling" depends="compile">
         <create.plugin plugin="biouml.plugins.agentmodeling" source="biouml/plugins/agentmodeling"/>
     </target>
-	
+    
     <target name="plugin.virtualcell" depends="compile">
         <create.plugin plugin="biouml.plugins.virtualcell" source="biouml/plugins/virtualcell"/>
     </target>
-	
-        	
+    
+            
     <target name="plugin.fbc" depends="compile">
         <create.plugin plugin="biouml.plugins.fbc" source="biouml/plugins/fbc">
-	    	<files>
-	            <exclude name="biouml/plugins/fbc/server/**" />
-	        </files>
-        	</create.plugin>
+            <files>
+                <exclude name="biouml/plugins/fbc/server/**" />
+            </files>
+            </create.plugin>
     </target>
-	
-	<target name="plugin.fbc.server" depends="compile">
-	    <create.plugin plugin="biouml.plugins.fbc.server" source="biouml/plugins/fbc/server"/>
-	</target>
+    
+    <target name="plugin.fbc.server" depends="compile">
+        <create.plugin plugin="biouml.plugins.fbc.server" source="biouml/plugins/fbc/server"/>
+    </target>
     
     <target name="plugin.research" depends="compile">
         <create.plugin plugin="biouml.plugins.research" source="biouml/plugins/research"/>
@@ -866,35 +868,39 @@
         <create.plugin plugin="biouml.plugins.expasy" source="biouml/plugins/expasy"/>
     </target>
 
-	<target name="plugin.physicell" depends="compile">
-	        <create.plugin plugin="biouml.plugins.physicell" source="biouml/plugins/physicell"/>
-	</target>
-	
-	<target name="plugin.jupyter" depends="compile">
-	        <create.plugin plugin="biouml.plugins.jupyter" source="biouml/plugins/jupyter"/>
+    <target name="plugin.physicell" depends="compile">
+            <create.plugin plugin="biouml.plugins.physicell" source="biouml/plugins/physicell"/>
     </target>
-	
-	<target name="plugin.mirbase" depends="compile">
+    
+    <target name="plugin.jupyter" depends="compile">
+            <create.plugin plugin="biouml.plugins.jupyter" source="biouml/plugins/jupyter"/>
+    </target>
+
+    <target name="plugin.beakerx" depends="compile">
+        <create.plugin plugin="biouml.plugins.beakerx" source="biouml/plugins/beakerx"/>
+    </target>
+    
+    <target name="plugin.mirbase" depends="compile">
         <create.plugin plugin="biouml.plugins.mirbase" source="biouml/plugins/mirbase"/>
     </target>
 
     <target name="plugin.mirprom" depends="compile">
         <create.plugin plugin="biouml.plugins.mirprom" source="biouml/plugins/mirprom"/>
     </target>
-	
-	<target name="plugin.illumina" depends="compile">
+    
+    <target name="plugin.illumina" depends="compile">
         <create.plugin plugin="biouml.plugins.illumina" source="biouml/plugins/illumina"/>
     </target>
-	
-	<target name="plugin.metabolics" depends="compile">
+    
+    <target name="plugin.metabolics" depends="compile">
         <create.plugin plugin="biouml.plugins.metabolics" source="biouml/plugins/metabolics"/>
     </target>
-	
-	<target name="plugin.sedml" depends="compile">
+    
+    <target name="plugin.sedml" depends="compile">
         <create.plugin plugin="biouml.plugins.sedml" source="biouml/plugins/sedml"/>
     </target>
-	
-	<target name="plugin.bindingregions" depends="local_settings,compile">
+    
+    <target name="plugin.bindingregions" depends="local_settings,compile">
         <create.plugin plugin="biouml.plugins.bindingregions" source="biouml/plugins/bindingregions"/>
     </target>
 
@@ -949,7 +955,7 @@
     <target name="plugin.users" depends="compile">
         <create.plugin plugin="biouml.plugins.users" source="biouml/plugins/users"/>
     </target>
-	
+    
     <!-- =================================================================== -->
     <!-- Servlets                                                            -->
     <!-- =================================================================== -->
@@ -1069,8 +1075,8 @@
         <copy todir="${SERVER_PATH}/history">
             <fileset dir="../history" />
         </copy-->
-    	
-    	<!--delete dir="${SERVER_PATH}/appconfig" />
+        
+        <!--delete dir="${SERVER_PATH}/appconfig" />
         <copy todir="${SERVER_PATH}/appconfig">
             <fileset dir="../appconfig" />
         </copy-->
@@ -1103,7 +1109,7 @@
         <copy file="${TOPDIR}/biouml.policy" tofile="${SERVER_PATH}/biouml.policy" />
 
         <copy file="${TOPDIR}/server.lcf" tofile="${TOMCAT_PROJECT_PATH}/../../bin/server.lcf" />
-    	<copy file="${TOPDIR}/logging.properties" tofile="${TOMCAT_PROJECT_PATH}/WEB-INF/classes/logging.properties" />
+        <copy file="${TOPDIR}/logging.properties" tofile="${TOMCAT_PROJECT_PATH}/WEB-INF/classes/logging.properties" />
 
         <antcall target="biouml.war"/>
     </target>
@@ -1164,7 +1170,7 @@
                 <include name="biouml/launcher/*.class" />
                 <include name="ru/biosoft/server/tomcat/ConnectionServlet.class" />
                 <include name="ru/biosoft/server/tomcat/UploadProgressListener.class" />
-            	<include name="ru/biosoft/server/tomcat/CustomSimpleFormatter.class" />
+                <include name="ru/biosoft/server/tomcat/CustomSimpleFormatter.class" />
                 <include name="ru/biosoft/server/Response.class" />
             </fileset>
         </copy>
@@ -1296,7 +1302,7 @@
     </target>
 
 
-	<target name="local_settings_tofile" depends="local_settings">
+    <target name="local_settings_tofile" depends="local_settings">
         <echo file=".local.properties">
 TOPDIR=${TOPDIR}
 SRCDIR=${SRCDIR}
@@ -1366,5 +1372,5 @@ MODULE_DATADIR=${MODULE_DATADIR}
 testui=${testui}
         </echo>
     </target>
-	
+    
 </project>

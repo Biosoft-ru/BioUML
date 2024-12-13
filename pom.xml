@@ -785,6 +785,12 @@
           <!--systemPath>${project.basedir}/plugconfig/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar</systemPath-->
       </dependency>
 
+      <dependency>
+          <groupId>com.twosigma</groupId>
+          <artifactId>beakerx</artifactId>
+          <version>1.0</version>
+      </dependency>
+
     </dependencies>
 
     <build>
