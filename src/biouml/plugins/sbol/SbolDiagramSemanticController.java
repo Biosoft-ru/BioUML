@@ -230,7 +230,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         if ( de instanceof Diagram )
             return false;
         Compartment parent = de.getCompartment();
-        //remove one of the sequence elements
+        //remove one of the sequence elements from backbone
         if ( de instanceof Node && parent.getKernel() instanceof Backbone )
         {
             //TODO: discuss how to get size, from view or from shape size
@@ -257,7 +257,9 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                 return;
             });
             for ( Edge edge : Util.getEdges((Node) de) )
-                edge.getOrigin().remove(edge.getName());
+            {
+                removeEdge(edge);
+            }
 
             if ( de instanceof Compartment )
                 ((Compartment) de).clear();
@@ -271,6 +273,28 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
             return true;
         }
+        //remove one of nodes on diagram (not backbone)
+        else if ( de instanceof Node && !(de.getKernel() instanceof Backbone) )
+        {
+            Node node = (Node) de;
+
+            for ( Edge edge : Util.getEdges(node) )
+            {
+                removeEdge(edge);
+            }
+
+            if ( de instanceof Compartment )
+                ((Compartment) de).clear();
+            SbolUtil.removeSbolObjectFromDiagram(de);
+            de.getOrigin().remove(de.getName());
+            return true;
+        }
+        //remove edge
+        else if ( de instanceof Edge )
+        {
+            removeEdge((Edge) de);
+            return true;
+        }
         //remove backbone
         else
         {
@@ -278,5 +302,25 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             return super.remove(de);
         }
 
+    }
+
+    private void removeEdge(Edge edge) throws Exception
+    {
+        if ( SbolUtil.TYPE_DEGRADATION.equals(edge.getKernel().getType()) )
+        {
+            //remove degradation stub node
+            Node degradationNode = ((Edge) edge).getOutput();
+            if ( degradationNode.getKernel().getType().equals(SbolUtil.TYPE_DEGRADATION_PRODUCT) )
+                try
+                {
+                    degradationNode.getCompartment().remove(degradationNode.getName());
+                }
+                catch (Exception e)
+                {
+                    //TODO: error handling
+                }
+        }
+        SbolUtil.removeSbolObjectFromDiagram(edge);
+        edge.getOrigin().remove(edge.getName());
     }
 }

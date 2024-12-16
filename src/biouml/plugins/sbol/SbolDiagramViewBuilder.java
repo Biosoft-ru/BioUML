@@ -34,7 +34,6 @@ import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.plugins.sbgn.Type;
 import biouml.standard.type.Stub;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.ArrowView;
@@ -273,7 +272,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         {
             return createMolecularSpecies( container, node, options, g );
         }
-        else if ( node.getKernel().getType().equals(Type.TYPE_SOURCE_SINK) )
+        else if ( node.getKernel().getType().equals(SbolUtil.TYPE_DEGRADATION_PRODUCT) )
         {
             return createSourceSinkView(container, node, options, g);
         }

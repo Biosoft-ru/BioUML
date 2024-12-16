@@ -12,6 +12,7 @@ import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.ModuleDefinition;
+import org.sbolstandard.core2.Participation;
 import org.sbolstandard.core2.SBOLDocument;
 import org.sbolstandard.core2.SBOLValidationException;
 import org.sbolstandard.core2.SequenceAnnotation;
@@ -22,7 +23,9 @@ import org.sbolstandard.core2.SystemsBiologyOntology;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
+import biouml.model.Node;
 import biouml.standard.type.Base;
+import biouml.standard.type.Reaction;
 import biouml.standard.type.Stub;
 import biouml.standard.type.Type;
 
@@ -47,6 +50,7 @@ public class SbolUtil
     public static final String TYPE_GENETIC_PRODUCTION = "genetic production";
     public static final String TYPE_CIRCULAR_END = "circular-plasmid end";
     public static final String TYPE_CIRCULAR_START = "circular-plasmid start";
+    public static final String TYPE_DEGRADATION_PRODUCT = "degradation product";
 
     private static SequenceOntology so = new SequenceOntology();
     public static URI ROLE_CIRCULAR = null;
@@ -306,10 +310,59 @@ public class SbolUtil
         Object doc = diagram.getAttributes().getValue(SbolUtil.SBOL_DOCUMENT_PROPERTY);
         if ( doc == null || !(doc instanceof SBOLDocument) )
             return false;
-        if ( de instanceof Edge )
+        if ( (de instanceof Edge || de.getKernel() instanceof Reaction) && de.getAttributes().hasProperty("interactionURI") )
         {
-            //TODO: remove interaction edge
+            String interactionURIString = de.getAttributes().getValueAsString("interactionURI");
+            URI uri = URI.create(interactionURIString);
+            for ( ModuleDefinition md : ((SBOLDocument) doc).getModuleDefinitions() )
+            {
+                Interaction interaction = md.getInteraction(uri);
+                if ( interaction != null )
+                {
+                    md.removeInteraction(interaction);
+                    return true;
+                }
+            }
             return false;
+        }
+        else if(de instanceof Edge )
+        {
+            Edge e = (Edge)de;
+            Node reactionNode = null;
+            Node otherNode = null;
+            
+            if(e.getInput().getKernel() instanceof Reaction)
+            {
+                reactionNode = e.getInput();
+                otherNode = e.getOutput();
+            }
+            else if ( e.getOutput().getKernel() instanceof Reaction )
+            {
+                reactionNode = e.getOutput();
+                otherNode = e.getInput();
+            }
+            if ( reactionNode != null && reactionNode.getAttributes().hasProperty("interactionURI") && otherNode != null && otherNode.getKernel() instanceof SbolBase )
+            {
+                String interactionURIString = reactionNode.getAttributes().getValueAsString("interactionURI");
+                URI uri = URI.create(interactionURIString);
+                for ( ModuleDefinition md : ((SBOLDocument) doc).getModuleDefinitions() )
+                {
+                    Interaction interaction = md.getInteraction(uri);
+                    if ( interaction != null )
+                    {
+                        URI participantURI = ((SbolBase) otherNode.getKernel()).getSbolObject().getPersistentIdentity();
+                        for ( Participation pt : interaction.getParticipations() )
+                        {
+                            if ( pt.getParticipantDefinition().getPersistentIdentity().equals(participantURI) )
+                            {
+                                interaction.removeParticipation(pt);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
         }
         if ( !(de.getKernel() instanceof SbolBase) )
             return false;
@@ -356,7 +409,6 @@ public class SbolUtil
             catch (SBOLValidationException e)
             {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
             }
         }
 
@@ -373,7 +425,6 @@ public class SbolUtil
                     catch (SBOLValidationException e)
                     {
                         // TODO Auto-generated catch block
-                        e.printStackTrace();
                     }
                 }
             }
@@ -389,7 +440,6 @@ public class SbolUtil
         catch (SBOLValidationException e)
         {
             // TODO Auto-generated catch block
-            e.printStackTrace();
             return false;
         }
         return true;

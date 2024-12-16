@@ -42,7 +42,6 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.model.util.ImageGenerator;
-import biouml.plugins.sbgn.Type;
 import biouml.standard.type.Base;
 import biouml.standard.type.DiagramInfo;
 import biouml.standard.type.Reaction;
@@ -121,6 +120,7 @@ public class SbolDiagramReader
             {
                 Set<Node> from = null, to = null;
                 String type = SbolUtil.TYPE_PROCESS;
+                URI uri = interaction.getIdentity();
                 if ( interaction.getTypes().contains(SystemsBiologyOntology.INHIBITION) )
                 {
                     //sbolcanvas allow only INHIBITOR role refinement
@@ -168,7 +168,7 @@ public class SbolDiagramReader
                     if ( from != null )
                     {
                         String name = DefaultSemanticController.generateUniqueNodeName(diagram, "Degradation product");
-                        Node degradationNode = new Node(diagram, new Stub(null, name, Type.TYPE_SOURCE_SINK));
+                        Node degradationNode = new Node(diagram, new Stub(null, name, SbolUtil.TYPE_DEGRADATION_PRODUCT));
                         to = Set.of(degradationNode);
                         diagram.put(degradationNode);
                     }
@@ -231,6 +231,7 @@ public class SbolDiagramReader
                         Node fromNode = fromIter.next();
                         Node toNode = toIter.next();
                         Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + toNode.getName(), type), fromNode, toNode);
+                        result.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
                         result.getOrigin().put(result);
                         //diagram.put(result);
                     }
@@ -242,6 +243,7 @@ public class SbolDiagramReader
                         Node interactionNode = new Node(diagram, reaction);
                         interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
                         interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+                        interactionNode.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
                         interactionNode.setUseCustomImage(true);
                         diagram.put(interactionNode);
                         while ( fromIter.hasNext() )
