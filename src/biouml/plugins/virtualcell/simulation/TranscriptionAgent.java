@@ -100,7 +100,7 @@ public class TranscriptionAgent extends ProcessAgent
             activeTfs.addAll( tfs );
             activeTfs.removeAll( knockedOut );
             String tfString = "[\"" + StreamEx.of( activeTfs ).joining( "\",\"" ) + "\"]";
-            System.out.println( tfString );
+
             String modelString = "\"" + model + "\"";
             String lineString = "\"" + line + "\"";
 
