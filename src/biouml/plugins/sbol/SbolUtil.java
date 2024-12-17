@@ -26,7 +26,6 @@ import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.standard.type.Base;
 import biouml.standard.type.Reaction;
-import biouml.standard.type.Stub;
 import biouml.standard.type.Type;
 
 public class SbolUtil
@@ -108,6 +107,9 @@ public class SbolUtil
         aMap.put( so.getURIbyId( "SO:0000288" ), "engineered-region");
         aMap.put( so.getURIbyId( "SO:0000830" ), "chromosomal-locus");
         aMap.put( so.getURIbyId( "SO:0000755" ), "circular-plasmid");
+        aMap.put(so.getURIbyId("SO:0002223"), "inert-dna-spacer");
+        aMap.put(so.getURIbyId("SO:0000188"), "intron");
+        aMap.put(so.getURIbyId("SO:0000839"), "polypeptide-region");
         
 
         dnaRegionToImage = Collections.unmodifiableMap(aMap);
@@ -150,6 +152,9 @@ public class SbolUtil
         bMap.put( "Three prime overhang", so.getURIbyId( "SO:0001933" ) );
         bMap.put( "Origin of transfer", so.getURIbyId( "SO:0000724" ) );
         bMap.put( "Protease site", so.getURIbyId( "SO:0001956" ) );
+        bMap.put("Inert DNA spacer", so.getURIbyId("SO:0002223"));
+        bMap.put("Intron", so.getURIbyId("SO:0000188"));
+        bMap.put("Polypeptide region", so.getURIbyId("SO:0000839"));
         
         ROLE_CHROMOSOMAL_LOCUS = so.getURIbyId( "SO:0000830" );
         //bMap.put( "Chromosomal locus", ROLE_CHROMOSOMAL_LOCUS );
@@ -204,6 +209,9 @@ public class SbolUtil
         aMap.put("three-prime-overhang", 18);
         aMap.put("origin-of-transfer", 18);
         aMap.put("protease-site", 0);
+        aMap.put("inert-dna-spacer", 18);
+        aMap.put("intron", 18);
+        aMap.put("polypeptide-region", 18);
 
         verticalShift = Collections.unmodifiableMap(aMap);
     }

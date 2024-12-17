@@ -23,7 +23,6 @@ import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
-import biouml.model.Node;
 import biouml.model.SemanticController;
 import one.util.streamex.StreamEx;
 import ru.biosoft.graphics.editor.ViewEditorPane;
