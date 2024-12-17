@@ -205,12 +205,12 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                 Diagram diagram = ( (MetabolismProperties)role ).getDiagramPath().getDataElement( Diagram.class );
                 MapPool parametersPool = new MapPool( "Constraints" );
                 parametersPool.loadFromParameters( diagram );
-                
+
                 GLPKModelCreator modelCreator = new GLPKModelCreator();
                 FbcModel fbcModel = modelCreator.createModel( diagram );
                 metabolismAgent.setModel( fbcModel );
-                
-//                metabolismAgent.addParametersPool( "rates", parametersPool );
+
+                //                metabolismAgent.addParametersPool( "rates", parametersPool );
 
                 for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
                 {
@@ -229,14 +229,15 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                 TranscriptionAgent transcriptionAgent = new TranscriptionAgent( node.getName(),
                         new UniformSpan( 0, timeCompletion, timeIncrement ) );
 
-                transcriptionAgent.setLine( ((TranscriptionProperties)role).getLine() );
-                transcriptionAgent.setModel( ((TranscriptionProperties)role).getModel() );
-                
-                TableDataCollection tfs = ( (TranscriptionProperties)role ).getTranscriptionFactors().getDataElement( TableDataCollection.class );
+                transcriptionAgent.setLine( ( (TranscriptionProperties)role ).getLine() );
+                transcriptionAgent.setModel( ( (TranscriptionProperties)role ).getModel() );
+
+                TableDataCollection tfs = ( (TranscriptionProperties)role ).getTranscriptionFactors()
+                        .getDataElement( TableDataCollection.class );
                 MapPool parametersPool = new MapPool( "Tfs" );
-                parametersPool.load( tfs, null );       
+                parametersPool.load( tfs, null );
                 transcriptionAgent.addParametersPool( "Transcription Factors", parametersPool );
-                
+
                 for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
                 {
                     if( otherNode.getRole() instanceof TableCollectionPoolProperties )
