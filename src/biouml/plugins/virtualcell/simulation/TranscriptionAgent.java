@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -94,8 +95,12 @@ public class TranscriptionAgent extends ProcessAgent
             con.setDoOutput( true );
            
             log.info( "List of knocked out TFs: "+StreamEx.of(tfs).filter( tf->knockedOut.contains( tf )).joining(","));
-
-            String tfString = "[\"" + StreamEx.of( tfs.removeAll( knockedOut ) ).joining( "\",\"" ) + "\"]";
+            
+            Set<String> activeTfs = new HashSet<>();
+            activeTfs.addAll( tfs );
+            activeTfs.removeAll( knockedOut );
+            String tfString = "[\"" + StreamEx.of( activeTfs ).joining( "\",\"" ) + "\"]";
+            System.out.println( tfString );
             String modelString = "\"" + model + "\"";
             String lineString = "\"" + line + "\"";
 
