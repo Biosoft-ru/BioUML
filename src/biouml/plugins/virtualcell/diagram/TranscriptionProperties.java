@@ -32,7 +32,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
 
     public static String[] getModels()
     {
-        return new String[] {"FC", "CB", "CNN"};
+        return new String[] {"FC", "FC_wocn","CB", "CNN"};
     }
 
     public TranscriptionProperties(String name)
