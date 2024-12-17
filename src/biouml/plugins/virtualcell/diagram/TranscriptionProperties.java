@@ -83,6 +83,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
         result.setDiagramElement( (Node)de );
         result.setModel( model );
         result.setLine( line );
+        result.setKnockedTFS( knockedTFS );
         return result;
     }
 

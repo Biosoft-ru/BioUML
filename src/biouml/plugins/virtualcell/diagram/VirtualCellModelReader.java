@@ -101,6 +101,9 @@ public class VirtualCellModelReader extends ModelXmlReader
                     String line = processElement.getAttribute( "line" );
                     transcriptionProperties.setLine( line );
                     
+                    String knockedTFs = processElement.getAttribute( "knockedTFs" );
+                    transcriptionProperties.setKnockedTFS( knockedTFs );
+                    
                     String modelName = processElement.getAttribute( "model" );
                     transcriptionProperties.setModel( modelName );
                     node.setRole( transcriptionProperties );
