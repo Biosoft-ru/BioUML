@@ -31,6 +31,7 @@ import biouml.plugins.virtualcell.diagram.TranscriptionProperties;
 import biouml.plugins.virtualcell.diagram.TranslationProperties;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
+import one.util.streamex.StreamEx;
 
 /**
  * @author Damag
@@ -237,6 +238,10 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                 MapPool parametersPool = new MapPool( "Tfs" );
                 parametersPool.load( tfs, null );
                 transcriptionAgent.addParametersPool( "Transcription Factors", parametersPool );
+
+                transcriptionAgent.setKnocked(
+                        StreamEx.of( ( (TranscriptionProperties)role ).getKnockedTFS().replace( "[", "" ).replace( "]", "" ).split( "," ) ).map( s->s.trim() )
+                                .toSet() );
 
                 for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
                 {

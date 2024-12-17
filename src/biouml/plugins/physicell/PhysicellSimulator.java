@@ -281,6 +281,7 @@ public class PhysicellSimulator implements Simulator
         catch( Exception ex )
         {
             log.info( "Simulation failed: " + ex.getMessage() );
+            ex.printStackTrace();
         }
     }
 

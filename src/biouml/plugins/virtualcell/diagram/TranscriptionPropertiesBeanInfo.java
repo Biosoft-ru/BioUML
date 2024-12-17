@@ -16,6 +16,7 @@ public class TranscriptionPropertiesBeanInfo extends BeanInfoEx2<TranscriptionPr
     {
         add( "name" );
         property( DataElementPathEditor.registerInput( "transcriptionFactors", beanClass, TableDataCollection.class, false ) ).add();
+        add( "knockedTFS");
         addWithTags( "line", TranscriptionProperties.getLines() );
         addWithTags( "model", TranscriptionProperties.getModels() );
     }
