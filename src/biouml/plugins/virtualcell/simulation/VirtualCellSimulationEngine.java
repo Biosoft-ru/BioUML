@@ -239,9 +239,11 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
                 parametersPool.load( tfs, null );
                 transcriptionAgent.addParametersPool( "Transcription Factors", parametersPool );
 
+                String knockedTfs = ( (TranscriptionProperties)role ).getKnockedTFS();
+                if (knockedTfs == null)
+                    knockedTfs = "";
                 transcriptionAgent.setKnocked(
-                        StreamEx.of( ( (TranscriptionProperties)role ).getKnockedTFS().replace( "[", "" ).replace( "]", "" ).split( "," ) ).map( s->s.trim() )
-                                .toSet() );
+                        StreamEx.of( knockedTfs.replace( "[", "" ).replace( "]", "" ).split( "," ) ).map( s -> s.trim() ).toSet() );
 
                 for( Node otherNode : node.edges().filter( e -> e.getInput().equals( node ) ).map( e -> e.getOutput() ) )
                 {
@@ -374,5 +376,10 @@ public class VirtualCellSimulationEngine extends SimulationEngine implements Pro
     public String[] getVariableNames()
     {
         return new String[0];
+    }
+    
+    public void initSimulationResult(SimulationResult simuationResult)
+    {
+        //do nothing
     }
 }
