@@ -355,8 +355,16 @@ public class PhysicellSimulationEngine extends SimulationEngine
     @Override
     public String simulate(Model model, ResultListener[] resultListeners) throws Exception
     {
-        this.simulator.start( model, null, resultListeners, jobControl );
-        return "";
+        try
+        {
+            this.simulator.start( model, null, resultListeners, jobControl );
+            return "";
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+            return "";
+        }
     }
 
     @Override

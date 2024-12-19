@@ -22,6 +22,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
     private String name;
     private Node node;
     private DataElementPath transcriptionFactors;
+    private String knockedTFS;
     private String line = getLines()[0];
     private String model = getModels()[0];
 
@@ -32,7 +33,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
 
     public static String[] getModels()
     {
-        return new String[] {"FC", "CB", "CNN"};
+        return new String[] {"FC", "FC_wocn","CB", "CNN"};
     }
 
     public TranscriptionProperties(String name)
@@ -82,6 +83,7 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
         result.setDiagramElement( (Node)de );
         result.setModel( model );
         result.setLine( line );
+        result.setKnockedTFS( knockedTFS );
         return result;
     }
 
@@ -126,6 +128,18 @@ public class TranscriptionProperties implements InitialElementProperties, DataOw
     {
         return model;
     }
+    
+    public String getKnockedTFS()
+    {
+        return knockedTFS;
+    }
+
+    @PropertyName("Knocked out Transcription Factors")
+    public void setKnockedTFS(String knockedTFS)
+    {
+        this.knockedTFS = knockedTFS;
+    }
+
 
     public void setModel(String model)
     {

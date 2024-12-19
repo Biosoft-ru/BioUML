@@ -5,17 +5,23 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
+import biouml.plugins.simulation.SimulatorSupport;
 import biouml.plugins.simulation.Span;
 import one.util.streamex.StreamEx;
 
 public class TranscriptionAgent extends ProcessAgent
 {
+    protected static final Logger log = Logger.getLogger(SimulatorSupport.class.getName());
+    
     private double[] prediction;
     private Set<String> tfs;
+    private Set<String> knockedOut;
     private String line;
     private String model;
     
@@ -87,8 +93,14 @@ public class TranscriptionAgent extends ProcessAgent
             con.setRequestProperty( "Accept-Charset", "UTF-8" );
             con.setDoInput( true );
             con.setDoOutput( true );
+           
+            log.info( "List of knocked out TFs: "+StreamEx.of(tfs).filter( tf->knockedOut.contains( tf )).joining(","));
+            
+            Set<String> activeTfs = new HashSet<>();
+            activeTfs.addAll( tfs );
+            activeTfs.removeAll( knockedOut );
+            String tfString = "[\"" + StreamEx.of( activeTfs ).joining( "\",\"" ) + "\"]";
 
-            String tfString = "[\"" + StreamEx.of( tfs ).joining( "\",\"" ) + "\"]";
             String modelString = "\"" + model + "\"";
             String lineString = "\"" + line + "\"";
 
@@ -149,6 +161,11 @@ public class TranscriptionAgent extends ProcessAgent
     public void read(String variable, MapPool pool)
     {
 
+    }
+    
+    public void setKnocked(Set<String> knockedTFS )
+    {
+        this.knockedOut = knockedTFS;
     }
 
     @Override
