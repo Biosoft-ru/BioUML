@@ -957,6 +957,10 @@
         <create.plugin plugin="biouml.plugins.users" source="biouml/plugins/users"/>
     </target>
     
+	<target name="plugin.sbol" depends="compile">
+        <create.plugin plugin="biouml.plugins.sbol" source="biouml/plugins/sbol"/>
+    </target>
+	
     <!-- =================================================================== -->
     <!-- Servlets                                                            -->
     <!-- =================================================================== -->
