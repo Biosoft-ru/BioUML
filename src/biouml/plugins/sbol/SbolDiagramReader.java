@@ -245,6 +245,7 @@ public class SbolDiagramReader
                         interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
                         interactionNode.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
                         interactionNode.setUseCustomImage(true);
+                        interactionNode.setShapeSize(new Dimension(15, 15));
                         diagram.put(interactionNode);
                         while ( fromIter.hasNext() )
                         {
@@ -269,6 +270,7 @@ public class SbolDiagramReader
                     Node interactionNode = new Node(diagram, reaction);
                     interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
                     interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+                    interactionNode.setShapeSize(new Dimension(15, 15));
                     interactionNode.setUseCustomImage(true);
                     diagram.put(interactionNode);
                 }
