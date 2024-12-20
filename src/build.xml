@@ -120,6 +120,7 @@
         <property name="JADE" value="${PLUGIN_DIR}/jade/jade.jar" />
         <property name="PHYSICELL" value="${PLUGIN_DIR}/ru.biosoft.physicell_0.9.10.jar" />
         <property name="PHYSICELL_JARS" value = "${PLUGIN_CONFIG_DIR}/biouml.plugins.physicell/jcodec-0.2.5.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.physicell/jcodec-javase-0.2.5.jar" />
+    	<property name="SBOL" value="${PLUGIN_DIR}/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar" />
         <!-- misc -->
 
         <!-- ROSUDA must go before CHEMPAINT as they have conflicting classes -->
