@@ -33,4 +33,6 @@ jobs:
 
     - name: Run tests
       #run: mvn -B test
-      run: mvn -B -pl src test
+      run: |
+        mvn -B -pl src test
+        mvn -B -pl src test -Dtest=DiagramXmlReaderTest
