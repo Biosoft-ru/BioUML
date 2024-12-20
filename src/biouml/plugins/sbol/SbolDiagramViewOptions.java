@@ -13,6 +13,7 @@ public class SbolDiagramViewOptions extends DiagramViewOptions
     public SbolDiagramViewOptions(Option parent)
     {
         super(parent);
+        this.setDiagramTitleVisible( false );
     }
 
     public Pen getBackbonePen()

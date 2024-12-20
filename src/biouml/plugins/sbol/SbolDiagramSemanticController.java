@@ -21,6 +21,7 @@ import biouml.model.DiagramType;
 import biouml.model.Edge;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
+import biouml.standard.diagram.CreateEdgeAction;
 import biouml.standard.diagram.Util;
 import biouml.standard.type.Base;
 import biouml.standard.type.Stub;
@@ -39,6 +40,13 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
         try
         {
+
+            if( type.equals( Participation.class )  )
+            {
+                new CreateEdgeAction().createEdge( pt, viewEditor, new ParticipationEdgeCreator() );
+                return null;
+            }
+
             Object properties = getPropertiesByType( parent, type, pt );
             if( properties instanceof InitialElementProperties )
             {
@@ -67,7 +75,8 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
         if( deBase instanceof SequenceFeature )
         {
-            return compartmentBase instanceof Backbone || (compartmentBase instanceof SequenceFeature && compartment.getOrigin() == de.getOrigin());
+            return compartmentBase instanceof Backbone
+                    || ( compartmentBase instanceof SequenceFeature && compartment.getOrigin() == de.getOrigin() );
         }
         else if( deBase instanceof Backbone )
         {
@@ -77,8 +86,13 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             return compartment instanceof Diagram;
         }
+        else if( deBase instanceof InteractionProperties )
+        {
+            return compartment instanceof Diagram;
+        }
 
-        if ( de instanceof Edge )
+
+        if( de instanceof Edge )
             return true;
         return false;
     }
@@ -95,7 +109,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         }
         catch( Exception ex )
         {
-
+            ex.printStackTrace();
         }
         return null;
     }
@@ -103,7 +117,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     @Override
     public boolean isResizable(DiagramElement diagramElement)
     {
-        return false;
+        return diagramElement.getKernel() instanceof MolecularSpecies;
     }
 
     @Override
@@ -115,212 +129,213 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     @Override
     public Dimension move(DiagramElement de, Compartment newParent, Dimension offset, Rectangle oldBounds) throws Exception
     {
-        if ( de instanceof Node )
+        if( de instanceof Node )
         {
-            if ( de.getKernel() instanceof Backbone )
-                return super.move(de, newParent, offset, oldBounds);
-            Node node = (Node) de;
+            if( de.getKernel() instanceof Backbone )
+                return super.move( de, newParent, offset, oldBounds );
+            Node node = (Node)de;
             Compartment parent = node.getCompartment();
-            if ( newParent.getKernel() instanceof SequenceFeature )
+            if( newParent.getKernel() instanceof SequenceFeature )
                 newParent = newParent.getCompartment();
-            if ( parent.getKernel() instanceof Backbone )
+            if( parent.getKernel() instanceof Backbone )
             {
                 //do not move outside parent backbone
-                if ( newParent != parent )
+                if( newParent != parent )
                 {
-                    return new Dimension(0, 0);
+                    return new Dimension( 0, 0 );
                 }
                 Point location = node.getLocation();
                 int oldX = location.x;
                 //TODO: discuss how to get size, from view or from shape size
-                int width = (int) (Math.ceil(((Node) de).getShapeSize().getWidth()));
+                int width = (int) ( Math.ceil( ( (Node)de ).getShapeSize().getWidth() ) );
 
-                location.translate(offset.width, 0);
+                location.translate( offset.width, 0 );
                 int newX = location.x;
-                int dx = parent.stream().mapToInt(n -> {
-                    if ( n instanceof Node )
+                int dx = parent.stream().mapToInt( n -> {
+                    if( n instanceof Node )
                     {
-                        Point nlocation = ((Node) n).getLocation();
+                        Point nlocation = ( (Node)n ).getLocation();
                         int nX = nlocation.x;
-                        int nW = (int) (Math.ceil(((Node) n).getShapeSize().getWidth()));
-                        if ( nX == oldX )
+                        int nW = (int) ( Math.ceil( ( (Node)n ).getShapeSize().getWidth() ) );
+                        if( nX == oldX )
                             return 0;
-                        if ( oldX > newX && nX <= newX && nX + nW > newX )
+                        if( oldX > newX && nX <= newX && nX + nW > newX )
                             return oldX - nX - nW;
-                        else if ( oldX < newX && nX <= newX && nX + nW > newX )
+                        else if( oldX < newX && nX <= newX && nX + nW > newX )
                             return nX + nW - oldX - width;
                         return 0;
                     }
                     return 0;
-                }).max().orElse(0);
+                } ).max().orElse( 0 );
                 int shift = oldX > newX ? -dx : dx;
-                if ( dx == 0 )
-                    return new Dimension(0, 0);
+                if( dx == 0 )
+                    return new Dimension( 0, 0 );
                 Set<Edge> edges = new HashSet<>();
-                parent.stream().forEach(n -> {
-                    if ( n instanceof Node )
+                parent.stream().forEach( n -> {
+                    if( n instanceof Node )
                     {
-                        Point nlocation = ((Node) n).getLocation();
+                        Point nlocation = ( (Node)n ).getLocation();
                         int nX = nlocation.x;
 
-                        if ( nX == oldX )
+                        if( nX == oldX )
                         {
-                            nlocation.translate(shift, 0);
-                            ((Node) n).setLocation(nlocation);
-                            edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
+                            nlocation.translate( shift, 0 );
+                            ( (Node)n ).setLocation( nlocation );
+                            edges.addAll( ( (Node)n ).edges().collect( Collectors.toSet() ) );
                         }
-                        else if ( oldX > newX && nX > newX && nX < oldX + width )
+                        else if( oldX > newX && nX > newX && nX < oldX + width )
                         {
-                            nlocation.translate(width, 0);
-                            ((Node) n).setLocation(nlocation);
-                            edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
+                            nlocation.translate( width, 0 );
+                            ( (Node)n ).setLocation( nlocation );
+                            edges.addAll( ( (Node)n ).edges().collect( Collectors.toSet() ) );
                         }
-                        else if ( oldX < newX && nX > oldX && nX <= newX )
+                        else if( oldX < newX && nX > oldX && nX <= newX )
                         {
-                            nlocation.translate(-width, 0);
-                            ((Node) n).setLocation(nlocation);
-                            edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
+                            nlocation.translate( -width, 0 );
+                            ( (Node)n ).setLocation( nlocation );
+                            edges.addAll( ( (Node)n ).edges().collect( Collectors.toSet() ) );
                         }
                     }
-                });
-                edges.stream().forEach(e -> {
-                    e.setPath(null);
-                    recalculateEdgePath(e);
+                } );
+                edges.stream().forEach( e -> {
+                    e.setPath( null );
+                    recalculateEdgePath( e );
                     return;
-                });
-                return new Dimension(dx, 0);
+                } );
+                return new Dimension( dx, 0 );
             }
             else
             {
-                if ( newParent != parent )
+                if( newParent != parent )
                 {
-                    return new Dimension(0, 0);
+                    return new Dimension( 0, 0 );
                 }
-                return super.move(de, newParent, offset, oldBounds);
+                return super.move( de, newParent, offset, oldBounds );
             }
         }
         else
-            return super.move(de, newParent, offset, oldBounds);
+            return super.move( de, newParent, offset, oldBounds );
     }
 
     @Override
     public void recalculateEdgePath(Edge edge)
     {
-        Diagram diagram = Diagram.getDiagram(edge);
+        Diagram diagram = Diagram.getDiagram( edge );
         DiagramType diagramType = diagram.getType();
-        if ( diagramType == null )
+        if( diagramType == null )
             return;
         Node inNode = edge.getInput();
         Node outNode = edge.getOutput();
         //edge inside compartment
-        if ( edge.getPath() == null && edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
+        if( edge.getPath() == null && edge.getKernel() instanceof Stub && inNode.getCompartment().getKernel() instanceof Backbone
+                && inNode.getOrigin() == outNode.getOrigin() )
         {
             Point in = new Point();
             Point out = new Point();
-            diagramType.getDiagramViewBuilder().calculateInOut(edge, in, out);
-            edge.setPath(new Path(new int[] { in.x, in.x, out.x, out.x }, new int[] { in.y, in.y - 20, out.y - 20, out.y }, 4));
+            diagramType.getDiagramViewBuilder().calculateInOut( edge, in, out );
+            edge.setPath( new Path( new int[] {in.x, in.x, out.x, out.x}, new int[] {in.y, in.y - 20, out.y - 20, out.y}, 4 ) );
         }
         else
-            super.recalculateEdgePath(edge);
+            super.recalculateEdgePath( edge );
     }
 
     @Override
     public boolean remove(DiagramElement de) throws Exception
     {
-        if ( de instanceof Diagram )
+        if( de instanceof Diagram )
             return false;
         Compartment parent = de.getCompartment();
         //remove one of the sequence elements from backbone
-        if ( de instanceof Node && parent.getKernel() instanceof Backbone )
+        if( de instanceof Node && parent.getKernel() instanceof Backbone )
         {
             //TODO: discuss how to get size, from view or from shape size
-            int width = (int) (Math.ceil(((Node) de).getShapeSize().getWidth()));
-            Point location = ((Node) de).getLocation();
+            int width = (int) ( Math.ceil( ( (Node)de ).getShapeSize().getWidth() ) );
+            Point location = ( (Node)de ).getLocation();
             Set<Edge> edges = new HashSet<>();
-            parent.stream().forEach(n -> {
-                if ( n instanceof Node )
+            parent.stream().forEach( n -> {
+                if( n instanceof Node )
                 {
-                    Point nlocation = ((Node) n).getLocation();
+                    Point nlocation = ( (Node)n ).getLocation();
                     int nX = nlocation.x;
                     //move all elements after the removing node
-                    if ( nX > location.x )
+                    if( nX > location.x )
                     {
-                        nlocation.translate(-width, 0);
-                        ((Node) n).setLocation(nlocation);
-                        edges.addAll(((Node) n).edges().collect(Collectors.toSet()));
+                        nlocation.translate( -width, 0 );
+                        ( (Node)n ).setLocation( nlocation );
+                        edges.addAll( ( (Node)n ).edges().collect( Collectors.toSet() ) );
                     }
                 }
-            });
-            edges.stream().forEach(e -> {
-                e.setPath(null);
-                recalculateEdgePath(e);
+            } );
+            edges.stream().forEach( e -> {
+                e.setPath( null );
+                recalculateEdgePath( e );
                 return;
-            });
-            for ( Edge edge : Util.getEdges((Node) de) )
+            } );
+            for( Edge edge : Util.getEdges( (Node)de ) )
             {
-                removeEdge(edge);
+                removeEdge( edge );
             }
 
-            if ( de instanceof Compartment )
-                ((Compartment) de).clear();
+            if( de instanceof Compartment )
+                ( (Compartment)de ).clear();
 
-            SbolUtil.removeSbolObjectFromDiagram(de);
+            SbolUtil.removeSbolObjectFromDiagram( de );
 
             // remove diagramElement
-            parent.remove(de.getName());
-            Dimension d = new Dimension(parent.getShapeSize().width - width, parent.getShapeSize().height);
-            parent.setShapeSize(d);
+            parent.remove( de.getName() );
+            Dimension d = new Dimension( parent.getShapeSize().width - width, parent.getShapeSize().height );
+            parent.setShapeSize( d );
 
             return true;
         }
         //remove one of nodes on diagram (not backbone)
-        else if ( de instanceof Node && !(de.getKernel() instanceof Backbone) )
+        else if( de instanceof Node && ! ( de.getKernel() instanceof Backbone ) )
         {
-            Node node = (Node) de;
+            Node node = (Node)de;
 
-            for ( Edge edge : Util.getEdges(node) )
+            for( Edge edge : Util.getEdges( node ) )
             {
-                removeEdge(edge);
+                removeEdge( edge );
             }
 
-            if ( de instanceof Compartment )
-                ((Compartment) de).clear();
-            SbolUtil.removeSbolObjectFromDiagram(de);
-            de.getOrigin().remove(de.getName());
+            if( de instanceof Compartment )
+                ( (Compartment)de ).clear();
+            SbolUtil.removeSbolObjectFromDiagram( de );
+            de.getOrigin().remove( de.getName() );
             return true;
         }
         //remove edge
-        else if ( de instanceof Edge )
+        else if( de instanceof Edge )
         {
-            removeEdge((Edge) de);
+            removeEdge( (Edge)de );
             return true;
         }
         //remove backbone
         else
         {
-            SbolUtil.removeSbolObjectFromDiagram(de);
-            return super.remove(de);
+            SbolUtil.removeSbolObjectFromDiagram( de );
+            return super.remove( de );
         }
 
     }
 
     private void removeEdge(Edge edge) throws Exception
     {
-        if ( SbolUtil.TYPE_DEGRADATION.equals(edge.getKernel().getType()) )
+        if( SbolUtil.TYPE_DEGRADATION.equals( edge.getKernel().getType() ) )
         {
             //remove degradation stub node
-            Node degradationNode = ((Edge) edge).getOutput();
-            if ( degradationNode.getKernel().getType().equals(SbolUtil.TYPE_DEGRADATION_PRODUCT) )
+            Node degradationNode = ( (Edge)edge ).getOutput();
+            if( degradationNode.getKernel().getType().equals( SbolUtil.TYPE_DEGRADATION_PRODUCT ) )
                 try
                 {
-                    degradationNode.getCompartment().remove(degradationNode.getName());
+                    degradationNode.getCompartment().remove( degradationNode.getName() );
                 }
-                catch (Exception e)
+                catch( Exception e )
                 {
                     //TODO: error handling
                 }
         }
-        SbolUtil.removeSbolObjectFromDiagram(edge);
-        edge.getOrigin().remove(edge.getName());
+        SbolUtil.removeSbolObjectFromDiagram( edge );
+        edge.getOrigin().remove( edge.getName() );
     }
 }
