@@ -289,8 +289,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.batik</groupId>
-            <artifactId>transcoder</artifactId>
-            <version>1.6.0</version>
+            <artifactId>org.apache.batik.transcoder</artifactId>
+            <version>1.6.0-20081006</version>
         </dependency>
 
         <!-- Добавьте другие зависимости по аналогии с приведенными выше -->
