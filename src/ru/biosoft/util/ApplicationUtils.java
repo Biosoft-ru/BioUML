@@ -344,4 +344,46 @@ public class ApplicationUtils
         return sb.toString();
     }
 
+    public static URL getImageURL(String imagePath)
+    {
+        int idx = imagePath.indexOf(':');
+        if ( idx > 2 )
+        {
+            String pluginName = imagePath.substring(0, idx);
+            log.fine("Loading image from plugin " + pluginName);
+            String resource = imagePath.substring(idx + 1);
+            if ( pluginName.equals("default") )
+            {
+                URL url = ApplicationUtils.class.getClassLoader().getResource(resource);
+                if ( url != null )
+                {
+                    return url;
+                }
+            }
+            Bundle bundle = null;
+            try
+            {
+                bundle = Platform.getBundle(pluginName);
+            }
+            catch (Throwable t)
+            {
+                log.log(Level.SEVERE, "can not load plugin", t);
+            }
+            if ( bundle != null )
+            {
+                log.fine("Loading image from bundle " + bundle);
+                int idx2 = resource.indexOf("?");
+
+                URL url = bundle.getResource(resource);
+                if ( url != null )
+                {
+                    return url;
+                }
+            }
+            return null;
+        }
+        URL url = ClassLoader.getSystemResource(imagePath);
+        return url;
+    }
+
 }
