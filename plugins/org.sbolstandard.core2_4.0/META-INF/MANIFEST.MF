@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: org.sbolstandard.core2
+Bundle-SymbolicName: org.sbolstandard.core2;singleton:=true
+Bundle-Version: 2.4.0
+Bundle-ClassPath: libSBOLj-2.4.0-withDependencies.jar
+Export-Package: org.sbolstandard.core2

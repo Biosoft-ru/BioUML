@@ -6,7 +6,6 @@ import biouml.model.DiagramViewBuilder;
 import biouml.model.ModelDefinition;
 import biouml.model.SemanticController;
 import biouml.model.SubDiagram;
-import biouml.standard.diagram.Bus;
 import biouml.standard.type.Reaction;
 import biouml.standard.type.Stub;
 
@@ -23,7 +22,7 @@ public class SbgnCompositeDiagramType extends SbgnDiagramType
     {
         return new Object[] {Type.TYPE_ENTITY, Type.TYPE_COMPLEX, Type.TYPE_COMPARTMENT, Reaction.class, Type.TYPE_PHENOTYPE,
                 Type.TYPE_UNIT_OF_INFORMATION, Type.TYPE_VARIABLE, Type.TYPE_LOGICAL, Type.TYPE_EQUATION, Type.TYPE_EVENT,
-                Type.TYPE_FUNCTION, Type.TYPE_CONSTRAINT, Type.TYPE_PORT, Type.TYPE_TABLE, SubDiagram.class, ModelDefinition.class, Bus.class, Stub.Note.class};
+                Type.TYPE_FUNCTION, Type.TYPE_CONSTRAINT, Type.TYPE_PORT, Type.TYPE_TABLE, SubDiagram.class, ModelDefinition.class, Stub.Bus.class, Stub.Note.class};
     }
 
     @Override

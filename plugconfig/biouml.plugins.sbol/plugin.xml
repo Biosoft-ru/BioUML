@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+	
+	<extension point="biouml.workbench.diagramType">
+		<diagramType class="biouml.plugins.sbol.SbolDiagramType" />
+	</extension>
+
+    <extension id="SbolImporter" point="ru.biosoft.access.import">
+		<import 
+			format="SBOL RDF graphs (*.rdf, *.ttl, *.nt, *.jsonld, *.rj)" 
+			importer="biouml.plugins.sbol.SbolImporter" 
+			description="SBOL Importer"
+			 />
+	</extension>
+	
+	<extension point="ru.biosoft.access.transformer">
+      <transformer name="SBOL diagram" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.sbol.SbolDiagramTransformer" />
+    </extension>
+	
+	 <!--extension id="SbolExporter" point="ru.biosoft.access.export">
+		<export
+		    diagramType="biouml.plugins.physicell.PhysicellDiagramType" 
+			format="Physicell Archive (*.zip)" 
+			suffix=".zip"
+			exporter="biouml.plugins.physicell.PhysicellExporter" 
+			description="Physicell Exporter"
+			 />
+	</extension>
+	
+	<extension id="PhysicellArchiveImporter" point="ru.biosoft.access.import">
+		<import 
+			format="Physicell Archive (*.pcl)" 
+			importer="biouml.plugins.physicell.PhysicellArchiveImporter" 
+			description="Physicell Archive Importer"
+			 />
+	</extension>
+	
+	<extension id="SolverType" point="biouml.plugins.simulation.solver">
+		<solver class="biouml.plugins.physicell.PhysicellSimulator"
+			displayName="Physicell default" type="MULTICELL" />
+	</extension>
+
+	<extension id="EngineType" point="biouml.plugins.simulation.engine">
+		<engine class="biouml.plugins.physicell.PhysicellSimulationEngine"
+			displayName="Physicell Simulation Engine"
+			emodelType="Multicellular Model"
+			priority="1"
+		/>
+	</extension>
+	
+	<extension id="Multicell Model tab" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart class="biouml.plugins.physicell.PhysicellModelViewPart"
+			id="diagram.multicell.model" Name="Microenvironment"
+			ShortDescription="Model" Priority="1.2" />
+	</extension>
+	
+	<extension id="Multicell Cell Types tab" point="biouml.workbench.diagramViewPart">
+		<diagramViewPart class="biouml.plugins.physicell.CellDefinitionViewPart"
+			id="diagram.multicell.types" Name="Cell Types"
+			ShortDescription="Model" Priority="1.1" />
+	</extension>
+	
+	<extension point="ru.biosoft.server.servlets.webTableResolver">
+    <tableResolver type="physicell" class="biouml.plugins.physicell.web.PhysicellWebTableResolver"/>
+  </extension>
+  
+  <extension point="ru.biosoft.access.beans">
+    <provider class="biouml.plugins.physicell.web.PhysicellBeanProvider" prefix="diagram/physicell"/>
+  </extension>
+  
+  <extension point="ru.biosoft.server.servlets.webProvider">
+    <provider prefix="physicell" class="biouml.plugins.physicell.web.PhysicellWebProvider"/>
+  </extension>
+  
+  <extension id="physicellEngine" point="ru.biosoft.templates.contextItem">
+    	<helper name="physicellEngine" class="biouml.plugins.physicell.SimulationEngineHelper" />
+  </extension>
+  
+  <extension id="Diagram events list template" point="ru.biosoft.templates.template">
+      <template name="Summary" file="biouml/plugins/physicell/resources/modelSummary.vm" description="Model summary." isBrief="no" order="2">
+          <filter class="biouml.model.Diagram" subclasses="yes">
+              <property name="role" class="biouml.plugins.physicell.MulticellEModel"/>
+          </filter>
+      </template>
+  </extension-->
+	
+</plugin>
