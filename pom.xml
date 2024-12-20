@@ -287,10 +287,16 @@
             <artifactId>bcel</artifactId>
             <version>6.10.0</version>
         </dependency>
+
        <dependency>
            <groupId>org.apache.batik</groupId>
            <artifactId>batik-all</artifactId>
            <version>1.7.0</version>
+       </dependency>
+       <dependency>
+           <groupId>org.w3c</groupId>
+           <artifactId>xml-apis-ext</artifactId>
+           <version>1.0.0</version>
        </dependency>
 
         <!-- Добавьте другие зависимости по аналогии с приведенными выше -->

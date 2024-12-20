@@ -242,3 +242,12 @@ mvn -N install:install-file \
   -Dfile=plugins/org.apache.batik_1.7/batik-all.jar \
   -DgeneratePom=true
 
+mvn -N install:install-file \
+  -DgroupId=org.w3c \
+  -DartifactId=xml-apis-ext \
+  -Dversion=1.0.0 \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.apache.batik_1.7/xml-apis-ext.jar \
+  -DgeneratePom=true
+
+
