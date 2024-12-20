@@ -290,7 +290,7 @@
         <dependency>
             <groupId>org.apache.batik</groupId>
             <artifactId>org.apache.batik.transcoder</artifactId>
-            <version>1.6.0-20081006</version>
+            <version>1.7.0</version>
         </dependency>
 
         <!-- Добавьте другие зависимости по аналогии с приведенными выше -->
