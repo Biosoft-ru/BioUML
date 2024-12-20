@@ -28,6 +28,7 @@ expand.json
 newElement.json
 newSimulationDocument.json
 newScript.json
+newJavaCode.json
 newRScript.json:R
 newWDLScript.json:WDL
 newNextflowScript.json:Nextflow
