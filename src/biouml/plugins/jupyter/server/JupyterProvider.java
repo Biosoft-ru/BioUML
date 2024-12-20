@@ -239,7 +239,7 @@ public class JupyterProvider extends WebProviderSupport
 
                 String body = ( user == null || "".equals( user ) ) ? 
                          "{\"username\": \"anonymous\", \"password\": \"anonymous\"}" :
-                         "{\"username\": \"" + user + "\", \"password\": \"" + password + "\"}";
+                         "{\"username\": \"" + user + "\", \"password\": \"" + password.replace("\"", "\\\"") + "\"}";
 
                 String getTokenUrl = hubApi + "authorizations/token";
                 HttpResponse aresp = Request.Post( getTokenUrl )

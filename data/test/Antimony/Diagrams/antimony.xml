@@ -110,10 +110,6 @@
       </species>
     </listOfSpecies>
     <listOfParameters>
-      <parameter constant="false" id="__rate_r1" name="$$rate_r1" value="0.0"/>
-      <parameter constant="false" id="__rate_r2" name="$$rate_r2" value="0.0"/>
-      <parameter constant="false" id="__rate_r3" name="$$rate_r3" value="0.0"/>
-      <parameter constant="false" id="__rate_r4" name="$$rate_r4" value="0.0"/>
       <parameter constant="false" id="k0" name="k0" value="0.1"/>
       <parameter constant="false" id="k1" name="k1" value="1.0"/>
       <parameter constant="false" id="k2" name="k2" value="1.0"/>
