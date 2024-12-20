@@ -108,6 +108,7 @@
                         <!--exclude>**/biouml/model/xml/_test/XmlDiagramViewTest.java</exclude-->
                         <!--exclude>**/biouml/plugins/sbgn/_test/XmlDiagramViewTest.java</exclude-->
                         <exclude>**/biouml/model/xml/_test/ImageBase64CodeTest.java</exclude>
+                        <exclude>**/biouml/plugins/sbol/_test/SbolTest.java</exclude> 
 
 
                         <!-- ******************************* -->
