@@ -150,7 +150,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         boolean isCircular = compartment.getAttributes().getValue("isCircular").equals(true);
         boolean isWithChromLocus = compartment.getAttributes().getValue("isWithChromLocus").equals(true);
         boolean hasEnds = isWithChromLocus || isCircular;
-        BoxView shapeView = new BoxView(null, getBrush(compartment, new Brush(Color.yellow.brighter())),
+        BoxView shapeView = new BoxView(null, getBrush(compartment, new Brush(new Color(240, 240, 240))),
                 new Rectangle(0, 0, shapeSize.width, shapeSize.height));
         shapeView.setLocation(compartment.getLocation());
         Pen backbonePen = ((SbolDiagramViewOptions) options).getBackbonePen();
