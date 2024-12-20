@@ -288,9 +288,9 @@
             <version>6.10.0</version>
         </dependency>
        <dependency>
-           <groupId>org.apache.xmlgraphics</groupId>
-           <artifactId>batik-transcoder</artifactId>
-           <version>1.18</version>
+           <groupId>org.apache.batik</groupId>
+           <artifactId>batik-all</artifactId>
+           <version>1.7.0</version>
        </dependency>
 
         <!-- Добавьте другие зависимости по аналогии с приведенными выше -->

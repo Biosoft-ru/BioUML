@@ -233,3 +233,12 @@ mvn -N install:install-file \
 #  -Dpackaging=jar \
 #  -Dfile=plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar \
 #  -DgeneratePom=true
+
+mvn -N install:install-file \
+  -DgroupId=org.apache.batik \
+  -DartifactId=batik-all \
+  -Dversion=1.7.0 \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.apache.batik_1.7/batik-all.jar \
+  -DgeneratePom=true
+
