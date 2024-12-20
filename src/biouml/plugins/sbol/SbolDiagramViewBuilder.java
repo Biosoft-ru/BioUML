@@ -105,7 +105,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
             image = op.filter(image, null);
         }
         ImageView imageView = new ImageView(image, node.getLocation().x, node.getLocation().y + vertShift, width, height);
-        imageView.setPath( imgPath.toString() );
+        imageView.setPath("biouml.plugins.sbol:biouml/plugins/sbol/resources/" + imgPath.toString() + ".svg");
 
         cView = new CompositeView();
         cView.add(imageView);
