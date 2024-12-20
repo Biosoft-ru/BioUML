@@ -226,10 +226,10 @@ mvn -N install:install-file \
 
 ## SBOL 
 
-mvn -N install:install-file \
-  -DgroupId=org.sbolstandard \
-  -DartifactId=libSBOLj \
-  -Dversion=2.4.0 \
-  -Dpackaging=jar \
-  -Dfile=plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar \
-  -DgeneratePom=true
+#mvn -N install:install-file \
+#  -DgroupId=org.sbolstandard \
+#  -DartifactId=libSBOLj \
+#  -Dversion=2.4.0 \
+#  -Dpackaging=jar \
+#  -Dfile=plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar \
+#  -DgeneratePom=true
