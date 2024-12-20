@@ -10,6 +10,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramTypeSupport;
 import biouml.model.DiagramViewBuilder;
 import biouml.model.SemanticController;
+import biouml.plugins.psimi.model.Participant;
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
 
@@ -28,9 +29,15 @@ public class SbolDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getNodeTypes()
     {
-        return new Object[] {Backbone.class, SequenceFeature.class, MolecularSpecies.class};
+        return new Object[] {Backbone.class, SequenceFeature.class, MolecularSpecies.class, InteractionProperties.class};
     }
 
+    @Override
+    public Object[] getEdgeTypes()
+    {
+        return new Object[] {Participation.class};
+    }
+    
     @Override
     public DiagramViewBuilder getDiagramViewBuilder()
     {
