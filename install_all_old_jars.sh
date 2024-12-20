@@ -223,3 +223,13 @@ mvn -N install:install-file \
   -Dpackaging=jar \
   -Dfile=plugconfig/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar \
   -DgeneratePom=true
+
+## SBOL 
+
+mvn -N install:install-file \
+  -DgroupId=org.sbolstandard \
+  -DartifactId=libSBOLj \
+  -Dversion=2.4.0 \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar \
+  -DgeneratePom=true
