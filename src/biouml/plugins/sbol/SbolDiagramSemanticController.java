@@ -106,6 +106,25 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             {
                 return ( (Class)type ).getConstructor().newInstance();
             }
+            else
+            {
+                if ( type.equals(Backbone.class.getName()) )
+                {
+                    return new Backbone();
+                }
+                else if ( type.equals(SequenceFeature.class.getName()) )
+                {
+                    return new SequenceFeature();
+                }
+                else if ( type.equals(MolecularSpecies.class.getName()) )
+                {
+                    return new MolecularSpecies();
+                }
+                else if ( type.equals(InteractionProperties.class.getName()) )
+                {
+                    return new InteractionProperties();
+                }
+            }
         }
         catch( Exception ex )
         {
@@ -337,5 +356,15 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         }
         SbolUtil.removeSbolObjectFromDiagram( edge );
         edge.getOrigin().remove( edge.getName() );
+    }
+
+    @Override
+    public Edge createEdge(@Nonnull Node fromNode, @Nonnull Node toNode, String edgeType, Compartment compartment) throws IllegalArgumentException
+    {
+        if(edgeType.equals( Participation.class.getName() ))
+        {
+            return new ParticipationEdgeCreator().createEdge(fromNode, toNode, false);
+        }
+        return null;
     }
 }
