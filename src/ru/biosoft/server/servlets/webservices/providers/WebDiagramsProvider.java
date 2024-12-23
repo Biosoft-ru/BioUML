@@ -1883,9 +1883,15 @@ public class WebDiagramsProvider extends WebProviderSupport
                 }
                 else
                 {
-                    edge = cp.createConnection(inputNode, outputNode);
+                    edge = cp.createConnection(inputNode, outputNode );
                     kernel = edge.getKernel();
                 }
+            }
+            else
+            {
+                edge = semanticController.createEdge(inputNode, outputNode, typeStr, Node.findCommonOrigin(inputNode, outputNode));
+                if ( edge != null )
+                    kernel = edge.getKernel();
             }
         }
         catch( LoggedClassNotFoundException e )
