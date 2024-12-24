@@ -82,6 +82,19 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         return isCreated;
     }
 
+    protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location)  throws Exception
+    {
+        ModuleDefinition moduleDefinition = SbolUtil.checkDefaultModule( (SBOLDocument)doc );
+        Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
+        this.setSbolObject( interaction );
+        Node node = new Node( compartment, this );
+        node.getAttributes().add( new DynamicProperty( "node-image", String.class, "process" ) );
+        node.setUseCustomImage( true );
+        node.setLocation( location );
+        node.setShapeSize( new Dimension( 15, 15 ) );
+        return node;
+    }
+    
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
@@ -90,33 +103,13 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
-
         this.isCreated = true;
-
-        ModuleDefinition moduleDefinition = SbolUtil.checkDefaultModule( (SBOLDocument)doc );
-
-        Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
-        this.setSbolObject( interaction );
-        Node node = new Node( compartment, this );
-        node.setUseCustomImage( true );
-        node.setLocation( location );
-
-        node.setShapeSize( new Dimension( 15, 15 ) );
-
-        node.getAttributes().add( new DynamicProperty( "node-image", String.class, "process" ) );
-
-        SemanticController semanticController = diagram.getType().getSemanticController();
-        if( !semanticController.canAccept( compartment, node ) )
-        {
+        Node node = doCreateInteraction( compartment, doc, location );
+        if( !diagram.getType().getSemanticController().canAccept( compartment, node ) )
             return DiagramElementGroup.EMPTY_EG;
-        }
-
         compartment.put( node );
-        compartment.setShapeSize( new Dimension( compartment.getShapeSize().width + 48, compartment.getShapeSize().height ) );
-
         if( viewPane != null )
             viewPane.completeTransaction();
-
         return new DiagramElementGroup( node );
     }
 }
