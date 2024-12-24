@@ -115,7 +115,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
 
         ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", SbolUtil.getSpeciesURIByType( type ) );
 
-        ModuleDefinition moduleDefinition = SbolUtil.checkDefaultModule( (SBOLDocument)doc );
+        ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
 
 
         moduleDefinition.createFunctionalComponent( getName() + "_fc", AccessType.PUBLIC, getName(), DirectionType.INOUT );

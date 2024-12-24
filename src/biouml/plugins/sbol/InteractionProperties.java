@@ -84,7 +84,7 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
 
     protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location)  throws Exception
     {
-        ModuleDefinition moduleDefinition = SbolUtil.checkDefaultModule( (SBOLDocument)doc );
+        ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
         Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
         this.setSbolObject( interaction );
         Node node = new Node( compartment, this );

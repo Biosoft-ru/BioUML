@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
+import org.sbolstandard.core2.DirectionType;
 import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.Interaction;
@@ -519,7 +521,7 @@ public class SbolUtil
         return true;
     }
 
-    public static ModuleDefinition checkDefaultModule(SBOLDocument doc) throws SBOLValidationException
+    public static ModuleDefinition getDefaultModuleDefinition(SBOLDocument doc) throws SBOLValidationException
     {
         if( doc.getRootModuleDefinitions().isEmpty() )
             return doc.createModuleDefinition( "Main_module", "1" );
@@ -555,5 +557,14 @@ public class SbolUtil
                 return c;
         }
         return null;
+    }
+    
+    /**
+     * Creates functional component referencing given component definition and inside given module definition
+     */
+    public static FunctionalComponent createFunctionalComponent(ModuleDefinition moduleDefinition, ComponentDefinition componentDefinition) throws Exception
+    {
+        return moduleDefinition.createFunctionalComponent( componentDefinition.getDisplayId() + "_fc",
+                AccessType.PUBLIC, componentDefinition.getDisplayId(), DirectionType.INOUT );
     }
 }
