@@ -10,7 +10,6 @@ import biouml.model.Diagram;
 import biouml.model.DiagramTypeSupport;
 import biouml.model.DiagramViewBuilder;
 import biouml.model.SemanticController;
-import biouml.plugins.psimi.model.Participant;
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
 
@@ -22,7 +21,8 @@ public class SbolDiagramType extends DiagramTypeSupport
     {
         Diagram diagram = super.createDiagram( origin, diagramName, kernel );
         SBOLDocument doc = new SBOLDocument();
-        diagram.getAttributes().add( new DynamicProperty(SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc) );//.getValue(SbolUtil.SBOL_DOCUMENT_PROPERTY);
+        doc.setDefaultURIprefix( "https://biouml.org" );
+        diagram.getAttributes().add( new DynamicProperty( SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc ) );//.getValue(SbolUtil.SBOL_DOCUMENT_PROPERTY);
         return diagram;
     }
 
@@ -35,9 +35,9 @@ public class SbolDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getEdgeTypes()
     {
-        return new Object[] {Participation.class};
+        return new Object[] {ParticipationProperties.class};
     }
-    
+
     @Override
     public DiagramViewBuilder getDiagramViewBuilder()
     {

@@ -14,8 +14,6 @@ public class InteractionPropertiesBeanInfo extends BeanInfoEx2<InteractionProper
     {
         addReadOnly( "name", "isCreated" );
         add( "title" );
-        addWithTags( "type", InteractionProperties.types);
-//        addWithTags( "role", new String[] {});
-//        add("private");
+        addWithTags( "type", SbolConstants.interactionTypes);
     }
 }

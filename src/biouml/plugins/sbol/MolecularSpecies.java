@@ -2,10 +2,13 @@ package biouml.plugins.sbol;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.net.URL;
 
+import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.ComponentDefinition;
+import org.sbolstandard.core2.DirectionType;
+import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Identified;
+import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.SBOLDocument;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -109,8 +112,13 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         if( ! ( doc instanceof SBOLDocument ) )
             return DiagramElementGroup.EMPTY_EG;
 
-        ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( "biouml", getName(), "1",
-                SbolUtil.getSpeciesURIByType( type ) );
+
+        ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", SbolUtil.getSpeciesURIByType( type ) );
+
+        ModuleDefinition moduleDefinition = SbolUtil.checkDefaultModule( (SBOLDocument)doc );
+
+
+        moduleDefinition.createFunctionalComponent( getName() + "_fc", AccessType.PUBLIC, getName(), DirectionType.INOUT );
 
         this.isCreated = true;
 

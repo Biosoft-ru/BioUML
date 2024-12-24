@@ -22,8 +22,6 @@ import ru.biosoft.graphics.editor.ViewEditorPane;
 
 public class InteractionProperties extends SbolBase implements InitialElementProperties
 {
-    public static String[] types = new String[] {"Association", "Dissociation", "Process", "Unspecified"};
-
     private String name = "Process";
     private String title = "Process";
     private String type = "Process";
@@ -89,25 +87,22 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     {
         Diagram diagram = Diagram.getDiagram( compartment );
         setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
-        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-        if( ! ( doc instanceof SBOLDocument ) )
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
 
         this.isCreated = true;
- 
-        if ( ( (SBOLDocument)doc ).getRootModuleDefinitions().isEmpty())
-            ((SBOLDocument)doc).createModuleDefinition( "biouml", "Main_module", "1" );
-        
-       ModuleDefinition moduleDefinition =  ( (SBOLDocument)doc ).getRootModuleDefinitions().iterator().next();
-        
-       Interaction interaction = moduleDefinition.createInteraction( name,   SbolUtil.getSpeciesURIByType( SbolUtil.TYPE_PROCESS ));
-       this.setSbolObject(interaction);
+
+        ModuleDefinition moduleDefinition = SbolUtil.checkDefaultModule( (SBOLDocument)doc );
+
+        Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
+        this.setSbolObject( interaction );
         Node node = new Node( compartment, this );
         node.setUseCustomImage( true );
         node.setLocation( location );
 
-        node.setShapeSize( new Dimension( 10, 10 ) );
-        
+        node.setShapeSize( new Dimension( 15, 15 ) );
+
         node.getAttributes().add( new DynamicProperty( "node-image", String.class, "process" ) );
 
         SemanticController semanticController = diagram.getType().getSemanticController();

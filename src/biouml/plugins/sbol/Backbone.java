@@ -120,7 +120,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
         if( doc != null && doc instanceof SBOLDocument )
         {
             URI type = ( getType().equals( "DNA" ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
-            ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( "biouml", getName(), "1", type );
+            ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", type );
             this.setSbolObject( cd );
         }
         else

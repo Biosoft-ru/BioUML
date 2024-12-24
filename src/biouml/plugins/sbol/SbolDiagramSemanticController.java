@@ -41,7 +41,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         try
         {
 
-            if( type.equals( Participation.class )  )
+            if( type.equals( ParticipationProperties.class )  )
             {
                 new CreateEdgeAction().createEdge( pt, viewEditor, new ParticipationEdgeCreator() );
                 return null;
@@ -361,7 +361,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     @Override
     public Edge createEdge(@Nonnull Node fromNode, @Nonnull Node toNode, String edgeType, Compartment compartment) throws IllegalArgumentException
     {
-        if(edgeType.equals( Participation.class.getName() ))
+        if(edgeType.equals( ParticipationProperties.class.getName() ))
         {
             return new ParticipationEdgeCreator().createEdge(fromNode, toNode, false);
         }

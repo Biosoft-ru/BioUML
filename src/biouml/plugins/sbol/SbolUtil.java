@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
@@ -37,16 +38,18 @@ public class SbolUtil
     private static final Map<URI, String> dnaRegionToImage;
     private static final Map<String, URI> featurRoleToURI;
     private static final Map<String, URI> speciesToURI;
+    private static final Map<String, URI> interactionToURI;
+    private static final Map<String, URI> participationToURI;
     private static final Map<String, Integer> verticalShift;
 
-    public static final String TYPE_INHIBITION = "inhibition";
-    public static final String TYPE_STIMULATION = "stimulation";
-    public static final String TYPE_CONTROL = "control";
-    public static final String TYPE_PROCESS = "process";
-    public static final String TYPE_DEGRADATION = "degradation";
-    public static final String TYPE_BIOCHEMICAL_REACTION = "degradation";
-    public static final String TYPE_NON_COVALENT_BINDING = "non-covalent binding";
-    public static final String TYPE_GENETIC_PRODUCTION = "genetic production";
+    public static final String TYPE_INHIBITION = "Inhibition";
+    public static final String TYPE_STIMULATION = "Stimulation";
+    public static final String TYPE_CONTROL = "Control";
+    public static final String TYPE_PROCESS = "Process";
+    public static final String TYPE_DEGRADATION = "Degradation";
+    public static final String TYPE_BIOCHEMICAL_REACTION = "Reaction";
+    public static final String TYPE_NON_COVALENT_BINDING = "Association";
+    public static final String TYPE_GENETIC_PRODUCTION = "Genetic production";
     public static final String TYPE_CIRCULAR_END = "circular-plasmid end";
     public static final String TYPE_CIRCULAR_START = "circular-plasmid start";
     public static final String TYPE_DEGRADATION_PRODUCT = "degradation product";
@@ -104,15 +107,15 @@ public class SbolUtil
         aMap.put( so.getURIbyId( "SO:0001933" ), "three-prime-overhang" );
         aMap.put( so.getURIbyId( "SO:0000724" ), "origin-of-transfer" );
         aMap.put( so.getURIbyId( "SO:0001956" ), "protease-site" );
-        aMap.put( so.getURIbyId( "SO:0000288" ), "engineered-region");
-        aMap.put( so.getURIbyId( "SO:0000830" ), "chromosomal-locus");
-        aMap.put( so.getURIbyId( "SO:0000755" ), "circular-plasmid");
-        aMap.put(so.getURIbyId("SO:0002223"), "inert-dna-spacer");
-        aMap.put(so.getURIbyId("SO:0000188"), "intron");
-        aMap.put(so.getURIbyId("SO:0000839"), "polypeptide-region");
-        
+        aMap.put( so.getURIbyId( "SO:0000288" ), "engineered-region" );
+        aMap.put( so.getURIbyId( "SO:0000830" ), "chromosomal-locus" );
+        aMap.put( so.getURIbyId( "SO:0000755" ), "circular-plasmid" );
+        aMap.put( so.getURIbyId( "SO:0002223" ), "inert-dna-spacer" );
+        aMap.put( so.getURIbyId( "SO:0000188" ), "intron" );
+        aMap.put( so.getURIbyId( "SO:0000839" ), "polypeptide-region" );
 
-        dnaRegionToImage = Collections.unmodifiableMap(aMap);
+
+        dnaRegionToImage = Collections.unmodifiableMap( aMap );
     }
 
 
@@ -152,15 +155,15 @@ public class SbolUtil
         bMap.put( "Three prime overhang", so.getURIbyId( "SO:0001933" ) );
         bMap.put( "Origin of transfer", so.getURIbyId( "SO:0000724" ) );
         bMap.put( "Protease site", so.getURIbyId( "SO:0001956" ) );
-        bMap.put("Inert DNA spacer", so.getURIbyId("SO:0002223"));
-        bMap.put("Intron", so.getURIbyId("SO:0000188"));
-        bMap.put("Polypeptide region", so.getURIbyId("SO:0000839"));
-        
+        bMap.put( "Inert DNA spacer", so.getURIbyId( "SO:0002223" ) );
+        bMap.put( "Intron", so.getURIbyId( "SO:0000188" ) );
+        bMap.put( "Polypeptide region", so.getURIbyId( "SO:0000839" ) );
+
         ROLE_CHROMOSOMAL_LOCUS = so.getURIbyId( "SO:0000830" );
         //bMap.put( "Chromosomal locus", ROLE_CHROMOSOMAL_LOCUS );
         ROLE_CIRCULAR = so.getURIbyId( "SO:0000755" );
         //bMap.put( "Circular plasmid",  ROLE_CIRCULAR);
-        
+
 
         featurRoleToURI = Collections.unmodifiableMap( bMap );
     }
@@ -169,59 +172,120 @@ public class SbolUtil
     {
         Map<String, URI> sMap = new HashMap<>();
         sMap.put( SbolConstants.PROTEIN, ComponentDefinition.PROTEIN );
-        sMap.put( SbolConstants.SIMPLE_CHEMICAL,ComponentDefinition.SMALL_MOLECULE );
+        sMap.put( SbolConstants.SIMPLE_CHEMICAL, ComponentDefinition.SMALL_MOLECULE );
         sMap.put( SbolConstants.COMPLEX, ComponentDefinition.COMPLEX );
         speciesToURI = Collections.unmodifiableMap( sMap );
     }
 
     static
     {
-        Map<String, Integer> aMap = new HashMap<>();
-        aMap.put("promoter", 0);
-        aMap.put("cds", 18);
-        aMap.put("terminator", 5);
-        aMap.put("insulator", 2);
-        aMap.put("origin-of-replication", 18);
-        aMap.put("primer-binding-site", 16);
-        aMap.put("ribosome-entry-site", 8);
-        aMap.put("nuclease-site", 0);
-        aMap.put("engineered-region", 8);
-        aMap.put("no-glyph-assigned", 8);
-        aMap.put("ncrna", 16);
-        aMap.put("blunt-restriction-site", 18);
-        aMap.put("five-prime-sticky-restriction-site", 18);
-        aMap.put("location-protein", 0);
-        aMap.put("location-dna", 0);
-        aMap.put("location-rna", 0);
-        aMap.put("polyA", 8);
-        aMap.put("protein-stability-element", 0);
-        aMap.put("rna-stability-element", 0);
-        aMap.put("assembly-scar", 18);
-        aMap.put("operator", 18);
-        aMap.put("aptamer", 0);
-        aMap.put("transcription-end", 0);
-        aMap.put("ribonuclease-site", 0);
-        aMap.put("translation-end", 0);
-        aMap.put("signature", 4);
-        aMap.put("five-prime-overhang", 18);
-        aMap.put("three-prime-sticky-restriction-site", 18);
-        aMap.put("specific-recombination-site", 18);
-        aMap.put("three-prime-overhang", 18);
-        aMap.put("origin-of-transfer", 18);
-        aMap.put("protease-site", 0);
-        aMap.put("inert-dna-spacer", 18);
-        aMap.put("intron", 18);
-        aMap.put("polypeptide-region", 18);
-
-        verticalShift = Collections.unmodifiableMap(aMap);
+        TreeMap<String, URI> iMap = new TreeMap<>();
+        iMap.put( "Inhibition", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000169" ) );
+        iMap.put( "Stimulation", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000170" ) );
+        iMap.put( "Biochemical Reaction", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000176" ) );
+        iMap.put( "Association", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000177" ) );
+        iMap.put( "Degradation", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000179" ) );
+        iMap.put( "Genetic Production", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000589" ) );
+        iMap.put( "Control", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000168" ) );
+        iMap.put( "Dissociation", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000180" ) );
+        iMap.put( "Process", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000375" ) );
+        interactionToURI = Collections.unmodifiableMap( iMap );
     }
 
+    static
+    {
+        TreeMap<String, URI> pMap = new TreeMap<>();
+        pMap.put( "Inhibitor", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000020" ) );
+        pMap.put( "Inhibited", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000642" ) );
+        pMap.put( "Stimulator", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000459" ) );
+        pMap.put( "Stimulated", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000643" ) );
+        pMap.put( "Reactant", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000010" ) );
+        pMap.put( "Product", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000011" ) );
+        pMap.put( "Promoter", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000598" ) );
+        pMap.put( "Modifier", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000019" ) );
+        pMap.put( "Modified", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000644" ) );
+        pMap.put( "Template", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000645" ) );
+        participationToURI = Collections.unmodifiableMap( pMap );
+    }
+    
+//    public String getParticipationType(String interactionType, boolean reactant)
+//    {
+//        switch (interactionType)
+//        {
+//            case SbolConstants.INHIBITION:
+//                return reactant? 
+//        }
+//    }
+//
+//    Inhibitor http://identifiers.org/SBO:0000020 Inhibition 27
+//        Inhibited http://identifiers.org/SBO:0000642 Inhibition 28
+//        Stimulator http://identifiers.org/SBO:0000459 Stimulation 29
+//        Stimulated http://identifiers.org/SBO:0000643 Stimulation 30
+//        Reactant http://identifiers.org/SBO:0000010 Non-Covalent Binding, Degradation 31
+//        Biochemical Reaction 32
+//        Product http://identifiers.org/SBO:0000011 Non-Covalent Binding, 33
+//        Genetic Production, Biochemical Reaction 34
+//        Promoter http://identifiers.org/SBO:0000598 Inhibition, Stimulation, Genetic Production 35
+//        Modifier http://identifiers.org/SBO:0000019 Biochemical Reaction, Control 36
+//        Modified http://identifiers.org/SBO:0000644 Biochemical Reaction, Control 37
+//        Template http://identifiers.org/SBO:0000645 Genetic Production
+    static
+    {
+        Map<String, Integer> aMap = new HashMap<>();
+        aMap.put( "promoter", 0 );
+        aMap.put( "cds", 18 );
+        aMap.put( "terminator", 5 );
+        aMap.put( "insulator", 2 );
+        aMap.put( "origin-of-replication", 18 );
+        aMap.put( "primer-binding-site", 16 );
+        aMap.put( "ribosome-entry-site", 8 );
+        aMap.put( "nuclease-site", 0 );
+        aMap.put( "engineered-region", 8 );
+        aMap.put( "no-glyph-assigned", 8 );
+        aMap.put( "ncrna", 16 );
+        aMap.put( "blunt-restriction-site", 18 );
+        aMap.put( "five-prime-sticky-restriction-site", 18 );
+        aMap.put( "location-protein", 0 );
+        aMap.put( "location-dna", 0 );
+        aMap.put( "location-rna", 0 );
+        aMap.put( "polyA", 8 );
+        aMap.put( "protein-stability-element", 0 );
+        aMap.put( "rna-stability-element", 0 );
+        aMap.put( "assembly-scar", 18 );
+        aMap.put( "operator", 18 );
+        aMap.put( "aptamer", 0 );
+        aMap.put( "transcription-end", 0 );
+        aMap.put( "ribonuclease-site", 0 );
+        aMap.put( "translation-end", 0 );
+        aMap.put( "signature", 4 );
+        aMap.put( "five-prime-overhang", 18 );
+        aMap.put( "three-prime-sticky-restriction-site", 18 );
+        aMap.put( "specific-recombination-site", 18 );
+        aMap.put( "three-prime-overhang", 18 );
+        aMap.put( "origin-of-transfer", 18 );
+        aMap.put( "protease-site", 0 );
+        aMap.put( "inert-dna-spacer", 18 );
+        aMap.put( "intron", 18 );
+        aMap.put( "polypeptide-region", 18 );
 
+        verticalShift = Collections.unmodifiableMap( aMap );
+    }
+
+    public static URI getInteractionURIByType(String type)
+    {
+        return interactionToURI.get( type );
+    }
+
+    public static URI getParticipationURIByType(String type)
+    {
+        return participationToURI.get( type );
+    }
+    
     public static URI getSpeciesURIByType(String type)
     {
         return speciesToURI.get( type );
     }
-    
+
     public static URI getURIByRole(String name)
     {
         return featurRoleToURI.get( name );
@@ -276,20 +340,21 @@ public class SbolUtil
                 return "simple-chemical-circle";
             else if( cd.containsType( ComponentDefinition.COMPLEX ) )
                 return "complex-sbgn";
-            else if ( cd.containsType(ComponentDefinition.RNA_MOLECULE) )
+            else if( cd.containsType( ComponentDefinition.RNA_MOLECULE ) )
                 return "ssNA";
-            else if ( cd.containsType(ComponentDefinition.DNA_MOLECULE) )
+            else if( cd.containsType( ComponentDefinition.DNA_MOLECULE ) )
                 return "dsNA";
 
         }
-        else if ( sbolObject instanceof Interaction )
+        else if( sbolObject instanceof Interaction )
         {
-            Interaction inter = (Interaction) sbolObject;
-            if ( inter.containsType(SystemsBiologyOntology.GENETIC_PRODUCTION) )
+            Interaction inter = (Interaction)sbolObject;
+            if( inter.containsType( SystemsBiologyOntology.GENETIC_PRODUCTION ) )
                 return "process";
-            else if ( inter.containsType(SystemsBiologyOntology.DISSOCIATION) )
+            else if( inter.containsType( SystemsBiologyOntology.DISSOCIATION ) )
                 return "dissociation";
-            else if ( inter.containsType(SystemsBiologyOntology.BIOCHEMICAL_REACTION) || inter.containsType(SystemsBiologyOntology.NON_COVALENT_BINDING) )
+            else if( inter.containsType( SystemsBiologyOntology.BIOCHEMICAL_REACTION )
+                    || inter.containsType( SystemsBiologyOntology.NON_COVALENT_BINDING ) )
                 return "association";
         }
         return "unspecified-glyph";
@@ -297,73 +362,74 @@ public class SbolUtil
 
     public static Base getKernelByComponentDefinition(ComponentDefinition cd, boolean isTopLevel)
     {
-        if ( cd.containsType(ComponentDefinition.DNA_REGION) )
+        if( cd.containsType( ComponentDefinition.DNA_REGION ) )
         {
-            if ( cd.getComponents().size() > 0 && isTopLevel )
-                return new Backbone(cd);
+            if( cd.getComponents().size() > 0 && isTopLevel )
+                return new Backbone( cd );
             else
-                return new SequenceFeature(cd);
+                return new SequenceFeature( cd );
         }
-        return new SbolBase(cd);
+        return new SbolBase( cd );
     }
 
     public static int getVerticalShift(String imgPath)
     {
-        return verticalShift.getOrDefault(imgPath, 0);
+        return verticalShift.getOrDefault( imgPath, 0 );
     }
 
     public static boolean removeSbolObjectFromDiagram(DiagramElement de)
     {
-        Diagram diagram = Diagram.getDiagram(de);
-        Object doc = diagram.getAttributes().getValue(SbolUtil.SBOL_DOCUMENT_PROPERTY);
-        if ( doc == null || !(doc instanceof SBOLDocument) )
+        Diagram diagram = Diagram.getDiagram( de );
+        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
+        if( doc == null || ! ( doc instanceof SBOLDocument ) )
             return false;
-        if ( (de instanceof Edge || de.getKernel() instanceof Reaction) && de.getAttributes().hasProperty("interactionURI") )
+        if( ( de instanceof Edge || de.getKernel() instanceof Reaction ) && de.getAttributes().hasProperty( "interactionURI" ) )
         {
-            String interactionURIString = de.getAttributes().getValueAsString("interactionURI");
-            URI uri = URI.create(interactionURIString);
-            for ( ModuleDefinition md : ((SBOLDocument) doc).getModuleDefinitions() )
+            String interactionURIString = de.getAttributes().getValueAsString( "interactionURI" );
+            URI uri = URI.create( interactionURIString );
+            for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
             {
-                Interaction interaction = md.getInteraction(uri);
-                if ( interaction != null )
+                Interaction interaction = md.getInteraction( uri );
+                if( interaction != null )
                 {
-                    md.removeInteraction(interaction);
+                    md.removeInteraction( interaction );
                     return true;
                 }
             }
             return false;
         }
-        else if(de instanceof Edge )
+        else if( de instanceof Edge )
         {
             Edge e = (Edge)de;
             Node reactionNode = null;
             Node otherNode = null;
-            
-            if(e.getInput().getKernel() instanceof Reaction)
+
+            if( e.getInput().getKernel() instanceof Reaction )
             {
                 reactionNode = e.getInput();
                 otherNode = e.getOutput();
             }
-            else if ( e.getOutput().getKernel() instanceof Reaction )
+            else if( e.getOutput().getKernel() instanceof Reaction )
             {
                 reactionNode = e.getOutput();
                 otherNode = e.getInput();
             }
-            if ( reactionNode != null && reactionNode.getAttributes().hasProperty("interactionURI") && otherNode != null && otherNode.getKernel() instanceof SbolBase )
+            if( reactionNode != null && reactionNode.getAttributes().hasProperty( "interactionURI" ) && otherNode != null
+                    && otherNode.getKernel() instanceof SbolBase )
             {
-                String interactionURIString = reactionNode.getAttributes().getValueAsString("interactionURI");
-                URI uri = URI.create(interactionURIString);
-                for ( ModuleDefinition md : ((SBOLDocument) doc).getModuleDefinitions() )
+                String interactionURIString = reactionNode.getAttributes().getValueAsString( "interactionURI" );
+                URI uri = URI.create( interactionURIString );
+                for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
                 {
-                    Interaction interaction = md.getInteraction(uri);
-                    if ( interaction != null )
+                    Interaction interaction = md.getInteraction( uri );
+                    if( interaction != null )
                     {
-                        URI participantURI = ((SbolBase) otherNode.getKernel()).getSbolObject().getPersistentIdentity();
-                        for ( Participation pt : interaction.getParticipations() )
+                        URI participantURI = ( (SbolBase)otherNode.getKernel() ).getSbolObject().getPersistentIdentity();
+                        for( Participation pt : interaction.getParticipations() )
                         {
-                            if ( pt.getParticipantDefinition().getPersistentIdentity().equals(participantURI) )
+                            if( pt.getParticipantDefinition().getPersistentIdentity().equals( participantURI ) )
                             {
-                                interaction.removeParticipation(pt);
+                                interaction.removeParticipation( pt );
                                 break;
                             }
                         }
@@ -372,65 +438,65 @@ public class SbolUtil
                 }
             }
         }
-        if ( !(de.getKernel() instanceof SbolBase) )
+        if( ! ( de.getKernel() instanceof SbolBase ) )
             return false;
-        return removeSbolObjectFromDocument((SBOLDocument) doc, ((SbolBase) de.getKernel()).getSbolObject().getIdentity());
+        return removeSbolObjectFromDocument( (SBOLDocument)doc, ( (SbolBase)de.getKernel() ).getSbolObject().getIdentity() );
     }
 
     public static boolean removeSbolObjectFromDocument(SBOLDocument doc, URI uri)
     {
-        for ( ComponentDefinition cd : doc.getComponentDefinitions() )
+        for( ComponentDefinition cd : doc.getComponentDefinitions() )
         {
             Component compToRemove = null;
-            for ( Component component : cd.getComponents() )
+            for( Component component : cd.getComponents() )
             {
-                if ( component.getDefinitionURI().equals(uri) )
+                if( component.getDefinitionURI().equals( uri ) )
                 {
                     compToRemove = component;
                     break;
                 }
             }
-            if ( compToRemove == null )
+            if( compToRemove == null )
                 continue;
-            for ( SequenceAnnotation sa : cd.getSequenceAnnotations() )
+            for( SequenceAnnotation sa : cd.getSequenceAnnotations() )
             {
-                if ( sa.isSetComponent() && sa.getComponentURI().equals(compToRemove.getIdentity()) )
+                if( sa.isSetComponent() && sa.getComponentURI().equals( compToRemove.getIdentity() ) )
                 {
-                    cd.removeSequenceAnnotation(sa);
+                    cd.removeSequenceAnnotation( sa );
                 }
             }
-            for ( SequenceConstraint sc : cd.getSequenceConstraints() )
+            for( SequenceConstraint sc : cd.getSequenceConstraints() )
             {
-                if ( sc.getSubjectURI().equals(compToRemove.getIdentity()) )
+                if( sc.getSubjectURI().equals( compToRemove.getIdentity() ) )
                 {
-                    cd.removeSequenceConstraint(sc);
+                    cd.removeSequenceConstraint( sc );
                 }
-                if ( sc.getObjectURI().equals(compToRemove.getIdentity()) )
+                if( sc.getObjectURI().equals( compToRemove.getIdentity() ) )
                 {
-                    cd.removeSequenceConstraint(sc);
+                    cd.removeSequenceConstraint( sc );
                 }
             }
             try
             {
-                cd.removeComponent(compToRemove);
+                cd.removeComponent( compToRemove );
             }
-            catch (SBOLValidationException e)
+            catch( SBOLValidationException e )
             {
                 // TODO Auto-generated catch block
             }
         }
 
-        for ( ModuleDefinition md : doc.getModuleDefinitions() )
+        for( ModuleDefinition md : doc.getModuleDefinitions() )
         {
-            for ( FunctionalComponent c : md.getFunctionalComponents() )
+            for( FunctionalComponent c : md.getFunctionalComponents() )
             {
-                if ( c.getDefinitionURI().equals(uri) )
+                if( c.getDefinitionURI().equals( uri ) )
                 {
                     try
                     {
-                        md.removeFunctionalComponent(c);
+                        md.removeFunctionalComponent( c );
                     }
-                    catch (SBOLValidationException e)
+                    catch( SBOLValidationException e )
                     {
                         // TODO Auto-generated catch block
                     }
@@ -438,14 +504,14 @@ public class SbolUtil
             }
         }
 
-        ComponentDefinition cd = doc.getComponentDefinition(uri);
-        if ( cd == null )
+        ComponentDefinition cd = doc.getComponentDefinition( uri );
+        if( cd == null )
             return false;
         try
         {
-            doc.removeComponentDefinition(cd);
+            doc.removeComponentDefinition( cd );
         }
-        catch (SBOLValidationException e)
+        catch( SBOLValidationException e )
         {
             // TODO Auto-generated catch block
             return false;
@@ -453,4 +519,41 @@ public class SbolUtil
         return true;
     }
 
+    public static ModuleDefinition checkDefaultModule(SBOLDocument doc) throws SBOLValidationException
+    {
+        if( doc.getRootModuleDefinitions().isEmpty() )
+            return doc.createModuleDefinition( "Main_module", "1" );
+        return doc.getModuleDefinitions().iterator().next();
+    }
+
+    public static SBOLDocument getDocument(Diagram diagram)
+    {
+        Object result = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
+        if( result instanceof SBOLDocument )
+            return (SBOLDocument)result;
+        return null;
+    }
+    
+    /**
+     * Find functional component inside given module definition that corresponds to given component definition display id
+     */
+    public static FunctionalComponent findFunctionalComponent(ModuleDefinition md, String componentDefinitionID)
+    {
+        for (FunctionalComponent fc: md.getFunctionalComponents())
+        {
+            if (fc.getDefinition().getDisplayId().equals( componentDefinitionID ))
+                return fc;
+        }
+        return null;
+    }
+    
+    public static Component findComponent(ComponentDefinition cd, String componentDefinitionID)
+    {
+        for (Component c: cd.getComponents())
+        {
+            if (c.getDefinition().getDisplayId().equals( componentDefinitionID ))
+                return c;
+        }
+        return null;
+    }
 }

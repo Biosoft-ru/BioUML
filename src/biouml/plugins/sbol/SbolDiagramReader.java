@@ -75,6 +75,7 @@ public class SbolDiagramReader
         }
         if ( doc != null )
         {
+            doc.setDefaultURIprefix( "https://biouml.org" );
             fillDiagramByDocument(doc, result);
             DynamicProperty dp = new DynamicProperty(SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc);
             dp.setHidden(true);

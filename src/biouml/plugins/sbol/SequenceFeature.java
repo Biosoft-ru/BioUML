@@ -119,41 +119,43 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        
-        if ( compartment.getKernel() instanceof SequenceFeature )
+
+        if( compartment.getKernel() instanceof SequenceFeature )
         {
             compartment = compartment.getCompartment();
         }
 
-        if ( compartment instanceof Diagram || !(compartment.getKernel() instanceof Backbone) ) //try to fix wrong compartment
+        if( compartment instanceof Diagram || ! ( compartment.getKernel() instanceof Backbone ) ) //try to fix wrong compartment
         {
-           compartment = diagram.recursiveStream().select( Compartment.class ).filter( de->de.getKernel() instanceof Backbone ).findAny().orElse( diagram );
+            compartment = diagram.recursiveStream().select( Compartment.class ).filter( de -> de.getKernel() instanceof Backbone ).findAny()
+                    .orElse( diagram );
         }
 
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) ); 
+        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( ! ( doc instanceof SBOLDocument ) )
             return DiagramElementGroup.EMPTY_EG;
 
         //        URI uriType = ( getType().equals( "DNA" ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
         URI uriRole = SbolUtil.getURIByRole( role );
-        ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( "biouml", getName(), "1",
-                ComponentDefinition.DNA_REGION );
+        ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", ComponentDefinition.DNA_REGION );
         cd.addRole( uriRole );
 
-        if ( compartment.getKernel() instanceof SbolBase )
+        if( compartment.getKernel() instanceof SbolBase )
         {
-            Identified so = ((SbolBase) compartment.getKernel()).getSbolObject();
-            if ( so instanceof ComponentDefinition )
+            Identified so = ( (SbolBase)compartment.getKernel() ).getSbolObject();
+            if( so instanceof ComponentDefinition )
             {
-                ComponentDefinition parentCd = ((ComponentDefinition) so);
-                Component component = parentCd.createComponent(getName() + "_1", isPrivate ? AccessType.PRIVATE : AccessType.PUBLIC, cd.getIdentity());
-                component.setRoleIntegration(RoleIntegrationType.OVERRIDEROLES);
-                component.addRole(uriRole);
+                ComponentDefinition parentCd = ( (ComponentDefinition)so );
+                Component component = parentCd.createComponent( getName() + "_1", isPrivate ? AccessType.PRIVATE : AccessType.PUBLIC,
+                        cd.getIdentity() );
+                component.setRoleIntegration( RoleIntegrationType.OVERRIDEROLES );
+                component.addRole( uriRole );
                 //Add order constraint
-                Component lastComponent = getLastComponent(parentCd);
-                if ( lastComponent != null )
-                    parentCd.createSequenceConstraint(getName() + "_sc", RestrictionType.PRECEDES, lastComponent.getDisplayId(), component.getDisplayId());
+                Component lastComponent = getLastComponent( parentCd );
+                if( lastComponent != null )
+                    parentCd.createSequenceConstraint( getName() + "_sc", RestrictionType.PRECEDES, lastComponent.getDisplayId(),
+                            component.getDisplayId() );
             }
         }
 
@@ -161,26 +163,26 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 
         int y = compartment.getLocation().y + 10;
         int x = compartment.isEmpty() ? compartment.getLocation().x + 5
-                : StreamEx.of(compartment.getNodes()).mapToInt(n -> n.getLocation().x).max().orElse(0) + 45;
+                : StreamEx.of( compartment.getNodes() ).mapToInt( n -> n.getLocation().x ).max().orElse( 0 ) + 45;
 
-        this.setSbolObject(cd);
-        Compartment node = new Compartment(compartment, this);
+        this.setSbolObject( cd );
+        Compartment node = new Compartment( compartment, this );
         node.setUseCustomImage( true );
         Point nodeLocation = new Point( x, y );
         node.setLocation( nodeLocation );
-        node.setShapeSize(new Dimension(45, 45));
-        String icon = SbolUtil.getSbolImagePath(cd);
-        node.getAttributes().add(new DynamicProperty("node-image", String.class, icon));
+        node.setShapeSize( new Dimension( 45, 45 ) );
+        String icon = SbolUtil.getSbolImagePath( cd );
+        node.getAttributes().add( new DynamicProperty( "node-image", String.class, icon ) );
 
         SemanticController semanticController = diagram.getType().getSemanticController();
-        if( !semanticController.canAccept(compartment, node) )
+        if( !semanticController.canAccept( compartment, node ) )
         {
             return DiagramElementGroup.EMPTY_EG;
         }
         int width = compartment.isEmpty() ? 45 + 10 : compartment.getShapeSize().width + 45;
 
-        compartment.put(node);
-        compartment.setShapeSize(new Dimension(width, compartment.getShapeSize().height));
+        compartment.put( node );
+        compartment.setShapeSize( new Dimension( width, compartment.getShapeSize().height ) );
 
         if( viewPane != null )
             viewPane.completeTransaction();
@@ -191,21 +193,21 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     private Component getLastComponent(ComponentDefinition cd)
     {
         Component lastComponent = null;
-        if ( !cd.getComponents().isEmpty() )
+        if( !cd.getComponents().isEmpty() )
         {
             Set<URI> objects = new HashSet<>();
             Set<URI> subjects = new HashSet<>();
-            for ( SequenceConstraint sc : cd.getSequenceConstraints() )
+            for( SequenceConstraint sc : cd.getSequenceConstraints() )
             {
-                if ( RestrictionType.PRECEDES.equals(sc.getRestriction()) )
+                if( RestrictionType.PRECEDES.equals( sc.getRestriction() ) )
                 {
-                    objects.add(sc.getObjectURI());
-                    subjects.add(sc.getSubjectURI());
+                    objects.add( sc.getObjectURI() );
+                    subjects.add( sc.getSubjectURI() );
                 }
             }
-            objects.removeAll(subjects);
-            if ( objects.size() == 1 )
-                lastComponent = cd.getComponent(objects.iterator().next());
+            objects.removeAll( subjects );
+            if( objects.size() == 1 )
+                lastComponent = cd.getComponent( objects.iterator().next() );
         }
         return lastComponent;
     }
