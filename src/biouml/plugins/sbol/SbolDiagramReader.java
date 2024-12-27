@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -119,9 +120,10 @@ public class SbolDiagramReader
 
             for ( Interaction interaction : interactions )
             {
-                Set<Node> from = null, to = null;
+                Map<Node, Participation> from = new HashMap<>(), to = new HashMap<>();
                 String type = SbolUtil.TYPE_PROCESS;
                 URI uri = interaction.getIdentity();
+                URI typeUri = SystemsBiologyOntology.PROCESS;
                 if ( interaction.getTypes().contains(SystemsBiologyOntology.INHIBITION) )
                 {
                     //sbolcanvas allow only INHIBITOR role refinement
@@ -140,6 +142,7 @@ public class SbolDiagramReader
                             interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.INHIBITED), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_INHIBITION;
+                    typeUri = SystemsBiologyOntology.INHIBITION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.STIMULATION) )
                 {
@@ -160,6 +163,7 @@ public class SbolDiagramReader
                             ), interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.STIMULATED), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_STIMULATION;
+                    typeUri = SystemsBiologyOntology.STIMULATION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.DEGRADATION) )
                 {
@@ -170,10 +174,11 @@ public class SbolDiagramReader
                     {
                         String name = DefaultSemanticController.generateUniqueNodeName(diagram, "Degradation product");
                         Node degradationNode = new Node(diagram, new Stub(null, name, SbolUtil.TYPE_DEGRADATION_PRODUCT));
-                        to = Set.of(degradationNode);
+                        to.put(degradationNode, null);
                         diagram.put(degradationNode);
                     }
                     type = SbolUtil.TYPE_DEGRADATION;
+                    typeUri = SystemsBiologyOntology.DEGRADATION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.CONTROL) )
                 {
@@ -197,6 +202,7 @@ public class SbolDiagramReader
                                 ), 
                             interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_BIOCHEMICAL_REACTION;
+                    typeUri = SystemsBiologyOntology.BIOCHEMICAL_REACTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.NON_COVALENT_BINDING) )
                 {
@@ -205,6 +211,7 @@ public class SbolDiagramReader
                             interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_NON_COVALENT_BINDING;
+                    typeUri = SystemsBiologyOntology.NON_COVALENT_BINDING;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.GENETIC_PRODUCTION) )
                 {
@@ -212,6 +219,7 @@ public class SbolDiagramReader
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT, SystemsBiologyOntology.SIDE_PRODUCT), interaction.getParticipations(), diagram, kernels);
 
                     type = SbolUtil.TYPE_GENETIC_PRODUCTION;
+                    typeUri = SystemsBiologyOntology.GENETIC_PRODUCTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.PROCESS) )
                 {
@@ -220,54 +228,55 @@ public class SbolDiagramReader
                             interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
                     type = SbolUtil.TYPE_PROCESS;
+                    typeUri = SystemsBiologyOntology.PROCESS;
                 }
 
                 if ( from != null && to != null && from.size() > 0 && to.size() > 0 )
                 {
-                    Iterator<Node> fromIter = from.iterator();
-                    Iterator<Node> toIter = to.iterator();
+                    Iterator<Entry<Node, Participation>> fromIter = from.entrySet().iterator();
+                    Iterator<Entry<Node, Participation>> toIter = to.entrySet().iterator();
 
-                    if ( from.size() == 1 && to.size() == 1 ) //only one node from each side, can do without reaction node
+                    //                    if ( from.size() == 1 && to.size() == 1 ) //only one node from each side, can do without reaction node
+                    //                    {
+                    //                        Node fromNode = fromIter.next();
+                    //                        Node toNode = toIter.next();
+                    //                        Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + toNode.getName(), type), fromNode, toNode);
+                    //                        result.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
+                    //                        result.getOrigin().put(result);
+                    //                        //diagram.put(result);
+                    //                    }
+                    //                    else
+                    //                    {
+                    InteractionProperties reaction = new InteractionProperties(interaction);
+                    reaction.setType(SbolUtil.getInteractionStringType(typeUri));
+                    Node interactionNode = new Node(diagram, reaction);
+                    interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
+                    interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+                    //interactionNode.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
+                    interactionNode.setUseCustomImage(true);
+                    interactionNode.setShapeSize(new Dimension(15, 15));
+                    diagram.put(interactionNode);
+                    while ( fromIter.hasNext() )
                     {
-                        Node fromNode = fromIter.next();
-                        Node toNode = toIter.next();
-                        Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + toNode.getName(), type), fromNode, toNode);
-                        result.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
+                        Entry<Node, Participation> fromEntry = fromIter.next();
+                        ParticipationProperties kernel = new ParticipationProperties(fromEntry.getValue());
+                        Edge result = new Edge(kernel, fromEntry.getKey(), interactionNode);
                         result.getOrigin().put(result);
-                        //diagram.put(result);
                     }
-                    else
+                    while ( toIter.hasNext() )
                     {
-                        String title = interaction.getName() != null ? interaction.getName() : interaction.getDisplayId();
-                        Reaction reaction = new Reaction(null, interaction.getDisplayId());
-                        reaction.setTitle(title);
-                        Node interactionNode = new Node(diagram, reaction);
-                        interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
-                        interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
-                        interactionNode.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
-                        interactionNode.setUseCustomImage(true);
-                        interactionNode.setShapeSize(new Dimension(15, 15));
-                        diagram.put(interactionNode);
-                        while ( fromIter.hasNext() )
-                        {
-                            Node fromNode = fromIter.next();
-                            Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + interactionNode.getName(), type), fromNode, interactionNode);
-                            result.getOrigin().put(result);
-                        }
-                        while ( toIter.hasNext() )
-                        {
-                            Node toNode = toIter.next();
-                            Edge result = new Edge(new Stub(null, interactionNode.getName() + " -> " + toNode.getName(), type), interactionNode, toNode);
-                            result.getOrigin().put(result);
-                        }
+                        Entry<Node, Participation> toEntry = toIter.next();
+                        ParticipationProperties kernel = new ParticipationProperties(toEntry.getValue());
+                        kernel.setType(type);
+                        Edge result = new Edge(kernel, interactionNode, toEntry.getKey());
+                        result.getOrigin().put(result);
                     }
+                    //}
                 }
                 else
                 {
                     //only interaction node should be placed
-                    String title = interaction.getName() != null ? interaction.getName() : interaction.getDisplayId();
-                    Reaction reaction = new Reaction(null, interaction.getDisplayId());
-                    reaction.setTitle(title);
+                    InteractionProperties reaction = new InteractionProperties(interaction);
                     Node interactionNode = new Node(diagram, reaction);
                     interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
                     interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
@@ -281,17 +290,24 @@ public class SbolDiagramReader
 
     }
 
-    private static Set<Node> getParticipantNodes(Set<URI> types, Set<Participation> participants, Diagram diagram, Map<String, Base> kernels)
+    private static Map<Node, Participation> getParticipantNodes(Set<URI> types, Set<Participation> participants, Diagram diagram, Map<String, Base> kernels)
     {
-        return participants.stream().filter(pt -> {
+        Map<Node, Participation> result = new HashMap<>();
+        participants.stream().filter(pt -> {
             return pt.getRoles().stream().anyMatch(types::contains);
-        }).map(pt -> {
+        }).forEach(pt -> {
             DiagramElement de = diagram.findDiagramElement(kernels.get(pt.getParticipantDefinition().getPersistentIdentity().toString()).getName());
             if ( de != null && de instanceof Node )
-                return (Node) de;
-            else
-                return null;
-        }).filter(Objects::nonNull).collect(Collectors.toSet());
+                result.put((Node) de, pt);
+        });
+        //        (pt -> {
+        //            DiagramElement de = diagram.findDiagramElement(kernels.get(pt.getParticipantDefinition().getPersistentIdentity().toString()).getName());
+        //            if ( de != null && de instanceof Node )
+        //                return (Node) de;
+        //            else
+        //                return null;
+        //        }).filter(Objects::nonNull).collect(Collectors.toSet());
+        return result;
     }
 
     private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, Base> kernels)
