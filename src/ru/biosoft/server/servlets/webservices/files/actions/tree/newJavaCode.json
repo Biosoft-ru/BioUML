@@ -3,7 +3,7 @@
  */
 {
     id: "new_java_code",
-    label: "New Java codet",
+    label: "New Java code",
 	icon: "icons/javacode.png",
 	visible: "function(completePath)
     {
