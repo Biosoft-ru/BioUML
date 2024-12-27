@@ -5490,13 +5490,13 @@ function MicroenvironmentViewPart()
 		this.optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
 		this.optionsDiv.append(this.optionsPI);
 		
-		this.colorschemesDiv = tabDiv.find("#me_color_schemes");
-		this.tables["color_schemes"] = $('<div>Loading color schemes..</div>');
-		this.colorschemesDiv.append(this.tables["color_schemes"]);
+		//this.colorschemesDiv = tabDiv.find("#me_color_schemes");
+		//this.tables["color_schemes"] = $('<div>Loading color schemes..</div>');
+		//this.colorschemesDiv.append(this.tables["color_schemes"]);
 				
-		this.visualizersDiv = tabDiv.find("#me_visualizers");
-		this.tables["visualizers"] = $('<div>Loading cell visualizers..</div>');
-		this.visualizersDiv.append(this.tables["visualizers"]);
+		//this.visualizersDiv = tabDiv.find("#me_visualizers");
+		//this.tables["visualizers"] = $('<div>Loading cell visualizers..</div>');
+		//this.visualizersDiv.append(this.tables["visualizers"]);
 		
         _.bindAll(this, _.functions(this));
     }
@@ -5552,10 +5552,10 @@ function MicroenvironmentViewPart()
                    _this.loadTable("substrates");
                 else if (_this.type == "cell_types")
 			       _this.loadTable("cell_types");
-				else if (_this.type == "color_schemes")
-				   _this.loadTable("color_schemes");
-				else if (_this.type == "visualizers")
-				   _this.loadTable("visualizers");
+				//else if (_this.type == "color_schemes")
+				//   _this.loadTable("color_schemes");
+				//else if (_this.type == "visualizers")
+				//   _this.loadTable("visualizers");
                 else if (_this.type == "events")
                    _this.loadTable("events");
 
@@ -5580,20 +5580,20 @@ function MicroenvironmentViewPart()
 					 			_this.saveTable("events");
 					 	  });
 					  }	
-					  else if(_this.tableChanged["color_schemes"])
-					  {
-					  	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
-					  		   if(yes)
-					  	           _this.saveTable("color_schemes");
-					       });
-					  }	
-					  else if(_this.tableChanged["visualizers"])
-					  {
-					  	    createYesNoConfirmDialog( "Visualizers table was changed. Do you want to save it?", function(yes){
-					  		   if(yes)
-					  	           _this.saveTable("visualizers");
-					       });
-					  }					 
+					  //else if(_this.tableChanged["color_schemes"])
+					  //{
+					 // 	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+					 // 		   if(yes)
+					 // 	           _this.saveTable("color_schemes");
+					 //      });
+					 // }	
+					 // else if(_this.tableChanged["visualizers"])
+					 // {
+					 // 	    createYesNoConfirmDialog( "Visualizers table was changed. Do you want to save it?", function(yes){
+					 // 		   if(yes)
+					 // 	           _this.saveTable("visualizers");
+					 //      });
+					 // }					 
                 
             }
         });
@@ -5624,20 +5624,20 @@ function MicroenvironmentViewPart()
 	   		        _this.saveTable("events");
 	   		 }); 
 	   }
-	   else if(this.tableChanged["color_schemes"])
-	   {
-	   	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
-	   	   		if(yes)
-	   	   		   _this.saveTable("color_schemes");
-	   	    }); 
-	   }
-	   else if(this.tableChanged["visualizers"])
-	   {
-		   	 createYesNoConfirmDialog( "Cell Visualier table was changed. Do you want to save it?", function(yes){
-		   	   	 if(yes)
-		   	   		_this.saveTable("visualizers");
-		   	 }); 
-		}
+	   //else if(this.tableChanged["color_schemes"])
+	  // {
+	  // 	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+	 //  	   		if(yes)
+	 //  	   		   _this.saveTable("color_schemes");
+	 //  	    }); 
+	 //  }
+	   //else if(this.tableChanged["visualizers"])
+	   //{
+		//   	 createYesNoConfirmDialog( "Cell Visualier table was changed. Do you want to save it?", function(yes){
+		//   	   	 if(yes)
+		//   	   		_this.saveTable("visualizers");
+		//   	 }); 
+		//}
     };
     
     this.initActions = function(toolbarBlock)
@@ -5648,22 +5648,22 @@ function MicroenvironmentViewPart()
             toolbarBlock.append(this.saveAction);     
         }
 		
-		if (this.type == "color_schemes")
-		{
-			this.addAction = createToolbarButton("Add scheme", "icon_plus.gif", this.addSchemeActionClick);
-			toolbarBlock.append(this.addAction);
-			         
-			this.removeAction = createToolbarButton("Remove scheme", "removefilter.gif", this.removeSchemeActionClick);
-		    toolbarBlock.append(this.removeAction);
-		}
-		else if (this.type == "visualizers")
-        {
-			this.addAction = createToolbarButton("Add visualizer", "icon_plus.gif", this.addVisualizerActionClick);
-			toolbarBlock.append(this.addAction);
-						         
-			this.removeAction = createToolbarButton("Remove visualizer", "removefilter.gif", this.removeVisuaizerActionClick);
-			toolbarBlock.append(this.removeAction);		
-		}		
+		//if (this.type == "color_schemes")
+		//{
+		//	this.addAction = createToolbarButton("Add scheme", "icon_plus.gif", this.addSchemeActionClick);
+		//	toolbarBlock.append(this.addAction);
+		//	         
+		//	this.removeAction = createToolbarButton("Remove scheme", "removefilter.gif", this.removeSchemeActionClick);
+		//    toolbarBlock.append(this.removeAction);
+		//}
+		//else if (this.type == "visualizers")
+        //{
+		//	this.addAction = createToolbarButton("Add visualizer", "icon_plus.gif", this.addVisualizerActionClick);
+		//	toolbarBlock.append(this.addAction);
+		//				         
+		//	this.removeAction = createToolbarButton("Remove visualizer", "removefilter.gif", this.removeVisuaizerActionClick);
+		//	toolbarBlock.append(this.removeAction);		
+		//}		
     };
     
     this.diagramChanged = function()
@@ -5676,8 +5676,8 @@ function MicroenvironmentViewPart()
         this.loadTable("substrates");
 		this.loadTable("cell_types");
 		this.loadTable("events");
-		this.loadTable("color_schemes");
-		this.loadTable("visualizers");
+		//this.loadTable("color_schemes");
+		//this.loadTable("visualizers");
     };
     
     this.loadTable = function(type)
