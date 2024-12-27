@@ -36,6 +36,12 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     public InteractionProperties(Identified so)
     {
         super( so );
+        if ( so != null )
+        {
+            name = super.getName();
+            title = super.getTitle();
+            //TODO: this.setType(  );
+        }
     }
 
     @Override
