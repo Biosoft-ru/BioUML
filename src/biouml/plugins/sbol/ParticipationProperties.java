@@ -23,6 +23,24 @@ public class ParticipationProperties extends SbolBase
     public ParticipationProperties(Identified so)
     {
         super( so );
+        if ( so != null )
+        {
+            name = super.getName();
+            title = super.getTitle();
+            if ( so instanceof Participation )
+            {
+                Set<URI> roles = ((Participation) so).getRoles();
+                for ( URI r : roles )
+                {
+                    String type = SbolUtil.getParticipationStringType(r);
+                    if ( type != null )
+                    {
+                        role = type;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @Override

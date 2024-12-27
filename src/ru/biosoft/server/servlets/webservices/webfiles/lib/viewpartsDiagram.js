@@ -5556,6 +5556,8 @@ function MicroenvironmentViewPart()
 				   _this.loadTable("color_schemes");
 				else if (_this.type == "visualizers")
 				   _this.loadTable("visualizers");
+                else if (_this.type == "events")
+                   _this.loadTable("events");
 
                     if(_this.tableChanged["substrates"])
                     {

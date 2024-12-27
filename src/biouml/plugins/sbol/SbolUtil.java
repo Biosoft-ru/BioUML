@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Component;
@@ -41,8 +42,11 @@ public class SbolUtil
     private static final Map<String, URI> featurRoleToURI;
     private static final Map<String, URI> speciesToURI;
     private static final Map<String, URI> interactionToURI;
+    private static final Map<URI, String> interactionURIToString;
     private static final Map<String, URI> participationToURI;
+    private static final Map<URI, String> participationURIToString;
     private static final Map<String, Integer> verticalShift;
+
 
     public static final String TYPE_INHIBITION = "Inhibition";
     public static final String TYPE_STIMULATION = "Stimulation";
@@ -192,6 +196,7 @@ public class SbolUtil
         iMap.put( "Dissociation", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000180" ) );
         iMap.put( "Process", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000375" ) );
         interactionToURI = Collections.unmodifiableMap( iMap );
+        interactionURIToString = iMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
     static
@@ -208,6 +213,7 @@ public class SbolUtil
         pMap.put( "Modified", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000644" ) );
         pMap.put( "Template", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000645" ) );
         participationToURI = Collections.unmodifiableMap( pMap );
+        participationURIToString = pMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
     
 //    public String getParticipationType(String interactionType, boolean reactant)
@@ -278,9 +284,19 @@ public class SbolUtil
         return interactionToURI.get( type );
     }
 
+    public static String getInteractionStringType(URI uri)
+    {
+        return interactionURIToString.get(uri);
+    }
+
     public static URI getParticipationURIByType(String type)
     {
         return participationToURI.get( type );
+    }
+
+    public static String getParticipationStringType(URI uri)
+    {
+        return participationURIToString.get(uri);
     }
     
     public static URI getSpeciesURIByType(String type)
