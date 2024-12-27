@@ -20,6 +20,6 @@
     }",
     action: "function(path)
     {
-        createJavaCode(path, 'java');
+        createJavaCode(path, 'Java');
     }"
 }
