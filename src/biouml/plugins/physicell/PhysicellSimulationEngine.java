@@ -180,11 +180,11 @@ public class PhysicellSimulationEngine extends SimulationEngine
         }
         if( options.isUse2D() )
         {
-            double zCenter = (options.getZTo() + options.getZFrom()) / 2;
+//            double zCenter = (options.getZTo() + options.getZFrom()) / 2;
             for( String density : m.densityNames )
             {
 
-                model.addVisualizer( new Visualizer2D( null, density, Section.Z, zCenter ).setStubstrateIndex( m.findDensityIndex( density ) )
+                model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
                         .setAgentColorer( colorer ) );
             }
         }

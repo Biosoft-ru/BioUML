@@ -105,8 +105,8 @@ public class PhysicellSimulator implements Simulator
 
         for( Visualizer v : this.model.getVisualizers() )
         {
-            if (v instanceof Visualizer2D)
-            ((Visualizer2D)v).setSaveImage( options.isSaveImage() );
+            if( v instanceof Visualizer2D )
+                ( (Visualizer2D)v ).setSaveImage( options.isSaveImage() );
 
             if( options.isSaveGIF() )
                 v.addResultGenerator( new GIFGenerator( TempFiles.file( v.getName() + ".gif" ) ) );
@@ -125,7 +125,7 @@ public class PhysicellSimulator implements Simulator
         if( !this.model.isInit() )
             this.model.init();
 
-        int nums = String.valueOf( Math.round( options.getFinalTime()) ).length()+1;
+        int nums = String.valueOf( Math.round( options.getFinalTime() ) ).length() + 1;
         format = "%0" + nums + "d";
 
         saveAllResults( this.model );
@@ -158,8 +158,8 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
-            
-            model.executeEvents( );
+
+            model.executeEvents();
             saveAllResults( model );
             curTime += options.getDiffusionDt();
         }
@@ -204,7 +204,7 @@ public class PhysicellSimulator implements Simulator
         }
         else
         {
-            suffix = Double.toString( Math.round(curTime*100)/100);
+            suffix = Double.toString( Math.round( curTime * 100 ) / 100 );
         }
 
         DataCollection<DataElement> densityCollection = (DataCollection)resultFolder.get( "Density" );
@@ -260,10 +260,12 @@ public class PhysicellSimulator implements Simulator
         }
     }
 
-    public static String print(double v, int accuracy)
+    public String print(double v, int accuracy)
     {
         double factor = Math.pow( 10, accuracy );
-        return String.valueOf( Math.round( v * factor ) / factor );
+        double value = Math.round( v * factor ) / factor;
+        return String.format( format,value );
+        //        return String.valueOf( );
     }
 
     @Override
