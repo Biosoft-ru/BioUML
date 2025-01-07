@@ -263,8 +263,8 @@ public class PhysicellSimulator implements Simulator
     public String print(double v, int accuracy)
     {
         double factor = Math.pow( 10, accuracy );
-        double value = Math.round( v * factor ) / factor;
-        return String.format( format,value );
+        Integer value = (int)(Math.round( v * factor ) / factor);
+        return String.format( format, value );
         //        return String.valueOf( );
     }
 
