@@ -165,31 +165,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
-        AgentColorer colorer;
-
-        VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
-        if( visualizerProperties.getProperties().length > 0 )
-        {
-            colorer = new DefaultColorer( visualizerProperties );
-        }
-        else
-        {
-            colorer = new DefinitionVisualizer();
-            for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-                ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
-        }
-        if( options.isUse2D() )
-        {
-//            double zCenter = (options.getZTo() + options.getZFrom()) / 2;
-            for( String density : m.densityNames )
-            {
-
-                model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
-                        .setAgentColorer( colorer ) );
-            }
-        }
-        else
-            model.addVisualizer( new Visualizer3D( null, "3d" ).setAgentColorer( colorer ) );
+       
 
         PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
         model.setDiffusionDt( opts.getDiffusionDt() );
@@ -278,6 +254,32 @@ public class PhysicellSimulationEngine extends SimulationEngine
             model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger(), model ) );
         }
 
+        
+        AgentColorer colorer;
+
+        VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
+        if( visualizerProperties.getProperties().length > 0 )
+        {
+            colorer = new DefaultColorer( visualizerProperties );
+        }
+        else
+        {
+            colorer = new DefinitionVisualizer();
+            for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+                ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+        }
+        if( options.isUse2D() )
+        {
+//            double zCenter = (options.getZTo() + options.getZFrom()) / 2;
+            for( String density : m.densityNames )
+            {
+
+                model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
+                        .setAgentColorer( colorer ) );
+            }
+        }
+        else
+            model.addVisualizer( new Visualizer3D( null, "3d", m ).setAgentColorer( colorer ) );
         if( emodel.getReportProperties().isCustomVisualizer() )
         {
             DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
