@@ -45,6 +45,10 @@ public class ParticipationEdgeCreator implements EdgeCreator
             {
                 return createDegradation( name, in, diagram );
             }
+            else if( in.getKernel() instanceof MolecularSpecies && out.getKernel() instanceof MolecularSpecies )
+            {
+                return createSpeciesParticipant( name, diagram, in, out );
+            }
             else if( in.getKernel() instanceof MolecularSpecies || out.getKernel() instanceof MolecularSpecies )
             {
                 return createSpeciesParticipant( name, diagram, in, out );
@@ -63,6 +67,18 @@ public class ParticipationEdgeCreator implements EdgeCreator
         }
         return null;
     }
+
+    /**
+     * Creates interaction between two species and all neccessary edges between them
+     */
+//    private Edge createSpeciesInteraction(String name, Diagram diagram, Node in, Node out) throws Exception
+//    {
+//        SBOLDocument doc = SbolUtil.getDocument( diagram );
+//        InteractionProperties properties = new InteractionProperties();
+//        properties.setName( DefaultSemanticController.generateUniqueName( diagram, "Interaction" ) );
+//        Point location = new Point( ( in.getLocation().x + out.getLocation().x ) / 2, ( in.getLocation().y + out.getLocation().y ) / 2 );
+//        Node interactionNode = properties.doCreateInteraction( diagram, doc, location );
+//    }
 
     /**
      * Creates reaction participant for molecular species
@@ -123,7 +139,7 @@ public class ParticipationEdgeCreator implements EdgeCreator
     {
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( doc );
-        
+
         //create interaction
         InteractionProperties properties = new InteractionProperties();
         properties.setType( SbolConstants.DEGRADATION );
