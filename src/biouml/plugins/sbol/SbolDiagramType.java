@@ -9,6 +9,7 @@ import com.developmentontheedge.beans.DynamicProperty;
 import biouml.model.Diagram;
 import biouml.model.DiagramTypeSupport;
 import biouml.model.DiagramViewBuilder;
+import biouml.model.Edge;
 import biouml.model.SemanticController;
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
@@ -60,5 +61,10 @@ public class SbolDiagramType extends DiagramTypeSupport
     {
         return true;
     }
-
+    
+    @Override
+    public boolean needAutoLayout(Edge edge)
+    {
+        return true;
+    }
 }

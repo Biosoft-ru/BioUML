@@ -1,6 +1,8 @@
 package biouml.plugins.sbol;
 
 import com.developmentontheedge.beans.Option;
+import com.developmentontheedge.beans.annot.PropertyDescription;
+import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.DiagramViewOptions;
 import ru.biosoft.graphics.Pen;
@@ -28,4 +30,12 @@ public class SbolDiagramViewOptions extends DiagramViewOptions
         firePropertyChange("backbonePen", oldValue, this.backbonePen);
     }
 
+
+    @Override
+    @PropertyName("Auto-layout edges")
+    @PropertyDescription("Layout diagram edges automatically")
+    public boolean isAutoLayout()
+    {
+        return autoLayout;
+    }
 }
