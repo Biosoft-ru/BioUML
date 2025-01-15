@@ -44,7 +44,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             if( type.equals( ParticipationProperties.class )  )
             {
                 new CreateEdgeAction().createEdge( pt, viewEditor, new ParticipationEdgeCreator() );
-                return null;
+                return DiagramElementGroup.EMPTY_EG;
             }
 
             Object properties = getPropertiesByType( parent, type, pt );

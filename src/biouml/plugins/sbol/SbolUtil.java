@@ -581,6 +581,6 @@ public class SbolUtil
     public static FunctionalComponent createFunctionalComponent(ModuleDefinition moduleDefinition, ComponentDefinition componentDefinition) throws Exception
     {
         return moduleDefinition.createFunctionalComponent( componentDefinition.getDisplayId() + "_fc",
-                AccessType.PUBLIC, componentDefinition.getDisplayId(), DirectionType.INOUT );
+                AccessType.PUBLIC, componentDefinition.getIdentity(), DirectionType.INOUT);
     }
 }
