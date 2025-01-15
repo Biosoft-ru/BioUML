@@ -212,6 +212,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         }
 
         container.add( view );
+        container.setModel(compartment);
         view.setModel( compartment );
 
         view.setActive( true );
