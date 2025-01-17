@@ -50,6 +50,8 @@ public class PhysicellSimulator implements Simulator
 
     private String format;
 
+    private VisualizerTextTable textVisualizer;
+
     @Override
     public SimulatorInfo getInfo()
     {
@@ -65,6 +67,11 @@ public class PhysicellSimulator implements Simulator
     public void setResultFolder()
     {
 
+    }
+
+    public void addTextVisualizer(VisualizerTextTable visualizer)
+    {
+        this.textVisualizer = visualizer;
     }
 
     @Override
@@ -102,6 +109,10 @@ public class PhysicellSimulator implements Simulator
         if( options.isSaveImage() )
             imagesCollection = DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Image" ) );
 
+        if( options.isSaveImageText() )
+        {
+            textVisualizer.init(); //TODO: refactor and unify all visualizers
+        }
 
         for( Visualizer v : this.model.getVisualizers() )
         {
@@ -178,9 +189,14 @@ public class PhysicellSimulator implements Simulator
 
         }
 
-        if( curTime >= nextImage )
+        if( ( options.isSaveImageText() || options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() ) && curTime >= nextImage )
         {
-            saveImages( curTime );
+
+            if( options.isSaveImageText() )
+                textVisualizer.saveResult( model.getMicroenvironment(), curTime );
+            if( options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() )
+                saveImages( curTime );
+
             nextImage += options.getImageInterval();
         }
     }
@@ -263,7 +279,7 @@ public class PhysicellSimulator implements Simulator
     public String print(double v, int accuracy)
     {
         double factor = Math.pow( 10, accuracy );
-        Integer value = (int)(Math.round( v * factor ) / factor);
+        Integer value = (int) ( Math.round( v * factor ) / factor );
         return String.format( format, value );
         //        return String.valueOf( );
     }
@@ -340,4 +356,6 @@ public class PhysicellSimulator implements Simulator
     {
         // TODO Auto-generated method stub
     }
+
+
 }
