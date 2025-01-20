@@ -1,17 +1,69 @@
 package biouml.plugins.physicell;
 
 import java.awt.Color;
+import java.io.File;
+
+import org.jcodec.api.awt.AWTSequenceEncoder;
+import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.io.SeekableByteChannel;
+import org.jcodec.common.model.Rational;
 
 import ru.biosoft.access.ImageDataElement;
+import ru.biosoft.access.VideoFileImporter;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.physicell.ui.render.Renderer3D;
 import ru.biosoft.physicell.ui.render.Scene;
 import ru.biosoft.physicell.ui.render.SceneHelper;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
+import ru.biosoft.util.TempFiles;
 
 public class TableDataRenderer
 {
+
+    public void renderFolder(DataCollection dc, DataCollection images, int width, int height) throws Exception
+    {
+        for( Object obj : dc.getNameList() )
+        {
+            DataElement de = dc.get( obj.toString() );
+            if( de instanceof TableDataCollection )
+            {
+                render( (TableDataCollection)de, images, width, height );
+            }
+        }
+    }
+
+    public void createVideo(DataCollection dc, String name) throws Exception
+    {
+        File result = TempFiles.file( name + ".mp4" );
+        SeekableByteChannel out = NIOUtils.writableFileChannel( result.getAbsolutePath() );
+        AWTSequenceEncoder encoder = new AWTSequenceEncoder( out, Rational.R( 10, 1 ) );
+        try
+        {
+            for( Object obj : dc.getNameList() )
+            {
+                DataElement de = dc.get( obj.toString() );
+                if( de instanceof ImageDataElement )
+                {
+                    encoder.encodeImage( ( (ImageDataElement)de ).getImage() );
+                }
+            }
+
+            VideoFileImporter importer = new VideoFileImporter();
+            importer.getProperties( dc, result, name ).setResolution( "1280 x 720 (High definition)" );
+            importer.doImport( dc, result, name, null, null );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            encoder.finish();
+            NIOUtils.closeQuietly( out );
+        }
+    }
 
     public void render(TableDataCollection tdc, DataCollection images, int width, int height) throws Exception
     {
@@ -43,8 +95,8 @@ public class TableDataRenderer
         text = text.substring( 1, text.length() - 1 );
         String[] parts = text.split( "," );
         int red = Integer.parseInt( parts[0].trim() );
-        int green = Integer.parseInt( parts[0].trim() );
-        int blue = Integer.parseInt( parts[0].trim() );
+        int green = Integer.parseInt( parts[1].trim() );
+        int blue = Integer.parseInt( parts[2].trim() );
         return new Color( red, green, blue );
     }
 }
