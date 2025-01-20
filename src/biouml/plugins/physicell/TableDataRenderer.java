@@ -22,6 +22,13 @@ import ru.biosoft.util.TempFiles;
 public class TableDataRenderer
 {
 
+    private int sphereQuality = 3;
+    
+    public void setQuality(int quality)
+    {
+        sphereQuality = quality;
+    }
+    
     public void renderFolder(DataCollection dc, DataCollection images, int width, int height) throws Exception
     {
         for( Object obj : dc.getNameList() )
@@ -85,7 +92,7 @@ public class TableDataRenderer
             double z = Double.parseDouble( objects[2].toString() );
             double radius = Double.parseDouble( objects[3].toString() );
             Color color = decode( objects[5].toString() );
-            scene.add( SceneHelper.createSphere( x, y, z, radius, color ) );
+            scene.add( SceneHelper.createSphere( x, y, z, radius, color, sphereQuality ) );
         }
         return scene;
     }
