@@ -19,6 +19,7 @@ public class PatientPhysiology extends OptionEx
     private BloodTest bloodTest = new BloodTest();
     private Biochemistry biochemistry = new Biochemistry();
     private Diseases diseases = new Diseases();
+    private Genetics genetics = new Genetics();
     private CalculatedParameters calculatedParameters = new CalculatedParameters( generalData, pressure, ecg, heartUltrasound, bloodTest,
             biochemistry );
 
@@ -101,6 +102,15 @@ public class PatientPhysiology extends OptionEx
     public void setDiseases(Diseases diseases)
     {
         this.diseases = diseases;
+    }
+
+    public Genetics getGenetics()
+    {
+        return genetics;
+    }
+    public void setGenetics(Genetics genetics)
+    {
+        this.genetics = genetics;
     }
 
     public CalculatedParameters getCalculatedParameters()
@@ -779,6 +789,97 @@ public class PatientPhysiology extends OptionEx
         }
     }
 
+    public static class Genetics extends OptionEx
+    {
+        private GeneADRB1 ADRB1 = new GeneADRB1();
+        public GeneADRB1 getADRB1()
+        {
+            return ADRB1;
+        }
+        public void setADRB1(GeneADRB1 ADRB1)
+        {
+            this.ADRB1 = ADRB1;
+        }
+    }
+
+    public static class GeneticsBeanInfo extends BeanInfoEx2<Genetics>
+    {
+        public GeneticsBeanInfo()
+        {
+            super( Genetics.class );
+        }
+
+        @Override
+        public void initProperties() throws Exception
+        {
+            property( "ADRB1" ).title( "GENE_ADRB1" ).add();
+        }
+
+        @Override
+        public String getResourceString(String key)
+        {
+            return MessageBundle.getMessage( key );
+        }
+    }
+
+    public static class GeneADRB1 extends OptionEx
+    {
+    	private Arg389Gly arg389Gly = Arg389Gly.UNKNOWN;
+        public String getArg389Gly()
+        {
+            return arg389Gly.toString();
+        }
+        public void setArg389Gly(String newValue)
+        {
+        	Arg389Gly oldValue = this.arg389Gly;
+            this.arg389Gly = Arg389Gly.getGeneticVariant( newValue );
+            firePropertyChange( "arg389Gly", oldValue, this.arg389Gly );
+        }
+
+        /**
+         * Petersen M, Andersen JT, Jimenez-Solem E, et al.
+         * Effect of the Arg389Gly β₁-adrenoceptor polymorphism on plasma renin activity and heart rate,
+         * and the genotype-dependent response to metoprolol treatment.
+         * Clin Exp Pharmacol Physiol. 2012. 39(9):779-785.
+         * doi: 10.1111/j.1440-1681.2012.05736.x
+         * (mL/units per L were converted to pg/mL)
+         */
+        public double getPRC()
+        {
+            switch( arg389Gly )
+            {
+                case GLY_GLY:
+                    return 6.0;
+                case ARG_GLY:
+                    return 7.8;
+                case ARG_ARG:
+                    return 13.2;
+			default:
+				return Double.NaN;
+            }
+        }
+    }
+
+    public static class GeneADRB1BeanInfo extends BeanInfoEx2<GeneADRB1>
+    {
+        public GeneADRB1BeanInfo()
+        {
+            super( GeneADRB1.class );
+        }
+
+        @Override
+        public void initProperties() throws Exception
+        {
+            property( "arg389Gly" ).title( "POLYMORPHISM_ARG389GLY" ).tags( Arg389Gly.getGeneticVariants() ).add();
+        }
+
+        @Override
+        public String getResourceString(String key)
+        {
+            return MessageBundle.getMessage( key );
+        }
+    }
+
     public static class CalculatedParameters extends OptionEx
     {
         private double bv;
@@ -1392,5 +1493,40 @@ public class PatientPhysiology extends OptionEx
     {
         public String[] getItems();
         public String getSelectedItem();
+    }
+
+    public static enum Arg389Gly
+    {
+        UNKNOWN, GLY_GLY, ARG_GLY, ARG_ARG;
+
+        public String toString()
+        {
+            switch( this )
+            {
+                case UNKNOWN:
+                    return MessageBundle.getMessage( "UNKNOWN" );
+                case GLY_GLY:
+                    return MessageBundle.getMessage( "GLY_GLY" );
+                case ARG_GLY:
+                    return MessageBundle.getMessage( "ARG_GLY" );
+                case ARG_ARG:
+                    return MessageBundle.getMessage( "ARG_ARG" );
+                default:
+                    return null;
+            }
+        }
+
+        public static Arg389Gly getGeneticVariant(String geneticVariant)
+        {
+            for( Arg389Gly value : values() )
+                if( value.toString().equals( geneticVariant ) )
+                    return value;
+            return null;
+        }
+
+        public static String[] getGeneticVariants()
+        {
+            return StreamEx.of( values() ).map( key -> key.toString() ).toArray( String[]::new );
+        }
     }
 }

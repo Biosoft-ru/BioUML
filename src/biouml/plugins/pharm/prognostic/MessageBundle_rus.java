@@ -45,6 +45,7 @@ public class MessageBundle_rus extends MessageBundle
         { "BLOOD_TEST",             "Общий анализ крови"},
         { "BIOCHEMISTRY",           "Биохимия"},
         { "DISEASES",               "Заболевания"},
+        { "GENETICS",               "Генетика"},
         { "CALCULATED_PARAMETERS",  "Расчетные параметры"},
 
         { "AGE",                    "Возраст, лет"},
@@ -73,6 +74,12 @@ public class MessageBundle_rus extends MessageBundle
         { "CREATININE",             "Креатинин, мкмоль/л"},
         { "POTASSIUM",              "Калий, ммоль/л"},
         { "SODIUM",                 "Натрий, ммоль/л"},
+
+        { "GENE_ADRB1",             "Ген ADRB1"},
+        { "POLYMORPHISM_ARG389GLY", "Полиморфизм Arg389Gly"},
+        { "GLY_GLY",                "Gly/Gly"},
+        { "ARG_GLY",                "Arg/Gly"},
+        { "ARG_ARG",                "Arg/Arg"},
 
         { "HYPERTENSION",           "Артериальная гипертензия"},
         { "CHF",                    "Хроническая сердечная недостаточность"},
