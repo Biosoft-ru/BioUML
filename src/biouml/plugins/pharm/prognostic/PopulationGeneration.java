@@ -746,6 +746,15 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
             knownVariables.put( "GFR", gfr );
         }
 
+        String arg389Gly = parameters.getPatientPhysiology().getGenetics().getADRB1().getArg389Gly();
+        if( !arg389Gly.equals( PatientPhysiology.Arg389Gly.UNKNOWN.toString() ) )
+        {
+            tdc.getColumnModel().addColumn( "PRC", DataType.Float );
+            double prc = parameters.getPatientPhysiology().getGenetics().getADRB1().getPRC();
+            values.add( prc );
+            knownVariables.put( "PRC", prc );
+        }
+
         TableDataCollectionUtils.addRow( tdc, "1", values.toArray() );
         return tdc;
     }

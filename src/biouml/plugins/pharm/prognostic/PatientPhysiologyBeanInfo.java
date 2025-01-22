@@ -19,6 +19,7 @@ public class PatientPhysiologyBeanInfo extends BeanInfoEx2<PatientPhysiology>
         property( "bloodTest" ).title( "BLOOD_TEST" ).add();
         property( "biochemistry" ).title( "BIOCHEMISTRY" ).add();
         property( "diseases" ).title( "DISEASES" ).add();
+        property( "genetics" ).title( "GENETICS" ).add();
         property( "calculatedParameters" ).title( "CALCULATED_PARAMETERS" ).add();
     }
 

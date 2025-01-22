@@ -45,6 +45,7 @@ public class MessageBundle_en extends MessageBundle
         { "BLOOD_TEST",                 "Blood test"},
         { "BIOCHEMISTRY",               "Biochemistry"},
         { "DISEASES",                   "Diseases"},
+        { "GENETICS",                   "Genetics"},
         { "CALCULATED_PARAMETERS",      "Calculated parameters"},
 
         { "AGE",                        "Age, years"},
@@ -73,6 +74,12 @@ public class MessageBundle_en extends MessageBundle
         { "CREATININE",                 "Creatinine, μmol/l"},
         { "POTASSIUM",                  "Potassium, mmol/l"},
         { "SODIUM",                     "Sodium, mmol/l"},
+
+        { "GENE_ADRB1",                 "Gene ADRB1"},
+        { "POLYMORPHISM_ARG389GLY",     "Polymorphism Arg389Gly"},
+        { "GLY_GLY",                    "Gly/Gly"},
+        { "ARG_GLY",                    "Arg/Gly"},
+        { "ARG_ARG",                    "Arg/Arg"},
 
         { "HYPERTENSION",               "Arterial hypertension"},
         { "CHF",                        "Chronic heart failure"},
