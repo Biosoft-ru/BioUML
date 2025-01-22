@@ -36,10 +36,12 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     private boolean isCreated = false;
     private boolean isPrivate = false;
 
-    public SequenceFeature()
+    public SequenceFeature(String name)
     {
         super( null );
         this.setRole( SbolUtil.getFeatureRoles()[0] );
+        this.name = name;
+        this.title = name;
     }
 
     public SequenceFeature(Identified so)
