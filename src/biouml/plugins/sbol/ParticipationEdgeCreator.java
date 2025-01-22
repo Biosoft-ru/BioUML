@@ -141,7 +141,7 @@ public class ParticipationEdgeCreator implements EdgeCreator
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( doc );
 
         //create interaction
-        InteractionProperties properties = new InteractionProperties();
+        InteractionProperties properties = new InteractionProperties("Degradation");
         properties.setType( SbolConstants.DEGRADATION );
         properties.setName( DefaultSemanticController.generateUniqueName( diagram, "Degradation" ) );
         int x = node.getLocation().x + node.getShapeSize().width + 20;
