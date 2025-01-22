@@ -74,7 +74,7 @@ public class CreateEdgeAction
             {
                 View view = e.getViewSource();
                 Object model = view == null ? null : view.getModel();
-                if( model instanceof Node && model != diagram )
+                if( model instanceof Node /*&& model != diagram*/ )
                 {
                     Node endNode = (Node)model;
                     try
