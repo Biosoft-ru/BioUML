@@ -30,7 +30,7 @@ public class PhysicellDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getNodeTypes()
     {
-        return new Object[] {PhysicellConstants.TYPE_CELL_DEFINITION, PhysicellConstants.TYPE_SUBSTRATE, Type.TYPE_NOTE};
+        return new Object[] {PhysicellConstants.TYPE_CELL_DEFINITION, PhysicellConstants.TYPE_SUBSTRATE, PhysicellConstants.TYPE_EVENT, Type.TYPE_NOTE};
     }
 
     @Override

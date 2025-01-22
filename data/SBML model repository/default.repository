@@ -1,0 +1,3 @@
+#Tue Jun 03 10:11:30 NOVST 2003
+name=SBML model repository
+class=ru.biosoft.access.LocalRepository

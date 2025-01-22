@@ -68,35 +68,39 @@ public class XmlDiagramViewTest extends TestCase
 
     public void testXmlDiagram() throws Exception
     {
-        JFrame frame = new JFrame("XmlDiagram test");
-        frame.show();
-
-        Container content = frame.getContentPane();
-        ViewPane viewPane = new ViewPane();
-
         Diagram diagram = generateTestDiagram(new XmlDiagramType());
 
-        Graphics g = frame.getGraphics();
-        DiagramViewBuilder dvb = diagram.getType().getDiagramViewBuilder();
-        fillXmlDiagramViewBuilder((XmlDiagramViewBuilder)dvb);
-        CompositeView view = dvb.createDiagramView(diagram, g);
-
-        viewPane.setView(view);
-
-        content.add(viewPane);
-        frame.setSize(600, 600);
-        frame.addWindowListener(new WindowAdapter()
+        try
         {
-            @Override
-            public void windowClosed(WindowEvent e)
+            JFrame frame = new JFrame("XmlDiagram test");
+            frame.show();
+
+            Container content = frame.getContentPane();
+            ViewPane viewPane = new ViewPane();
+
+            Graphics g = frame.getGraphics();
+            DiagramViewBuilder dvb = diagram.getType().getDiagramViewBuilder();
+            fillXmlDiagramViewBuilder((XmlDiagramViewBuilder)dvb);
+            CompositeView view = dvb.createDiagramView(diagram, g);
+
+            viewPane.setView(view);
+
+            content.add(viewPane);
+            frame.setSize(600, 600);
+            frame.addWindowListener(new WindowAdapter()
             {
-                System.exit(0);
+                @Override
+                public void windowClosed(WindowEvent e)
+                {
+                    System.exit(0);
+                }
+            });
+            while( true )
+            {
+                Thread.sleep(100);
             }
-        });
-        while( true )
-        {
-            Thread.sleep(100);
         }
+        catch( java.awt.HeadlessException ignore ) {}        
     }
 
     private Diagram generateTestDiagram(DiagramType diagramType) throws Exception

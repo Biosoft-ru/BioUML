@@ -1,0 +1,43 @@
+AC  M00207
+XX
+ID  F$LAC9_C
+XX
+DT  05.09.1995 (created); dbo.
+DT  18.07.2000 (updated); ewi.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  LAC9
+XX
+DE  LAC9 binding site
+XX
+BF  T00458; LAC9; Species: yeast, Kluyveromyces lactis.
+XX
+P0      A      C      G      T
+01   0.87   1.68   1.86   1.84      N
+02   0.00   0.00   0.00   6.26      T
+03   0.93   0.93   0.00   0.00      M
+04   0.84   0.00   1.87   3.55      K
+05   0.00   6.26   0.00   0.00      C
+06   0.00   0.00   6.26   0.00      G
+07   0.00   0.00   6.26   0.00      G
+08   4.48   0.90   0.87   0.00      A
+09   3.58   0.90   0.00   1.77      A
+10   0.93   1.75   0.93   2.65      N
+11   3.52   0.00   0.00   2.74      W
+12   0.00   4.39   0.00   1.86      C
+13   0.84   0.00   0.00   4.51      T
+14   0.00   0.84   2.80   2.62      K
+15   0.00   2.55   0.90   2.80      Y
+16   2.59   0.87   1.86   0.94      N
+17   1.68   2.71   1.86    0.0      V
+18   0.94    0.0    0.0   5.32      T
+19   0.00   6.26   0.00   0.00      C
+20   0.00   6.26   0.00   0.00      C
+21   0.00   0.90   5.35   0.00      G
+22   1.86   0.94   1.75   1.71      N
+XX
+BA  total weight of sequences: 6.26
+XX
+CC  consind generated matrix (random_expectation:  < 0.01)
+XX
+//

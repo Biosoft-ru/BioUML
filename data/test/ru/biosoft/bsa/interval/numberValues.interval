@@ -1,0 +1,2 @@
+#CHROM	START	END	STRAND	numberInteger	numberDouble
+chr1	10	100	+	2	2.02

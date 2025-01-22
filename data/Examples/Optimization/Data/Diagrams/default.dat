@@ -1,0 +1,234 @@
+ID	diagram_1A
+name	diagram_1A
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340177187
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340177187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	diagram_1B
+name	diagram_1B
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340196468
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340196468
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	diagram_1C
+name	diagram_1C
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340213468
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340213468
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	diagram_2
+name	diagram_2
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340301109
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340301109
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+ID	diagram_3
+name	diagram_3
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340477437
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340477437
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+
+ID	diagram_2
+name	diagram_2
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340301109
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340301109
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	diagram_2
+name	diagram_2
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1606456331848
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340301109
+//
+
+ID	diagram_2
+name	diagram_2
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1606456331848
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340301109
+//deleted
+ID	diagram_2
+name	diagram_2
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1647328075723
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+createdDate	1361340301109
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//
+
+ID	diagram_1A
+name	diagram_1A
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340177187
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340177187
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	diagram_1A
+name	diagram_1A
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1724403667722
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340177187
+//
+
+ID	diagram_1B
+name	diagram_1B
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340196468
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340196468
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	diagram_1B
+name	diagram_1B
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1724403699217
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340196468
+//
+
+ID	diagram_1C
+name	diagram_1C
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340213468
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340213468
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	diagram_1C
+name	diagram_1C
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1724403711802
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340213468
+//
+
+ID	diagram_2
+name	diagram_2
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1647328075723
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+createdDate	1361340301109
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	diagram_2
+name	diagram_2
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1724403722225
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340301109
+//
+
+ID	diagram_3
+name	diagram_3
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1361340477437
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+createdDate	1361340477437
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+//deleted
+ID	diagram_3
+name	diagram_3
+compositeDiagram	false
+class	biouml.model.Diagram
+plugins	biouml.workbench
+diagramRole	biouml.model.dynamics.EModel
+modifiedDate	1724403754109
+de_transformer	biouml.plugins.sbml.SbmlDiagramTransformer
+diagramType	biouml.model.xml.XmlDiagramType
+cloneForEdit	true
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+createdDate	1361340477437
+//

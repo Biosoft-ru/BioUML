@@ -1,0 +1,99 @@
+AC  M00286
+XX
+ID  V$GKLF_01
+XX
+DT  07.05.1998 (created); ewi.
+DT  04.09.2001 (updated); rio.
+CO  Copyright (C), Biobase GmbH.
+XX
+NA  GKLF
+XX
+DE  gut-enriched Krueppel-like factor
+XX
+BF  T02450; GKLF; Species: mouse, Mus musculus.
+XX
+P0      A      C      G      T
+01     26      8     13      2      R
+02     28      6      9      6      A
+03     29      7      7      6      A
+04     18      2     18     11      N
+05     26      5     17      1      R
+06     27      4     15      3      R
+07     23      5     17      4      R
+08     23      1     23      2      R
+09     22      4     22      1      R
+10     28      5     12      4      A
+11     25      2     17      5      R
+12     19      0     27      3      R
+13      1      0     46      2      G
+14      2      0     46      1      G
+XX
+BA  49 selected binding sequences
+XX
+BS  R10746; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10747; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10748; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10749; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10750; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10751; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10752; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10753; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10754; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10755; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10756; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10757; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10758; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10759; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10760; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10761; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10762; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10763; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10764; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10765; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10766; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10767; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10768; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10769; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10770; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10771; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10772; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10773; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10774; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10775; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10776; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10777; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10778; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10779; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10780; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10781; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10782; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10783; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10784; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10785; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10786; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10787; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10788; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10789; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10790; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10791; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10792; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10793; Start: 6; Length: 14; Gaps:; Orientation: p.
+BS  R10794; Start: 6; Length: 14; Gaps:; Orientation: p.
+XX
+CC  sequences bound to bacterially expressed GKLF were selected from a pool of
+CC  random 14-mers by gel electrophoresis and amplification over five rounds
+XX
+RN  [1]
+RA  TRANSFAC_Team.
+RT  Revisions of TRANSFAC MATRIX entries; URL:
+RT  http://transfac.gbf.de/TRANSFAC/tf_reports/tf_report_1_0001.html
+RL  TRANSFAC Reports 1:0001 (1998).
+RN  [2]
+RX  MEDLINE; 98108016.
+RA  Shields J. M., Yang V. W.
+RT  Identification of the DNA sequence that interacts with the gut-enriched
+RT  Krueppel-like factor
+RL  Nucleic Acids Res. 26:796-802 (1998).
+XX
+//
+ 

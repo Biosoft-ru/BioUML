@@ -14,7 +14,7 @@ public class ColorFontWrapperBeanInfo extends BeanInfoEx2<ColorFontWrapper>
     @Override
     protected void initProperties() throws Exception
     {
-        addWithTags("family", "SansSerif", "Serif", "Monospaced", "Arial", "Verdana");
+        addWithTags("family", "SansSerif", "Serif", "Monospaced", "Arial", "Verdana", "Liberation Sans");
         addWithTags( "size",
                 bean -> IntStreamEx.of( 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48 ).mapToObj( String::valueOf ) );
         add("color");

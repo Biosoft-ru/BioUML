@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<state diagram="data/Examples/Optimization/Data/Diagrams/diagram_3" id="experiment_1_state" title="experiment_1_state">
+<transaction comment="" title="Change property 'role/vars/k4b/initialValue' of 'Diagram:DGR0403L'">
+<propertyChange elementID="" newValue="347.42493634551806" oldValue="300.0" property="role/vars/k4b/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k4/initialValue' of 'Diagram:DGR0403L'">
+<propertyChange elementID="" newValue="330.7153393833265" oldValue="300.0" property="role/vars/k4/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k5/initialValue' of 'Diagram:DGR0403L'">
+<propertyChange elementID="" newValue="0.30035594547565975" oldValue="0.3" property="role/vars/k5/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k6f/initialValue' of 'Diagram:DGR0403L'">
+<propertyChange elementID="" newValue="0.06033739508668955" oldValue="0.06" property="role/vars/k6f/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k7/initialValue' of 'Diagram:DGR0403L'">
+<propertyChange elementID="" newValue="0.2943941352039739" oldValue="0.3" property="role/vars/k7/initialValue"/>
+</transaction>
+<transaction comment="" title="Change property 'role/vars/k6bf/initialValue' of 'Diagram:DGR0403L'">
+<propertyChange elementID="" newValue="5.716943612592036" oldValue="6.0" property="role/vars/k6bf/initialValue"/>
+</transaction>
+</state>

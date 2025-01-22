@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+	
+	<extension point="biouml.workbench.diagramType">
+		<diagramType class="biouml.plugins.virtualcell.diagram.VirtualCellDiagramType" />
+	</extension>
+	
+	<extension id="SolverType" point="biouml.plugins.simulation.solver">
+		<solver class="biouml.plugins.virtualcell.simulation.VirtualCellSimulator"
+			displayName="Virtual Cell Solver" type="VirtualCell" />
+	</extension>
+
+	<extension id="EngineType" point="biouml.plugins.simulation.engine">
+		<engine class="biouml.plugins.virtualcell.simulation.VirtualCellSimulationEngine"
+			displayName="VirtualCell Simulation Engine"
+	        emodelType="ODE EModel"
+			priority="0.1"
+		/>
+	</extension>
+	
+</plugin>

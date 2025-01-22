@@ -1,0 +1,37 @@
+ID	table_report_test
+OS	
+PLATFORM	
+INFO
+referenceType=TranspathProteinTableType
+plugins=ru.biosoft.table
+name=Transcription Factors proteins annotated Gene Symbol
+species=Unspecified
+SortOrder=-1:true
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	Gene description; Text; NONE;  Gene description
+#2	Gene symbol; Text; NONE;  gene symbol
+#3	Title; Text; NONE;  Title
+#4	Site model ID; Text; NONE;  Site model ID
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+MO000007834	JunD proto-oncogene, AP-1 transcription factor subunit	JUND	JunD(h)	V$JUND_01
+MO000009619	MYB proto-oncogene, transcription factor	MYB	c-Myb(h)	V$CMYB_01,V$MYB_Q6
+MO000013123	signal transducer and activator of transcription 3	STAT3	STAT3(h)	V$STAT3_Q4
+MO000021896	TATA-box binding protein	TBP	TBP(h)	V$TBP_01
+MO000025097	nuclear respiratory factor 1	NRF1	NRF-1(h)	V$NRF1_03
+MO000025668	nuclear factor, erythroid 2 like 2	NFE2L2	Nrf2(h)	V$NRF2_Q4
+MO000025932	aryl hydrocarbon receptor	AHR	AhR(h)	V$AHRARNT_02
+MO000026074	FOS like 2, AP-1 transcription factor subunit	FOSL2	Fra-2(h)	V$FRA2_02
+MO000032472	GATA binding protein 2	GATA2	GATA-2(h)	V$GATA2_09
+MO000041817	RE1 silencing transcription factor	REST	REST(h)	V$REST_06
+MO000046015	MYB proto-oncogene like 1	MYBL1	A-Myb(h)	V$MYBL1_07
+MO000056029	sterol regulatory element binding transcription factor 1	SREBF1	SREBP-1(h)	V$SREBP1_Q5
+MO000058923	histone deacetylase 2	HDAC2	hdac2(h)	V$HDAC2_03
+MO000069886	tripartite motif containing 28	TRIM28	RNF96(h)	V$TRIM28_02
+MO000083919	paired box 6	PAX6	pax-6(h)	V$PAX6_01
+MO000095587	zinc finger and BTB domain containing 7B	ZBTB7B	c-Krox(h)	V$ZBTB7B_05
+MO000114191	aryl hydrocarbon receptor nuclear translocator	ARNT	arnt(h)	V$AHRARNT_02
+//

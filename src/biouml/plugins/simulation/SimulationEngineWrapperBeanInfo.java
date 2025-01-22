@@ -15,7 +15,8 @@ public class SimulationEngineWrapperBeanInfo extends BeanInfoEx2<SimulationEngin
     @Override
     public void initProperties() throws Exception
     {
-        addWithTags( "engineName", bean -> StreamEx.of( bean.getAvailableEngines()));
+        //addWithTags( "engineName", bean -> StreamEx.of( bean.getAvailableEngines()));
+        property("engineName").tags(bean -> StreamEx.of(bean.getAvailableEngines())).structureChanging().add();
         addHidden( "engine", "isEngineHidden" );
     }
 }

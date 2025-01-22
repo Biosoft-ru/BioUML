@@ -20,12 +20,12 @@ public abstract class SdeModel extends JavaLargeModel
 {
     private static final Logger log = Logger.getLogger(SdeModel.class.getName());
     
-    private int seed = 0;
+    private int seed = (int)(new Date().getTime() / 1000);
     
-    private Normal normal = null;
-    private Uniform unif = null;
-    private Poisson poisson = null;
-    private Exponential exponential = null;
+    private Normal normal = new Normal(0, 1, new MersenneTwister(this.seed));
+    private Uniform unif = new Uniform(new MersenneTwister(this.seed));
+    private Poisson poisson = new Poisson(1, new MersenneTwister(this.seed));
+    private Exponential exponential = new Exponential(0, new MersenneTwister(this.seed));
     
     private final String SDE_TYPE_NORMAL = "normal";
     private final String SDE_TYPE_UNIFORM = "uniform";
@@ -51,20 +51,20 @@ public abstract class SdeModel extends JavaLargeModel
         int i = (int)(new Date().getTime() / 1000);
         this.seed = i;
         MersenneTwister twister = new MersenneTwister(this.seed);
-        poisson = new Poisson(1, twister);
-        unif = new Uniform(twister);
-        exponential = new Exponential(0, twister);
-        normal = new Normal(0, 1, twister);
+        this.normal = new Normal(0, 1, twister);
+        this.unif = new Uniform(twister);
+        this.poisson = new Poisson(1, twister);
+        this.exponential = new Exponential(0, twister);
     }
     
     public void setSeed(int seed)
     {
         this.seed = seed;
         MersenneTwister twister = new MersenneTwister(this.seed);
-        poisson = new Poisson(1, twister);
-        unif = new Uniform(twister);
-        exponential = new Exponential(0, twister);
-        normal = new Normal(0, 1, twister);
+        this.normal = new Normal(0, 1, twister);
+        this.unif = new Uniform(twister);
+        this.poisson = new Poisson(1, twister);
+        this.exponential = new Exponential(0, twister);
     }
     
     public int getSeed()

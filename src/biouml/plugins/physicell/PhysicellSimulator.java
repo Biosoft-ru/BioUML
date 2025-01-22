@@ -28,6 +28,7 @@ import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.ui.GIFGenerator;
 import ru.biosoft.physicell.ui.ResultGenerator;
 import ru.biosoft.physicell.ui.Visualizer;
+import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
@@ -47,6 +48,10 @@ public class PhysicellSimulator implements Simulator
     private Map<Visualizer, DataCollection<DataElement>> visualizerResult;
     private Map<Visualizer, DataCollection<DataElement>> visualizerImageResult;
 
+    private String format;
+
+    private VisualizerTextTable textVisualizer;
+
     @Override
     public SimulatorInfo getInfo()
     {
@@ -62,6 +67,11 @@ public class PhysicellSimulator implements Simulator
     public void setResultFolder()
     {
 
+    }
+
+    public void addTextVisualizer(VisualizerTextTable visualizer)
+    {
+        this.textVisualizer = visualizer;
     }
 
     @Override
@@ -99,10 +109,15 @@ public class PhysicellSimulator implements Simulator
         if( options.isSaveImage() )
             imagesCollection = DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Image" ) );
 
+        if( options.isSaveImageText() )
+        {
+            textVisualizer.init(); //TODO: refactor and unify all visualizers
+        }
 
         for( Visualizer v : this.model.getVisualizers() )
         {
-            v.setSaveImage( options.isSaveImage() );
+            if( v instanceof Visualizer2D )
+                ( (Visualizer2D)v ).setSaveImage( options.isSaveImage() );
 
             if( options.isSaveGIF() )
                 v.addResultGenerator( new GIFGenerator( TempFiles.file( v.getName() + ".gif" ) ) );
@@ -120,6 +135,11 @@ public class PhysicellSimulator implements Simulator
 
         if( !this.model.isInit() )
             this.model.init();
+
+        int nums = String.valueOf( Math.round( options.getFinalTime() ) ).length() + 1;
+        format = "%0" + nums + "d";
+
+        saveAllResults( this.model );
     }
 
     private static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
@@ -149,25 +169,36 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
-            curTime = model.getCurrentTime();
-            
-            if( curTime >= nextReport )
-            {
-                nextReport += options.getReportInterval();
-                saveResults( curTime );
-                log.info( model.getLog() );
-                simulationLog.append( "\n" + model.getLog() );
 
-            }
-            
-            if (curTime >= nextImage)
-            {
-                saveImages(curTime);
-                nextImage += options.getImageInterval();
-            }
-            
-        }  
+            model.executeEvents();
+            saveAllResults( model );
+            curTime += options.getDiffusionDt();
+        }
         return false;
+    }
+
+    private void saveAllResults(PhysicellModel model) throws Exception
+    {
+        double curTime = model.getCurrentTime();
+        if( curTime >= nextReport )
+        {
+            nextReport += options.getReportInterval();
+            saveResults( curTime );
+            log.info( model.getLog() );
+            simulationLog.append( "\n" + model.getLog() );
+
+        }
+
+        if( ( options.isSaveImageText() || options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() ) && curTime >= nextImage )
+        {
+
+            if( options.isSaveImageText() )
+                textVisualizer.saveResult( model.getMicroenvironment(), curTime );
+            if( options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() )
+                saveImages( curTime );
+
+            nextImage += options.getImageInterval();
+        }
     }
 
     private void saveImages(double curTime) throws Exception
@@ -181,7 +212,16 @@ public class PhysicellSimulator implements Simulator
 
     private void saveResults(double curTime) throws Exception
     {
-        String suffix = print( curTime, 0 );
+        String suffix;
+        if( options.getReportInterval() >= 1 )
+        {
+            int t = (int)Math.round( curTime );
+            suffix = String.format( format, t );
+        }
+        else
+        {
+            suffix = Double.toString( Math.round( curTime * 100 ) / 100 );
+        }
 
         DataCollection<DataElement> densityCollection = (DataCollection)resultFolder.get( "Density" );
         if( this.options.isSaveReport() )
@@ -236,10 +276,12 @@ public class PhysicellSimulator implements Simulator
         }
     }
 
-    public static String print(double v, int accuracy)
+    public String print(double v, int accuracy)
     {
         double factor = Math.pow( 10, accuracy );
-        return String.valueOf( Math.round( v * factor ) / factor );
+        Integer value = (int) ( Math.round( v * factor ) / factor );
+        return String.format( format, value );
+        //        return String.valueOf( );
     }
 
     @Override
@@ -257,6 +299,7 @@ public class PhysicellSimulator implements Simulator
         catch( Exception ex )
         {
             log.info( "Simulation failed: " + ex.getMessage() );
+            ex.printStackTrace();
         }
     }
 
@@ -297,7 +340,7 @@ public class PhysicellSimulator implements Simulator
     }
 
     @Override
-    public Options getOptions()
+    public PhysicellOptions getOptions()
     {
         return options;
     }
@@ -313,4 +356,6 @@ public class PhysicellSimulator implements Simulator
     {
         // TODO Auto-generated method stub
     }
+
+
 }

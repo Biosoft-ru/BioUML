@@ -25,6 +25,26 @@ function createScript(path, type)
             });
 }
 
+function createJavaCode(path, type)
+{
+    if(!path) return;
+    createSaveElementDialog(resources.dlgCreateScriptTitle,
+            "biouml.plugins.physicell.javacode.JavaElement", createPath(path, resources.dlgCreateScriptDefaultName+"."+type),
+            function(completePath)
+            {
+                queryBioUML("web/script/create",
+                        {
+                            de: completePath,
+                            type: type
+                        },
+                        function(data)
+                        {
+                            refreshTreeBranch(getElementPath(completePath));
+                            openDocument(completePath);
+                        });
+            });
+}
+
 // //////////////////////////////
 // Generic collection functions
 // //////////////////////////////

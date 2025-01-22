@@ -1,0 +1,20 @@
+ID	1.tabular
+OS	
+PLATFORM	
+TITLE	1.tabular
+DESCRIPTION	Description 1
+SAMPLES
+#1	v1; Text; NONE;  Chr
+#2	v2; Text; NONE;  Pos
+#3	v3; Text; NONE;  Pref
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+1	chr22	1000	NM_17
+2	chr22	2000	NM_18
+3	chr10	2200	NM_10
+4	chr10	hap	test
+5	chr10	1200	NM_11
+6	chr22	1600	NM_19
+//

@@ -1,0 +1,169 @@
+FT   source          1..15746
+FT                   /organism="Homo sapiens"
+FT   CDS             join(complement(AC010132:32553..32734),
+FT                   complement(30116..30367))
+FT                   /gene="ENSG00000106591"
+FT                   /cds="ENSP00000223324"
+FT                   /transcript="ENST00000223324"
+FT                   /note="transcript split due to inability to predict a
+FT                   single translateable transcript"
+FT                   /db_xref="SPTREMBL:Q9P098"
+FT                   /db_xref="EMBL:AF161401"
+FT                   /db_xref="protein_id:AAF28961"
+FT                   /db_xref="SPTREMBL:Q9BYC8"
+FT                   /db_xref="EMBL:AB049649"
+FT                   /db_xref="protein_id:BAB40854"
+FT                   /db_xref="EMBL:BC013147"
+FT                   /db_xref="protein_id:AAH13147"
+FT                   /db_xref="HUGO:14035"
+FT                   /db_xref="RefSeq:NM_031903"
+FT                   /db_xref="LocusLink:64983"
+FT                   /db_xref="GO:GO:0003735"
+FT                   /translation="PALAVQGPAMFTEPANDTSGSKENSSLLDSIFWMAAPKNRRTIEV
+FT                   NRCRRRNPQKLIKVKNNIDVCPECGHLKQKHVLCAYCYEKVCKETAEIRRQIGKQEGGP
+FT                   FKAPTIETVVLYTGETPSEQDQGKRIIERDRKRPSWFTQN"
+FT   CDS             join(complement(15206..15246),complement(10471..10547),
+FT                   complement(9624..9756),complement(7763..7885),
+FT                   complement(6413..6494),complement(4946..5019),
+FT                   complement(866..923),complement(665..778))
+FT                   /gene="ENSG00000106588"
+FT                   /cds="ENSP00000223321"
+FT                   /transcript="ENST00000223321"
+FT                   /db_xref="RefSeq:NM_002787"
+FT                   /db_xref="MIM:176842"
+FT                   /db_xref="LocusLink:5683"
+FT                   /db_xref="HUGO:9531"
+FT                   /db_xref="SWISSPROT:P25787"
+FT                   /db_xref="EMBL:D00760"
+FT                   /db_xref="protein_id:BAA00657"
+FT                   /db_xref="EMBL:BC002900"
+FT                   /db_xref="protein_id:AAH02900"
+FT                   /db_xref="GO:GO:0006511"
+FT                   /db_xref="GO:GO:0008233"
+FT                   /db_xref="GO:GO:0004299"
+FT                   /db_xref="GO:GO:0005839"
+FT                   /translation="MAERGYSFSLTTFSPSGKLVQIEYALAAVAGGAPSVGIKAANGVV
+FT                   LATEKKQKSILYDERSVHKVEPITKHIGLVYSGMGPDYRVLVHRARKLAQQYYLVYQEP
+FT                   IPTAQLVQRVASVMQEYTQSGGVRPFGVSLLICGWNEGRPYLFQSDPSGAYFAWKATAM
+FT                   GKNYVNGKTFLEKRYNEDLELEDAIHTAILTLKESFEGQMTEDNIEVGICNEAGFRRLT
+FT                   PTEVKDYLAAIA"
+FT   CDS             join(15475..15604)
+FT                   /gene="ENSG00000106591"
+FT                   /cds="ENSP00000223324"
+FT                   /transcript="ENST00000223324"
+FT                   /note="transcript split due to inability to predict a
+FT                   single translateable transcript"
+FT                   /db_xref="SPTREMBL:Q9P098"
+FT                   /db_xref="EMBL:AF161401"
+FT                   /db_xref="protein_id:AAF28961"
+FT                   /db_xref="SPTREMBL:Q9BYC8"
+FT                   /db_xref="EMBL:AB049649"
+FT                   /db_xref="protein_id:BAB40854"
+FT                   /db_xref="EMBL:BC013147"
+FT                   /db_xref="protein_id:AAH13147"
+FT                   /db_xref="HUGO:14035"
+FT                   /db_xref="RefSeq:NM_031903"
+FT                   /db_xref="LocusLink:64983"
+FT                   /db_xref="GO:GO:0003735"
+FT                   /translation="MALAMLVLVVSPWSAARGVLRNYWERLLRKLPQSRPGFPSPPW"
+FT   exon            complement(501..778)
+FT                   /exon_id="ENSE00000832493"
+FT                   /start_phase=0
+FT                   /end_phase=2
+FT   exon            complement(866..923)
+FT                   /exon_id="ENSE00000679984"
+FT                   /start_phase=2
+FT                   /end_phase=0
+FT   exon            complement(4946..5019)
+FT                   /exon_id="ENSE00000680014"
+FT                   /start_phase=0
+FT                   /end_phase=2
+FT   exon            complement(6413..6494)
+FT                   /exon_id="ENSE00000680039"
+FT                   /start_phase=2
+FT                   /end_phase=0
+FT   exon            complement(7763..7885)
+FT                   /exon_id="ENSE00000680069"
+FT                   /start_phase=2
+FT                   /end_phase=2
+FT   exon            complement(9624..9756)
+FT                   /exon_id="ENSE00000680086"
+FT                   /start_phase=1
+FT                   /end_phase=2
+FT   exon            complement(10471..10547)
+FT                   /exon_id="ENSE00000832494"
+FT                   /start_phase=2
+FT                   /end_phase=1
+FT   exon            complement(15206..15246)
+FT                   /exon_id="ENSE00001017526"
+FT                   /start_phase=0
+FT                   /end_phase=2
+FT   exon            15428..15604
+FT                   /exon_id="ENSE00000832495"
+FT                   /start_phase=0
+FT                   /end_phase=0
+FT   variation       complement(422..422)
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:1060304"
+FT   variation       complement(4107..4107)
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:774087"
+FT                   /db_xref="HGBASE:SNP000298252"
+FT                   /db_xref="TSC-CSHL:TSC1735111"
+FT   variation       5831..5831
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:2162602"
+FT                   /db_xref="HGBASE:SNP001151932"
+FT                   /db_xref="TSC-CSHL:TSC1194724"
+FT   variation       5840..5840
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:2162603"
+FT                   /db_xref="HGBASE:SNP001151933"
+FT                   /db_xref="TSC-CSHL:TSC1194725"
+FT   variation       6920..6920
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:1820595"
+FT                   /db_xref="HGBASE:SNP000707585"
+FT                   /db_xref="TSC-CSHL:TSC0512373"
+FT   variation       7466..7466
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:3028760"
+FT                   /db_xref="TSC-CSHL:TSC1408040"
+FT   variation       7712..7712
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:2303586"
+FT                   /db_xref="HGBASE:SNP001242357"
+FT   variation       9020..9020
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:2114765"
+FT                   /db_xref="HGBASE:SNP001151138"
+FT                   /db_xref="TSC-CSHL:TSC1117418"
+FT   variation       9345..9345
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:2330690"
+FT                   /db_xref="HGBASE:SNP001156163"
+FT                   /db_xref="TSC-CSHL:TSC1408041"
+FT   prediction      join(complement(12555..12562),complement(10470..10546),
+FT                   complement(9623..9755),complement(7762..7884),
+FT                   complement(6412..6493),complement(4945..5018),
+FT                   complement(865..922),complement(661..777))
+FT   variation       complement(13235..13235)
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:774086"
+FT                   /db_xref="HGBASE:SNP001271410"
+FT   variation       complement(13260..13260)
+FT                   /replace=""
+FT                   /evidence="not_experimental"
+FT                   /db_xref="dbSNP:774085"
+FT                   /db_xref="HGBASE:SNP001271410"
+FT   prediction      join(15474..15603)

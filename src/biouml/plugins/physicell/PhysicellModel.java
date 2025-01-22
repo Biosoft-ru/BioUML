@@ -69,12 +69,15 @@ public class PhysicellModel implements Model
         return null;
     }
 
+    public boolean executeEvents() throws Exception
+    {
+        return model.executeEvents( getCurrentTime() );
+    }
 
     @Override
     public void init() throws Exception
     {
         model.init( false );
-
         isInit = true;
     }
 

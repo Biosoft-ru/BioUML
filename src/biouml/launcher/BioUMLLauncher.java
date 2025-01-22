@@ -4,6 +4,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.logging.Logger;
 import org.eclipse.equinox.launcher.Main;
@@ -45,19 +47,25 @@ public class BioUMLLauncher extends ConnectionServlet
             initLogging();
 
             String[] rootFolders = getRootDataFolders(serverPath);
-            final String[] arg = new String[5 + rootFolders.length];
-            int i = 0;
-            arg[i++] = "-install";
-            arg[i++] = serverPath;
-            arg[i++] = "-application";
-            arg[i++] = getApplicationName();
-            arg[i++] = "-noExit";
+            ArrayList<String> args = new ArrayList<>();
+            args.add( "-install" );
+            args.add( serverPath );
+            args.add( "-application" );
+            args.add( getApplicationName() );
+            args.add( "-noExit" );
             for( String rootFolder : rootFolders )
             {
-                arg[i++] = rootFolder;
+                if( new java.io.File( rootFolder ).exists() )
+                {
+                    args.add( rootFolder );
+                }
+                else
+                {
+                    log.info( "" + rootFolder + " is missing. Skipping. " );
+                }  
             }
 
-            log.info( "BioUMLLauncher: " + Arrays.asList( arg ) );
+            log.info( "BioUMLLauncher: " + args );
 
             ( new Thread()
             {
@@ -66,7 +74,7 @@ public class BioUMLLauncher extends ConnectionServlet
                 {
                     try
                     {
-                        Main.main(arg);
+                        Main.main( args.toArray( new String[ 0 ] ) );
                     }
                     catch( Throwable t )
                     {

@@ -35,8 +35,9 @@ public class AntimonyAnnotationImporter
         }
         else
         {
+            System.out.println("Try to load YAML file from " + source.toString() );
             TextDataElement tde = (TextDataElement)CollectionFactory.getDataElement(source.toString());
-            System.out.println("Try to load YAML file from " + source.toString() + ": " + tde);
+       
             yamlText = tde.getContent();
         }
 

@@ -13,6 +13,10 @@ import ru.biosoft.access.TextDataElement;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import junit.framework.TestCase;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
+
 /**
  * @author lan
  *
@@ -21,6 +25,8 @@ public class ZipHtmlDataCollectionTest extends TestCase
 {
     public void testZipHtmlDataCollection() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         DataCollection<?> root = CollectionFactory.createRepository("../data/test/ru/biosoft/access/zhtml");
         assertNotNull(root);
         ZipHtmlDataCollection dc = DataElementPath.create("zhtml/zhtml").getDataElement(ZipHtmlDataCollection.class);

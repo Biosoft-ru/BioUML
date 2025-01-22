@@ -1,0 +1,55 @@
+Ascending Aorta	4.0	5.983	388000
+Aortic Arch I	2.0	5.147	348000	Ascending Aorta	
+Brachiocephalic	3.4	1.219	932000	Ascending Aorta	
+R. Subclavian I	3.4	0.562	1692000	Brachiocephalic
+R. Carotid	17.7	0.432	2064000	Brachiocephalic
+R. Vertebral	14.8	0.123	10360000	R. Subclavian I
+R. Subclavian II	42.2	0.510	1864000	R. Subclavian I
+R. Radial	23.5	0.106	11464000	R. Subclavian II
+R. Ulnar I	6.7	0.145	8984000	R. Subclavian II
+R. Interosseous	7.9	0.031	51576000	R. Ulnar I
+R. Ulnar II	17.1	0.133	9784000	R. Ulnar I
+R. internal Carotid	17.6	0.121	10576000	R. Carotid
+R. external Carotid	17.7	0.121	9868000	R. Carotid
+Aortic Arch II	3.9	3.142	520000	Aortic Arch I
+L. Carotid	20.8	0.430	2076000	Aortic Arch I
+L. internal Carotid	17.6	0.121	10576000	L. Carotid
+L. external Carotid	17.7	0.121	9868000	L. Carotid
+Thoracic Aorta I	5.2	3.142	496000	Aortic Arch II
+L. Subclavian I	3.4	0.562	1664000	Aortic Arch II	
+Vertebral	14.8	0.123	10360000	L. Subclavian I	
+L. Subclavian II	42.2	0.510	1864000	L. Subclavian I	
+L. Radial	23.5	0.106	11464000	L. Subclavian II
+L. Ulnar I	6.7	0.145	8984000	L. Subclavian II
+L. Interosseous	7.9	0.031	51576000	L. Ulnar I	
+L. Ulnar II	17.1	0.133	9784000	L. Ulnar I	
+Intercostals	8.0	0.196	3540000	Thoracic Aorta I
+Thoracic Aorta II	10.4	3.017	468000	Thoracic Aorta I
+Abdominal I	5.3	1.911	668000	Thoracic Aorta II
+Celiac I	2.0	0.478	1900000	Thoracic Aorta II
+Celiac II	1.0	0.126	7220000	Celiac I
+Hepatic	6.6	0.152	4568000	Celiac I
+Gastric	7.1	0.102	6268000	Celiac II
+Splenic	6.3	0.238	3224000	Celiac II
+Superior Mesenteric	5.9	0.430	2276000	Abdominal I
+Abdominal II	1.0	1.247	908000	Abdominal I
+L. Renal	3.2	0.332	2264000	Abdominal II
+Abdominal III	1.0	1.021	1112000	Abdominal II
+R. Renal	3.2	0.159	4724000	Abdominal III
+Abdominal IV	10.6	0.697	1524000	Abdominal III
+Inferior Mesenteric	5.0	0.080	7580000	Abdominal IV
+Abdominal V	1.0	0.578	1596000	Abdominal IV
+R. common Iliac	5.9	0.328	2596000	Abdominal V
+L. common Iliac	5.8	0.328	2596000	Abdominal V
+L. external Iliac	14.4	0.252	5972000	L. common Iliac
+L. internal Iliac	5.0	0.181	12536000	L. common Iliac
+L. Femoral	44.3	0.139	10236000	L. external Iliac
+L. deep Femoral	12.6	0.126	10608000	L. external Iliac
+L. posterior Tibial	32.1	0.110	23232000	L. Femoral
+L. anterior Tibial	34.3	0.060	36972000	L. Femoral
+R. external Iliac	14.5	0.252	5972000	R. common Iliac
+R. internal Iliac	5.1	0.181	12536000	R. common Iliac
+R. Femoral	44.4	0.139	10236000	R. external Iliac
+R. deep Femoral	12.7	0.126	10608000	R. external Iliac
+R. posterior Tibial	32.3	0.110	23232000	R. Femoral
+R. anterior Tibial	34.4	0.060	36972000	R. Femoral

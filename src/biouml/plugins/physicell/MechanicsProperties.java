@@ -66,7 +66,7 @@ public class MechanicsProperties
         mechanics.cellCellRepulsionStrength = cellCellRepulsionStrength;
     }
 
-    @PropertyName ( "Membrane adhesion strength" )
+    @PropertyName ( "Membrane repulsion strength" )
     @PropertyDescription ( "Basement membrane repulsion strength." )
     public double getCellBMRepulsionStrength()
     {
@@ -77,7 +77,7 @@ public class MechanicsProperties
         mechanics.cellBMRepulsionStrength = cellBMRepulsionStrength;
     }
 
-    @PropertyName ( "Max adhesion dtrength" )
+    @PropertyName ( "Relative max adhesion distance" )
     @PropertyDescription ( "Relative max adhesion distance." )
     public double getRelMaxAdhesionDistance()
     {

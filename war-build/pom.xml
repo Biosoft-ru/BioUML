@@ -1,0 +1,128 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>war-build</artifactId>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.biouml</groupId>
+        <artifactId>biouml</artifactId>
+        <version>0.9.10</version>
+        <relativePath>../pom.xml</relativePath> <!-- Adjust the path to the parent POM -->
+    </parent>
+
+    <properties>
+        <rootDir>..</rootDir>
+        <pluginDir>${project.basedir}</pluginDir>
+        <biouml.plugin.jar.excludes>**/*</biouml.plugin.jar.excludes>
+        <server.path.absolute>${maven.multiModuleProjectDirectory}/target</server.path.absolute>
+    </properties>
+
+    <dependencies>
+        <!-- Depend on the compiled classes from the parent module -->
+        <dependency>
+            <groupId>org.biouml</groupId>
+            <artifactId>src</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <!-- Run after packaging the JAR -->
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+
+                                <war destfile="${rootDir}/target/bioumlweb.war" 
+                                     webxml="${rootDir}/src/ru/biosoft/server/servlets/webservices/webfiles/WEB-INF/web.xml">
+                                    <fileset dir="${rootDir}/src/ru/biosoft/server/servlets/webservices/webfiles">
+                                        <exclude name="WEB-INF/web.xml" />
+                                        <exclude name="icons/large/**"/>
+                                        <exclude name="css/large/**"/>
+                                    </fileset>
+                                    <classes dir="${rootDir}/src/target/classes"> 
+                                        <include name="ru/biosoft/server/tomcat/CacheControlFilter.class" />
+                                        <include name="ru/biosoft/server/tomcat/DataElementServlet.class" />
+                                    </classes>
+                                </war>
+
+                                <copy file="${rootDir}/web.xml" tofile="${pluginDir}/target/web.xml" overwrite="true" />
+                                <replace file="${pluginDir}/target/web.xml" token="@@server.path.absolute@@" value="${server.path.absolute}" />
+
+                                <war destfile="${rootDir}/target/biouml.war" 
+                                     webxml="${pluginDir}/target/web.xml">
+                                    <lib dir="${rootDir}/plugins">
+                                        <include name="org.eclipse.equinox.launcher_1.4.0.v20161219-1356.jar" />
+                                        <include name="org.apache.log4j_1.2.12.jar" />
+                                        <include name="org.apache.commons.fileupload_1.2.1.jar" />
+                                        <include name="org.apache.commons.io_1.4.jar" />
+                                    </lib>
+                                    <classes dir="../src/target/classes"> 
+                                        <include name="biouml/launcher/*.class" />
+                                        <include name="ru/biosoft/server/tomcat/ConnectionServlet.class" />
+                                        <include name="ru/biosoft/server/tomcat/UploadProgressListener.class" />
+                                        <include name="ru/biosoft/server/tomcat/CustomSimpleFormatter.class" />
+                                        <include name="ru/biosoft/server/Response.class" />
+                                    </classes>
+                                </war>
+
+                                <copy todir="${rootDir}/target/plugins">
+                                     <fileset dir="${rootDir}/plugins"/>
+                                </copy> 
+                                <copy todir="${rootDir}/target/repo">
+                                     <fileset dir="${rootDir}/data"/>
+                                </copy> 
+                                <copy todir="${rootDir}/target/resources">
+                                     <fileset dir="${rootDir}/data_resources"/>
+                                </copy> 
+                                <copy todir="${rootDir}/target/analyses">
+                                     <fileset dir="${rootDir}/analyses"/>
+                                </copy> 
+                                <copy todir="${rootDir}/target/configuration">
+                                     <fileset dir="${rootDir}/configuration"/>
+                                </copy> 
+
+                                <copy todir="${rootDir}/target" overwrite="true">
+                                     <fileset dir="${rootDir}">
+                                        <include name="preferences.xml" />
+                                        <include name="biouml.policy" />
+                                     </fileset>
+                                </copy> 
+                                <copy todir="${rootDir}/target/conf" overwrite="true">
+                                     <fileset dir="${rootDir}">
+                                        <include name="server.lcf" />
+                                        <include name="security.properties" />
+                                     </fileset>
+                                </copy> 
+
+                                <replace file="${rootDir}/target/conf/server.lcf" token="$${catalina.base}" value="${server.path.absolute}/tomcat" />
+                                <replace file="${rootDir}/target/biouml.policy" token="$${catalina.home}" value="${server.path.absolute}/tomcat" />
+
+                                <mkdir dir="${rootDir}/target/tomcat/webapps" />
+                                <mkdir dir="${rootDir}/target/tomcat/logs" />
+
+                            </target>
+
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

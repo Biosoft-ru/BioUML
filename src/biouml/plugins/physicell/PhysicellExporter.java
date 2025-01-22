@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
+import biouml.plugins.physicell.javacode.JavaElement;
 import biouml.plugins.sbml.SbmlExporter;
 import biouml.plugins.sbml.SbmlExporter.SbmlExportProperties;
 import biouml.standard.diagram.DiagramUtility;
@@ -45,7 +46,6 @@ import ru.biosoft.access.generic.GenericZipExporter;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.physicell.core.CycleModel;
 import ru.biosoft.physicell.core.PhaseLink;
-import ru.biosoft.plugins.javascript.JSElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.export.TableElementExporter;
 import ru.biosoft.util.TempFiles;
@@ -135,7 +135,7 @@ public class PhysicellExporter implements DataElementExporter
             {
                 elementFile = TempFiles.file( "zipExport.xml" );
                 this.write( diagram, elementFile );
-                
+
             }
             catch( Exception e )
             {
@@ -150,11 +150,11 @@ public class PhysicellExporter implements DataElementExporter
                 zip.closeEntry();
                 elementFile.delete();
             }
-            
+
             if( hasRules( diagram.getRole( MulticellEModel.class ) ) )
             {
-                File rulesFile =  TempFiles.file( "cell_rules.csv" );
-                exportRules(diagram, rulesFile);
+                File rulesFile = TempFiles.file( "cell_rules.csv" );
+                exportRules( diagram, rulesFile );
                 if( rulesFile.exists() )
                 {
                     ZipEntry entry = new ZipEntry( "cell_rules.csv" );
@@ -175,7 +175,7 @@ public class PhysicellExporter implements DataElementExporter
 
     private void exportRules(Diagram diagram, File file) throws IOException
     {
-            writeRules( file );
+        writeRules( file );
     }
 
     private List<DataElement> getRelatedElements(DataElement dataElement)
@@ -201,8 +201,10 @@ public class PhysicellExporter implements DataElementExporter
             tryAdd( cdp.getFunctionsProperties().getVolumeUpdateCustom(), paths );
             tryAdd( cdp.getFunctionsProperties().getCustomRuleCustom(), paths );
             tryAdd( cdp.getFunctionsProperties().getMigrationUpdateCustom(), paths );
+            tryAdd(cdp.getIntracellularProperties().getDiagram(), paths);
         }
-        return StreamEx.of(paths).map( s -> DataElementPath.create( s ).getDataElement() ).toList();
+        
+        return StreamEx.of( paths ).map( s -> DataElementPath.create( s ).getDataElement() ).toList();
     }
 
 
@@ -214,7 +216,7 @@ public class PhysicellExporter implements DataElementExporter
 
     private DataElementExporter getExporter(DataElement de)
     {
-        if( de instanceof JSElement )
+        if( de instanceof JavaElement )
             return new FileExporter();
         if( de instanceof TableDataCollection )
         {
@@ -236,12 +238,12 @@ public class PhysicellExporter implements DataElementExporter
 
     private String generateExtension(DataElement de)
     {
-        if( de instanceof JSElement )
+        if( de instanceof JavaElement )
             return "java";
         if( de instanceof TableDataCollection )
             return "csv";
         else if( de instanceof Diagram )
-            return "xmls";
+            return "xml";
         return "xml";
     }
 
@@ -376,7 +378,7 @@ public class PhysicellExporter implements DataElementExporter
             reportElement.setAttribute( "enabled", "true" );
             reportElement.setAttribute( "type", "java" );
             createSimpleElement( reportElement, "folder", "." );
-            createSimpleElement( reportElement, "filename", report.getReportPath().getName() );
+            createSimpleElement( reportElement, "filename", addExtension( report.getReportPath().getName(), "java") );
         }
 
         if( report.isCustomVisualizer() )
@@ -385,7 +387,7 @@ public class PhysicellExporter implements DataElementExporter
             reportElement.setAttribute( "enabled", "true" );
             reportElement.setAttribute( "type", "java" );
             createSimpleElement( reportElement, "folder", "." );
-            createSimpleElement( reportElement, "filename", report.getVisualizerPath().getName() );
+            createSimpleElement( reportElement, "filename", addExtension( report.getVisualizerPath().getName(), "java") );
         }
     }
 
@@ -790,7 +792,7 @@ public class PhysicellExporter implements DataElementExporter
         String name = null;
         if( ic.getCustomConditionCode() != null && !ic.getCustomConditionCode().isEmpty() )
         {
-            name = ic.getCustomConditionCode().getName();
+            name = this.addExtension( ic.getCustomConditionCode().getName(), "java");
             positionElement.setAttribute( "type", "java" );
         }
         else if( ic.getCustomConditionTable() != null && !ic.getCustomConditionTable().isEmpty() )
@@ -815,6 +817,13 @@ public class PhysicellExporter implements DataElementExporter
         }
     }
 
+    private String addExtension(String file, String extension)
+    {
+        if( file.endsWith( "." + extension ) )
+            return file;
+        return file + "." + extension;
+    }
+
     protected void writeFunctions(Element parent, FunctionsProperties properties)
     {
         Element functionsElement = createSimpleElement( parent, "functions" );
@@ -823,7 +832,7 @@ public class PhysicellExporter implements DataElementExporter
         phenotypeElement.setAttribute( "name", "update_phenotype" );
         if( !properties.isDefaultPhenotype() )
         {
-            phenotypeElement.setAttribute( "file", properties.getPhenotypeUpdateCustom().getName() );
+            phenotypeElement.setAttribute( "file", addExtension( properties.getPhenotypeUpdateCustom().getName(), "java" ) );
             phenotypeElement.setAttribute( "type", "java" );
 
         }
@@ -834,7 +843,7 @@ public class PhysicellExporter implements DataElementExporter
         customRuleElement.setAttribute( "name", "custom_cell_rule" );
         if( !properties.isDefaultRule() )
         {
-            customRuleElement.setAttribute( "file", properties.getCustomRuleCustom().getName() );
+            customRuleElement.setAttribute( "file", addExtension( properties.getCustomRuleCustom().getName(), "java" ) );
             customRuleElement.setAttribute( "type", "java" );
         }
         else
@@ -845,7 +854,7 @@ public class PhysicellExporter implements DataElementExporter
 
         if( !properties.isDefaultMigration() )
         {
-            updateMigrationElement.setAttribute( "file", properties.getMigrationUpdateCustom().getName() );
+            updateMigrationElement.setAttribute( "file", addExtension( properties.getMigrationUpdateCustom().getName(), "java" ) );
             updateMigrationElement.setAttribute( "type", "java" );
         }
         else
@@ -855,7 +864,7 @@ public class PhysicellExporter implements DataElementExporter
         instantiateElement.setAttribute( "name", "instantiate_cell" );
         if( !properties.isDefaultInstantiate() )
         {
-            instantiateElement.setAttribute( "file", properties.getInstantiateCustom().getName() );
+            instantiateElement.setAttribute( "file", addExtension( properties.getInstantiateCustom().getName(), "java" ) );
             instantiateElement.setAttribute( "type", "java" );
         }
         else
@@ -865,7 +874,7 @@ public class PhysicellExporter implements DataElementExporter
         volumeElement.setAttribute( "name", "volume_update_function" );
         if( !properties.isDefaultVolume() )
         {
-            volumeElement.setAttribute( "file", properties.getVolumeUpdateCustom().getName() );
+            volumeElement.setAttribute( "file", addExtension( properties.getVolumeUpdateCustom().getName(), "java" ) );
             volumeElement.setAttribute( "type", "java" );
         }
         else
@@ -875,7 +884,7 @@ public class PhysicellExporter implements DataElementExporter
         velocityElement.setAttribute( "name", "update_velocity" );
         if( !properties.isDefaultVelocity() )
         {
-            velocityElement.setAttribute( "file", properties.getVelocityUpdateCustom().getName() );
+            velocityElement.setAttribute( "file", addExtension( properties.getVelocityUpdateCustom().getName(), "java" ) );
             velocityElement.setAttribute( "type", "java" );
         }
         else
@@ -885,7 +894,7 @@ public class PhysicellExporter implements DataElementExporter
         contactElement.setAttribute( "name", "contact_function" );
         if( !properties.isDefaultContact() )
         {
-            contactElement.setAttribute( "file", properties.getContactCustom().getName() );
+            contactElement.setAttribute( "file", addExtension( properties.getContactCustom().getName(), "java" ) );
             contactElement.setAttribute( "type", "java" );
         }
         else
@@ -895,7 +904,7 @@ public class PhysicellExporter implements DataElementExporter
         membraneInteractionElement.setAttribute( "name", "add_cell_basement_membrane_interactions" );
         if( !properties.isDefaultMBDistance() )
         {
-            membraneInteractionElement.setAttribute( "file", properties.getMembraneInteractionCustom().getName() );
+            membraneInteractionElement.setAttribute( "file", addExtension( properties.getMembraneInteractionCustom().getName(), "java" ) );
             membraneInteractionElement.setAttribute( "type", "java" );
         }
         else
@@ -905,7 +914,7 @@ public class PhysicellExporter implements DataElementExporter
         membraneDistanceElement.setAttribute( "name", "calculate_distance_to_membrane" );
         if( !properties.isDefaultMBDistance() )
         {
-            membraneDistanceElement.setAttribute( "file", properties.getMembraneDistanceCustom().getName() );
+            membraneDistanceElement.setAttribute( "file", addExtension( properties.getMembraneDistanceCustom().getName(), "java" ) );
             membraneDistanceElement.setAttribute( "type", "java" );
         }
         else
@@ -939,8 +948,8 @@ public class PhysicellExporter implements DataElementExporter
                 {
                     bw.append( cell_type + "," + rule.getSignal() + "," + rule.getDirection() + "," + rule.getBehavior() + ","
                     // + base_value + "," 
-                            + rule.getSaturationValue() + "," + rule.getHalfMax() + "," + rule.getHillPower() + "," + (rule.isApplyToDead() ? "1.0": "0.0")
-                            + "\n" );
+                            + rule.getSaturationValue() + "," + rule.getHalfMax() + "," + rule.getHillPower() + ","
+                            + ( rule.isApplyToDead() ? "1.0" : "0.0" ) + "\n" );
                 }
             }
         }

@@ -18,6 +18,9 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.editor.ViewPane;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class XmlDiagramViewTest extends TestCase
 {
     public static final String repositoryPath = "../data_resources";
@@ -56,42 +59,49 @@ public class XmlDiagramViewTest extends TestCase
     //
 
     public void testXmlDiagram() throws Exception
-    {
-        JFrame frame = new JFrame("XmlDiagram test");
-        frame.show();
+    {        
+        Environment.setClassLoading( new BiosoftClassLoading() );
 
-        Container content = frame.getContentPane();
-        viewPane = new ViewPane();
-        
         CollectionFactory.createRepository(repositoryPath);
         
         SBGNXmlReader reader = new SBGNXmlReader(null, "test", null);
         File testFile = new File(testFileName);
         assertTrue("Can not find test file: "+testFileName, testFile.exists());
-        try( FileInputStream inputStream = new FileInputStream( testFile ) )
-        {
-            Diagram diagram = reader.read( inputStream );
 
-            Graphics g = frame.getGraphics();
-            DiagramViewBuilder dvb = diagram.getType().getDiagramViewBuilder();
-            CompositeView view = dvb.createDiagramView( diagram, g );
+        try
+        { 
+            JFrame frame = new JFrame("XmlDiagram test");
+            frame.show();
 
-            viewPane.setView( view );
-        }
+            Container content = frame.getContentPane();
+            viewPane = new ViewPane();
 
-        content.add(viewPane);
-        frame.setSize(600, 400);
-        frame.addWindowListener(new WindowAdapter()
-        {
-            @Override
-            public void windowClosed(WindowEvent e)
+            try( FileInputStream inputStream = new FileInputStream( testFile ) )
             {
-                System.exit(0);
+                Diagram diagram = reader.read( inputStream );
+
+                Graphics g = frame.getGraphics();
+                DiagramViewBuilder dvb = diagram.getType().getDiagramViewBuilder();
+                CompositeView view = dvb.createDiagramView( diagram, g );
+
+                viewPane.setView( view );
             }
-        });
-        while( true )
-        {
-            Thread.sleep(100);
-        }
+
+            content.add(viewPane);
+            frame.setSize(600, 400);
+            frame.addWindowListener(new WindowAdapter()
+            {
+                @Override
+                public void windowClosed(WindowEvent e)
+                {
+                    System.exit(0);
+                }
+            });
+            while( true )
+            {
+                Thread.sleep(100);
+            }
+        }   
+        catch( java.awt.HeadlessException ignore ) {}        
     }
 }

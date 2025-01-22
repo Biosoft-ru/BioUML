@@ -25,22 +25,25 @@ public class ModelAgent extends SimulationAgent
     protected boolean updatedFromOutside = false;
     protected Map<String, Integer> variableToIndex = new HashMap<>();
     private int nextSpanIndex = 1;
+    private int recalculateStepIndex = -1; //if != -1 than simulation step may be changed by the model itself.
+    private double oldStep;
 
     public ModelAgent(SimulationEngine engine) throws Exception
     {
-        this(engine, engine.getDiagram().getName());
+        this( engine, engine.getDiagram().getName() );
     }
 
     public ModelAgent(SimulationEngine engine, String name) throws Exception
     {
-        this(engine.createModel(), engine.getSimulator(), new UniformSpan(engine.getInitialTime(), engine.getCompletionTime(), engine
-                .getTimeIncrement()), name, engine.getListeners());
+        this( engine.createModel(), engine.getSimulator(),
+                new UniformSpan( engine.getInitialTime(), engine.getCompletionTime(), engine.getTimeIncrement() ), name,
+                engine.getListeners() );
         this.engine = engine;
     }
 
-    public ModelAgent(Model model, Simulator simulator, Span span, String name, ResultListener... listeners) throws Exception
+    public ModelAgent(Model model, Simulator simulator, Span span, String name, ResultListener ... listeners) throws Exception
     {
-        super(name, span);
+        super( name, span );
         this.model = model;
         this.simulator = simulator;
 
@@ -53,8 +56,8 @@ public class ModelAgent extends SimulationAgent
 
         updatedValues = currentValues.clone();
 
-        for (ResultListener listener: listeners)
-            this.listeners.add(listener);
+        for( ResultListener listener : listeners )
+            this.listeners.add( listener );
     }
 
     @Override
@@ -64,19 +67,38 @@ public class ModelAgent extends SimulationAgent
 
         if( !model.isInit() )
             this.model.init();
-        this.simulator.init(model, model.getInitialValues(), span,  listeners.toArray(new ResultListener[listeners.size()]), new FunctionJobControl(log));
+        this.simulator.init( model, model.getInitialValues(), span, listeners.toArray( new ResultListener[listeners.size()] ),
+                new FunctionJobControl( log ) );
         currentValues = model.getCurrentValues();
         updatedValues = currentValues.clone();
         nextSpanIndex = 1;
+        if( recalculateStepIndex != -1 )
+            recalculateSpan();
     }
 
     public void setInitialValues(double[] initialValues) throws Exception
     {
         this.simulator.init( model, initialValues, span, listeners.toArray( new ResultListener[listeners.size()] ),
-                new FunctionJobControl(
-                log));
+                new FunctionJobControl( log ) );
     }
 
+    private void recalculateSpan() throws Exception
+    {
+        double newStep = this.getCurrentValues()[recalculateStepIndex];
+        if( newStep == oldStep )
+            return;
+        this.span = new UniformSpan( this.currentTime, this.completionTime, newStep );
+        simulator.init( model, simulator.getProfile().getX(), span, listeners.toArray( new ResultListener[listeners.size()] ),
+                new FunctionJobControl( log ) );
+        //        simulator.setInitialValues( currentValues );
+        this.nextSpanIndex = 1;
+        this.oldStep = newStep;
+    }
+
+    public void setRecalculateStep(int index)
+    {
+        recalculateStepIndex = index;
+    }
 
     @Override
     public void iterate()
@@ -88,27 +110,30 @@ public class ModelAgent extends SimulationAgent
                 if( updatedFromOutside )
                     simulator.setInitialValues( currentValues );
 
-//                double[] oldValues = model.getCurrentValues();
-                
-                while (simulator.getProfile().getTime() < span.getTime( nextSpanIndex ) && isAlive)
-                isAlive = simulator.doStep();
-                
+                //                double[] oldValues = model.getCurrentValues();
+
+                while( simulator.getProfile().getTime() < span.getTime( nextSpanIndex ) && isAlive )
+                    isAlive = simulator.doStep();
+
                 nextSpanIndex++;
-                
+
                 currentValues = model.getCurrentValues();
 
-//                log.info(getName()+": "+Util.joinArray(oldValues)+" --> "+joinArray(currentValues)  );
+                //                log.info(getName()+": "+Util.joinArray(oldValues)+" --> "+joinArray(currentValues)  );
 
                 currentTime = simulator.getProfile().getTime();
                 updatedFromOutside = false;
-                
-                if (nextSpanIndex >= span.getLength())
+
+                if( recalculateStepIndex != -1 )
+                    recalculateSpan();
+
+                if( nextSpanIndex >= span.getLength() )
                     isAlive = false;
             }
         }
         catch( Exception ex )
         {
-            log.log(Level.SEVERE, ex.getMessage());
+            log.log( Level.SEVERE, ex.getMessage() );
             currentTime = Double.POSITIVE_INFINITY;
         }
     }
@@ -119,11 +144,11 @@ public class ModelAgent extends SimulationAgent
     {
         try
         {
-            variableToIndex.put(name, index);
+            variableToIndex.put( name, index );
         }
         catch( Exception ex )
         {
-            throw new Exception("Unknown variable " + name + " in agent " + this.name);
+            throw new Exception( "Unknown variable " + name + " in agent " + this.name );
         }
     }
 
@@ -148,7 +173,7 @@ public class ModelAgent extends SimulationAgent
     @Override
     public boolean containsVariable(String name) throws Exception
     {
-        return variableToIndex.containsKey(name);
+        return variableToIndex.containsKey( name );
     }
 
     @Override
@@ -186,7 +211,7 @@ public class ModelAgent extends SimulationAgent
     {
         try
         {
-            listeners.add(listener);
+            listeners.add( listener );
             this.simulator.init( model, model.getInitialValues(), span, listeners.toArray( new ResultListener[listeners.size()] ),
                     new FunctionJobControl( log ) );
         }
@@ -217,7 +242,7 @@ public class ModelAgent extends SimulationAgent
     @Override
     protected void setUpdated() throws Exception
     {
-       System.arraycopy( currentValues, 0, updatedValues, 0,  currentValues.length);
+        System.arraycopy( currentValues, 0, updatedValues, 0, currentValues.length );
     }
 
     public SimulationEngine getEngine()
@@ -249,22 +274,22 @@ public class ModelAgent extends SimulationAgent
     {
         return simulator.getProfile().getErrorMessage();
     }
-    
+
     @Override
     public void die()
     {
-		super.die();
+        super.die();
 
         try
         {
             if( engine != null )
                 engine.checkVariables( model.getCurrentState(), EntryStream.of( engine.getVarIndexMapping() ).invert().toMap() );
         }
-        catch (Exception ex) 
-		{
+        catch( Exception ex )
+        {
 
-		}
-	}
+        }
+    }
 
     @Override
     public ModelAgent clone(String name) throws Exception

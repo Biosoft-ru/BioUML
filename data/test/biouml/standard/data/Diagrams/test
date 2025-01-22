@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dml appVersion="0.7.7" version="0.7.7">
+<diagram diagramType="biouml.standard.diagram.PathwayDiagramType">
+<diagramInfo/>
+<compartmentInfo color="255,255,255" height="352" kernel="stub/test" kernel_type="info-diagram" shape="0" width="681" x="0" y="0"/>
+<nodes>
+<node height="48" kernel="Data/substance/A" width="30" x="339" y="67"/>
+<node height="48" kernel="Data/substance/B" width="30" x="192" y="40"/>
+<compartment>
+<compartmentInfo color="255,255,255" height="150" kernel="Data/compartment/C" shape="0" width="150" x="526" y="42"/>
+<nodes/>
+<edges/>
+</compartment>
+<compartment>
+<compartmentInfo color="255,255,255" height="150" kernel="Data/compartment/D" shape="0" width="150" x="256" y="197"/>
+<nodes/>
+<edges/>
+</compartment>
+<node height="23" kernel="Data/rna/E" width="24" x="136" y="271"/>
+<node height="43" kernel="Data/gene/G" width="40" x="20" y="26"/>
+<node height="48" kernel="Data/protein/P" width="30" x="2" y="263"/>
+<node height="7" kernel="Data/reaction/R000001" width="7" x="177" y="184"/>
+</nodes>
+<edges>
+<edge in="B" kernel="Data/reaction/R000001/R000001: B as reactant" out="R000001"/>
+<edge in="R000001" kernel="Data/reaction/R000001/R000001: D as product" out="D"/>
+<edge in="E" kernel="Data/reaction/R000001/R000001: E as reactant" out="R000001"/>
+<edge in="G" kernel="Data/relation/gene/G -&gt; protein/P" out="P"/>
+<edge in="G" kernel="Data/relation/gene/G -&gt; rna/E" out="E"/>
+<edge in="A" kernel="Data/relation/substance/A -&gt; compartment/C" out="C"/>
+</edges>
+</diagram>
+</dml>

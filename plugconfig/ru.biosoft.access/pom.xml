@@ -1,0 +1,82 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ru.biosoft.access</artifactId>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.biouml</groupId>
+        <artifactId>biouml</artifactId>
+        <version>0.9.10</version>
+        <relativePath>../../pom.xml</relativePath> <!-- Adjust the path to the parent POM -->
+    </parent>
+
+    <properties>
+        <rootDir>../..</rootDir>
+        <pluginDir>${rootDir}/plugconfig/${project.artifactId}</pluginDir>
+
+        <!-- defined explicitly -->
+        <biouml.plugin.path>ru/biosoft</biouml.plugin.path>
+
+        <biouml.plugin.jar.excludes>ru/biosoft/access/search/**</biouml.plugin.jar.excludes>  
+        <biouml.plugin.jar.excludes.extra2>ru/biosoft/analysis/**</biouml.plugin.jar.excludes.extra2>
+        <biouml.plugin.jar.excludes.extra3>ru/biosoft/analysiscore/**</biouml.plugin.jar.excludes.extra3>
+        <biouml.plugin.jar.excludes.extra4>ru/biosoft/bpmn/**</biouml.plugin.jar.excludes.extra4>
+        <biouml.plugin.jar.excludes.extra5>ru/biosoft/bsa/**</biouml.plugin.jar.excludes.extra5>
+        <biouml.plugin.jar.excludes.extra6>ru/biosoft/bsastats/**</biouml.plugin.jar.excludes.extra6>
+        <biouml.plugin.jar.excludes.extra7>ru/biosoft/fs/**</biouml.plugin.jar.excludes.extra7>
+        <biouml.plugin.jar.excludes.extra8>ru/biosoft/graph/**</biouml.plugin.jar.excludes.extra8>
+        <biouml.plugin.jar.excludes.extra9>ru/biosoft/graphics/**</biouml.plugin.jar.excludes.extra9>
+        <biouml.plugin.jar.excludes.extra10>ru/biosoft/math/**</biouml.plugin.jar.excludes.extra10>
+        <biouml.plugin.jar.excludes.extra11>ru/biosoft/plugins/**</biouml.plugin.jar.excludes.extra11>
+        <biouml.plugin.jar.excludes.extra12>ru/biosoft/proteome/**</biouml.plugin.jar.excludes.extra12>
+        <biouml.plugin.jar.excludes.extra13>ru/biosoft/server/**</biouml.plugin.jar.excludes.extra13>
+        <biouml.plugin.jar.excludes.extra14>ru/biosoft/table/**</biouml.plugin.jar.excludes.extra14>
+        <biouml.plugin.jar.excludes.extra15>ru/biosoft/templates/**</biouml.plugin.jar.excludes.extra15>
+        <biouml.plugin.jar.excludes.extra16>ru/biosoft/treetable/**</biouml.plugin.jar.excludes.extra16>
+        <biouml.plugin.jar.excludes.extra18>ru/biosoft/vm/**</biouml.plugin.jar.excludes.extra18>
+        <biouml.plugin.jar.excludes.extra18>ru/biosoft/workbench/**</biouml.plugin.jar.excludes.extra18>
+
+        <biouml.plugin.jar.excludes.extra19>ru/biosoft/galaxy/**</biouml.plugin.jar.excludes.extra19>
+        <biouml.plugin.jar.excludes.extra20>ru/biosoft/gui/**</biouml.plugin.jar.excludes.extra20>
+        <biouml.plugin.jar.excludes.extra21>ru/biosoft/journal/**</biouml.plugin.jar.excludes.extra21>
+        <biouml.plugin.jar.excludes.extra22>ru/biosoft/tasks/**</biouml.plugin.jar.excludes.extra22>
+
+    </properties>
+
+    <dependencies>
+        <!-- Depend on the compiled classes from the parent module -->
+        <dependency>
+            <groupId>org.biouml</groupId>
+            <artifactId>src</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Plugin to manipulate properties -->
+            <!-- commented out since biouml.plugin.path defined explicitly -->
+            <!--plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin-->
+
+            <!-- Jar plugin to package the plugin into a jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+
+            <!-- Plugin to run custom tasks like deleting files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,8 +1,9 @@
 package biouml.plugins.physicell;
 
+import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
-public class ModelOptions
+public class ModelOptions extends Option
 {
     private boolean disableAutomatedAdhesions = false;
     

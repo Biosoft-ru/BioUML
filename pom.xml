@@ -1,0 +1,1031 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.biouml</groupId>
+    <artifactId>biouml</artifactId>
+    <version>0.9.10</version>
+    <packaging>pom</packaging>
+    <!--packaging>jar</packaging-->
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <rootDir>${project.basedir}</rootDir>
+        <pluginDir>${rootDir}</pluginDir>
+    </properties>
+
+    <modules>
+        <module>src</module>
+
+        <module>plugconfig/biouml.plugins.agentmodeling</module>
+        <module>plugconfig/biouml.plugins.biopax</module>
+        <module>plugconfig/biouml.plugins.brain</module>
+        <module>plugconfig/biouml.plugins.cellml</module>
+        <module>plugconfig/biouml.plugins.chebi</module>
+        <module>plugconfig/biouml.plugins.chemoinformatics</module>
+        <module>plugconfig/biouml.plugins.download</module>
+        <module>plugconfig/biouml.plugins.downloadext</module>
+        <module>plugconfig/biouml.plugins.enrichment</module>
+        <module>plugconfig/biouml.plugins.ensembl</module>
+        <module>plugconfig/biouml.plugins.expasy</module>
+        <module>plugconfig/biouml.plugins.expression</module>
+        <module>plugconfig/biouml.plugins.fbc</module>
+        <module>plugconfig/biouml.plugins.fbc.server</module>
+        <module>plugconfig/biouml.plugins.go</module>
+        <module>plugconfig/biouml.plugins.graphml</module>
+        <module>plugconfig/biouml.plugins.gxl</module>
+        <module>plugconfig/biouml.plugins.helpgenerator</module>
+        <module>plugconfig/biouml.plugins.jupyter</module>
+        <module>plugconfig/biouml.plugins.kegg</module>
+        <module>plugconfig/biouml.plugins.lucene</module>
+        <module>plugconfig/biouml.plugins.microarray</module>
+        <module>plugconfig/biouml.plugins.miriam</module>
+        <module>plugconfig/biouml.plugins.modelreduction</module>
+        <module>plugconfig/biouml.plugins.nextflow</module>
+        <module>plugconfig/biouml.plugins.obo</module>
+        <module>plugconfig/biouml.plugins.optimization</module>
+        <module>plugconfig/biouml.plugins.pharm</module>
+        <module>plugconfig/biouml.plugins.physicell</module>
+        <module>plugconfig/biouml.plugins.psimi</module>
+        <module>plugconfig/biouml.plugins.reactome</module>
+        <module>plugconfig/biouml.plugins.research</module>
+        <module>plugconfig/biouml.plugins.riboseq</module>
+        <module>plugconfig/biouml.plugins.sabiork</module>
+        <module>plugconfig/biouml.plugins.sbgn</module>
+        <module>plugconfig/biouml.plugins.sbml</module>
+        <module>plugconfig/biouml.plugins.server</module>
+        <module>plugconfig/biouml.plugins.simulation</module>
+        <module>plugconfig/biouml.plugins.state</module>
+        <module>plugconfig/biouml.plugins.stochastic</module>
+        <module>plugconfig/biouml.plugins.svg</module>
+        <module>plugconfig/biouml.plugins.test</module>
+        <module>plugconfig/biouml.plugins.uniprot</module>
+
+        <module>plugconfig/biouml.splash</module>
+        <module>plugconfig/biouml.workbench</module>
+        <module>plugconfig/biouml.workbench.graph</module>
+
+        <module>plugconfig/com.developmentontheedge.server</module>
+        <module>plugconfig/com.developmentontheedge.util</module>
+
+        <module>plugconfig/ru.biosoft.access</module>
+        <module>plugconfig/ru.biosoft.access.search</module>
+        <module>plugconfig/ru.biosoft.analysis</module>
+        <module>plugconfig/ru.biosoft.analysis.optimization</module>
+        <module>plugconfig/ru.biosoft.analysiscore</module>
+        <module>plugconfig/ru.biosoft.bsa</module>
+        <module>plugconfig/ru.biosoft.bsa.server</module>
+        <module>plugconfig/ru.biosoft.bsastats</module>
+        <module>plugconfig/ru.biosoft.fs</module>
+        <module>plugconfig/ru.biosoft.graph</module>
+        <module>plugconfig/ru.biosoft.graphics</module>
+        <module>plugconfig/ru.biosoft.math</module>
+
+        <module>plugconfig/ru.biosoft.plugins</module>
+        <module>plugconfig/ru.biosoft.plugins.docker</module>
+        <module>plugconfig/ru.biosoft.plugins.graph</module>
+        <module>plugconfig/ru.biosoft.plugins.javascript</module>
+        <module>plugconfig/ru.biosoft.plugins.jri</module>
+        <module>plugconfig/ru.biosoft.plugins.jsconsistent</module>
+        <module>plugconfig/ru.biosoft.plugins.jsreport</module>
+
+        <module>plugconfig/ru.biosoft.server</module>
+        <module>plugconfig/ru.biosoft.server.servlets</module>
+        <module>plugconfig/ru.biosoft.table</module>
+        <module>plugconfig/ru.biosoft.templates</module>
+        <module>plugconfig/ru.biosoft.treetable</module>
+        <module>plugconfig/ru.biosoft.workbench</module>
+        <module>plugconfig/ru.biosoft.workbench.editors</module>
+
+        <module>war-build</module>
+
+        <module>tomcat-embedded</module>
+    </modules>
+
+    <dependencies>
+        <!-- Добавьте зависимости из Ant -->
+
+        <!-- Eclipse Dependencies -->
+        <!--dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>equinox.launcher</artifactId>
+            <version>1.4.0.v20161219-1356</version>
+        </dependency-->
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.equinox.launcher</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.core.contenttype</artifactId>
+            <!--version>3.6.0.v20170207-1037</version-->
+            <version>3.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.core.jobs</artifactId>
+            <!--version>3.9.0.v20170322-0013</version-->
+            <version>3.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.core.runtime</artifactId>
+            <!--version>3.13.0.v20170207-1030</version-->
+            <version>3.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.equinox.preferences</artifactId>
+            <!--version>3.7.0.v20170126-2132</version-->
+            <version>3.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.equinox.registry</artifactId>
+            <!--version>3.7.0.v20170222-1344</version-->
+            <version>3.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.equinox.common</artifactId>
+            <!--version>3.9.0.v20170207-1454</version-->
+            <version>3.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.update.configurator</artifactId>
+            <!--version>3.3.100.v20100512</version-->
+            <version>3.3.400</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.equinox.app</artifactId>
+            <!--version>1.3.400.v20150715-1528</version-->
+            <version>1.3.400</version>
+        </dependency>
+        
+        <!-- Apache Libraries -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+       <dependency>
+           <groupId>org.apache.axis</groupId>
+           <artifactId>axis</artifactId>
+           <version>1.4</version>
+       </dependency>
+        <dependency>
+            <groupId>com.github.virtuald</groupId>
+            <artifactId>curvesapi</artifactId>
+            <version>1.04</version>
+        </dependency>
+
+        <!-- Logging Libraries -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+        <!-- JFreeChart -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jcommon</artifactId>
+            <version>1.0.24</version>
+        </dependency>
+
+        <!-- Miscellaneous Libraries -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.2</version>
+            <!--scope>test</scope-->
+        </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>1.7R3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.htmlparser.jericho</groupId>
+            <artifactId>jericho-html</artifactId>
+            <version>3.4</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>javax.activation-api</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.rpc</groupId>
+            <artifactId>javax.xml.rpc-api</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.11.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.bcel</groupId>
+            <artifactId>bcel</artifactId>
+            <version>6.10.0</version>
+        </dependency>
+
+       <dependency>
+           <groupId>org.apache.batik</groupId>
+           <artifactId>batik-all</artifactId>
+           <version>1.7.0</version>
+       </dependency>
+       <dependency>
+           <groupId>org.w3c</groupId>
+           <artifactId>xml-apis-ext</artifactId>
+           <version>1.0.0</version>
+       </dependency>
+
+        <!-- Добавьте другие зависимости по аналогии с приведенными выше -->
+
+        <dependency>
+            <groupId>com.developmentontheedge</groupId>
+            <artifactId>beans</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.access</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.access</groupId>
+            <artifactId>file</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.graphics</groupId>
+            <artifactId>core</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.graphics</groupId>
+            <artifactId>editor</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.graph</groupId>
+            <artifactId>core</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.physicell</groupId>
+            <artifactId>physicell</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.biosoft.rtree</groupId>
+            <artifactId>ru.biosoft.rtree</artifactId>
+            <!--version>0.0.1-SNAPSHOT</version-->
+            <version>[0.0.2,)</version>
+        </dependency>
+
+        <!-- Другие зависимости -->
+
+       <dependency>
+           <groupId>net.sourceforge.jmol</groupId>
+           <artifactId>jmol</artifactId>
+           <version>12.2.28</version>
+       </dependency>
+
+       <dependency>
+           <groupId>org.apache.xmlgraphics</groupId>
+           <artifactId>batik-svggen</artifactId>
+           <version>1.7</version>
+       </dependency>
+
+       <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>httpclient</artifactId>
+           <version>4.5.14</version>
+       </dependency>
+
+       <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>fluent-hc</artifactId>
+           <version>4.5.14</version>
+       </dependency>
+
+      <dependency>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+          <version>2.6</version>
+      </dependency>
+
+      <dependency>
+          <groupId>commons-fileupload</groupId>
+          <artifactId>commons-fileupload</artifactId>
+          <version>1.5</version>
+      </dependency>
+
+       <dependency>
+           <groupId>com.eclipsesource.minimal-json</groupId>
+           <artifactId>minimal-json</artifactId>
+           <version>0.9.5</version>
+       </dependency>
+
+      <dependency>
+          <groupId>gov.nist.math</groupId>
+          <artifactId>jama</artifactId>
+          <version>1.0.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>gnu.trove</groupId>
+          <artifactId>trove</artifactId>
+          <version>3.0.3p1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-core</artifactId>
+          <version>9.11.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-queryparser</artifactId>
+          <version>9.11.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-analysis-common</artifactId>
+          <version>9.11.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-highlighter</artifactId>
+          <version>9.11.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>net.sf.squirrel-sql.thirdparty-non-maven</groupId>
+          <artifactId>ostermiller-syntax</artifactId>
+          <version>1.1.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.jdom</groupId>
+          <artifactId>jdom</artifactId>
+          <version>1.1.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.jdom</groupId>
+          <artifactId>jdom-contrib</artifactId>
+          <version>1.1.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.jmathml</groupId>
+          <artifactId>jmathml</artifactId>
+          <version>2.2.1</version>
+      </dependency>
+
+
+     <dependency>
+     	<groupId>com.blazegraph</groupId>
+     	<artifactId>colt</artifactId>
+     	<version>2.1.4</version>
+     </dependency>
+
+      <dependency>
+          <groupId>com.github.docker-java</groupId>
+          <artifactId>docker-java-core</artifactId>
+          <version>3.4.0</version>
+      </dependency>
+
+     <dependency>
+         <groupId>com.github.docker-java</groupId>
+         <artifactId>docker-java-api</artifactId>
+         <version>3.4.0</version>
+     </dependency>
+
+     <dependency>
+         <groupId>com.github.docker-java</groupId>
+         <artifactId>docker-java-transport-httpclient5</artifactId>
+         <version>3.4.0</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.jsoup</groupId>
+         <artifactId>jsoup</artifactId>
+         <version>1.18.1</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.xeustechnologies</groupId>
+         <artifactId>jtar</artifactId>
+         <version>1.1</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.jcodec</groupId>
+         <artifactId>jcodec</artifactId>
+         <version>0.2.5</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.jcodec</groupId>
+         <artifactId>jcodec-javase</artifactId>
+         <version>0.2.5</version>
+     </dependency>
+
+      <dependency>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-stdlib</artifactId>
+          <version>1.2.71</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.jetbrains.bio</groupId>
+          <artifactId>big</artifactId>
+          <version>0.9.1p6-patched</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.jetbrains.bio.big_0.9.1/big-0.9.1p6.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.velocity</groupId>
+          <artifactId>velocity</artifactId>
+          <version>1.7</version>
+      </dependency>
+
+        <dependency>
+            <groupId>com.github.samtools</groupId>
+            <artifactId>htsjdk</artifactId>
+            <!--version>2.24.1</version-->
+            <version>2.20.3-4-g87ac4d3-SNAPSHOT</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/htsjdk_2.24.1/htsjdk-2.24.1.jar</systemPath-->
+        </dependency>
+
+       <dependency>
+           <groupId>jgraph</groupId>
+           <artifactId>jgraph</artifactId>
+           <version>5.1</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.jgraph.jgraph_5.1/jgraph.jar</systemPath-->
+       </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-interfaces</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-interfaces.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-data</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-data.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-core</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-core.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-extra</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-extra.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-nonotify</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-nonotify.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-standard</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-standard.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-fingerprint</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-fingerprint.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-io</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-io.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-ioformats</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-ioformats.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-isomorphism</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-isomorphism.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-smiles</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-smiles.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-smarts</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-smarts.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.cdk</groupId>
+          <artifactId>cdk-pdb</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.cdk_1.3.5/cdk-pdb.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.jchempaint</groupId>
+          <artifactId>jchempaint</artifactId>
+          <version>3.1.2</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.openscience.jchempaint</groupId>
+          <artifactId>cdk-jchempaint</artifactId>
+          <version>1.3.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>org.jlibsedml</groupId>
+          <artifactId>jlibsedml</artifactId>
+          <version>2.2.1</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.jlibsedml_2.2.1/jlibsedml.jar</systemPath-->
+      </dependency>
+
+     <dependency>
+         <groupId>jivesoftware</groupId>
+         <artifactId>smack</artifactId>
+         <version>1.0.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.jivesoftware.smack_1.0.0/smack.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>jivesoftware</groupId>
+         <artifactId>smackx</artifactId>
+         <version>1.0.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.jivesoftware.smack_1.0.0/smackx.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>org.ensembl</groupId>
+         <artifactId>ensj</artifactId>
+         <version>39.2</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.ensembl.ensj_39.2/ensj-39.2.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>sabioclient</groupId>
+         <artifactId>sabioclient</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugconfig/biouml.plugins.sabiork/sabioclient.jar</systemPath-->
+     </dependency>
+
+       <dependency>
+           <groupId>jdbm</groupId>
+           <artifactId>jdbm</artifactId>
+           <version>2.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/jdbm_2.0.jar</systemPath-->
+       </dependency>
+
+     <dependency>
+         <groupId>chipmunk</groupId>
+         <artifactId>chipmunk</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugconfig/biouml.plugins.chipmunk/chipmunk.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>gurobi</groupId>
+         <artifactId>gurobi</artifactId>
+         <version>6.0.5</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/gurobi/gurobi.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>owlapi</groupId>
+         <artifactId>api</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.semanticweb.owl_2.1.0/owlapi-api.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>owlapi</groupId>
+         <artifactId>apibinding</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.semanticweb.owl_2.1.0/owlapi-apibinding.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>owlapi</groupId>
+         <artifactId>impl</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.semanticweb.owl_2.1.0/owlapi-impl.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>owlapi</groupId>
+         <artifactId>rdfxmlrenderer</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.semanticweb.owl_2.1.0/owlapi-rdfxmlrenderer.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>owlapi</groupId>
+         <artifactId>util</artifactId>
+         <version>1.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/org.semanticweb.owl_2.1.0/owlapi-util.jar</systemPath-->
+     </dependency>
+
+     <dependency>
+         <groupId>org.gnu.glpk</groupId>
+         <artifactId>glpk-java</artifactId>
+         <version>1.12.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/glpk/glpk-java-1.12.0.jar</systemPath-->
+     </dependency>
+
+      <dependency>
+          <groupId>net.sf.samtools</groupId>
+          <artifactId>samtools</artifactId>
+          <version>1.62</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/net.sf.samtools_1.62.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>it.sauronsoftware</groupId>
+          <artifactId>ftp4j</artifactId>
+          <version>1.6</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugins/it.sauronsoftware.ftp4j_1.6.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>io.github.spencerpark</groupId>
+          <artifactId>jupyter</artifactId>
+          <version>2.3.0</version>
+          <!--scope>system</scope-->
+          <!--systemPath>${project.basedir}/plugconfig/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar</systemPath-->
+      </dependency>
+
+      <dependency>
+          <groupId>com.twosigma</groupId>
+          <artifactId>beakerx</artifactId>
+          <version>1.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.sbolstandard</groupId>
+          <artifactId>libSBOLj</artifactId>
+          <version>2.4.0</version>
+      </dependency>
+
+    </dependencies>
+
+    <build>
+        <!--sourceDirectory>src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/ru/biosoft/server/servlets/webservices/webfiles</directory>
+            </resource>
+        </resources>
+        <testSourceDirectory>src</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>src/ru/biosoft/analysis/_test/resources</directory>
+            </testResource>
+        </testResources-->
+
+
+       <pluginManagement>
+        <plugins>
+            <!-- Plugin to manipulate properties -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>replace-dots-with-slashes</id>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>biouml.plugin.path</name>
+                            <value>${project.artifactId}</value>
+                            <regex>\.</regex> <!-- Matches the dot character -->
+                            <replacement>/</replacement> <!-- Replaces dot with slash -->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Jar plugin to package the plugin into a jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <!--id>package-plugin</id-->
+                        <id>default-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>                            
+                            <classesDirectory>${rootDir}/src/target/classes</classesDirectory>
+                            <outputDirectory>${rootDir}/target/plugins</outputDirectory>
+                            <finalName>${project.artifactId}_${project.version}</finalName>
+                            <includes>
+                                <include>${biouml.plugin.path}/**</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/_test/</exclude>
+                                <exclude>${biouml.plugin.jar.excludes}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra1}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra2}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra3}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra4}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra5}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra6}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra7}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra8}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra9}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra10}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra11}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra12}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra13}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra14}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra15}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra16}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra17}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra18}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra19}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra20}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra21}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra22}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra23}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra24}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra25}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra26}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra27}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra28}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra29}</exclude>
+                                <exclude>${biouml.plugin.jar.excludes.extra30}</exclude>
+                            </excludes>
+                            <archive> 
+                               <manifestFile>${pluginDir}/META-INF/MANIFEST.MF</manifestFile>
+                               <manifestEntries>
+                                 <Bundle-Version>${project.version}</Bundle-Version>
+                               </manifestEntries>
+                            </archive> 
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Plugin to run custom tasks like deleting files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <!-- Run after packaging the JAR -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <jar update="true" destfile="${rootDir}/target/plugins/${project.artifactId}_${project.version}.jar">
+                                   <fileset dir="${pluginDir}" excludes="*.jar, pom.xml" includes="*.*,**/*.*xsd"  />
+                                   <fileset dir="${pluginDir}" includes="src.jar, db/**" />
+                                   <fileset dir="${rootDir}/src">
+                                       <patternset>
+                                           <include name="${biouml.plugin.path}/**/*.vm" />
+                                           <include name="${biouml.plugin.path}/**/*.html" />
+                                           <include name="${biouml.plugin.path}/**/*.json" />
+
+                                           <include name="${biouml.plugin.path}/**/*.gif" />
+                                           <include name="${biouml.plugin.path}/**/*.jpg" />
+                                           <include name="${biouml.plugin.path}/**/*.png" />
+                                           <include name="${biouml.plugin.path}/**/*.css" />
+                                           <include name="${biouml.plugin.path}/**/*.txt" />
+                                           <include name="${biouml.plugin.path}/**/*.R" />
+                                           <include name="${biouml.plugin.path}/**/*.RData" />
+                                           <include name="${biouml.plugin.path}/**/*.properties" />
+                                           <exclude name="${biouml.plugin.path}/**/_test/**" />
+                                           <exclude name="${biouml.plugin.path}/**/large/*" />
+
+                                           <exclude name="${biouml.plugin.jar.excludes}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra1}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra2}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra3}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra4}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra5}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra6}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra7}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra8}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra9}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra10}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra11}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra12}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra13}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra14}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra15}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra16}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra17}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra18}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra19}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra20}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra21}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra22}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra23}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra24}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra25}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra26}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra27}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra28}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra29}" />
+                                           <exclude name="${biouml.plugin.jar.excludes.extra30}" />
+                                       </patternset>
+                                   </fileset>
+                                   <zipgroupfileset dir="${pluginDir}" includes="**/*.jar" excludes="src.jar" />
+                                </jar>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+       </pluginManagement>
+ 
+        <plugins>            
+            <!-- Плагин для создания jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**</exclude>
+                    </excludes>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+</project>

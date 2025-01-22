@@ -1,73 +1,62 @@
-## Accessing the project
+[![Tests in main branch](https://github.com/Biosoft-ru/BioUML/actions/workflows/run_tests_on_commit.yaml/badge.svg)](https://github.com/Biosoft-ru/BioUML/actions/workflows/run_tests_on_commit.yaml)
 
-Use `git clone ssh://git@85.118.228.170:7222/isb/biouml2.git` to access project without VPN
-using your public SSH key.
+# To Build
 
-On modern Linux distributions it make still ask for password. In this case use `ssh -v -p 7222 git@85.118.228.170` to investigate. If you see in the logs something like
-`no mutual signature algorithm` add the following to `.ssh/config`
+Ensure that you have at least Java 11
 
-```
-Host *
-  Ciphers +3des-cbc
-  KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1
-  HostkeyAlgorithms +ssh-rsa
-  PubkeyAcceptedAlgorithms +ssh-rsa
+Manually install JARs as decribed in [install_old_jars.md](install_old_jars.md)
+
+```sh
+./install_all_old_jars.sh 
 ```
 
+Now build BioUML
 
-## Сборка bioumlweb под Docker (рекомендуется)
-
-```
-cd BioUML/src
-
-ant -DDOCKER=true -DDEPLOY_DIR=$HOME/BioUML_Server/webapps -DSERVER_PATH=$HOME/BioUML_Server \
-    -DUSE_LARGE_ICONS=true \
-    -DDEPLOY_RESOURCES=dev -DDEPLOY_PLUGINS=true \
-    clean deploy.server biouml.webserver
-```
-### **Запуск приложения bioumlweb**
-
-```
-cd BioUML/Docker
-
-mkdir -p docker.out/logs && CONTAINER_USER=$(id -u) CONTAINER_GROUP=$(id -g) docker-compose up -d
+```sh
+mvn package -DskipTests
 ```
 
-или с удалением логов
+# To Run
 
-```
-mkdir -p docker.out/logs && rm docker.out/logs/* && CONTAINER_USER=$(id -u) CONTAINER_GROUP=$(id -g) docker-compose up -d
-```
+First, start mysql server. The command below is for docker but you can easiliy adopt it to your situation
 
-или просто, но логи тогда будут правами root
-
-```
-docker-compose up -d
-```
-
-# Сборка bioumlweb со своим Томкатом
-
-### **Для сборки bioumlweb требуется Tomcat 8**
-
-```
-curl http://mirror.linux-ia64.org/apache/tomcat/tomcat-8/v8.5.56/bin/apache-tomcat-8.5.56.tar.gz | tar xz
-
-ln -s apache-tomcat-8.5.56 tomcat8
+```sh
+docker run --name mysql-biouml2 \
+   -p 3306:3306 \
+   -v ./dumps/bioumlsupport2.dump.sql:/docker-entrypoint-initdb.d/bioumlsupport2.dump.sql \
+   -e MYSQL_ROOT_PASSWORD=biouml \
+   -e MYSQL_DATABASE=bioumlsupport2 \
+   -e MYSQL_USER=bioumlsupport2 \
+   -e MYSQL_PASSWORD=bioumlsupport2 \
+   -d mysql:5
 ```
 
-### **Сборка приложения bioumlweb**
+Alternatively, you can launch mysql server via [docker-compose](docker-compose.yaml)  
 
-```
-ant -DDEPLOY_DIR=$HOME/tomcat8/webapps/biouml -DSERVER_PATH=$HOME/tomcat8/BioUML_Server \
-    -DUSE_LARGE_ICONS=true \
-    -DDEPLOY_RESOURCES=dev -DDEPLOY_PLUGINS=true \
-    clean deploy.server biouml.webserver
+Then launch BioUML Web edition.
+
+```sh
+mvn -pl tomcat-embedded exec:java
 ```
 
-### **Запуск приложения bioumlweb**
+Use your browser to open it at http://localhost:8080/bioumlweb/
 
+
+# To Run tests
+
+On Linux install required packages
+```sh
+sudo apt install r-base r-base-dev
 ```
-CATALINA_HOME=$HOME/tomcat8 \
-JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Djava.security.manager -Djava.security.policy=$HOME/projects/java/BioUML/biouml.policy" \
-   $HOME/tomcat8/bin/startup.sh
+
+Ensure that you have at least Java 11
+
+```sh
+mvn -pl src test 
 ```
+or simply
+
+```sh
+mvn test 
+```
+

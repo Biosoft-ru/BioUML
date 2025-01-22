@@ -80,5 +80,31 @@
           </filter>
       </template>
   </extension>
+  
+  <extension point="ru.biosoft.access.scriptType">
+  	<scriptType type="Java" title="Java code" class="biouml.plugins.physicell.javacode.JavaElement" lexer="com.Ostermiller.Syntax.Lexer.JavaLexer"/>
+  </extension>
+  
+  <extension point="ru.biosoft.access.elementAction"> 
+     <action name="New Java element" class="biouml.plugins.physicell.javacode.AddJavaElementAction" priority="10">
+        <property name="Name" value="New Java code"/>
+        <property name="ShortDescription" value="Create a new Java code document"/>
+        <property name="LongDescription" value="Create a new Java code document"/>
+        <property name="SmallIcon" value="java.png"/>
+        <property name="ActionCommandKey" value="cmd-new-java-code"/>
+     </action>
+  </extension>
+
+  <extension id="Java document factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        documentClass="biouml.plugins.physicell.javacode.JavaDocument"
+        key="biouml.plugins.physicell.javacode.JavaElement"
+      /> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.transformer"> 
+      <transformer name="Java file" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.plugins.physicell.javacode.JavaElement" transformerClass="biouml.plugins.physicell.javacode.JavaTransformer"/> 
+  </extension>
 	
 </plugin>

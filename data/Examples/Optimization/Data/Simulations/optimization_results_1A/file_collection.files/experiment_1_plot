@@ -1,0 +1,22 @@
+ID    experiment_1_plot
+PT    experiment_1_plot
+XT    Time
+XTF   {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+XTLF  {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+XAT   Number
+XAR   false
+XFR   0.0
+XTO   165.0
+YT    Quantity or concentration
+YTF   {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+YTLF  {"color":[0,0,0,255],"font":["SansSerif",0,12]}
+YAT   Number
+YAR   false
+YFR   0.0
+YTO   0.0
+SE    experiment_1_plot {"color":[255,85,85,255],"width":1} p43p41 time $cell.p43p41 data/Examples/Optimization/Data/Simulations/optimization_results_1A/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[255,85,85,255],"width":1} p43p41_SPACE_exp time p43p41 data/Examples/Optimization/Data/Experiments/exp_data_1 EXPERIMENTAL_DATA null
+SE    experiment_1_plot {"color":[85,85,255,255],"width":1} pro8 time pro8_total data/Examples/Optimization/Data/Simulations/optimization_results_1A/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[85,85,255,255],"width":1} pro8_SPACE_exp time pro8 data/Examples/Optimization/Data/Experiments/exp_data_1 EXPERIMENTAL_DATA null
+SE    experiment_1_plot {"color":[0,255,0,255],"width":1} casp8 time $cell.C8star data/Examples/Optimization/Data/Simulations/optimization_results_1A/experiment_1_sr SIMULATION_RESULT null
+SE    experiment_1_plot {"color":[0,255,0,255],"width":1} casp8_SPACE_exp time casp8 data/Examples/Optimization/Data/Experiments/exp_data_1 EXPERIMENTAL_DATA null

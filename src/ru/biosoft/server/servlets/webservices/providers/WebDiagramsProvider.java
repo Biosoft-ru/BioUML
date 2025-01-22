@@ -65,6 +65,7 @@ import biouml.model.dynamics.Assignment;
 import biouml.model.dynamics.Constraint;
 import biouml.model.dynamics.DAEModelUtilities;
 import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.EModelRoleSupport;
 import biouml.model.dynamics.Equation;
 import biouml.model.dynamics.Event;
 import biouml.model.dynamics.Function;
@@ -1882,9 +1883,15 @@ public class WebDiagramsProvider extends WebProviderSupport
                 }
                 else
                 {
-                    edge = cp.createConnection(inputNode, outputNode);
+                    edge = cp.createConnection(inputNode, outputNode );
                     kernel = edge.getKernel();
                 }
+            }
+            else
+            {
+                edge = semanticController.createEdge(inputNode, outputNode, typeStr, Node.findCommonOrigin(inputNode, outputNode));
+                if ( edge != null )
+                    kernel = edge.getKernel();
             }
         }
         catch( LoggedClassNotFoundException e )
@@ -2565,7 +2572,7 @@ public class WebDiagramsProvider extends WebProviderSupport
             catch( Exception e )
             {
             }
-            if(roleClass != null && EModel.class.isAssignableFrom(roleClass))
+            if(roleClass != null && EModelRoleSupport.class.isAssignableFrom(roleClass))
             {
                 diagramInfo.add("model", "true");
                 diagramInfo.add("modelClass", roleClass.getName());
@@ -2591,7 +2598,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         diagramInfo.add("type", typeClass);
         diagramInfo.add( "composite", DiagramUtility.isComposite( diagram ) );
         Role model = diagram.getRole();
-        if( model != null && ( model instanceof EModel ) )
+        if( model != null && ( model instanceof EModelRoleSupport ) )
         {
             diagramInfo.add("model", "true");
             diagramInfo.add("modelClass", model.getClass().getName());

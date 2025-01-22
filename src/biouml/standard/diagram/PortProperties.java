@@ -372,4 +372,18 @@ public class PortProperties extends InitialElementPropertiesSupport
     }
 
 
+    public String[] getAvailableModules()
+    {
+        return availableModules;
+    }
+
+    public String[] getAvailablePorts()
+    {
+        return availablePorts;
+    }
+
+    public String[] getAvailableParameters()
+    {
+        return availableParameters;
+    }
 }

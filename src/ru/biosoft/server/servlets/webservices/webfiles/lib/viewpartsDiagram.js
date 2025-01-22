@@ -2698,7 +2698,7 @@ function FbcViewPart(){
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -3034,7 +3034,7 @@ function AntimonyViewPart() {
 //                  else
 //                      callback(false);
 //              });
-                callback(true);
+               documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -4005,9 +4005,11 @@ function ComplexSimulationViewPart()
         {
             var dps = _this.enginePane.getModel();
             var json = convertDPSToJSON(dps);
+            var jobID = rnd();
             queryBioUML("web/simulation/simulate", 
             {
                 de: _this.currentObject.completeName,
+                jobID: jobID,
                 engine: json
             }, function(data)
             {
@@ -4062,7 +4064,7 @@ function ComplexSimulationViewPart()
                             
                         },
                         beforeClose: function( event, ui ) {
-                            _this.stopSimulation();
+                            //_this.stopSimulation();
                         }
                         ,
                         open: function(event, ui){
@@ -4130,11 +4132,13 @@ function ComplexSimulationViewPart()
         }, 
         function(data)
         {
+            /*
             if(_this.dialogDiv[0])
             {
                 _this.dialogDiv[0].dialog("close");
                 _this.dialogDiv[0].remove();
             }
+            */
             let procId = getElementName(_this.currentProcess);
             let simTabid = "simulationTabs_" + procId;
             let logId = "log_container_" + procId;
@@ -4154,7 +4158,8 @@ function ComplexSimulationViewPart()
                 {
                     de: _this.currentProcess
                 },
-                function(){
+                function(data){
+                    updateLog(_this.mainLogDiv, data.values[1] + data.values[0]);
                     for(var i=0; i<_this.n; i++)
                     {
                         if(_this.dialogDiv[0])
@@ -4275,7 +4280,7 @@ function ComplexModelViewPart()
         {
             if( documentObject.getDiagram().getModelObjectName() != null)
             {
-                callback(true);
+                 documentObject.getDiagram().checkEModel(callback);
             }
             else
             {
@@ -5400,7 +5405,7 @@ function MicroenvironmentViewPart()
     this.tables = {};
     this.tableObjs = {};
     this.tableChanged = {};
-    this.type="domain"; //4 types: domain, substrates, uparams, initial
+    this.type="domain"; //6 types: domain, substrates, uparams, initial, options, cell types
 
     var _this = this;
     
@@ -5413,29 +5418,44 @@ function MicroenvironmentViewPart()
                 '<ul>'+
                 '<li><a href="#me_domain"><span>Domain</span></a></li>'+
                 '<li><a href="#me_substrates"><span>Substrates</span></a></li>'+
+				'<li><a href="#me_cell_types"><span>Cell Types</span></a></li>'+
+				'<li><a href="#me_events"><span>Events</span></a></li>'+
                 '<li><a href="#me_uparams"><span>User Parameters</span></a></li>'+
                 '<li><a href="#me_initial"><span>Initial Condition</span></a></li>'+
 				'<li><a href="#me_report"><span>Report Properties</span></a></li>'+
+				'<li><a href="#me_options"><span>Options</span></a></li>'+
+				'<li><a href="#me_color_schemes"><span>Color Schemes</span></a></li>'+
+				'<li><a href="#me_visualizers"><span>Cell visualizers</span></a></li>'+
                 '</ul>'+
                 '<div id="me_domain" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
                 '<div id="me_substrates" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
+				'<div id="me_cell_types" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_events" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
                 '<div id="me_uparams" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
                 '<div id="me_initial" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
 				'<div id="me_report" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
 				'</div>'+
+				'<div id="me_options" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_color_schemes" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
+				'<div id="me_visualizers" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
                 '</div>');
         this.containerDiv.append(tabDiv);
         
         tabDiv.addClass( "ui-tabs-vertical ui-helper-clearfix" );
         tabDiv.css("width","auto");
-        tabDiv.find("ul").css({"position":"absolute","border-right":0, "min-height":"300px", "width":"102px"});
+        tabDiv.find("ul").css({"position":"absolute","border-right":0, "min-height":"300px", "width":"107px"});
         
-        tabDiv.find(".complex_vp_container").css({"padding-left":"105px", "padding-right":"5px"});
-        tabDiv.find( "li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" ).css({"width":"100px"});
+        tabDiv.find(".complex_vp_container").css({"padding-left":"110px", "padding-right":"5px"});
+        tabDiv.find( "li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" ).css({"width":"105px"});
         
         
         this.domainDiv = tabDiv.find("#me_domain");
@@ -5445,6 +5465,14 @@ function MicroenvironmentViewPart()
         this.substratesDiv = tabDiv.find("#me_substrates");
         this.tables["substrates"] = $('<div>Loading substrates..</div>');
         this.substratesDiv.append(this.tables["substrates"]);
+		
+		this.celltypesDiv = tabDiv.find("#me_cell_types");
+		this.tables["cell_types"] = $('<div>Loading cell types..</div>');
+		this.celltypesDiv.append(this.tables["cell_types"]);
+		
+		this.eventsDiv = tabDiv.find("#me_events");
+		this.tables["events"] = $('<div>Loading events..</div>');
+		this.eventsDiv.append(this.tables["events"]);
         
         this.uparamsDiv = tabDiv.find("#me_uparams");
         this.uparamsPI = $('<div id="' + this.tabId + '_pi3">Loading user parameters..</div>').css({"width":"500px", "float":"left"});
@@ -5458,6 +5486,18 @@ function MicroenvironmentViewPart()
 		this.reportPI = $('<div id="' + this.tabId + '_pi5">Loading report properties..</div>').css({"width":"500px", "float":"left"});
 		this.reportDiv.append(this.reportPI);
         
+		this.optionsDiv = tabDiv.find("#me_options");
+		this.optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
+		this.optionsDiv.append(this.optionsPI);
+		
+		//this.colorschemesDiv = tabDiv.find("#me_color_schemes");
+		//this.tables["color_schemes"] = $('<div>Loading color schemes..</div>');
+		//this.colorschemesDiv.append(this.tables["color_schemes"]);
+				
+		//this.visualizersDiv = tabDiv.find("#me_visualizers");
+		//this.tables["visualizers"] = $('<div>Loading cell visualizers..</div>');
+		//this.visualizersDiv.append(this.tables["visualizers"]);
+		
         _.bindAll(this, _.functions(this));
     }
     
@@ -5494,6 +5534,7 @@ function MicroenvironmentViewPart()
                 this.loadUserParameters();
                 this.loadInitialCondition();
 				this.loadReportProperties();
+				this.loadOptions();
             }
         }
     };
@@ -5507,10 +5548,17 @@ function MicroenvironmentViewPart()
                  _this.shownIndex = ui.newTab.index(); 
                  _this.type = _this.show_mode.substring(1+_this.show_mode.indexOf("_"));
                  updateViewPartsToolbar(_this);
-                 if(_this.type=="substrates")
-                    _this.loadTable("substrates");
-                else
-                {
+                if(_this.type == "substrates")
+                   _this.loadTable("substrates");
+                else if (_this.type == "cell_types")
+			       _this.loadTable("cell_types");
+				//else if (_this.type == "color_schemes")
+				//   _this.loadTable("color_schemes");
+				//else if (_this.type == "visualizers")
+				//   _this.loadTable("visualizers");
+                else if (_this.type == "events")
+                   _this.loadTable("events");
+
                     if(_this.tableChanged["substrates"])
                     {
                         createYesNoConfirmDialog( "Substrates table was changed. Do you want to save it?", function(yes){
@@ -5518,7 +5566,35 @@ function MicroenvironmentViewPart()
                                 _this.saveTable("substrates");
                         });
                     }
-                }
+					else if(_this.tableChanged["cell_types"])
+					{
+					     createYesNoConfirmDialog( "Cell types table was changed. Do you want to save it?", function(yes){
+					        if(yes)
+					           _this.saveTable("cell_types");
+					     });
+					 }
+					 else if(_this.tableChanged["events"])
+					 {
+					 	  createYesNoConfirmDialog( "Events table was changed. Do you want to save it?", function(yes){
+					 		if(yes)
+					 			_this.saveTable("events");
+					 	  });
+					  }	
+					  //else if(_this.tableChanged["color_schemes"])
+					  //{
+					 // 	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+					 // 		   if(yes)
+					 // 	           _this.saveTable("color_schemes");
+					 //      });
+					 // }	
+					 // else if(_this.tableChanged["visualizers"])
+					 // {
+					 // 	    createYesNoConfirmDialog( "Visualizers table was changed. Do you want to save it?", function(yes){
+					 // 		   if(yes)
+					 // 	           _this.saveTable("visualizers");
+					 //      });
+					 // }					 
+                
             }
         });
         this.containerDiv.find("#melinkedTabs").tabs("option", "active", _this.shownIndex);
@@ -5532,18 +5608,62 @@ function MicroenvironmentViewPart()
             createYesNoConfirmDialog( "Substrates table was changed. Do you want to save it?", function(yes){
                 if(yes)
                     _this.saveTable("substrates");
-            });
-            
+            }); 
         }
+		else if(this.tableChanged["cell_types"])
+		{
+		     createYesNoConfirmDialog( "Cell types table was changed. Do you want to save it?", function(yes){
+		         if(yes)
+		            _this.saveTable("cell_types");
+		     }); 
+       }
+	   else if(this.tableChanged["events"])
+	   {
+	   		 createYesNoConfirmDialog( "Events table was changed. Do you want to save it?", function(yes){
+	   		     if(yes)
+	   		        _this.saveTable("events");
+	   		 }); 
+	   }
+	   //else if(this.tableChanged["color_schemes"])
+	  // {
+	  // 	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+	 //  	   		if(yes)
+	 //  	   		   _this.saveTable("color_schemes");
+	 //  	    }); 
+	 //  }
+	   //else if(this.tableChanged["visualizers"])
+	   //{
+		//   	 createYesNoConfirmDialog( "Cell Visualier table was changed. Do you want to save it?", function(yes){
+		//   	   	 if(yes)
+		//   	   		_this.saveTable("visualizers");
+		//   	 }); 
+		//}
     };
     
     this.initActions = function(toolbarBlock)
     {
-        if (this.type == "substrates")
+        if (this.type == "substrates" || this.type == "cell_types" || this.type == "events" || this.type == "color_schemes"  || this.type == "visualizers")
         {
             this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveTable);
             toolbarBlock.append(this.saveAction);     
         }
+		
+		//if (this.type == "color_schemes")
+		//{
+		//	this.addAction = createToolbarButton("Add scheme", "icon_plus.gif", this.addSchemeActionClick);
+		//	toolbarBlock.append(this.addAction);
+		//	         
+		//	this.removeAction = createToolbarButton("Remove scheme", "removefilter.gif", this.removeSchemeActionClick);
+		//    toolbarBlock.append(this.removeAction);
+		//}
+		//else if (this.type == "visualizers")
+        //{
+		//	this.addAction = createToolbarButton("Add visualizer", "icon_plus.gif", this.addVisualizerActionClick);
+		//	toolbarBlock.append(this.addAction);
+		//				         
+		//	this.removeAction = createToolbarButton("Remove visualizer", "removefilter.gif", this.removeVisuaizerActionClick);
+		//	toolbarBlock.append(this.removeAction);		
+		//}		
     };
     
     this.diagramChanged = function()
@@ -5552,7 +5672,12 @@ function MicroenvironmentViewPart()
         this.loadUserParameters();
         this.loadInitialCondition();
 		this.loadReportProperties();
+		this.loadOptions();
         this.loadTable("substrates");
+		this.loadTable("cell_types");
+		this.loadTable("events");
+		//this.loadTable("color_schemes");
+		//this.loadTable("visualizers");
     };
     
     this.loadTable = function(type)
@@ -5775,6 +5900,49 @@ function MicroenvironmentViewPart()
                _this.initReportPropertiesFromJson(data);
            });
 	   };
+	   
+	   this.loadOptions = function()
+	      {
+	          queryBioUML("web/bean/get", 
+	          {
+	              de: "diagram/physicell/" + _this.diagram.completeName + "/stub/options"
+	          }, function(data)
+	          {
+	              _this.data = data;
+	              _this.initOptionsFromJson(data);
+	          }, function(data)
+	          {
+	              _this.tabDiv.html(resources.commonErrorViewpartUnavailable);
+	          });
+	      };
+
+	      this.initOptionsFromJson = function(data)
+	      {
+	          _this.optionsPI.empty();
+	          var beanDPS = convertJSONToDPS(data.values);
+	          _this.optionsPane = new JSPropertyInspector();
+	          _this.optionsPane.setParentNodeId(_this.optionsPI.attr('id'));
+	          _this.optionsPane.setModel(beanDPS);
+	          _this.optionsPane.generate();
+	          _this.optionsPane.addChangeListener(function(ctl,oldval,newval) {
+	              _this.optionsPane.updateModel();
+	              var json = convertDPSToJSON(_this.optionsPane.getModel(), ctl.getModel().getName());
+	              _this.setOptionsFromJson(json);
+	          });
+	      };
+
+	      this.setOptionsFromJson = function(json)
+	      {
+	          queryBioUML("web/bean/set",
+	          {
+	              de: "diagram/physicell/" + _this.diagram.completeName + "/stub/options",
+	              json: json
+	          }, function(data)
+	          {
+	              _this.initOptionsFromJson(data);
+	              _this.diagram.dataCollectionChanged();
+	          });
+	      };
     
     this.saveTable = function(type)
     {
@@ -5808,6 +5976,76 @@ function MicroenvironmentViewPart()
             }, true);
         }
     };
+	
+	this.addSchemeActionClick = function()
+	{
+		var addParams = {
+		    de: _this.diagram.completeName,
+		};
+	    queryBioUML("web/physicell/add_scheme", addParams,
+	    function(data)
+	    {
+	        _this.loadTable("color_schemes");
+	    },
+	    function(data)
+	    {
+	        logger.error(data.message);
+	    });
+	};
+	    
+	this.removeSchemeActionClick = function()
+	{
+	     var selectedRows = getSelectedRowNumbers(_this.tableObjs["color_schemes"]);
+	     if(selectedRows.length==0)
+	         return;
+	     queryBioUML("web/physicell/remove_scheme",
+	     {
+	         "index": selectedRows[0]
+	     }, function(data)
+	     {
+	         _this.diagram.setChanged(true);
+	         _this.loadTable("color_schemes");
+	     },
+	     function(data)
+	     {
+	         logger.error(data.message);
+	     });
+	 };
+		
+	 this.addVisualizerActionClick = function()
+	 {
+		 var addParams = {
+		    de: _this.diagram.completeName,
+		 };
+	     queryBioUML("web/physicell/add_visualizer", addParams,
+	     function(data)
+	     {
+	         _this.loadTable("visualizers");
+	     },
+	     function(data)
+	     {
+	         logger.error(data.message);
+	     });
+	 };
+	     
+	 this.removeVisualizerActionClick = function()
+	 {
+	      var selectedRows = getSelectedRowNumbers(_this.tableObjs["visualizers"]);
+	      if(selectedRows.length==0)
+	          return;
+	      queryBioUML("web/physicell/remove_visualizer",
+	      {
+	          "index": selectedRows[0]
+	      }, function(data)
+	      {
+	          _this.diagram.setChanged(true);
+	          _this.loadTable("visualizers");
+	      },
+	      function(data)
+	      {
+	          logger.error(data.message);
+	      });
+	  };		
     
 }
 

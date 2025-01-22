@@ -1,0 +1,52 @@
+---
+name: sbgn
+description: notation description
+properties:
+  - type:
+      type: enum
+      values:
+        - simple chemical
+        - macromolecule
+        - complex
+        - perturbing agent
+        - nucleic acid feature
+        - unspecified
+        - phenotype
+      description: Entity type
+  - multimer:
+      type: int
+      description: Number of monomers
+  - reactionType:
+      type: enum
+      values:
+        - process
+        - omitted process
+        - association
+        - dissociation
+        - uncertain process
+      description: Reaction type
+  - edgeType:
+      type: enum
+      values:
+        - catalysis
+        - inhibition
+        - modulation
+        - stimulation
+        - necessary stimulation
+      description: Edge type
+  - structure:
+      type: string
+      description: Structure
+  - clone:
+      type: map
+      values:
+        title:
+          type: string
+          description: Title of clone
+        reactions:
+          type: array
+          description: List of reactions where the clone takes part in
+      description: Clones of the node participating in reactions
+  - title:
+      type: string
+      description: Title

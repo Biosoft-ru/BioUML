@@ -40,14 +40,14 @@ public class Variable extends MutableDataElementSupport
 
     protected Variable(String name, DataCollection<?> origin)
     {
-        super(origin, name);
+        super( origin, name );
     }
 
-    public Variable(String name, EModel modelSupport, DataCollection<?> origin)
+    public Variable(String name, EModel emodel, DataCollection<?> origin)
     {
-        this(name, origin);
-        setTitle(name);
-        setParent(modelSupport, "vars/" + name);
+        this( emodel == null ? name : emodel.getDiagramElement().getType().getSemanticController().validateName( name ), origin );
+        setTitle( name );
+        setParent( emodel, "vars/" + name );
     }
 
     @Override
@@ -60,18 +60,20 @@ public class Variable extends MutableDataElementSupport
     /** Warning: for internal usage only. */
     public void setName(String name)
     {
-        if( "time".equals(this.name) || name.equals(this.name) )
+        if( "time".equals( this.name ) || name.equals( this.name ) )
             return;
 
         String oldName = this.name;
 
         if( getParent() instanceof EModel )
         {
-            EModelHelper helper = new EModelHelper((EModel)getParent());
-            helper.renameVariable(oldName, name);
+            EModel emodel = (EModel)getParent();
+            name = emodel.getDiagramElement().getType().getSemanticController().validateName( name );
+            EModelHelper helper = new EModelHelper( emodel );
+            helper.renameVariable( oldName, name );
             try
             {
-                ( (EModel)getParent() ).getVariables().remove(oldName);
+                ( (EModel)getParent() ).getVariables().remove( oldName );
             }
             catch( Exception ex )
             {
@@ -87,11 +89,11 @@ public class Variable extends MutableDataElementSupport
     }
     public void setInitialValue(double initialValue)
     {
-        if( "time".equals(this.name) )
+        if( "time".equals( this.name ) )
             return;
         double oldValue = this.initialValue;
         this.initialValue = initialValue;
-        firePropertyChange("initialValue", oldValue, initialValue);
+        firePropertyChange( "initialValue", oldValue, initialValue );
     }
 
     @PropertyName ( "Units" )
@@ -104,7 +106,7 @@ public class Variable extends MutableDataElementSupport
     {
         String oldValue = this.units;
         this.units = units;
-        firePropertyChange("units", oldValue, units);
+        firePropertyChange( "units", oldValue, units );
     }
 
     @PropertyName ( "Constant" )
@@ -115,11 +117,11 @@ public class Variable extends MutableDataElementSupport
     }
     public void setConstant(boolean constant)
     {
-        if( "time".equals(this.name) )
+        if( "time".equals( this.name ) )
             return;
         Object oldValue = this.constant;
         this.constant = constant;
-        firePropertyChange("constant", oldValue, constant);
+        firePropertyChange( "constant", oldValue, constant );
     }
 
     @PropertyName ( "Comment" )
@@ -132,7 +134,7 @@ public class Variable extends MutableDataElementSupport
     {
         String oldValue = this.comment;
         this.comment = comment;
-        firePropertyChange("comment", oldValue, comment);
+        firePropertyChange( "comment", oldValue, comment );
     }
 
     @PropertyName ( "Type" )
@@ -158,12 +160,12 @@ public class Variable extends MutableDataElementSupport
     @Override
     public Object clone()
     {
-        return clone(name);
+        return clone( name );
     }
 
     public Variable clone(String newName)
     {
-        Variable var = (Variable)internalClone(getOrigin(), newName);
+        Variable var = (Variable)internalClone( getOrigin(), newName );
         var.type = type;
         var.attributes = null;
         if( attributes != null )
@@ -173,13 +175,13 @@ public class Variable extends MutableDataElementSupport
                 DynamicProperty prop = null;
                 try
                 {
-                    prop = DynamicPropertySetSupport.cloneProperty(oldProp);
+                    prop = DynamicPropertySetSupport.cloneProperty( oldProp );
                 }
                 catch( Exception e )
                 {
                     prop = oldProp;
                 }
-                var.getAttributes().add(prop);
+                var.getAttributes().add( prop );
             }
         }
         return var;
@@ -190,9 +192,10 @@ public class Variable extends MutableDataElementSupport
         if( attributes == null )
         {
             attributes = new DynamicPropertySetAsMap();
-            attributes.addPropertyChangeListener(e -> {
-                firePropertyChange(new PropertyChangeEvent(this, "attributes/" + e.getPropertyName(), e.getOldValue(), e.getNewValue()));
-            });
+            attributes.addPropertyChangeListener( e -> {
+                firePropertyChange(
+                        new PropertyChangeEvent( this, "attributes/" + e.getPropertyName(), e.getOldValue(), e.getNewValue() ) );
+            } );
         }
         return attributes;
     }

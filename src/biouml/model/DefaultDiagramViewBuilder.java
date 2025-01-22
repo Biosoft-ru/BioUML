@@ -414,6 +414,11 @@ public class DefaultDiagramViewBuilder implements DiagramViewBuilder
         }
         return cView;
     }
+    
+    public boolean needAddTitle(Node node)
+    {
+        return true;
+    }
 
     @Override
     public @Nonnull CompositeView createNodeView(Node node, DiagramViewOptions options, Graphics g)
@@ -429,7 +434,7 @@ public class DefaultDiagramViewBuilder implements DiagramViewBuilder
             if( node.isUseCustomImage() )
             {
                 view = createImageView( node, g );
-                addTitle = true;
+                addTitle = needAddTitle( node );
             }
         }
         catch( Exception ex )

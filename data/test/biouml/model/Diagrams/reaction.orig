@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dml appVersion="0.7.7" version="0.7.7">
+  <diagram diagramType="biouml.standard.diagram.PathwaySimulationDiagramType" title="reaction.orig">
+    <diagramInfo title="reaction.orig">
+      <![CDATA[<p>
+      
+    </p>]]>
+    </diagramInfo>
+    <viewOptions>
+      <propertyRef name="mathTitleFont" value="Arial;0;12;black"/>
+      <propertyRef name="pathLayouterWrapper" type="ru.biosoft.graph.PathLayouterWrapper">
+        <propertyRef name="pathLayouter" type="ru.biosoft.graph.OrthogonalPathLayouter"/>
+      </propertyRef>
+      <propertyRef elementType="biouml.model.DiagramElementStyleDeclaration" name="styles" type="array"/>
+    </viewOptions>
+    <layouterInfo type="ru.biosoft.graph.ForceDirectedLayouter">
+      <property name="attraction" short-description="attraction" type="java.lang.Float" value="1.0"/>
+      <property name="distanceMethod" short-description="distanceMethod" type="int" value="0"/>
+      <property name="edgeLength" short-description="edgeLength" type="int" value="150"/>
+      <property name="gravity" short-description="gravity" type="java.lang.Float" value="0.06"/>
+      <property name="horisontalMovementAllowed" short-description="horisontalMovementAllowed" type="boolean" value="true"/>
+      <property name="initialPlacement" short-description="initialPlacement" type="int" value="1"/>
+      <property name="iterationNumber" short-description="iterationNumber" type="int" value="100"/>
+      <property name="magneticIntencity" short-description="magneticIntencity" type="java.lang.Float" value="0.0"/>
+      <property name="maxTemperature" short-description="maxTemperature" type="java.lang.Float" value="0.0"/>
+      <property name="minTemperature" short-description="minTemperature" type="java.lang.Float" value="0.0"/>
+      <property name="orientation" short-description="orientation" type="int" value="0"/>
+      <property name="pathLayouterWrapper" short-description="pathLayouterWrapper" type="ru.biosoft.graph.PathLayouterWrapper">
+        <property name="pathLayouter" short-description="pathLayouter" type="ru.biosoft.graph.DiagonalPathLayouter"/>
+        <property name="pathLayouterName" short-description="pathLayouterName" type="String" value="Diagonal Layouter"/>
+      </property>
+      <property name="repulsion" short-description="repulsion" type="java.lang.Float" value="1.0"/>
+      <property name="repulsionDistance" short-description="repulsionDistance" type="int" value="10"/>
+      <property name="subgraphLayouter" short-description="subgraphLayouter" type="ru.biosoft.graph.SubgraphLayouter">
+        <property name="layerDeltaX" short-description="layerDeltaX" type="int" value="350"/>
+        <property name="layerDeltaY" short-description="layerDeltaY" type="int" value="350"/>
+      </property>
+      <property name="verticalMovementAllowed" short-description="verticalMovementAllowed" type="boolean" value="true"/>
+    </layouterInfo>
+    <nodes>
+      <compartment>
+        <compartmentInfo color="white" font="Arial;0;12;black" height="362" isTitleHidden="false" kernel="stub/cell" kernel_type="unknown" pen="1.0;black;Solid" shape="2" title="cell" width="617" x="19" y="11"/>
+        <nodes>
+          <compartment>
+            <compartmentInfo color="white" font="Arial;0;12;black" height="322" isTitleHidden="false" kernel="stub/cell/membrane" kernel_type="unknown" pen="1.0;black;Solid" shape="2" title="membrane" width="585" x="19" y="18"/>
+            <nodes>
+              <compartment>
+                <compartmentInfo color="white" font="Arial;0;12;black" height="290" isTitleHidden="false" kernel="stub/cell/membrane/vacuole" kernel_type="unknown" pen="1.0;black;Solid" shape="2" title="vacuole" width="551" x="18" y="12"/>
+                <nodes>
+                  <compartment>
+                    <compartmentInfo color="white" font="Arial;0;12;black" height="111" isTitleHidden="false" kernel="stub/cell/membrane/vacuole/nucleus" kernel_type="unknown" pen="1.0;black;Solid" shape="2" title="nucleus" width="194" x="347" y="94"/>
+                    <nodes/>
+                    <edges/>
+                  </compartment>
+                  <node height="50" isTitleHidden="false" kernel="stub/cell/membrane/vacuole/pA" kernel_type="unknown" title="pA" width="50" x="124" y="42"/>
+                  <node height="50" isTitleHidden="false" kernel="stub/cell/membrane/vacuole/sA" kernel_type="unknown" title="sA" width="50" x="42" y="119"/>
+                  <node height="50" isTitleHidden="false" kernel="stub/cell/membrane/vacuole/sB" kernel_type="unknown" title="sB" width="50" x="181" y="110"/>
+                  <node height="50" isTitleHidden="false" kernel="stub/cell/membrane/vacuole/sX" kernel_type="unknown" title="sX" width="50" x="129" y="202"/>
+                  <node height="50" isTitleHidden="false" kernel="stub/cell/membrane/vacuole/sY" kernel_type="unknown" title="sY" width="50" x="202" y="201"/>
+                </nodes>
+                <edges/>
+              </compartment>
+            </nodes>
+            <edges/>
+          </compartment>
+        </nodes>
+        <edges/>
+      </compartment>
+      <node height="50" isTitleHidden="false" kernel="stub/sA" kernel_type="unknown" title="sA" width="50" x="-46" y="152"/>
+    </nodes>
+    <edges/>
+    <filters elementType="biouml.model.DiagramFilter" type="[Lbiouml.model.DiagramFilter;"/>
+  </diagram>
+  <executableModel class="biouml.model.dynamics.EModel"/>
+</dml>

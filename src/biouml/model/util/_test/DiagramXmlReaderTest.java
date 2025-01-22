@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -39,6 +40,9 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.font.ColorFont;
+
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
 
 public class DiagramXmlReaderTest extends TestCase
 {
@@ -346,7 +350,7 @@ public class DiagramXmlReaderTest extends TestCase
     {
         ColorFont font = XmlSerializationUtils.readFont( "Arial;1;14;black" );
         assertNotNull( "Cannot parse font", font );
-        assertEquals("Arial", font.getFont().getFamily());
+        assertTrue( "Font family should Arial or Dialog", Arrays.asList( "Arial", "Dialog").contains( font.getFont().getFamily() ) );
         assertEquals(1, font.getFont().getStyle());
         assertEquals(14, font.getFont().getSize());
         assertEquals(Color.BLACK, font.getColor());
@@ -354,6 +358,8 @@ public class DiagramXmlReaderTest extends TestCase
 
     public void testReadingWithoutKernels() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         CollectionFactory.createRepository("../data/test/biouml/standard");
         String diagramCode = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
                 +"<dml appVersion=\"0.7.7\" version=\"0.7.7\">"

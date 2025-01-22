@@ -1,0 +1,7 @@
+---
+name: glycan
+description: Glycan properties
+properties:
+  - structure:
+      type: string
+      description: Structure

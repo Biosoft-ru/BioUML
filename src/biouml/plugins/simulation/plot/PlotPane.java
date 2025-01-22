@@ -17,7 +17,7 @@ import org.jfree.chart.ChartColor;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.PlotChangeEvent;
@@ -42,7 +42,7 @@ public class PlotPane extends JPanel implements PropertyChangeListener, PlotChan
     protected JFreeChart chart;
 
     private ChartPanel chartPanel;
-    private static final Shape circle = new Ellipse2D.Float(0, 0, 6, 6);
+    private static final Shape circle = new Ellipse2D.Float(-3, -3, 6, 6);
 
     private static final Paint[] POSSIBLE_COLORS = new Paint[] {new Color(0xFF, 0x55, 0x55), new Color(0x55, 0x55, 0xFF),
             new Color(0x00, 0xFF, 0x00), Color.pink, ChartColor.DARK_RED, ChartColor.DARK_BLUE, ChartColor.DARK_GREEN,
@@ -345,22 +345,21 @@ public class PlotPane extends JPanel implements PropertyChangeListener, PlotChan
         {
             case LOGARITHMIC:
             {
-                LogarithmicAxis logAxis = new LogarithmicAxis("");
-                logAxis.setExpTickLabelsFlag(true);
-                logAxis.setStrictValuesFlag(false);
+                LogAxis logAxis = new LogAxis( "" );
+                logAxis.setBaseSymbol( "e");
+                logAxis.setBase( Math.E );
                 return logAxis;
             }
             case LOG10:
             {
-                LogarithmicAxis logAxis = new LogarithmicAxis("");
-                logAxis.setLog10TickLabelsFlag(true);
-                logAxis.setStrictValuesFlag(false);
+                LogAxis logAxis = new LogAxis( "" );
+                logAxis.setBase( 10 );
                 return logAxis;
             }
             case NUMBER:
             {
-                NumberAxis numAxis = new NumberAxis("");
-                numAxis.setAutoRangeIncludesZero(false);
+                NumberAxis numAxis = new NumberAxis( "" );
+                numAxis.setAutoRangeIncludesZero( false );
                 return numAxis;
             }
         }
@@ -445,6 +444,7 @@ public class PlotPane extends JPanel implements PropertyChangeListener, PlotChan
                 else if( nextSeries.getSourceNature().equals(Series.SourceNature.EXPERIMENTAL_DATA) )
                 {
                     renderer.setSeriesLinesVisible(counter, false);
+                    renderer.setSeriesShapesVisible(counter, true);
                     renderer.setSeriesShape(counter, circle);
                 }
                 Pen spec = nextSeries.getSpec();

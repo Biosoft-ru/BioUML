@@ -1,0 +1,780 @@
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729108815624
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+ID	ImmuneCellMotility
+createdDate	1729108893133
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108893133
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	ImmuneCellMotility.java
+createdDate	1729108901977
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108901977
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmuneCellMotility
+createdDate	1729108893133
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108893133
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmuneCellMotility
+createdDate	1729108893133
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108907402
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmuneCellMotility
+createdDate	1729108893133
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108907402
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmuneCellRule.java
+createdDate	1729108925257
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108925257
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmuneCellRule.java
+createdDate	1729108925257
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108925257
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmuneCellRule.java
+createdDate	1729108925257
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108938195
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108951963
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108951963
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108965874
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	TumorPhenotype.java
+createdDate	1729108984684
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108984684
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	TumorPhenotype.java
+createdDate	1729108984684
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108984684
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1729108984684
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108990154
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	AdhesionContact.java
+createdDate	1729109014590
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109014590
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	AdhesionContact.java
+createdDate	1729109014590
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109014590
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	AdhesionContact.java
+createdDate	1729109014590
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109020538
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	CancerImmunityVisualizer
+createdDate	1729109062818
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109062818
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerImmunityVisualizer
+createdDate	1729109062818
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109062818
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	CancerImmunityVisualizer
+createdDate	1729109062818
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109070082
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmuneCellMotility.java
+createdDate	1729108901977
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108901977
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmuneCellMotility.java
+createdDate	1729108901977
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109093723
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108965874
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109149370
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729108815624
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729109284533
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109553877
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109553877
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109594807
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109594807
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109663533
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	CancerInstantiator
+createdDate	1729109762663
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109762663
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerInstantiator
+createdDate	1729109762663
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109762663
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	CancerInstantiator
+createdDate	1729109762663
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109856686
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	ImmuneInstantiator.java
+createdDate	1729109870739
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109870739
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmuneInstantiator.java
+createdDate	1729109870739
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109870739
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmuneInstantiator.java
+createdDate	1729109870739
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109882108
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmuneInstantiator.java
+createdDate	1729109870739
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109882108
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmuneInstantiator.java
+createdDate	1729109870739
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110058561
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729109284533
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110073222
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110073222
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110084089
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109149370
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110133654
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110133654
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110144362
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110144362
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110183193
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110183193
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110209911
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	ImmunityEvent.java
+createdDate	1729110250346
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110250346
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	ImmunityEvent
+createdDate	1729108951963
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110209911
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	CancerInstantiator.java
+createdDate	1729110265777
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110265777
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerInstantiator
+createdDate	1729109762663
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109856686
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	CancerImmunityVisualizer.java
+createdDate	1729110279356
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110279356
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerImmunityVisualizer
+createdDate	1729109062818
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109070082
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110084089
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110334349
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110334349
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110359635
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110359635
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110551925
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110551925
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110778674
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729109663533
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110823388
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110823388
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110840426
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110840426
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110850588
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110850588
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Initial.java
+createdDate	1729109553877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729110872651
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729110778674
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729111772460
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729111772460
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729113894094
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729113894094
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	CancerImmune
+createdDate	1729108815624
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	CancerImmune
+modifiedDate	1729113927170
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//

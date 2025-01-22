@@ -13,8 +13,35 @@ public class ReportProperties extends Option
     private DataElementPath globalReportPath = null;
     private boolean customVisualizer = false;
     private DataElementPath visualizerPath = null;
+
+    private MulticellEModel model;
+    private CellDefinitionVisualizerProperties[] properties = new CellDefinitionVisualizerProperties[0];
+
+    @PropertyName ( "Cell Type Properties" )
+    public CellDefinitionVisualizerProperties[] getProperties()
+    {
+        return properties;
+    }
+
+    public void setProperties(CellDefinitionVisualizerProperties[] properties)
+    {
+        this.properties = properties;
+
+        if( model != null )
+        {
+            for( CellDefinitionVisualizerProperties property : properties )
+                property.setModel( model );
+        }
+    }
     
-    @PropertyName("Report")
+    public void setModel(MulticellEModel model)
+    {
+        this.model = model;
+        for( CellDefinitionVisualizerProperties property : properties )
+            property.setModel( model );
+    }
+
+    @PropertyName ( "Report" )
     public DataElementPath getReportPath()
     {
         return reportPath;
@@ -23,9 +50,9 @@ public class ReportProperties extends Option
     {
         this.reportPath = reportPath;
     }
-    
-    
-    @PropertyName("Global report")
+
+
+    @PropertyName ( "Global report" )
     public DataElementPath getGlobalReportPath()
     {
         return globalReportPath;
@@ -34,8 +61,8 @@ public class ReportProperties extends Option
     {
         this.reportPath = globalReportPath;
     }
-    
-    @PropertyName("Visualizer")
+
+    @PropertyName ( "Visualizer" )
     public DataElementPath getVisualizerPath()
     {
         return visualizerPath;
@@ -44,8 +71,8 @@ public class ReportProperties extends Option
     {
         this.visualizerPath = visualizerPath;
     }
-    
-    @PropertyName("Custom report")
+
+    @PropertyName ( "Custom report" )
     public boolean isCustomReport()
     {
         return customReport;
@@ -57,8 +84,8 @@ public class ReportProperties extends Option
         firePropertyChange( "customReport", oldValue, customReport );
         firePropertyChange( "*", null, null );
     }
-    
-    @PropertyName("Custom global report")
+
+    @PropertyName ( "Custom global report" )
     public boolean isCustomGlobalReport()
     {
         return customGlobalReport;
@@ -70,19 +97,19 @@ public class ReportProperties extends Option
         firePropertyChange( "customGlobalReport", oldValue, customGlobalReport );
         firePropertyChange( "*", null, null );
     }
-    
+
     public boolean isDefaultGlobalReport()
     {
         return !isCustomGlobalReport();
     }
-    
-    
+
+
     public boolean isDefaultReport()
     {
         return !isCustomReport();
     }
-    
-    @PropertyName("Custom visualizer")
+
+    @PropertyName ( "Custom visualizer" )
     public boolean isCustomVisualizer()
     {
         return customVisualizer;
@@ -98,7 +125,7 @@ public class ReportProperties extends Option
     {
         return !isCustomVisualizer();
     }
-    
+
     @Override
     public ReportProperties clone()
     {

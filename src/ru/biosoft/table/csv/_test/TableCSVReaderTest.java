@@ -15,7 +15,7 @@ public class TableCSVReaderTest extends TestCase
 
     public void testReadTable() throws Exception
     {
-        File testFile = new File("ru\\biosoft\\table\\csv\\_test\\test.csv");
+        File testFile = new File("ru/biosoft/table/csv/_test/test.csv");
         TableCSVReader reader = new TableCSVReader();
         TableDataCollection tdc = reader.readTable(null, "test", testFile);
         assertNotNull("Table is null", tdc);

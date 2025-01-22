@@ -12,6 +12,7 @@ import biouml.plugins.simulation.SimulationEngine;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.physicell.biofvm.ConstantCoefficientsLOD3D;
 import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellContainer;
@@ -28,15 +29,18 @@ import ru.biosoft.physicell.core.CellFunctions.UpdatePhenotype;
 import ru.biosoft.physicell.core.CellFunctions.UpdateVelocity;
 import ru.biosoft.physicell.core.CellFunctions.VolumeUpdate;
 import ru.biosoft.physicell.core.InitialCellsArranger;
+import ru.biosoft.physicell.core.Model.Event;
 import ru.biosoft.physicell.core.CellFunctions.set_orientation;
 import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
+import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
 import ru.biosoft.physicell.core.standard.StandardModels;
-import ru.biosoft.physicell.ui.AgentVisualizer;
-import ru.biosoft.physicell.ui.AgentVisualizer2;
+import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.Visualizer;
-import ru.biosoft.physicell.ui.Visualizer.Section;
+import ru.biosoft.physicell.ui.Visualizer2D.Section;
+import ru.biosoft.physicell.ui.render.Visualizer3D;
+import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 
@@ -49,6 +53,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
     {
         simulator = new PhysicellSimulator();
         simulatorType = "MULTICELL";
+        needToShowPlot = false;
     }
 
     @Override
@@ -161,23 +166,15 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
-        DefinitionVisualizer defualtVisualizer = new DefinitionVisualizer();
-        for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-            defualtVisualizer.setColor( cd.getName(), cd.getColor() );
 
-        for( String density : m.densityNames )
-        {
-            Visualizer v = new Visualizer( null, density, Section.Z, 0 );
-            v.setStubstrateIndex( m.findDensityIndex( density ) );
-            v.setAgentVisualizer( defualtVisualizer );
-            model.addVisualizer( v );
-        }
 
         PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
         model.setDiffusionDt( opts.getDiffusionDt() );
         model.setMechanicsDt( opts.getMechanicsDt() );
         model.setPhenotypeDt( opts.getPhenotypeDt() );
         model.setTMax( opts.getFinalTime() );
+
+        ( (ConstantCoefficientsLOD3D)model.getMicroenvironment().getSolver() ).setPrallel( opts.isParallelDiffusion() );
 
         m.options.calculate_gradients = opts.isCalculateGradient();
         m.options.track_internalized_substrates_in_each_agent = opts.isTrackInnerSubstrates();
@@ -193,7 +190,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         {
             model.registerCellDefinition( StandardModels.createFromDefault( cds.get( i ).getName(), i, m ) );
         }
-
+        Rules.setupRules( model );
         for( int i = 0; i < cds.size(); i++ )
         {
             CellDefinitionProperties cdp = cds.get( i );
@@ -212,22 +209,22 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
             FunctionsProperties fp = cdp.getFunctionsProperties();
             CellFunctions f = cd.functions;
-            f.updatePhenotype = getFunction( fp.getPhenotypeUpdate(), fp.getPhenotypeUpdateCustom(), UpdatePhenotype.class );
-            f.updateVelocity = getFunction( fp.getVelocityUpdate(), fp.getVelocityUpdateCustom(), UpdateVelocity.class );
-            f.updateVolume = getFunction( fp.getVolumeUpdate(), fp.getVolumeUpdateCustom(), VolumeUpdate.class );
-            f.customCellRule = getFunction( fp.getCustomRule(), fp.getCustomRuleCustom(), CustomCellRule.class );
-            f.membraneDistanceCalculator = getFunction( fp.getMembraneDistance(), fp.getMembraneDistanceCustom(),
-                    DistanceCalculator.class );
-            f.contact = getFunction( fp.getContact(), fp.getContactCustom(), Contact.class );
-            f.membraneInteraction = getFunction( fp.getMembraneInteraction(), fp.getMembraneInteractionCustom(),
-                    MembraneInteractions.class );
-            f.set_orientation = getFunction( fp.getOrientation(), fp.getOrientationCustom(), set_orientation.class );
-            f.updateMigration = getFunction( fp.getMigrationUpdate(), fp.getMigrationUpdateCustom(), UpdateMigrationBias.class );
-            f.instantiator = getFunction( fp.getInstantiate(), fp.getInstantiateCustom(), Instantiator.class );
+            f.updatePhenotype = getFunction( fp.getPhenotypeUpdate(), fp.getPhenotypeUpdateCustom(), UpdatePhenotype.class, model );
+            f.updateVelocity = getFunction( fp.getVelocityUpdate(), fp.getVelocityUpdateCustom(), UpdateVelocity.class, model );
+            f.updateVolume = getFunction( fp.getVolumeUpdate(), fp.getVolumeUpdateCustom(), VolumeUpdate.class, model );
+            f.customCellRule = getFunction( fp.getCustomRule(), fp.getCustomRuleCustom(), CustomCellRule.class, model );
+            f.membraneDistanceCalculator = getFunction( fp.getMembraneDistance(), fp.getMembraneDistanceCustom(), DistanceCalculator.class,
+                    model );
+            f.contact = getFunction( fp.getContact(), fp.getContactCustom(), Contact.class, model );
+            f.membraneInteraction = getFunction( fp.getMembraneInteraction(), fp.getMembraneInteractionCustom(), MembraneInteractions.class,
+                    model );
+            f.set_orientation = getFunction( fp.getOrientation(), fp.getOrientationCustom(), set_orientation.class, model );
+            f.updateMigration = getFunction( fp.getMigrationUpdate(), fp.getMigrationUpdateCustom(), UpdateMigrationBias.class, model );
+            f.instantiator = getFunction( fp.getInstantiate(), fp.getInstantiateCustom(), Instantiator.class, model );
         }
 
         if( getCustomReportGenerator() != null && !getCustomReportGenerator().isEmpty() )
-            model.setReportGenerator( FunctionsLoader.load( getCustomReportGenerator(), ReportGenerator.class, log.getLogger() ) );
+            model.setReportGenerator( FunctionsLoader.load( getCustomReportGenerator(), ReportGenerator.class, log.getLogger(), model ) );
 
         model.disableAutomatedSpringAdhesions = emodel.getOptions().isDisableAutomatedAdhesions();
         model.signals.setupDictionaries( model );
@@ -238,7 +235,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         {
             DataElementPath codePath = condition.getCustomConditionCode();
             if( codePath != null && !codePath.isEmpty() )
-                FunctionsLoader.load( codePath, InitialCellsArranger.class, log.getLogger() ).arrange( model );
+                FunctionsLoader.load( codePath, InitialCellsArranger.class, log.getLogger(), model ).arrange( model );
             DataElementPath tablePath = condition.getCustomConditionTable();
             if( tablePath != null && !tablePath.isEmpty() )
                 loadCellsTable( tablePath, model );
@@ -257,17 +254,62 @@ public class PhysicellSimulationEngine extends SimulationEngine
         if( emodel.getReportProperties().isCustomReport() )
         {
             DataElementPath dep = emodel.getReportProperties().getReportPath();
-            model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger() ) );
+            model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger(), model ) );
         }
 
-        if( emodel.getReportProperties().isCustomVisualizer() )
+        AgentColorer colorer = null;
+
+        if( opts.isSaveImageText() || opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
         {
-            DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
-            AgentVisualizer visualizer = FunctionsLoader.load( dep, AgentVisualizer2.class, log.getLogger() );
-            for( Visualizer v : model.getVisualizers() )
-                v.setAgentVisualizer( visualizer );
+            VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
+            if( visualizerProperties.getProperties().length > 0 )
+            {
+                colorer = new DefaultColorer( visualizerProperties );
+            }
+            else
+            {
+                colorer = new DefinitionVisualizer();
+                for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+                    ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+            }
+            if( emodel.getReportProperties().isCustomVisualizer() )
+            {
+                DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
+                colorer = FunctionsLoader.load( dep, AgentColorer.class, log.getLogger(), model );
+            }
         }
 
+        if (opts.isSaveImageText())
+        {
+            VisualizerTextTable textVisualzer = new VisualizerTextTable(opts.getResultPath(), cellUpdateType, colorer, opts.getFinalTime(), opts.getImageInterval());
+            ((PhysicellSimulator)simulator).addTextVisualizer( textVisualzer );
+        }
+        
+        if( opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
+        {
+            if( options.isUse2D() )
+            {
+                for( String density : m.densityNames )
+                {
+                    model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
+                            .setAgentColorer( colorer ) );
+                }
+            }
+            else
+                model.addVisualizer( new Visualizer3D( null, "3d", m ).setAgentColorer( colorer ) );
+
+            for( Visualizer v : model.getVisualizers() )
+            {
+                v.setAgentColorer( colorer );
+            }
+        }
+
+        for( EventProperties eventProperties : emodel.getEvents() )
+        {
+            Event event = FunctionsLoader.load( eventProperties.getExecutionCodePath(), Event.class, this.log.getLogger(), model );
+            event.executionTime = eventProperties.getExecutionTime();
+            model.addEvent( event );
+        }
 
         return new PhysicellModel( model );
     }
@@ -292,11 +334,12 @@ public class PhysicellSimulationEngine extends SimulationEngine
         }
     }
 
-    public <T extends Function> T getFunction(String standardFunction, DataElementPath path, Class<T> c) throws Exception
+    public <T extends Function> T getFunction(String standardFunction, DataElementPath path, Class<T> c,
+            ru.biosoft.physicell.core.Model model) throws Exception
     {
         if( PhysicellConstants.CUSTOM.equals( standardFunction ) )
         {
-            return FunctionsLoader.load( path, c, this.log.getLogger() );
+            return FunctionsLoader.load( path, c, this.log.getLogger(), model );
         }
         else if( PhysicellConstants.NOT_SELECTED.equals( standardFunction ) )
         {
@@ -329,8 +372,16 @@ public class PhysicellSimulationEngine extends SimulationEngine
     @Override
     public String simulate(Model model, ResultListener[] resultListeners) throws Exception
     {
-        this.simulator.start( model, null, resultListeners, jobControl );
-        return "";
+        try
+        {
+            this.simulator.start( model, null, resultListeners, jobControl );
+            return "";
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+            return "";
+        }
     }
 
     @Override

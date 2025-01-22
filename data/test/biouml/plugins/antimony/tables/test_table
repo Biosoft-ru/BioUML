@@ -1,0 +1,17 @@
+ID	test_table
+OS	
+PLATFORM	
+INFO
+plugins=ru.biosoft.table
+name=test_table
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	X_coordinate; Float; NONE;  X_coordinate
+#2	Y_coordinate; Float; NONE;  Y_coordinate
+#3	Z_coordinate; Float; NONE;  Z_coordinate
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+0	5.0
+//

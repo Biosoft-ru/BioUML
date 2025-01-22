@@ -1,11 +1,11 @@
-
 grant codeBase "file:${java.home}/lib/-" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${catalina.home}/webapps/-" {
   permission java.security.AllPermission;
 };
 
 grant {
   permission java.security.AllPermission;
 };
-
-
-

@@ -1,0 +1,17 @@
+ID	empty_column
+OS	
+PLATFORM	
+SAMPLES
+#1	Formula; Text; NONE;  Formula
+#2	Greater; Text; NONE;  Greater
+#3	Equal; Text; NONE;  Equal
+#4	Less; Text; NONE;  Less
+#5	Coefficient Objective Function; Float; NONE;  Coefficient Objective Function
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+R01	0.0	0.0		1.0	0.0
+R02	0.0				0.0
+R03	0.0				1.0
+//

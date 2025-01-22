@@ -1,0 +1,11 @@
+127a128,137
+>   @Override
+>   public String getModelModuleValue() {
+>     return "beakerx_tabledisplay";
+>   }
+> 
+>   @Override
+>   public String getViewModuleValue() {
+>     return "beakerx_tabledisplay";
+>   }
+> 

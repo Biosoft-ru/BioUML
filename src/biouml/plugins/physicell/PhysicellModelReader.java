@@ -8,6 +8,7 @@ import biouml.model.util.ModelXmlReader;
 
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.util.ColorUtils;
 import ru.biosoft.util.XmlUtil;
 
 public class PhysicellModelReader extends ModelXmlReader
@@ -31,6 +32,8 @@ public class PhysicellModelReader extends ModelXmlReader
             readUserParameters( element, model );
             readInitialCondiiton( element, model );
             readReportProperties( element, model );
+            readColorSchemes(element, model);
+            readVisualizers(element, model);
         }
         catch( Throwable t )
         {
@@ -110,6 +113,59 @@ public class PhysicellModelReader extends ModelXmlReader
             p.setType( parameterElement.getAttribute( "type" ) );
             p.setValue( parameterElement.getAttribute( "value" ) );
             model.addUserParameter( p );
+        }
+    }
+
+    protected void readColorSchemes(Element modelElement, MulticellEModel model)
+    {
+        Element colorSchemesElement = XmlUtil.findElementByTagName( modelElement, "colorSchemes" );
+        if( colorSchemesElement == null )
+            return;
+        for( Element colorSchemeElement : XmlUtil.elements( colorSchemesElement, "colorScheme" ) )
+        {
+            ColorScheme cs = new ColorScheme();
+            cs.setName( colorSchemeElement.getAttribute( "name" ) );
+            cs.setColor( ColorUtils.parseColor( colorSchemeElement.getAttribute( "color" ) ) );
+
+            if( colorSchemeElement.hasAttribute( "borderColor" ) )
+            {
+                cs.setBorderColor( ColorUtils.parseColor( colorSchemeElement.getAttribute( "borderColor" ) ) );
+                cs.setCore( true );
+            }
+            else
+                cs.setBorder( false );
+
+            if( colorSchemeElement.hasAttribute( "coreBorderColor" ) )
+            {
+                cs.setCoreBorderColor( ColorUtils.parseColor( colorSchemeElement.getAttribute( "coreBorderColor" ) ) );
+                cs.setCoreColor( ColorUtils.parseColor( colorSchemeElement.getAttribute( "coreColor" ) ) );
+                cs.setCore( true );
+            }
+            else
+                cs.setCore( false );
+
+            model.addColorScheme( cs );
+        }
+    }
+
+    protected void readVisualizers(Element modelElement, MulticellEModel model)
+    {
+        Element visualizersElement = XmlUtil.findElementByTagName( modelElement, "visualizers" );
+        if( visualizersElement == null )
+            return;
+
+        VisualizerProperties visualizerProperties = model.getVisualizerProperties();
+        for( Element visualizerElement : XmlUtil.elements( visualizersElement, "visualizer" ) )
+        {
+            CellDefinitionVisualizerProperties visualizer = new CellDefinitionVisualizerProperties();
+            visualizer.setType( visualizerElement.getAttribute( "type" ) );
+            visualizer.setCellType( visualizerElement.getAttribute( "cellType" ) );
+            visualizer.setPriority( Double.parseDouble( visualizerElement.getAttribute( "priority" ) ) );
+            visualizer.setColor1( visualizerElement.getAttribute( "color1" ) );
+            visualizer.setColor2( visualizerElement.getAttribute( "color2" ) );
+            visualizer.setMin( Double.parseDouble( visualizerElement.getAttribute( "min" ) ) );
+            visualizer.setMax( Double.parseDouble( visualizerElement.getAttribute( "max" ) ) );
+            visualizerProperties.addVisualizer( visualizer );
         }
     }
 

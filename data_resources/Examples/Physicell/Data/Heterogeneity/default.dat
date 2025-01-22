@@ -1,0 +1,181 @@
+ID	TumorPhenotype.java
+createdDate	1725884979877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725884979877
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	TumorPhenotype.java
+createdDate	1725884979877
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725884979877
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1725885482301
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725885482301
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	TumorPhenotype.java
+createdDate	1725885482301
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725885482301
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1725885482301
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886093276
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	TumorPhenotype.java
+createdDate	1725885482301
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886093276
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1725885482301
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886134677
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	TumorPhenotype.java
+createdDate	1725885482301
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886134677
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1725886521698
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886521698
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	TumorPhenotype.java
+createdDate	1725886521698
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886521698
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1725886732170
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886732170
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	Initial.java
+createdDate	1725886732188
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886732188
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Initial.java
+createdDate	1725886732188
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886732188
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+
+ID	TumorPhenotype.java
+createdDate	1725886732170
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886732170
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	TumorPhenotype.java
+createdDate	1725886897612
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886897612
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	Initial.java
+createdDate	1725886897631
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886897631
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	Report.java
+createdDate	1725886897645
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886897645
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	Visualizer.java
+createdDate	1725886897660
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886897660
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+ID	Heterogeneity
+createdDate	1725886897689
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Heterogeneity
+modifiedDate	1725886897689
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Visualizer.java
+createdDate	1725886897660
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1725886897660
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Visualizer.java
+createdDate	1725886897660
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108480596
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//

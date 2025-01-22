@@ -1,0 +1,273 @@
+VV  TRANSFAC FACTOR TABLE, Release test - licensed - test, (C) Biobase GmbH
+XX
+//
+AC  T00033
+XX
+ID  T00033
+XX
+CO  Copyright (C), Biobase GmbH.
+XX
+FA  AP-2alpha-isoform1
+XX
+SY  activator protein 2; AP-2 alpha; AP-2A; AP-2alpha.
+XX
+OS  mouse, Mus musculus
+OC  eukaryota; animalia; metazoa; chordata; vertebrata; tetrapoda; mammalia; eutheria; rodentia; myomorpha; muridae; murinae
+XX
+GE  G004734; Tfap2a.
+XX
+CL  C0032; bHSH; 1.6.1.0.1.1.
+XX
+TY  basic.
+XX
+HP  T10025; AP-2alpha(m).
+XX
+SZ  437 AA; 48.0 kDa (cDNA) (calc.), 50 kDa (SDS)
+XX
+SQ  SLSKSNSNAVSAIPINKDNLFGGVVNPNEVFCSVPGRLSLLSSTSKYKVTVAEVQRRLSP
+SQ  PECLNASLLGGVLRRAKSKNGGRSLREKLDKIGLNLPAGRRKAANVTLLTSLVEGEAVHL
+SQ  MLWKLTDNIKYEDCEDRHDGTSNGTARLPQLGTVGQSPYTSAPPLSHTPNADFQPPYFPP
+SQ  PYQPIYPQSQDPYSHVNDPYSLNPLHAQPQPQHPGWPGQRQSQESGLLHTHRGLPHQLSG
+SQ  LDPRRDYRRHEDLLHGPHALGSGLGDLPIHSLPHAIEDVPHVEDPGINIPDQTVIKKGPV
+SQ  ARDFGYVCETEFPAKAVAEFLNRQHSDPNEQVARKNMLLATKQICKEFTDLLAQDRSPLG
+SQ  NSRPNPILEPGIQSCLTHFNLISHGFGSPAVCAAVTALQNYLTEALKAMDKMYLSNNPNS
+SQ  HTDNSAKSSDKEEKHRK
+XX
+SC  Swiss-Prot#P34056-1
+XX
+FT        1     15   replaced by 1-9 in isoform 3, by 1-44 in isoform 4 [4].
+FT       16    160   missing in isoform 2 [4].
+FT       38     97   proline-rich region (18/60).
+FT      207    414   PF03299; Transcription factor AP-2.
+FT      280    410   putative helix-span-helix motif.
+FT      390    390   missing in [1].
+XX
+SF  at least four splice variants differing in their N-termini [4];
+XX
+CP  expression in placenta and in embryo, neural crest cells and their derivatives [10].
+EX  Hypothalamus primordium,,,Theiler Stage 21; none; RNA-in situ hybridization (non-radioactive); RNA (undefined);  [9].
+EX  brain,,,Theiler Stage 24; very high; RT-PCR; total RNA;  [6].
+EX  brain,,,Theiler Stage 27; medium; RT-PCR; total RNA;  [6].
+EX  brain,,,adult; none; RT-PCR; total RNA;  [3].
+EX  brain,,,neonate (during the first month after birth); high; RT-PCR; total RNA;  [6].
+XX
+FF  may be involved in regulating development of PNS, face, limbs, skin, kidney [1];
+FF  for expression pattern in teeth, see [5];
+FF  moderate autoactivator of AP-2alpha-isoform1 [6];
+FF  both AP-2alpha-isoform1 and AP-2gamma <T02470> can transactivate estrogen receptor alpha promoter which explains the correlation between AP-2 activity and estrogen receptor (ER) expression in breast cancer [7];
+FF  Ap-2delta <T06431>exhibited greater DNA sequence preference than did Ap-2alpha under in vitro conditions [8];
+FF  strong binding to site <R16374>;
+XX
+IN  T02469; AP-2beta; mouse, Mus musculus.
+XX
+CX  T06469; AP-2alpha-isoform1(m):AP-2delta(m).
+XX
+MX  M00469; V$AP2ALPHA_01.
+MX  M01045; V$AP2ALPHA_02.
+MX  M01047; V$AP2ALPHA_03.
+MX  M01857; V$AP2ALPHA_Q6.
+MX  M00800; V$AP2_Q3.
+MX  M00189; V$AP2_Q6.
+MX  M00915; V$AP2_Q6_01.
+MX  M02819; V$TCFAP2A_03.
+XX
+BS  R02121; AP2$CONS_01; Quality: 1.
+BS  R05065; AP2$CONS_02; Quality: 1.
+BS  R16375; AS$AP2DELTA_01; Quality: 2.
+BS  R16374; HS$MT2A_17; Quality: 1; MT2A, G000337; human, Homo sapiens.
+BS  R10745; HS$TFAP2A_01; Quality: 1; TFAP2A, G002615; human, Homo sapiens.
+BS  R08502; MMTV$MMTV_48; Quality: 3; MMTV, G000455; MMTV, mouse mammary tumor virus.
+BS  R01054; MOUSE$M1H2KB_02; Quality: 1; H2-K1, G000561; mouse, Mus musculus.
+XX
+DR  TRANSPATH: MO000046020.
+DR  EMBL: X57012; MMAP2.
+DR  EMBL: X74216; MMTAAP2.
+DR  SWISSPROT: P34056-1.
+XX
+RN  [1]; RE0000664.
+RX  PUBMED: 1989904.
+RA  Mitchell P. J., Timmons P. M., Hebert J. M., Rigby P. W., Tjian R.
+RT  Transcription factor AP-2 is expressed in neural creast cell lineages during mouse embryogenesis
+RL  Genes Dev. 5:105-119 (1991).
+RN  [2]; RE0006796.
+RX  PUBMED: 8233835.
+RA  Moser M., Pscherer A., Bauer R., Imhof A., Seegers S., Kerscher M., Buettner R.
+RT  The complete murine cDNA of the transcription factor AP-2
+RL  Nucleic Acids Res. 21:4844-4844 (1993).
+RN  [3]; RE0006896.
+RX  PUBMED: 7555706.
+RA  Moser M., Imhof A., Pscherer A., Bauer R., Amselgruber W., Sinowatz F., Schule R., Buettner R.
+RT  Cloning and characterization of a second AP-2 transcription factor: AP-2 beta
+RL  Development 121:2779-2788 (1995).
+RN  [4]; RE0006898.
+RX  PUBMED: 7750631.
+RA  Meier P., Koedood M., Philipp J., Fontana A., Mitchell P. J.
+RT  Alternative mRNAs encode multiple isoforms of transcription factor AP-2 during murine embryogenesis
+RL  Dev. Biol. 169:1-14 (1995).
+XX
+//
+AC  T02466
+XX
+ID  T02466
+XX
+CO  Copyright (C), Biobase GmbH.
+XX
+FA  AP-2alphaB
+XX
+SY  activator protein 2B.
+XX
+OS  human, Homo sapiens
+OC  eukaryota; animalia; metazoa; chordata; vertebrata; tetrapoda; mammalia; eutheria; primates
+XX
+GE  G002615; TFAP2A; HGNC: TFAP2A.
+XX
+CL  C0032; bHSH; 1.6.1.0.1.5.
+XX
+TY  basic.
+XX
+HP  T08146; AP-2alpha(h).
+XX
+SZ  365 AA; 40.6 kDa (cDNA) (calc.).
+XX
+SQ  MLWKLTDNIKYEDCEDRHDGTSNGTARLPQLGTVGQSPYTSAPPLSHTPNADFQPPYFPP
+SQ  LDPRRDYRRHEDLLHGPHALSSGLGDLSIHSLPHAIEEVPHVEDPGINIPDQTVIKKGPV
+SQ  SLSKSNSNAVSAIPINKDNLFGGVVNPNEVFCSVPGRLSLLSSTSKYKVTVAEVQRRLSP
+SQ  PYQPIYPQSQDPYSHVNDPYSLNPLHAQPQPQHPGWPGQRQSQESGLLHTHRGLPHQLSG
+SQ  PECLNASLLGGVLRRAKSKNGGRSLREKLDKIGLNLPAGRRKAANVTLLTSLVEGKRIHL
+SQ  LTRRNFLLGKWIIFSGQMFGRILCQLGSFIFAENIARCEWNYFMAKRNICMYSYTSILLP
+SQ  SFPLP
+XX
+SC  SPTREMBL #Q13777
+XX
+FT       38     97   proline-rich region (18/60).
+FT      207    365   PF03299; Transcription factor AP-2.
+FT      296    365   replaced by 296-437 in AP-2alphaA.
+XX
+SF  splice variant of AP-2alphaA <T00035>;
+SF  no DNA-binding due to lack of dimerization domain [1];
+XX
+CP  (teratocarcinoma cell line PA-1).
+XX
+FF  repressor of AP-2alphaA activity [1];
+FF  for repressing DNA-binding of AP-2alphaA, it requires an additional nuclear factor [1];
+XX
+MX  M00469; V$AP2ALPHA_01.
+MX  M01045; V$AP2ALPHA_02.
+MX  M01047; V$AP2ALPHA_03.
+MX  M01857; V$AP2ALPHA_Q6.
+MX  M00800; V$AP2_Q3.
+MX  M00189; V$AP2_Q6.
+MX  M00915; V$AP2_Q6_01.
+XX
+BS  R34361; HS$PLAUR_06; Quality: 1; PLAUR, G021555; human, Homo sapiens.
+XX
+DR  TRANSPATH: MO000026447.
+DR  EMBL: M61156.
+DR  SWISSPROT: P05549-2.
+XX
+RN  [1]; RE0006888.
+RX  PUBMED: 8321221.
+RA  Buettner R., Kannan P., Imhof A., Bauer R., Yim S. O., Glockshuber R., van Dyke M. W., Tainsky M. A.
+RT  An alternatively spliced mRNA from the AP-2 gene encodes a negative regulator of transcriptional activation by AP-2
+RL  Mol. Cell. Biol. 13:4174-4185 (1993).
+XX
+//
+AC  T02467
+XX
+ID  T02467
+XX
+CO  Copyright (C), Biobase GmbH.
+XX
+FA  AP-2beta
+XX
+SY  activator protein 2beta; TFAP2B.
+XX
+OS  human, Homo sapiens
+OC  eukaryota; animalia; metazoa; chordata; vertebrata; tetrapoda; mammalia; eutheria; primates
+XX
+GE  G004003; TFAP2B; HGNC: TFAP2B.
+XX
+CL  C0032; bHSH; 1.6.1.0.2.
+XX
+TY  isogroup.
+XX
+HP  T08305; AP-2(h).
+HC  T10491; AP-2beta-isoform1(h).
+HC  T23565; AP-2beta-isoform2(h).
+XX
+MX  M01858; V$AP2BETA_Q3.
+MX  M00800; V$AP2_Q3.
+MX  M00189; V$AP2_Q6.
+MX  M00915; V$AP2_Q6_01.
+XX
+BS  R21587; HS$PTGDS_03; Quality: 3; PTGDS, G031565; human, Homo sapiens.
+BS  R33805; HS$SLC12A4_02; Quality: 3; SLC12A4, G036967; human, Homo sapiens.
+BS  R21321; HS$SLC19A1_11; Quality: 3; SLC19A1, G018476; human, Homo sapiens.
+BS  R21324; HS$SLC19A1_13; Quality: 3; SLC19A1, G018476; human, Homo sapiens.
+BS  R17162; HS$SOD2_01; Quality: 3; SOD2, G018710; human, Homo sapiens.
+BS  R34987; HS$TERT_63; Quality: 3; TERT, G002001; human, Homo sapiens.
+XX
+DR  TRANSPATH: MO000026448.
+DR  SWISSPROT: Q92481.
+XX
+RN  [1]; RE0006894.
+RX  PUBMED: 8661133.
+RA  Williamson J. A., Bosher J. M., Skinner A., Sheer D., Williams T., Hurst H. C.
+RT  Chromosomal mapping of the human and mouse homologues of two new members of the AP-2 family of transcription factors
+RL  Genomics 35:262-264 (1996).
+XX
+//
+AC  T02468
+XX
+ID  T02468
+XX
+CO  Copyright (C), Biobase GmbH.
+XX
+FA  AP-2gamma
+XX
+SY  activator protein 2gamma; ERF-1.
+XX
+OS  human, Homo sapiens
+OC  eukaryota; animalia; metazoa; chordata; vertebrata; tetrapoda; mammalia; eutheria; primates
+XX
+GE  G004004; TFAP2C; HGNC: TFAP2C.
+XX
+CL  C0032; bHSH; 1.6.1.0.3.
+XX
+TY  isogroup.
+XX
+HP  T08305; AP-2(h).
+HC  T09207; AP-2gamma(h).
+XX
+CP  (MCF7).
+XX
+FF  involved in regulating genes characteristic of estrogen-responsive breast cancer phenotypes [2];
+XX
+IN  T04074; brca1; human, Homo sapiens.
+XX
+MX  M00470; V$AP2GAMMA_01.
+MX  M01859; V$AP2GAMMA_Q5.
+MX  M00800; V$AP2_Q3.
+MX  M00189; V$AP2_Q6.
+MX  M00915; V$AP2_Q6_01.
+XX
+BS  R25139; HS$CSTA_01; Quality: 3; CSTA, G009874; human, Homo sapiens.
+BS  R25423; HS$ESR1_14; Quality: 5; ESR1, G003925; human, Homo sapiens.
+BS  R25424; HS$ESR1_15; Quality: 5; ESR1, G003925; human, Homo sapiens.
+BS  R38328; HS$MCAM_03; Quality: 3; MCAM, G032160; human, Homo sapiens.
+XX
+DR  TRANSPATH: MO000026449.
+DR  SWISSPROT: Q92754.
+XX
+RN  [1]; RE0006894.
+RX  PUBMED: 8661133.
+RA  Williamson J. A., Bosher J. M., Skinner A., Sheer D., Williams T., Hurst H. C.
+RT  Chromosomal mapping of the human and mouse homologues of two new members of the AP-2 family of transcription factors
+RL  Genomics 35:262-264 (1996).
+RN  [2]; RE0006895.
+RX  PUBMED: 9113991.
+RA  McPherson L. A., Baichwal V. R., Weigel R. J.
+RT  Identification of ERF-1 as a member of the AP2 transcription factor family
+RL  Proc. Natl. Acad. Sci. USA 94:4342-4347 (1997).
+XX
+//

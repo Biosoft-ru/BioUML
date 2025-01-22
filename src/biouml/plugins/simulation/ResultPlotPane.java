@@ -345,7 +345,7 @@ public class ResultPlotPane extends JPanel implements CycledResultListener
             }
             renderer.setSeriesShapesVisible( counter, true );
             renderer.setSeriesLinesVisible( counter, false );
-            renderer.setSeriesShape( counter, new Ellipse2D.Float( 0, 0, 5, 5 ) );
+            renderer.setSeriesShape( counter, new Ellipse2D.Float( -3, -3, 6, 6 ) );
 
             counter++;
 

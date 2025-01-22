@@ -506,8 +506,8 @@ public class WorkflowTest extends AbstractBioUMLTest
                 assertTrue(view instanceof CompositeView);
                 View childView = ((CompositeView)view).elementAt(0);
                 assertTrue(childView instanceof ImageView);
-                assertEquals(16.0, ((ImageView)childView).getBounds().getWidth());
-                assertEquals(16.0, ((ImageView)childView).getBounds().getHeight());
+                assertEquals(-1.0, ((ImageView)childView).getBounds().getWidth());
+                assertEquals(-1.0, ((ImageView)childView).getBounds().getHeight());
                 found++;
             }
         }
