@@ -13,13 +13,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
+import org.sbolstandard.core2.DirectionType;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.Location;
 import org.sbolstandard.core2.ModuleDefinition;
@@ -45,7 +46,6 @@ import biouml.model.Node;
 import biouml.model.util.ImageGenerator;
 import biouml.standard.type.Base;
 import biouml.standard.type.DiagramInfo;
-import biouml.standard.type.Reaction;
 import biouml.standard.type.Stub;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import ru.biosoft.access.core.DataCollection;
@@ -59,6 +59,7 @@ import ru.biosoft.util.DPSUtils;
 
 public class SbolDiagramReader
 {
+
     protected static final Logger log = Logger.getLogger(SbolDiagramReader.class.getName());
     private static final SystemsBiologyOntology sbo = new SystemsBiologyOntology();
     public static Diagram readDiagram(File file, String name, DataCollection<?> origin) throws Exception
@@ -86,7 +87,7 @@ public class SbolDiagramReader
         return result;
     }
 
-    private static void fillDiagramByDocument(SBOLDocument doc, Diagram diagram)
+    private static void fillDiagramByDocument(SBOLDocument doc, Diagram diagram)  throws SBOLValidationException
     {
         Map<String, Base> kernels = new HashMap<>();
         Set<ModuleDefinition> mds = doc.getRootModuleDefinitions();
@@ -250,8 +251,8 @@ public class SbolDiagramReader
                     InteractionProperties reaction = new InteractionProperties(interaction);
                     reaction.setType(SbolUtil.getInteractionStringType(typeUri));
                     Node interactionNode = new Node(diagram, reaction);
-                    interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
-                    interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+//                    interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
+                    interactionNode.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction)));
                     //interactionNode.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
                     interactionNode.setUseCustomImage(true);
                     interactionNode.setShapeSize(new Dimension(15, 15));
@@ -277,9 +278,10 @@ public class SbolDiagramReader
                 {
                     //only interaction node should be placed
                     InteractionProperties reaction = new InteractionProperties(interaction);
+                    reaction.setType( type );
                     Node interactionNode = new Node(diagram, reaction);
-                    interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
-                    interactionNode.getAttributes().add(new DynamicProperty("node-image", String.class, SbolUtil.getSbolImagePath(interaction)));
+
+                    interactionNode.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction) ));
                     interactionNode.setShapeSize(new Dimension(15, 15));
                     interactionNode.setUseCustomImage(true);
                     diagram.put(interactionNode);
@@ -310,9 +312,8 @@ public class SbolDiagramReader
         return result;
     }
 
-    private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, Base> kernels)
+    private static void parseComponentDefinitions(Set<ComponentDefinition> cds, Diagram diagram, Map<String, Base> kernels)  throws SBOLValidationException
     {
-
         for ( ComponentDefinition cd : cds )
         {
             parseComponentDefinition(cd, diagram, kernels);
@@ -333,8 +334,8 @@ public class SbolDiagramReader
                 .collect(Collectors.toSet());
     }
 
-
-    private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, Base> kernels)
+ 
+    private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, Base> kernels) throws SBOLValidationException
     {
         Set<Component> components = cd.getComponents();
         if ( !components.isEmpty() )
@@ -370,7 +371,7 @@ public class SbolDiagramReader
 
                     String icon = SbolUtil.getSbolImagePath(cdNode);
                     node.getAttributes()
-                            .add(new DynamicProperty("node-image", String.class, icon));
+                            .add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, icon));
 
                     //composite node
                     //TODO: create new diagram for this node and store in attributes
@@ -426,9 +427,12 @@ public class SbolDiagramReader
             {
                 Node node = new Node(diagram, base);
                 node.setUseCustomImage(true);
-
+                Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
+                
+                ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
+                moduleDefinition.createFunctionalComponent( base.getName() + "_fc", AccessType.PUBLIC, base.getName(), DirectionType.INOUT );
                 String icon = SbolUtil.getSbolImagePath(cd);
-                node.getAttributes().add(new DynamicProperty("node-image", String.class, icon));
+                node.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, icon));
                 node.setShapeSize(new Dimension(xSize, ySize));
                 diagram.put(node);
             }
