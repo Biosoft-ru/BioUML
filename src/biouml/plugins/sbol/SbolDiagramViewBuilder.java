@@ -474,7 +474,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
                 break;
             case SbolUtil.TYPE_PROCESS:
             case SbolConstants.PRODUCT:
-                tip = ArrowView.createTriggerTip( pen, brush, 19, 8, 4, 3 );
+                tip = ArrowView.createTriangleTip( pen, new Brush(Color.black), 15, 5 );
                 break;
             default:
                 tip = null;//ArrowView.createSimpleTip(pen, 6, 4);
