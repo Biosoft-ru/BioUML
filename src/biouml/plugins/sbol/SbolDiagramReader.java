@@ -17,10 +17,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
-import org.sbolstandard.core2.DirectionType;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.Location;
 import org.sbolstandard.core2.ModuleDefinition;
@@ -78,10 +76,9 @@ public class SbolDiagramReader
         if ( doc != null )
         {
             doc.setDefaultURIprefix( "https://biouml.org" );
-            fillDiagramByDocument(doc, result);
-            DynamicProperty dp = new DynamicProperty(SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc);
-            dp.setHidden(true);
+            DynamicProperty dp = DPSUtils.createHiddenReadOnly( SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc);
             result.getAttributes().add(dp);
+            fillDiagramByDocument(doc, result);
         }
         result.setNotificationEnabled(true);
         return result;
@@ -251,9 +248,7 @@ public class SbolDiagramReader
                     InteractionProperties reaction = new InteractionProperties(interaction);
                     reaction.setType(SbolUtil.getInteractionStringType(typeUri));
                     Node interactionNode = new Node(diagram, reaction);
-//                    interactionNode.getAttributes().add(new DynamicProperty("reactionType", String.class, type));
                     interactionNode.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction)));
-                    //interactionNode.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
                     interactionNode.setUseCustomImage(true);
                     interactionNode.setShapeSize(new Dimension(15, 15));
                     diagram.put(interactionNode);
@@ -268,7 +263,6 @@ public class SbolDiagramReader
                     {
                         Entry<Node, Participation> toEntry = toIter.next();
                         ParticipationProperties kernel = new ParticipationProperties(toEntry.getValue());
-                        kernel.setType(type);
                         Edge result = new Edge(kernel, interactionNode, toEntry.getKey());
                         result.getOrigin().put(result);
                     }
@@ -427,10 +421,6 @@ public class SbolDiagramReader
             {
                 Node node = new Node(diagram, base);
                 node.setUseCustomImage(true);
-                Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-                
-                ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
-                moduleDefinition.createFunctionalComponent( base.getName() + "_fc", AccessType.PUBLIC, base.getName(), DirectionType.INOUT );
                 String icon = SbolUtil.getSbolImagePath(cd);
                 node.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, icon));
                 node.setShapeSize(new Dimension(xSize, ySize));
