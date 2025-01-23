@@ -41,7 +41,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         try
         {
 
-            if( type.equals( ParticipationProperties.class )  )
+            if( type.equals( ParticipationProperties.class ) )
             {
                 new CreateEdgeAction().createEdge( pt, viewEditor, new ParticipationEdgeCreator() );
                 return DiagramElementGroup.EMPTY_EG;
@@ -91,7 +91,6 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             return compartment instanceof Diagram;
         }
 
-
         if( de instanceof Edge )
             return true;
         return false;
@@ -102,29 +101,30 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         try
         {
-            if( type instanceof Class )
+            //            if( type instanceof Class )
+            //            {
+            //                return ( (Class)type ).getConstructor(String.class).newInstance();
+            //            }
+            //            else
+            //            {
+            if( type.equals( Backbone.class ) )
             {
-                return ( (Class)type ).getConstructor().newInstance();
+                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
             }
-            else
+            else if( type.equals( SequenceFeature.class ) )
             {
-                if ( type.equals(Backbone.class.getName()) )
-                {
-                    return new Backbone();
-                }
-                else if ( type.equals(SequenceFeature.class.getName()) )
-                {
-                    return new SequenceFeature();
-                }
-                else if ( type.equals(MolecularSpecies.class.getName()) )
-                {
-                    return new MolecularSpecies();
-                }
-                else if ( type.equals(InteractionProperties.class.getName()) )
-                {
-                    return new InteractionProperties();
-                }
+                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
             }
+            else if( type.equals( MolecularSpecies.class ) )
+            {
+                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
+            }
+            else if( type.equals( InteractionProperties.class ) )
+            {
+                return new InteractionProperties(
+                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
+            }
+            //            }
         }
         catch( Exception ex )
         {
@@ -359,11 +359,12 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     }
 
     @Override
-    public Edge createEdge(@Nonnull Node fromNode, @Nonnull Node toNode, String edgeType, Compartment compartment) throws IllegalArgumentException
+    public Edge createEdge(@Nonnull Node fromNode, @Nonnull Node toNode, String edgeType, Compartment compartment)
+            throws IllegalArgumentException
     {
-        if(edgeType.equals( ParticipationProperties.class.getName() ))
+        if( edgeType.equals( ParticipationProperties.class.getName() ) )
         {
-            return new ParticipationEdgeCreator().createEdge(fromNode, toNode, false);
+            return new ParticipationEdgeCreator().createEdge( fromNode, toNode, false );
         }
         return null;
     }

@@ -12,6 +12,7 @@ import biouml.plugins.simulation.SimulationEngine;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.physicell.biofvm.ConstantCoefficientsLOD3D;
 import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellContainer;
@@ -165,13 +166,15 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
-       
+
 
         PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
         model.setDiffusionDt( opts.getDiffusionDt() );
         model.setMechanicsDt( opts.getMechanicsDt() );
         model.setPhenotypeDt( opts.getPhenotypeDt() );
         model.setTMax( opts.getFinalTime() );
+
+        ( (ConstantCoefficientsLOD3D)model.getMicroenvironment().getSolver() ).setPrallel( opts.isParallelDiffusion() );
 
         m.options.calculate_gradients = opts.isCalculateGradient();
         m.options.track_internalized_substrates_in_each_agent = opts.isTrackInnerSubstrates();
@@ -254,36 +257,47 @@ public class PhysicellSimulationEngine extends SimulationEngine
             model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger(), model ) );
         }
 
-        
-        AgentColorer colorer;
+        AgentColorer colorer = null;
 
-        VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
-        if( visualizerProperties.getProperties().length > 0 )
+        if( opts.isSaveImageText() || opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
         {
-            colorer = new DefaultColorer( visualizerProperties );
-        }
-        else
-        {
-            colorer = new DefinitionVisualizer();
-            for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-                ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
-        }
-        if( options.isUse2D() )
-        {
-//            double zCenter = (options.getZTo() + options.getZFrom()) / 2;
-            for( String density : m.densityNames )
+            VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
+            if( visualizerProperties.getProperties().length > 0 )
             {
-
-                model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
-                        .setAgentColorer( colorer ) );
+                colorer = new DefaultColorer( visualizerProperties );
+            }
+            else
+            {
+                colorer = new DefinitionVisualizer();
+                for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+                    ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+            }
+            if( emodel.getReportProperties().isCustomVisualizer() )
+            {
+                DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
+                colorer = FunctionsLoader.load( dep, AgentColorer.class, log.getLogger(), model );
             }
         }
-        else
-            model.addVisualizer( new Visualizer3D( null, "3d", m ).setAgentColorer( colorer ) );
-        if( emodel.getReportProperties().isCustomVisualizer() )
+
+        if (opts.isSaveImageText())
         {
-            DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
-            colorer = FunctionsLoader.load( dep, AgentColorer.class, log.getLogger(), model );
+            VisualizerTextTable textVisualzer = new VisualizerTextTable(opts.getResultPath(), cellUpdateType, colorer, opts.getFinalTime(), opts.getImageInterval());
+            ((PhysicellSimulator)simulator).addTextVisualizer( textVisualzer );
+        }
+        
+        if( opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
+        {
+            if( options.isUse2D() )
+            {
+                for( String density : m.densityNames )
+                {
+                    model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
+                            .setAgentColorer( colorer ) );
+                }
+            }
+            else
+                model.addVisualizer( new Visualizer3D( null, "3d", m ).setAgentColorer( colorer ) );
+
             for( Visualizer v : model.getVisualizers() )
             {
                 v.setAgentColorer( colorer );

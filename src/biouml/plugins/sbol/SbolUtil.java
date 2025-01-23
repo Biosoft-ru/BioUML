@@ -41,6 +41,7 @@ public class SbolUtil
     private static final Map<URI, String> dnaRegionToImage;
     private static final Map<String, URI> featurRoleToURI;
     private static final Map<String, URI> speciesToURI;
+    private static final Map<URI, String> speciesURIToString;
     private static final Map<String, URI> interactionToURI;
     private static final Map<URI, String> interactionURIToString;
     private static final Map<String, URI> participationToURI;
@@ -181,6 +182,7 @@ public class SbolUtil
         sMap.put( SbolConstants.SIMPLE_CHEMICAL, ComponentDefinition.SMALL_MOLECULE );
         sMap.put( SbolConstants.COMPLEX, ComponentDefinition.COMPLEX );
         speciesToURI = Collections.unmodifiableMap( sMap );
+        speciesURIToString = sMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
     static
@@ -303,6 +305,11 @@ public class SbolUtil
     {
         return speciesToURI.get( type );
     }
+    
+    public static String getSpeciesURIByType(URI uri)
+    {
+        return speciesURIToString.get( uri );
+    }
 
     public static URI getURIByRole(String name)
     {
@@ -367,7 +374,9 @@ public class SbolUtil
         else if( sbolObject instanceof Interaction )
         {
             Interaction inter = (Interaction)sbolObject;
-            if( inter.containsType( SystemsBiologyOntology.GENETIC_PRODUCTION ) )
+            if( inter.containsType( SystemsBiologyOntology.GENETIC_PRODUCTION ) || inter.containsType( SystemsBiologyOntology.PROCESS )
+                    || inter.containsType( SystemsBiologyOntology.CONTROL ) || inter.containsType( SystemsBiologyOntology.INHIBITION )
+                    || inter.containsType( SystemsBiologyOntology.DEGRADATION )  || inter.containsType( SystemsBiologyOntology.STIMULATION ))
                 return "process";
             else if( inter.containsType( SystemsBiologyOntology.DISSOCIATION ) )
                 return "dissociation";
@@ -386,6 +395,13 @@ public class SbolUtil
                 return new Backbone( cd );
             else
                 return new SequenceFeature( cd );
+        }
+        else if (cd.containsType( ComponentDefinition.COMPLEX ) || cd.containsType( ComponentDefinition.PROTEIN )|| cd.containsType( ComponentDefinition.SMALL_MOLECULE ))
+        {
+            MolecularSpecies species = new MolecularSpecies(cd.getDisplayId());
+            species.setType( speciesURIToString.get( cd.getTypes().iterator().next() ) );
+            species.setSbolObject( cd );
+            return species;
         }
         return new SbolBase( cd );
     }

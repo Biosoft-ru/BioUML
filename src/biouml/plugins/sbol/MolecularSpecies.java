@@ -6,12 +6,10 @@ import java.awt.Point;
 import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.DirectionType;
-import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.SBOLDocument;
 
-import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
@@ -22,10 +20,11 @@ import biouml.model.InitialElementProperties;
 import biouml.model.Node;
 import biouml.model.SemanticController;
 import ru.biosoft.graphics.editor.ViewEditorPane;
+import ru.biosoft.util.DPSUtils;
 
 public class MolecularSpecies extends SbolBase implements InitialElementProperties
 {
-    public static String[] types = new String[] {"Complex", "Protein", "Simple Chemical"};//, "Double-Stranded Nucleic Acid", "Macromolecule", "Protein",
+    public static String[] types = new String[] {SbolConstants.COMPLEX, SbolConstants.PROTEIN, SbolConstants.SIMPLE_CHEMICAL};//, "Double-Stranded Nucleic Acid", "Macromolecule", "Protein",
     //            "Single-Stranded Nucleic Acid", "Unspecified"};
 
     private String name = "Complex";
@@ -34,9 +33,11 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     private String role = "";
     private boolean isCreated = false;
 
-    public MolecularSpecies()
+    public MolecularSpecies(String name)
     {
         super( null );
+        this.name = name;
+        this.title = name;
     }
 
     public MolecularSpecies(Identified so)
@@ -112,35 +113,23 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         if( ! ( doc instanceof SBOLDocument ) )
             return DiagramElementGroup.EMPTY_EG;
 
-
         ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", SbolUtil.getSpeciesURIByType( type ) );
-
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
-
-
         moduleDefinition.createFunctionalComponent( getName() + "_fc", AccessType.PUBLIC, getName(), DirectionType.INOUT );
 
         this.isCreated = true;
-
         this.setSbolObject( cd );
         Node node = new Node( compartment, this );
         node.setUseCustomImage( true );
         node.setLocation( location );
-        String icon = SbolUtil.getSbolImagePath( cd );
-        node.setShapeSize( new Dimension( 32, 14 ) );
-        //        node.getAttributes()
-        //                .add( new DynamicProperty( "node-image", URL.class, SbolDiagramReader.class.getResource( "resources/protein.svg" )));//+  icon + ".png" ) ) );
-
-        node.getAttributes().add( new DynamicProperty( "node-image", String.class,  icon  ) );
-
+        node.setShapeSize( new Dimension( 60, 40 ) );
+        node.getAttributes()
+                .add( DPSUtils.createHiddenReadOnly( SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath( cd ) ) );
         SemanticController semanticController = diagram.getType().getSemanticController();
         if( !semanticController.canAccept( compartment, node ) )
-        {
             return DiagramElementGroup.EMPTY_EG;
-        }
 
         compartment.put( node );
-        compartment.setShapeSize( new Dimension( compartment.getShapeSize().width + 48, compartment.getShapeSize().height ) );
 
         if( viewPane != null )
             viewPane.completeTransaction();

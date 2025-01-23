@@ -1,5 +1,7 @@
 package biouml.plugins.agentmodeling;
 
+import java.util.logging.Level;
+
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.plugins.simulation.Simulator;
@@ -44,7 +46,7 @@ import biouml.standard.simulation.ResultListener;
  */
 public class SteadyStateAgent extends ModelAgent
 {
-    private int nextSpanIndex = 1;
+    //    private int nextSpanIndex = 1;
     private boolean isStandard = false;
     private double timeBeforeSteadyState = 100;
     private double timeStep = 1;
@@ -81,10 +83,10 @@ public class SteadyStateAgent extends ModelAgent
             return;
         }
         if( updatedFromOutside )
-        {            
-             simulator.setInitialValues( currentValues );
-//             if (this.currentTime == this.initialTime)
-//                 x = model.getInitialValues();
+        {
+            simulator.setInitialValues( currentValues );
+            //             if (this.currentTime == this.initialTime)
+            //                 x = model.getInitialValues();
         }
 
         Span span = new UniformSpan( 0, timeBeforeSteadyState, timeStep );
@@ -107,7 +109,7 @@ public class SteadyStateAgent extends ModelAgent
 
         if( currentTime == 0 )
             model.setCurrentValues( currentValues );
-            
+
         super.setUpdated();
 
         if( currentTime >= timeControlStart )
@@ -131,14 +133,24 @@ public class SteadyStateAgent extends ModelAgent
             return;
         }
 
-        if( nextSpanIndex >= span.getLength() )
-            isAlive = false;
-
-        if( isAlive )
+        try
         {
-            previousTime = currentTime;
-            currentTime = span.getTime( nextSpanIndex++ );
-            isAlive = nextSpanIndex < span.getLength();
+            if( nextSpanIndex >= span.getLength() )
+                isAlive = false;
+
+            if( isAlive )
+            {
+                if( recalculateStepIndex != -1 )
+                    recalculateSpan();
+                previousTime = currentTime;
+                currentTime = span.getTime( nextSpanIndex++ );
+                isAlive = nextSpanIndex < span.getLength();
+            }
+        }
+        catch( Exception ex )
+        {
+            log.log( Level.SEVERE, ex.getMessage() );
+            currentTime = Double.POSITIVE_INFINITY;
         }
     }
 

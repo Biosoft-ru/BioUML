@@ -8,7 +8,6 @@ import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.SBOLDocument;
 
-import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
@@ -17,8 +16,8 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
-import biouml.model.SemanticController;
 import ru.biosoft.graphics.editor.ViewEditorPane;
+import ru.biosoft.util.DPSUtils;
 
 public class InteractionProperties extends SbolBase implements InitialElementProperties
 {
@@ -28,9 +27,11 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
 
     private boolean isCreated = false;
 
-    public InteractionProperties()
+    public InteractionProperties(String name)
     {
         super( null );
+        this.name = name;
+        this.title = name;
     }
 
     public InteractionProperties(Identified so)
@@ -94,7 +95,7 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
         this.setSbolObject( interaction );
         Node node = new Node( compartment, this );
-        node.getAttributes().add( new DynamicProperty( "node-image", String.class, "process" ) );
+        node.getAttributes().add( DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction) ) );
         node.setUseCustomImage( true );
         node.setLocation( location );
         node.setShapeSize( new Dimension( 15, 15 ) );
