@@ -79,6 +79,7 @@ import ru.biosoft.access.security.SessionCache;
 import ru.biosoft.access.task.JobControlTask;
 import ru.biosoft.access.task.TaskPool;
 import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.graphics.ColorEditor;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.PenEditor;
@@ -728,6 +729,7 @@ public class WebTablesProvider extends WebProviderSupport
                             input().withType( "image" ).withSrc( "icons/edit.gif" ).withValue( "Edit" )
                             .attr( "onclick", "getExpressionDialog('" + id+ "', this);" ));
             }
+
             else if( PenEditor.class.isAssignableFrom( editorClass ) && rowBean != null
                     && Series.class.isAssignableFrom( rowBean.getClass() ) )
             {
@@ -760,6 +762,14 @@ public class WebTablesProvider extends WebProviderSupport
                 else
                     return getControlCode( value, readOnly, id, path, null, false );
 
+            }
+            else if( ColorEditor.class.isAssignableFrom(editorClass) && !readOnly )
+            {
+                Color color = ((Color) value);
+                return input().withType("button").withClass("cellControl").withClass("color-picker-button").withId(id)
+                        .attr("style",
+                                "width:100px; height:12px; border: 1px solid black; background-color:rgb(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ");")
+                        .attr("onclick", "changeColorFromTable(this)");
             }
             else
             {

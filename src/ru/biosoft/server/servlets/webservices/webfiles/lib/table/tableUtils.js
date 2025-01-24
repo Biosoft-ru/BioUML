@@ -537,6 +537,49 @@ function getTableObject(tableNode)
 	});
 }
 
+function changeColorFromTable(colorBtn)
+{
+    var dialogDiv = $("<div title='Select color'/>");
+            var pickerDiv = $("<div/>");
+            var color = null;
+            var colored = $(colorBtn);
+            if(colored)
+            {
+                var colorValue = colored.css('backgroundColor'); //"rgb(r,g,b)"
+                var rgb = colorValue.substring(4, colorValue.length-1).replace(/[^\d,.]/g, '').split(',');
+                color = {active: new $.jPicker.Color({r:rgb[0], g:rgb[1], b:rgb[2]})};
+            } else
+                color = {active: new $.jPicker.Color()};
+            dialogDiv.append(pickerDiv);
+            pickerDiv.jPicker({
+                color : color
+            },
+                function(color)
+                {
+                    var val = color.val("hex") === null?"":"["+color.val('r')+","+color.val('g')+","+color.val('b')+"]";
+                    if(colored)
+                        colored.css({'backgroundColor': "rgb("+color.val('r')+","+color.val('g')+","+color.val('b') +")"});
+                    dialogDiv.dialog("close");
+                    dialogDiv.remove();
+                }, 
+                function(color)
+                {
+                    
+                },
+                function(color)
+                {
+                    dialogDiv.dialog("close");
+                    dialogDiv.remove();
+                }
+            );
+            dialogDiv.dialog({
+                autoOpen: true,
+                modal: true,
+                width: 580,
+                height: 380
+            });
+}
+
 function displayTableCell(cell)
 {
 	cell = $(cell);

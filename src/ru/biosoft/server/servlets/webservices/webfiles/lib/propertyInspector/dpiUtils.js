@@ -273,19 +273,50 @@ function getDPSFromTable(table)
     var tableDPS = new DynamicPropertySet();
     table.find('input, select').each(function()
     {
+        
+            var id = $(this).attr('id');
+            if(id)
+            {
+                
+                if($(this).hasClass('color-picker-button'))
+                {
+                    var colorDiv = $(this);//.parent().children('span');
+                    var colorValue = colorDiv.css('backgroundColor');
+                    if(colorValue){
+                        var rgb = colorValue.substring(4, colorValue.length-1).replace(/[^\d,.]/g, '').split(',');
+                        
+                        value = "[" + rgb[0] + "," + rgb[1]  + "," + rgb[2] + "]";
+                    }
+                    //var id = colorDiv.attr('id');
+                    tableDPS.add(new DynamicProperty(id, "string", value));
+                    return;
+                }
+                        
+                
+                var controlType = $(this).attr('type');
+                if (controlType == "checkbox") 
+                {
+                    var value = $(this).prop('checked') ? 'checked' : '';
+                }
+                else 
+                {
+                    var value = $(this).val();
+                }
+                tableDPS.add(new DynamicProperty(id, "string", value));
+            }
+    });
+    table.find('button.color-picker-button').each(function()
+    {
         var id = $(this).attr('id');
         if(id)
         {
-            var controlType = $(this).attr('type');
-            if (controlType == "checkbox") 
-            {
-                var value = $(this).prop('checked') ? 'checked' : '';
-            }
-            else 
-            {
-                var value = $(this).val();
+            var colorValue = $(this).css('backgroundColor');
+            if(colorValue){
+                var rgb = colorValue.substring(4, colorValue.length-1).replace(/[^\d,.]/g, '').split(',');
+                value = "1;" + rgb[0] + ";" + rgb[1]  + ";" + rgb[2];
             }
             tableDPS.add(new DynamicProperty(id, "string", value));
+            return;
         }
     });
     return tableDPS;
