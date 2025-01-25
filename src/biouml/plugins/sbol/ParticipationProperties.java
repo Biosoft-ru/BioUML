@@ -83,9 +83,12 @@ public class ParticipationProperties extends SbolBase
         try
         {
             Participation participation = (Participation)getSbolObject();
-            Set<URI> roles = new HashSet<URI>();
-            roles.add( SbolUtil.getParticipationURIByType( role ) );
-            participation.setRoles( roles );
+            if( participation != null )
+            {
+                Set<URI> roles = new HashSet<URI>();
+                roles.add( SbolUtil.getParticipationURIByType( role ) );
+                participation.setRoles( roles );
+            }
         }
         catch( Exception ex )
         {

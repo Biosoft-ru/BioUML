@@ -171,7 +171,7 @@ public class SbolDiagramReader
                     from = getParticipantNodes(Set.of(SystemsBiologyOntology.REACTANT), interaction.getParticipations(), diagram, kernels);
                     if ( from != null )
                     {
-                        String name = DefaultSemanticController.generateUniqueNodeName(diagram, "Degradation product");
+                        String name = DefaultSemanticController.generateUniqueNodeName(diagram, interaction.getParticipations().iterator().next().getParticipantDefinition().getDisplayId()+"_degradation_product");
                         Node degradationNode = new Node(diagram, new Stub(null, name, SbolUtil.TYPE_DEGRADATION_PRODUCT));
                         to.put(degradationNode, null);
                         diagram.put(degradationNode);
@@ -264,6 +264,10 @@ public class SbolDiagramReader
                     {
                         Entry<Node, Participation> toEntry = toIter.next();
                         ParticipationProperties kernel = new ParticipationProperties(toEntry.getValue());
+                        if (toEntry.getValue() == null)
+                        {
+                            kernel.setType( SbolConstants.PRODUCT );
+                        }
                         Edge result = new Edge(kernel, interactionNode, toEntry.getKey());
                         result.getOrigin().put(result);
                     }

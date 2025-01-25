@@ -667,20 +667,19 @@ public class SbolUtil
             GenericTopLevel level = doc.getGenericTopLevel( "Layout", "1" );
             if( level != null )
                 doc.removeGenericTopLevel( level );
-            level = createTopLevel( doc, NAME_SPACE, "Layout", doc.getDefaultURIprefix() );
+            level = createTopLevel( doc, NAME_SPACE, "Layout", "biouml" );
 
             for( Node node : diagram.recursiveStream().select( Node.class ) )
             {
-                if( node.getKernel() instanceof SbolBase )
-                {
-                    List<Annotation> annotations = new ArrayList<>();
-                    annotations.add( createAnnotation( NAME_SPACE, "refId", PREFIX, node.getKernel().getName() ) );
-                    annotations.add( createAnnotation( NAME_SPACE, "x", PREFIX, String.valueOf( node.getLocation().x ) ) );
-                    annotations.add( createAnnotation( NAME_SPACE, "y", PREFIX, String.valueOf( node.getLocation().y ) ) );
-                    annotations.add( createAnnotation( NAME_SPACE, "width", PREFIX, String.valueOf( node.getShapeSize().width ) ) );
-                    annotations.add( createAnnotation( NAME_SPACE, "height", PREFIX, String.valueOf( node.getShapeSize().height ) ) );
-                    createAnnotation( level, NAME_SPACE, "NodeGlyph", PREFIX, node.getKernel().getName(), annotations );
-                }
+                if( node instanceof Diagram )
+                    continue;
+                List<Annotation> annotations = new ArrayList<>();
+                annotations.add( createAnnotation( NAME_SPACE, "refId", PREFIX, node.getKernel().getName() ) );
+                annotations.add( createAnnotation( NAME_SPACE, "x", PREFIX, String.valueOf( node.getLocation().x ) ) );
+                annotations.add( createAnnotation( NAME_SPACE, "y", PREFIX, String.valueOf( node.getLocation().y ) ) );
+                annotations.add( createAnnotation( NAME_SPACE, "width", PREFIX, String.valueOf( node.getShapeSize().width ) ) );
+                annotations.add( createAnnotation( NAME_SPACE, "height", PREFIX, String.valueOf( node.getShapeSize().height ) ) );
+                createAnnotation( level, NAME_SPACE, "NodeGlyph", PREFIX, node.getKernel().getName(), annotations );
             }
         }
         catch( Exception ex )

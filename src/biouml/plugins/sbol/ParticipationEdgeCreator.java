@@ -1,5 +1,6 @@
 package biouml.plugins.sbol;
 
+import java.awt.Dimension;
 import java.awt.Point;
 
 import javax.annotation.Nonnull;
@@ -43,7 +44,7 @@ public class ParticipationEdgeCreator implements EdgeCreator
             }
             else if( in.getKernel() instanceof MolecularSpecies && out instanceof Diagram )
             {
-                return createDegradation( name, in, diagram );
+                return createDegradation( in, diagram );
             }
             else if( in.getKernel() instanceof MolecularSpecies && out.getKernel() instanceof MolecularSpecies )
             {
@@ -71,14 +72,14 @@ public class ParticipationEdgeCreator implements EdgeCreator
     /**
      * Creates interaction between two species and all neccessary edges between them
      */
-//    private Edge createSpeciesInteraction(String name, Diagram diagram, Node in, Node out) throws Exception
-//    {
-//        SBOLDocument doc = SbolUtil.getDocument( diagram );
-//        InteractionProperties properties = new InteractionProperties();
-//        properties.setName( DefaultSemanticController.generateUniqueName( diagram, "Interaction" ) );
-//        Point location = new Point( ( in.getLocation().x + out.getLocation().x ) / 2, ( in.getLocation().y + out.getLocation().y ) / 2 );
-//        Node interactionNode = properties.doCreateInteraction( diagram, doc, location );
-//    }
+    //    private Edge createSpeciesInteraction(String name, Diagram diagram, Node in, Node out) throws Exception
+    //    {
+    //        SBOLDocument doc = SbolUtil.getDocument( diagram );
+    //        InteractionProperties properties = new InteractionProperties();
+    //        properties.setName( DefaultSemanticController.generateUniqueName( diagram, "Interaction" ) );
+    //        Point location = new Point( ( in.getLocation().x + out.getLocation().x ) / 2, ( in.getLocation().y + out.getLocation().y ) / 2 );
+    //        Node interactionNode = properties.doCreateInteraction( diagram, doc, location );
+    //    }
 
     /**
      * Creates reaction participant for molecular species
@@ -135,15 +136,15 @@ public class ParticipationEdgeCreator implements EdgeCreator
     /**
      * Creates degradation reaction for given node, empty set and edges
      */
-    private Edge createDegradation(String name, Node node, Diagram diagram) throws Exception
+    private Edge createDegradation(Node node, Diagram diagram) throws Exception
     {
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( doc );
 
         //create interaction
-        InteractionProperties properties = new InteractionProperties("Degradation");
+        InteractionProperties properties = new InteractionProperties(
+                DefaultSemanticController.generateUniqueName( diagram, node.getName() + "_degradation" ) );
         properties.setType( SbolConstants.DEGRADATION );
-        properties.setName( DefaultSemanticController.generateUniqueName( diagram, "Degradation" ) );
         int x = node.getLocation().x + node.getShapeSize().width + 20;
         int y = node.getLocation().y + node.getShapeSize().height / 2;
         Node reaction = properties.doCreateInteraction( diagram, doc, new Point( x, y ) );
@@ -151,8 +152,9 @@ public class ParticipationEdgeCreator implements EdgeCreator
 
         //create empty set node
         x = node.getLocation().x + node.getShapeSize().width + 55;
-        String emptyName = DefaultSemanticController.generateUniqueName( diagram, "empty" );
+        String emptyName = DefaultSemanticController.generateUniqueName( diagram, node.getName() + "_degradation_product" );
         Node emptyNode = new Node( diagram, new Stub( null, emptyName, SbolUtil.TYPE_DEGRADATION_PRODUCT ) );
+        emptyNode.setShapeSize( new Dimension(25, 25) );
         emptyNode.setLocation( new Point( x, y ) );
         diagram.put( emptyNode );
 
@@ -160,15 +162,17 @@ public class ParticipationEdgeCreator implements EdgeCreator
         String definitionID = ( (SbolBase)node.getKernel() ).getSbolObject().getDisplayId();
         FunctionalComponent component = SbolUtil.findFunctionalComponent( moduleDefinition, definitionID );
         Interaction interaction = (Interaction)properties.getSbolObject();
-        Participation participation = interaction.createParticipation( name, component.getDisplayId(),
-                SbolUtil.getParticipationURIByType( SbolConstants.PRODUCT ) );
+        Participation participation = interaction.createParticipation( node.getName() + "_to_" + reaction.getName(),
+                component.getDisplayId(), SbolUtil.getParticipationURIByType( SbolConstants.PRODUCT ) );
         ParticipationProperties participant = new ParticipationProperties( participation );
+        participant.setType( SbolConstants.REACTANT );
         Edge supportEdge = new Edge( participant, node, reaction );
         diagram.put( supportEdge );
 
         //create degradation edge
         ParticipationProperties kernel = new ParticipationProperties();
-        kernel.setType( SbolConstants.DEGRADATION );
+        kernel.setName( reaction.getName() + "_to_" + emptyName );
+        kernel.setType( SbolConstants.PRODUCT );
         return new Edge( kernel, reaction, emptyNode );
     }
 

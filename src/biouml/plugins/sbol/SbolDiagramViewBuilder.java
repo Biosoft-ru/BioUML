@@ -34,10 +34,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.standard.type.Stub;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.graph.CenterPointFinder;
-import ru.biosoft.graph.OrientedPortFinder;
 import ru.biosoft.graph.PortFinder;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.ArrowView.Tip;
@@ -318,10 +315,12 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     public boolean createSourceSinkView(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
     {
-        Dimension d = new Dimension( 8, 8 );
+        Dimension d = node.getShapeSize();
+        int w = Math.max( d.width, 25 );
+        int h = Math.max( d.height, 25 );
         Pen pen = getBorderPen( node, options.getNodePen() );
-        container.add( new EllipseView( pen, new Brush( Color.white ), 0, 0, d.width, d.height ) );
-        container.add( new LineView( pen, new Point( 3, d.height + 3 ), new Point( d.width - 3, -3 ) ) );
+        container.add( new EllipseView( pen, new Brush( Color.white ), 0, 0, w, h ) );
+        container.add( new LineView( pen, new Point( 3, h + 3 ), new Point( w - 3, -3 ) ) );
         return false;
     }
 
