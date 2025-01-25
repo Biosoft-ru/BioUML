@@ -11,7 +11,6 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.exception.InternalException;
-import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.TempFiles;
 
 /**
@@ -20,7 +19,7 @@ import ru.biosoft.util.TempFiles;
  */
 public abstract class AbstractFileTransformer<O extends DataElement> extends AbstractTransformer<FileDataElement, O>
 {
-    protected Logger log = Logger.getLogger( TableDataCollection.class.getName() );
+    protected Logger log = Logger.getLogger(AbstractFileTransformer.class.getName());
     
     /**
      * Load an element from the specified file

@@ -20,6 +20,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.graphics.Brush;
+import ru.biosoft.graphics.ColorEditor;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.PenEditor;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
@@ -205,7 +206,8 @@ public class PhysicellWebTableResolver extends TableResolver
         {
             addReadOnly( "name" );
             add( "initialNumber" );
-            add( "pen" );
+            add("penOuter");
+            add("penInner");
             add( "comment" );
         }
     }
@@ -626,43 +628,47 @@ public class PhysicellWebTableResolver extends TableResolver
         }
 
         @PropertyName ( "Color" )
-        public Pen getColor()
+        public Color getColor()
         {
-            return new Pen(1, cs.getColor());
+            return cs.getColor();
         }
-        public void setColor(Pen color)
+
+        public void setColor(Color color)
         {
-            cs.setColor( color.getColor() );
+            cs.setColor(color);
         }
 
         @PropertyName ( "Border Color" )
-        public Pen getBorderColor()
+        public Color getBorderColor()
         {
-            return new Pen(1, cs.getBorderColor());
+            return cs.getBorderColor();
         }
-        public void setBorderColor(Pen color)
+
+        public void setBorderColor(Color color)
         {
-            cs.setBorderColor( color.getColor() );
+            cs.setBorderColor(color);
         }
 
         @PropertyName ( "Core Color" )
-        public Pen getCoreColor()
+        public Color getCoreColor()
         {
-            return new Pen(1,cs.getCoreColor());
+            return cs.getCoreColor();
         }
-        public void setCoreColor(Pen color)
+
+        public void setCoreColor(Color color)
         {
-            cs.setCoreColor( color.getColor() );
+            cs.setCoreColor(color);
         }
 
         @PropertyName ( "Core Border Color" )
-        public Pen getCoreBorderColor()
+        public Color getCoreBorderColor()
         {
-            return new Pen(1, cs.getCoreBorderColor());
+            return cs.getCoreBorderColor();
         }
-        public void setCoreBorderColor(Pen color)
+
+        public void setCoreBorderColor(Color color)
         {
-            cs.setCoreBorderColor( color.getColor() );
+            cs.setCoreBorderColor(color);
         }
 
         @Override
@@ -685,12 +691,12 @@ public class PhysicellWebTableResolver extends TableResolver
         public void initProperties() throws Exception
         {
             add( "name" );
-            add( "color", PenEditor.class );
+            add("color", ColorEditor.class);
             add( "border");
-            add( "borderColor", PenEditor.class );
+            add("borderColor", ColorEditor.class);
             add( "core" );
-            add( "coreColor", PenEditor.class );
-            add( "coreBorderColor", PenEditor.class );
+            add("coreColor", ColorEditor.class);
+            add("coreBorderColor", ColorEditor.class);
             //            property( "borderColor" ).readOnly( "noBorder" ).add();
             //            add( "core" );
             //            property( "coreColor" ).readOnly( "noCore" ).add();
