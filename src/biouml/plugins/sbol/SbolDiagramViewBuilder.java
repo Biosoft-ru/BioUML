@@ -456,23 +456,23 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         switch( edgeType )
         {
-            case SbolUtil.TYPE_CONTROL:
+            case SbolConstants.CONTROL:
             case SbolConstants.MODIFIED:
                 tip = ArrowView.createDiamondTip( pen, brush, 5, 10, 5 );
                 break;
-            case SbolUtil.TYPE_STIMULATION:
+            case SbolConstants.STIMULATION:
             case SbolConstants.STIMULATOR:
                 tip = ArrowView.createTriangleTip( pen, brush, 15, 5 );
                 break;
             //        case Type.TYPE_CATALYSIS:
             //            tip = ArrowView.createEllipseTip(pen, brush, 6);
             //            break;
-            case SbolUtil.TYPE_INHIBITION:
+            case SbolConstants.INHIBITION:
             case SbolConstants.INHIBITOR:
                 brush = new Brush( pen.getColor() );
                 tip = ArrowView.createLineTip( pen, brush, 3, 8 );
                 break;
-            case SbolUtil.TYPE_PROCESS:
+            case SbolConstants.PROCESS:
             case SbolConstants.PRODUCT:
                 tip = ArrowView.createTriangleTip( pen, new Brush(Color.black), 15, 5 );
                 break;

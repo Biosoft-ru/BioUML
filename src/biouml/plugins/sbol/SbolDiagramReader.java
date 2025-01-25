@@ -60,6 +60,7 @@ public class SbolDiagramReader
 
     protected static final Logger log = Logger.getLogger(SbolDiagramReader.class.getName());
     private static final SystemsBiologyOntology sbo = new SystemsBiologyOntology();
+    
     public static Diagram readDiagram(File file, String name, DataCollection<?> origin) throws Exception
     {
         Diagram result = new SbolDiagramType().createDiagram(origin, name, new DiagramInfo(name));
@@ -84,7 +85,7 @@ public class SbolDiagramReader
         return result;
     }
 
-    private static void fillDiagramByDocument(SBOLDocument doc, Diagram diagram)  throws SBOLValidationException
+    private static void fillDiagramByDocument(SBOLDocument doc, Diagram diagram)  throws Exception
     {
         Map<String, Base> kernels = new HashMap<>();
         Set<ModuleDefinition> mds = doc.getRootModuleDefinitions();
@@ -119,7 +120,7 @@ public class SbolDiagramReader
             for ( Interaction interaction : interactions )
             {
                 Map<Node, Participation> from = new HashMap<>(), to = new HashMap<>();
-                String type = SbolUtil.TYPE_PROCESS;
+                String type = SbolConstants.PROCESS;
                 URI uri = interaction.getIdentity();
                 URI typeUri = SystemsBiologyOntology.PROCESS;
                 if ( interaction.getTypes().contains(SystemsBiologyOntology.INHIBITION) )
@@ -139,7 +140,7 @@ public class SbolDiagramReader
                                     ),
                             interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.INHIBITED), interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_INHIBITION;
+                    type = SbolConstants.INHIBITION;
                     typeUri = SystemsBiologyOntology.INHIBITION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.STIMULATION) )
@@ -160,7 +161,7 @@ public class SbolDiagramReader
                                     SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the STIMULATION reaction (not stated if it is in or out)
                             ), interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.STIMULATED), interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_STIMULATION;
+                    type = SbolConstants.STIMULATION;
                     typeUri = SystemsBiologyOntology.STIMULATION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.DEGRADATION) )
@@ -175,14 +176,14 @@ public class SbolDiagramReader
                         to.put(degradationNode, null);
                         diagram.put(degradationNode);
                     }
-                    type = SbolUtil.TYPE_DEGRADATION;
+                    type = SbolConstants.DEGRADATION;
                     typeUri = SystemsBiologyOntology.DEGRADATION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.CONTROL) )
                 {
                     from = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIER), interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIED), interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_CONTROL;
+                    type = SbolConstants.CONTROL;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.BIOCHEMICAL_REACTION) )
                 {
@@ -199,7 +200,7 @@ public class SbolDiagramReader
                                     SystemsBiologyOntology.MODIFIED
                                 ), 
                             interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_BIOCHEMICAL_REACTION;
+                    type = SbolConstants.BIOCHEMICAL_REACTION;
                     typeUri = SystemsBiologyOntology.BIOCHEMICAL_REACTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.NON_COVALENT_BINDING) )
@@ -208,7 +209,7 @@ public class SbolDiagramReader
                             Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
                             interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_NON_COVALENT_BINDING;
+                    type = SbolConstants.ASSOCIATION;
                     typeUri = SystemsBiologyOntology.NON_COVALENT_BINDING;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.GENETIC_PRODUCTION) )
@@ -216,7 +217,7 @@ public class SbolDiagramReader
                     from = getParticipantNodes(Set.of(SystemsBiologyOntology.PROMOTER, SystemsBiologyOntology.TEMPLATE), interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT, SystemsBiologyOntology.SIDE_PRODUCT), interaction.getParticipations(), diagram, kernels);
 
-                    type = SbolUtil.TYPE_GENETIC_PRODUCTION;
+                    type = SbolConstants.GENETIC_PRODUCTION;
                     typeUri = SystemsBiologyOntology.GENETIC_PRODUCTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.PROCESS) )
@@ -225,7 +226,7 @@ public class SbolDiagramReader
                             Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
                             interaction.getParticipations(), diagram, kernels);
                     to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
-                    type = SbolUtil.TYPE_PROCESS;
+                    type = SbolConstants.PROCESS;
                     typeUri = SystemsBiologyOntology.PROCESS;
                 }
 
@@ -458,13 +459,19 @@ public class SbolDiagramReader
         return res;
     }
 
-    public static void arrangeDiagram(Diagram diagram, SBOLDocument doc, Map<String, Base> kernels)
+    public static void arrangeDiagram(Diagram diagram, SBOLDocument doc, Map<String, Base> kernels) throws Exception
     {
-        Graphics g = com.developmentontheedge.application.ApplicationUtils.getGraphics();
-        diagram.setView(null);
-        diagram.getType().getDiagramViewBuilder().createDiagramView(diagram, g);
-        arrangeElements(diagram, doc.getComponentDefinitions(), kernels);
-        diagram.setView(null);
+        if( SbolUtil.hasLayout( diagram ) )
+            SbolUtil.readLayout( diagram );
+        else
+        {
+            Graphics g = com.developmentontheedge.application.ApplicationUtils.getGraphics();
+            diagram.setView( null );
+            diagram.getType().getDiagramViewBuilder().createDiagramView( diagram, g );
+            arrangeElements( diagram, doc.getComponentDefinitions(), kernels );
+            diagram.setView( null );
+        }
+
     }
 
     private static int xSize = 45, ySize = 45;

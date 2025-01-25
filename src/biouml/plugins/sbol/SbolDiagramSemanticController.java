@@ -340,7 +340,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
     private void removeEdge(Edge edge) throws Exception
     {
-        if( SbolUtil.TYPE_DEGRADATION.equals( edge.getKernel().getType() ) )
+        if( SbolConstants.DEGRADATION.equals( edge.getKernel().getType() ) )
         {
             //remove degradation stub node
             Node degradationNode = ( (Edge)edge ).getOutput();
