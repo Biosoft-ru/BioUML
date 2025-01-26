@@ -40,7 +40,6 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
         try
         {
-
             if( type.equals( ParticipationProperties.class ) )
             {
                 new CreateEdgeAction().createEdge( pt, viewEditor, new ParticipationEdgeCreator() );
@@ -312,11 +311,18 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             Node node = (Node)de;
 
-            for( Edge edge : Util.getEdges( node ) )
+
+            if( node.getKernel() instanceof InteractionProperties && node.getKernel().getType().equals( SbolConstants.DEGRADATION ) )
             {
-                removeEdge( edge );
+                Node empty = node.edges().map( e -> e.getOtherEnd( node ) )
+                        .filter( n -> n.getKernel().getType().equals( SbolConstants.DEGRADATION_PRODUCT ) ).findAny().orElse( null );
+                if( empty != null )
+                    remove( empty );
             }
 
+            for( Edge edge : Util.getEdges( node ) )
+                removeEdge( edge );
+            
             if( de instanceof Compartment )
                 ( (Compartment)de ).clear();
             SbolUtil.removeSbolObjectFromDiagram( de );

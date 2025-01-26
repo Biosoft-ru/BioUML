@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import javax.xml.namespace.QName;
-
 import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Annotation;
 import org.sbolstandard.core2.Component;
@@ -36,7 +34,6 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.standard.type.Base;
-import biouml.standard.type.Reaction;
 import biouml.standard.type.Type;
 
 public class SbolUtil
@@ -418,19 +415,18 @@ public class SbolUtil
         return verticalShift.getOrDefault( imgPath, 0 );
     }
 
-    public static boolean removeSbolObjectFromDiagram(DiagramElement de)
+    public static boolean removeSbolObjectFromDiagram(DiagramElement de) throws SBOLValidationException
     {
         Diagram diagram = Diagram.getDiagram( de );
-        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-        if( doc == null || ! ( doc instanceof SBOLDocument ) )
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        if( doc == null )
             return false;
-        if( ( de instanceof Edge || de.getKernel() instanceof Reaction ) && de.getAttributes().hasProperty( "interactionURI" ) )
+        if(  de.getKernel() instanceof InteractionProperties  )
         {
-            String interactionURIString = de.getAttributes().getValueAsString( "interactionURI" );
-            URI uri = URI.create( interactionURIString );
-            for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
+            String id = ((SbolBase)de.getKernel()).getSbolObject().getDisplayId();
+            for( ModuleDefinition md : doc.getModuleDefinitions() )
             {
-                Interaction interaction = md.getInteraction( uri );
+                Interaction interaction = md.getInteraction( id );
                 if( interaction != null )
                 {
                     md.removeInteraction( interaction );
@@ -445,24 +441,22 @@ public class SbolUtil
             Node reactionNode = null;
             Node otherNode = null;
 
-            if( e.getInput().getKernel() instanceof Reaction )
+            if( e.getInput().getKernel() instanceof InteractionProperties )
             {
                 reactionNode = e.getInput();
                 otherNode = e.getOutput();
             }
-            else if( e.getOutput().getKernel() instanceof Reaction )
+            else if( e.getOutput().getKernel() instanceof InteractionProperties )
             {
                 reactionNode = e.getOutput();
                 otherNode = e.getInput();
             }
-            if( reactionNode != null && reactionNode.getAttributes().hasProperty( "interactionURI" ) && otherNode != null
-                    && otherNode.getKernel() instanceof SbolBase )
+            if( reactionNode != null && otherNode != null && otherNode.getKernel() instanceof SbolBase )
             {
-                String interactionURIString = reactionNode.getAttributes().getValueAsString( "interactionURI" );
-                URI uri = URI.create( interactionURIString );
+                String id = ( (InteractionProperties)reactionNode.getKernel() ).getSbolObject().getDisplayId();
                 for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
                 {
-                    Interaction interaction = md.getInteraction( uri );
+                    Interaction interaction = md.getInteraction( id );
                     if( interaction != null )
                     {
                         URI participantURI = ( (SbolBase)otherNode.getKernel() ).getSbolObject().getPersistentIdentity();
@@ -479,9 +473,13 @@ public class SbolUtil
                 }
             }
         }
+
         if( ! ( de.getKernel() instanceof SbolBase ) )
             return false;
-        return removeSbolObjectFromDocument( (SBOLDocument)doc, ( (SbolBase)de.getKernel() ).getSbolObject().getIdentity() );
+        Identified identified = ( (SbolBase)de.getKernel() ).getSbolObject();
+        if( identified == null )
+            return false;
+        return removeSbolObjectFromDocument( (SBOLDocument)doc, identified.getIdentity() );
     }
 
     public static boolean removeSbolObjectFromDocument(SBOLDocument doc, URI uri)
@@ -550,6 +548,10 @@ public class SbolUtil
             return false;
         try
         {
+            ModuleDefinition module = SbolUtil.getDefaultModuleDefinition( doc );
+            FunctionalComponent fc = SbolUtil.findFunctionalComponent( module, cd.getDisplayId() );
+            if( fc != null )
+                module.removeFunctionalComponent( fc );
             doc.removeComponentDefinition( cd );
         }
         catch( SBOLValidationException e )
@@ -619,7 +621,7 @@ public class SbolUtil
     {
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         GenericTopLevel level = doc.getGenericTopLevel( "Layout", "1" );
-        if (level == null)
+        if( level == null )
             return;
         for( Annotation annotation : level.getAnnotations() )
         {
@@ -631,15 +633,15 @@ public class SbolUtil
             for( Annotation nested : annotation.getAnnotations() )
             {
                 String name = getName( nested );
-                if (name.equals( "x" ))
-                        x = Integer.parseInt( nested.getStringValue());
-                else if (name.equals( "y" ))
-                    y = Integer.parseInt(nested.getStringValue());
-                else if (name.equals( "width" ))
-                    width = Integer.parseInt(nested.getStringValue());
-                else if (name.equals( "height" ))
-                    height = Integer.parseInt(nested.getStringValue());
-                else if (name.equals( "refId" ))
+                if( name.equals( "x" ) )
+                    x = Integer.parseInt( nested.getStringValue() );
+                else if( name.equals( "y" ) )
+                    y = Integer.parseInt( nested.getStringValue() );
+                else if( name.equals( "width" ) )
+                    width = Integer.parseInt( nested.getStringValue() );
+                else if( name.equals( "height" ) )
+                    height = Integer.parseInt( nested.getStringValue() );
+                else if( name.equals( "refId" ) )
                     refId = nested.getStringValue();
             }
             if( refId == null )
@@ -649,7 +651,7 @@ public class SbolUtil
                 Node node = diagram.findNode( refId );
                 if( node == null )
                     continue;
-                node.setLocation(  new Point( x, y ) );
+                node.setLocation( new Point( x, y ) );
                 node.getShapeSize().setSize( width, height );
             }
 
@@ -687,14 +689,14 @@ public class SbolUtil
             ex.printStackTrace();
         }
     }
-    
-    private static String getName(Annotation annotation)  throws Exception
+
+    private static String getName(Annotation annotation) throws Exception
     {
         Class qNameClass = GenericTopLevel.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
-        Object qName = Annotation.class.getMethod( "getQName" ).invoke( annotation);
+        Object qName = Annotation.class.getMethod( "getQName" ).invoke( annotation );
         return qNameClass.getMethod( "getLocalPart" ).invoke( qName ).toString();
     }
-    
+
     public static GenericTopLevel createTopLevel(SBOLDocument doc, String namespace, String name, String prefix) throws Exception
     {
         Class qNameClass = GenericTopLevel.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );

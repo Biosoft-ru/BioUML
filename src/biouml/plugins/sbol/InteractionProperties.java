@@ -46,6 +46,12 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     }
 
     @Override
+    public Interaction getSbolObject()
+    {
+        return (Interaction)super.getSbolObject();
+    }
+    
+    @Override
     public String getName()
     {
         return name;
