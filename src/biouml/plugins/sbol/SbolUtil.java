@@ -35,6 +35,7 @@ import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.standard.type.Base;
 import biouml.standard.type.Type;
+import ru.biosoft.graph.Path;
 
 public class SbolUtil
 {
@@ -625,36 +626,93 @@ public class SbolUtil
             return;
         for( Annotation annotation : level.getAnnotations() )
         {
-            int x = 0;
-            int y = 0;
-            int height = 0;
-            int width = 0;
-            String refId = null;
-            for( Annotation nested : annotation.getAnnotations() )
+            String localPart = getName( annotation );
+            if(localPart.equals( "NodeGlyph" ) )
             {
-                String name = getName( nested );
-                if( name.equals( "x" ) )
-                    x = Integer.parseInt( nested.getStringValue() );
-                else if( name.equals( "y" ) )
-                    y = Integer.parseInt( nested.getStringValue() );
-                else if( name.equals( "width" ) )
-                    width = Integer.parseInt( nested.getStringValue() );
-                else if( name.equals( "height" ) )
-                    height = Integer.parseInt( nested.getStringValue() );
-                else if( name.equals( "refId" ) )
-                    refId = nested.getStringValue();
-            }
-            if( refId == null )
-                continue;
-            else
-            {
-                Node node = diagram.findNode( refId );
-                if( node == null )
+                int x = 0;
+                int y = 0;
+                int height = 0;
+                int width = 0;
+                String refId = null;
+                for( Annotation nested : annotation.getAnnotations() )
+                {
+                    String name = getName( nested );
+                    if( name.equals( "x" ) )
+                        x = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "y" ) )
+                        y = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "width" ) )
+                        width = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "height" ) )
+                        height = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "refId" ) )
+                        refId = nested.getStringValue();
+                }
+                if( refId == null )
                     continue;
-                node.setLocation( new Point( x, y ) );
-                node.getShapeSize().setSize( width, height );
+                else
+                {
+                    Node node = diagram.findNode( refId );
+                    if( node == null )
+                        continue;
+                    node.setLocation( new Point( x, y ) );
+                    node.getShapeSize().setSize( width, height );
+                }
             }
+            else if (localPart.equals( "Edge" ))
+            {
+                String refId = null;
+               Point inPort = null;
+               Point outPort = null;
+               Path path = new Path();
+               for( Annotation nested : annotation.getAnnotations() )
+               {
+                   String name = getName( nested );
+                   if (name.equals( "segment" ) )
+                   {
+                      String value =  nested.getStringValue();
+                      String[] parts = value.split( ";" );
+                      int x = Integer.parseInt( parts[0].trim());
+                      int y = Integer.parseInt( parts[1].trim());
+                       path.addPoint( x, y );
+                   }
+                   else if (name.equals( "inPort" ))
+                   {
+                       String value =  nested.getStringValue();
+                       String[] parts = value.split( ";" );
+                       int x = Integer.parseInt( parts[0].trim());
+                       int y = Integer.parseInt( parts[1].trim());
+                       inPort = new Point(x, y);
+                   }
+                   else if (name.equals( "inPort" ))
+                   {
+                       String value =  nested.getStringValue();
+                       String[] parts = value.split( ";" );
+                       int x = Integer.parseInt( parts[0].trim());
+                       int y = Integer.parseInt( parts[1].trim());
+                       outPort = new Point(x, y);
+                   }
+                   else if( name.equals( "refId" ) )
+                       refId = nested.getStringValue();
+               }
+               if(refId == null)
+                   continue;
+               Edge edge = (Edge)diagram.findDiagramElement( refId );
+               if( edge == null )
+                   continue;
 
+               if( path.npoints > 2 )
+               {
+                   edge.setPath( path );
+                   edge.setInPort( new Point( path.xpoints[0], path.ypoints[0] ) );
+                   edge.setOutPort( new Point( path.xpoints[path.npoints - 1], path.ypoints[path.npoints - 1] ) );
+               }
+               else
+               {
+                   edge.setInPort( inPort );
+                   edge.setOutPort( outPort );
+               }
+            }
         }
     }
 
@@ -681,7 +739,29 @@ public class SbolUtil
                 annotations.add( createAnnotation( NAME_SPACE, "y", PREFIX, String.valueOf( node.getLocation().y ) ) );
                 annotations.add( createAnnotation( NAME_SPACE, "width", PREFIX, String.valueOf( node.getShapeSize().width ) ) );
                 annotations.add( createAnnotation( NAME_SPACE, "height", PREFIX, String.valueOf( node.getShapeSize().height ) ) );
-                createAnnotation( level, NAME_SPACE, "NodeGlyph", PREFIX, node.getKernel().getName(), annotations );
+                createAnnotation( level, NAME_SPACE, "NodeGlyph", "nodeGlyph", PREFIX, node.getKernel().getName(), annotations );
+            }
+            for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
+            {
+                List<Annotation> annotations = new ArrayList<>();
+                annotations.add( createAnnotation( NAME_SPACE, "refId", PREFIX, edge.getKernel().getName() ) );
+                Path path = edge.getPath();
+                if( edge.getPath() != null )
+                {
+                    for( int i = 0; i < path.npoints; i++ )
+                    {
+                        annotations.add( createAnnotation( NAME_SPACE, "segment", PREFIX,
+                                String.valueOf( path.xpoints[i] ) + ";" + String.valueOf( path.ypoints[i] ) ) );
+                    }
+                }
+                else
+                {
+                    annotations.add( createAnnotation( NAME_SPACE, "inPort", PREFIX,
+                            String.valueOf( edge.getInPort().x ) + ";" + String.valueOf( edge.getInPort().y ) ) );
+                    annotations.add( createAnnotation( NAME_SPACE, "outPort", PREFIX,
+                            String.valueOf( edge.getOutPort().x ) + ";" + String.valueOf( edge.getOutPort().y ) ) );
+                }
+                createAnnotation( level, NAME_SPACE, "Edge", "edge", PREFIX, edge.getName(), annotations );
             }
         }
         catch( Exception ex )
@@ -720,13 +800,14 @@ public class SbolUtil
         method.invoke( object, qname, String.valueOf( val ) );
     }
 
-    public static void createAnnotation(Identified object, String namespace, String name, String prefix, String nestedName,
+    public static void createAnnotation(Identified object, String namespace, String name, String nameInner, String prefix, String nestedName,
             List<Annotation> nested) throws Exception
     {
         Class qnameClass = Annotation.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
         Object qname = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
+        Object qnameInner = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, nameInner, prefix );
         Method method = Identified.class.getMethod( "createAnnotation", qnameClass, qnameClass, String.class, List.class );
-        method.invoke( object, qname, qname, nestedName, nested );
+        method.invoke( object, qname, qnameInner, nestedName, nested );
     }
     //    createAnnotation(QName qName,QName nestedQName, String nestedId, List<Annotation> annotations)
 
