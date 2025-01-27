@@ -33,22 +33,20 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     private String role = "Promoter";
     private String name = "Promoter";
     private String title = "Promoter";
-    private boolean isCreated = false;
     private boolean isPrivate = false;
 
-    public SequenceFeature( )
+    public SequenceFeature( String name)
     {
-        super(null);
+        this(null, true);
     }
     
-    public SequenceFeature(String name)
+    public SequenceFeature(String name, boolean isCreated)
     {
-        super( null );
-        this.setRole( SbolUtil.getFeatureRoles()[0] );
+        super( null, isCreated );
         this.name = name;
         this.title = name;
     }
-
+    
     public SequenceFeature(Identified so)
     {
         super( so );
@@ -166,7 +164,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
             }
         }
 
-        this.isCreated = true;
+        this.setCreated( true );
 
         int y = compartment.getLocation().y + 10;
         int x = compartment.isEmpty() ? compartment.getLocation().x + 5
@@ -218,10 +216,4 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         }
         return lastComponent;
     }
-
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
 }

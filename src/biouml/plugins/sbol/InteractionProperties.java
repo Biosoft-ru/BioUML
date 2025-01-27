@@ -25,16 +25,19 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     private String title = "Process";
     private String type = "Process";
 
-    private boolean isCreated = false;
-
     public InteractionProperties()
     {
         super(null);
     }
     
-    public InteractionProperties(String name)
+    public InteractionProperties( String name)
     {
-        super( null );
+        this(null, true);
+    }
+    
+    public InteractionProperties(String name, boolean isCreated)
+    {
+        super( null, isCreated );
         this.name = name;
         this.title = name;
     }
@@ -95,11 +98,6 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         firePropertyChange( "type", oldValue, type );
     }
 
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
     protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location)  throws Exception
     {
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
@@ -121,7 +119,7 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
-        this.isCreated = true;
+        this.setCreated( true );
         Node node = doCreateInteraction( compartment, doc, location );
         if( !diagram.getType().getSemanticController().canAccept( compartment, node ) )
             return DiagramElementGroup.EMPTY_EG;

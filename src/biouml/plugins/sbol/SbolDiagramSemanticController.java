@@ -102,20 +102,20 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             if( type.equals( Backbone.class ) || type.equals( Backbone.class.getName() ) )
             {
-                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
+                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) , false);
             }
             else if( type.equals( SequenceFeature.class ) || type.equals( SequenceFeature.class.getName() ) )
             {
-                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
+                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) , false );
             }
             else if( type.equals( MolecularSpecies.class ) || type.equals( SequenceFeature.class.getName() ) )
             {
-                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
+                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) , false );
             }
             else if( type.equals( InteractionProperties.class ) || type.equals( InteractionProperties.class.getName() ) )
             {
                 return new InteractionProperties(
-                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
+                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) , false );
             }
         }
         catch( Exception ex )

@@ -11,12 +11,18 @@ import ru.biosoft.access.core.DataCollection;
 
 public class SbolBase extends Option implements Base 
 {
-
+    private boolean isCreated = true;
     private Identified sbolObject = null;
 
-    public SbolBase(Identified so)
+    public SbolBase(Identified so, boolean isCreated)
     {
         sbolObject = so;
+        this.isCreated = isCreated;
+    }
+    
+    public SbolBase(Identified so)
+    {
+        this(so, true);
     }
     
     public void setSbolObject(Identified id)
@@ -67,4 +73,13 @@ public class SbolBase extends Option implements Base
         return sbolObject;
     }
 
+    public boolean isCreated()
+    {
+        return isCreated;
+    }
+    
+    public void setCreated(boolean created)
+    {
+        this.isCreated = created;
+    }
 }

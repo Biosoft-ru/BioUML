@@ -339,16 +339,12 @@ public class SbolDiagramReader
         Set<Component> components = cd.getComponents();
         if ( !components.isEmpty() )
         {
-            //Fill as compartment
             Compartment compartment = new Compartment(diagram, kernels.get(cd.getPersistentIdentity().toString()));
             compartment.getAttributes().add(DPSUtils.createHiddenReadOnly(Node.INNER_NODES_PORT_FINDER_ATTR, Boolean.class, true));
-            //Collection<Component> ordered = orderComponents(cd);
-            //Iterator<Component> iter = ordered.iterator();
             Iterator<Component> iter = components.iterator();
             boolean isCircular = false;
             boolean isWithChromLocus = false;
             while ( iter.hasNext() )
-            //for ( Component component : components )
             {
                 Component component = iter.next();
                 ComponentDefinition cdNode = component.getDefinition();

@@ -31,18 +31,23 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     private String title = "Complex";
     private String type = "Complex";
     private String role = "";
-    private boolean isCreated = false;
+
     
     public MolecularSpecies()
     {
         super(null);
     }
     
-    public MolecularSpecies(String name)
+    public MolecularSpecies(String name, boolean isCreated)
     {
-        super( null );
+        super( null, isCreated );
         this.name = name;
         this.title = name;
+    }
+    
+    public MolecularSpecies(String name)
+    {
+        this( name, true);
     }
 
     public MolecularSpecies(Identified so)
@@ -104,11 +109,6 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         firePropertyChange( "role", oldValue, role );
     }
 
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
@@ -122,7 +122,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
         moduleDefinition.createFunctionalComponent( getName() + "_fc", AccessType.PUBLIC, getName(), DirectionType.INOUT );
 
-        this.isCreated = true;
+        this.setCreated( true );
         this.setSbolObject( cd );
         Node node = new Node( compartment, this );
         node.setUseCustomImage( true );
