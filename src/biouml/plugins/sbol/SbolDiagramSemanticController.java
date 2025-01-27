@@ -100,6 +100,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         try
         {
+            log.info( "Got "+type +" expected " + Backbone.class.toString());
             if( type.equals( Backbone.class ) || type.equals( Backbone.class.toString() ) )
             {
                 return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
