@@ -25,6 +25,11 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public static String[] types = new String[] {"DNA", "RNA"};
     public static String[] roles = new String[] {"Sequence feature", "RNA"};
 
+    public Backbone()
+    {
+        super(null);
+    }
+    
     public Backbone(String name)
     {
         super( null );
