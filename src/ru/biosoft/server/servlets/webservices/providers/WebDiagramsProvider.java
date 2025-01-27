@@ -1473,6 +1473,7 @@ public class WebDiagramsProvider extends WebProviderSupport
             final ViewEditorPane viewEditor = new ViewEditorPaneStub(helper, diagram);
 
             final Object bean = semanticController.getPropertiesByType(parent, typeStr, location);
+            log.info("Properties: "+ bean.toString() );
             if( bean instanceof InitialElementProperties )
             {
                 if( elementName != null && parent.contains( elementName ) )
