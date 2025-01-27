@@ -4,7 +4,7 @@
 
 Ensure that you have at least Java 11
 
-Manually install JARs as decribed in [install_old_jars.md](install_old_jars.md)
+Manually install JARs missing in Maven Central
 
 ```sh
 ./install_all_old_jars.sh 
