@@ -31,8 +31,6 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 {
     private String type = "DNA";
     private String role = "Promoter";
-    private String name = "Promoter";
-    private String title = "Promoter";
     private boolean isPrivate = false;
 
     public SequenceFeature( String name)
@@ -42,42 +40,12 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     
     public SequenceFeature(String name, boolean isCreated)
     {
-        super( null, isCreated );
-        this.name = name;
-        this.title = name;
+        super( name, isCreated );
     }
     
     public SequenceFeature(Identified so)
     {
         super( so );
-        name = super.getName();
-        title = super.getTitle();
-    }
-
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        Object oldValue = this.name;
-        this.name = name;
-        firePropertyChange( "name", oldValue, name );
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        Object oldValue = this.title;
-        this.title = title;
-        firePropertyChange( "title", oldValue, title );
     }
 
     @PropertyName ( "Type" )
@@ -136,7 +104,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
                     .orElse( diagram );
         }
 
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( ! ( doc instanceof SBOLDocument ) )
             return DiagramElementGroup.EMPTY_EG;
@@ -172,6 +140,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 
         this.setSbolObject( cd );
         Compartment node = new Compartment( compartment, this );
+        node.setTitle( getTitle() );
         node.setUseCustomImage( true );
         Point nodeLocation = new Point( x, y );
         node.setLocation( nodeLocation );

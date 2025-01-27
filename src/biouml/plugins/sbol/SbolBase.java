@@ -5,6 +5,7 @@ import org.sbolstandard.core2.Identified;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.Option;
+import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
@@ -13,7 +14,16 @@ public class SbolBase extends Option implements Base
 {
     private boolean isCreated = true;
     private Identified sbolObject = null;
+    private String title;
+    private String name;
 
+    public SbolBase(String name, boolean isCreated)
+    {
+       this.name = name;
+       this.title = name;
+       this.isCreated = isCreated;
+    }
+    
     public SbolBase(Identified so, boolean isCreated)
     {
         sbolObject = so;
@@ -23,6 +33,8 @@ public class SbolBase extends Option implements Base
     public SbolBase(Identified so)
     {
         this(so, true);
+        setName(so.getDisplayId());
+        setTitle(so.getDisplayId());
     }
     
     public void setSbolObject(Identified id)
@@ -31,9 +43,17 @@ public class SbolBase extends Option implements Base
     }
 
     @Override
+    @PropertyName("Name")
     public String getName()
     {
-        return sbolObject.getDisplayId();
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        Object oldValue = this.name;
+        this.name = name;
+        firePropertyChange( "name", oldValue, name );
     }
 
     @Override
@@ -50,15 +70,17 @@ public class SbolBase extends Option implements Base
     }
 
     @Override
+    @PropertyName("Title")
     public String getTitle()
     {
-        String name;
-        name = sbolObject.getName();
-
-        if ( name != null )
-            return name;
-        return sbolObject.getDisplayId();
-        // exception handling return sbolObject.getUri().toString();
+        return title;
+    }
+    
+    public void setTitle(String title)
+    {
+        Object oldValue = this.title;
+        this.title = title;
+        firePropertyChange( "title", oldValue, title );
     }
 
     @Override

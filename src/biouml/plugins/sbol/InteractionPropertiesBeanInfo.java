@@ -13,7 +13,6 @@ public class InteractionPropertiesBeanInfo extends BeanInfoEx2<InteractionProper
     public void initProperties() throws Exception
     {
         addReadOnly( "name", "isCreated" );
-        add( "title" );
         addWithTags( "type", SbolConstants.interactionTypes);
     }
 }

@@ -11,8 +11,6 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 public class ParticipationProperties extends SbolBase
 {
-    private String name = "Participation";
-    private String title = "Participation";
     private String role = SbolConstants.STIMULATION;
 
     public ParticipationProperties()
@@ -25,8 +23,6 @@ public class ParticipationProperties extends SbolBase
         super( so );
         if ( so != null )
         {
-            name = super.getName();
-            title = super.getTitle();
             if ( so instanceof Participation )
             {
                 Set<URI> roles = ((Participation) so).getRoles();
@@ -41,33 +37,6 @@ public class ParticipationProperties extends SbolBase
                 }
             }
         }
-    }
-
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        Object oldValue = this.name;
-        this.name = name;
-        firePropertyChange( "name", oldValue, name );
-    }
-    
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        Object oldValue = this.title;
-        this.title = title;
-        firePropertyChange( "title", oldValue, title );
     }
 
     @PropertyName ( "Role" )

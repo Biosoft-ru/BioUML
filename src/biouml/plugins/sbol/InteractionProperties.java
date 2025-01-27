@@ -21,8 +21,6 @@ import ru.biosoft.util.DPSUtils;
 
 public class InteractionProperties extends SbolBase implements InitialElementProperties
 {
-    private String name = "Process";
-    private String title = "Process";
     private String type = "Process";
 
     public InteractionProperties()
@@ -37,52 +35,18 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     
     public InteractionProperties(String name, boolean isCreated)
     {
-        super( null, isCreated );
-        this.name = name;
-        this.title = name;
+        super( name, isCreated );
     }
 
     public InteractionProperties(Identified so)
     {
         super( so );
-        if ( so != null )
-        {
-            name = super.getName();
-            title = super.getTitle();
-            //TODO: this.setType(  );
-        }
     }
 
     @Override
     public Interaction getSbolObject()
     {
         return (Interaction)super.getSbolObject();
-    }
-    
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        Object oldValue = this.name;
-        this.name = name;
-        firePropertyChange( "name", oldValue, name );
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        Object oldValue = this.title;
-        this.title = title;
-        firePropertyChange( "title", oldValue, title );
     }
 
     @PropertyName ( "Type" )
@@ -101,9 +65,10 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location)  throws Exception
     {
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
-        Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
+        Interaction interaction = moduleDefinition.createInteraction( getName(), SbolUtil.getInteractionURIByType(  getType() ) );
         this.setSbolObject( interaction );
         Node node = new Node( compartment, this );
+        node.setTitle( getName() );
         node.getAttributes().add( DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction) ) );
         node.setUseCustomImage( true );
         node.setLocation( location );
@@ -115,7 +80,7 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;

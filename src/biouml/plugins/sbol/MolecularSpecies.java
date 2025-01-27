@@ -24,14 +24,10 @@ import ru.biosoft.util.DPSUtils;
 
 public class MolecularSpecies extends SbolBase implements InitialElementProperties
 {
-    public static String[] types = new String[] {SbolConstants.COMPLEX, SbolConstants.PROTEIN, SbolConstants.SIMPLE_CHEMICAL};//, "Double-Stranded Nucleic Acid", "Macromolecule", "Protein",
-    //            "Single-Stranded Nucleic Acid", "Unspecified"};
+    public static String[] types = new String[] {SbolConstants.COMPLEX, SbolConstants.PROTEIN, SbolConstants.SIMPLE_CHEMICAL};
 
-    private String name = "Complex";
-    private String title = "Complex";
     private String type = "Complex";
     private String role = "";
-
     
     public MolecularSpecies()
     {
@@ -40,9 +36,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     
     public MolecularSpecies(String name, boolean isCreated)
     {
-        super( null, isCreated );
-        this.name = name;
-        this.title = name;
+        super( name, isCreated );
     }
     
     public MolecularSpecies(String name)
@@ -53,32 +47,6 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     public MolecularSpecies(Identified so)
     {
         super( so );
-    }
-
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        Object oldValue = this.name;
-        this.name = name;
-        firePropertyChange( "name", oldValue, name );
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        Object oldValue = this.title;
-        this.title = title;
-        firePropertyChange( "title", oldValue, title );
     }
 
     @PropertyName ( "Type" )
@@ -113,7 +81,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( ! ( doc instanceof SBOLDocument ) )
             return DiagramElementGroup.EMPTY_EG;
@@ -125,6 +93,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         this.setCreated( true );
         this.setSbolObject( cd );
         Node node = new Node( compartment, this );
+        node.setTitle( getTitle() );
         node.setUseCustomImage( true );
         node.setLocation( location );
         node.setShapeSize( new Dimension( 60, 40 ) );

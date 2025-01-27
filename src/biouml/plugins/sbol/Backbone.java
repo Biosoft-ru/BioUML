@@ -37,9 +37,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
     
     public Backbone(String name, boolean isCreated)
     {
-        super( null , isCreated);
-        this.name = name;
-        this.title = name;
+        super( name , isCreated);
     }
 
     public Backbone(Identified so)
@@ -52,30 +50,6 @@ public class Backbone extends SbolBase implements InitialElementProperties
     private String topologyType = "Linear";
     private String type = "DNA";
     private String role = "Sequence feature";
-    private String name = "Backbone";
-    private String title = "Backbone";
-
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        this.title = title;
-    }
 
     @PropertyName ( "Strand type" )
     public String getStrandType()
@@ -126,7 +100,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( doc != null && doc instanceof SBOLDocument )
         {

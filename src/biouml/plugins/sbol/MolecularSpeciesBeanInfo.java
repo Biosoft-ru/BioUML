@@ -14,6 +14,6 @@ public class MolecularSpeciesBeanInfo extends BeanInfoEx2<MolecularSpecies>
     {
         property( "type").tags( MolecularSpecies.types).readOnly( "isCreated" ).add();
         addReadOnly( "name", "isCreated" );
-        add( "title" );
+        addHidden( "title", "isCreated" );
     }
 }
