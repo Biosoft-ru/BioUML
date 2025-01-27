@@ -610,7 +610,7 @@ public class SbolUtil
         return moduleDefinition.createFunctionalComponent( componentDefinition.getDisplayId() + "_fc", AccessType.PUBLIC,
                 componentDefinition.getIdentity(), DirectionType.INOUT );
     }
-
+    
     public static boolean hasLayout(Diagram diagram) throws Exception
     {
         SBOLDocument doc = SbolUtil.getDocument( diagram );
@@ -634,9 +634,12 @@ public class SbolUtil
                 int height = 0;
                 int width = 0;
                 String refId = null;
+                String title = null;
                 for( Annotation nested : annotation.getAnnotations() )
                 {
                     String name = getName( nested );
+                    if( name.equals( "title" ) )
+                        title = nested.getStringValue() ;
                     if( name.equals( "x" ) )
                         x = Integer.parseInt( nested.getStringValue() );
                     else if( name.equals( "y" ) )
@@ -657,6 +660,8 @@ public class SbolUtil
                         continue;
                     node.setLocation( new Point( x, y ) );
                     node.getShapeSize().setSize( width, height );
+                    if (title != null)
+                        node.setTitle( title );
                 }
             }
             else if (localPart.equals( "Edge" ))
@@ -735,6 +740,7 @@ public class SbolUtil
                     continue;
                 List<Annotation> annotations = new ArrayList<>();
                 annotations.add( createAnnotation( NAME_SPACE, "refId", PREFIX, node.getKernel().getName() ) );
+                annotations.add( createAnnotation( NAME_SPACE, "title", PREFIX, node.getTitle() ) );
                 annotations.add( createAnnotation( NAME_SPACE, "x", PREFIX, String.valueOf( node.getLocation().x ) ) );
                 annotations.add( createAnnotation( NAME_SPACE, "y", PREFIX, String.valueOf( node.getLocation().y ) ) );
                 annotations.add( createAnnotation( NAME_SPACE, "width", PREFIX, String.valueOf( node.getShapeSize().width ) ) );
