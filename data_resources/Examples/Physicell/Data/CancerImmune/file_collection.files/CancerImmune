@@ -9,19 +9,19 @@
       <property name="logReport" short-description="logReport" type="boolean" value="false"/>
       <property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.physicell.PhysicellOptions">
         <property name="calculateGradient" short-description="calculateGradient" type="boolean" value="true"/>
-        <property name="cellUpdateType" short-description="cellUpdateType" type="String" value="Parallel"/>
+        <property name="cellUpdateType" short-description="cellUpdateType" type="String" value="Experimental"/>
         <property name="diffusionDt" short-description="diffusionDt" type="double" value="0.01"/>
-        <property name="finalTime" short-description="finalTime" type="double" value="30240.0"/>
-        <property name="imageInterval" short-description="imageInterval" type="double" value="60.0"/>
+        <property name="finalTime" short-description="finalTime" type="double" value="20000.0"/>
+        <property name="imageInterval" short-description="imageInterval" type="double" value="10.0"/>
         <property name="mechanicsDt" short-description="mechanicsDt" type="double" value="0.1"/>
-        <property name="parallelDiffusion" short-description="parallelDiffusion" type="boolean" value="false"/>
+        <property name="parallelDiffusion" short-description="parallelDiffusion" type="boolean" value="true"/>
         <property name="phenotypeDt" short-description="phenotypeDt" type="double" value="6.0"/>
-        <property name="reportInterval" short-description="reportInterval" type="double" value="60.0"/>
-        <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Ilya/Data/Diagrams/res27"/>
+        <property name="reportInterval" short-description="reportInterval" type="double" value="200.0"/>
+        <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Ilya/Data/Diagrams/Cancer_3D_rare"/>
         <property name="saveGIF" short-description="saveGIF" type="boolean" value="false"/>
-        <property name="saveImage" short-description="saveImage" type="boolean" value="false"/>
-        <property name="saveReport" short-description="saveReport" type="boolean" value="true"/>
-        <property name="saveVideo" short-description="saveVideo" type="boolean" value="true"/>
+        <property name="saveImage" short-description="saveImage" type="boolean" value="true"/>
+        <property name="saveReport" short-description="saveReport" type="boolean" value="false"/>
+        <property name="saveVideo" short-description="saveVideo" type="boolean" value="false"/>
         <property name="seed" short-description="seed" type="double" value="0.0"/>
         <property name="trackInnerSubstrates" short-description="trackInnerSubstrates" type="boolean" value="false"/>
         <property name="useManualSeed" short-description="useManualSeed" type="boolean" value="false"/>
@@ -29,11 +29,11 @@
       <property name="solverName" short-description="solverName" type="String" value="Physicell default"/>
     </simulationOptions>
     <nodes>
-      <node height="75" isTitleHidden="false" kernel="stub/Event" kernel_type="event" title="Event" width="75" x="295" y="45">
+      <node height="75" isTitleHidden="false" kernel="stub/Event" kernel_type="event" title="Event" width="75" x="235" y="30">
         <property isHidden="true" isReadOnly="true" name="event" short-description="event" type="biouml.plugins.physicell.EventProperties">
           <property name="comment" short-description="comment" type="String" value="Introduce immunity cells"/>
           <property name="executionCodePath" short-description="executionCodePath" type="dataElementPath" value="data/Examples/Physicell/Data/CancerImmune/ImmunityEvent.java"/>
-          <property name="executionTime" short-description="executionTime" type="double" value="3000.0"/>
+          <property name="executionTime" short-description="executionTime" type="double" value="1000.0"/>
           <property name="formatCode" short-description="formatCode" type="boolean" value="false"/>
           <property name="name" short-description="name" type="String" value="Event"/>
           <property name="showCode" short-description="showCode" type="boolean" value="false"/>
@@ -234,7 +234,7 @@
             <property name="orientationCustom" short-description="orientationCustom" type="dataElementPath" value=""/>
             <property name="phenotypeUpdate" short-description="phenotypeUpdate" type="String" value="Custom..."/>
             <property name="phenotypeUpdateCustom" short-description="phenotypeUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/Data/CancerImmune/TumorPhenotype.java"/>
-            <property name="velocityUpdate" short-description="velocityUpdate" type="String" value="Standard velocity"/>
+            <property name="velocityUpdate" short-description="velocityUpdate" type="String" value="-"/>
             <property name="velocityUpdateCustom" short-description="velocityUpdateCustom" type="dataElementPath" value=""/>
             <property name="volumeUpdate" short-description="volumeUpdate" type="String" value="Standard volume update."/>
             <property name="volumeUpdateCustom" short-description="volumeUpdateCustom" type="dataElementPath" value=""/>

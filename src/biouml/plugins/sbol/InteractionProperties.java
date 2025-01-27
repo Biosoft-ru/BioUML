@@ -27,6 +27,11 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
 
     private boolean isCreated = false;
 
+    public InteractionProperties()
+    {
+        super(null);
+    }
+    
     public InteractionProperties(String name)
     {
         super( null );
