@@ -32,7 +32,12 @@ public class Backbone extends SbolBase implements InitialElementProperties
     
     public Backbone(String name)
     {
-        super( null );
+        this(name, true);
+    }
+    
+    public Backbone(String name, boolean isCreated)
+    {
+        super( null , isCreated);
         this.name = name;
         this.title = name;
     }
@@ -43,7 +48,6 @@ public class Backbone extends SbolBase implements InitialElementProperties
         setName(so.getDisplayId());
     }
 
-    private boolean isCreated = false;;
     private String strandType = "Single-stranded";
     private String topologyType = "Linear";
     private String type = "DNA";
@@ -135,7 +139,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
             return DiagramElementGroup.EMPTY_EG;
         }
 
-        this.isCreated = true;
+        this.setCreated( true );
         Compartment result = new Compartment( compartment, this );
         result.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, getTopologyType().equals("Circular")));
         result.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, false));
@@ -149,13 +153,4 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
         return new DiagramElementGroup( result );
     }
-
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
-    //    http://www.biopax.org/release/biopax-level3.owl#DnaRegion
-    //    http://identifiers.org/so/SO:0000110
-
 }
