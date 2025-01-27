@@ -36,6 +36,11 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
     private boolean isCreated = false;
     private boolean isPrivate = false;
 
+    public SequenceFeature( )
+    {
+        super(null);
+    }
+    
     public SequenceFeature(String name)
     {
         super( null );
