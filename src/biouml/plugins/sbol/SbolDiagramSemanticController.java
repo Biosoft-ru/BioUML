@@ -108,7 +108,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             {
                 return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) , false );
             }
-            else if( type.equals( MolecularSpecies.class ) || type.equals( SequenceFeature.class.getName() ) )
+            else if( type.equals( MolecularSpecies.class ) || type.equals( MolecularSpecies.class.getName() ) )
             {
                 return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) , false );
             }
