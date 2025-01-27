@@ -100,30 +100,32 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         try
         {
-            //            if( type instanceof Class )
-            //            {
-            //                return ( (Class)type ).getConstructor(String.class).newInstance();
-            //            }
-            //            else
-            //            {
-            if( type.equals( Backbone.class ) )
+            if( type instanceof Class )
             {
-                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
+                return ( (Class)type ).getConstructor( ).newInstance();
             }
-            else if( type.equals( SequenceFeature.class ) )
+            else
             {
-                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
+                if( type.equals( Backbone.class ) )
+                {
+                    return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
+                }
+                else if( type.equals( SequenceFeature.class ) )
+                {
+                    return new SequenceFeature(
+                            DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
+                }
+                else if( type.equals( MolecularSpecies.class ) )
+                {
+                    return new MolecularSpecies(
+                            DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
+                }
+                else if( type.equals( InteractionProperties.class ) )
+                {
+                    return new InteractionProperties(
+                            DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
+                }
             }
-            else if( type.equals( MolecularSpecies.class ) )
-            {
-                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
-            }
-            else if( type.equals( InteractionProperties.class ) )
-            {
-                return new InteractionProperties(
-                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
-            }
-            //            }
         }
         catch( Exception ex )
         {
