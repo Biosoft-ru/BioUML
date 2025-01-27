@@ -100,31 +100,22 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         try
         {
-            if( type instanceof Class )
+            if( type.equals( Backbone.class ) || type.equals( Backbone.class.toString() ) )
             {
-                return ( (Class)type ).getConstructor( ).newInstance();
+                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
             }
-            else
+            else if( type.equals( SequenceFeature.class ) || type.equals( SequenceFeature.class.toString() ) )
             {
-                if( type.equals( Backbone.class ) )
-                {
-                    return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
-                }
-                else if( type.equals( SequenceFeature.class ) )
-                {
-                    return new SequenceFeature(
-                            DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
-                }
-                else if( type.equals( MolecularSpecies.class ) )
-                {
-                    return new MolecularSpecies(
-                            DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
-                }
-                else if( type.equals( InteractionProperties.class ) )
-                {
-                    return new InteractionProperties(
-                            DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
-                }
+                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
+            }
+            else if( type.equals( MolecularSpecies.class ) || type.equals( SequenceFeature.class.toString() ) )
+            {
+                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
+            }
+            else if( type.equals( InteractionProperties.class ) || type.equals( InteractionProperties.class.toString() ) )
+            {
+                return new InteractionProperties(
+                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
             }
         }
         catch( Exception ex )
