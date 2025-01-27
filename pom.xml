@@ -304,19 +304,19 @@
         <dependency>
             <groupId>com.developmentontheedge</groupId>
             <artifactId>beans</artifactId>
-            <version>3.0.4</version>
+            <version>[3.0.4,)</version>
         </dependency>
 
         <dependency>
             <groupId>ru.biosoft.access</groupId>
             <artifactId>core</artifactId>
-            <version>1.1.0</version>
+            <version>[1.1.0,)</version>
         </dependency>
 
         <dependency>
             <groupId>ru.biosoft.access</groupId>
             <artifactId>file</artifactId>
-            <version>1.1.0</version>
+            <version>[1.1.0,)</version>
         </dependency>
 
         <dependency>
