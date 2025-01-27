@@ -100,30 +100,23 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         try
         {
-            //            if( type instanceof Class )
-            //            {
-            //                return ( (Class)type ).getConstructor(String.class).newInstance();
-            //            }
-            //            else
-            //            {
-            if( type.equals( Backbone.class ) )
+            if( type.equals( Backbone.class ) || type.equals( Backbone.class.getName() ) )
             {
                 return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) );
             }
-            else if( type.equals( SequenceFeature.class ) )
+            else if( type.equals( SequenceFeature.class ) || type.equals( SequenceFeature.class.getName() ) )
             {
                 return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) );
             }
-            else if( type.equals( MolecularSpecies.class ) )
+            else if( type.equals( MolecularSpecies.class ) || type.equals( SequenceFeature.class.getName() ) )
             {
                 return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) );
             }
-            else if( type.equals( InteractionProperties.class ) )
+            else if( type.equals( InteractionProperties.class ) || type.equals( InteractionProperties.class.getName() ) )
             {
                 return new InteractionProperties(
                         DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) );
             }
-            //            }
         }
         catch( Exception ex )
         {
