@@ -23,6 +23,7 @@ public class SbolDiagramType extends DiagramTypeSupport
         Diagram diagram = super.createDiagram( origin, diagramName, kernel );
         SBOLDocument doc = new SBOLDocument();
         doc.setDefaultURIprefix( "https://biouml.org" );
+        doc.createModuleDefinition( "Main_module", "1" );
         diagram.getAttributes().add( new DynamicProperty( SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc ) );//.getValue(SbolUtil.SBOL_DOCUMENT_PROPERTY);
         return diagram;
     }

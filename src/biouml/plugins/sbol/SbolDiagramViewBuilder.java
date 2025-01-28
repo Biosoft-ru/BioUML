@@ -34,10 +34,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.standard.type.Stub;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.graph.CenterPointFinder;
-import ru.biosoft.graph.OrientedPortFinder;
 import ru.biosoft.graph.PortFinder;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.ArrowView.Tip;
@@ -318,10 +315,12 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     public boolean createSourceSinkView(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
     {
-        Dimension d = new Dimension( 8, 8 );
+        Dimension d = node.getShapeSize();
+        int w = Math.max( d.width, 25 );
+        int h = Math.max( d.height, 25 );
         Pen pen = getBorderPen( node, options.getNodePen() );
-        container.add( new EllipseView( pen, new Brush( Color.white ), 0, 0, d.width, d.height ) );
-        container.add( new LineView( pen, new Point( 3, d.height + 3 ), new Point( d.width - 3, -3 ) ) );
+        container.add( new EllipseView( pen, new Brush( Color.white ), 0, 0, w, h ) );
+        container.add( new LineView( pen, new Point( 3, h + 3 ), new Point( w - 3, -3 ) ) );
         return false;
     }
 
@@ -456,25 +455,25 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         switch( edgeType )
         {
-            case SbolUtil.TYPE_CONTROL:
+            case SbolConstants.CONTROL:
             case SbolConstants.MODIFIED:
                 tip = ArrowView.createDiamondTip( pen, brush, 5, 10, 5 );
                 break;
-            case SbolUtil.TYPE_STIMULATION:
+            case SbolConstants.STIMULATION:
             case SbolConstants.STIMULATOR:
                 tip = ArrowView.createTriangleTip( pen, brush, 15, 5 );
                 break;
             //        case Type.TYPE_CATALYSIS:
             //            tip = ArrowView.createEllipseTip(pen, brush, 6);
             //            break;
-            case SbolUtil.TYPE_INHIBITION:
+            case SbolConstants.INHIBITION:
             case SbolConstants.INHIBITOR:
                 brush = new Brush( pen.getColor() );
                 tip = ArrowView.createLineTip( pen, brush, 3, 8 );
                 break;
-            case SbolUtil.TYPE_PROCESS:
+            case SbolConstants.PROCESS:
             case SbolConstants.PRODUCT:
-                tip = ArrowView.createTriggerTip( pen, brush, 19, 8, 4, 3 );
+                tip = ArrowView.createTriangleTip( pen, new Brush(Color.black), 15, 5 );
                 break;
             default:
                 tip = null;//ArrowView.createSimpleTip(pen, 6, 4);

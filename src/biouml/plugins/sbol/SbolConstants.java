@@ -2,6 +2,8 @@ package biouml.plugins.sbol;
 
 public class SbolConstants
 {
+    public static final String NODE_IMAGE = "node-image";
+    
     public static final String COMPLEX = "Complex";
     public static final String SIMPLE_CHEMICAL = "Simple chemical";
     public static final String PROTEIN = "Protein";
@@ -11,6 +13,7 @@ public class SbolConstants
     public static final String STIMULATION = "Stimulation";
     public static final String BIOCHEMICAL_REACTION = "Biochemical Reaction";
     public static final String DEGRADATION = "Degradation";
+    public static final String DEGRADATION_PRODUCT = "degradation product";
     public static final String GENETIC_PRODUCTION = "Genetic Production";
     public static final String CONTROL = "Control";
     public static final String PROCESS = "Process";

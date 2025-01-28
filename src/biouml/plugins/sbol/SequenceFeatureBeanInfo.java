@@ -12,10 +12,10 @@ public class SequenceFeatureBeanInfo extends BeanInfoEx2<SequenceFeature>
     @Override
     public void initProperties() throws Exception
     {
-        addReadOnly( "name", "isCreated" );
-        add( "title" );
-        addWithTags( "type", Backbone.types);
+        property("type").tags( Backbone.types ).readOnly(  "isCreated" ).add();
         addWithTags( "role", SbolUtil.getFeatureRoles() );
+        addReadOnly( "name", "isCreated" );
+        addHidden( "title", "isCreated" );
         add("private");
     }
 }

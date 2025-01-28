@@ -5490,9 +5490,9 @@ function MicroenvironmentViewPart()
 		this.optionsPI = $('<div id="' + this.tabId + '_pi6">Loading options properties..</div>').css({"width":"500px", "float":"left"});
 		this.optionsDiv.append(this.optionsPI);
 		
-		//this.colorschemesDiv = tabDiv.find("#me_color_schemes");
-		//this.tables["color_schemes"] = $('<div>Loading color schemes..</div>');
-		//this.colorschemesDiv.append(this.tables["color_schemes"]);
+		this.colorschemesDiv = tabDiv.find("#me_color_schemes");
+		this.tables["color_schemes"] = $('<div>Loading color schemes..</div>');
+		this.colorschemesDiv.append(this.tables["color_schemes"]);
 				
 		//this.visualizersDiv = tabDiv.find("#me_visualizers");
 		//this.tables["visualizers"] = $('<div>Loading cell visualizers..</div>');
@@ -5552,8 +5552,8 @@ function MicroenvironmentViewPart()
                    _this.loadTable("substrates");
                 else if (_this.type == "cell_types")
 			       _this.loadTable("cell_types");
-				//else if (_this.type == "color_schemes")
-				//   _this.loadTable("color_schemes");
+				else if (_this.type == "color_schemes")
+				   _this.loadTable("color_schemes");
 				//else if (_this.type == "visualizers")
 				//   _this.loadTable("visualizers");
                 else if (_this.type == "events")
@@ -5580,13 +5580,13 @@ function MicroenvironmentViewPart()
 					 			_this.saveTable("events");
 					 	  });
 					  }	
-					  //else if(_this.tableChanged["color_schemes"])
-					  //{
-					 // 	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
-					 // 		   if(yes)
-					 // 	           _this.saveTable("color_schemes");
-					 //      });
-					 // }	
+					  else if(_this.tableChanged["color_schemes"])
+					  {
+					  	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+							   if(yes)
+					  	           _this.saveTable("color_schemes");
+					       });
+					  }	
 					 // else if(_this.tableChanged["visualizers"])
 					 // {
 					 // 	    createYesNoConfirmDialog( "Visualizers table was changed. Do you want to save it?", function(yes){
@@ -5624,14 +5624,14 @@ function MicroenvironmentViewPart()
 	   		        _this.saveTable("events");
 	   		 }); 
 	   }
-	   //else if(this.tableChanged["color_schemes"])
-	  // {
-	  // 	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
-	 //  	   		if(yes)
-	 //  	   		   _this.saveTable("color_schemes");
-	 //  	    }); 
-	 //  }
-	   //else if(this.tableChanged["visualizers"])
+	   else if(this.tableChanged["color_schemes"])
+	   {
+	   	    createYesNoConfirmDialog( "Color Schemes table was changed. Do you want to save it?", function(yes){
+	   	   		if(yes)
+	   	   		   _this.saveTable("color_schemes");
+	   	    }); 
+	   }
+	 //else if(this.tableChanged["visualizers"])
 	   //{
 		//   	 createYesNoConfirmDialog( "Cell Visualier table was changed. Do you want to save it?", function(yes){
 		//   	   	 if(yes)
@@ -5644,18 +5644,18 @@ function MicroenvironmentViewPart()
     {
         if (this.type == "substrates" || this.type == "cell_types" || this.type == "events" || this.type == "color_schemes"  || this.type == "visualizers")
         {
-            this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveTable);
+            this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveActionClick);
             toolbarBlock.append(this.saveAction);     
         }
 		
-		//if (this.type == "color_schemes")
-		//{
-		//	this.addAction = createToolbarButton("Add scheme", "icon_plus.gif", this.addSchemeActionClick);
-		//	toolbarBlock.append(this.addAction);
-		//	         
-		//	this.removeAction = createToolbarButton("Remove scheme", "removefilter.gif", this.removeSchemeActionClick);
-		//    toolbarBlock.append(this.removeAction);
-		//}
+		if (this.type == "color_schemes")
+		{
+			this.addAction = createToolbarButton("Add scheme", "icon_plus.gif", this.addSchemeActionClick);
+			toolbarBlock.append(this.addAction);
+			         
+			this.removeAction = createToolbarButton("Remove scheme", "removefilter.gif", this.removeSchemeActionClick);
+		    toolbarBlock.append(this.removeAction);
+		}
 		//else if (this.type == "visualizers")
         //{
 		//	this.addAction = createToolbarButton("Add visualizer", "icon_plus.gif", this.addVisualizerActionClick);
@@ -5664,6 +5664,13 @@ function MicroenvironmentViewPart()
 		//	this.removeAction = createToolbarButton("Remove visualizer", "removefilter.gif", this.removeVisuaizerActionClick);
 		//	toolbarBlock.append(this.removeAction);		
 		//}		
+    };
+    
+    this.saveActionClick = function(event, stype)
+    {
+        if(!stype)
+            stype = this.type;
+        _this.saveTable(stype);
     };
     
     this.diagramChanged = function()
@@ -5676,7 +5683,7 @@ function MicroenvironmentViewPart()
         this.loadTable("substrates");
 		this.loadTable("cell_types");
 		this.loadTable("events");
-		//this.loadTable("color_schemes");
+		this.loadTable("color_schemes");
 		//this.loadTable("visualizers");
     };
     

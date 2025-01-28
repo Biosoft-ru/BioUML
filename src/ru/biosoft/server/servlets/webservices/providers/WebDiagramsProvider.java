@@ -1473,6 +1473,7 @@ public class WebDiagramsProvider extends WebProviderSupport
             final ViewEditorPane viewEditor = new ViewEditorPaneStub(helper, diagram);
 
             final Object bean = semanticController.getPropertiesByType(parent, typeStr, location);
+
             if( bean instanceof InitialElementProperties )
             {
                 if( elementName != null && parent.contains( elementName ) )
@@ -1665,6 +1666,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         }
         catch( LoggedClassNotFoundException e )
         {
+            throw new Exception("Can not load class "+typeStr+", error "+e.getMessage());
         }
         if( typeClass != null && typeClass != Stub.NoteLink.class && typeClass != SemanticRelation.class && typeClass != Reaction.class )
         {

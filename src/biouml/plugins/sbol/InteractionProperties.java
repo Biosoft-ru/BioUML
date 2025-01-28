@@ -8,7 +8,6 @@ import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.SBOLDocument;
 
-import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
@@ -17,57 +16,37 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
-import biouml.model.SemanticController;
 import ru.biosoft.graphics.editor.ViewEditorPane;
+import ru.biosoft.util.DPSUtils;
 
 public class InteractionProperties extends SbolBase implements InitialElementProperties
 {
-    private String name = "Process";
-    private String title = "Process";
     private String type = "Process";
-
-    private boolean isCreated = false;
 
     public InteractionProperties()
     {
-        super( null );
+        super(null);
+    }
+    
+    public InteractionProperties( String name)
+    {
+        this(null, true);
+    }
+    
+    public InteractionProperties(String name, boolean isCreated)
+    {
+        super( name, isCreated );
     }
 
     public InteractionProperties(Identified so)
     {
         super( so );
-        if ( so != null )
-        {
-            name = super.getName();
-            title = super.getTitle();
-            //TODO: this.setType(  );
-        }
     }
 
     @Override
-    public String getName()
+    public Interaction getSbolObject()
     {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        Object oldValue = this.name;
-        this.name = name;
-        firePropertyChange( "name", oldValue, name );
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        Object oldValue = this.title;
-        this.title = title;
-        firePropertyChange( "title", oldValue, title );
+        return (Interaction)super.getSbolObject();
     }
 
     @PropertyName ( "Type" )
@@ -83,18 +62,14 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         firePropertyChange( "type", oldValue, type );
     }
 
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
     protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location)  throws Exception
     {
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
-        Interaction interaction = moduleDefinition.createInteraction( name, SbolUtil.getInteractionURIByType(  getType() ) );
+        Interaction interaction = moduleDefinition.createInteraction( getName(), SbolUtil.getInteractionURIByType(  getType() ) );
         this.setSbolObject( interaction );
         Node node = new Node( compartment, this );
-        node.getAttributes().add( new DynamicProperty( "node-image", String.class, "process" ) );
+        node.setTitle( getName() );
+        node.getAttributes().add( DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction) ) );
         node.setUseCustomImage( true );
         node.setLocation( location );
         node.setShapeSize( new Dimension( 15, 15 ) );
@@ -105,11 +80,11 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
-        this.isCreated = true;
+        this.setCreated( true );
         Node node = doCreateInteraction( compartment, doc, location );
         if( !diagram.getType().getSemanticController().canAccept( compartment, node ) )
             return DiagramElementGroup.EMPTY_EG;

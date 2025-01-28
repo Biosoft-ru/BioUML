@@ -24,8 +24,8 @@ public class ModelAgent extends SimulationAgent
     private double[] updatedValues;
     protected boolean updatedFromOutside = false;
     protected Map<String, Integer> variableToIndex = new HashMap<>();
-    private int nextSpanIndex = 1;
-    private int recalculateStepIndex = -1; //if != -1 than simulation step may be changed by the model itself.
+    protected int nextSpanIndex = 1;
+    protected int recalculateStepIndex = -1; //if != -1 than simulation step may be changed by the model itself.
     private double oldStep;
 
     public ModelAgent(SimulationEngine engine) throws Exception
@@ -82,7 +82,7 @@ public class ModelAgent extends SimulationAgent
                 new FunctionJobControl( log ) );
     }
 
-    private void recalculateSpan() throws Exception
+    protected void recalculateSpan() throws Exception
     {
         double newStep = this.getCurrentValues()[recalculateStepIndex];
         if( newStep == oldStep )
@@ -110,22 +110,16 @@ public class ModelAgent extends SimulationAgent
                 if( updatedFromOutside )
                     simulator.setInitialValues( currentValues );
 
-                //                double[] oldValues = model.getCurrentValues();
+                if( recalculateStepIndex != -1 )
+                    recalculateSpan();
 
                 while( simulator.getProfile().getTime() < span.getTime( nextSpanIndex ) && isAlive )
                     isAlive = simulator.doStep();
 
                 nextSpanIndex++;
-
                 currentValues = model.getCurrentValues();
-
-                //                log.info(getName()+": "+Util.joinArray(oldValues)+" --> "+joinArray(currentValues)  );
-
                 currentTime = simulator.getProfile().getTime();
                 updatedFromOutside = false;
-
-                if( recalculateStepIndex != -1 )
-                    recalculateSpan();
 
                 if( nextSpanIndex >= span.getLength() )
                     isAlive = false;

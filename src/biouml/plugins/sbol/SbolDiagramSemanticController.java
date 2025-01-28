@@ -40,8 +40,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
         try
         {
-
-            if( type.equals( ParticipationProperties.class )  )
+            if( type.equals( ParticipationProperties.class ) )
             {
                 new CreateEdgeAction().createEdge( pt, viewEditor, new ParticipationEdgeCreator() );
                 return DiagramElementGroup.EMPTY_EG;
@@ -91,7 +90,6 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             return compartment instanceof Diagram;
         }
 
-
         if( de instanceof Edge )
             return true;
         return false;
@@ -102,28 +100,22 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     {
         try
         {
-            if( type instanceof Class )
+            if( type.equals( Backbone.class ) || type.equals( Backbone.class.getName() ) )
             {
-                return ( (Class)type ).getConstructor().newInstance();
+                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) , false);
             }
-            else
+            else if( type.equals( SequenceFeature.class ) || type.equals( SequenceFeature.class.getName() ) )
             {
-                if ( type.equals(Backbone.class.getName()) )
-                {
-                    return new Backbone();
-                }
-                else if ( type.equals(SequenceFeature.class.getName()) )
-                {
-                    return new SequenceFeature();
-                }
-                else if ( type.equals(MolecularSpecies.class.getName()) )
-                {
-                    return new MolecularSpecies();
-                }
-                else if ( type.equals(InteractionProperties.class.getName()) )
-                {
-                    return new InteractionProperties();
-                }
+                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) , false );
+            }
+            else if( type.equals( MolecularSpecies.class ) || type.equals( MolecularSpecies.class.getName() ) )
+            {
+                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) , false );
+            }
+            else if( type.equals( InteractionProperties.class ) || type.equals( InteractionProperties.class.getName() ) )
+            {
+                return new InteractionProperties(
+                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) , false );
             }
         }
         catch( Exception ex )
@@ -312,11 +304,18 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             Node node = (Node)de;
 
-            for( Edge edge : Util.getEdges( node ) )
+
+            if( node.getKernel() instanceof InteractionProperties && node.getKernel().getType().equals( SbolConstants.DEGRADATION ) )
             {
-                removeEdge( edge );
+                Node empty = node.edges().map( e -> e.getOtherEnd( node ) )
+                        .filter( n -> n.getKernel().getType().equals( SbolConstants.DEGRADATION_PRODUCT ) ).findAny().orElse( null );
+                if( empty != null )
+                    remove( empty );
             }
 
+            for( Edge edge : Util.getEdges( node ) )
+                removeEdge( edge );
+            
             if( de instanceof Compartment )
                 ( (Compartment)de ).clear();
             SbolUtil.removeSbolObjectFromDiagram( de );
@@ -340,7 +339,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
     private void removeEdge(Edge edge) throws Exception
     {
-        if( SbolUtil.TYPE_DEGRADATION.equals( edge.getKernel().getType() ) )
+        if( SbolConstants.DEGRADATION.equals( edge.getKernel().getType() ) )
         {
             //remove degradation stub node
             Node degradationNode = ( (Edge)edge ).getOutput();
@@ -359,11 +358,12 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
     }
 
     @Override
-    public Edge createEdge(@Nonnull Node fromNode, @Nonnull Node toNode, String edgeType, Compartment compartment) throws IllegalArgumentException
+    public Edge createEdge(@Nonnull Node fromNode, @Nonnull Node toNode, String edgeType, Compartment compartment)
+            throws IllegalArgumentException
     {
-        if(edgeType.equals( ParticipationProperties.class.getName() ))
+        if( edgeType.equals( ParticipationProperties.class.getName() ) )
         {
-            return new ParticipationEdgeCreator().createEdge(fromNode, toNode, false);
+            return new ParticipationEdgeCreator().createEdge( fromNode, toNode, false );
         }
         return null;
     }

@@ -27,7 +27,17 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
     public Backbone()
     {
-        super( null );
+        super(null);
+    }
+    
+    public Backbone(String name)
+    {
+        this(name, true);
+    }
+    
+    public Backbone(String name, boolean isCreated)
+    {
+        super( name , isCreated);
     }
 
     public Backbone(Identified so)
@@ -36,35 +46,10 @@ public class Backbone extends SbolBase implements InitialElementProperties
         setName(so.getDisplayId());
     }
 
-    private boolean isCreated = false;;
     private String strandType = "Single-stranded";
     private String topologyType = "Linear";
     private String type = "DNA";
     private String role = "Sequence feature";
-    private String name = "Backbone";
-    private String title = "Backbone";
-
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        this.title = title;
-    }
 
     @PropertyName ( "Strand type" )
     public String getStrandType()
@@ -115,7 +100,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( doc != null && doc instanceof SBOLDocument )
         {
@@ -128,7 +113,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
             return DiagramElementGroup.EMPTY_EG;
         }
 
-        this.isCreated = true;
+        this.setCreated( true );
         Compartment result = new Compartment( compartment, this );
         result.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, getTopologyType().equals("Circular")));
         result.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, false));
@@ -142,13 +127,4 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
         return new DiagramElementGroup( result );
     }
-
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
-    //    http://www.biopax.org/release/biopax-level3.owl#DnaRegion
-    //    http://identifiers.org/so/SO:0000110
-
 }

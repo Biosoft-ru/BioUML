@@ -1,18 +1,23 @@
 package biouml.plugins.sbol;
 
-
+import java.awt.Point;
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.sbolstandard.core2.AccessType;
+import org.sbolstandard.core2.Annotation;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.DirectionType;
 import org.sbolstandard.core2.FunctionalComponent;
+import org.sbolstandard.core2.GenericTopLevel;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.ModuleDefinition;
@@ -29,18 +34,17 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.standard.type.Base;
-import biouml.standard.type.Reaction;
 import biouml.standard.type.Type;
+import ru.biosoft.graph.Path;
 
 public class SbolUtil
 {
-
-
     public static final String SBOL_DOCUMENT_PROPERTY = "sbol_document";
 
     private static final Map<URI, String> dnaRegionToImage;
     private static final Map<String, URI> featurRoleToURI;
     private static final Map<String, URI> speciesToURI;
+    private static final Map<URI, String> speciesURIToString;
     private static final Map<String, URI> interactionToURI;
     private static final Map<URI, String> interactionURIToString;
     private static final Map<String, URI> participationToURI;
@@ -48,16 +52,16 @@ public class SbolUtil
     private static final Map<String, Integer> verticalShift;
 
 
-    public static final String TYPE_INHIBITION = "Inhibition";
-    public static final String TYPE_STIMULATION = "Stimulation";
-    public static final String TYPE_CONTROL = "Control";
-    public static final String TYPE_PROCESS = "Process";
-    public static final String TYPE_DEGRADATION = "Degradation";
-    public static final String TYPE_BIOCHEMICAL_REACTION = "Reaction";
-    public static final String TYPE_NON_COVALENT_BINDING = "Association";
-    public static final String TYPE_GENETIC_PRODUCTION = "Genetic production";
-    public static final String TYPE_CIRCULAR_END = "circular-plasmid end";
-    public static final String TYPE_CIRCULAR_START = "circular-plasmid start";
+    //    public static final String TYPE_INHIBITION = "Inhibition";
+    //    public static final String TYPE_STIMULATION = "Stimulation";
+    //    public static final String TYPE_CONTROL = "Control";
+    //    public static final String TYPE_PROCESS = "Process";
+    //    public static final String TYPE_DEGRADATION = "Degradation";
+    //    public static final String TYPE_BIOCHEMICAL_REACTION = "Reaction";
+    //    public static final String TYPE_NON_COVALENT_BINDING = "Association";
+    //    public static final String TYPE_GENETIC_PRODUCTION = "Genetic production";
+    //    public static final String TYPE_CIRCULAR_END = "circular-plasmid end";
+    //    public static final String TYPE_CIRCULAR_START = "circular-plasmid start";
     public static final String TYPE_DEGRADATION_PRODUCT = "degradation product";
 
     private static SequenceOntology so = new SequenceOntology();
@@ -181,6 +185,7 @@ public class SbolUtil
         sMap.put( SbolConstants.SIMPLE_CHEMICAL, ComponentDefinition.SMALL_MOLECULE );
         sMap.put( SbolConstants.COMPLEX, ComponentDefinition.COMPLEX );
         speciesToURI = Collections.unmodifiableMap( sMap );
+        speciesURIToString = sMap.entrySet().stream().collect( Collectors.toMap( Map.Entry::getValue, Map.Entry::getKey ) );
     }
 
     static
@@ -196,7 +201,7 @@ public class SbolUtil
         iMap.put( "Dissociation", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000180" ) );
         iMap.put( "Process", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000375" ) );
         interactionToURI = Collections.unmodifiableMap( iMap );
-        interactionURIToString = iMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        interactionURIToString = iMap.entrySet().stream().collect( Collectors.toMap( Map.Entry::getValue, Map.Entry::getKey ) );
     }
 
     static
@@ -213,30 +218,30 @@ public class SbolUtil
         pMap.put( "Modified", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000644" ) );
         pMap.put( "Template", URI.create( "http://identifiers.org/biomodels.sbo/SBO:0000645" ) );
         participationToURI = Collections.unmodifiableMap( pMap );
-        participationURIToString = pMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        participationURIToString = pMap.entrySet().stream().collect( Collectors.toMap( Map.Entry::getValue, Map.Entry::getKey ) );
     }
-    
-//    public String getParticipationType(String interactionType, boolean reactant)
-//    {
-//        switch (interactionType)
-//        {
-//            case SbolConstants.INHIBITION:
-//                return reactant? 
-//        }
-//    }
-//
-//    Inhibitor http://identifiers.org/SBO:0000020 Inhibition 27
-//        Inhibited http://identifiers.org/SBO:0000642 Inhibition 28
-//        Stimulator http://identifiers.org/SBO:0000459 Stimulation 29
-//        Stimulated http://identifiers.org/SBO:0000643 Stimulation 30
-//        Reactant http://identifiers.org/SBO:0000010 Non-Covalent Binding, Degradation 31
-//        Biochemical Reaction 32
-//        Product http://identifiers.org/SBO:0000011 Non-Covalent Binding, 33
-//        Genetic Production, Biochemical Reaction 34
-//        Promoter http://identifiers.org/SBO:0000598 Inhibition, Stimulation, Genetic Production 35
-//        Modifier http://identifiers.org/SBO:0000019 Biochemical Reaction, Control 36
-//        Modified http://identifiers.org/SBO:0000644 Biochemical Reaction, Control 37
-//        Template http://identifiers.org/SBO:0000645 Genetic Production
+
+    //    public String getParticipationType(String interactionType, boolean reactant)
+    //    {
+    //        switch (interactionType)
+    //        {
+    //            case SbolConstants.INHIBITION:
+    //                return reactant? 
+    //        }
+    //    }
+    //
+    //    Inhibitor http://identifiers.org/SBO:0000020 Inhibition 27
+    //        Inhibited http://identifiers.org/SBO:0000642 Inhibition 28
+    //        Stimulator http://identifiers.org/SBO:0000459 Stimulation 29
+    //        Stimulated http://identifiers.org/SBO:0000643 Stimulation 30
+    //        Reactant http://identifiers.org/SBO:0000010 Non-Covalent Binding, Degradation 31
+    //        Biochemical Reaction 32
+    //        Product http://identifiers.org/SBO:0000011 Non-Covalent Binding, 33
+    //        Genetic Production, Biochemical Reaction 34
+    //        Promoter http://identifiers.org/SBO:0000598 Inhibition, Stimulation, Genetic Production 35
+    //        Modifier http://identifiers.org/SBO:0000019 Biochemical Reaction, Control 36
+    //        Modified http://identifiers.org/SBO:0000644 Biochemical Reaction, Control 37
+    //        Template http://identifiers.org/SBO:0000645 Genetic Production
     static
     {
         Map<String, Integer> aMap = new HashMap<>();
@@ -286,7 +291,7 @@ public class SbolUtil
 
     public static String getInteractionStringType(URI uri)
     {
-        return interactionURIToString.get(uri);
+        return interactionURIToString.get( uri );
     }
 
     public static URI getParticipationURIByType(String type)
@@ -296,12 +301,17 @@ public class SbolUtil
 
     public static String getParticipationStringType(URI uri)
     {
-        return participationURIToString.get(uri);
+        return participationURIToString.get( uri );
     }
-    
+
     public static URI getSpeciesURIByType(String type)
     {
         return speciesToURI.get( type );
+    }
+
+    public static String getSpeciesURIByType(URI uri)
+    {
+        return speciesURIToString.get( uri );
     }
 
     public static URI getURIByRole(String name)
@@ -367,7 +377,10 @@ public class SbolUtil
         else if( sbolObject instanceof Interaction )
         {
             Interaction inter = (Interaction)sbolObject;
-            if( inter.containsType( SystemsBiologyOntology.GENETIC_PRODUCTION ) )
+            if( inter.containsType( SystemsBiologyOntology.GENETIC_PRODUCTION ) || inter.containsType( SystemsBiologyOntology.PROCESS )
+                    || inter.containsType( SystemsBiologyOntology.CONTROL ) || inter.containsType( SystemsBiologyOntology.INHIBITION )
+                    || inter.containsType( SystemsBiologyOntology.DEGRADATION )
+                    || inter.containsType( SystemsBiologyOntology.STIMULATION ) )
                 return "process";
             else if( inter.containsType( SystemsBiologyOntology.DISSOCIATION ) )
                 return "dissociation";
@@ -387,6 +400,14 @@ public class SbolUtil
             else
                 return new SequenceFeature( cd );
         }
+        else if( cd.containsType( ComponentDefinition.COMPLEX ) || cd.containsType( ComponentDefinition.PROTEIN )
+                || cd.containsType( ComponentDefinition.SMALL_MOLECULE ) )
+        {
+            MolecularSpecies species = new MolecularSpecies( cd.getDisplayId() );
+            species.setType( speciesURIToString.get( cd.getTypes().iterator().next() ) );
+            species.setSbolObject( cd );
+            return species;
+        }
         return new SbolBase( cd );
     }
 
@@ -395,19 +416,18 @@ public class SbolUtil
         return verticalShift.getOrDefault( imgPath, 0 );
     }
 
-    public static boolean removeSbolObjectFromDiagram(DiagramElement de)
+    public static boolean removeSbolObjectFromDiagram(DiagramElement de) throws SBOLValidationException
     {
         Diagram diagram = Diagram.getDiagram( de );
-        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-        if( doc == null || ! ( doc instanceof SBOLDocument ) )
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        if( doc == null )
             return false;
-        if( ( de instanceof Edge || de.getKernel() instanceof Reaction ) && de.getAttributes().hasProperty( "interactionURI" ) )
+        if(  de.getKernel() instanceof InteractionProperties  )
         {
-            String interactionURIString = de.getAttributes().getValueAsString( "interactionURI" );
-            URI uri = URI.create( interactionURIString );
-            for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
+            String id = ((SbolBase)de.getKernel()).getSbolObject().getDisplayId();
+            for( ModuleDefinition md : doc.getModuleDefinitions() )
             {
-                Interaction interaction = md.getInteraction( uri );
+                Interaction interaction = md.getInteraction( id );
                 if( interaction != null )
                 {
                     md.removeInteraction( interaction );
@@ -422,24 +442,22 @@ public class SbolUtil
             Node reactionNode = null;
             Node otherNode = null;
 
-            if( e.getInput().getKernel() instanceof Reaction )
+            if( e.getInput().getKernel() instanceof InteractionProperties )
             {
                 reactionNode = e.getInput();
                 otherNode = e.getOutput();
             }
-            else if( e.getOutput().getKernel() instanceof Reaction )
+            else if( e.getOutput().getKernel() instanceof InteractionProperties )
             {
                 reactionNode = e.getOutput();
                 otherNode = e.getInput();
             }
-            if( reactionNode != null && reactionNode.getAttributes().hasProperty( "interactionURI" ) && otherNode != null
-                    && otherNode.getKernel() instanceof SbolBase )
+            if( reactionNode != null && otherNode != null && otherNode.getKernel() instanceof SbolBase )
             {
-                String interactionURIString = reactionNode.getAttributes().getValueAsString( "interactionURI" );
-                URI uri = URI.create( interactionURIString );
+                String id = ( (InteractionProperties)reactionNode.getKernel() ).getSbolObject().getDisplayId();
                 for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
                 {
-                    Interaction interaction = md.getInteraction( uri );
+                    Interaction interaction = md.getInteraction( id );
                     if( interaction != null )
                     {
                         URI participantURI = ( (SbolBase)otherNode.getKernel() ).getSbolObject().getPersistentIdentity();
@@ -456,9 +474,13 @@ public class SbolUtil
                 }
             }
         }
+
         if( ! ( de.getKernel() instanceof SbolBase ) )
             return false;
-        return removeSbolObjectFromDocument( (SBOLDocument)doc, ( (SbolBase)de.getKernel() ).getSbolObject().getIdentity() );
+        Identified identified = ( (SbolBase)de.getKernel() ).getSbolObject();
+        if( identified == null )
+            return false;
+        return removeSbolObjectFromDocument( (SBOLDocument)doc, identified.getIdentity() );
     }
 
     public static boolean removeSbolObjectFromDocument(SBOLDocument doc, URI uri)
@@ -527,6 +549,10 @@ public class SbolUtil
             return false;
         try
         {
+            ModuleDefinition module = SbolUtil.getDefaultModuleDefinition( doc );
+            FunctionalComponent fc = SbolUtil.findFunctionalComponent( module, cd.getDisplayId() );
+            if( fc != null )
+                module.removeFunctionalComponent( fc );
             doc.removeComponentDefinition( cd );
         }
         catch( SBOLValidationException e )
@@ -551,36 +577,249 @@ public class SbolUtil
             return (SBOLDocument)result;
         return null;
     }
-    
+
     /**
      * Find functional component inside given module definition that corresponds to given component definition display id
      */
     public static FunctionalComponent findFunctionalComponent(ModuleDefinition md, String componentDefinitionID)
     {
-        for (FunctionalComponent fc: md.getFunctionalComponents())
+        for( FunctionalComponent fc : md.getFunctionalComponents() )
         {
-            if (fc.getDefinition().getDisplayId().equals( componentDefinitionID ))
+            if( fc.getDefinition().getDisplayId().equals( componentDefinitionID ) )
                 return fc;
         }
         return null;
     }
-    
+
     public static Component findComponent(ComponentDefinition cd, String componentDefinitionID)
     {
-        for (Component c: cd.getComponents())
+        for( Component c : cd.getComponents() )
         {
-            if (c.getDefinition().getDisplayId().equals( componentDefinitionID ))
+            if( c.getDefinition().getDisplayId().equals( componentDefinitionID ) )
                 return c;
         }
         return null;
     }
-    
+
     /**
      * Creates functional component referencing given component definition and inside given module definition
      */
-    public static FunctionalComponent createFunctionalComponent(ModuleDefinition moduleDefinition, ComponentDefinition componentDefinition) throws Exception
+    public static FunctionalComponent createFunctionalComponent(ModuleDefinition moduleDefinition, ComponentDefinition componentDefinition)
+            throws Exception
     {
-        return moduleDefinition.createFunctionalComponent( componentDefinition.getDisplayId() + "_fc",
-                AccessType.PUBLIC, componentDefinition.getIdentity(), DirectionType.INOUT);
+        return moduleDefinition.createFunctionalComponent( componentDefinition.getDisplayId() + "_fc", AccessType.PUBLIC,
+                componentDefinition.getIdentity(), DirectionType.INOUT );
+    }
+    
+    public static boolean hasLayout(Diagram diagram) throws Exception
+    {
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        GenericTopLevel level = doc.getGenericTopLevel( "Layout", "1" );
+        return level != null;
+    }
+
+    public static void readLayout(Diagram diagram) throws Exception
+    {
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        GenericTopLevel level = doc.getGenericTopLevel( "Layout", "1" );
+        if( level == null )
+            return;
+        for( Annotation annotation : level.getAnnotations() )
+        {
+            String localPart = getName( annotation );
+            if(localPart.equals( "NodeGlyph" ) )
+            {
+                int x = 0;
+                int y = 0;
+                int height = 0;
+                int width = 0;
+                String refId = null;
+                String title = null;
+                for( Annotation nested : annotation.getAnnotations() )
+                {
+                    String name = getName( nested );
+                    if( name.equals( "title" ) )
+                        title = nested.getStringValue() ;
+                    if( name.equals( "x" ) )
+                        x = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "y" ) )
+                        y = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "width" ) )
+                        width = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "height" ) )
+                        height = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "refId" ) )
+                        refId = nested.getStringValue();
+                }
+                if( refId == null )
+                    continue;
+                else
+                {
+                    Node node = diagram.findNode( refId );
+                    if( node == null )
+                        continue;
+                    node.setLocation( new Point( x, y ) );
+                    node.getShapeSize().setSize( width, height );
+                    if (title != null)
+                        node.setTitle( title );
+                }
+            }
+            else if (localPart.equals( "Edge" ))
+            {
+                String refId = null;
+               Point inPort = null;
+               Point outPort = null;
+               Path path = new Path();
+               for( Annotation nested : annotation.getAnnotations() )
+               {
+                   String name = getName( nested );
+                   if (name.equals( "segment" ) )
+                   {
+                      String value =  nested.getStringValue();
+                      String[] parts = value.split( ";" );
+                      int x = Integer.parseInt( parts[0].trim());
+                      int y = Integer.parseInt( parts[1].trim());
+                       path.addPoint( x, y );
+                   }
+                   else if (name.equals( "inPort" ))
+                   {
+                       String value =  nested.getStringValue();
+                       String[] parts = value.split( ";" );
+                       int x = Integer.parseInt( parts[0].trim());
+                       int y = Integer.parseInt( parts[1].trim());
+                       inPort = new Point(x, y);
+                   }
+                   else if (name.equals( "inPort" ))
+                   {
+                       String value =  nested.getStringValue();
+                       String[] parts = value.split( ";" );
+                       int x = Integer.parseInt( parts[0].trim());
+                       int y = Integer.parseInt( parts[1].trim());
+                       outPort = new Point(x, y);
+                   }
+                   else if( name.equals( "refId" ) )
+                       refId = nested.getStringValue();
+               }
+               if(refId == null)
+                   continue;
+               Edge edge = (Edge)diagram.findDiagramElement( refId );
+               if( edge == null )
+                   continue;
+
+               if( path.npoints > 2 )
+               {
+                   edge.setPath( path );
+                   edge.setInPort( new Point( path.xpoints[0], path.ypoints[0] ) );
+                   edge.setOutPort( new Point( path.xpoints[path.npoints - 1], path.ypoints[path.npoints - 1] ) );
+               }
+               else
+               {
+                   edge.setInPort( inPort );
+                   edge.setOutPort( outPort );
+               }
+            }
+        }
+    }
+
+    public static void saveLayout(Diagram diagram)
+    {
+        try
+        {
+            String NAME_SPACE = "http://biouml.org/sbol/";
+            String PREFIX = "biouml";
+
+            SBOLDocument doc = SbolUtil.getDocument( diagram );
+            GenericTopLevel level = doc.getGenericTopLevel( "Layout", "1" );
+            if( level != null )
+                doc.removeGenericTopLevel( level );
+            level = createTopLevel( doc, NAME_SPACE, "Layout", "biouml" );
+
+            for( Node node : diagram.recursiveStream().select( Node.class ) )
+            {
+                if( node instanceof Diagram )
+                    continue;
+                List<Annotation> annotations = new ArrayList<>();
+                annotations.add( createAnnotation( NAME_SPACE, "refId", PREFIX, node.getKernel().getName() ) );
+                annotations.add( createAnnotation( NAME_SPACE, "title", PREFIX, node.getTitle() ) );
+                annotations.add( createAnnotation( NAME_SPACE, "x", PREFIX, String.valueOf( node.getLocation().x ) ) );
+                annotations.add( createAnnotation( NAME_SPACE, "y", PREFIX, String.valueOf( node.getLocation().y ) ) );
+                annotations.add( createAnnotation( NAME_SPACE, "width", PREFIX, String.valueOf( node.getShapeSize().width ) ) );
+                annotations.add( createAnnotation( NAME_SPACE, "height", PREFIX, String.valueOf( node.getShapeSize().height ) ) );
+                createAnnotation( level, NAME_SPACE, "NodeGlyph", "nodeGlyph", PREFIX, node.getKernel().getName(), annotations );
+            }
+            for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
+            {
+                List<Annotation> annotations = new ArrayList<>();
+                annotations.add( createAnnotation( NAME_SPACE, "refId", PREFIX, edge.getKernel().getName() ) );
+                Path path = edge.getPath();
+                if( edge.getPath() != null )
+                {
+                    for( int i = 0; i < path.npoints; i++ )
+                    {
+                        annotations.add( createAnnotation( NAME_SPACE, "segment", PREFIX,
+                                String.valueOf( path.xpoints[i] ) + ";" + String.valueOf( path.ypoints[i] ) ) );
+                    }
+                }
+                else
+                {
+                    annotations.add( createAnnotation( NAME_SPACE, "inPort", PREFIX,
+                            String.valueOf( edge.getInPort().x ) + ";" + String.valueOf( edge.getInPort().y ) ) );
+                    annotations.add( createAnnotation( NAME_SPACE, "outPort", PREFIX,
+                            String.valueOf( edge.getOutPort().x ) + ";" + String.valueOf( edge.getOutPort().y ) ) );
+                }
+                createAnnotation( level, NAME_SPACE, "Edge", "edge", PREFIX, edge.getName(), annotations );
+            }
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    private static String getName(Annotation annotation) throws Exception
+    {
+        Class qNameClass = GenericTopLevel.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
+        Object qName = Annotation.class.getMethod( "getQName" ).invoke( annotation );
+        return qNameClass.getMethod( "getLocalPart" ).invoke( qName ).toString();
+    }
+
+    public static GenericTopLevel createTopLevel(SBOLDocument doc, String namespace, String name, String prefix) throws Exception
+    {
+        Class qNameClass = GenericTopLevel.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
+        Object qname = qNameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
+        return (GenericTopLevel)SBOLDocument.class.getMethod( "createGenericTopLevel", String.class, String.class, qNameClass ).invoke( doc,
+                name, "1", qname );
+    }
+
+    public static Annotation createAnnotation(String namespace, String name, String prefix, String val) throws Exception
+    {
+        Class qnameClass = Annotation.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
+        Object qname = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
+        return Annotation.class.getConstructor( qnameClass, String.class ).newInstance( qname, val );
+    }
+
+    public static void createAnnotation(Identified object, String namespace, String name, String prefix, double val) throws Exception
+    {
+        Class qnameClass = Annotation.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
+        Object qname = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
+        Method method = Identified.class.getMethod( "createAnnotation", qnameClass, String.class );
+        method.invoke( object, qname, String.valueOf( val ) );
+    }
+
+    public static void createAnnotation(Identified object, String namespace, String name, String nameInner, String prefix, String nestedName,
+            List<Annotation> nested) throws Exception
+    {
+        Class qnameClass = Annotation.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
+        Object qname = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
+        Object qnameInner = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, nameInner, prefix );
+        Method method = Identified.class.getMethod( "createAnnotation", qnameClass, qnameClass, String.class, List.class );
+        method.invoke( object, qname, qnameInner, nestedName, nested );
+    }
+    //    createAnnotation(QName qName,QName nestedQName, String nestedId, List<Annotation> annotations)
+
+    private static Object createQName(String namespace, String name, String prefix) throws Exception
+    {
+        Class cl = Annotation.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
+        return cl.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
     }
 }

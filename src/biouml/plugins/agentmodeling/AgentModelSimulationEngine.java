@@ -313,7 +313,7 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
         mainEngine.addPreprocessor2( new InitialValueSubmodelPreprocessor() );
         mainEngine.setOutputDir( outputDir + "/" + diagram.getName() );
         SimulationAgent mainAgent = new ModelAgent( mainEngine, "" );
-
+        setRecalculateStep((ModelAgent)mainAgent, mainEngine);
         nameToAgent.put( mainAgent.getName(), mainAgent );
         nameToEngine.put( mainAgent.getName(), mainEngine );
         agentModel.addAgent( mainAgent );

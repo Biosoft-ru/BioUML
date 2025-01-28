@@ -12,10 +12,8 @@ public class MolecularSpeciesBeanInfo extends BeanInfoEx2<MolecularSpecies>
     @Override
     public void initProperties() throws Exception
     {
+        property( "type").tags( MolecularSpecies.types).readOnly( "isCreated" ).add();
         addReadOnly( "name", "isCreated" );
-        add( "title" );
-        addWithTags( "type", MolecularSpecies.types);
-//        addWithTags( "role", new String[] {});
-//        add("private");
+        addHidden( "title", "isCreated" );
     }
 }

@@ -31,48 +31,21 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 {
     private String type = "DNA";
     private String role = "Promoter";
-    private String name = "Promoter";
-    private String title = "Promoter";
-    private boolean isCreated = false;
     private boolean isPrivate = false;
 
-    public SequenceFeature()
+    public SequenceFeature( String name)
     {
-        super( null );
-        this.setRole( SbolUtil.getFeatureRoles()[0] );
+        this(null, true);
     }
-
+    
+    public SequenceFeature(String name, boolean isCreated)
+    {
+        super( name, isCreated );
+    }
+    
     public SequenceFeature(Identified so)
     {
         super( so );
-        name = super.getName();
-        title = super.getTitle();
-    }
-
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        Object oldValue = this.name;
-        this.name = name;
-        firePropertyChange( "name", oldValue, name );
-    }
-
-    @Override
-    public String getTitle()
-    {
-        return title;
-    }
-
-    public void setTitle(String title)
-    {
-        Object oldValue = this.title;
-        this.title = title;
-        firePropertyChange( "title", oldValue, title );
     }
 
     @PropertyName ( "Type" )
@@ -131,7 +104,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
                     .orElse( diagram );
         }
 
-        setName( DefaultSemanticController.generateUniqueName( diagram, name ) );
+        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
         Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
         if( ! ( doc instanceof SBOLDocument ) )
             return DiagramElementGroup.EMPTY_EG;
@@ -159,7 +132,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
             }
         }
 
-        this.isCreated = true;
+        this.setCreated( true );
 
         int y = compartment.getLocation().y + 10;
         int x = compartment.isEmpty() ? compartment.getLocation().x + 5
@@ -167,6 +140,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 
         this.setSbolObject( cd );
         Compartment node = new Compartment( compartment, this );
+        node.setTitle( getTitle() );
         node.setUseCustomImage( true );
         Point nodeLocation = new Point( x, y );
         node.setLocation( nodeLocation );
@@ -211,10 +185,4 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         }
         return lastComponent;
     }
-
-    public boolean isCreated()
-    {
-        return isCreated;
-    }
-
 }
