@@ -122,10 +122,15 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
     	DataCollection<?> output = DataCollectionUtils.createSubCollection( parameters.getOutput() );
     	DataElementPath patientsPath = DataElementPath.create( output, "virtual_patients" );
         TableDataCollection patients = TableDataCollectionUtils.createTableDataCollection( patientsPath );
-        return justAnalyzeAndPut(1000, 100, 10, patients);
+        return justAnalyzeAndPut(1000, 100, 10, patients, true);
     }
 
     public Object justAnalyzeAndPut(int attempts, int slowModelAttempts, int fastModelAttempts, TableDataCollection patients) throws Exception
+    {
+    	return justAnalyzeAndPut(attempts, slowModelAttempts, fastModelAttempts, patients, false);
+    }
+
+    public Object justAnalyzeAndPut(int attempts, int slowModelAttempts, int fastModelAttempts, TableDataCollection patients, boolean writeColumnNames) throws Exception
     {
     	DataElementPath patientsPath = DataElementPath.create(patients);
     	DataCollection<?> output = patientsPath.getParentCollection();
@@ -168,9 +173,9 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
             //DataElementPath.create( output, "fastModelSR" ).save( fastModelSR.clone(output, "fastModelSR") );
 
             if( slowModelColumns == null )
-                slowModelColumns = initColumns( patients, slowModelSR, PopulationUtils.SLOW_MODEL );
+                slowModelColumns = initColumns( patients, slowModelSR, PopulationUtils.SLOW_MODEL, writeColumnNames );
             if( fastModelColumns == null )
-                fastModelColumns = initColumns( patients, fastModelSR, PopulationUtils.FAST_MODEL );
+                fastModelColumns = initColumns( patients, fastModelSR, PopulationUtils.FAST_MODEL, writeColumnNames );
 
             log.info( MessageBundle.getMessage( "INFO_MERGING" ) );
             Double[] patient = merge( compositeDiagram, slowModelSR, fastModelSR, slowModelColumns, fastModelColumns );
@@ -313,7 +318,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         }
     }
 
-    private String[] initColumns(TableDataCollection tdc, SimulationResult sr, String model)
+    private String[] initColumns(TableDataCollection tdc, SimulationResult sr, String model, boolean writeColumnNames)
     {
         List<String> columns = new ArrayList<String>();
 
@@ -326,7 +331,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
 
         Collections.sort( columns );
 
-        if( tdc.getColumnModel().getColumnCount() == 0 )
+        if( writeColumnNames )
             for( String col : columns )
                 tdc.getColumnModel().addColumn( model + "_" + col, DataType.Float );
 
