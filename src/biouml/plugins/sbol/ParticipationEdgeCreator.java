@@ -2,6 +2,7 @@ package biouml.plugins.sbol;
 
 import java.awt.Dimension;
 import java.awt.Point;
+import java.net.URI;
 
 import javax.annotation.Nonnull;
 
@@ -10,6 +11,7 @@ import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.Interaction;
+import org.sbolstandard.core2.MapsTo;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.Participation;
 import org.sbolstandard.core2.RefinementType;
@@ -127,7 +129,20 @@ public class ParticipationEdgeCreator implements EdgeCreator
         if( participantFunc == null )
             participantFunc = SbolUtil.createFunctionalComponent( moduleDefinition, participantDef );
 
-        backboneFunc.createMapsTo( name + "map", RefinementType.USELOCAL, participantFunc.getIdentity(), backBoneComponent.getIdentity() );
+        boolean alreadyExists = false;
+        for( MapsTo maps : backboneFunc.getMapsTos() )
+        {
+            URI identityRemote = maps.getRemoteIdentity();
+            URI identityLocal = maps.getLocalIdentity();
+            if( identityRemote.equals( backBoneComponent.getIdentity() ) && identityLocal.equals( participantFunc.getIdentity() ) )
+                alreadyExists = true;
+            break;
+        }
+
+        if( !alreadyExists )
+            backboneFunc
+                    .createMapsTo( name + "map", RefinementType.USELOCAL, participantFunc.getIdentity(), backBoneComponent.getIdentity() );
+        
         Participation participation = interaction.createParticipation( name, participantFunc.getDisplayId(),
                 SbolUtil.getParticipationURIByType( SbolConstants.STIMULATOR ) );
         return new Edge( new ParticipationProperties( participation ), in, out );
