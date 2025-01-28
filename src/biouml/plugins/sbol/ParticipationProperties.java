@@ -15,7 +15,7 @@ public class ParticipationProperties extends SbolBase
 
     public ParticipationProperties()
     {
-        super( null );
+        super( "Participation" );
     }
 
     public ParticipationProperties(Identified so)
@@ -39,6 +39,12 @@ public class ParticipationProperties extends SbolBase
         }
     }
 
+    @Override
+    public Participation getSbolObject()
+    {
+        return (Participation)super.getSbolObject();
+    }
+    
     @PropertyName ( "Role" )
     public String getType()
     {
