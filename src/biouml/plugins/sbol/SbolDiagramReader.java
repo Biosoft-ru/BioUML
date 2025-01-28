@@ -263,11 +263,15 @@ public class SbolDiagramReader
                     while ( toIter.hasNext() )
                     {
                         Entry<Node, Participation> toEntry = toIter.next();
-                        ParticipationProperties kernel = new ParticipationProperties(toEntry.getValue());
-                        if (toEntry.getValue() == null)
+                        ParticipationProperties kernel = null;
+                        if( toEntry.getValue() == null )
                         {
+                            kernel = new ParticipationProperties();
                             kernel.setType( SbolConstants.PRODUCT );
                         }
+                        else
+                            kernel = new ParticipationProperties( toEntry.getValue() );
+
                         Edge result = new Edge(kernel, interactionNode, toEntry.getKey());
                         result.getOrigin().put(result);
                     }
