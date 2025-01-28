@@ -20,6 +20,7 @@ import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.GenericTopLevel;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.Interaction;
+import org.sbolstandard.core2.MapsTo;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.Participation;
 import org.sbolstandard.core2.SBOLDocument;
@@ -416,151 +417,143 @@ public class SbolUtil
         return verticalShift.getOrDefault( imgPath, 0 );
     }
 
-    public static boolean removeSbolObjectFromDiagram(DiagramElement de) throws SBOLValidationException
+    public static Node findInteractionNode(Edge e)
     {
-        Diagram diagram = Diagram.getDiagram( de );
-        SBOLDocument doc = SbolUtil.getDocument( diagram );
-        if( doc == null )
-            return false;
-        if(  de.getKernel() instanceof InteractionProperties  )
+        if( e.getInput().getKernel() instanceof InteractionProperties )
+            return e.getInput();
+        else if( e.getOutput().getKernel() instanceof InteractionProperties )
+            return e.getOutput();
+        return null;
+    }
+
+    public static void removeSbolObjectFromDiagram(DiagramElement de) throws SBOLValidationException
+    {
+        SBOLDocument doc = SbolUtil.getDocument( Diagram.getDiagram( de ) );
+        if( doc == null || ! ( de.getKernel() instanceof SbolBase ) )
+            return;
+
+        if( de.getKernel() instanceof InteractionProperties )
         {
-            String id = ((SbolBase)de.getKernel()).getSbolObject().getDisplayId();
-            for( ModuleDefinition md : doc.getModuleDefinitions() )
-            {
-                Interaction interaction = md.getInteraction( id );
-                if( interaction != null )
-                {
-                    md.removeInteraction( interaction );
-                    return true;
-                }
-            }
-            return false;
+            removeInteraction( doc, getDisplayId( de ) );
         }
         else if( de instanceof Edge )
         {
-            Edge e = (Edge)de;
-            Node reactionNode = null;
-            Node otherNode = null;
-
-            if( e.getInput().getKernel() instanceof InteractionProperties )
+            Node reactionNode = findInteractionNode( (Edge)de );
+            Node otherNode = ( (Edge)de ).getOtherEnd( reactionNode );
+            
+            if( otherNode.getCompartment().getKernel() instanceof Backbone && getParticipations(otherNode).size() == 1)
             {
-                reactionNode = e.getInput();
-                otherNode = e.getOutput();
-            }
-            else if( e.getOutput().getKernel() instanceof InteractionProperties )
-            {
-                reactionNode = e.getOutput();
-                otherNode = e.getInput();
-            }
-            if( reactionNode != null && otherNode != null && otherNode.getKernel() instanceof SbolBase )
-            {
-                String id = ( (InteractionProperties)reactionNode.getKernel() ).getSbolObject().getDisplayId();
-                for( ModuleDefinition md : ( (SBOLDocument)doc ).getModuleDefinitions() )
+                ComponentDefinition participant = getSbolObject( otherNode, ComponentDefinition.class );
+                FunctionalComponent parentComponent = findParent( doc, participant );
+                if( parentComponent != null )
                 {
-                    Interaction interaction = md.getInteraction( id );
-                    if( interaction != null )
+                    for( MapsTo maps : parentComponent.getMapsTos() )
                     {
-                        URI participantURI = ( (SbolBase)otherNode.getKernel() ).getSbolObject().getPersistentIdentity();
-                        for( Participation pt : interaction.getParticipations() )
-                        {
-                            if( pt.getParticipantDefinition().getPersistentIdentity().equals( participantURI ) )
-                            {
-                                interaction.removeParticipation( pt );
-                                break;
-                            }
-                        }
-                        break;
+                        if( maps.getLocalDefinition().equals( participant ) )
+                            parentComponent.removeMapsTo( maps );
                     }
                 }
             }
+            if( reactionNode != null && otherNode != null && otherNode.getKernel() instanceof SbolBase )
+                removeParticipation( getSbolObject( reactionNode, Interaction.class ), getPersistentIdentity( otherNode ) );
         }
 
-        if( ! ( de.getKernel() instanceof SbolBase ) )
-            return false;
-        Identified identified = ( (SbolBase)de.getKernel() ).getSbolObject();
-        if( identified == null )
-            return false;
-        return removeSbolObjectFromDocument( (SBOLDocument)doc, identified.getIdentity() );
+        URI uri = getIdentity( de );
+
+        if( uri != null )
+            removeComponentDefinition( doc, uri );
+    }
+    
+    public static List<Participation> getParticipations(Node node)
+    {
+        return node.edges().map( e->e.getKernel() ).select( ParticipationProperties.class ).map( p ->p.getSbolObject()).toList();
     }
 
-    public static boolean removeSbolObjectFromDocument(SBOLDocument doc, URI uri)
+    public static List<Component> findComponents(ComponentDefinition cd, URI uri)
+    {
+        List<Component> result = new ArrayList<>();
+        for( Component component : cd.getComponents() )
+        {
+            if( component.getDefinitionURI().equals( uri ) )
+                result.add( component );
+        }
+        return result;
+    }
+
+    public static List<FunctionalComponent> findFunctionalComponents(ModuleDefinition md, URI uri)
+    {
+        List<FunctionalComponent> result = new ArrayList<>();
+        for( FunctionalComponent fc : md.getFunctionalComponents() )
+        {
+            if( fc.getDefinitionURI().equals( uri ) )
+                result.add( fc );
+        }
+        return result;
+    }
+
+    public static void removeInteraction(SBOLDocument doc, String displayID)
+    {
+        for( ModuleDefinition md : doc.getModuleDefinitions() )
+        {
+            Interaction interaction = md.getInteraction( displayID );
+            if( interaction != null )
+                md.removeInteraction( interaction );
+        }
+    }
+
+    public static void removeParticipation(Interaction interaction, URI participantURI)
+    {
+        for( Participation pt : interaction.getParticipations() )
+        {
+            if( pt.getParticipantDefinition().getPersistentIdentity().equals( participantURI ) )
+                interaction.removeParticipation( pt );
+        }
+    }
+
+    public static void removeComponentDefinition(SBOLDocument doc, URI uri) throws SBOLValidationException
+    {
+        removeComponents( doc, uri );
+        removeFunctionalComponents( doc, uri );
+        ComponentDefinition cd = doc.getComponentDefinition( uri );
+        if( cd != null )
+            doc.removeComponentDefinition( cd );
+    }
+
+
+    public static void removeComponents(SBOLDocument doc, URI uri) throws SBOLValidationException
     {
         for( ComponentDefinition cd : doc.getComponentDefinitions() )
         {
-            Component compToRemove = null;
-            for( Component component : cd.getComponents() )
+            for( Component component : findComponents( cd, uri ) )
             {
-                if( component.getDefinitionURI().equals( uri ) )
+                for( SequenceAnnotation sa : cd.getSequenceAnnotations() )
                 {
-                    compToRemove = component;
-                    break;
+                    if( sa.isSetComponent() && sa.getComponentURI().equals( component.getIdentity() ) )
+                        cd.removeSequenceAnnotation( sa );
                 }
-            }
-            if( compToRemove == null )
-                continue;
-            for( SequenceAnnotation sa : cd.getSequenceAnnotations() )
-            {
-                if( sa.isSetComponent() && sa.getComponentURI().equals( compToRemove.getIdentity() ) )
+                for( SequenceConstraint sc : cd.getSequenceConstraints() )
                 {
-                    cd.removeSequenceAnnotation( sa );
+                    if( sc.getSubjectURI().equals( component.getIdentity() ) )
+                        cd.removeSequenceConstraint( sc );
+                    if( sc.getObjectURI().equals( component.getIdentity() ) )
+                        cd.removeSequenceConstraint( sc );
                 }
-            }
-            for( SequenceConstraint sc : cd.getSequenceConstraints() )
-            {
-                if( sc.getSubjectURI().equals( compToRemove.getIdentity() ) )
-                {
-                    cd.removeSequenceConstraint( sc );
-                }
-                if( sc.getObjectURI().equals( compToRemove.getIdentity() ) )
-                {
-                    cd.removeSequenceConstraint( sc );
-                }
-            }
-            try
-            {
-                cd.removeComponent( compToRemove );
-            }
-            catch( SBOLValidationException e )
-            {
-                // TODO Auto-generated catch block
+                cd.removeComponent( component );
             }
         }
+    }
 
+    public static void removeFunctionalComponents(SBOLDocument doc, URI uri) throws SBOLValidationException
+    {
         for( ModuleDefinition md : doc.getModuleDefinitions() )
         {
-            for( FunctionalComponent c : md.getFunctionalComponents() )
+            for( FunctionalComponent fc : findFunctionalComponents( md, uri ) )
             {
-                if( c.getDefinitionURI().equals( uri ) )
-                {
-                    try
-                    {
-                        md.removeFunctionalComponent( c );
-                    }
-                    catch( SBOLValidationException e )
-                    {
-                        // TODO Auto-generated catch block
-                    }
-                }
+                for( MapsTo maps : fc.getMapsTos() )
+                    fc.removeMapsTo( maps );
+                md.removeFunctionalComponent( fc );
             }
         }
-
-        ComponentDefinition cd = doc.getComponentDefinition( uri );
-        if( cd == null )
-            return false;
-        try
-        {
-            ModuleDefinition module = SbolUtil.getDefaultModuleDefinition( doc );
-            FunctionalComponent fc = SbolUtil.findFunctionalComponent( module, cd.getDisplayId() );
-            if( fc != null )
-                module.removeFunctionalComponent( fc );
-            doc.removeComponentDefinition( cd );
-        }
-        catch( SBOLValidationException e )
-        {
-            // TODO Auto-generated catch block
-            return false;
-        }
-        return true;
     }
 
     public static ModuleDefinition getDefaultModuleDefinition(SBOLDocument doc) throws SBOLValidationException
@@ -578,6 +571,17 @@ public class SbolUtil
         return null;
     }
 
+    public static FunctionalComponent findFunctionalComponent(SBOLDocument doc, String componentDefinitionID)
+    {
+        for( ModuleDefinition md : doc.getModuleDefinitions() )
+        {
+            FunctionalComponent fc = findFunctionalComponent( md, componentDefinitionID );
+            if( fc != null )
+                return fc;
+        }
+        return null;
+    }
+
     /**
      * Find functional component inside given module definition that corresponds to given component definition display id
      */
@@ -587,6 +591,21 @@ public class SbolUtil
         {
             if( fc.getDefinition().getDisplayId().equals( componentDefinitionID ) )
                 return fc;
+        }
+        return null;
+    }
+
+    public static FunctionalComponent findParent(SBOLDocument doc, ComponentDefinition cd)
+    {
+        for( ComponentDefinition componentDef : doc.getComponentDefinitions() )
+        {
+            for( Component innerComponent : componentDef.getComponents() )
+            {
+                if( innerComponent.getDefinition().getIdentity().equals( cd.getIdentity() ) )
+                {
+                    return findFunctionalComponent( doc, componentDef.getDisplayId() );
+                }
+            }
         }
         return null;
     }
@@ -610,7 +629,7 @@ public class SbolUtil
         return moduleDefinition.createFunctionalComponent( componentDefinition.getDisplayId() + "_fc", AccessType.PUBLIC,
                 componentDefinition.getIdentity(), DirectionType.INOUT );
     }
-    
+
     public static boolean hasLayout(Diagram diagram) throws Exception
     {
         SBOLDocument doc = SbolUtil.getDocument( diagram );
@@ -627,7 +646,7 @@ public class SbolUtil
         for( Annotation annotation : level.getAnnotations() )
         {
             String localPart = getName( annotation );
-            if(localPart.equals( "NodeGlyph" ) )
+            if( localPart.equals( "NodeGlyph" ) )
             {
                 int x = 0;
                 int y = 0;
@@ -639,7 +658,7 @@ public class SbolUtil
                 {
                     String name = getName( nested );
                     if( name.equals( "title" ) )
-                        title = nested.getStringValue() ;
+                        title = nested.getStringValue();
                     if( name.equals( "x" ) )
                         x = Integer.parseInt( nested.getStringValue() );
                     else if( name.equals( "y" ) )
@@ -660,63 +679,63 @@ public class SbolUtil
                         continue;
                     node.setLocation( new Point( x, y ) );
                     node.getShapeSize().setSize( width, height );
-                    if (title != null)
+                    if( title != null )
                         node.setTitle( title );
                 }
             }
-            else if (localPart.equals( "Edge" ))
+            else if( localPart.equals( "Edge" ) )
             {
                 String refId = null;
-               Point inPort = null;
-               Point outPort = null;
-               Path path = new Path();
-               for( Annotation nested : annotation.getAnnotations() )
-               {
-                   String name = getName( nested );
-                   if (name.equals( "segment" ) )
-                   {
-                      String value =  nested.getStringValue();
-                      String[] parts = value.split( ";" );
-                      int x = Integer.parseInt( parts[0].trim());
-                      int y = Integer.parseInt( parts[1].trim());
-                       path.addPoint( x, y );
-                   }
-                   else if (name.equals( "inPort" ))
-                   {
-                       String value =  nested.getStringValue();
-                       String[] parts = value.split( ";" );
-                       int x = Integer.parseInt( parts[0].trim());
-                       int y = Integer.parseInt( parts[1].trim());
-                       inPort = new Point(x, y);
-                   }
-                   else if (name.equals( "inPort" ))
-                   {
-                       String value =  nested.getStringValue();
-                       String[] parts = value.split( ";" );
-                       int x = Integer.parseInt( parts[0].trim());
-                       int y = Integer.parseInt( parts[1].trim());
-                       outPort = new Point(x, y);
-                   }
-                   else if( name.equals( "refId" ) )
-                       refId = nested.getStringValue();
-               }
-               if(refId == null)
-                   continue;
-               Edge edge = (Edge)diagram.findDiagramElement( refId );
-               if( edge == null )
-                   continue;
+                Point inPort = null;
+                Point outPort = null;
+                Path path = new Path();
+                for( Annotation nested : annotation.getAnnotations() )
+                {
+                    String name = getName( nested );
+                    if( name.equals( "segment" ) )
+                    {
+                        String value = nested.getStringValue();
+                        String[] parts = value.split( ";" );
+                        int x = Integer.parseInt( parts[0].trim() );
+                        int y = Integer.parseInt( parts[1].trim() );
+                        path.addPoint( x, y );
+                    }
+                    else if( name.equals( "inPort" ) )
+                    {
+                        String value = nested.getStringValue();
+                        String[] parts = value.split( ";" );
+                        int x = Integer.parseInt( parts[0].trim() );
+                        int y = Integer.parseInt( parts[1].trim() );
+                        inPort = new Point( x, y );
+                    }
+                    else if( name.equals( "inPort" ) )
+                    {
+                        String value = nested.getStringValue();
+                        String[] parts = value.split( ";" );
+                        int x = Integer.parseInt( parts[0].trim() );
+                        int y = Integer.parseInt( parts[1].trim() );
+                        outPort = new Point( x, y );
+                    }
+                    else if( name.equals( "refId" ) )
+                        refId = nested.getStringValue();
+                }
+                if( refId == null )
+                    continue;
+                Edge edge = (Edge)diagram.findDiagramElement( refId );
+                if( edge == null )
+                    continue;
 
-               if( path.npoints > 2 )
-               {
-                   edge.setPath( path );
-                   edge.setInPort( new Point( path.xpoints[0], path.ypoints[0] ) );
-                   edge.setOutPort( new Point( path.xpoints[path.npoints - 1], path.ypoints[path.npoints - 1] ) );
-               }
-               else
-               {
-                   edge.setInPort( inPort );
-                   edge.setOutPort( outPort );
-               }
+                if( path.npoints > 2 )
+                {
+                    edge.setPath( path );
+                    edge.setInPort( new Point( path.xpoints[0], path.ypoints[0] ) );
+                    edge.setOutPort( new Point( path.xpoints[path.npoints - 1], path.ypoints[path.npoints - 1] ) );
+                }
+                else
+                {
+                    edge.setInPort( inPort );
+                    edge.setOutPort( outPort );
+                }
             }
         }
     }
@@ -776,6 +795,35 @@ public class SbolUtil
         }
     }
 
+    public static String getDisplayId(DiagramElement de)
+    {
+        Identified identified = getSbolObject( de );
+        return identified != null ? identified.getDisplayId() : null;
+    }
+
+    public static URI getPersistentIdentity(DiagramElement de)
+    {
+        Identified identified = getSbolObject( de );
+        return identified != null ? identified.getPersistentIdentity() : null;
+    }
+
+    public static URI getIdentity(DiagramElement de)
+    {
+        Identified identified = getSbolObject( de );
+        return identified != null ? identified.getIdentity() : null;
+    }
+
+    public static Identified getSbolObject(DiagramElement de)
+    {
+        return ( (SbolBase)de.getKernel() ).getSbolObject();
+    }
+
+    @SuppressWarnings ( "unchecked" )
+    public static <T> T getSbolObject(DiagramElement de, Class<? extends Identified> T)
+    {
+        return (T) ( (SbolBase)de.getKernel() ).getSbolObject();
+    }
+
     private static String getName(Annotation annotation) throws Exception
     {
         Class qNameClass = GenericTopLevel.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
@@ -806,12 +854,13 @@ public class SbolUtil
         method.invoke( object, qname, String.valueOf( val ) );
     }
 
-    public static void createAnnotation(Identified object, String namespace, String name, String nameInner, String prefix, String nestedName,
-            List<Annotation> nested) throws Exception
+    public static void createAnnotation(Identified object, String namespace, String name, String nameInner, String prefix,
+            String nestedName, List<Annotation> nested) throws Exception
     {
         Class qnameClass = Annotation.class.getClassLoader().loadClass( "javax.xml.namespace.QName" );
         Object qname = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
-        Object qnameInner = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, nameInner, prefix );
+        Object qnameInner = qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, nameInner,
+                prefix );
         Method method = Identified.class.getMethod( "createAnnotation", qnameClass, qnameClass, String.class, List.class );
         method.invoke( object, qname, qnameInner, nestedName, nested );
     }

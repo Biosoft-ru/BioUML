@@ -282,77 +282,64 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                 recalculateEdgePath( e );
                 return;
             } );
+            
             for( Edge edge : Util.getEdges( (Node)de ) )
-            {
                 removeEdge( edge );
-            }
 
             if( de instanceof Compartment )
                 ( (Compartment)de ).clear();
 
             SbolUtil.removeSbolObjectFromDiagram( de );
 
-            // remove diagramElement
             parent.remove( de.getName() );
             Dimension d = new Dimension( parent.getShapeSize().width - width, parent.getShapeSize().height );
             parent.setShapeSize( d );
-
             return true;
         }
-        //remove one of nodes on diagram (not backbone)
-        else if( de instanceof Node && ! ( de.getKernel() instanceof Backbone ) )
+        else if( de instanceof Node && ! ( de.getKernel() instanceof Backbone ) ) //remove one of nodes on diagram (not backbone)
         {
             Node node = (Node)de;
-
-
-            if( node.getKernel() instanceof InteractionProperties && node.getKernel().getType().equals( SbolConstants.DEGRADATION ) )
-            {
-                Node empty = node.edges().map( e -> e.getOtherEnd( node ) )
-                        .filter( n -> n.getKernel().getType().equals( SbolConstants.DEGRADATION_PRODUCT ) ).findAny().orElse( null );
-                if( empty != null )
-                    remove( empty );
-            }
 
             for( Edge edge : Util.getEdges( node ) )
                 removeEdge( edge );
             
             if( de instanceof Compartment )
                 ( (Compartment)de ).clear();
+            
             SbolUtil.removeSbolObjectFromDiagram( de );
             de.getOrigin().remove( de.getName() );
             return true;
         }
-        //remove edge
-        else if( de instanceof Edge )
+        else if( de instanceof Edge ) 
         {
             removeEdge( (Edge)de );
             return true;
         }
-        //remove backbone
+        else if( de instanceof Compartment )
+        {
+            for( Edge edge : Util.getEdges( (Node)de ) )
+                removeEdge( edge );
+            
+            for( Node node : ( (Compartment)de ).getNodes() )
+                SbolUtil.removeSbolObjectFromDiagram( node );
+            
+            SbolUtil.removeSbolObjectFromDiagram( de );
+            return super.remove( de );
+        }
         else
         {
             SbolUtil.removeSbolObjectFromDiagram( de );
             return super.remove( de );
         }
-
     }
 
     private void removeEdge(Edge edge) throws Exception
     {
-        if( SbolConstants.DEGRADATION.equals( edge.getKernel().getType() ) )
-        {
-            //remove degradation stub node
-            Node degradationNode = ( (Edge)edge ).getOutput();
-            if( degradationNode.getKernel().getType().equals( SbolUtil.TYPE_DEGRADATION_PRODUCT ) )
-                try
-                {
-                    degradationNode.getCompartment().remove( degradationNode.getName() );
-                }
-                catch( Exception e )
-                {
-                    //TODO: error handling
-                }
-        }
+        if( edge.getInput().getKernel().getType().equals( SbolConstants.DEGRADATION_PRODUCT ) )
+            edge.getInput().getCompartment().remove( edge.getInput().getName() );
+        if( edge.getOutput().getKernel().getType().equals( SbolConstants.DEGRADATION_PRODUCT ) )
+            edge.getOutput().getCompartment().remove( edge.getOutput().getName() );
+
         SbolUtil.removeSbolObjectFromDiagram( edge );
         edge.getOrigin().remove( edge.getName() );
     }
@@ -362,9 +349,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
             throws IllegalArgumentException
     {
         if( edgeType.equals( ParticipationProperties.class.getName() ) )
-        {
             return new ParticipationEdgeCreator().createEdge( fromNode, toNode, false );
-        }
         return null;
     }
 }
