@@ -35,7 +35,7 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
 
     public SequenceFeature( String name)
     {
-        this(null, true);
+        this(name, true);
     }
     
     public SequenceFeature(String name, boolean isCreated)

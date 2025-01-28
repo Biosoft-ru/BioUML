@@ -28,12 +28,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
 
     private String type = "Complex";
     private String role = "";
-    
-    public MolecularSpecies()
-    {
-        super(null);
-    }
-    
+
     public MolecularSpecies(String name, boolean isCreated)
     {
         super( name, isCreated );

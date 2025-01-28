@@ -25,11 +25,6 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public static String[] types = new String[] {"DNA", "RNA"};
     public static String[] roles = new String[] {"Sequence feature", "RNA"};
 
-    public Backbone()
-    {
-        super(null);
-    }
-    
     public Backbone(String name)
     {
         this(name, true);
@@ -43,7 +38,6 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public Backbone(Identified so)
     {
         super( so );
-        setName(so.getDisplayId());
     }
 
     private String strandType = "Single-stranded";

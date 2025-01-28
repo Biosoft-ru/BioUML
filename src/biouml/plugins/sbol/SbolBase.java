@@ -17,6 +17,11 @@ public class SbolBase extends Option implements Base
     private String title;
     private String name;
 
+    public SbolBase(String name)
+    {
+        this(name, true);
+    }
+    
     public SbolBase(String name, boolean isCreated)
     {
        this.name = name;
@@ -24,15 +29,9 @@ public class SbolBase extends Option implements Base
        this.isCreated = isCreated;
     }
     
-    public SbolBase(Identified so, boolean isCreated)
-    {
-        sbolObject = so;
-        this.isCreated = isCreated;
-    }
-    
     public SbolBase(Identified so)
     {
-        this(so, true);
+        sbolObject = so;
         setName(so.getDisplayId());
         setTitle(so.getDisplayId());
     }

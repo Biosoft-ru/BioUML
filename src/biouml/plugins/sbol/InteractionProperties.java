@@ -23,14 +23,9 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
 {
     private String type = "Process";
 
-    public InteractionProperties()
-    {
-        super(null);
-    }
-    
     public InteractionProperties( String name)
     {
-        this(null, true);
+        this(name, true);
     }
     
     public InteractionProperties(String name, boolean isCreated)
