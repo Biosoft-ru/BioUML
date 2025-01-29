@@ -544,10 +544,9 @@ public class SbolUtil
                 removeParticipation( getSbolObject( reactionNode, Interaction.class ), getPersistentIdentity( otherNode ) );
         }
 
-        URI uri = getPersistentIdentity( de );
-
-        if( uri != null )
-            removeComponentDefinition( doc, uri );
+Identified id = SbolUtil.getSbolObject( de);
+        if( id instanceof ComponentDefinition )
+            removeComponentDefinition( doc, (ComponentDefinition)id );
     }
     
     /**
@@ -561,12 +560,12 @@ public class SbolUtil
     /**
      * Return components inside given component definition with given URI
      */
-    public static List<Component> findComponents(ComponentDefinition cd, URI uri)
+    public static List<Component> findComponents(ComponentDefinition cd, ComponentDefinition innerComp)
     {
         List<Component> result = new ArrayList<>();
         for( Component component : cd.getComponents() )
         {
-            if( component.getDefinitionURI().equals( uri ) )
+            if( component.getDefinition().getPersistentIdentity().equals( innerComp.getPersistentIdentity() ) )
                 result.add( component );
         }
         return result;
@@ -575,12 +574,12 @@ public class SbolUtil
     /**
      * Return functional components inside given module definition with given URI
      */
-    public static List<FunctionalComponent> findFunctionalComponents(ModuleDefinition md, URI uri)
+    public static List<FunctionalComponent> findFunctionalComponents(ModuleDefinition md, ComponentDefinition cd)
     {
         List<FunctionalComponent> result = new ArrayList<>();
         for( FunctionalComponent fc : md.getFunctionalComponents() )
         {
-            if( fc.getDefinitionURI().equals( uri ) )
+            if( fc.getDefinition().getPersistentIdentity().equals( cd.getPersistentIdentity() ) )
                 result.add( fc );
         }
         return result;
@@ -614,37 +613,35 @@ public class SbolUtil
     /*
      * Removes Component Definition given by URI from document by its URI
      */
-    public static void removeComponentDefinition(SBOLDocument doc, URI uri) throws SBOLValidationException
+    public static void removeComponentDefinition(SBOLDocument doc, ComponentDefinition cd) throws SBOLValidationException
     {
-        removeComponents( doc, uri );
-        removeFunctionalComponents( doc, uri );
-        ComponentDefinition cd = doc.getComponentDefinition( uri );
-        if( cd != null )
-            doc.removeComponentDefinition( cd );
+        removeComponents( doc, cd );
+        removeFunctionalComponents( doc, cd );
+        doc.removeComponentDefinition( cd );
     }
 
     /*
      * Removes Component from document by its URI
      */
-    public static void removeComponents(SBOLDocument doc, URI uri) throws SBOLValidationException
+    public static void removeComponents(SBOLDocument doc, ComponentDefinition cd) throws SBOLValidationException
     {
-        for( ComponentDefinition cd : doc.getComponentDefinitions() )
+        for( ComponentDefinition compDef : doc.getComponentDefinitions() )
         {
-            for( Component component : findComponents( cd, uri ) )
+            for( Component component : findComponents( compDef, cd ) )
             {
-                for( SequenceAnnotation sa : cd.getSequenceAnnotations() )
+                for( SequenceAnnotation sa : compDef.getSequenceAnnotations() )
                 {
                     if( sa.isSetComponent() && sa.getComponentURI().equals( component.getIdentity() ) )
-                        cd.removeSequenceAnnotation( sa );
+                        compDef.removeSequenceAnnotation( sa );
                 }
-                for( SequenceConstraint sc : cd.getSequenceConstraints() )
+                for( SequenceConstraint sc : compDef.getSequenceConstraints() )
                 {
                     if( sc.getSubjectURI().equals( component.getIdentity() ) )
-                        cd.removeSequenceConstraint( sc );
+                        compDef.removeSequenceConstraint( sc );
                     if( sc.getObjectURI().equals( component.getIdentity() ) )
-                        cd.removeSequenceConstraint( sc );
+                        compDef.removeSequenceConstraint( sc );
                 }
-                cd.removeComponent( component );
+                compDef.removeComponent( component );
             }
         }
     }
@@ -652,11 +649,11 @@ public class SbolUtil
     /**
      * Removes functional component given by its URI from the document
      */
-    public static void removeFunctionalComponents(SBOLDocument doc, URI uri) throws SBOLValidationException
+    public static void removeFunctionalComponents(SBOLDocument doc, ComponentDefinition cd) throws SBOLValidationException
     {
         for( ModuleDefinition md : doc.getModuleDefinitions() )
         {
-            for( FunctionalComponent fc : findFunctionalComponents( md, uri ) )
+            for( FunctionalComponent fc : findFunctionalComponents( md, cd ) )
             {
                 for( MapsTo maps : fc.getMapsTos() )
                     fc.removeMapsTo( maps );
