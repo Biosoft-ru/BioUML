@@ -74,7 +74,7 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
+        setName(  SbolUtil.generateUniqueName( diagram, getName() ) );
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;

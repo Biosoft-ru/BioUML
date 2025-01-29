@@ -102,20 +102,19 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             if( type.equals( Backbone.class ) || type.equals( Backbone.class.getName() ) )
             {
-                return new Backbone( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ) , false);
+                return new Backbone( SbolUtil.generateUniqueName( Diagram.getDiagram( compartment ), "Backbone" ), false );
             }
             else if( type.equals( SequenceFeature.class ) || type.equals( SequenceFeature.class.getName() ) )
             {
-                return new SequenceFeature( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ) , false );
+                return new SequenceFeature( SbolUtil.generateUniqueName( Diagram.getDiagram( compartment ), "Promoter" ), false );
             }
             else if( type.equals( MolecularSpecies.class ) || type.equals( MolecularSpecies.class.getName() ) )
             {
-                return new MolecularSpecies( DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ) , false );
+                return new MolecularSpecies( SbolUtil.generateUniqueName( Diagram.getDiagram( compartment ), "Complex" ), false );
             }
             else if( type.equals( InteractionProperties.class ) || type.equals( InteractionProperties.class.getName() ) )
             {
-                return new InteractionProperties(
-                        DefaultSemanticController.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ) , false );
+                return new InteractionProperties( SbolUtil.generateUniqueName( Diagram.getDiagram( compartment ), "Process" ), false );
             }
         }
         catch( Exception ex )
@@ -282,7 +281,7 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
                 recalculateEdgePath( e );
                 return;
             } );
-            
+
             for( Edge edge : Util.getEdges( (Node)de ) )
                 removeEdge( edge );
 
@@ -302,15 +301,15 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
 
             for( Edge edge : Util.getEdges( node ) )
                 removeEdge( edge );
-            
+
             if( de instanceof Compartment )
                 ( (Compartment)de ).clear();
-            
+
             SbolUtil.removeSbolObjectFromDiagram( de );
             de.getOrigin().remove( de.getName() );
             return true;
         }
-        else if( de instanceof Edge ) 
+        else if( de instanceof Edge )
         {
             removeEdge( (Edge)de );
             return true;
@@ -319,10 +318,10 @@ public class SbolDiagramSemanticController extends DefaultSemanticController
         {
             for( Edge edge : Util.getEdges( (Node)de ) )
                 removeEdge( edge );
-            
+
             for( Node node : ( (Compartment)de ).getNodes() )
                 SbolUtil.removeSbolObjectFromDiagram( node );
-            
+
             SbolUtil.removeSbolObjectFromDiagram( de );
             return super.remove( de );
         }

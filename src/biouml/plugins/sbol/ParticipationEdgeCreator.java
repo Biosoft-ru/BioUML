@@ -18,7 +18,6 @@ import org.sbolstandard.core2.RefinementType;
 import org.sbolstandard.core2.SBOLDocument;
 
 import biouml.model.Compartment;
-import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
@@ -38,7 +37,7 @@ public class ParticipationEdgeCreator implements EdgeCreator
 
             String name = CollectionFactory.getRelativeName( in, diagram ).replace( "/", "_" ) + "_to_"
                     + CollectionFactory.getRelativeName( out, diagram ).replace( "/", "_" );
-            name = DefaultSemanticController.generateUniqueName( diagram, name );
+            name = SbolUtil.generateUniqueName( diagram, name );
 
             if( temporary )
             {
@@ -157,7 +156,7 @@ public class ParticipationEdgeCreator implements EdgeCreator
 
         //create interaction
         InteractionProperties properties = new InteractionProperties(
-                DefaultSemanticController.generateUniqueName( diagram, node.getName() + "_degradation" ) );
+                SbolUtil.generateUniqueName( diagram, node.getName() + "_degradation" ) );
         properties.setType( SbolConstants.DEGRADATION );
         int x = node.getLocation().x + node.getShapeSize().width + 20;
         int y = node.getLocation().y + node.getShapeSize().height / 2;
@@ -166,7 +165,7 @@ public class ParticipationEdgeCreator implements EdgeCreator
 
         //create empty set node
         x = node.getLocation().x + node.getShapeSize().width + 55;
-        String emptyName = DefaultSemanticController.generateUniqueName( diagram, node.getName() + "_degradation_product" );
+        String emptyName = SbolUtil.generateUniqueName( diagram, node.getName() + "_degradation_product" );
         Node emptyNode = new Node( diagram, new Stub( null, emptyName, SbolConstants.DEGRADATION ) );
         emptyNode.setShapeSize( new Dimension(25, 25) );
         emptyNode.setLocation( new Point( x, y ) );

@@ -29,6 +29,8 @@ import org.sbolstandard.core2.SequenceConstraint;
 import org.sbolstandard.core2.SequenceOntology;
 import org.sbolstandard.core2.SystemsBiologyOntology;
 
+import biouml.model.Compartment;
+import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
@@ -741,6 +743,15 @@ public class SbolUtil
     public static <T> T getSbolObject(DiagramElement de, Class<? extends Identified> T)
     {
         return (T) ( (SbolBase)de.getKernel() ).getSbolObject();
+    }
+    
+    /**
+     * Generate unique name without underscore delimiter i.e. Process1, Process2,....
+     * We do not want to use underscore for names (like Process_1, Process_2) as SBOL utilize underscores for something
+     */
+    public static String generateUniqueName(Diagram diagram, String baseName)
+    {
+        return DefaultSemanticController.generateUniqueNodeName(diagram, baseName, true, "");
     }
 
     /**

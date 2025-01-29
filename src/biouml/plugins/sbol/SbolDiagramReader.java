@@ -38,7 +38,6 @@ import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.DynamicProperty;
 
 import biouml.model.Compartment;
-import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
@@ -164,7 +163,7 @@ public class SbolDiagramReader
                     from = getParticipantNodes(Set.of(SystemsBiologyOntology.REACTANT), interaction.getParticipations(), diagram, kernels);
                     if ( from != null )
                     {
-                        String name = DefaultSemanticController.generateUniqueNodeName(diagram, interaction.getParticipations().iterator().next().getParticipantDefinition().getDisplayId()+"_degradation_product");
+                        String name = SbolUtil.generateUniqueName(diagram, interaction.getParticipations().iterator().next().getParticipantDefinition().getDisplayId()+"_degradation_product");
                         Node degradationNode = new Node(diagram, new Stub(null, name, SbolConstants.DEGRADATION_PRODUCT));
                         to.put(degradationNode, null);
                         diagram.put(degradationNode);

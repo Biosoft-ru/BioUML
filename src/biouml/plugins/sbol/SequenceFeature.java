@@ -18,7 +18,6 @@ import org.sbolstandard.core2.SequenceConstraint;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
-import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
@@ -103,12 +102,11 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
                     .orElse( diagram );
         }
 
-        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
+        setName( SbolUtil.generateUniqueName(  diagram, getName() ) );
         Object doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
 
-        //        URI uriType = ( getType().equals( "DNA" ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
         URI uriRole = SbolUtil.getURIByRole( role );
         ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", ComponentDefinition.DNA_REGION );
         cd.addRole( uriRole );

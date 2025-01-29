@@ -8,11 +8,9 @@ import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.Identified;
 import org.sbolstandard.core2.SBOLDocument;
 
-import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
-import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
@@ -24,6 +22,11 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public static String[] topologyTypes = new String[] {SbolConstants.TOPOLOGY_LINEAR, SbolConstants.TOPOLOGY_CIRCULAR};
     public static String[] types = new String[] {SbolConstants.TYPE_DNA, SbolConstants.TYPE_RNA};
     public static String[] roles = new String[] {SbolConstants.ROLE_SEQUENCE_FEATURE, SbolConstants.TYPE_RNA};
+
+    private String strandType = SbolConstants.STRAND_SINGLE;
+    private String topologyType = SbolConstants.TOPOLOGY_LINEAR;
+    private String type = SbolConstants.TYPE_DNA;
+    private String role = SbolConstants.ROLE_SEQUENCE_FEATURE;
 
     public Backbone(String name)
     {
@@ -39,11 +42,6 @@ public class Backbone extends SbolBase implements InitialElementProperties
     {
         super( so );
     }
-
-    private String strandType = SbolConstants.STRAND_SINGLE;
-    private String topologyType = SbolConstants.TOPOLOGY_LINEAR;
-    private String type = SbolConstants.TYPE_DNA;
-    private String role = SbolConstants.ROLE_SEQUENCE_FEATURE;
 
     @PropertyName ( "Strand type" )
     public String getStrandType()
@@ -78,7 +76,6 @@ public class Backbone extends SbolBase implements InitialElementProperties
         this.type = type;
     }
 
-
     @PropertyName ( "Role" )
     public String getRole()
     {
@@ -94,7 +91,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
+        setName( SbolUtil.generateUniqueName( diagram, getName() ) );
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;

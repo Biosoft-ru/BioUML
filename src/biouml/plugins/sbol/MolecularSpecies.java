@@ -13,7 +13,6 @@ import org.sbolstandard.core2.SBOLDocument;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
-import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
@@ -74,7 +73,7 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
+        setName( SbolUtil.generateUniqueName( diagram, getName() ) );
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
