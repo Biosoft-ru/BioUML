@@ -70,15 +70,13 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         CompositeView cView = null;
 
         BufferedImage image = null;
-        //try to load buffered image from repository
-        String imgPath = node.getAttributes().getValueAsString( "node-image" );
+        String imgPath = SbolUtil.getSbolImage( node );
         Dimension size = node.getShapeSize();
 
         int width = size.width;//.max( icon.getIconWidth(), size.width );
         int height = size.height;//Math.max( icon.getIconHeight(), size.height );
         int vertShift = 0;
         //        node.setShapeSize( new Dimension( width, height ) );
-
 
         if( !imgPath.toString().endsWith( ".png" ) )
         {
@@ -154,9 +152,9 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
             return super.createCompartmentCoreView( container, compartment, options, g );
 
         Dimension shapeSize = compartment.getShapeSize();
-
-        boolean isCircular = compartment.getAttributes().getValue( "isCircular" ).equals( true );
-        boolean isWithChromLocus = compartment.getAttributes().getValue( "isWithChromLocus" ).equals( true );
+       Backbone backbone = (Backbone)compartment.getKernel();
+        boolean isCircular = backbone.getTopologyType().equals( SbolConstants.TOPOLOGY_CIRCULAR);
+        boolean isWithChromLocus = backbone.getTopologyType().equals( SbolConstants.TOPOLOGY_LOCUS);
         boolean hasEnds = isWithChromLocus || isCircular;
         BoxView shapeView = new BoxView( null, getBrush( compartment, new Brush( new Color( 240, 240, 240 ) ) ),
                 new Rectangle( 0, 0, shapeSize.width, shapeSize.height ) );
@@ -234,9 +232,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         try
         {
             if( compartment.isUseCustomImage() )
-            {
                 result = createImageView( compartment, g );
-            }
         }
         catch( Exception ex )
         {
@@ -281,7 +277,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         {
             return createMolecularSpecies( container, node, options, g );
         }
-        else if( node.getKernel().getType().equals( SbolUtil.TYPE_DEGRADATION_PRODUCT ) )
+        else if( node.getKernel().getType().equals( SbolConstants.DEGRADATION_PRODUCT ) )
         {
             return createSourceSinkView( container, node, options, g );
         }
@@ -329,7 +325,6 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         Dimension d = node.getShapeSize();
         d.width = Math.max( d.width, 50 );
         d.height = Math.max( d.height, 25 );
-        //        Brush brush = DefaultDiagramViewBuilder.getBrush( node, null );
         Pen pen = getBorderPen( node, options.getNodePen() );
         int round = Math.max( Math.min( Math.min( d.width, d.height ) / 3, 20 ), 2 );
         BoxView view = new BoxView( pen, new Brush( Color.white ), new RoundRectangle2D.Float( 0, 0, d.width, d.height, round, round ) );
@@ -343,7 +338,6 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         Dimension d = node.getShapeSize();
         d.width = Math.max( d.width, 50 );
         d.height = Math.max( d.height, 25 );
-        //        Brush brush = DefaultDiagramViewBuilder.getBrush( node, null );
         Pen pen = getBorderPen( node, options.getNodePen() );
         int round = Math.max( Math.min( Math.min( d.width, d.height ) / 3, 20 ), 2 );
         BoxView view = new BoxView( pen, new Brush( Color.white ), new RoundRectangle2D.Float( 0, 0, d.width, d.height, round, round ) );
@@ -357,7 +351,6 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         Dimension d = node.getShapeSize();
         d.width = Math.max( d.width, 50 );
         d.height = Math.max( d.height, 25 );
-        //        Brush brush = DefaultDiagramViewBuilder.getBrush( node, null );
         Pen pen = getBorderPen( node, options.getNodePen() );
 
         int delta = Math.min( Math.min( 15, d.width / 3 ), d.height / 2 );
@@ -370,7 +363,6 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         return true;
     }
 
-
     public static void setView(CompositeView view, Node node)
     {
         view.setModel( node );
@@ -379,10 +371,11 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         node.setView( view );
     }
 
-
+    /**
+     * Transforms SVG file to Buffered Image with given size
+     */
     public static BufferedImage rasterize(InputStream svgFile, int width, int height) throws IOException
     {
-
         final BufferedImage[] imagePointer = new BufferedImage[1];
 
         String css = "svg {" + "shape-rendering: geometricPrecision;" + "text-rendering:  geometricPrecision;"
@@ -404,12 +397,9 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         try
         {
-
             TranscoderInput input = new TranscoderInput( svgFile );
-
             ImageTranscoder t = new ImageTranscoder()
             {
-
                 @Override
                 public BufferedImage createImage(int w, int h)
                 {
@@ -427,7 +417,6 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         }
         catch( TranscoderException ex )
         {
-            // Requires Java 6
             ex.printStackTrace();
             throw new IOException( "Couldn't convert " + svgFile );
         }
@@ -499,8 +488,7 @@ public class SbolDiagramViewBuilder extends DefaultDiagramViewBuilder
         Node inNode = edge.getInput();
         Node outNode = edge.getOutput();
 
-        if( /**edge.getKernel() instanceof Stub &&**/
-        inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
+        if( inNode.getCompartment().getKernel() instanceof Backbone && inNode.getOrigin() == outNode.getOrigin() )
         {
             Rectangle inBounds = getNodeBounds( edge.getInput() );
             Rectangle outBounds = getNodeBounds( edge.getOutput() );

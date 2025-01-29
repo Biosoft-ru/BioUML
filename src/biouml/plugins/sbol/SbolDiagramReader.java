@@ -17,8 +17,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.sbolstandard.core2.Annotation;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
+import org.sbolstandard.core2.GenericTopLevel;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.Location;
 import org.sbolstandard.core2.ModuleDefinition;
@@ -52,6 +54,7 @@ import ru.biosoft.graph.CompartmentCrossCostGridLayouter;
 import ru.biosoft.graph.Graph;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.OrthogonalPathLayouter;
+import ru.biosoft.graph.Path;
 import ru.biosoft.graph.PathwayLayouter;
 import ru.biosoft.util.DPSUtils;
 
@@ -76,9 +79,8 @@ public class SbolDiagramReader
         }
         if ( doc != null )
         {
-            doc.setDefaultURIprefix( "https://biouml.org" );
-            DynamicProperty dp = DPSUtils.createHiddenReadOnly( SbolUtil.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc);
-            result.getAttributes().add(dp);
+            doc.setDefaultURIprefix( SbolConstants.HTTPS_BIOUML_ORG);
+            result.getAttributes().add(DPSUtils.createHiddenReadOnly( SbolConstants.SBOL_DOCUMENT_PROPERTY, SBOLDocument.class, doc));
             fillDiagramByDocument(doc, result);
         }
         result.setNotificationEnabled(true);
@@ -96,15 +98,6 @@ public class SbolDiagramReader
             Base base = SbolUtil.getKernelByComponentDefinition(cd, topLevels.contains(cd));
             kernels.put(cd.getPersistentIdentity().toString(), base);
         }
-        //        for ( ModuleDefinition md : mds )
-        //        {
-        //            Set<FunctionalComponent> fcs = md.getFunctionalComponents();
-        //            for ( FunctionalComponent fc : fcs )
-        //            {
-        //                ComponentDefinition cd = fc.getDefinition();
-        //                parseComponentDefinition(cd, diagram, kernels);
-        //            }
-        //        }
 
         parseComponentDefinitions(topLevels, diagram, kernels);
         parseInteractions(mds, diagram, kernels);
@@ -172,7 +165,7 @@ public class SbolDiagramReader
                     if ( from != null )
                     {
                         String name = DefaultSemanticController.generateUniqueNodeName(diagram, interaction.getParticipations().iterator().next().getParticipantDefinition().getDisplayId()+"_degradation_product");
-                        Node degradationNode = new Node(diagram, new Stub(null, name, SbolUtil.TYPE_DEGRADATION_PRODUCT));
+                        Node degradationNode = new Node(diagram, new Stub(null, name, SbolConstants.DEGRADATION_PRODUCT));
                         to.put(degradationNode, null);
                         diagram.put(degradationNode);
                     }
@@ -249,7 +242,7 @@ public class SbolDiagramReader
                     InteractionProperties reaction = new InteractionProperties(interaction);
                     reaction.setType(SbolUtil.getInteractionStringType(typeUri));
                     Node interactionNode = new Node(diagram, reaction);
-                    interactionNode.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction)));
+                    SbolUtil.setSbolImage( interactionNode, interaction );
                     interactionNode.setUseCustomImage(true);
                     interactionNode.setShapeSize(new Dimension(15, 15));
                     diagram.put(interactionNode);
@@ -283,8 +276,7 @@ public class SbolDiagramReader
                     InteractionProperties reaction = new InteractionProperties(interaction);
                     reaction.setType( type );
                     Node interactionNode = new Node(diagram, reaction);
-
-                    interactionNode.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction) ));
+                    SbolUtil.setSbolImage( interactionNode, interaction );
                     interactionNode.setShapeSize(new Dimension(15, 15));
                     interactionNode.setUseCustomImage(true);
                     diagram.put(interactionNode);
@@ -367,11 +359,7 @@ public class SbolDiagramReader
                 {
                     Compartment node = new Compartment(compartment, base);
                     node.setUseCustomImage(true);
-
-                    String icon = SbolUtil.getSbolImagePath(cdNode);
-                    node.getAttributes()
-                            .add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, icon));
-
+                    SbolUtil.setSbolImage( node, cdNode );
                     //composite node
                     //TODO: create new diagram for this node and store in attributes
                     if ( !cdNode.getComponents().isEmpty() )
@@ -412,8 +400,13 @@ public class SbolDiagramReader
                 }
 
             }
-            compartment.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, isCircular));
-            compartment.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, isWithChromLocus));
+            Backbone backbone = (Backbone)compartment.getKernel();
+            
+            if (isCircular)
+            backbone.setTopologyType( SbolConstants.TOPOLOGY_CIRCULAR );
+            else if (isWithChromLocus)
+                backbone.setStrandType( SbolConstants.TOPOLOGY_LOCUS);
+
             int extWidth = 0;//isCircular || isWithChromLocus ? 2 * xSize : 0;
             compartment.setShapeSize(new Dimension(xSize * compartment.getSize() + extWidth + 10, ySize + 20));
 
@@ -427,7 +420,7 @@ public class SbolDiagramReader
                 Node node = new Node(diagram, base);
                 node.setUseCustomImage(true);
                 String icon = SbolUtil.getSbolImagePath(cd);
-                node.getAttributes().add(DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, icon));
+                SbolUtil.setSbolImage( node, icon );
                 node.setShapeSize(new Dimension(xSize, ySize));
                 diagram.put(node);
             }
@@ -465,8 +458,8 @@ public class SbolDiagramReader
 
     public static void arrangeDiagram(Diagram diagram, SBOLDocument doc, Map<String, Base> kernels) throws Exception
     {
-        if( SbolUtil.hasLayout( diagram ) )
-            SbolUtil.readLayout( diagram );
+        if( SbolUtil.hasLayout( doc ) )
+            readLayout( diagram );
         else
         {
             Graphics g = com.developmentontheedge.application.ApplicationUtils.getGraphics();
@@ -475,7 +468,6 @@ public class SbolDiagramReader
             arrangeElements( diagram, doc.getComponentDefinitions(), kernels );
             diagram.setView( null );
         }
-
     }
 
     private static int xSize = 45, ySize = 45;
@@ -643,5 +635,107 @@ public class SbolDiagramReader
 
         return layouter;
     }
+    
+    public static void readLayout(Diagram diagram) throws Exception
+    {
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        GenericTopLevel level = doc.getGenericTopLevel( "Layout", "1" );
+        if( level == null )
+            return;
+        for( Annotation annotation : level.getAnnotations() )
+        {
+            String localPart = SbolUtil.getName( annotation );
+            if( localPart.equals( "NodeGlyph" ) )
+            {
+                int x = 0;
+                int y = 0;
+                int height = 0;
+                int width = 0;
+                String refId = null;
+                String title = null;
+                for( Annotation nested : annotation.getAnnotations() )
+                {
+                    String name = SbolUtil.getName( nested );
+                    if( name.equals( "title" ) )
+                        title = nested.getStringValue();
+                    if( name.equals( "x" ) )
+                        x = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "y" ) )
+                        y = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "width" ) )
+                        width = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "height" ) )
+                        height = Integer.parseInt( nested.getStringValue() );
+                    else if( name.equals( "refId" ) )
+                        refId = nested.getStringValue();
+                }
+                if( refId == null )
+                    continue;
+                else
+                {
+                    Node node = diagram.findNode( refId );
+                    if( node == null )
+                        continue;
+                    node.setLocation( new Point( x, y ) );
+                    node.getShapeSize().setSize( width, height );
+                    if( title != null )
+                        node.setTitle( title );
+                }
+            }
+            else if( localPart.equals( "Edge" ) )
+            {
+                String refId = null;
+                Point inPort = null;
+                Point outPort = null;
+                Path path = new Path();
+                for( Annotation nested : annotation.getAnnotations() )
+                {
+                    String name = SbolUtil.getName( nested );
+                    if( name.equals( "segment" ) )
+                    {
+                        String value = nested.getStringValue();
+                        String[] parts = value.split( ";" );
+                        int x = Integer.parseInt( parts[0].trim() );
+                        int y = Integer.parseInt( parts[1].trim() );
+                        path.addPoint( x, y );
+                    }
+                    else if( name.equals( "inPort" ) )
+                    {
+                        String value = nested.getStringValue();
+                        String[] parts = value.split( ";" );
+                        int x = Integer.parseInt( parts[0].trim() );
+                        int y = Integer.parseInt( parts[1].trim() );
+                        inPort = new Point( x, y );
+                    }
+                    else if( name.equals( "inPort" ) )
+                    {
+                        String value = nested.getStringValue();
+                        String[] parts = value.split( ";" );
+                        int x = Integer.parseInt( parts[0].trim() );
+                        int y = Integer.parseInt( parts[1].trim() );
+                        outPort = new Point( x, y );
+                    }
+                    else if( name.equals( "refId" ) )
+                        refId = nested.getStringValue();
+                }
+                if( refId == null )
+                    continue;
+                Edge edge = (Edge)diagram.findDiagramElement( refId );
+                if( edge == null )
+                    continue;
 
+                if( path.npoints > 2 )
+                {
+                    edge.setPath( path );
+                    edge.setInPort( new Point( path.xpoints[0], path.ypoints[0] ) );
+                    edge.setOutPort( new Point( path.xpoints[path.npoints - 1], path.ypoints[path.npoints - 1] ) );
+                }
+                else
+                {
+                    edge.setInPort( inPort );
+                    edge.setOutPort( outPort );
+                }
+            }
+        }
+    }
 }

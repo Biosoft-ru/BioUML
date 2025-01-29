@@ -20,10 +20,10 @@ import ru.biosoft.graphics.editor.ViewEditorPane;
 
 public class Backbone extends SbolBase implements InitialElementProperties
 {
-    public static String[] strandTypes = new String[] {"Single-stranded", "Double-stranded"};
-    public static String[] topologyTypes = new String[] {"Linear", "Circular"};
-    public static String[] types = new String[] {"DNA", "RNA"};
-    public static String[] roles = new String[] {"Sequence feature", "RNA"};
+    public static String[] strandTypes = new String[] {SbolConstants.STRAND_SINGLE, SbolConstants.STRAND_DOUBLE};
+    public static String[] topologyTypes = new String[] {SbolConstants.TOPOLOGY_LINEAR, SbolConstants.TOPOLOGY_CIRCULAR};
+    public static String[] types = new String[] {SbolConstants.TYPE_DNA, SbolConstants.TYPE_RNA};
+    public static String[] roles = new String[] {SbolConstants.ROLE_SEQUENCE_FEATURE, SbolConstants.TYPE_RNA};
 
     public Backbone(String name)
     {
@@ -40,10 +40,10 @@ public class Backbone extends SbolBase implements InitialElementProperties
         super( so );
     }
 
-    private String strandType = "Single-stranded";
-    private String topologyType = "Linear";
-    private String type = "DNA";
-    private String role = "Sequence feature";
+    private String strandType = SbolConstants.STRAND_SINGLE;
+    private String topologyType = SbolConstants.TOPOLOGY_LINEAR;
+    private String type = SbolConstants.TYPE_DNA;
+    private String role = SbolConstants.ROLE_SEQUENCE_FEATURE;
 
     @PropertyName ( "Strand type" )
     public String getStrandType()
@@ -95,24 +95,17 @@ public class Backbone extends SbolBase implements InitialElementProperties
     {
         Diagram diagram = Diagram.getDiagram( compartment );
         setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
-        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-        if( doc != null && doc instanceof SBOLDocument )
-        {
-            URI type = ( getType().equals( "DNA" ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
-            ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", type );
-            this.setSbolObject( cd );
-        }
-        else
-        {
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
-        }
 
+        URI type = ( getType().equals( SbolConstants.TYPE_DNA ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
+        ComponentDefinition cd = doc.createComponentDefinition( getName(), "1", type );
+        this.setSbolObject( cd );
         this.setCreated( true );
         Compartment result = new Compartment( compartment, this );
-        result.getAttributes().add(new DynamicProperty("isCircular", Boolean.class, getTopologyType().equals("Circular")));
-        result.getAttributes().add(new DynamicProperty("isWithChromLocus", Boolean.class, false));
 
-        result.setShapeSize(new Dimension(45 + 10, 45 + 20));
+        result.setShapeSize( new Dimension( 45 + 10, 45 + 20 ) );
         result.setLocation( location );
         compartment.put( result );
 

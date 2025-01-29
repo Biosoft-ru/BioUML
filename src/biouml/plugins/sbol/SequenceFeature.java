@@ -15,7 +15,6 @@ import org.sbolstandard.core2.RoleIntegrationType;
 import org.sbolstandard.core2.SBOLDocument;
 import org.sbolstandard.core2.SequenceConstraint;
 
-import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
@@ -23,14 +22,14 @@ import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
-import biouml.model.SemanticController;
 import one.util.streamex.StreamEx;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 
 public class SequenceFeature extends SbolBase implements InitialElementProperties
 {
-    private String type = "DNA";
-    private String role = "Promoter";
+    private String type = SbolConstants.TYPE_DNA;
+    private String role = SbolConstants.PROMOTER;
+    
     private boolean isPrivate = false;
 
     public SequenceFeature( String name)
@@ -105,8 +104,8 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         }
 
         setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
-        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-        if( ! ( doc instanceof SBOLDocument ) )
+        Object doc = SbolUtil.getDocument( diagram );
+        if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
 
         //        URI uriType = ( getType().equals( "DNA" ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
@@ -114,9 +113,9 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", ComponentDefinition.DNA_REGION );
         cd.addRole( uriRole );
 
-        if( compartment.getKernel() instanceof SbolBase )
+        if( SbolUtil.isSbol( compartment ) )
         {
-            Identified so = ( (SbolBase)compartment.getKernel() ).getSbolObject();
+            Identified so = SbolUtil.getSbolObject(compartment);
             if( so instanceof ComponentDefinition )
             {
                 ComponentDefinition parentCd = ( (ComponentDefinition)so );
@@ -138,24 +137,20 @@ public class SequenceFeature extends SbolBase implements InitialElementPropertie
         int x = compartment.isEmpty() ? compartment.getLocation().x + 5
                 : StreamEx.of( compartment.getNodes() ).mapToInt( n -> n.getLocation().x ).max().orElse( 0 ) + 45;
 
-        this.setSbolObject( cd );
+        setSbolObject( cd );
         Compartment node = new Compartment( compartment, this );
         node.setTitle( getTitle() );
         node.setUseCustomImage( true );
-        Point nodeLocation = new Point( x, y );
-        node.setLocation( nodeLocation );
+        node.setLocation( new Point( x, y ) );
         node.setShapeSize( new Dimension( 45, 45 ) );
-        String icon = SbolUtil.getSbolImagePath( cd );
-        node.getAttributes().add( new DynamicProperty( "node-image", String.class, icon ) );
+        SbolUtil.setSbolImage( node, cd );
 
-        SemanticController semanticController = diagram.getType().getSemanticController();
-        if( !semanticController.canAccept( compartment, node ) )
-        {
+        if( !diagram.getType().getSemanticController().canAccept( compartment, node ) )
             return DiagramElementGroup.EMPTY_EG;
-        }
-        int width = compartment.isEmpty() ? 45 + 10 : compartment.getShapeSize().width + 45;
 
         compartment.put( node );
+        
+        int width = compartment.isEmpty() ? 45 + 10 : compartment.getShapeSize().width + 45;
         compartment.setShapeSize( new Dimension( width, compartment.getShapeSize().height ) );
 
         if( viewPane != null )

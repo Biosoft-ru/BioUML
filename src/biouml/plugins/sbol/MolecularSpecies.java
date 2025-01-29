@@ -18,15 +18,13 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
-import biouml.model.SemanticController;
 import ru.biosoft.graphics.editor.ViewEditorPane;
-import ru.biosoft.util.DPSUtils;
 
 public class MolecularSpecies extends SbolBase implements InitialElementProperties
 {
     public static String[] types = new String[] {SbolConstants.COMPLEX, SbolConstants.PROTEIN, SbolConstants.SIMPLE_CHEMICAL};
 
-    private String type = "Complex";
+    private String type = SbolConstants.COMPLEX;
     private String role = "";
 
     public MolecularSpecies(String name, boolean isCreated)
@@ -77,12 +75,12 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
     {
         Diagram diagram = Diagram.getDiagram( compartment );
         setName( DefaultSemanticController.generateUniqueName( diagram, getName() ) );
-        Object doc = diagram.getAttributes().getValue( SbolUtil.SBOL_DOCUMENT_PROPERTY );
-        if( ! ( doc instanceof SBOLDocument ) )
+        SBOLDocument doc = SbolUtil.getDocument( diagram );
+        if( doc == null )
             return DiagramElementGroup.EMPTY_EG;
 
         ComponentDefinition cd = ( (SBOLDocument)doc ).createComponentDefinition( getName(), "1", SbolUtil.getSpeciesURIByType( type ) );
-        ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
+        ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( doc );
         moduleDefinition.createFunctionalComponent( getName() + "_fc", AccessType.PUBLIC, getName(), DirectionType.INOUT );
 
         this.setCreated( true );
@@ -92,10 +90,9 @@ public class MolecularSpecies extends SbolBase implements InitialElementProperti
         node.setUseCustomImage( true );
         node.setLocation( location );
         node.setShapeSize( new Dimension( 60, 40 ) );
-        node.getAttributes()
-                .add( DPSUtils.createHiddenReadOnly( SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath( cd ) ) );
-        SemanticController semanticController = diagram.getType().getSemanticController();
-        if( !semanticController.canAccept( compartment, node ) )
+        SbolUtil.setSbolImage( node, cd );
+
+        if( !diagram.getType().getSemanticController().canAccept( compartment, node ) )
             return DiagramElementGroup.EMPTY_EG;
 
         compartment.put( node );

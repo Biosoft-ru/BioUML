@@ -17,11 +17,10 @@ import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
 import ru.biosoft.graphics.editor.ViewEditorPane;
-import ru.biosoft.util.DPSUtils;
 
 public class InteractionProperties extends SbolBase implements InitialElementProperties
 {
-    private String type = "Process";
+    private String type = SbolConstants.PROCESS;
 
     public InteractionProperties( String name)
     {
@@ -61,10 +60,10 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
     {
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
         Interaction interaction = moduleDefinition.createInteraction( getName(), SbolUtil.getInteractionURIByType(  getType() ) );
-        this.setSbolObject( interaction );
+        setSbolObject( interaction );
         Node node = new Node( compartment, this );
         node.setTitle( getName() );
-        node.getAttributes().add( DPSUtils.createHiddenReadOnly(SbolConstants.NODE_IMAGE, String.class, SbolUtil.getSbolImagePath(interaction) ) );
+        SbolUtil.setSbolImage( node, interaction );
         node.setUseCustomImage( true );
         node.setLocation( location );
         node.setShapeSize( new Dimension( 15, 15 ) );

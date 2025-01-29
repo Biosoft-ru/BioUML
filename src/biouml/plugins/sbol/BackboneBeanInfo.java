@@ -15,7 +15,7 @@ public class BackboneBeanInfo extends BeanInfoEx2<Backbone>
         addReadOnly( "name", "isCreated" );
         addWithTags( "type", Backbone.types );
         addWithTags( "role", Backbone.roles );
-        addWithTags( "strandType", Backbone.strandTypes );
-        addWithTags( "topologyType", Backbone.topologyTypes );
+        addWithTags( "strandType", SbolConstants.strandTypes );
+        addWithTags( "topologyType", SbolConstants.topologyTypes );
     }
 }

@@ -91,15 +91,14 @@ public class ParticipationEdgeCreator implements EdgeCreator
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( doc );
         boolean inputInteraction = in.getKernel() instanceof InteractionProperties;
-        InteractionProperties interactionProperties = inputInteraction ? (InteractionProperties)in.getKernel()
-                : (InteractionProperties)out.getKernel();
-        SbolBase participantKernel = inputInteraction ? (SbolBase)out.getKernel() : (SbolBase)in.getKernel();
-
-        Identified participantDefinition = participantKernel.getSbolObject();
-        Interaction interaction = (Interaction)interactionProperties.getSbolObject();
+        Node interactionNode = inputInteraction ? in : out;
+        Node partNode = inputInteraction ? out : in;
+        Interaction interaction =  SbolUtil.getSbolObject( interactionNode, Interaction.class );
+        Identified participantDefinition = SbolUtil.getSbolObject( partNode);
+        URI type = inputInteraction ? SbolUtil.getParticipationURIByType( SbolConstants.PRODUCT )
+                : SbolUtil.getParticipationURIByType( SbolConstants.REACTANT );
         FunctionalComponent component = SbolUtil.findFunctionalComponent( moduleDefinition, participantDefinition.getDisplayId() );
-        Participation participation = interaction.createParticipation( name, component.getDisplayId(),
-                SbolUtil.getParticipationURIByType( SbolConstants.STIMULATOR ) );
+        Participation participation = interaction.createParticipation( name, component.getDisplayId(), type );
         return new Edge( new ParticipationProperties( participation ), in, out );
     }
 
@@ -113,8 +112,8 @@ public class ParticipationEdgeCreator implements EdgeCreator
         boolean inputInteraction = in.getKernel() instanceof InteractionProperties;
         Node interactionNode = inputInteraction ? in : out;
         Node partNode = inputInteraction ? out : in;
-        Interaction interaction = (Interaction) ( (InteractionProperties)interactionNode.getKernel() ).getSbolObject();
-        ComponentDefinition participantDef = (ComponentDefinition) ( (SbolBase)partNode.getKernel() ).getSbolObject();
+        Interaction interaction =  SbolUtil.getSbolObject( interactionNode, Interaction.class );
+        ComponentDefinition participantDef = SbolUtil.getSbolObject( partNode, ComponentDefinition.class );
 
         Compartment parent = partNode.getCompartment();
         Backbone backbone = (Backbone)parent.getKernel();
@@ -168,13 +167,13 @@ public class ParticipationEdgeCreator implements EdgeCreator
         //create empty set node
         x = node.getLocation().x + node.getShapeSize().width + 55;
         String emptyName = DefaultSemanticController.generateUniqueName( diagram, node.getName() + "_degradation_product" );
-        Node emptyNode = new Node( diagram, new Stub( null, emptyName, SbolUtil.TYPE_DEGRADATION_PRODUCT ) );
+        Node emptyNode = new Node( diagram, new Stub( null, emptyName, SbolConstants.DEGRADATION ) );
         emptyNode.setShapeSize( new Dimension(25, 25) );
         emptyNode.setLocation( new Point( x, y ) );
         diagram.put( emptyNode );
 
         //create participant edge
-        String definitionID = ( (SbolBase)node.getKernel() ).getSbolObject().getDisplayId();
+        String definitionID = SbolUtil.getDisplayId( node );
         FunctionalComponent component = SbolUtil.findFunctionalComponent( moduleDefinition, definitionID );
         Interaction interaction = (Interaction)properties.getSbolObject();
         Participation participation = interaction.createParticipation( node.getName() + "_to_" + reaction.getName(),
