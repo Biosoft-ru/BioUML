@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,6 @@ import org.sbolstandard.core2.SequenceConstraint;
 import org.sbolstandard.core2.SequenceOntology;
 import org.sbolstandard.core2.SystemsBiologyOntology;
 
-import biouml.model.Compartment;
 import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -54,10 +54,15 @@ public class SbolUtil
     private static final Map<String, URI> participationToURI;
     private static final Map<URI, String> participationURIToString;
     private static final Map<String, Integer> verticalShift;
-
+    
+    public static Set<URI> inputParticipantTypes;
+    public static Set<URI> outputParticipantTypes;
+    
     private static SequenceOntology so = new SequenceOntology();
-    public static URI ROLE_CIRCULAR = null;
-    public static URI ROLE_CHROMOSOMAL_LOCUS = null;
+    private static final SystemsBiologyOntology sbo = new SystemsBiologyOntology();
+    public static URI TYPE_CIRCULAR = null;
+    public static URI TYPE_LINEAR = null;
+    public static URI TYPE_CHROMOSOMAL_LOCUS = null;
 
     static
     {
@@ -69,6 +74,45 @@ public class SbolUtil
         {
 
         }
+    } 
+    
+    static
+    {
+        inputParticipantTypes = Set.of( 
+                SystemsBiologyOntology.INHIBITOR, 
+                SystemsBiologyOntology.COMPETITIVE_INHIBITOR,
+                SystemsBiologyOntology.NON_COMPETITIVE_INHIBITOR, 
+                sbo.getURIbyId( "SBO:0000536" ),  //partial_inhibitor
+                sbo.getURIbyId( "SBO:0000537" ), //complete_inhibitor
+                SystemsBiologyOntology.SILENCER, 
+                sbo.getURIbyId( "SBO:0000639" ), //allosteric_inhibitor, see http://identifiers.org/SBO:0000639
+                sbo.getURIbyId( "SBO:0000638" ),  //irreversible_inhibitor
+                sbo.getURIbyId( "SBO:0000640" ), //uncompetitive_inhibitor
+                SystemsBiologyOntology.PROMOTER,//According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the STIMULATION reaction (not stated if it is in or out);
+                SystemsBiologyOntology.STIMULATOR, 
+                SystemsBiologyOntology.CATALYST, 
+                SystemsBiologyOntology.ENZYMATIC_CATALYST,
+                SystemsBiologyOntology.ESSENTIAL_ACTIVATOR, 
+                SystemsBiologyOntology.BINDING_ACTIVATOR,
+                SystemsBiologyOntology.CATALYTIC_ACTIVATOR, 
+                SystemsBiologyOntology.SPECIFIC_ACTIVATOR,
+                SystemsBiologyOntology.NON_ESSENTIAL_ACTIVATOR, 
+                SystemsBiologyOntology.POTENTIATOR, 
+                sbo.getURIbyId( "SBO:0000636" ), //allosteric activator
+                sbo.getURIbyId( "SBO:0000637" ), //non-allosteric activator
+                SystemsBiologyOntology.REACTANT, 
+                SystemsBiologyOntology.MODIFIER, 
+                SystemsBiologyOntology.INTERACTOR,
+                SystemsBiologyOntology.TEMPLATE, 
+                SystemsBiologyOntology.SUBSTRATE, 
+                SystemsBiologyOntology.SIDE_SUBSTRATE );
+
+        outputParticipantTypes = Set.of(
+                SystemsBiologyOntology.INHIBITED, 
+                SystemsBiologyOntology.STIMULATED,
+                SystemsBiologyOntology.MODIFIED, 
+                SystemsBiologyOntology.PRODUCT,
+                SystemsBiologyOntology.SIDE_PRODUCT);
     }
     
     static
@@ -129,7 +173,6 @@ public class SbolUtil
         dnaRegionToImage = Collections.unmodifiableMap( aMap );
     }
 
-
     static
     {
         Map<String, URI> bMap = new HashMap<>();
@@ -170,9 +213,10 @@ public class SbolUtil
         bMap.put( "Intron", so.getURIbyId( "SO:0000188" ) );
         bMap.put( "Polypeptide region", so.getURIbyId( "SO:0000839" ) );
 
-        ROLE_CHROMOSOMAL_LOCUS = so.getURIbyId( "SO:0000830" );
+        TYPE_CHROMOSOMAL_LOCUS = so.getURIbyId( "SO:0000830" );
         //bMap.put( "Chromosomal locus", ROLE_CHROMOSOMAL_LOCUS );
-        ROLE_CIRCULAR = so.getURIbyId( "SO:0000755" );
+        TYPE_CIRCULAR = so.getURIbyId( "SO:0000988" );
+        TYPE_LINEAR = so.getURIbyId( "SO:0000987" );
         //bMap.put( "Circular plasmid",  ROLE_CIRCULAR);
         featurRoleToURI = Collections.unmodifiableMap( bMap );
     }
@@ -327,7 +371,34 @@ public class SbolUtil
                 return Type.TYPE_MOLECULE;
         }
         return Type.TYPE_UNKNOWN;
+    }    
+    
+    
+    public static URI getURIByTopology(String s)
+    {
+        switch (s)
+        {
+            case SbolConstants.TOPOLOGY_LINEAR:
+                return SbolUtil.TYPE_LINEAR;
+            case SbolConstants.TOPOLOGY_LOCUS:
+                return  SbolUtil.TYPE_CHROMOSOMAL_LOCUS;
+            case SbolConstants.TOPOLOGY_CIRCULAR:
+                return SbolUtil.TYPE_CIRCULAR;
+        }
+        return null;
     }
+    
+    public static void setTopologyType(ComponentDefinition cd, String topology) throws SBOLValidationException
+    {
+        URI newURI = getURIByTopology(topology);
+        for( URI uri : cd.getTypes() )
+        {
+            if( uri.equals( TYPE_LINEAR ) || uri.equals( TYPE_CIRCULAR ) || uri.equals( TYPE_CHROMOSOMAL_LOCUS ) )
+                cd.removeType( uri );
+        }
+        cd.addType( newURI );
+    }
+
 
     public static String getSbolImagePath(Identified sbolObject)
     {
@@ -402,7 +473,7 @@ public class SbolUtil
     {
         if( cd.containsType( ComponentDefinition.DNA_REGION ) )
         {
-            if( cd.getComponents().size() > 0 && isTopLevel )
+            if( isBackBone(cd) && isTopLevel )
                 return new Backbone( cd );
             else
                 return new SequenceFeature( cd );
@@ -411,7 +482,6 @@ public class SbolUtil
                 || cd.containsType( ComponentDefinition.SMALL_MOLECULE ) )
         {
             MolecularSpecies species = new MolecularSpecies( cd.getDisplayId() );
-//            species.setType( SbolTypes.speciesURIToString.get( cd.getTypes().iterator().next() ) );
             species.setType(getSpeciesURIByType( cd.getTypes().iterator().next()));
             species.setSbolObject( cd );
             return species;
@@ -474,7 +544,7 @@ public class SbolUtil
                 removeParticipation( getSbolObject( reactionNode, Interaction.class ), getPersistentIdentity( otherNode ) );
         }
 
-        URI uri = getIdentity( de );
+        URI uri = getPersistentIdentity( de );
 
         if( uri != null )
             removeComponentDefinition( doc, uri );
@@ -807,5 +877,11 @@ public class SbolUtil
     private static Object createQName(String namespace, String name, String prefix) throws Exception
     {
         return qnameClass.getConstructor( String.class, String.class, String.class ).newInstance( namespace, name, prefix );
+    }
+
+    static boolean isBackBone(ComponentDefinition cd)
+    {
+        return !cd.getComponents().isEmpty() || cd.getTypes().contains( TYPE_CIRCULAR )
+                || cd.getTypes().contains( TYPE_CHROMOSOMAL_LOCUS ) || cd.getTypes().contains( TYPE_LINEAR );
     }
 }
