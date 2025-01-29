@@ -61,7 +61,6 @@ public class SbolDiagramReader
 {
 
     protected static final Logger log = Logger.getLogger(SbolDiagramReader.class.getName());
-    private static final SystemsBiologyOntology sbo = new SystemsBiologyOntology();
     
     public static Diagram readDiagram(File file, String name, DataCollection<?> origin) throws Exception
     {
@@ -102,7 +101,7 @@ public class SbolDiagramReader
         parseInteractions(mds, diagram, kernels);
         arrangeDiagram(diagram, doc, kernels);
     }
-
+  
     private static void parseInteractions(Set<ModuleDefinition> mds, Diagram diagram, Map<String, Base> kernels)
     {
         for ( ModuleDefinition md : mds )
@@ -111,48 +110,51 @@ public class SbolDiagramReader
 
             for ( Interaction interaction : interactions )
             {
-                Map<Node, Participation> from = new HashMap<>(), to = new HashMap<>();
+                
+                Map<Node, Participation> from = getParticipantNodes(SbolUtil.inputParticipantTypes, interaction.getParticipations(), diagram, kernels);
+                Map<Node, Participation> to = getParticipantNodes(SbolUtil.outputParticipantTypes, interaction.getParticipations(), diagram, kernels);
+                
+//                Map<Node, Participation> from = new HashMap<>(), to = new HashMap<>();
                 String type = SbolConstants.PROCESS;
-                URI uri = interaction.getIdentity();
                 URI typeUri = SystemsBiologyOntology.PROCESS;
                 if ( interaction.getTypes().contains(SystemsBiologyOntology.INHIBITION) )
                 {
                     //sbolcanvas allow only INHIBITOR role refinement
-                    from = getParticipantNodes(
-                            Set.of(SystemsBiologyOntology.INHIBITOR, 
-                                    SystemsBiologyOntology.COMPETITIVE_INHIBITOR,
-                                    SystemsBiologyOntology.NON_COMPETITIVE_INHIBITOR,
-                                    sbo.getURIbyId("SBO:0000536"), //partial_inhibitor
-                                    sbo.getURIbyId("SBO:0000537"), //complete_inhibitor
-                                    SystemsBiologyOntology.SILENCER, 
-                                    sbo.getURIbyId("SBO:0000639"), //allosteric_inhibitor, see http://identifiers.org/SBO:0000639
-                                    sbo.getURIbyId("SBO:0000638"), //irreversible_inhibitor
-                                    sbo.getURIbyId("SBO:0000640"), //uncompetitive_inhibitor
-                                    SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the INHIBITION reaction (not stated if it is in or out)
-                                    ),
-                            interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.INHIBITED), interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(
+//                            Set.of(SystemsBiologyOntology.INHIBITOR, 
+//                                    SystemsBiologyOntology.COMPETITIVE_INHIBITOR,
+//                                    SystemsBiologyOntology.NON_COMPETITIVE_INHIBITOR,
+//                                    sbo.getURIbyId("SBO:0000536"), //partial_inhibitor
+//                                    sbo.getURIbyId("SBO:0000537"), //complete_inhibitor
+//                                    SystemsBiologyOntology.SILENCER, 
+//                                    sbo.getURIbyId("SBO:0000639"), //allosteric_inhibitor, see http://identifiers.org/SBO:0000639
+//                                    sbo.getURIbyId("SBO:0000638"), //irreversible_inhibitor
+//                                    sbo.getURIbyId("SBO:0000640"), //uncompetitive_inhibitor
+//                                    SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the INHIBITION reaction (not stated if it is in or out)
+//                                    ),
+//                            interaction.getParticipations(), diagram, kernels);
+//                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.INHIBITED), interaction.getParticipations(), diagram, kernels);
                     type = SbolConstants.INHIBITION;
                     typeUri = SystemsBiologyOntology.INHIBITION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.STIMULATION) )
                 {
-                    from = getParticipantNodes(
-                            Set.of(SystemsBiologyOntology.STIMULATOR,
-                                    SystemsBiologyOntology.CATALYST,
-                                    SystemsBiologyOntology.ENZYMATIC_CATALYST,
-                                    //sbo.getURIbyId("SBO:0000671"), //non-enzymatic catalyst !!!not present in current ontology version 2.1
-                                    SystemsBiologyOntology.ESSENTIAL_ACTIVATOR,
-                                    SystemsBiologyOntology.BINDING_ACTIVATOR,
-                                    SystemsBiologyOntology.CATALYTIC_ACTIVATOR,
-                                    SystemsBiologyOntology.SPECIFIC_ACTIVATOR,
-                                    SystemsBiologyOntology.NON_ESSENTIAL_ACTIVATOR,
-                                    SystemsBiologyOntology.POTENTIATOR,
-                                    sbo.getURIbyId("SBO:0000636"), //allosteric activator
-                                    sbo.getURIbyId("SBO:0000637"), //non-allosteric activator
-                                    SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the STIMULATION reaction (not stated if it is in or out)
-                            ), interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.STIMULATED), interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(
+//                            Set.of(SystemsBiologyOntology.STIMULATOR,
+//                                    SystemsBiologyOntology.CATALYST,
+//                                    SystemsBiologyOntology.ENZYMATIC_CATALYST,
+//                                    //sbo.getURIbyId("SBO:0000671"), //non-enzymatic catalyst !!!not present in current ontology version 2.1
+//                                    SystemsBiologyOntology.ESSENTIAL_ACTIVATOR,
+//                                    SystemsBiologyOntology.BINDING_ACTIVATOR,
+//                                    SystemsBiologyOntology.CATALYTIC_ACTIVATOR,
+//                                    SystemsBiologyOntology.SPECIFIC_ACTIVATOR,
+//                                    SystemsBiologyOntology.NON_ESSENTIAL_ACTIVATOR,
+//                                    SystemsBiologyOntology.POTENTIATOR,
+//                                    sbo.getURIbyId("SBO:0000636"), //allosteric activator
+//                                    sbo.getURIbyId("SBO:0000637"), //non-allosteric activator
+//                                    SystemsBiologyOntology.PROMOTER //According to documentation SystemsBiologyOntology.PROMOTER could be a participant of the STIMULATION reaction (not stated if it is in or out)
+//                            ), interaction.getParticipations(), diagram, kernels);
+//                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.STIMULATED), interaction.getParticipations(), diagram, kernels);
                     type = SbolConstants.STIMULATION;
                     typeUri = SystemsBiologyOntology.STIMULATION;
                 }
@@ -160,84 +162,73 @@ public class SbolDiagramReader
                 {
                     if ( interaction.getParticipations().size() != 1 )
                         log.info("Control interation has wrong number of components, " + interaction.getParticipations().size());
-                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.REACTANT), interaction.getParticipations(), diagram, kernels);
-                    if ( from != null )
-                    {
+//                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.REACTANT), interaction.getParticipations(), diagram, kernels);
+//                    if ( from != null )
+//                    {
                         String name = SbolUtil.generateUniqueName(diagram, interaction.getParticipations().iterator().next().getParticipantDefinition().getDisplayId()+"_degradation_product");
                         Node degradationNode = new Node(diagram, new Stub(null, name, SbolConstants.DEGRADATION_PRODUCT));
                         to.put(degradationNode, null);
                         diagram.put(degradationNode);
-                    }
+//                    }
                     type = SbolConstants.DEGRADATION;
                     typeUri = SystemsBiologyOntology.DEGRADATION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.CONTROL) )
                 {
-                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIER), interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIED), interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIER), interaction.getParticipations(), diagram, kernels);
+//                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.MODIFIED), interaction.getParticipations(), diagram, kernels);
                     type = SbolConstants.CONTROL;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.BIOCHEMICAL_REACTION) )
                 {
-                    from = getParticipantNodes(
-                            Set.of(
-                                SystemsBiologyOntology.REACTANT,
-                                SystemsBiologyOntology.MODIFIER
-                            ), 
-                            interaction.getParticipations(), diagram, kernels);
-                    
-                    to = getParticipantNodes(
-                            Set.of(
-                                    SystemsBiologyOntology.PRODUCT,
-                                    SystemsBiologyOntology.MODIFIED
-                                ), 
-                            interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(
+//                            Set.of(
+//                                SystemsBiologyOntology.REACTANT,
+//                                SystemsBiologyOntology.MODIFIER
+//                            ), 
+//                            interaction.getParticipations(), diagram, kernels);
+//                    
+//                    to = getParticipantNodes(
+//                            Set.of(
+//                                    SystemsBiologyOntology.PRODUCT,
+//                                    SystemsBiologyOntology.MODIFIED
+//                                ), 
+//                            interaction.getParticipations(), diagram, kernels);
                     type = SbolConstants.BIOCHEMICAL_REACTION;
                     typeUri = SystemsBiologyOntology.BIOCHEMICAL_REACTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.NON_COVALENT_BINDING) )
                 {
-                    from = getParticipantNodes(
-                            Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
-                            interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(
+//                            Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
+//                            interaction.getParticipations(), diagram, kernels);
+//                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
                     type = SbolConstants.ASSOCIATION;
                     typeUri = SystemsBiologyOntology.NON_COVALENT_BINDING;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.GENETIC_PRODUCTION) )
                 {
-                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.PROMOTER, SystemsBiologyOntology.TEMPLATE), interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT, SystemsBiologyOntology.SIDE_PRODUCT), interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(Set.of(SystemsBiologyOntology.PROMOTER, SystemsBiologyOntology.TEMPLATE), interaction.getParticipations(), diagram, kernels);
+//                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT, SystemsBiologyOntology.SIDE_PRODUCT), interaction.getParticipations(), diagram, kernels);
 
                     type = SbolConstants.GENETIC_PRODUCTION;
                     typeUri = SystemsBiologyOntology.GENETIC_PRODUCTION;
                 }
                 else if ( interaction.getTypes().contains(SystemsBiologyOntology.PROCESS) )
                 {
-                    from = getParticipantNodes(
-                            Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
-                            interaction.getParticipations(), diagram, kernels);
-                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
+//                    from = getParticipantNodes(
+//                            Set.of(SystemsBiologyOntology.REACTANT, SystemsBiologyOntology.INTERACTOR, SystemsBiologyOntology.SUBSTRATE, SystemsBiologyOntology.SIDE_SUBSTRATE),
+//                            interaction.getParticipations(), diagram, kernels);
+//                    to = getParticipantNodes(Set.of(SystemsBiologyOntology.PRODUCT), interaction.getParticipations(), diagram, kernels);
                     type = SbolConstants.PROCESS;
                     typeUri = SystemsBiologyOntology.PROCESS;
                 }
 
-                if ( from != null && to != null && from.size() > 0 && to.size() > 0 )
-                {
+//                if ( from != null && to != null && (from.size() > 0 || to.size() > 0) )
+//                {
                     Iterator<Entry<Node, Participation>> fromIter = from.entrySet().iterator();
                     Iterator<Entry<Node, Participation>> toIter = to.entrySet().iterator();
 
-                    //                    if ( from.size() == 1 && to.size() == 1 ) //only one node from each side, can do without reaction node
-                    //                    {
-                    //                        Node fromNode = fromIter.next();
-                    //                        Node toNode = toIter.next();
-                    //                        Edge result = new Edge(new Stub(null, fromNode.getName() + " -> " + toNode.getName(), type), fromNode, toNode);
-                    //                        result.getAttributes().add(new DynamicProperty("interactionURI", String.class, uri.toString()));
-                    //                        result.getOrigin().put(result);
-                    //                        //diagram.put(result);
-                    //                    }
-                    //                    else
-                    //                    {
                     InteractionProperties reaction = new InteractionProperties(interaction);
                     reaction.setType(SbolUtil.getInteractionStringType(typeUri));
                     Node interactionNode = new Node(diagram, reaction);
@@ -268,18 +259,18 @@ public class SbolDiagramReader
                         result.getOrigin().put(result);
                     }
                     //}
-                }
-                else
-                {
-                    //only interaction node should be placed
-                    InteractionProperties reaction = new InteractionProperties(interaction);
-                    reaction.setType( type );
-                    Node interactionNode = new Node(diagram, reaction);
-                    SbolUtil.setSbolImage( interactionNode, interaction );
-                    interactionNode.setShapeSize(new Dimension(15, 15));
-                    interactionNode.setUseCustomImage(true);
-                    diagram.put(interactionNode);
-                }
+//                }
+//                else
+//                {
+//                    //only interaction node should be placed
+//                    InteractionProperties reaction = new InteractionProperties(interaction);
+//                    reaction.setType( type );
+//                    Node interactionNode = new Node(diagram, reaction);
+//                    SbolUtil.setSbolImage( interactionNode, interaction );
+//                    interactionNode.setShapeSize(new Dimension(15, 15));
+//                    interactionNode.setUseCustomImage(true);
+//                    diagram.put(interactionNode);
+//                }
             }
 
         }
@@ -293,7 +284,7 @@ public class SbolDiagramReader
             return pt.getRoles().stream().anyMatch(types::contains);
         }).forEach(pt -> {
             DiagramElement de = diagram.findDiagramElement(kernels.get(pt.getParticipantDefinition().getPersistentIdentity().toString()).getName());
-            if ( de != null && de instanceof Node )
+            if ( de instanceof Node )
                 result.put((Node) de, pt);
         });
         //        (pt -> {
@@ -328,31 +319,21 @@ public class SbolDiagramReader
                 .collect(Collectors.toSet());
     }
 
- 
-    private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, Base> kernels) throws SBOLValidationException
+    private static void parseComponentDefinition(ComponentDefinition cd, Diagram diagram, Map<String, Base> kernels)
+            throws SBOLValidationException
     {
-        Set<Component> components = cd.getComponents();
-        if ( !components.isEmpty() )
+        if( SbolUtil.isBackBone( cd ) )
         {
-            Compartment compartment = new Compartment(diagram, kernels.get(cd.getPersistentIdentity().toString()));
+            Compartment compartment = new Compartment( diagram, kernels.get( cd.getPersistentIdentity().toString() ) );
             compartment.getAttributes().add(DPSUtils.createHiddenReadOnly(Node.INNER_NODES_PORT_FINDER_ATTR, Boolean.class, true));
-            Iterator<Component> iter = components.iterator();
-            boolean isCircular = false;
-            boolean isWithChromLocus = false;
+            boolean isCircular = cd.getTypes().contains(SbolUtil.TYPE_CIRCULAR);
+            boolean isWithChromLocus = cd.getTypes().contains(SbolUtil.TYPE_CHROMOSOMAL_LOCUS);
+            Iterator<Component> iter = cd.getComponents().iterator();
             while ( iter.hasNext() )
             {
                 Component component = iter.next();
                 ComponentDefinition cdNode = component.getDefinition();
-                if ( cdNode.getRoles().contains(SbolUtil.ROLE_CIRCULAR) )
-                {
-                    isCircular = true;
-                    continue;
-                }
-                if ( cdNode.getRoles().contains(SbolUtil.ROLE_CHROMOSOMAL_LOCUS) )
-                {
-                    isWithChromLocus = true;
-                    continue;
-                }
+               
                 Base base = kernels.get(cdNode.getPersistentIdentity().toString());
                 if ( base != null )
                 {
@@ -400,11 +381,11 @@ public class SbolDiagramReader
 
             }
             Backbone backbone = (Backbone)compartment.getKernel();
-            
-            if (isCircular)
-            backbone.setTopologyType( SbolConstants.TOPOLOGY_CIRCULAR );
-            else if (isWithChromLocus)
-                backbone.setStrandType( SbolConstants.TOPOLOGY_LOCUS);
+
+            if( isCircular )
+                backbone.setTopologyType( SbolConstants.TOPOLOGY_CIRCULAR );
+            else if( isWithChromLocus )
+                backbone.setTopologyType( SbolConstants.TOPOLOGY_LOCUS );
 
             int extWidth = 0;//isCircular || isWithChromLocus ? 2 * xSize : 0;
             compartment.setShapeSize(new Dimension(xSize * compartment.getSize() + extWidth + 10, ySize + 20));

@@ -78,10 +78,8 @@ public class SbolDiagramTransformer extends AbstractFileTransformer<Diagram> imp
         {
             saveLayout( diagram );
             Object doc = arrangeComponents(diagram);
-            if ( doc != null && doc instanceof SBOLDocument )
-            {
+            if ( doc instanceof SBOLDocument )
                 SBOLWriter.write((SBOLDocument) doc, output);
-            }
         }
 
     }
