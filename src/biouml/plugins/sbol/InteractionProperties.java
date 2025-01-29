@@ -11,7 +11,6 @@ import org.sbolstandard.core2.SBOLDocument;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Compartment;
-import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
@@ -22,11 +21,11 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
 {
     private String type = SbolConstants.PROCESS;
 
-    public InteractionProperties( String name)
+    public InteractionProperties(String name)
     {
-        this(name, true);
+        this( name, true );
     }
-    
+
     public InteractionProperties(String name, boolean isCreated)
     {
         super( name, isCreated );
@@ -56,10 +55,10 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         firePropertyChange( "type", oldValue, type );
     }
 
-    protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location)  throws Exception
+    protected Node doCreateInteraction(Compartment compartment, SBOLDocument doc, Point location) throws Exception
     {
         ModuleDefinition moduleDefinition = SbolUtil.getDefaultModuleDefinition( (SBOLDocument)doc );
-        Interaction interaction = moduleDefinition.createInteraction( getName(), SbolUtil.getInteractionURIByType(  getType() ) );
+        Interaction interaction = moduleDefinition.createInteraction( getName(), SbolUtil.getInteractionURIByType( getType() ) );
         setSbolObject( interaction );
         Node node = new Node( compartment, this );
         node.setTitle( getName() );
@@ -69,12 +68,12 @@ public class InteractionProperties extends SbolBase implements InitialElementPro
         node.setShapeSize( new Dimension( 15, 15 ) );
         return node;
     }
-    
+
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( compartment );
-        setName(  SbolUtil.generateUniqueName( diagram, getName() ) );
+        setName( SbolUtil.generateUniqueName( diagram, getName() ) );
         SBOLDocument doc = SbolUtil.getDocument( diagram );
         if( doc == null )
             return DiagramElementGroup.EMPTY_EG;

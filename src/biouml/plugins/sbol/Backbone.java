@@ -51,7 +51,9 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
     public void setStrandType(String strandType)
     {
+        String oldValue = this.strandType;
         this.strandType = strandType;
+        firePropertyChange( "strandType", oldValue, strandType );
     }
 
     @PropertyName ( "Topology type" )
@@ -62,7 +64,19 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
     public void setTopologyType(String topologyType)
     {
+        String oldValue = this.topologyType;
+        if( topologyType.equals( oldValue ) )
+            return;
         this.topologyType = topologyType;
+        try
+        {
+            SbolUtil.setTopologyType( getSbolObject(), topologyType );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+        firePropertyChange( "topologyType", oldValue, topologyType );
     }
 
     @PropertyName ( "Type" )
@@ -86,6 +100,12 @@ public class Backbone extends SbolBase implements InitialElementProperties
     {
         this.role = role;
     }
+    
+    @Override
+    public ComponentDefinition getSbolObject()
+    {
+        return (ComponentDefinition)super.getSbolObject();
+    }
 
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
@@ -98,6 +118,7 @@ public class Backbone extends SbolBase implements InitialElementProperties
 
         URI type = ( getType().equals( SbolConstants.TYPE_DNA ) ) ? ComponentDefinition.DNA_REGION : ComponentDefinition.RNA_REGION;
         ComponentDefinition cd = doc.createComponentDefinition( getName(), "1", type );
+        SbolUtil.setTopologyType( cd, topologyType );
         this.setSbolObject( cd );
         this.setCreated( true );
         Compartment result = new Compartment( compartment, this );
