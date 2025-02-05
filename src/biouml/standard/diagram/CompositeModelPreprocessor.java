@@ -1273,15 +1273,18 @@ public class CompositeModelPreprocessor extends Preprocessor
             if( !uniqueVariableName.equals( masterVariableName ) )
             {
                 biouml.model.Node oldNode = newVarsToOldNodes.get( masterVariableName );
-                newMainNode = oldNodesToNew.get( oldNode );
+                if( oldNode != null )
+                {
+                    newMainNode = oldNodesToNew.get( oldNode );
 
-                biouml.model.Node newMainCompartment = oldNodesToNew.get( oldNode.getCompartment() );
-                if (newMainCompartment == null)
-                    newMainCompartment = diagram;
-                
-                //check if this node is not processed already
-                if( newMainNode == null )
-                    newMainNode = readSpecies( oldNode, (Compartment)newMainCompartment, null, processCompartments );
+                    biouml.model.Node newMainCompartment = oldNodesToNew.get( oldNode.getCompartment() );
+                    if( newMainCompartment == null )
+                        newMainCompartment = diagram;
+
+                    //check if this node is not processed already
+                    if( newMainNode == null )
+                        newMainNode = readSpecies( oldNode, (Compartment)newMainCompartment, null, processCompartments );
+                }
             }
             readSpecies( node, newCompartment, newMainNode, processCompartments );
         }
