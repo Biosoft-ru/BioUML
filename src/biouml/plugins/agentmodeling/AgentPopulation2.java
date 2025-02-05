@@ -56,8 +56,9 @@ public class AgentPopulation2
         this.diagram = diagram;
         this.size = size;
         collector = new ClassificationStatCollector();
+        collector.setStepUpdate( false );
         collector2 = new BasicStatCollector();
-        collector2.setShowPlot(true);
+        collector2.setShowPlot(false);
     }
     
     public void generatePopulation() throws Exception

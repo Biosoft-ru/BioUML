@@ -31,7 +31,7 @@ public class ClassificationStatCollector extends StatCollector
     private Map<String, Integer> nameToIndex;
     private List<Classification> classifications = new ArrayList<>();
     private Map<Classification, Map<String, XYSeries>> series = new HashMap<>();
-    private boolean drawGraphics = true;
+    private boolean drawGraphics = false;
     private int step;
     private boolean stepUpdate = true; 
     
@@ -67,12 +67,14 @@ public class ClassificationStatCollector extends StatCollector
             Map<String, XYSeries> classificationSeries = new HashMap<>();
             for( String name : classification.titles.values() )
             {
-                nameToIndex.put(name, j);
-                classificationSeries.put( name, new XYSeries(name) );
+                nameToIndex.put( name, j );
+                if( drawGraphics )
+                    classificationSeries.put( name, new XYSeries( name ) );
                 j++;
             }
             series.put( classification, classificationSeries );
-            generatePlot(classification.getVariableName(), classificationSeries);
+            if( drawGraphics )
+                generatePlot( classification.getVariableName(), classificationSeries );
         }
         values = new int[nameToIndex.size()][length];
         values_day = new int[nameToIndex.size()][length];
@@ -101,7 +103,9 @@ public class ClassificationStatCollector extends StatCollector
                 int index = nameToIndex.get(title);
                 values_day[index][step] = classificaton.counts.get(value) - values[index][step];
                 values[index][step] = classificaton.counts.get(value);
-                classificationSeries.get( title ).add( time,  values[index][step] );
+
+                if( drawGraphics )
+                    classificationSeries.get( title ).add( time, values[index][step] );
             }
             
             classificaton.reset();
