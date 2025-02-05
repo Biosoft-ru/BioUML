@@ -49,9 +49,8 @@ public class Classification
 
     public void classify(SimulationAgent agent)
     {
-        if (!accept(agent))
-            return;
-        
+//        if (!accept(agent))
+//            return;
        
         try
         {
