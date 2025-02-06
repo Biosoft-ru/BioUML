@@ -73,7 +73,6 @@ public class Scheduler implements Simulator
         this.memorizedTime = 0;
         this.profile.init(x0, span.getTimeStart( ));
        
-//        if( tspan.getLength() < AgentModelSimulationEngine.SPAN_LENGTH_THRESHOLD )
         if (saveResult)
             addStatisticsCollector( new ResultCollector( listeners, tspan, this.model ) );
 
@@ -85,39 +84,31 @@ public class Scheduler implements Simulator
         for (SimulationAgent agent: agents)
             agent.init();
         
-        for( SimulationAgent agent : agents )
-        {
-            if( ! ( agent instanceof SteadyStateAgent ) || ((SteadyStateAgent)agent).isStandard() )
-            {
-                sendMessagesFromAgent( agent );
-                agent.applyChanges();
-                updateMessagesFromAgent( agent );
-            }
-        }
-
-        for( SimulationAgent agent : agents )
-        {
-            if( ( agent instanceof SteadyStateAgent ) && !((SteadyStateAgent)agent).isStandard() )
-            {
-                sendMessagesToAgent( agent );
-                agent.setUpdated();
-                sendMessagesFromAgent( agent );
-                updateMessagesFromAgent(agent);
-            }
-        }
-
-        for( SimulationAgent agent : agents )
-        {
-            if( ! ( agent instanceof SteadyStateAgent ) || ((SteadyStateAgent)agent).isStandard()  )
-            {
-                sendMessagesToAgent( agent );
-                agent.applyChanges();
-                agent.setUpdated();
-            }
-        }
+        preliminaryStep();
 
         for( StatCollector collector : collectors )
             collector.update(span.getTimeStart());
+    }
+    
+    /* 
+     * First agents steps - exchange messages
+     */
+    private void preliminaryStep() throws Exception
+    {
+        for( SimulationAgent agent : agents )
+        {
+            sendMessagesFromAgent( agent );
+            agent.applyChanges();
+            updateMessagesFromAgent( agent );
+        }
+
+        for( SimulationAgent agent : agents )
+        {
+            sendMessagesToAgent( agent );
+            agent.setUpdated();
+            sendMessagesFromAgent( agent );
+            updateMessagesFromAgent( agent );
+        }
     }
 
     @Override
@@ -168,11 +159,11 @@ public class Scheduler implements Simulator
                 finilize(currentAgent);
             else //agent step is here
             {
-                if ( Math.abs(currentAgent.getScaledCurrentTime() - span.getTime( nextIndex - 1))  > SPAN_STEP_ERROR)
-                {
+//                if ( Math.abs(currentAgent.getScaledCurrentTime() - span.getTime( nextIndex - 1))  > SPAN_STEP_ERROR)
+//                {
                     sendMessagesToAgent( currentAgent );
                     currentAgent.setUpdated();
-                }
+//                }
                 execute(currentAgent);
             }
 
@@ -292,7 +283,7 @@ public class Scheduler implements Simulator
     }
 
     private void execute(SimulationAgent agent) throws Exception
-    {
+    {      
         if (agent instanceof SteadyStateAgent && ! ( (SteadyStateAgent)agent ).isStandard())
         {
             executeSteadyState( (SteadyStateAgent)agent );
@@ -301,14 +292,12 @@ public class Scheduler implements Simulator
         sendMessagesFromAgent(agent);
 
         //do agent routine...
-
-        agent.setupPreviousTime();
-
         if( !agent.isAlive )
             return;
-
+        agent.setupPreviousTime();
         agent.iterate();
-  
+//        if (debugMode)
+//  System.out.println( "Agent Step" + agent.getName() + " from "+agent.getScaledPreviousTime()+" to "+agent.getScaledCurrentTime());
         if( agent.shouldDivide() )
         {
             SimulationAgent[] newAgents = agent.divide( );
@@ -337,8 +326,9 @@ public class Scheduler implements Simulator
     
     private void executeSteadyState(SteadyStateAgent agent) throws Exception
     {
+        agent.iterate();
         sendMessagesToAgent(agent);
-        agent.iterate();        
+        agent.findSteadyState();
         sendMessagesFromAgent(agent);
         updateMessagesFromAgent(agent);}
     

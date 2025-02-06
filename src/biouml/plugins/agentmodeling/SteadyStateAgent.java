@@ -46,7 +46,6 @@ import biouml.standard.simulation.ResultListener;
  */
 public class SteadyStateAgent extends ModelAgent
 {
-    //    private int nextSpanIndex = 1;
     private boolean isStandard = false;
     private double timeBeforeSteadyState = 100;
     private double timeStep = 1;
@@ -54,6 +53,9 @@ public class SteadyStateAgent extends ModelAgent
     private double timeControlStep = 1;
     private double[] x;
 
+    /** Inner span to simulate until steady state*/
+    private Span steadySpan;
+    
     public SteadyStateAgent(SimulationEngine engine, String name) throws Exception
     {
         super( engine, name );
@@ -72,55 +74,34 @@ public class SteadyStateAgent extends ModelAgent
         super.init();
         nextSpanIndex = 1;
         x = model.getInitialValues();
+        steadySpan = new UniformSpan( 0, timeBeforeSteadyState, timeStep );
     }
-
+    
     @Override
-    protected void setUpdated() throws Exception
+    public void applyChanges() throws Exception
     {
-        if( isStandard )
-        {
-            super.setUpdated();
-            return;
-        }
+        simulator.setInitialValues( currentValues );
+        findSteadyState();
+        currentValues = model.getCurrentValues();
+    }
+    
+    /**
+     * Finds steady state at current time point
+     */
+    public void findSteadyState() throws Exception
+    {
         if( updatedFromOutside )
-        {
             simulator.setInitialValues( currentValues );
-            //             if (this.currentTime == this.initialTime)
-            //                 x = model.getInitialValues();
-        }
-
-        Span span = new UniformSpan( 0, timeBeforeSteadyState, timeStep );
-
-        //        System.out.println( DoubleStreamEx.of( x ).joining( "\t" ) );
-        //        System.out.println( "BEFORE "+DoubleStreamEx.of( model.getCurrentValues()).joining( "\t" ) );
-
+   
         if( model instanceof JavaBaseModel ) //TODO: maybe create method in the model to reset time?
             ( (JavaBaseModel)model ).time = 0;
 
-        ( (SimulatorSupport)simulator ).start( model, x, span, new ResultListener[] {}, null );
-        //        System.out.println( "AFTER "+DoubleStreamEx.of( model.getCurrentValues()).joining( "\t" ) );
-
+        ( (SimulatorSupport)simulator ).start( model, x, steadySpan, new ResultListener[] {}, null );
         x = simulator.getProfile().getX(); //store new initial values; TODO: reset model inner time
-        //        System.out.println( DoubleStreamEx.of( x ).joining( "\t" ) );
-
-
-
         currentValues = model.getCurrentValues();
-
         if( currentTime == 0 )
             model.setCurrentValues( currentValues );
 
-        super.setUpdated();
-
-        if( currentTime >= timeControlStart )
-        {
-            isStandard = true;
-            currentTime = timeControlStart;
-            this.span = new UniformSpan( currentTime, this.span.getTimeFinal(), timeControlStep );
-            this.simulator.init( model, x, this.span, new ResultListener[] {}, null );
-            nextSpanIndex = 1;
-            isAlive = currentTime < this.span.getTimeFinal(); //it is possible that we rolled back a little           
-        }
         updatedFromOutside = false;
     }
 
@@ -138,14 +119,28 @@ public class SteadyStateAgent extends ModelAgent
             if( nextSpanIndex >= span.getLength() )
                 isAlive = false;
 
-            if( isAlive )
+            if( !isAlive )
+                return;
+
+            if( recalculateStepIndex != -1 )
+                recalculateSpan();
+            
+//            findSteadyState();
+            previousTime = currentTime;
+            currentTime = span.getTime( nextSpanIndex++ );
+//                            System.out.println( "Agent Step" + getName() + " from "+getScaledPreviousTime()+" to "+getScaledCurrentTime());
+
+            if( currentTime >= timeControlStart )
             {
-                if( recalculateStepIndex != -1 )
-                    recalculateSpan();
-                previousTime = currentTime;
-                currentTime = span.getTime( nextSpanIndex++ );
-                isAlive = nextSpanIndex < span.getLength();
+                isStandard = true;
+                currentTime = timeControlStart;
+                this.span = new UniformSpan( currentTime, this.span.getTimeFinal(), timeControlStep );
+                this.simulator.init( model, x, this.span, new ResultListener[] {}, null );
+                nextSpanIndex = 1;
+                isAlive = currentTime < this.span.getTimeFinal(); //it is possible that we rolled back a little           
             }
+            isAlive = nextSpanIndex < span.getLength();
+
         }
         catch( Exception ex )
         {
