@@ -30,33 +30,10 @@ public class TestSteadyStateAgent extends AbstractBioUMLTest
     public static TestSuite suite()
     {
         TestSuite suite = new TestSuite( TestSteadyStateAgent.class.getName() );
-//        suite.addTest( new TestSteadyStateAgent( "testSingleAgent" ) );
-//        suite.addTest( new TestSteadyStateAgent( "testTwoAgentsModel" ) );
-//        suite.addTest( new TestSteadyStateAgent( "testSetValuesBeforeRun" ) );
-
+        suite.addTest( new TestSteadyStateAgent( "testSingleAgent" ) );
+        suite.addTest( new TestSteadyStateAgent( "testTwoAgentsModel" ) );
         return suite;
     }
-
-//    public void testSetValuesBeforeRun() throws Exception
-//    {
-//        Simple model = new Simple();
-//        JVodeSolver simulator = new JVodeSolver();
-//        Span span = new UniformSpan( 0, 1, 1 );
-//        SteadyStateAgent agent = new SteadyStateAgent( model, simulator, span, "SteadyAgent" );
-//        AgentBasedModel agentModel = new AgentBasedModel();
-//        agentModel.addAgent( agent );
-//        Scheduler scheduler = new Scheduler();
-//        SimulationResult result = new SimulationResult( null, "result" );
-//        ResultWriter writer = new ResultWriter( result );
-//        agentModel.init();
-//        double[] values = agentModel.getCurrentValues();
-//        values[1] = 13;
-//        agentModel.setCurrentValues( values );
-//        model.setCurrentValues( values );
-//        scheduler.start( agentModel, span, new ResultListener[] {writer}, null );
-//        System.out.println( model.getCurrentValues()[3] );
-//    }
-
     public void testSingleAgent() throws Exception
     {
         ShorttermModel model = new ShorttermModel();
@@ -116,7 +93,6 @@ public class TestSteadyStateAgent extends AbstractBioUMLTest
 
         for( int i = 0; i < varNames.length; i++ )
             mapping.put( varNames[i], i );
-        result.setVariableMap( mapping );
         result.setVariableMap( mapping );
     }
 }
