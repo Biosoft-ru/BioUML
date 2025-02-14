@@ -3,6 +3,7 @@ package ru.biosoft.bsa.transformer;
 import java.io.File;
 import java.util.Properties;
 
+import com.developmentontheedge.application.ApplicationUtils;
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
@@ -30,7 +31,8 @@ public class GenbankFileTransformer extends AbstractFileTransformer<GenbankSeque
     @Override
     public void save(File output, GenbankSequenceCollection element) throws Exception
     {
-        throw new UnsupportedOperationException();
+        FileEntryCollection2 fec = ((FileEntryCollection2)element.getPrimaryCollection());
+        ApplicationUtils.linkOrCopyFile( output, fec.getFile(), null );
     }
 
     @Override
@@ -43,7 +45,7 @@ public class GenbankFileTransformer extends AbstractFileTransformer<GenbankSeque
     @Override
     public int getInputPriority(Class<? extends DataElement> inputClass, DataElement output)
     {
-        return -1;
+        return 1;
     }
 
     @Override
