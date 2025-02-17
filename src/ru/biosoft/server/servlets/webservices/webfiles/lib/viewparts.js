@@ -2933,7 +2933,7 @@ function GenomeEnhancerViewPart()
 
 function LogViewPart()
 {
-    createViewPart(this, "common.log", "Logs");
+    createViewPart(this, "common.log", "Логи");
     var _this = this;
     this.autoupdate = false;
     this.disabled = false;

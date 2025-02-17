@@ -3,7 +3,7 @@
  */
 {
     id: "revert",
-    label: "Revert to saved",
+    label: "Возврат к сохраненному",
     icon: "icons/revert.gif",
     visible: "function(doc)
     {

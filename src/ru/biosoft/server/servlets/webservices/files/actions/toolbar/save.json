@@ -3,7 +3,7 @@
  */
 {
     id: "save_document",
-    label: "Save document",
+    label: "Сохранить документ",
     icon: "icons/save.gif",
     visible: "function(doc)
     {

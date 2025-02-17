@@ -3,7 +3,7 @@
  */
 {
     id: "undo_in",
-    label: "Undo",
+    label: "Отменить",
     icon: "icons/undo.gif",
     visible: "function(doc)
     {

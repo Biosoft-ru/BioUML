@@ -3,7 +3,7 @@
  */
 {
     id: "zoom_in",
-    label: "Zoom in",
+    label: "Увеличить",
     icon: "icons/zoomin.gif",
     visible: "function(doc)
     {

@@ -3,7 +3,7 @@
  */
 {
     id: "help_platform",
-    label: "Help",
+    label: "Помощь",
     icon: "icons/help.gif",
     visible: "function()
     {

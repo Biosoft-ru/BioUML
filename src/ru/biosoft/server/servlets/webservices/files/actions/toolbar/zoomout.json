@@ -3,7 +3,7 @@
  */
 {
     id: "zoom_out",
-    label: "Zoom out",
+    label: "Уменьшить",
     icon: "icons/zoomout.gif",
     visible: "function(doc)
     {

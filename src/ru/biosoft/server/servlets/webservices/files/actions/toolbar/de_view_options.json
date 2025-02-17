@@ -3,7 +3,7 @@
  */
 {
     id: "de_view_options",
-    label: "Edit diagram element appearance",
+    label: "Редактирование внешнего вида элементов диаграммы",
     icon: "icons/de_options.png",
     visible: "function(doc)
     {

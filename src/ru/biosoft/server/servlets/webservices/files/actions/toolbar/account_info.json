@@ -3,7 +3,7 @@
  */
 {
     id: "account_info",
-    label: "Account info",
+    label: "Информация о пользователе",
     icon: "icons/account_info.gif",
     visible: "function(doc)
     {

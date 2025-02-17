@@ -3,7 +3,7 @@
  */
 {
     id: "edit_view_options",
-    label: "Diagram view options",
+    label: "Параметры просмотра диаграмм",
     icon: "icons/options.gif",
     visible: "function(doc)
     {

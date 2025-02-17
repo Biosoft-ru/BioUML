@@ -3,7 +3,7 @@
  */
 {
     id: "save_document_as",
-    label: "Save a copy",
+    label: "Сохранить копию",
     icon: "icons/saveas.gif",
     visible: "function(doc)
     {

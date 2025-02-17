@@ -3,7 +3,7 @@
  */
 {
     id: "convert",
-    label: "Convert to type",
+    label: "Преобразование к типу",
     icon: "icons/convert.gif",
     visible: "function(doc)
     {

@@ -3,7 +3,7 @@
  */
 {
     id: "export",
-    label: "Export",
+    label: "Экспорт данных",
     icon: "icons/export.gif",
     visible: "function(doc)
     {

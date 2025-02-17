@@ -3,7 +3,7 @@
  */
 {
     id: "semantic_detailed",
-    label: "Detailed",
+    label: "Подробнее",
     icon: "icons/detailed.gif",
     visible: "function(doc)
     {

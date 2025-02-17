@@ -3,7 +3,7 @@
  */
 {
     id: "combine_tracks",
-    label: "Combine tracks",
+    label: "Объединить дорожки",
     icon: "icons/combine_tracks.gif",
     visible: "function(doc)
     {

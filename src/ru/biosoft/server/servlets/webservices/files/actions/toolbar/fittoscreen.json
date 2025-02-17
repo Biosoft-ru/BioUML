@@ -3,7 +3,7 @@
  */
 {
     id: "fit_to_screen",
-    label: "Fit to screen",
+    label: "Прилегание к экрану",
     icon: "icons/fittoscreen.png",
     visible: "function(doc)
     {

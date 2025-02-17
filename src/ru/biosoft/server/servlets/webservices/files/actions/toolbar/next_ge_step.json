@@ -1,6 +1,6 @@
 {
     id: "genomeenhancer_next",
-    label: "Next",
+    label: "Следующий",
     icon: "icons/next.png",
     visible: "function()
     {

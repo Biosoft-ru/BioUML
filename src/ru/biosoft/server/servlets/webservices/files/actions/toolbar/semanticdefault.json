@@ -3,7 +3,7 @@
  */
 {
     id: "semantic_default",
-    label: "Default",
+    label: "По умолчанию",
     icon: "icons/default.gif",
     visible: "function(doc)
     {

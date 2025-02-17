@@ -3,7 +3,7 @@
  */
 {
     id: "import_document",
-    label: "Import",
+    label: "Импорт данных",
     icon: "icons/import.gif",
     visible: "function()
     {

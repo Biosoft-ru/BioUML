@@ -3,7 +3,7 @@
  */
 {
     id: "pf_highlight",
-    label: "Highlight/dehighlight originally loaded nodes",
+    label: "Выделение/отключение подсветки первоначально загруженных узлов",
     icon: "icons/pf_highlight.png",    
     visible: "function(doc)
     {

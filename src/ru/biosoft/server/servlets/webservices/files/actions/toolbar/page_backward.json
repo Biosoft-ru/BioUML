@@ -3,7 +3,7 @@
  */
 {
     id: "page backward",
-    label: "Page backward",
+    label: "Предыдущая страница",
     icon: "icons/page_backward.gif",
     visible: "function(doc)
     {

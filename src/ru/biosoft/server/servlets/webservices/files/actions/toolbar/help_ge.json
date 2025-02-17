@@ -3,7 +3,7 @@
  */
 {
     id: "help_ge",
-    label: "Help",
+    label: "Помощь",
     icon: "icons/help.gif",
     visible: "function()
     {

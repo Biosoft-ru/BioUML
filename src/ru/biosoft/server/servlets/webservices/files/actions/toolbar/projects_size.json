@@ -3,7 +3,7 @@
  */
 {
     id: "projects_size",
-    label: "Occupied disk space",
+    label: "Занимаемое дисковое пространство",
     icon: "icons/projectsSize.png",
     visible: "function()
     {

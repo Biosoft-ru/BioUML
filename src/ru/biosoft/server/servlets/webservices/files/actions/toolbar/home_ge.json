@@ -3,7 +3,7 @@
  */
 {
     id: "home_ge",
-    label: "Home",
+    label: "Домашняя страница",
     icon: "icons/home.gif",
     visible: "function()
     {

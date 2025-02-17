@@ -1,6 +1,6 @@
 {
     id: "genomeenhancer_prev",
-    label: "Previous",
+    label: "Предыдущая",
     icon: "icons/prev.png",
     visible: "function()
     {

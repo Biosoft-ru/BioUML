@@ -3,7 +3,7 @@
  */
 {
     id: "generate_script",
-    label: "Generate script",
+    label: "Создать скрипт",
     icon: "icons/script.gif",
     visible: "function(doc)
     {
