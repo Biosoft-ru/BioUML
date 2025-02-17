@@ -24,7 +24,7 @@ public class BEDTrackImporter extends TrackImporter
         String[] fields = line.split("\\s");
         if( fields.length < 3 )
             return null;
-        String chrom = normalizeChromosome(fields[0]);
+        String chrom = fields[0];
         int start, length;
         try
         {
