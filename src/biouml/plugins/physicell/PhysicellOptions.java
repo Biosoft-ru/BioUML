@@ -15,7 +15,8 @@ public class PhysicellOptions extends Options
     private boolean saveReport = true;
     private double reportInterval = 10;
     private boolean saveImage = false;
-    private boolean saveImageText = true;
+    private boolean saveImageText = false;
+    private boolean saveImageTable = true;
     private boolean saveGIF = false;
     private boolean saveVideo = true;
     private boolean parallelDiffusion = false;
@@ -90,6 +91,16 @@ public class PhysicellOptions extends Options
     public void setSaveImageText(boolean saveImageText)
     {
         this.saveImageText = saveImageText;
+    }
+    
+    @PropertyName ( "Save images as table" )
+    public boolean isSaveImageTable()
+    {
+        return saveImageTable;
+    }
+    public void setSaveImageTable(boolean saveImageTable)
+    {
+        this.saveImageTable = saveImageTable;
     }
 
     @PropertyName ( "Save GIF" )

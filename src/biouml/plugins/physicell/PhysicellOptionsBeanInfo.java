@@ -26,6 +26,7 @@ public class PhysicellOptionsBeanInfo extends BeanInfoEx2<PhysicellOptions>
         add( "imageInterval" );
         add( "saveReport" );
         add("saveImageText");
+        add("saveImageTable");
         add( "saveImage" );
         add( "saveGIF" );
         add( "saveVideo" );
