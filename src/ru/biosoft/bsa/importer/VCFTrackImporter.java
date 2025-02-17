@@ -73,7 +73,7 @@ public class VCFTrackImporter extends TrackImporter
     {
         String[] fields = TextUtil.split(line, '\t');
         if(fields.length < 8) return null;
-        String chr = normalizeChromosome(fields[0]);
+        String chr = fields[0];
         int start;
         try
         {

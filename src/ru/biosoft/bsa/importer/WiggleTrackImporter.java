@@ -59,7 +59,7 @@ public class WiggleTrackImporter extends TrackImporter
                     try
                     {
                         if( m.group(1).equals("chrom") && m.group(2).startsWith("chr") )
-                            chrom = m.group(2).substring("chr".length());
+                            chrom = m.group(2);
                         if( m.group(1).equals("start") )
                             start = Integer.parseInt(m.group(2));
                         if( m.group(1).equals("step") )
