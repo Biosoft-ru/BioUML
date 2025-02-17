@@ -3,7 +3,7 @@
  */
 {
     id: "shift_forward",
-    label: "Shift forward",
+    label: "Сдвиг вперед",
     icon: "icons/page_forward.gif",
     visible: "function(doc)
     {

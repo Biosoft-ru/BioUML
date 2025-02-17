@@ -3,7 +3,7 @@
  */
 {
     id: "clear_auto_layout",
-    label: "Clear auto layout",
+    label: "автоматическая компоновка",
     icon: "icons/clear_auto_layout.gif",
     visible: "function(doc)
     {

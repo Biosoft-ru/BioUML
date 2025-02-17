@@ -14,7 +14,7 @@ var appInfo =
         help: "http://wiki.biouml.org/",
         manual: "Manual geneXplain platform.pdf",
         serverAddress: "localhost",
-        startPageTitle: "Start page",
+        startPageTitle: "Начальная страница",
         userAccountLink: "https://store.genexplain.com/",
 
         end: ""

@@ -3,7 +3,7 @@
  */
 {
     id: "toggle_repository",
-    label: "Toggle repository",
+    label: "Переключить репозиторий",
     icon: "icons/toggle_repository.png",
     visible: "function(doc)
     {

@@ -3,7 +3,7 @@
  */
 {
     id: "pf_shortestpath",
-    label: "Find shortes path betweeen nodes",
+    label: "Поиск кратчайшего пути между узлами",
     icon: "icons/pf_shortestpath.png",    
     visible: "function(doc)
     {

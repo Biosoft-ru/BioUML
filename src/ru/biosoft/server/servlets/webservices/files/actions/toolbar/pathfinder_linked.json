@@ -3,7 +3,7 @@
  */
 {
     id: "pathfinder_linked",
-    label: "Show linked elements dialog",
+    label: "Показать диалоговое окно связанных элементов",
     icon: "icons/pathfinder_linked.png",
     visible: "function(doc)
     {

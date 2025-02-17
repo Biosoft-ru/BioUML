@@ -3,7 +3,7 @@
  */
 {
     id: "home",
-    label: "Start page",
+    label: "Начальная страница",
     icon: "icons/home.gif",
     visible: "function()
     {

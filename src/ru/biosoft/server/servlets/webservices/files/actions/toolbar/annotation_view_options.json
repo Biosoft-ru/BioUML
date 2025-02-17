@@ -3,7 +3,7 @@
  */
 {
     id: "annotation_view_options",
-    label: "Edit diagram appearance",
+    label: "Редактирование внешнего вида диаграммы",
     icon: "icons/annot_options.png",
     visible: "function(doc)
     {

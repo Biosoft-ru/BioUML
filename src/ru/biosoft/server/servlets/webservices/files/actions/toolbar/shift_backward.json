@@ -3,7 +3,7 @@
  */
 {
     id: "shift_backward",
-    label: "Shift backward",
+    label: "Сдвиг назад",
     icon: "icons/page_backward.gif",
     visible: "function(doc)
     {

@@ -3,7 +3,7 @@
  */
 {
     id: "project_properties",
-    label: "Project properties",
+    label: "Свойства проекта",
     icon: "icons/projectProperties.gif",
     visible: "function()
     {

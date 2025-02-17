@@ -3,7 +3,7 @@
  */
 {
     id: "login",
-    label: "Log-in",
+    label: "Авторизация",
     icon: "icons/login.png",
     visible: "function(doc)
     {

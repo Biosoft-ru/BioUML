@@ -3,7 +3,7 @@
  */
 {
     id: "logout",
-    label: "Log out",
+    label: "Выход из системы",
     icon: "icons/logout.gif",
     visible: "function(doc)
     {

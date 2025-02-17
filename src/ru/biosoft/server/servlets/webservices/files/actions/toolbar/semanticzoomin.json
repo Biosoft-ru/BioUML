@@ -3,7 +3,7 @@
  */
 {
     id: "semantic_zoom_in",
-    label: "Semantic zoom in",
+    label: "Семантическое увеличение масштаба",
     icon: "icons/semanticzoomin.gif",
     visible: "function(doc)
     {

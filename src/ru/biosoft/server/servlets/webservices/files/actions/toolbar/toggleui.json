@@ -3,7 +3,7 @@
  */
 {
     id: "toggle_ui",
-    label: "Toggle UI mode",
+    label: "Переключить режим пользовательского интерфейса",
     icon: "icons/toggleui.png",
     visible: "function(doc)
     {

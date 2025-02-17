@@ -3,7 +3,7 @@
  */
 {
     id: "set_auto_layout",
-    label: "Set auto layout",
+    label: "Установить автоматическую раскладку",
     icon: "icons/set_auto_layout.gif",
     visible: "function(doc)
     {

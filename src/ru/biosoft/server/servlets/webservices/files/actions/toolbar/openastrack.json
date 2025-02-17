@@ -3,7 +3,7 @@
  */
 {
     id: "open as track",
-    label: "Open as track",
+    label: "Открыть как трек",
     icon: "icons/track.png",
     visible: "function(doc)
     {

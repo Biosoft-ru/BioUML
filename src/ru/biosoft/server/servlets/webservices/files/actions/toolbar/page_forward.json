@@ -3,7 +3,7 @@
  */
 {
     id: "page forward",
-    label: "Page forward",
+    label: "Следующая страница",
     icon: "icons/page_forward.gif",
     visible: "function(doc)
     {

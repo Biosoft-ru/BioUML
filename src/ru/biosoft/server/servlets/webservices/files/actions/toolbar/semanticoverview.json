@@ -3,7 +3,7 @@
  */
 {
     id: "semantic_overview",
-    label: "Overview",
+    label: "Обзор",
     icon: "icons/overview.gif",
     visible: "function(doc)
     {

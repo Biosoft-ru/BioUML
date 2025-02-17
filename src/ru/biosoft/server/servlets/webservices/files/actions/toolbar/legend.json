@@ -3,7 +3,7 @@
  */
 {
     id: "legend",
-    label: "Legend",
+    label: "Легенда",
     icon: "icons/legend.png",
     visible: "function()
     {

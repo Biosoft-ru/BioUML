@@ -3,7 +3,7 @@
  */
 {
     id: "run_script",
-    label: "Run script",
+    label: "Запустить скрипт",
     icon: "icons/run.gif",
     visible: "function(doc)
     {
