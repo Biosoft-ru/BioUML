@@ -135,6 +135,14 @@
      />
   </extension>
 
+  <extension id="Import CRAM file" point="ru.biosoft.access.import">
+      <import
+          format="CRAM aligment file (*.cram)"
+          importer="=ru.biosoft.bsa.importer.CRAMTrackImporter"
+          description="Import CRAM file"
+          />
+  </extension>
+
   <extension id="Export SAM or BAM file" point="ru.biosoft.access.export"> 
      <export 
         suffix="bam"
@@ -967,22 +975,24 @@
      />
   </extension>
 
-  
+
   <extension point="ru.biosoft.access.transformer">
-    <transformer name="BedFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="BedFile" inputClass="ru.biosoft.access.FileDataElement"
       outputClass="ru.biosoft.bsa.track.BedTrack" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" />
-    <transformer name="GFFFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="GFFFile" inputClass="ru.biosoft.access.FileDataElement"
       outputClass="ru.biosoft.bsa.track.GFFTrack" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" />
-    <transformer name="FastaFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/> 
-    <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/> 
-    <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
-    <transformer name="BCFFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/> 
-    <transformer name="GenebankFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/> 
+    <transformer name="FastaFile" inputClass="ru.biosoft.access.FileDataElement"
+      outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/>
+    <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement"
+      outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/>
+    <transformer name="CRAMFile" inputClass="ru.biosoft.access.FileDataElement"
+                 outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.CRAMFileTransformer"/>
+    <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement"
+      outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/>
+    <transformer name="BCFFile" inputClass="ru.biosoft.access.FileDataElement"
+      outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/>
+    <transformer name="GenebankFile" inputClass="ru.biosoft.access.FileDataElement"
+      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/>
   </extension>
 
 </plugin>
