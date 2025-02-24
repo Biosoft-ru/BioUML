@@ -135,9 +135,13 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
     public static File getIndexFile(File bamFile)
     {
         String name = bamFile.getName();
-        if( name.endsWith(".bam") )
-            name = name.substring(0, name.length() - ".bam".length());
-        name = name + ".bai";
+
+        if (name.endsWith(".bam")) {
+            name = name.substring(0, name.length() - ".bam".length()) + ".bai";
+        } else if (name.endsWith(".cram")) {
+            name = name.substring(0, name.length() - ".cram".length()) + ".crai";
+        }
+
         return new File(bamFile.getParentFile(), name);
     }
 
