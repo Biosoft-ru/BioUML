@@ -145,7 +145,6 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
     {
         return indexFile;
     }
-
     @Override
     public int countSites(String sequence, int from, int to) throws Exception
     {
