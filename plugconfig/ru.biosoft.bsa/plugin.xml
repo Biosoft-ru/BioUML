@@ -127,11 +127,11 @@
      />
   </extension>
   
-  <extension id="Import SAM or BAM оr file" point="ru.biosoft.access.import">
+  <extension id="Import SAM or BAM оr CRAM file" point="ru.biosoft.access.import">
      <import 
-        format="SAM or BAM alignment file (*.sam, *.bam)"
+        format="SAM or BAM or CRAM alignment file (*.sam, *.bam, *.cram)"
         importer="ru.biosoft.bsa.importer.SAMBAMTrackImporter"
-        description="Import SAM/BAM file"
+        description="Import SAM/BAM/CRAM file"
      />
   </extension>
 
