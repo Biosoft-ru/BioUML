@@ -37,8 +37,7 @@ public class SAMBAMTrackImporter implements DataElementImporter
     {
         if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() ) )
             return ACCEPT_UNSUPPORTED;
-        if( file == null || file.getName().toLowerCase().endsWith(".sam") || file.getName().toLowerCase().endsWith(".bam") ||
-                file.getName().toLowerCase().endsWith(".cram"))
+        if( file == null || file.getName().toLowerCase().endsWith(".sam") || file.getName().toLowerCase().endsWith(".bam"))
             return ACCEPT_HIGHEST_PRIORITY;
         return ACCEPT_UNSUPPORTED;
     }
