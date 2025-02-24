@@ -127,21 +127,21 @@
      />
   </extension>
   
-  <extension id="Import SAM or BAM оr CRAM file" point="ru.biosoft.access.import">
+  <extension id="Import SAM or BAM оr file" point="ru.biosoft.access.import">
      <import 
-        format="SAM or BAM or CRAM alignment file (*.sam, *.bam, *.cram)"
+        format="SAM or BAM alignment file (*.sam, *.bam)"
         importer="ru.biosoft.bsa.importer.SAMBAMTrackImporter"
         description="Import SAM/BAM file"
      />
   </extension>
 
-  <extension id="Export SAM or BAM or CRAM file" point="ru.biosoft.access.export">
+  <extension id="Export SAM or BAM file" point="ru.biosoft.access.export">
      <export 
         suffix="bam"
         contentType="application/octet-stream"
         exporter="ru.biosoft.bsa.SAMBAMTrackExporter"
-        format="SAM or BAM alignment file (*.sam, *.bam, *.cram)"
-        description="Export SAM/BAM/CRAM file"
+        format="SAM or BAM alignment file (*.sam, *.bam)"
+        description="Export SAM/BAM file"
      />
   </extension>
 
