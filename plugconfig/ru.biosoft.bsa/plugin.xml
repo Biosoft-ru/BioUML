@@ -127,32 +127,24 @@
      />
   </extension>
   
-  <extension id="Import SAM or BAM file" point="ru.biosoft.access.import"> 
+  <extension id="Import SAM or BAM оr CRAM file" point="ru.biosoft.access.import">
      <import 
-        format="SAM or BAM alignment file (*.sam, *.bam)"
+        format="SAM or BAM or CRAM alignment file (*.sam, *.bam, *.cram)"
         importer="ru.biosoft.bsa.importer.SAMBAMTrackImporter"
         description="Import SAM/BAM file"
      />
   </extension>
 
-  <extension id="Import CRAM file" point="ru.biosoft.access.import">
-      <import
-          format="CRAM aligment file (*.cram)"
-          importer="=ru.biosoft.bsa.importer.CRAMTrackImporter"
-          description="Import CRAM file"
-          />
-  </extension>
-
-  <extension id="Export SAM or BAM file" point="ru.biosoft.access.export"> 
+  <extension id="Export SAM or BAM or CRAM file" point="ru.biosoft.access.export">
      <export 
         suffix="bam"
         contentType="application/octet-stream"
         exporter="ru.biosoft.bsa.SAMBAMTrackExporter"
-        format="SAM or BAM alignment file (*.sam, *.bam)"
-        description="Export SAM/BAM file"
+        format="SAM or BAM alignment file (*.sam, *.bam, *.cram)"
+        description="Export SAM/BAM/CRAM file"
      />
   </extension>
-  
+
   <extension id="Import tracks from common formats" point="ru.biosoft.access.import"> 
      <import 
         format="BED format (*.bed)"
@@ -985,8 +977,6 @@
       outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/>
     <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement"
       outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/>
-    <transformer name="CRAMFile" inputClass="ru.biosoft.access.FileDataElement"
-                 outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.CRAMFileTransformer"/>
     <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement"
       outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/>
     <transformer name="BCFFile" inputClass="ru.biosoft.access.FileDataElement"
