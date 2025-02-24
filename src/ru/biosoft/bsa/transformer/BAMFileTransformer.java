@@ -49,7 +49,7 @@ public class BAMFileTransformer extends AbstractFileTransformer<BAMTrack> implem
     @Override
     public int getOutputPriority(String name)
     {
-        if(name.toLowerCase().endsWith( ".bam" ) || name.toLowerCase().endsWith(".cram"))
+        if(name.toLowerCase().endsWith( ".bam" ))
             return 2;
         return 0;
     }
