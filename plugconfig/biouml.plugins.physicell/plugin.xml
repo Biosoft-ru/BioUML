@@ -106,5 +106,26 @@
       <transformer name="Java file" inputClass="ru.biosoft.access.FileDataElement"
         outputClass="biouml.plugins.physicell.javacode.JavaElement" transformerClass="biouml.plugins.physicell.javacode.JavaTransformer"/> 
   </extension>
+  
+  	  <extension id="repository actions" point="ru.biosoft.access.repositoryActionsProvider"> 
+      <repositoryActionsProvider class="biouml.plugins.physicell.document.RepositoryActionsProvider"/> 
+  </extension> 
+  
+  <extension id="simulation factory" point="ru.biosoft.workbench.documentFactory"> 
+      <documentFactory 
+        class="biouml.plugins.physicell.document.PhysicellResultFactory"
+        key="biouml.plugins.physicell.document.PhysicellSimulationResult"
+      /> 
+  </extension>
 	
+  <extension id="Simualtion result options" point="biouml.workbench.diagramViewPart"> 
+      <diagramViewPart editor="true" 
+        class="biouml.plugins.physicell.document.PhysicellResultViewPart"
+        id="physicell.result.options" 
+        Name="Options"
+        ShortDescription="Simulation result options"
+        Priority = "1.4"
+      /> 
+      
+  </extension>
 </plugin>
