@@ -55,7 +55,7 @@ public class SbolDiagramTransformer extends AbstractFileTransformer<Diagram> imp
             return 10;
         else if ( name.endsWith(".xml") )
             return 5;
-        return 1;
+        return 0;
     }
 
     @Override

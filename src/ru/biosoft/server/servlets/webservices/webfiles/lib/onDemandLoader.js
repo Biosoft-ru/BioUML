@@ -56,6 +56,9 @@ function SimulationDocument()
 function bpmnDocument()
 {}
 
+function ScriptDocument()
+{}
+
 var modulesCallbacks = {};
 
 function loadBioUMLModules(modules, initFunction, callback)
