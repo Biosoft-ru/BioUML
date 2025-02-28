@@ -114,7 +114,7 @@ public class DocumentManager extends com.developmentontheedge.application.Docume
     public Document openDocument(Class<? extends DataElement> baseClass, DataElement de)
     {
         Document curDocument = Document.getCurrentDocument();
-        if( curDocument != null && curDocument.getModel().equals( de ) )
+        if( curDocument != null && curDocument.getModel().equals( de ) && curDocument.getClass().equals( baseClass ))
         {
             curDocument.update();
             return curDocument;

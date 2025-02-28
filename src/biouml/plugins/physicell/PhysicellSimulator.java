@@ -50,7 +50,8 @@ public class PhysicellSimulator implements Simulator
 
     private String format;
 
-    private VisualizerTextTable textVisualizer;
+    private VisualizerTextTable tableVisualizer;
+    private VisualizerText textVisualizer;
 
     @Override
     public SimulatorInfo getInfo()
@@ -69,9 +70,14 @@ public class PhysicellSimulator implements Simulator
 
     }
 
-    public void addTextVisualizer(VisualizerTextTable visualizer)
+    public void addTableVisualizer(VisualizerTextTable tableVisualizer)
     {
-        this.textVisualizer = visualizer;
+        this.tableVisualizer = tableVisualizer;
+    }
+    
+    public void addTextVisualizer(VisualizerText textVisualizer)
+    {
+        this.textVisualizer = textVisualizer;
     }
 
     @Override
@@ -110,9 +116,9 @@ public class PhysicellSimulator implements Simulator
             imagesCollection = DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Image" ) );
 
         if( options.isSaveImageText() )
-        {
             textVisualizer.init(); //TODO: refactor and unify all visualizers
-        }
+        if (options.isSaveImageTable())
+            tableVisualizer.init();
 
         for( Visualizer v : this.model.getVisualizers() )
         {
@@ -189,11 +195,13 @@ public class PhysicellSimulator implements Simulator
 
         }
 
-        if( ( options.isSaveImageText() || options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() ) && curTime >= nextImage )
+        if( ( options.isSaveImageText() || options.isSaveImageTable() || options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() ) && curTime >= nextImage )
         {
 
             if( options.isSaveImageText() )
                 textVisualizer.saveResult( model.getMicroenvironment(), curTime );
+            if( options.isSaveImageTable() )
+                tableVisualizer.saveResult( model.getMicroenvironment(), curTime );
             if( options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() )
                 saveImages( curTime );
 

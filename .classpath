@@ -204,5 +204,7 @@
 	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar"/>
 	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar"/>
 	<classpathentry kind="lib" path="build/bin/junit-platform-console-standalone-1.11.0.jar"/>
+	<classpathentry kind="lib" path="plugconfig/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar"/>
+	<classpathentry kind="lib" path="plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

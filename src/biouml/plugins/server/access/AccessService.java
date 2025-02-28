@@ -789,7 +789,7 @@ public class AccessService extends AccessProtocol implements Service
             		deleteFile = !fileItem.getOriginalName().isEmpty(); 
             	}
             
-                if(fileItem.length() > 10*1024*1024)
+                if(fileItem.length() > 10L*1024*1024*1024)
                     throw new Exception("Element is too big to transfer");
 
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
