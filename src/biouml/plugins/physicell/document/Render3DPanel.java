@@ -1,7 +1,10 @@
 package biouml.plugins.physicell.document;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JPanel;
 
@@ -9,34 +12,29 @@ import ru.biosoft.physicell.ui.render.Renderer3D;
 import ru.biosoft.physicell.ui.render.Scene;
 import ru.biosoft.physicell.ui.render.SceneHelper;
 
-public class Render3DPanel extends JPanel
+public class Render3DPanel extends JPanel implements PropertyChangeListener
 {
     private Scene scene;
     private int time;
-    PhysicellSimulationResult result;
+    private PhysicellSimulationResult result;
     private View3DOptions options;
     private Renderer3D renderer;
     private BufferedImage img;
     private boolean isRendereing = false;
-
-    public void setScene(Scene scene, int time)
-    {
-        this.scene = scene;
-        this.time = time;
-    }
-
-    public void setOptions(View3DOptions options)
-    {
-        this.options = options;
-    }
+    private RotateListener rotateListener;
 
     public Render3DPanel(int width, int height, PhysicellSimulationResult result)
     {
+        setPreferredSize( new Dimension( width, height ) );
         renderer = new Renderer3D( width, height, 0, 0 );
         this.result = result;
         this.options = result.getOptions();
+        rotateListener = new RotateListener( result.getOptions() );
+        addMouseListener( rotateListener );
+        addMouseMotionListener( rotateListener );
+        options.addPropertyChangeListener( this );
     }
-
+    
     public void read(String content)
     {
         scene = Util.readScene( content, options.getQualityInt() );
@@ -65,5 +63,14 @@ public class Render3DPanel extends JPanel
     {
         g.clearRect( 0, 0, getWidth(), getHeight() );
         g.drawImage( img, 0, 0, null );
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) )
+            read( result.getPoint( options.getTime() ).getContent() );
+
+        update();
     }
 }
