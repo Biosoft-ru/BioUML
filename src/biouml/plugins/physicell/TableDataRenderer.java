@@ -78,7 +78,7 @@ public class TableDataRenderer
         double p = -0.3839;
         double h = -0.7679;
         Renderer3D renderer = new Renderer3D( width, height, h, p );
-        images.put( new ImageDataElement( tdc.getName(), images, renderer.render( scene ) ) );
+        images.put( new ImageDataElement( tdc.getName(), images, renderer.render( scene, 0 ) ) );
     }
 
     public Scene createScene(TableDataCollection tdc)
@@ -92,7 +92,7 @@ public class TableDataRenderer
             double z = Double.parseDouble( objects[2].toString() );
             double radius = Double.parseDouble( objects[3].toString() );
             Color color = decode( objects[5].toString() );
-            scene.add( SceneHelper.createSphere( x, y, z, radius, color, sphereQuality ) );
+            scene.addSphere( SceneHelper.createSphere( x, y, z, radius, color, color, sphereQuality ) );
         }
         return scene;
     }
