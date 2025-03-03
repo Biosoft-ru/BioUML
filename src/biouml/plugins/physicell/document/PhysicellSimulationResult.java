@@ -35,18 +35,21 @@ public class PhysicellSimulationResult extends BaseSupport
 
     public class Player extends Thread
     {
+        private int time;
         @Override
         public void run()
         {
             while( playing )
             {
-                if( !files.containsKey( options.getTime() ) )
-                {
-                    playing = false;
-                    return;
-                }
-                options.setTime( options.getTime() + step );
+                doStep();
             }
+        }
+        private void doStep()
+        {
+            time += step;
+            int existing = files.floorKey( time );
+            System.out.println( "Inner: "+time+ " Exitsing: "+existing );
+            options.setTime( existing );
         }
     }
 
@@ -78,6 +81,7 @@ public class PhysicellSimulationResult extends BaseSupport
             return;
         playing = true;
         player = new Player();
+        player.time = options.getTime();
         System.out.println( "Play" );
         player.start();
     }
