@@ -113,8 +113,6 @@ public class SliderEditor extends CustomEditorSupport
             @Override
             public void mouseReleased(MouseEvent e)
             {
-
-                //                field.setText( String.valueOf( slider.getValue() ) );
                 firePropertyChange();
             }
 
