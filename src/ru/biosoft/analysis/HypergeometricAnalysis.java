@@ -2,6 +2,7 @@ package ru.biosoft.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,14 +11,14 @@ import java.util.Vector;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import one.util.streamex.StreamEx;
-import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.biohub.BioHub;
 import ru.biosoft.access.biohub.BioHubRegistry;
 import ru.biosoft.access.biohub.Element;
 import ru.biosoft.access.biohub.TargetOptions;
 import ru.biosoft.access.biohub.TargetOptions.CollectionRecord;
 import ru.biosoft.access.core.ClassIcon;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.analysis.Util.MatrixElementsStatistics;
 import ru.biosoft.analysis.javascript.JavaScriptAnalysis;
 import ru.biosoft.analysiscore.AnalysisParameters;
@@ -26,6 +27,7 @@ import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.columnbeans.ColumnGroup;
 import ru.biosoft.util.BeanUtil;
+import ru.biosoft.util.Pair;
 
 @ClassIcon ( "resources/hypergeometric-analysis.gif" )
 public class HypergeometricAnalysis extends UpDownIdentification
@@ -172,7 +174,7 @@ public class HypergeometricAnalysis extends UpDownIdentification
         if( data == null )
             throw new Exception("Problems during data initialization");
 
-        TableDataCollection output = calculate(data);
+        List<Vector<Object>> resultData = calculate(data);
 
         if( upRegulated )
             log.info("Up regulated objects found: " + upRegulatedFound);
@@ -189,22 +191,28 @@ public class HypergeometricAnalysis extends UpDownIdentification
             for( int niter = 0; niter < 50; niter++ )
             {
                 double[][] permutatedMatrix = Stat.permutationComplicatedMatrix(data);
-                calculateFDR(permutatedMatrix, pvalues);
+                calculateFDR(permutatedMatrix, pvaluesUp, pvaluesDown);
             }
 
             for( int i = 0; i < totalEntries; i++ )
             {
-                output.getAt( i ).setValue( "FDR UP", upFoundByMistake[i] / ( 50d * data.length ) );
-                output.getAt( i ).setValue( "FDR DOWN", downFoundByMistake[i] / ( 50d * data.length ) );
+                resultData.get(i).add(upFoundByMistake[i] / (50d * data.length));
+                resultData.get(i).add(downFoundByMistake[i] / (50d * data.length));
+                //                                output.getAt( i ).setValue( "FDR UP", upFoundByMistake[i] / ( 50d * data.length ) );
+                //                                output.getAt( i ).setValue( "FDR DOWN", downFoundByMistake[i] / ( 50d * data.length ) );
             }
         }
+        TableDataCollection output = fillResultTable(resultData);
         return output;
     }
 
     private List<Double> pvalues;
+    private List<Double> pvaluesUp;
+    private List<Double> pvaluesDown;
 
-    private TableDataCollection calculate(double[][] matrix) throws Exception
+    private List<Vector<Object>> calculate(double[][] matrix) throws Exception
     {
+        List<Vector<Object>> resultData = new ArrayList<>();
         boolean detailed = getParameters().isDetailed();
         boolean meta = ( getParameters().getMatchingCollection() != null && getParameters().getNewKeySource() != null );
         int outputTypeCode = parameters.getOutputTypeCode();
@@ -212,14 +220,14 @@ public class HypergeometricAnalysis extends UpDownIdentification
         boolean upRegulated = ( outputTypeCode & HypergeometricAnalysisParameters.UP_REGULATED ) == HypergeometricAnalysisParameters.UP_REGULATED;
         boolean downRegulated = ( outputTypeCode & HypergeometricAnalysisParameters.DOWN_REGULATED ) == HypergeometricAnalysisParameters.DOWN_REGULATED;
 
-        TableDataCollection result = createOutputTable( meta, detailed, upRegulated, downRegulated );
-
         double barrierValue = getParameters().getBv();
 
         MatrixElementsStatistics statistics = new MatrixElementsStatistics( matrix );
         int totalData = statistics.getSize();
         int rowCount = matrix.length;
         pvalues = new ArrayList<>();
+        pvaluesUp = new ArrayList<>();
+        pvaluesDown = new ArrayList<>();
         for( int i = 0; i < rowCount && go; i++ )
         {
             incPreparedness( step++ );
@@ -229,6 +237,8 @@ public class HypergeometricAnalysis extends UpDownIdentification
             if( resultRow.pValue > cutOff )
                 continue;
             pvalues.add( resultRow.pValue );
+            pvaluesUp.add(resultRow.pvalueUp);
+            pvaluesDown.add(resultRow.pvalueDown);
             if( resultRow.statistic <= 0 )
             {
                 if( !upRegulated )
@@ -272,17 +282,36 @@ public class HypergeometricAnalysis extends UpDownIdentification
                 rowBuffer.add( resultRow.criticalElementDown );
             }
             
-            if (parameters.isFdr())
-            {
-                rowBuffer.add( 0 );
-                rowBuffer.add( 0 );
-            }
-            TableDataCollectionUtils.addRow( result, keys[i], rowBuffer.toArray() );
+            //            if (parameters.isFdr())
+            //            {
+            //                rowBuffer.add( 0 );
+            //                rowBuffer.add( 0 );
+            //            }
+            resultData.add(rowBuffer);
 
         }
-        return result;
+        return resultData;
     }
     
+    private TableDataCollection fillResultTable(List<Vector<Object>> resultData) throws Exception
+    {
+        boolean detailed = getParameters().isDetailed();
+        boolean meta = (getParameters().getMatchingCollection() != null && getParameters().getNewKeySource() != null);
+        int outputTypeCode = parameters.getOutputTypeCode();
+        boolean upRegulated = (outputTypeCode & HypergeometricAnalysisParameters.UP_REGULATED) == HypergeometricAnalysisParameters.UP_REGULATED;
+        boolean downRegulated = (outputTypeCode & HypergeometricAnalysisParameters.DOWN_REGULATED) == HypergeometricAnalysisParameters.DOWN_REGULATED;
+
+        TableDataCollection result = createOutputTable(meta, detailed, upRegulated, downRegulated);
+
+        int rowCount = resultData.size();
+        for ( int i = 0; i < rowCount && go; i++ )
+        {
+            TableDataCollectionUtils.addRow(result, keys[i], resultData.get(i).toArray(), true);
+        }
+        result.finalizeAddition();
+        return result;
+    }
+
     private static class Result
     {
         double pValue;
@@ -684,28 +713,90 @@ public class HypergeometricAnalysis extends UpDownIdentification
     private int[] upFoundByMistake;
     private int[] downFoundByMistake;
     
-    private void calculateFDR(double[][] matrix, List<Double> pValues) throws Exception
+    /**
+     * For each row calculate P-value for randomly permutated matrix Treat
+     * result as false-positive if new P-value is better than provided Compare
+     * up-regulated P-value with @pValuesUp and down-regulated with @pValuesDown
+     * Calculate how many P-values of randomly permutated data are less or equal
+     * of input pValues and store result in
+     * 
+     * @upFoundByMistake and @downFoundByMistake arrays
+     */
+    private void calculateFDR(double[][] matrix, List<Double> pValuesUp, List<Double> pValuesDown) throws Exception
     {
         double barrierValue = getParameters().getBv();
         MatrixElementsStatistics statistics = new MatrixElementsStatistics( matrix );
         int totalData = statistics.getSize();
         int rowCount = matrix.length;
+        List<Double> up = new ArrayList<>();
+        List<Double> down = new ArrayList<>();
+        //collect all p-vlaues for randomly permutated matrix into seperate lists for up- and down-regulated
         for( int i = 0; i < rowCount && go; i++ )
         {
             incPreparedness( step++ );
             double[] row = Arrays.copyOf( matrix[i], matrix[i].length );
             Result result = calculate( row, statistics, barrierValue, totalData, i );
+            if( result.statistic >= 0 )
+                up.add(result.pvalueUp);
+            if( result.statistic <= 0 )
+                down.add(result.pvalueDown);
 
-            for (int j=0; j< pValues.size(); j++)
+            //working but slow, O(n^2)
+            //            for ( int j = 0; j < pValuesUp.size(); j++ )
+            //            {
+            //                if( result.statistic <= 0 && result.pvalueDown <= pValuesDown.get(j) )
+            //                    downFoundByMistake1[j]++;
+            //                if( result.statistic >= 0 && result.pvalueUp <= pValuesUp.get(j) )
+            //                    upFoundByMistake1[j]++;
+            //            }
+        }
+        
+        //sort input pValues together with indices
+        int num = pValuesUp.size();
+        List<Pair<Integer, Double>> pUpPiars = new ArrayList<>();
+        List<Pair<Integer, Double>> pDownPiars = new ArrayList<>();
+        for ( int j = 0; j < num; j++ )
+        {
+            pUpPiars.add(new Pair(j, pValuesUp.get(j)));
+            pDownPiars.add(new Pair(j, pValuesDown.get(j)));
+        }
+
+        pUpPiars.sort(Comparator.comparingDouble(p -> p.getSecond()));
+        pDownPiars.sort(Comparator.comparingDouble(p -> p.getSecond()));
+
+        up.sort(Comparator.naturalOrder());
+        down.sort(Comparator.naturalOrder());
+
+        int numUp = up.size();
+        int numDown = down.size();
+
+        double[] valsUp = up.stream().mapToDouble(d -> d).toArray();
+        double[] valsDown = down.stream().mapToDouble(d -> d).toArray();
+
+        //calculate how many P-values of randomly permutated data are less or equal of input pValues
+        //traverse both pValues (input and permutated) once and simultaneously for speed optimization
+        //work separately for up- and down-regulated
+        int curUp = 0;
+        for ( int j = 0; j < pUpPiars.size(); j++ )
+        {
+            Pair<Integer, Double> pair = pUpPiars.get(j);
+            while ( curUp < numUp && valsUp[curUp] <= pair.getSecond() )
             {
-                if( result.pValue <= pValues.get(j) )
-                {
-                    if( result.statistic <= 0 )
-                        upFoundByMistake[j]++;
-                    else
-                        downFoundByMistake[j]++;
-                }
+                curUp++;
             }
+            upFoundByMistake[pair.getFirst()] += curUp;
+        }
+
+        int curDown = 0;
+        for ( int j = 0; j < pDownPiars.size(); j++ )
+        {
+            Pair<Integer, Double> pair = pDownPiars.get(j);
+            while ( curDown < numDown && valsDown[curDown] <= pair.getSecond() )
+            {
+                curDown++;
+            }
+            downFoundByMistake[pair.getFirst()] += curDown;
         }
     }
+
 }
