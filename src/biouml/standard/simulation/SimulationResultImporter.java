@@ -24,8 +24,7 @@ public class SimulationResultImporter implements DataElementImporter
     {        
         if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() ) )
             return ACCEPT_UNSUPPORTED;
-        return ( file != null )
-                ? ACCEPT_HIGH_PRIORITY : ACCEPT_UNSUPPORTED;
+        return (file == null) ? ACCEPT_HIGH_PRIORITY : ACCEPT_LOW_PRIORITY;
     }
 
     @Override
