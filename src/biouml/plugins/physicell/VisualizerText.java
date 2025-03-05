@@ -86,7 +86,7 @@ public class VisualizerText
     
     private String toString(double value)
     {
-        return String.valueOf( (int)(value * 10)/10 );
+        return String.valueOf( (int)(value * 10)/10.0 );
     }
 
     private static String encodeColor(Color color)
