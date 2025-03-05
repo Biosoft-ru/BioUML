@@ -73,15 +73,20 @@ public class VisualizerText
         for( Cell cell : m.getAgents( Cell.class ) )
         {
             Color[] colors = colorer.findColors( cell );
-            Object[] row = new Object[] {cell.position[0], cell.position[1], cell.position[2], cell.getRadius(),
-                    cell.phenotype.geometry.getNuclearRadius(), encodeColor( colors[0] ), encodeColor( colors[1] ),
-                    encodeColor( colors[2] ), encodeColor( colors[3] )};
+            Object[] row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                    toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
+                    encodeColor( colors[1] ), encodeColor( colors[2] ), encodeColor( colors[3] )};
 
             buffer.append( StreamEx.of( row ).map( s -> String.valueOf( s ) ).joining( "\t" ) );
             buffer.append( "\n" );
             tde.setContent( buffer.toString() );
         }
         parent.put( tde );
+    }
+    
+    private String toString(double value)
+    {
+        return String.valueOf( (int)(value * 10)/10 );
     }
 
     private static String encodeColor(Color color)
@@ -90,4 +95,5 @@ public class VisualizerText
             return "";
         return "[" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "]";
     }
+    
 }
