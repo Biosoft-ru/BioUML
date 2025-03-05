@@ -1,17 +1,16 @@
 package biouml.plugins.physicell.document;
 
-import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.physicell.ui.render.Vertex;
 
-public class View3DOptions extends Option
+public class View3DOptions extends ViewOptions
 {
     private static final String QUALITY_GOOD = "Good";
     private static final String QUALITY_POOR = "Poor";
     public static final String[] QUALITIES = new String[] { QUALITY_GOOD, QUALITY_POOR};
 
-    private String quality = QUALITY_GOOD;
+    private String quality = QUALITY_POOR;
 
     private int xCutOff = 750;
     private int yCutOff = 750;
@@ -20,28 +19,11 @@ public class View3DOptions extends Option
     private int head = 0;
     private int pitch = 0;
 
-    private boolean axes = true;
-    private boolean statistics = true;
-
     private int maxX = 0;
     private int maxY = 0;
     private int maxZ = 0;
     
-    private int maxTime;
-    private int time;
-
-    public void setSize(int x, int y, int z, int t)
-    {
-        maxX = x;
-        maxY = y;
-        maxZ = z;
-        maxTime = t;
-    }
-    
-    public int getMaxTime()
-    {
-        return maxTime;
-    }
+    private boolean is3D;
 
     public int getMaxX()
     {
@@ -56,30 +38,6 @@ public class View3DOptions extends Option
     public int getMaxZ()
     {
         return maxZ;
-    }
-
-    @PropertyName ( "Axes" )
-    public boolean isAxes()
-    {
-        return axes;
-    }
-    public void setAxes(boolean axes)
-    {
-        boolean oldValue = this.axes;
-        this.axes = axes;
-        this.firePropertyChange( "axes", oldValue, axes );
-    }
-
-    @PropertyName ( "Statistics" )
-    public boolean isStatistics()
-    {
-        return statistics;
-    }
-    public void setStatistics(boolean statistics)
-    {
-        boolean oldValue = this.statistics;
-        this.statistics = statistics;
-        this.firePropertyChange( "statistics", oldValue, statistics );
     }
 
     public void setAngle(int head, int pitch)
@@ -186,17 +144,22 @@ public class View3DOptions extends Option
     {
         return new Vertex( getXCutOff(), getYCutOff(), getZCutOff() );
     }
-
-    @PropertyName("Time")
-    public int getTime()
+    
+    @PropertyName("3D")
+    public boolean is3D()
     {
-        return time;
+        return is3D;
     }
 
-    public void setTime(int time)
+    public void set3D(boolean is3d)
     {
-        int oldValue = this.time;
-        this.time = time;
-        this.firePropertyChange( "time", oldValue, time );
+        boolean oldValue = this.is3D;
+        this.is3D = is3d;
+        this.firePropertyChange( "is3D", oldValue, is3d );
+    }
+    
+    public boolean is2D()
+    {
+        return !is3D();
     }
 }

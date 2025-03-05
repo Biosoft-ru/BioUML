@@ -28,8 +28,8 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
         setPreferredSize( new Dimension( width, height ) );
         renderer = new Renderer3D( width, height, 0, 0 );
         this.result = result;
-        this.options = result.getOptions();
-        rotateListener = new RotateListener( result.getOptions() );
+        this.options = (View3DOptions) result.getOptions();
+        rotateListener = new RotateListener( options );
         addMouseListener( rotateListener );
         addMouseMotionListener( rotateListener );
         options.addPropertyChangeListener( this );
@@ -46,6 +46,7 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
         renderer.setCutOff( options.getCutOff() );
         renderer.setAxes( options.isAxes() );
         renderer.setStatistics( options.isStatistics() );
+        System.out.println( "Repaint start" );
         if( !isRendereing )
         {
             isRendereing = true;
@@ -56,7 +57,7 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
             this.repaint();
             isRendereing = false;
         }
-        System.out.println( "Repaint" );
+        System.out.println( "Repaint end" );
     }
 
     public void paintComponent(Graphics g)
@@ -69,8 +70,11 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
     public void propertyChange(PropertyChangeEvent evt)
     {
         if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) )
+        {
+            System.out.println( "Load "+options.getTime() );
             read( result.getPoint( options.getTime() ).getContent() );
-
+        }
+        System.out.println( "Paint" );
         update();
     }
 }

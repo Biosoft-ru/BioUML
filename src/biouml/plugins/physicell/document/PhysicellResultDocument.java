@@ -16,7 +16,7 @@ public class PhysicellResultDocument extends Document
     {
         super( result );
         viewPane = new ViewPane();
-        Render3DPanel renderPanel = new Render3DPanel( 1500, 1500, result );     
+        Render2DPanel renderPanel = new Render2DPanel( 1500, 1500, result );
         JScrollPane scrollPane = new JScrollPane( renderPanel );
         scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS );
         scrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );

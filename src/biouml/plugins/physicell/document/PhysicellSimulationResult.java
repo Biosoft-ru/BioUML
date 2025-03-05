@@ -10,17 +10,18 @@ import ru.biosoft.access.generic.GenericDataCollection;
 public class PhysicellSimulationResult extends BaseSupport
 {
     private GenericDataCollection dc;
-    private View3DOptions options;
+    private ViewOptions options;
     private static TreeMap<Integer, TextDataElement> files = new TreeMap<>();
     private static int step;
     public boolean playing;
+    private boolean is3D = false;
     private Player player = new Player();
 
     public PhysicellSimulationResult(String name, GenericDataCollection de)
     {
         super( null, name );
         this.dc = de;
-        this.options = new View3DOptions();
+        this.options = is3D ? new View3DOptions() : new View2DOptions();
     }
 
     public GenericDataCollection getCollection()
@@ -28,7 +29,7 @@ public class PhysicellSimulationResult extends BaseSupport
         return dc;
     }
 
-    public View3DOptions getOptions()
+    public ViewOptions getOptions()
     {
         return options;
     }

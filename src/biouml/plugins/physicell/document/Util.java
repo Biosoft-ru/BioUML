@@ -2,6 +2,7 @@ package biouml.plugins.physicell.document;
 
 import java.awt.Color;
 
+import one.util.streamex.StreamEx;
 import ru.biosoft.physicell.ui.render.Mesh;
 import ru.biosoft.physicell.ui.render.Scene;
 import ru.biosoft.physicell.ui.render.SceneHelper;
@@ -14,7 +15,6 @@ public class Util
         String[] lines = text.split( "\n" );
         for( int i = 1; i < lines.length; i++ )
         {
-
             String[] parts = lines[i].split( "\t" );
             double x = Double.parseDouble( parts[0] );
             double y = Double.parseDouble( parts[1] );
@@ -29,6 +29,31 @@ public class Util
         return scene;
     }
     
+    public static String shorten(String input)
+    {
+        StringBuffer buffer = new StringBuffer();
+        String[] lines = input.split( "\n" );
+        buffer.append(lines[0]+"\n");
+        for( int i = 1; i < lines.length; i++ )
+        {
+            String[] parts = lines[i].split( "\t" );
+            double x = Double.parseDouble( parts[0] );
+            double y = Double.parseDouble( parts[1] );
+            double z = Double.parseDouble( parts[2] );
+            double outerRadius = Double.parseDouble( parts[3] );
+            double innerRadius = Double.parseDouble( parts[4] );
+            Color outerColor = decodeColor( parts[5] );
+            Color innerColor = decodeColor( parts[7] );
+
+            x = ((int)(x * 10))/10.0;
+            y = ((int)(y * 10))/10.0;
+            z = ((int)(z * 10))/10.0;
+            outerRadius = ((int)(outerRadius * 10))/10.0;
+            innerRadius = ((int)(innerRadius * 10))/10.0;
+            buffer.append( StreamEx.of(String.valueOf( x ), String.valueOf( y ), String.valueOf( z ), outerRadius, innerRadius, parts[5], parts[7]).joining("\t")+"\n");
+        }
+        return buffer.toString();
+    }
 
     public static Color decodeColor(String s)
     {
