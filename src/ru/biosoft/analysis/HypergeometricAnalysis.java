@@ -35,6 +35,7 @@ public class HypergeometricAnalysis extends UpDownIdentification
     private int repeatedIDs;
     private int unMatchedIDs;
     private HashMap<String, ArrayList<String>> newKeys2OldKeys;
+    private static int FDR_ITERATIONS = 50;
 
     public HypergeometricAnalysis(DataCollection origin, String name) throws Exception
     {
@@ -188,7 +189,7 @@ public class HypergeometricAnalysis extends UpDownIdentification
             upFoundByMistake = new int[totalEntries];
             downFoundByMistake = new int[totalEntries];
             
-            for( int niter = 0; niter < 50; niter++ )
+            for ( int niter = 0; niter < FDR_ITERATIONS; niter++ )
             {
                 double[][] permutatedMatrix = Stat.permutationComplicatedMatrix(data);
                 calculateFDR(permutatedMatrix, pvaluesUp, pvaluesDown);
@@ -196,8 +197,8 @@ public class HypergeometricAnalysis extends UpDownIdentification
 
             for( int i = 0; i < totalEntries; i++ )
             {
-                resultData.get(i).add(upFoundByMistake[i] / (50d * data.length));
-                resultData.get(i).add(downFoundByMistake[i] / (50d * data.length));
+                resultData.get(i).add(upFoundByMistake[i] / ((double) FDR_ITERATIONS * data.length));
+                resultData.get(i).add(downFoundByMistake[i] / ((double) FDR_ITERATIONS * data.length));
                 //                                output.getAt( i ).setValue( "FDR UP", upFoundByMistake[i] / ( 50d * data.length ) );
                 //                                output.getAt( i ).setValue( "FDR DOWN", downFoundByMistake[i] / ( 50d * data.length ) );
             }
@@ -797,6 +798,16 @@ public class HypergeometricAnalysis extends UpDownIdentification
             }
             downFoundByMistake[pair.getFirst()] += curDown;
         }
+    }
+
+    public int getStepCount()
+    {
+        MicroarrayAnalysisParameters parameters = getParameters();
+        TableDataCollection table = parameters.getExperiment();
+        int size = (table != null) ? table.getSize() : 0;
+        if( getParameters().isFdr() )
+            size *= (FDR_ITERATIONS + 1);
+        return size;
     }
 
 }
