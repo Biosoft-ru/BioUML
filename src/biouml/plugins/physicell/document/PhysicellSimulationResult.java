@@ -10,18 +10,15 @@ import ru.biosoft.access.generic.GenericDataCollection;
 public class PhysicellSimulationResult extends BaseSupport
 {
     private GenericDataCollection dc;
-    ViewOptions options;
+    ViewOptions options = new ViewOptions();
     static TreeMap<Integer, TextDataElement> files = new TreeMap<>();
     static int step;
     int maxTime;
-
-    private boolean is3D = false;
 
     public PhysicellSimulationResult(String name, GenericDataCollection de)
     {
         super( null, name );
         this.dc = de;
-        this.options = is3D ? new View3DOptions() : new View2DOptions();
     }
 
     public GenericDataCollection getCollection()

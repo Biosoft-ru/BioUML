@@ -16,13 +16,13 @@ public class PhysicellResultDocument extends Document
     {
         super( result );
         viewPane = new ViewPane();
-        Render2DPanel renderPanel = new Render2DPanel( 1500, 1500, result );
+        RenderPanel renderPanel = new RenderPanel( 1500, 1500, result );
         JScrollPane scrollPane = new JScrollPane( renderPanel );
         scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS );
         scrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );
         viewPane.add( scrollPane );
         result.init();
-        renderPanel.read( result.getPoint( result.getOptions().getTime() ).getContent() );
+        renderPanel.readAgents( result.getPoint( result.getOptions().getTime() ));
         renderPanel.update();
     }
 

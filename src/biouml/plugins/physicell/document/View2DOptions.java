@@ -1,32 +1,48 @@
 package biouml.plugins.physicell.document;
 
+import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
-public class View2DOptions extends ViewOptions
+public class View2DOptions extends Option
 {
     private static final String XZ_PLANE = "XZ Plane";
     private static final String YZ_PLANE = "YZ Plane";
     private static final String XY_PLANE = "XY Plane";
-
+    public static final String[] SECTION_VALUES = new String[] {XY_PLANE, YZ_PLANE, XZ_PLANE};
+    
     private String substrate;
-
     private boolean drawAgents = true;
     private boolean drawGrid = false;
-    private boolean drawStatistics = false;
-
     private boolean drawDensity = true;
-
-    private double maxDensity = 1E-13;//6.06;
-
     private Section sec = Section.Z;
     private String sectionString = XY_PLANE;
-
     private int slice = 750;
+    private int maxX = 1500;
+    private int maxY = 1500;
+    private int maxZ = 1500;
+    
+    public void setSize(int x, int y, int z)
+    {
+        maxX = x;
+        maxY = y;
+        maxZ = z;
+    }
+    
+    public int getMaxX()
+    {
+        return maxX;
+    }
 
-    public static final String[] SECTION_VALUES = new String[] {XY_PLANE, YZ_PLANE, XZ_PLANE};
+    public int getMaxY()
+    {
+        return maxY;
+    }
 
-    private int substrateIndex = 0;
-
+    public int getMaxZ()
+    {
+        return maxZ;
+    }
+    
     public enum Section
     {
         X, Y, Z

@@ -11,15 +11,17 @@ class RotateListener implements MouseListener, MouseMotionListener
     private int xEnd;
     private int yStart;
     private int yEnd;
-    private View3DOptions options;
-    
-    public RotateListener(View3DOptions options)
+    private ViewOptions options;
+
+    public RotateListener(ViewOptions options)
     {
         this.options = options;
     }
     @Override
     public void mouseDragged(MouseEvent e)
     {
+        if( options.is2D() )
+            return;
         dragged = true;
     }
 
@@ -27,19 +29,21 @@ class RotateListener implements MouseListener, MouseMotionListener
     public void mouseMoved(MouseEvent e)
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseClicked(MouseEvent e)
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mousePressed(MouseEvent e)
     {
+        if( options.is2D() )
+            return;
         xStart = e.getX();
         yStart = e.getY();
     }
@@ -47,13 +51,15 @@ class RotateListener implements MouseListener, MouseMotionListener
     @Override
     public void mouseReleased(MouseEvent e)
     {
+        if( options.is2D() )
+            return;
         xEnd = e.getX();
         yEnd = e.getY();
-        if (dragged)
+        if( dragged )
         {
-            int xMove = (xStart - xEnd) / 10;
-            int yMove = -(yStart - yEnd) / 10;
-            options.setAngle(  options.getHead() - xMove, options.getPitch() - yMove );
+            int xMove = ( xStart - xEnd ) / 10;
+            int yMove = - ( yStart - yEnd ) / 10;
+            options.getOptions3D().setAngle( options.getOptions3D().getHead() - xMove, options.getOptions3D().getPitch() - yMove );
         }
         dragged = false;
     }
@@ -62,11 +68,11 @@ class RotateListener implements MouseListener, MouseMotionListener
     public void mouseEntered(MouseEvent e)
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseExited(MouseEvent e)
-    { 
+    {
     }
 }

@@ -10,9 +10,8 @@ import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.ModelState;
 import ru.biosoft.physicell.ui.ModelState.AgentState;
 
-public class StateVisualizer2D
+public class StateVisualizer2D extends StateVisualizer
 {
-    private View2DOptions options = new View2DOptions();
     private int xShift;
     private int yShift;
     private int zShift;
@@ -20,12 +19,8 @@ public class StateVisualizer2D
     private int height;
     private int extraWidth = 130;
     private int textOffset = 10;
-    
-    public void setOptions(View2DOptions options)
-    {
-        this.options = options;
-    }
-    
+    protected ModelState modelState;
+
     private void init(ModelState state, ModelData data)
     {
         double dx = data.getXDim().getStep();
@@ -41,9 +36,9 @@ public class StateVisualizer2D
         int xLength = (int)data.getXDim().getLength();
         int yLength = (int)data.getYDim().getLength();
         int zLength = (int)data.getZDim().getLength();
-        width =  xLength ;
-        height =  yLength ;
-        switch( options.getSection() )
+        width = xLength;
+        height = yLength;
+        switch( options.getOptions2D().getSection() )
         {
             case X:
                 width = yLength;
@@ -58,15 +53,15 @@ public class StateVisualizer2D
         }
         width += extraWidth;
     }
-    
+
     public BufferedImage draw(ModelState state, ModelData data)
-    {  
-        init(state, data);
+    {
+        init( state, data );
         BufferedImage img = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
         Graphics g = img.getGraphics();
         g.setColor( Color.white );
         g.fillRect( 0, 0, width, height );
-        if( options.isDrawAgents() )
+        if( options.getOptions2D().isDrawAgents() )
             drawAgents( state, g );
         if( options.isStatistics() )
             drawText( state.getSize(), state.getTime(), width - extraWidth + textOffset, g );
@@ -79,12 +74,12 @@ public class StateVisualizer2D
         g.setColor( Color.BLACK );
         g.drawString( "Time: " + time, x, 40 );
         g.drawString( "Cells: " + agentsCount, x, 70 );
-        if( options.getSection() == Section.X )
-            g.drawString( "X = " + options.getSlice(), x, 100 );
-        else if(  options.getSection() == Section.Y )
-            g.drawString( "Y = " + options.getSlice(), x, 100 );
+        if( options.getOptions2D().getSection() == Section.X )
+            g.drawString( "X = " + options.getOptions2D().getSlice(), x, 100 );
+        else if( options.getOptions2D().getSection() == Section.Y )
+            g.drawString( "Y = " + options.getOptions2D().getSlice(), x, 100 );
         else
-            g.drawString( "Z = " + options.getSlice(), x, 100 );
+            g.drawString( "Z = " + options.getOptions2D().getSlice(), x, 100 );
     }
 
     private void drawAgents(ModelState state, Graphics g)
@@ -98,21 +93,21 @@ public class StateVisualizer2D
             int z = (int)position[2];
             int c1 = x + xShift; //first coordinate
             int c2 = y + yShift; //second coordinate
-            double d = Math.abs( z -  options.getSlice() ); //distance from slice;
-            switch(  options.getSection() )
+            double d = Math.abs( z - options.getOptions2D().getSlice() ); //distance from slice;
+            switch( options.getOptions2D().getSection() )
             {
                 case X:
                 {
                     c1 = y + yShift;
                     c2 = z + zShift;
-                    d = Math.abs( x - options.getSlice() );
+                    d = Math.abs( x - options.getOptions2D().getSlice() );
                     break;
                 }
                 case Y:
                 {
                     c1 = x + xShift;
                     c2 = z + yShift;
-                    d = Math.abs( y - options.getSlice() );
+                    d = Math.abs( y - options.getOptions2D().getSlice() );
                     break;
                 }
                 default:
@@ -123,14 +118,14 @@ public class StateVisualizer2D
             if( d > radius ) //it does not intersect slice;
                 continue;
             int r = (int)Math.sqrt( radius * radius - d * d );
-                double nuclearRadius = agent.getInnerRadius();
-                if( d > nuclearRadius )
-                    drawAgent( agent, c1, c2, r, g );
-                else
-                {
-                    int nr = (int)Math.sqrt( nuclearRadius * nuclearRadius - d * d );
-                    drawAgent( agent, c1, c2, r, nr, g );
-                }
+            double nuclearRadius = agent.getInnerRadius();
+            if( d > nuclearRadius )
+                drawAgent( agent, c1, c2, r, g );
+            else
+            {
+                int nr = (int)Math.sqrt( nuclearRadius * nuclearRadius - d * d );
+                drawAgent( agent, c1, c2, r, nr, g );
+            }
         }
     }
 
@@ -170,5 +165,20 @@ public class StateVisualizer2D
                 g.drawRect( i * xSize, j * ySize, xSize, ySize );
             }
         }
+    }
+
+    @Override
+    public void readAgents(String content, String name)
+    {
+        if( currentName.equals( name ) )
+            return;
+        this.currentName = name;
+        modelState = ModelState.fromString( content );
+    }
+
+    @Override
+    public BufferedImage draw()
+    {
+        return draw( modelState, modelData );
     }
 }

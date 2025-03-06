@@ -17,7 +17,7 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
     private Scene scene;
     private int time;
     private PhysicellSimulationResult result;
-    private View3DOptions options;
+    private ViewOptions options;
     private Renderer3D renderer;
     private BufferedImage img;
     private boolean isRendereing = false;
@@ -28,8 +28,8 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
         setPreferredSize( new Dimension( width, height ) );
         renderer = new Renderer3D( width, height, 0, 0 );
         this.result = result;
-        this.options = (View3DOptions) result.getOptions();
-        rotateListener = new RotateListener( options );
+        this.options = result.getOptions();
+        rotateListener = new RotateListener( options);
         addMouseListener( rotateListener );
         addMouseMotionListener( rotateListener );
         options.addPropertyChangeListener( this );
@@ -37,22 +37,22 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
     
     public void read(String content)
     {
-        scene = Util.readScene( content, options.getQualityInt() );
+        scene = Util.readScene( content, options.getOptions3D().getQualityInt() );
     }
 
     public void update()
     {
-        renderer.setAngle( options.getHead(), options.getPitch() );
-        renderer.setCutOff( options.getCutOff() );
-        renderer.setAxes( options.isAxes() );
+        renderer.setAngle( options.getOptions3D().getHead(), options.getOptions3D().getPitch() );
+        renderer.setCutOff( options.getOptions3D().getCutOff() );
+        renderer.setAxes( options.getOptions3D().isAxes() );
         renderer.setStatistics( options.isStatistics() );
         System.out.println( "Repaint start" );
         if( !isRendereing )
         {
             isRendereing = true;
-            SceneHelper.addDisks( scene, options.getXCutOff(), SceneHelper.PLANE_YZ );
-            SceneHelper.addDisks( scene, options.getYCutOff(), SceneHelper.PLANE_XZ );
-            SceneHelper.addDisks( scene, options.getZCutOff(), SceneHelper.PLANE_XY );
+            SceneHelper.addDisks( scene, options.getOptions3D().getXCutOff(), SceneHelper.PLANE_YZ );
+            SceneHelper.addDisks( scene, options.getOptions3D().getYCutOff(), SceneHelper.PLANE_XZ );
+            SceneHelper.addDisks( scene, options.getOptions3D().getZCutOff(), SceneHelper.PLANE_XY );
             img = renderer.render( scene, time );
             this.repaint();
             isRendereing = false;

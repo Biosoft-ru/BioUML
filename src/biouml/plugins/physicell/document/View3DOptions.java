@@ -1,30 +1,34 @@
 package biouml.plugins.physicell.document;
 
+import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.physicell.ui.render.Vertex;
 
-public class View3DOptions extends ViewOptions
+public class View3DOptions extends Option
 {
     private static final String QUALITY_GOOD = "Good";
     private static final String QUALITY_POOR = "Poor";
     public static final String[] QUALITIES = new String[] { QUALITY_GOOD, QUALITY_POOR};
-
     private String quality = QUALITY_POOR;
 
+    private boolean axes = true;
     private int xCutOff = 750;
     private int yCutOff = 750;
     private int zCutOff = 750;
-
     private int head = 0;
     private int pitch = 0;
+    private int maxX = 1500;
+    private int maxY = 1500;
+    private int maxZ = 1500;
 
-    private int maxX = 0;
-    private int maxY = 0;
-    private int maxZ = 0;
+    public void setSize(int x, int y, int z)
+    {
+        maxX = x;
+        maxY = y;
+        maxZ = z;
+    }
     
-    private boolean is3D;
-
     public int getMaxX()
     {
         return maxX;
@@ -39,7 +43,7 @@ public class View3DOptions extends ViewOptions
     {
         return maxZ;
     }
-
+    
     public void setAngle(int head, int pitch)
     {
         head = Util.restrict( head, 180 );
@@ -143,23 +147,17 @@ public class View3DOptions extends ViewOptions
     public Vertex getCutOff()
     {
         return new Vertex( getXCutOff(), getYCutOff(), getZCutOff() );
-    }
+    } 
     
-    @PropertyName("3D")
-    public boolean is3D()
+    @PropertyName ( "Axes" )
+    public boolean isAxes()
     {
-        return is3D;
+        return axes;
     }
-
-    public void set3D(boolean is3d)
+    public void setAxes(boolean axes)
     {
-        boolean oldValue = this.is3D;
-        this.is3D = is3d;
-        this.firePropertyChange( "is3D", oldValue, is3d );
-    }
-    
-    public boolean is2D()
-    {
-        return !is3D();
+        boolean oldValue = this.axes;
+        this.axes = axes;
+        this.firePropertyChange( "axes", oldValue, axes );
     }
 }

@@ -5,54 +5,23 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 public class ViewOptions extends Option
 {
-    private boolean axes = true;
     private boolean statistics = true;
-
     private int maxTime;
     private int time;
-    
-    private int maxX = 1500;
-    private int maxY = 1500;
-    private int maxZ = 1500;
-    
+    private View2DOptions options2D = new View2DOptions();
+    private View3DOptions options3D = new View3DOptions();
+    private boolean is3D;
+
     public void setSize(int x, int y, int z, int t)
     {
-        maxX = x;
-        maxY = y;
-        maxZ = z;
+        this.options2D.setSize( x, y, z );
+        this.options3D.setSize( x, y, z );
         maxTime = t;
     }
-    
-    public int getMaxX()
-    {
-        return maxX;
-    }
 
-    public int getMaxY()
-    {
-        return maxY;
-    }
-
-    public int getMaxZ()
-    {
-        return maxZ;
-    }
-    
     public int getMaxTime()
     {
         return maxTime;
-    }
-    
-    @PropertyName ( "Axes" )
-    public boolean isAxes()
-    {
-        return axes;
-    }
-    public void setAxes(boolean axes)
-    {
-        boolean oldValue = this.axes;
-        this.axes = axes;
-        this.firePropertyChange( "axes", oldValue, axes );
     }
 
     @PropertyName ( "Statistics" )
@@ -67,7 +36,7 @@ public class ViewOptions extends Option
         this.firePropertyChange( "statistics", oldValue, statistics );
     }
 
-    @PropertyName("Time")
+    @PropertyName ( "Time" )
     public int getTime()
     {
         return time;
@@ -78,5 +47,50 @@ public class ViewOptions extends Option
         int oldValue = this.time;
         this.time = time;
         this.firePropertyChange( "time", oldValue, time );
+    }
+
+    @PropertyName ( "3D" )
+    public boolean is3D()
+    {
+        return is3D;
+    }
+
+    public void set3D(boolean is3d)
+    {
+        boolean oldValue = this.is3D;
+        this.is3D = is3d;
+        this.firePropertyChange( "is3D", oldValue, is3d );
+        this.firePropertyChange( "*", null, null );
+    }
+
+    public boolean is2D()
+    {
+        return !is3D();
+    }
+
+    @PropertyName ( "Options 2D" )
+    public View2DOptions getOptions2D()
+    {
+        return options2D;
+    }
+    public void setOptions2D(View2DOptions options2D)
+    {
+        Object oldValue = this.options2D;
+        this.options2D = options2D;
+        options2D.setParent( this );
+        this.firePropertyChange( "options2D", oldValue, options2D );
+    }
+
+    @PropertyName ( "Options 3D" )
+    public View3DOptions getOptions3D()
+    {
+        return options3D;
+    }
+    public void setOptions3D(View3DOptions options3D)
+    {
+        Object oldValue = this.options3D;
+        this.options3D = options3D;
+        options3D.setParent( this );
+        this.firePropertyChange( "options3D", oldValue, options3D );
     }
 }
