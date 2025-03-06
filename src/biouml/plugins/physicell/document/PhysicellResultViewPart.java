@@ -14,10 +14,11 @@ import com.developmentontheedge.beans.swing.PropertyInspectorEx;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 
-public class PhysicellResultViewPart extends EditorPartSupport
+public class PhysicellResultViewPart extends EditorPartSupport implements PlayerListener
 {
     private final PropertyInspectorEx inspector = new PropertyInspectorEx();
     private PhysicellSimulationResult result;
+    private Player player;
     private PlayAction playAction;
     private PauseAction pauseAction;
     private StopAction stopAction;
@@ -83,7 +84,12 @@ public class PhysicellResultViewPart extends EditorPartSupport
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            result.play();
+            if( player != null && player.isPlaying() )
+                return;
+            player = new Player( result );
+            player.setListener(PhysicellResultViewPart.this);
+            player.setPlaying( true );
+            player.start();
         }
     }
 
@@ -99,7 +105,7 @@ public class PhysicellResultViewPart extends EditorPartSupport
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            result.pause();
+            player.setPlaying( false );
         }
     }
 
@@ -116,7 +122,32 @@ public class PhysicellResultViewPart extends EditorPartSupport
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            result.pause();
+            player.setPlaying( false );
+            result.getOptions().setTime( 0 );
+            reset();
         }
+    }
+
+    @Override
+    public void start()
+    {
+        playAction.setEnabled( false );
+        stopAction.setEnabled( true );
+        pauseAction.setEnabled( true );
+    }
+
+    public void reset()
+    {
+        playAction.setEnabled( true );
+        stopAction.setEnabled( false );
+        pauseAction.setEnabled( false );
+    }
+    
+    @Override
+    public void stop()
+    {
+        playAction.setEnabled( true );
+        stopAction.setEnabled( true );
+        pauseAction.setEnabled( false );
     }
 }

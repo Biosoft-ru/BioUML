@@ -10,12 +10,12 @@ import ru.biosoft.access.generic.GenericDataCollection;
 public class PhysicellSimulationResult extends BaseSupport
 {
     private GenericDataCollection dc;
-    private ViewOptions options;
-    private static TreeMap<Integer, TextDataElement> files = new TreeMap<>();
-    private static int step;
-    public boolean playing;
+    ViewOptions options;
+    static TreeMap<Integer, TextDataElement> files = new TreeMap<>();
+    static int step;
+    int maxTime;
+
     private boolean is3D = false;
-    private Player player = new Player();
 
     public PhysicellSimulationResult(String name, GenericDataCollection de)
     {
@@ -34,26 +34,6 @@ public class PhysicellSimulationResult extends BaseSupport
         return options;
     }
 
-    public class Player extends Thread
-    {
-        private int time;
-        @Override
-        public void run()
-        {
-            while( playing )
-            {
-                doStep();
-            }
-        }
-        private void doStep()
-        {
-            time += step;
-            int existing = files.floorKey( time );
-            System.out.println( "Inner: "+time+ " Exitsing: "+existing );
-            options.setTime( existing );
-        }
-    }
-
     public void init()
     {
         files.clear();
@@ -67,7 +47,8 @@ public class PhysicellSimulationResult extends BaseSupport
             }
         }
         step = files.navigableKeySet().higher( 0 );
-        options.setSize( 1500, 1500, 1500, files.navigableKeySet().last() );
+        maxTime =  files.navigableKeySet().last();
+        options.setSize( 1500, 1500, 1500, maxTime);
 
     }
 
@@ -75,28 +56,4 @@ public class PhysicellSimulationResult extends BaseSupport
     {
         return files.floorEntry( time ).getValue();
     }
-
-    public void play()
-    {
-        if( playing )
-            return;
-        playing = true;
-        player = new Player();
-        player.time = options.getTime();
-        System.out.println( "Play" );
-        player.start();
-    }
-
-    public void stop()
-    {
-        playing = false;
-        System.out.println( "Stop" );
-    }
-
-    public void pause()
-    {
-        playing = false;
-        System.out.println( "Stop" );
-    }
-
 }
