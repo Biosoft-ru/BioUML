@@ -72,10 +72,25 @@ public class VisualizerText
         buffer.append( "\n" );
         for( Cell cell : m.getAgents( Cell.class ) )
         {
+            Object[] row = null;
             Color[] colors = colorer.findColors( cell );
-            Object[] row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
-                    toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
-                    encodeColor( colors[1] ), encodeColor( colors[2] ), encodeColor( colors[3] )};
+            if( colors.length == 1)
+            {
+                row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                        toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] )};
+            }
+            else if( colors.length == 2 )
+            {
+                row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                        toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
+                        encodeColor( colors[1] )};
+            }   
+            else
+            {
+                row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                        toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
+                        encodeColor( colors[1] ), encodeColor( colors[2] ), encodeColor( colors[3] )};
+            }
 
             buffer.append( StreamEx.of( row ).map( s -> String.valueOf( s ) ).joining( "\t" ) );
             buffer.append( "\n" );
@@ -84,7 +99,7 @@ public class VisualizerText
         parent.put( tde );
     }
     
-    private String toString(double value)
+    public String toString(double value)
     {
         return String.valueOf( (int)(value * 10)/10.0 );
     }

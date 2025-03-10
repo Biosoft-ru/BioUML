@@ -101,12 +101,32 @@ public class VisualizerTextTable
         for( Cell cell : m.getAgents( Cell.class ) )
         {
             Color[] colors = colorer.findColors( cell );
-            Object[] row = new Object[] {cell.position[0], cell.position[1], cell.position[2], cell.getRadius(),
-                    cell.phenotype.geometry.getNuclearRadius(), encodeColor( colors[0] ), encodeColor( colors[1] ),
-                    encodeColor( colors[2] ), encodeColor( colors[3] )};
+            Object[] row = null;
+            if( colors.length == 1 )
+            {
+                row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                        toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] )};
+            }
+            else if( colors.length == 2 )
+            {
+                row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                        toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
+                        encodeColor( colors[1] )};
+            }
+            else
+            {
+                row = new Object[] {toString( cell.position[0] ), toString( cell.position[1] ), toString( cell.position[2] ),
+                        toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
+                        encodeColor( colors[1] ), encodeColor( colors[2] ), encodeColor( colors[3] )};
+            }
             TableDataCollectionUtils.addRow( tdc, String.valueOf( cell.ID ), row );
         }
         parent.put( tdc );
+    }
+
+    public String toString(double value)
+    {
+        return String.valueOf( (int) ( value * 10 ) / 10.0 );
     }
 
     private static String encodeColor(Color color)
