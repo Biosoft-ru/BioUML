@@ -37,12 +37,14 @@ import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentColorer;
+import ru.biosoft.physicell.ui.GIFGenerator;
 import ru.biosoft.physicell.ui.Visualizer;
 import ru.biosoft.physicell.ui.Visualizer2D.Section;
 import ru.biosoft.physicell.ui.render.Visualizer3D;
 import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
+import ru.biosoft.util.TempFiles;
 
 public class PhysicellSimulationEngine extends SimulationEngine
 {
@@ -228,7 +230,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
         model.disableAutomatedSpringAdhesions = emodel.getOptions().isDisableAutomatedAdhesions();
         model.signals.setupDictionaries( model );
-        model.init( false );
+
 
         InitialCondition condition = emodel.getInitialCondition();
         if( condition.isCustomCondition() )
@@ -297,8 +299,10 @@ public class PhysicellSimulationEngine extends SimulationEngine
             {
                 for( String density : m.densityNames )
                 {
-                    model.addVisualizer( new Visualizer2D( null, density, Section.Z, 0 ).setStubstrateIndex( m.findDensityIndex( density ) )
-                            .setAgentColorer( colorer ) );
+                    Visualizer2D visualizer2D = new Visualizer2D( null, density, Section.Z, 0 );
+                    visualizer2D.setStubstrateIndex( m.findDensityIndex( density ) ).setAgentColorer( colorer );
+                    visualizer2D.setSaveImage( opts.isSaveImage() );
+                    model.addVisualizer( visualizer2D );
                 }
             }
             else
@@ -306,7 +310,11 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
             for( Visualizer v : model.getVisualizers() )
             {
-                v.setAgentColorer( colorer );
+                if( opts.isSaveGIF() )
+                    v.addResultGenerator( new GIFGenerator( TempFiles.file( v.getName() + ".gif" ) ) );
+
+                if( opts.isSaveVideo() )
+                    v.addResultGenerator( new VideoGenerator( TempFiles.file( v.getName() + ".mp4" ) ) );
             }
         }
 
@@ -317,6 +325,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             model.addEvent( event );
         }
 
+        model.init( false );
         return new PhysicellModel( model );
     }
 
