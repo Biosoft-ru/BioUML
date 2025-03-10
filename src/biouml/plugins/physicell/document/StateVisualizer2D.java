@@ -48,6 +48,9 @@ public class StateVisualizer2D extends StateVisualizer
         this.yShift = -(int) ( Math.floor( startY - dy / 2.0 ) );
         this.zShift = -(int) ( Math.floor( startZ - dz / 2.0 ) );
 
+        this.xShift =  -(int) ( Math.floor(startX));
+        this.yShift =  -(int) ( Math.floor(startY));
+        this.zShift =  -(int) ( Math.floor(startZ));
         int xLength = (int)data.getXDim().getLength();
         int yLength = (int)data.getYDim().getLength();
         int zLength = (int)data.getZDim().getLength();
@@ -123,7 +126,7 @@ public class StateVisualizer2D extends StateVisualizer
                 case Y:
                 {
                     c1 = x + xShift;
-                    c2 = z + yShift;
+                    c2 = z + zShift;
                     d = Math.abs( y - options2D.getSlice() );
                     break;
                 }
@@ -242,7 +245,7 @@ public class StateVisualizer2D extends StateVisualizer
                 break;
         }
 
-        int n = (int) ( ( options2D.getSlice() + shift ) / size3 ) - 1;
+        int n = (int) ( ( options2D.getSlice() + shift ) / size3 );
 
         double actualMaxDensity = 0;
         for( int i = 0; i < n1; i++ )
@@ -263,7 +266,6 @@ public class StateVisualizer2D extends StateVisualizer
                         index = i + n1 * j + n * n1 * n2;
                 }
                 double density = densities[index];
-                //                double density = density[i][j];
                 if( density > actualMaxDensity )
                     actualMaxDensity = density;
 
@@ -277,7 +279,6 @@ public class StateVisualizer2D extends StateVisualizer
         }
         if( actualMaxDensity > 0 )
         {
-            //            System.out.println( "Max density: " + actualMaxDensity );
             maxDensity = actualMaxDensity;
             if( maxDensity < 1E-20 )
                 maxDensity = 1E-20;
