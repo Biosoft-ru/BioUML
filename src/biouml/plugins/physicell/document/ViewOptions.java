@@ -12,6 +12,11 @@ public class ViewOptions extends Option
     private View3DOptions options3D = new View3DOptions();
     private boolean is3D;
 
+    public ViewOptions()
+    {
+        options2D.setParent( this );
+    }
+    
     public void setSize(int x, int y, int z, int t)
     {
         this.options2D.setSize( x, y, z );

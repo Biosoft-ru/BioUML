@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.document;
 
+import one.util.streamex.StreamEx;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
@@ -14,10 +15,8 @@ public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
     {
         property( "slice" ).editor( SliderEditor.class ).value( "max", beanClass.getMethod( "getMaxSlice", (Class<?>[])null ) ).add();
         addWithTags( "sectionString", View2DOptions.SECTION_VALUES );
-        add( "substrate" );
+        property( "substrate" ).tags(bean -> StreamEx.of(bean.getSubstrates()) ).add();
         add( "drawAgents" );
         add( "drawGrid" );
-        add( "axes" );
-        add( "statistics" );
     }
 }

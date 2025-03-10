@@ -30,7 +30,7 @@ public class Render2DPanel extends JPanel implements PropertyChangeListener
         modelData.setZDim( 0, 1500, 20 );
         this.result = result;
         this.options = result.getOptions();
-        visualizer.setOptions( options );
+//        visualizer.seResult( result );
         addMouseListener( rotateListener );
         addMouseMotionListener( rotateListener );
         options.addPropertyChangeListener( this );
@@ -38,12 +38,12 @@ public class Render2DPanel extends JPanel implements PropertyChangeListener
 
     public void read(String content)
     {
-//        modelState = ModelState.fromString( content );
+        //        modelState = ModelState.fromString( content );
     }
 
     public void update()
     {
-        img = visualizer.draw( );
+        img = visualizer.draw();
         this.repaint();
     }
 
@@ -56,9 +56,16 @@ public class Render2DPanel extends JPanel implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) )
-            visualizer.readAgents( result.getPoint( options.getTime() ).getContent(), "" );
+        try
+        {
+            if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) )
+                visualizer.readAgents( result.getPoint( options.getTime() ).getContent(), "" );
 
-        update();
+            update();
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
     }
 }

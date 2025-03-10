@@ -32,17 +32,18 @@ public class Player extends Thread
         }
         listener.stop();
     }
+    
     private void doStep()
     {
-        time += PhysicellSimulationResult.step;
-        if( time > this.result.maxTime )
+        time += result.getStep();
+        if( time > this.result.getMaxTime() )
         {
             playing = false;
             listener.stop();
             return;
         }
-        int existing = PhysicellSimulationResult.files.floorKey( time );
-        this.result.options.setTime( existing );
+        int existing = result.floorTime( time );
+        this.result.getOptions().setTime( existing );
     }
 
     public void setPlaying(boolean playing)

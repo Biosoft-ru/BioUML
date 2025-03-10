@@ -4,53 +4,92 @@ import java.util.TreeMap;
 
 import biouml.standard.type.BaseSupport;
 import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
+import ru.biosoft.physicell.ui.ModelData;
+import ru.biosoft.table.TableDataCollection;
 
 public class PhysicellSimulationResult extends BaseSupport
 {
-    private GenericDataCollection dc;
-    ViewOptions options = new ViewOptions();
-    static TreeMap<Integer, TextDataElement> files = new TreeMap<>();
-    static int step;
-    int maxTime;
+    private DataCollection<DataElement> dcAgents = null;
+    private DataCollection<DataElement> dcDensity = null;
+    protected ModelData modelData;
+    protected DensityState densityState;
+    
+    private ViewOptions options = new ViewOptions();
+    private TreeMap<Integer, String> agentElements = new TreeMap<>();
+    private TreeMap<Integer, String> densityElements = new TreeMap<>();
+    private int step;
+    private int maxTime;
 
-    public PhysicellSimulationResult(String name, GenericDataCollection de)
+    public PhysicellSimulationResult(String name, GenericDataCollection de) throws Exception
     {
         super( null, name );
-        this.dc = de;
-    }
-
-    public GenericDataCollection getCollection()
-    {
-        return dc;
+        this.dcAgents = (DataCollection)de.get( "Image text" );
+        this.dcDensity = (DataCollection)de.get( "Density" );
+        modelData = new ModelData();
+        modelData.setXDim( -500, 500, 20 );
+        modelData.setYDim( -500, 500, 20 );
+        modelData.setZDim( -10, 10, 20 );
     }
 
     public ViewOptions getOptions()
     {
         return options;
     }
-
-    public void init()
+    
+    public ModelData getModelData()
     {
-        files.clear();
-        for( DataElement de : dc )
-        {
-            if( de instanceof TextDataElement )
-            {
-                String name = de.getName();
-                Integer time = Integer.parseInt( name.split( "_" )[1] );
-                files.put( time, (TextDataElement)de );
-            }
-        }
-        step = files.navigableKeySet().higher( 0 );
-        maxTime =  files.navigableKeySet().last();
-        options.setSize( 1500, 1500, 1500, maxTime);
-
+        return modelData;
     }
 
-    public TextDataElement getPoint(int time)
+    public int getStep()
     {
-        return files.floorEntry( time ).getValue();
+        return step;
+    }
+
+    public int getMaxTime()
+    {
+        return maxTime;
+    }
+    
+    public void init()
+    {
+        densityElements.clear();
+        for( Object nameObj : dcDensity.getNameList() )
+        {
+            String name = nameObj.toString();
+            Integer time = Integer.parseInt( name.split( "_" )[1] );
+            densityElements.put( time, name );
+        }
+        
+        agentElements.clear();
+        for( Object nameObj : dcAgents.getNameList() )
+        {
+            String name = nameObj.toString();
+            Integer time = Integer.parseInt( name.split( "_" )[1] );
+            agentElements.put( time, name );
+        }
+        step = agentElements.navigableKeySet().higher( 0 );
+        maxTime = agentElements.navigableKeySet().last();
+        options.setSize( 500, 500, 10, maxTime );
+        options.getOptions2D().setSubstrates( null );
+
+    }
+    
+    public int floorTime(int time)
+    {
+        return agentElements.floorKey( time );
+    }
+
+    public TextDataElement getPoint(int time) throws Exception
+    {
+        return (TextDataElement)dcAgents.get( agentElements.floorEntry( time ).getValue() );
+    }
+    
+    public DensityState getDensity(int time) throws Exception
+    {
+        return DensityState.fromTable( (TableDataCollection)dcDensity.get( densityElements.floorEntry( time ).getValue() ));
     }
 }

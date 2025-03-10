@@ -29,12 +29,12 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
         renderer = new Renderer3D( width, height, 0, 0 );
         this.result = result;
         this.options = result.getOptions();
-        rotateListener = new RotateListener( options);
+        rotateListener = new RotateListener( options );
         addMouseListener( rotateListener );
         addMouseMotionListener( rotateListener );
         options.addPropertyChangeListener( this );
     }
-    
+
     public void read(String content)
     {
         scene = Util.readScene( content, options.getOptions3D().getQualityInt() );
@@ -69,12 +69,15 @@ public class Render3DPanel extends JPanel implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) )
+        try
         {
-            System.out.println( "Load "+options.getTime() );
-            read( result.getPoint( options.getTime() ).getContent() );
+            if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) )
+                read( result.getPoint( options.getTime() ).getContent() );
+            update();
         }
-        System.out.println( "Paint" );
-        update();
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
     }
 }

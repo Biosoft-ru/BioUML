@@ -2,28 +2,30 @@ package biouml.plugins.physicell.document;
 
 import java.awt.image.BufferedImage;
 
-import ru.biosoft.physicell.ui.ModelData;
-
 public abstract class StateVisualizer
 {
     protected String currentName = "";
-    protected ViewOptions options = new ViewOptions();
-    protected ModelData modelData;
+    protected PhysicellSimulationResult result;
+    protected DensityState densityState;
+    protected ViewOptions options;
     
     public ViewOptions getOptions()
     {
-        return options;
-    }
-    public void setOptions(ViewOptions options)
-    {
-        this.options = options;
+        return result.getOptions();
     }
     
-    public void setModelData(ModelData modelData)
+    public void setResult(PhysicellSimulationResult result)
     {
-        this.modelData = modelData;
+        this.result = result;
+        this.options = result.getOptions();
     }
     
-    public abstract void readAgents(String content, String name);    
+    public void setDensityState(DensityState density)
+    {
+        densityState = density;
+    }
+    
+    public abstract void readAgents(String content, String name);
+    
     public abstract BufferedImage draw();
 }

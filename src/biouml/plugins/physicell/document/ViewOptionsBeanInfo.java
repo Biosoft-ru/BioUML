@@ -17,5 +17,6 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         add("3D");
         addHidden("options2D", "is3D");
         addHidden("options3D", "is2D");
+        add( "statistics" );
     }
 }

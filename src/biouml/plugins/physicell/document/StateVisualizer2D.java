@@ -12,6 +12,12 @@ import ru.biosoft.physicell.ui.ModelState.AgentState;
 
 public class StateVisualizer2D extends StateVisualizer
 {
+    private int xCells;
+    private int yCells;
+    private int zCells;
+    private int dx;
+    private int dy;
+    private int dz;
     private int xShift;
     private int yShift;
     private int zShift;
@@ -20,12 +26,21 @@ public class StateVisualizer2D extends StateVisualizer
     private int extraWidth = 130;
     private int textOffset = 10;
     protected ModelState modelState;
+    private double maxDensity = 1E-13;//6.06;
+    private View2DOptions options2D;
 
-    private void init(ModelState state, ModelData data)
+    @Override
+    public void setResult(PhysicellSimulationResult result)
     {
-        double dx = data.getXDim().getStep();
-        double dy = data.getYDim().getStep();
-        double dz = data.getZDim().getStep();
+        super.setResult( result );
+        ModelData data = result.getModelData();
+        options2D = result.getOptions().getOptions2D();
+        dx = (int)data.getXDim().getStep();
+        dy = (int)data.getYDim().getStep();
+        dz = (int)data.getZDim().getStep();
+        xCells = (int)data.getXDim().getLength() / dx;
+        yCells = (int)data.getYDim().getLength() / dx;
+        zCells = (int)data.getZDim().getLength() / dx;
         double startX = data.getXDim().getFrom();
         double startY = data.getYDim().getFrom();
         double startZ = data.getZDim().getFrom();
@@ -38,7 +53,7 @@ public class StateVisualizer2D extends StateVisualizer
         int zLength = (int)data.getZDim().getLength();
         width = xLength;
         height = yLength;
-        switch( options.getOptions2D().getSection() )
+        switch( options2D.getSection() )
         {
             case X:
                 width = yLength;
@@ -54,17 +69,19 @@ public class StateVisualizer2D extends StateVisualizer
         width += extraWidth;
     }
 
-    public BufferedImage draw(ModelState state, ModelData data)
+    public BufferedImage draw(ModelState state)
     {
-        init( state, data );
         BufferedImage img = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
         Graphics g = img.getGraphics();
         g.setColor( Color.white );
         g.fillRect( 0, 0, width, height );
-        if( options.getOptions2D().isDrawAgents() )
+        if( options2D.isDrawDensity() )
+            drawDensity( densityState.getDensity( "food" ), g );
+        if( options2D.isDrawAgents() )
             drawAgents( state, g );
         if( options.isStatistics() )
             drawText( state.getSize(), state.getTime(), width - extraWidth + textOffset, g );
+       
         return img;
     }
 
@@ -74,12 +91,12 @@ public class StateVisualizer2D extends StateVisualizer
         g.setColor( Color.BLACK );
         g.drawString( "Time: " + time, x, 40 );
         g.drawString( "Cells: " + agentsCount, x, 70 );
-        if( options.getOptions2D().getSection() == Section.X )
-            g.drawString( "X = " + options.getOptions2D().getSlice(), x, 100 );
-        else if( options.getOptions2D().getSection() == Section.Y )
-            g.drawString( "Y = " + options.getOptions2D().getSlice(), x, 100 );
+        if( options2D.getSection() == Section.X )
+            g.drawString( "X = " + options2D.getSlice(), x, 100 );
+        else if( options2D.getSection() == Section.Y )
+            g.drawString( "Y = " + options2D.getSlice(), x, 100 );
         else
-            g.drawString( "Z = " + options.getOptions2D().getSlice(), x, 100 );
+            g.drawString( "Z = " + options2D.getSlice(), x, 100 );
     }
 
     private void drawAgents(ModelState state, Graphics g)
@@ -93,21 +110,21 @@ public class StateVisualizer2D extends StateVisualizer
             int z = (int)position[2];
             int c1 = x + xShift; //first coordinate
             int c2 = y + yShift; //second coordinate
-            double d = Math.abs( z - options.getOptions2D().getSlice() ); //distance from slice;
-            switch( options.getOptions2D().getSection() )
+            double d = Math.abs( z - options2D.getSlice() ); //distance from slice;
+            switch( options2D.getSection() )
             {
                 case X:
                 {
                     c1 = y + yShift;
                     c2 = z + zShift;
-                    d = Math.abs( x - options.getOptions2D().getSlice() );
+                    d = Math.abs( x - options2D.getSlice() );
                     break;
                 }
                 case Y:
                 {
                     c1 = x + xShift;
                     c2 = z + yShift;
-                    d = Math.abs( y - options.getOptions2D().getSlice() );
+                    d = Math.abs( y - options2D.getSlice() );
                     break;
                 }
                 default:
@@ -131,9 +148,22 @@ public class StateVisualizer2D extends StateVisualizer
 
     private void drawAgent(AgentState agent, int x, int y, int r, Graphics g)
     {
-        g.setColor( agent.getColors()[0] );
+        Color[] colors = agent.getColors();
+        Color outer = null;
+        Color inner = null;
+        if( colors.length == 1 )
+        {
+            outer = Color.black;
+            inner = colors[0];
+        }
+        else
+        {
+            inner = colors[0];
+            outer = colors[1];
+        }
+        g.setColor( inner );
         g.fillOval( x - r, y - r, 2 * r, 2 * r );
-        g.setColor( agent.getColors()[1] );
+        g.setColor( outer );
         g.drawOval( x - r, y - r, 2 * r, 2 * r );
     }
 
@@ -179,6 +209,78 @@ public class StateVisualizer2D extends StateVisualizer
     @Override
     public BufferedImage draw()
     {
-        return draw( modelState, modelData );
+        return draw( modelState );
+    }
+
+    private void drawDensity(double[] densities, Graphics g)
+    {
+        int n1 = xCells;
+        int n2 = yCells;
+        int size1 = dx;
+        int size2 = dy;
+        int size3 = dz;
+        int shift = this.zShift;
+        switch( options2D.getSection() )
+        {
+            case X:
+                n1 = yCells;
+                n2 = zCells;
+                size1 = dy;
+                size2 = dz;
+                size3 = dx;
+                shift = xShift;
+                break;
+            case Y:
+                n1 = xCells;
+                n2 = zCells;
+                size1 = dx;
+                size2 = dz;
+                size3 = dy;
+                shift = yShift;
+                break;
+            default:
+                break;
+        }
+
+        int n = (int) ( ( options2D.getSlice() + shift ) / size3 ) - 1;
+
+        double actualMaxDensity = 0;
+        for( int i = 0; i < n1; i++ )
+        {
+            for( int j = 0; j < n2; j++ )
+            {
+                int red;
+                int index;
+                switch( options2D.getSection() )
+                {
+                    case X:
+                        index = n + n1 * i + n1 * n2 * j;
+                        break;
+                    case Y:
+                        index = i + n * j + j * n1 * n2;
+                        break;
+                    default: //Z
+                        index = i + n1 * j + n * n1 * n2;
+                }
+                double density = densities[index];
+                //                double density = density[i][j];
+                if( density > actualMaxDensity )
+                    actualMaxDensity = density;
+
+                double ratio = ( density / maxDensity );
+                ratio = Math.min( 1, ratio );
+                red = (int) ( ( 1 - ratio ) * 255 );
+
+                g.setColor( new Color( 255, red, red ) );
+                g.fillRect( i * size1, j * size2, size1, size2 );
+            }
+        }
+        if( actualMaxDensity > 0 )
+        {
+            //            System.out.println( "Max density: " + actualMaxDensity );
+            maxDensity = actualMaxDensity;
+            if( maxDensity < 1E-20 )
+                maxDensity = 1E-20;
+        }
     }
 }

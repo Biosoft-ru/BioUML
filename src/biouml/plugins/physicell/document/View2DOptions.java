@@ -16,10 +16,11 @@ public class View2DOptions extends Option
     private boolean drawDensity = true;
     private Section sec = Section.Z;
     private String sectionString = XY_PLANE;
-    private int slice = 750;
-    private int maxX = 1500;
-    private int maxY = 1500;
-    private int maxZ = 1500;
+    private int slice = 0;
+    private int maxX = 500;
+    private int maxY = 500;
+    private int maxZ = 10;
+    private String[] substrates = new String[] {"food"};
     
     public void setSize(int x, int y, int z)
     {
@@ -46,6 +47,16 @@ public class View2DOptions extends Option
     public enum Section
     {
         X, Y, Z
+    }
+    
+    public String[] getSubstrates()
+    {
+        return substrates;
+    }
+    
+    public void setSubstrates(String[] substrates)
+    {
+        this.substrates = substrates;
     }
 
     @PropertyName ( "Cells" )

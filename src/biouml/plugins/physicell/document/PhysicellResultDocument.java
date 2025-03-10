@@ -12,7 +12,7 @@ import ru.biosoft.gui.Document;
 //@ClassIcon ( "resources/simulationDocument.gif" )
 public class PhysicellResultDocument extends Document
 {
-    public PhysicellResultDocument(PhysicellSimulationResult result) throws IllegalArgumentException
+    public PhysicellResultDocument(PhysicellSimulationResult result) throws Exception
     {
         super( result );
         viewPane = new ViewPane();
@@ -22,7 +22,8 @@ public class PhysicellResultDocument extends Document
         scrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );
         viewPane.add( scrollPane );
         result.init();
-        renderPanel.readAgents( result.getPoint( result.getOptions().getTime() ));
+        renderPanel.readAgents( result.getPoint( result.getOptions().getTime() ) );
+        renderPanel.readDensity(result.getDensity(result.getOptions().getTime()));
         renderPanel.update();
     }
 

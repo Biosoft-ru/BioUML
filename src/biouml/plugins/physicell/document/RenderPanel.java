@@ -5,12 +5,8 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import javax.swing.JPanel;
-
 import ru.biosoft.access.TextDataElement;
-import ru.biosoft.physicell.ui.ModelData;
-
 
 public class RenderPanel extends JPanel implements PropertyChangeListener
 {
@@ -18,32 +14,26 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
     private ViewOptions options;
     private StateVisualizer2D visualizer2D = new StateVisualizer2D();
     private StateVisualizer3D visualizer3D = new StateVisualizer3D();
-    private ModelData modelData;
     private BufferedImage img;
     private RotateListener rotateListener;
 
     public RenderPanel(int width, int height, PhysicellSimulationResult result)
     {
         setPreferredSize( new Dimension( width, height ) );
-        modelData = new ModelData();
-        modelData.setXDim( 0, 1500, 20 );
-        modelData.setYDim( 0, 1500, 20 );
-        modelData.setZDim( 0, 1500, 20 );
+     
         this.result = result;
         this.options = result.getOptions();
-        visualizer2D.setOptions( options );
-        visualizer2D.setModelData( modelData );
-        visualizer3D.setOptions( options );
-        visualizer3D.setModelData( modelData );
+        visualizer2D.setResult( result );
+        visualizer3D.setResult( result );
         rotateListener = new RotateListener( options );
         addMouseListener( rotateListener );
         addMouseMotionListener( rotateListener );
         options.addPropertyChangeListener( this );
     }
-    
+
     private StateVisualizer getCurrentVisualizer()
     {
-        return options.is3D()? visualizer3D: visualizer2D;
+        return options.is3D() ? visualizer3D : visualizer2D;
     }
 
     public void readAgents(TextDataElement agentsData)
@@ -51,6 +41,11 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
         getCurrentVisualizer().readAgents( agentsData.getContent(), agentsData.getName() );
     }
 
+    public void readDensity(DensityState densityData)
+    {
+        getCurrentVisualizer().setDensityState( densityData );
+    }
+    
     public void update()
     {
         img = getCurrentVisualizer().draw();
@@ -66,9 +61,20 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" ) || evt.getPropertyName().equals( "is3D" ) )
-            readAgents( result.getPoint( options.getTime() ) );
+        try
+        {
+            if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" )
+                    || evt.getPropertyName().equals( "is3D" ) )
+                readAgents( result.getPoint( options.getTime() ) );
 
-        update();
+            if( evt.getPropertyName().equals( "time" ))
+                    readDensity(result.getDensity(options.getTime()));
+            
+            update();
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
     }
 }
