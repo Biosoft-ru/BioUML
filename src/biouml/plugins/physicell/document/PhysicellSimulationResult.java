@@ -26,12 +26,11 @@ public class PhysicellSimulationResult extends BaseSupport
     public PhysicellSimulationResult(String name, GenericDataCollection de) throws Exception
     {
         super( null, name );
-        this.dcAgents = (DataCollection)de.get( "Image text" );
+        this.dcAgents = (DataCollection)de.get( "Cells" );
         this.dcDensity = (DataCollection)de.get( "Density" );
-        modelData = new ModelData();
-        modelData.setXDim( -500, 500, 20 );
-        modelData.setYDim( -500, 500, 20 );
-        modelData.setZDim( -10, 10, 20 );
+        modelData = Util.read((TextDataElement)de.get( "info.txt" ));
+        options.getOptions2D().setSubstrates( modelData.getSubstrates() );
+        options.set2D( modelData.isUse2D() );
     }
 
     public ViewOptions getOptions()
