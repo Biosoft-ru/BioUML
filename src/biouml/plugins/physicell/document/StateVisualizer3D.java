@@ -18,7 +18,7 @@ public class StateVisualizer3D extends StateVisualizer
     {
         if( currentName.equals( name ) )
             return;
-        scene = Util.readScene( content, 3 );
+        scene = Util.readScene( content, options3D.getQualityInt() );
     }
 
     public void setResult(PhysicellSimulationResult result)

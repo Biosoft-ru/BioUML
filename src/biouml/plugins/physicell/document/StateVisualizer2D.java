@@ -44,10 +44,6 @@ public class StateVisualizer2D extends StateVisualizer
         double startX = data.getXDim().getFrom();
         double startY = data.getYDim().getFrom();
         double startZ = data.getZDim().getFrom();
-        this.xShift = -(int) ( Math.floor( startX - dx / 2.0 ) );
-        this.yShift = -(int) ( Math.floor( startY - dy / 2.0 ) );
-        this.zShift = -(int) ( Math.floor( startZ - dz / 2.0 ) );
-
         this.xShift =  -(int) ( Math.floor(startX));
         this.yShift =  -(int) ( Math.floor(startY));
         this.zShift =  -(int) ( Math.floor(startZ));
