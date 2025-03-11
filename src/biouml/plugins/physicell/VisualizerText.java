@@ -46,7 +46,7 @@ public class VisualizerText
         int nums = String.valueOf( Math.round( timeMax ) ).length() + 1;
         format = "%0" + nums + "d";
 
-        parent = DataCollectionUtils.createSubCollection( dc.getChildPath( "Image text" ) );
+        parent = DataCollectionUtils.createSubCollection( dc.getChildPath( "Cells" ) );
     }
 
     private String generateResultName(double t, String baseName)
@@ -65,7 +65,7 @@ public class VisualizerText
 
     public void saveResult(Microenvironment m, double t) throws IOException
     {
-        String name = generateResultName( t, "Image" );
+        String name = generateResultName( t, "Cells" );
         TextDataElement tde = new TextDataElement( name, parent );
         StringBuffer buffer = new StringBuffer();
         buffer.append( StreamEx.of("X", "Y", "Z", "Radius", "r", "Color1", "Color2", "Color3", "Color4").joining( "\t" ));

@@ -65,7 +65,7 @@ public class VisualizerTextTable
         int nums = String.valueOf( Math.round( timeMax ) ).length() + 1;
         format = "%0" + nums + "d";
 
-        parent = DataCollectionUtils.createSubCollection( dc.getChildPath( "Image text" ) );
+        parent = DataCollectionUtils.createSubCollection( dc.getChildPath( "Cells tables" ) );
     }
 
     private String generateResultName(double t, String baseName)
@@ -84,7 +84,7 @@ public class VisualizerTextTable
 
     public void saveResult(Microenvironment m, double t) throws IOException
     {
-        String name = generateResultName( t, "Image" );
+        String name = generateResultName( t, "Cells" );
         TableDataCollection tdc = TableDataCollectionUtils.createTableDataCollection( parent, name );
 
         tdc.getColumnModel().addColumn( "X", DataType.Float );
