@@ -3,6 +3,8 @@ package biouml.plugins.physicell.document;
 import java.awt.Color;
 
 import one.util.streamex.StreamEx;
+import ru.biosoft.access.TextDataElement;
+import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.render.Mesh;
 import ru.biosoft.physicell.ui.render.Scene;
 import ru.biosoft.physicell.ui.render.SceneHelper;
@@ -28,12 +30,12 @@ public class Util
         }
         return scene;
     }
-    
+
     public static String shorten(String input)
     {
         StringBuffer buffer = new StringBuffer();
         String[] lines = input.split( "\n" );
-        buffer.append(lines[0]+"\n");
+        buffer.append( lines[0] + "\n" );
         for( int i = 1; i < lines.length; i++ )
         {
             String[] parts = lines[i].split( "\t" );
@@ -45,12 +47,14 @@ public class Util
             Color outerColor = decodeColor( parts[5] );
             Color innerColor = decodeColor( parts[7] );
 
-            x = ((int)(x * 10))/10.0;
-            y = ((int)(y * 10))/10.0;
-            z = ((int)(z * 10))/10.0;
-            outerRadius = ((int)(outerRadius * 10))/10.0;
-            innerRadius = ((int)(innerRadius * 10))/10.0;
-            buffer.append( StreamEx.of(String.valueOf( x ), String.valueOf( y ), String.valueOf( z ), outerRadius, innerRadius, parts[5], parts[7]).joining("\t")+"\n");
+            x = ( (int) ( x * 10 ) ) / 10.0;
+            y = ( (int) ( y * 10 ) ) / 10.0;
+            z = ( (int) ( z * 10 ) ) / 10.0;
+            outerRadius = ( (int) ( outerRadius * 10 ) ) / 10.0;
+            innerRadius = ( (int) ( innerRadius * 10 ) ) / 10.0;
+            buffer.append( StreamEx
+                    .of( String.valueOf( x ), String.valueOf( y ), String.valueOf( z ), outerRadius, innerRadius, parts[5], parts[7] )
+                    .joining( "\t" ) + "\n" );
         }
         return buffer.toString();
     }
@@ -64,7 +68,7 @@ public class Util
         int b = Integer.parseInt( parts[2].trim() );
         return new Color( r, g, b );
     }
-    
+
     /**
      * @return Restricts val in circle from -max to max. If val is to become lower then -180 e.g. -180-x (x>0) it becomes 180-x instead.
      */
@@ -73,6 +77,35 @@ public class Util
         if( val < -max || val > max )
             return -(int)Math.signum( val ) * max + val % max;
         return val;
+    }
+
+    public static ModelData read(TextDataElement tde)
+    {
+        ModelData modelData = new ModelData();
+        String content = tde.getContent();
+        String[] lines = content.split( "\n" );
+        for( String line : lines )
+        {
+            String[] parts = line.split( "\t" );
+            switch( parts[0] )
+            {
+                case "X:":
+                    modelData.setXDim( Double.parseDouble( parts[1] ), Double.parseDouble( parts[2] ), Double.parseDouble( parts[3] ) );
+                    break;
+                case "Y:":
+                    modelData.setYDim( Double.parseDouble( parts[1] ), Double.parseDouble( parts[2] ), Double.parseDouble( parts[3] ) );
+                    break;
+                case "Z:":
+                    modelData.setZDim( Double.parseDouble( parts[1] ), Double.parseDouble( parts[2] ), Double.parseDouble( parts[3] ) );
+                    break;
+                case "2D:":
+                    modelData.setUse2D( Boolean.parseBoolean( parts[1] ) );
+                    break;
+                case "Substrates:":
+                    modelData.setSubstrates( StreamEx.of( parts ).without( "Substrates:" ).toArray( String[]::new ) );
+            }
+        }
+        return modelData;
     }
 
 }
