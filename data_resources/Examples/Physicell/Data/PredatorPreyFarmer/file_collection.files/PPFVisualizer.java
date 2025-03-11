@@ -2,9 +2,9 @@ import java.awt.Color;
 
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellDefinition;
-import ru.biosoft.physicell.ui.AgentColorer;
+import ru.biosoft.physicell.ui.AgentColorerDefault;
 
-public class PPFVisualizer extends AgentColorer
+public class PPFVisualizer extends AgentColorerDefault
 {
     @Override
     public Color[] findColors(Cell pCell)
