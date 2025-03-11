@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import biouml.plugins.simulation.Simulator;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.access.ImageDataElement;
@@ -37,7 +38,7 @@ public class PhysicellResultWriter
     private StringBuffer simulationLog;
     private PhysicellModel model;
     protected static final Logger log = Logger.getLogger( Simulator.class.getName() );
-    
+
     public void init(PhysicellModel model, PhysicellOptions options) throws Exception
     {
         visualizerResult = new HashMap<>();
@@ -54,14 +55,13 @@ public class PhysicellResultWriter
         resultFolder = DataCollectionUtils.createSubCollection( options.getResultPath() );
 
         TextDataElement logElement = new TextDataElement( "model.txt", resultFolder );
-        logElement.setContent(model.display() );
+        logElement.setContent( model.display() );
         resultFolder.put( logElement );
 
         if( options.isSaveReport() )
-        {
-            DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Cells" ) );
+            DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Reports" ) );
+        if( options.isSaveDensity() )
             DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Density" ) );
-        }
 
         DataCollection<DataElement> videoCollection = null;
         DataCollection<DataElement> imagesCollection = null;
@@ -71,28 +71,27 @@ public class PhysicellResultWriter
         if( options.isSaveImage() )
             imagesCollection = DataCollectionUtils.createSubCollection( resultFolder.getCompletePath().getChildPath( "Image" ) );
 
-        if( options.isSaveImageText() )
+        if( options.isSaveCellsText() )
             textVisualizer.init(); //TODO: refactor and unify all visualizers
-        if (options.isSaveImageTable())
+        if( options.isSaveCellsTable() )
             tableVisualizer.init();
 
         for( Visualizer v : model.getVisualizers() )
         {
-            String name = v.getName();
-
             visualizerResult.put( v, videoCollection );
 
             if( options.isSaveImage() )
                 visualizerImageResult.put( v,
-                        DataCollectionUtils.createSubCollection( imagesCollection.getCompletePath().getChildPath( name ) ) );
+                        DataCollectionUtils.createSubCollection( imagesCollection.getCompletePath().getChildPath( v.getName() ) ) );
         }
 
         int nums = String.valueOf( Math.round( options.getFinalTime() ) ).length() + 1;
         format = "%0" + nums + "d";
 
         saveAllResults( model );
+        writeInfo( resultFolder, model.getMicroenvironment() );
     }
-    
+
     public void saveAllResults(PhysicellModel model) throws Exception
     {
         double curTime = model.getCurrentTime();
@@ -105,12 +104,13 @@ public class PhysicellResultWriter
 
         }
 
-        if( ( options.isSaveImageText() || options.isSaveImageTable() || options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() ) && curTime >= nextImage )
+        if( ( options.isSaveCellsText() || options.isSaveCellsTable() || options.isSaveImage() || options.isSaveVideo()
+                || options.isSaveGIF() ) && curTime >= nextImage )
         {
 
-            if( options.isSaveImageText() )
+            if( options.isSaveCellsText() )
                 textVisualizer.saveResult( model.getMicroenvironment(), curTime );
-            if( options.isSaveImageTable() )
+            if( options.isSaveCellsTable() )
                 tableVisualizer.saveResult( model.getMicroenvironment(), curTime );
             if( options.isSaveImage() || options.isSaveVideo() || options.isSaveGIF() )
                 saveImages( curTime );
@@ -118,7 +118,7 @@ public class PhysicellResultWriter
             nextImage += options.getImageInterval();
         }
     }
-    
+
     private void saveResults(double curTime) throws Exception
     {
         String suffix;
@@ -133,13 +133,15 @@ public class PhysicellResultWriter
         }
 
         DataCollection<DataElement> densityCollection = (DataCollection)resultFolder.get( "Density" );
-        if( this.options.isSaveReport() )
+        if( this.options.isSaveDensity() )
         {
             TableDataCollection tdc = TableDataCollectionUtils.createTableDataCollection( densityCollection, "Density_" + suffix );
             writeDensity( tdc, model.getMicroenvironment() );
             densityCollection.put( tdc );
-
-            DataCollection<DataElement> subDC = (DataCollection)resultFolder.get( "Cells" );
+        }
+        if( this.options.isSaveReport() )
+        {
+            DataCollection<DataElement> subDC = (DataCollection)resultFolder.get( "Reports" );
             TableDataCollection result = TableDataCollectionUtils.createTableDataCollection( subDC, "Report_" + suffix );
             Microenvironment m = model.getMicroenvironment();
             for( String s : model.getReportHeader() )
@@ -149,7 +151,20 @@ public class PhysicellResultWriter
             subDC.put( result );
         }
     }
-    
+
+    public void writeInfo(DataCollection dc, Microenvironment m)
+    {
+        TextDataElement tde = new TextDataElement( "info.txt", dc );
+        StringBuffer buffer = new StringBuffer();
+        buffer.append( "X:\t" + m.mesh.boundingBox[0] + "\t" + m.mesh.boundingBox[3] + "\t" + m.mesh.dx + "\n");
+        buffer.append( "Y:\t" + m.mesh.boundingBox[1] + "\t" + m.mesh.boundingBox[4] + "\t" + m.mesh.dy + "\n");
+        buffer.append( "Z:\t" + m.mesh.boundingBox[2] + "\t" + m.mesh.boundingBox[5] + "\t" + m.mesh.dz + "\n");
+        buffer.append( "2D:\t" + m.options.simulate2D + "\n" );
+        buffer.append( "Substrates:\t" + StreamEx.of( m.densityNames ).joining( "\t" ) + "\n" );
+        tde.setContent( buffer.toString() );
+        dc.put( tde );
+    }
+
     public void writeDensity(TableDataCollection tdc, Microenvironment m)
     {
         int dataEntries = m.mesh.voxels.length;
@@ -173,7 +188,7 @@ public class PhysicellResultWriter
             TableDataCollectionUtils.addRow( tdc, String.valueOf( i ), row );
         }
     }
-    
+
     private void saveImages(double curTime) throws Exception
     {
         String suffix = print( curTime, 0 );
@@ -181,7 +196,7 @@ public class PhysicellResultWriter
         for( Visualizer vis : model.getVisualizers() )
             updateResult( vis, "Figure_" + suffix );
     }
-    
+
     public void updateResult(Visualizer visualizer, String name) throws Exception
     {
         BufferedImage image = visualizer.getImage( model.getMicroenvironment(), model.getCurrentTime() );
@@ -192,7 +207,7 @@ public class PhysicellResultWriter
         }
         visualizer.update( image );
     }
-    
+
     public String print(double v, int accuracy)
     {
         double factor = Math.pow( 10, accuracy );
@@ -200,17 +215,17 @@ public class PhysicellResultWriter
         return String.format( format, value );
         //        return String.valueOf( );
     }
-    
+
     public void addTableVisualizer(VisualizerTextTable tableVisualizer)
     {
         this.tableVisualizer = tableVisualizer;
     }
-    
+
     public void addTextVisualizer(VisualizerText textVisualizer)
     {
         this.textVisualizer = textVisualizer;
     }
-    
+
     private static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
     {
         VideoFileImporter importer = new VideoFileImporter();
@@ -223,7 +238,7 @@ public class PhysicellResultWriter
         FileImporter importer = new FileImporter();
         importer.doImport( dc, f, name, null, log );
     }
-    
+
     public void finish() throws Exception
     {
         for( Visualizer vis : this.model.getVisualizers() )

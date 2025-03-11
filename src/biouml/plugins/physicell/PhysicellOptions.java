@@ -13,10 +13,11 @@ public class PhysicellOptions extends Options
     private DataElementPath resultPath;
     private double finalTime = 100;
     private boolean saveReport = true;
+    private boolean saveDensity = true;
     private double reportInterval = 10;
     private boolean saveImage = false;
-    private boolean saveImageText = false;
-    private boolean saveImageTable = true;
+    private boolean saveCellsText = false;
+    private boolean saveCellsTable = true;
     private boolean saveGIF = false;
     private boolean saveVideo = true;
     private boolean parallelDiffusion = false;
@@ -62,6 +63,16 @@ public class PhysicellOptions extends Options
     {
         this.saveReport = saveReport;
     }
+    
+    @PropertyName ( "Save density" )
+    public boolean isSaveDensity()
+    {
+        return saveDensity;
+    }
+    public void setSaveDensity(boolean saveDensity)
+    {
+        this.saveDensity = saveDensity;
+    }
 
     @PropertyName ( "Report interval" )
     public double getReportInterval()
@@ -83,24 +94,24 @@ public class PhysicellOptions extends Options
         this.saveImage = saveImage;
     }
     
-    @PropertyName ( "Save images as text" )
-    public boolean isSaveImageText()
+    @PropertyName ( "Save cells data" )
+    public boolean isSaveCellsText()
     {
-        return saveImageText;
+        return saveCellsText;
     }
-    public void setSaveImageText(boolean saveImageText)
+    public void setSaveCellsText(boolean saveCellsText)
     {
-        this.saveImageText = saveImageText;
+        this.saveCellsText = saveCellsText;
     }
     
-    @PropertyName ( "Save images as table" )
-    public boolean isSaveImageTable()
+    @PropertyName ( "Save cells data as table" )
+    public boolean isSaveCellsTable()
     {
-        return saveImageTable;
+        return saveCellsTable;
     }
-    public void setSaveImageTable(boolean saveImageTable)
+    public void setSaveCellsTable(boolean saveCellsTable)
     {
-        this.saveImageTable = saveImageTable;
+        this.saveCellsTable = saveCellsTable;
     }
 
     @PropertyName ( "Save GIF" )

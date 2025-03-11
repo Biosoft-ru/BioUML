@@ -261,7 +261,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
         AgentColorer colorer = null;
 
-        if( opts.isSaveImageText() || opts.isSaveImageTable()|| opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
+        if( opts.isSaveCellsText() || opts.isSaveCellsTable()|| opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
         {
             VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
             if( visualizerProperties.getProperties().length > 0 )
@@ -281,13 +281,13 @@ public class PhysicellSimulationEngine extends SimulationEngine
             }
         }
 
-        if (opts.isSaveImageTable())
+        if (opts.isSaveCellsTable())
         {
             VisualizerTextTable tableVisualzer = new VisualizerTextTable(opts.getResultPath(), cellUpdateType, colorer, opts.getFinalTime(), opts.getImageInterval());
             ((PhysicellSimulator)simulator).addTableVisualizer( tableVisualzer );
         }
         
-        if (opts.isSaveImageText())
+        if (opts.isSaveCellsText())
         {
             VisualizerText textVisualzer = new VisualizerText(opts.getResultPath(), cellUpdateType, colorer, opts.getFinalTime(), opts.getImageInterval());
             ((PhysicellSimulator)simulator).addTextVisualizer( textVisualzer );
