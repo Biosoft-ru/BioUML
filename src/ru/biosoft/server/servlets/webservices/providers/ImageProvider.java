@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.metadata.IIOMetadata;
 import javax.swing.ImageIcon;
 
+import org.apache.batik.dom.svg.SVGDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -37,7 +38,6 @@ import ru.biosoft.graphics.HtmlView;
 import ru.biosoft.graphics.access.ChartDataElement;
 import ru.biosoft.graphics.chart.Chart;
 import ru.biosoft.graphics.font.ColorFont;
-import ru.biosoft.server.servlets.support.SVGDomImplementation;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
@@ -266,7 +266,7 @@ public class ImageProvider extends WebProviderSupport
 
         TranscodingHints transcoderHints = new TranscodingHints();
         transcoderHints.put(ImageTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE);
-        transcoderHints.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION, SVGDomImplementation.getDOMImplementation());
+        transcoderHints.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION, SVGDOMImplementation.getDOMImplementation());
         transcoderHints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI, SVGConstants.SVG_NAMESPACE_URI);
         transcoderHints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
         transcoderHints.put(ImageTranscoder.KEY_USER_STYLESHEET_URI, cssFile.toURI().toString());
