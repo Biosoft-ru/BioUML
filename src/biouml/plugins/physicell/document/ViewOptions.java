@@ -10,7 +10,7 @@ public class ViewOptions extends Option
     private int time;
     private View2DOptions options2D = new View2DOptions();
     private View3DOptions options3D = new View3DOptions();
-    private boolean is3D;
+    private boolean is2D;
 
     public ViewOptions()
     {
@@ -54,23 +54,23 @@ public class ViewOptions extends Option
         this.firePropertyChange( "time", oldValue, time );
     }
 
-    @PropertyName ( "3D" )
-    public boolean is3D()
+    @PropertyName ( "2D" )
+    public boolean is2D()
     {
-        return is3D;
+        return is2D;
     }
 
-    public void set3D(boolean is3d)
+    public void set2D(boolean is2D)
     {
-        boolean oldValue = this.is3D;
-        this.is3D = is3d;
-        this.firePropertyChange( "is3D", oldValue, is3d );
+        boolean oldValue = this.is2D;
+        this.is2D = is2D;
+        this.firePropertyChange( "is2D", oldValue, is2D );
         this.firePropertyChange( "*", null, null );
     }
 
-    public boolean is2D()
+    public boolean is3D()
     {
-        return !is3D();
+        return !is2D();
     }
 
     @PropertyName ( "Options 2D" )
