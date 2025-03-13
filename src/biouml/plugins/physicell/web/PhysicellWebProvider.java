@@ -2,21 +2,14 @@ package biouml.plugins.physicell.web;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Map;
 
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
-import biouml.model.dynamics.plot.PlotInfo;
-import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.plugins.physicell.CellDefinitionProperties;
 import biouml.plugins.physicell.MulticellEModel;
 import biouml.plugins.physicell.document.PhysicellSimulationResult;
 import biouml.plugins.physicell.document.StateVisualizer2D;
 import biouml.plugins.server.access.AccessProtocol;
-import biouml.plugins.simulation.document.InteractiveSimulation;
-import biouml.plugins.simulation.web.SimulationProvider.WebSimplePlotPane;
-import biouml.standard.diagram.DiagramUtility;
-import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
