@@ -27,6 +27,7 @@ openVideo.json
 expand.json
 newElement.json
 newSimulationDocument.json
+newPhysicellDocument.json
 newScript.json
 newJavaCode.json
 newRScript.json:R
