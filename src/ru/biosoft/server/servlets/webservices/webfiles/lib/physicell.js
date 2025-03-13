@@ -18,8 +18,8 @@ function PhysicellDocument(completeName)
         opennedDocuments[this.tabId] = this;
         
         this.plotDocument = $('<div id="'+this.tabId+'"/>').css('padding', 0);
-        this.loadingDiv = $('<div id="simulationLoadingDiv"><p><img height="16" width="16" src="images/trobber.gif"/>&nbsp;Creating simulation result...</p></div>');
-        this.plotDocument.append(this.loadingDiv);
+       // this.loadingDiv = $('<div id="simulationLoadingDiv"><p><img height="16" width="16" src="images/trobber.gif"/>&nbsp;Creating simulation result...</p></div>');
+       // this.plotDocument.append(this.loadingDiv);
         this.plotDocumentContainer = $('<div id="' + this.tabId + '_container" class="documentTab"/>');
         this.plotDocument.append(this.plotDocumentContainer);
         parent.append(this.plotDocument);
