@@ -96,6 +96,10 @@
                     </environmentVariables>
                     <systemProperties>
                         <property>
+                            <key>osgi.url.handler</key>
+                            <value>false</value>
+                        </property>
+                        <property>
                             <key>java.security.policy</key>
                             <value>${rootDir}/target/biouml.policy</value>
                         </property>
