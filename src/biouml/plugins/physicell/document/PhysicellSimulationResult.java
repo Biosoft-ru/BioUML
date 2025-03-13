@@ -6,7 +6,6 @@ import biouml.standard.type.BaseSupport;
 import ru.biosoft.access.TextDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.table.TableDataCollection;
 
@@ -23,7 +22,7 @@ public class PhysicellSimulationResult extends BaseSupport
     private int step;
     private int maxTime;
 
-    public PhysicellSimulationResult(String name, GenericDataCollection de) throws Exception
+    public PhysicellSimulationResult(String name, DataCollection de) throws Exception
     {
         super( null, name );
         this.dcAgents = (DataCollection)de.get( "Cells" );

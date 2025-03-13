@@ -1,11 +1,26 @@
 package biouml.plugins.physicell.web;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
+import biouml.model.dynamics.plot.Curve;
+import biouml.model.dynamics.plot.PlotInfo;
+import biouml.model.dynamics.plot.PlotVariable;
+import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.plugins.physicell.CellDefinitionProperties;
 import biouml.plugins.physicell.MulticellEModel;
+import biouml.plugins.physicell.document.PhysicellResultDocument;
+import biouml.plugins.physicell.document.PhysicellSimulationResult;
+import biouml.plugins.simulation.document.InteractiveSimulation;
+import biouml.standard.diagram.DiagramUtility;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
+import ru.biosoft.server.servlets.webservices.WebServicesServlet;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
 import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
 
@@ -64,6 +79,23 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
             diagram.getRole( MulticellEModel.class ).getVisualizerProperties().removeVisualizer( index );
             response.sendString( "ok" );
         }
+        else if ("simulation_document_create".equals(action))
+        {
+            createPhysicellDocument( arguments.getDataElement( DataCollection.class ), response );
+        }
+            
+    }
+    
+    private static void createPhysicellDocument(DataCollection dc, JSONResponse response) throws Exception
+    {
+        String simulationName = "Simulation " + dc.getName();
+        //TODO: think of nicer naming of simulation documents
+        String completeSimulationName = DataElementPath.create( simulationName )
+                .getChildPath( dc.getCompletePath().getPathComponents() ).toString();
+        PhysicellSimulationResult simulation = new PhysicellSimulationResult( dc.getName() + " Simulation", dc );
+//        PhysicellResultDocument document = new PhysicellResultDocument( simulation );
+        WebServicesServlet.getSessionCache().addObject( completeSimulationName, simulation, true );
+        response.sendString( completeSimulationName );
     }
 
 }

@@ -53,6 +53,9 @@ function JupyterDocument()
 function SimulationDocument()
 {}
 
+function PhysicellDocument()
+{}
+
 function bpmnDocument()
 {}
 
@@ -250,6 +253,17 @@ function createSimulationDocument (name, callback)
     }, function()
     {
         callback(new SimulationDocument(name));
+    });
+}
+
+function createPhysicellDocument (name, callback)
+{
+    loadBioUMLModules(["viewpartsPhysicell", "physicell"], function()
+    {
+        //initSimulationViewParts();
+    }, function()
+    {
+        callback(new PhysicellDocument(name));
     });
 }
 
