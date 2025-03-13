@@ -1,23 +1,12 @@
 package biouml.plugins.physicell.web;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
-import biouml.model.dynamics.plot.Curve;
-import biouml.model.dynamics.plot.PlotInfo;
-import biouml.model.dynamics.plot.PlotVariable;
-import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.plugins.physicell.CellDefinitionProperties;
 import biouml.plugins.physicell.MulticellEModel;
-import biouml.plugins.physicell.document.PhysicellResultDocument;
 import biouml.plugins.physicell.document.PhysicellSimulationResult;
-import biouml.plugins.simulation.document.InteractiveSimulation;
-import biouml.standard.diagram.DiagramUtility;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebServicesServlet;
@@ -31,11 +20,10 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
     public void process(BiosoftWebRequest arguments, JSONResponse response) throws Exception
     {
         String action = arguments.getAction();
-        Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
-        
-
+       
         if( "add_rule".equals( action ) || "remove_rule".equals( action ) )
         {
+            Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             String nodeName = arguments.getString( "node" );
             DiagramElement de = diagram.get( nodeName );
             if( de == null || de.getRole() == null || ! ( de.getRole() instanceof CellDefinitionProperties ) )
@@ -59,22 +47,26 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         }
         else if ("add_scheme".equals( action ))
         {
+            Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             diagram.getRole( MulticellEModel.class ).addColorScheme();
             response.sendString( "ok" );
         }
         else if ("remove_scheme".equals( action ))
         {
+            Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             int index = arguments.getInt( "index" );
             diagram.getRole( MulticellEModel.class ).removeColorScheme( index );
             response.sendString( "ok" );
         }
         else if ("add_visualizer".equals(action))
         {
+            Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             diagram.getRole( MulticellEModel.class ).getVisualizerProperties().addVisualizer();
             response.sendString( "ok" );
         }
         else if ("remove_visualizer".equals(action))
         {
+            Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             int index = arguments.getInt( "index" );
             diagram.getRole( MulticellEModel.class ).getVisualizerProperties().removeVisualizer( index );
             response.sendString( "ok" );
