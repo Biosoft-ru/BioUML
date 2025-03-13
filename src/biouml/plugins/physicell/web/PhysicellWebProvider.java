@@ -1,15 +1,29 @@
 package biouml.plugins.physicell.web;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Map;
+
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
+import biouml.model.dynamics.plot.PlotInfo;
+import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.plugins.physicell.CellDefinitionProperties;
 import biouml.plugins.physicell.MulticellEModel;
 import biouml.plugins.physicell.document.PhysicellSimulationResult;
+import biouml.plugins.physicell.document.StateVisualizer2D;
+import biouml.plugins.server.access.AccessProtocol;
+import biouml.plugins.simulation.document.InteractiveSimulation;
+import biouml.plugins.simulation.web.SimulationProvider.WebSimplePlotPane;
+import biouml.standard.diagram.DiagramUtility;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
+import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.WebServicesServlet;
+import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
 import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
 
@@ -20,7 +34,7 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
     public void process(BiosoftWebRequest arguments, JSONResponse response) throws Exception
     {
         String action = arguments.getAction();
-       
+
         if( "add_rule".equals( action ) || "remove_rule".equals( action ) )
         {
             Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
@@ -45,47 +59,88 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
                 response.sendString( "ok" );
             }
         }
-        else if ("add_scheme".equals( action ))
+        else if( "add_scheme".equals( action ) )
         {
             Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             diagram.getRole( MulticellEModel.class ).addColorScheme();
             response.sendString( "ok" );
         }
-        else if ("remove_scheme".equals( action ))
+        else if( "remove_scheme".equals( action ) )
         {
             Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             int index = arguments.getInt( "index" );
             diagram.getRole( MulticellEModel.class ).removeColorScheme( index );
             response.sendString( "ok" );
         }
-        else if ("add_visualizer".equals(action))
+        else if( "add_visualizer".equals( action ) )
         {
             Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             diagram.getRole( MulticellEModel.class ).getVisualizerProperties().addVisualizer();
             response.sendString( "ok" );
         }
-        else if ("remove_visualizer".equals(action))
+        else if( "remove_visualizer".equals( action ) )
         {
             Diagram diagram = WebDiagramsProvider.getDiagramChecked( arguments.getDataElementPath() );
             int index = arguments.getInt( "index" );
             diagram.getRole( MulticellEModel.class ).getVisualizerProperties().removeVisualizer( index );
             response.sendString( "ok" );
         }
-        else if ("simulation_document_create".equals(action))
+        else if( "simulation_document_create".equals( action ) )
         {
             createPhysicellDocument( arguments.getDataElement( DataCollection.class ), response );
         }
-            
+        else if( "simulation_document_image".equals( action ) )
+        {
+            sendSimulationImage( arguments.getString( AccessProtocol.KEY_DE ), response );
+        }
     }
-    
+
+    public static PhysicellSimulationResult getSimulationResult(String simulationDe) throws WebException
+    {
+        Object cachedObj = WebServicesServlet.getSessionCache().getObject( simulationDe );
+        if( cachedObj instanceof PhysicellSimulationResult )
+            return (PhysicellSimulationResult)cachedObj;
+        else
+            throw new WebException( "EX_QUERY_NO_ELEMENT", simulationDe );
+    }
+
+    private static void sendSimulationImage(String simulationDe, JSONResponse response) throws IOException, WebException
+    {
+        PhysicellSimulationResult simulation = getSimulationResult( simulationDe );
+        //        PlotsInfo plotsInfo = DiagramUtility.getPlotsInfo( simulation.getDiagram() );
+        //        PlotInfo[] plotInfos = plotsInfo.getActivePlots();
+        //        String[] imageNames = null;
+        //        Map<String, double[]> values = simulation.getResult();
+        //        BufferedImage[] resultImages = StreamEx.of( plotInfos ).map( p -> {
+        //            WebSimplePlotPane wp = new WebSimplePlotPane( 700, 500, p );
+        //            wp.redrawChart( values );
+        //            return wp;
+        //        } ).map( p -> p.getImage() ).toArray( BufferedImage[]::new );
+        StateVisualizer2D visualizer = new StateVisualizer2D();
+        visualizer.setResult( simulation );
+        BufferedImage image = visualizer.draw();
+        if( image != null )
+        {
+            //            imageNames = new String[resultImages.length];
+            //            for( int i = 0; i < resultImages.length; i++ )
+            //            {
+            //                imageNames[i] = simulationDe + "_img_" + i;
+            WebSession.getCurrentSession().putImage( "image", image );
+            //            }
+            response.sendStringArray( new String[] {"image"} );
+        }
+        else
+            response.sendStringArray( new String[0]);
+    }
+
     private static void createPhysicellDocument(DataCollection dc, JSONResponse response) throws Exception
     {
         String simulationName = "Simulation " + dc.getName();
         //TODO: think of nicer naming of simulation documents
-        String completeSimulationName = DataElementPath.create( simulationName )
-                .getChildPath( dc.getCompletePath().getPathComponents() ).toString();
+        String completeSimulationName = DataElementPath.create( simulationName ).getChildPath( dc.getCompletePath().getPathComponents() )
+                .toString();
         PhysicellSimulationResult simulation = new PhysicellSimulationResult( dc.getName() + " Simulation", dc );
-//        PhysicellResultDocument document = new PhysicellResultDocument( simulation );
+        //        PhysicellResultDocument document = new PhysicellResultDocument( simulation );
         WebServicesServlet.getSessionCache().addObject( completeSimulationName, simulation, true );
         response.sendString( completeSimulationName );
     }

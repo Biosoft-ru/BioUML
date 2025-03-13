@@ -38,7 +38,7 @@ function PhysicellDocument(completeName)
             _this.plotDocumentContainer.scroll(function() {
                 _this.scrollPos = _this.plotDocumentContainer.scrollTop();
             }); 
-            selectViewPart("multicellular.result");
+            selectViewPart("physicell.result");
         });
         resizeDocumentsTabs();
         
@@ -46,26 +46,26 @@ function PhysicellDocument(completeName)
     
     this.update = function(callback)
     {
-       // queryBioUML("web/physicell/physicell_document",
-       // {
-       //     de: _this.simulationName
-       // }, function(data)
-      //  {
-       //     _this.plotDiv.html("");
-       //     for(var i=0; i < data.values.length; i++)
-       //     {
-       //         _this.plotDiv.append($('<img src="'+appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd() + '">'));
-       //         _this.plotDiv.append($('<br>'));
-       //     }
-       //     
-       //     if(_this.scrollPos > 0)
-       //     {
-      //          var curPos = _this.scrollPos;
-       //         setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
-       //     }
-       //     if( callback )
-       //         callback();
-       // });
+       queryBioUML("web/physicell/simulation_document_image",
+       {
+           de: _this.simulationName
+       }, function(data)
+       {
+            _this.plotDiv.html("");
+            for(var i=0; i < data.values.length; i++)
+          {
+               _this.plotDiv.append($('<img src="'+appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd() + '">'));
+               _this.plotDiv.append($('<br>'));
+           }
+            
+            if(_this.scrollPos > 0)
+            {
+               var curPos = _this.scrollPos;
+               setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
+           }
+           if( callback )
+               callback();
+        });
     }
     
     this.isChanged = function()
