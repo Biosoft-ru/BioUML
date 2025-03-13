@@ -23,7 +23,7 @@
     }",
     action: "function(path)
     {
-	    createMulticellularDocument(path, function(doc) {
+	    createPhysicellDocument(path, function(doc) {
 				openDocumentTab(doc);
 			});
     }"
