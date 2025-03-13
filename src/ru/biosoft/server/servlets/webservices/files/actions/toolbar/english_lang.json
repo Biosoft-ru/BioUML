@@ -1,0 +1,29 @@
+/*
+ * Switch to English language
+ */
+{
+    id: "english_lang",
+    label: "Switch to English language",
+    icon: "icons/english_lang.png",
+    visible: "function(doc)
+    {
+        if( !hasBioumlLocale( 'ru' ) )
+        {
+            return -1;
+        }  
+
+        var bioumlLocale = Cookies.getItem( 'bioumlLocale' ) ||
+                   navigator.language || navigator.userLanguage;
+
+        if( bioumlLocale != 'ru' )
+        {
+            return -1;
+        }  
+
+        return true; 
+    }",
+    action: "function(event)
+    {
+        setBioumlLocale( 'en' );
+    }"
+}
