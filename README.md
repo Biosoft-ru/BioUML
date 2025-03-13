@@ -39,6 +39,12 @@ Then launch BioUML Web edition.
 mvn -pl tomcat-embedded exec:java
 ```
 
+For Java versions newer than 11 you can use experimental forked launch mode
+
+```sh
+mvn -pl tomcat-embedded exec:exec@run-forked
+```
+
 Use your browser to open it at http://localhost:8080/bioumlweb/
 
 

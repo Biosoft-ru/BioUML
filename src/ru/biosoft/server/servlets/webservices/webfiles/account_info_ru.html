@@ -1,0 +1,31 @@
+<div id="base_info" style="float:left; width:350px;">
+	<table border=0 cellpadding=2>
+		<tr><td align="right">Имя пользователя:</td><td id="username">&nbsp;</td></tr>
+		<tr><td align="right">Пароль:</td><td id="password"><input type="button" value="Изменить"/></td></tr>
+		<tr><td align="right">Истекает:</td><td id="expiration">&nbsp;</td></tr>
+		<tr><td colspan=2>&nbsp;</td></tr>
+        <tr><td align="right">Обращение:</td><td id="courtesy"></td></tr>
+		<tr><td align="right">Имя:</td><td id="firstName"></td></tr>
+		<tr><td align="right">Фамилия:</td><td id="lastName"></td></tr>
+		<tr><td align="right">Организация:</td><td id="organization"></td></tr>
+		<tr><td align="right">Подразделение:</td><td id="department"></td></tr>
+		<tr><td align="right">Телефон:</td><td id="workPhone"></td></tr>
+		<tr><td align="right">Страна:</td><td id="country"></td></tr>
+        <tr><td align="right"></td><td><input type="button" id="edit_info" value="Редактировать данные"/><input type="button" id="save_info" value="Сохранить" style="display:none;"/><input type="button" id="cancel_changes" value="Отмена" style="display:none;"/></td></tr>
+	</table>
+</div>
+<div>
+    <table border=0 cellpadding=2>
+        <tr><td>Проекты:</td><td><input type="button" id="create_project" value="Создать новый проект"/></td></tr>
+    </table>
+    <table border=0 cellpadding=2 id="projects_table" class="clipboard rules-rows" style="width:auto; border-collapse: separate;" >
+        <tr><th>Название</th><th>Описание</th><th>Дисковая квота</th><th></th></tr>
+    </table>
+</div>
+<script type="text/javascript">
+loadBioUMLModules(["accountManager"], function()
+{
+	initAccountManager();
+}, function() {});
+</script>
+

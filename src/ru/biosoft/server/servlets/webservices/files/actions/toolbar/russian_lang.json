@@ -1,0 +1,29 @@
+/*
+ * Switch to Russian language
+ */
+{
+    id: "russian_lang",
+    label: "Переключиться на русский язык",
+    icon: "icons/russian_lang.png",
+    visible: "function(doc)
+    {
+        if( !hasBioumlLocale( 'ru' ) )
+        {
+            return -1;
+        }  
+
+        var bioumlLocale = Cookies.getItem( 'bioumlLocale' ) ||
+                   navigator.language || navigator.userLanguage;
+
+        if( bioumlLocale == 'ru' )
+        {
+            return -1;
+        }  
+
+        return true; 
+    }",
+    action: "function(event)
+    {
+        setBioumlLocale( 'ru' );
+    }"
+}
