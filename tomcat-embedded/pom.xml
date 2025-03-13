@@ -22,16 +22,19 @@
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>7.0.109</version>
+            <!--version>8.0.53</version-->
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-logging-juli</artifactId>
             <version>7.0.109</version>
+            <!--version>8.0.53</version-->
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-jasper</artifactId>
             <version>7.0.109</version>
+            <!--version>8.0.53</version-->
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -96,10 +99,6 @@
                     </environmentVariables>
                     <systemProperties>
                         <property>
-                            <key>osgi.url.handler</key>
-                            <value>false</value>
-                        </property>
-                        <property>
                             <key>java.security.policy</key>
                             <value>${rootDir}/target/biouml.policy</value>
                         </property>
@@ -122,7 +121,6 @@
                     </systemProperties>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>

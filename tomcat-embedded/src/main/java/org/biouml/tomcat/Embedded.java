@@ -51,7 +51,10 @@ public class Embedded
             }
         });
 
-        System.setSecurityManager(new SecurityManager());
+        if( Runtime.version().feature() <= 11 )
+        {
+            System.setSecurityManager(new SecurityManager());
+        }
         tomcat.start();
         tomcat.getServer().await();
     }
