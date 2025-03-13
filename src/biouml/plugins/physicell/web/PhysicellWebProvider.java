@@ -78,11 +78,11 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
             diagram.getRole( MulticellEModel.class ).getVisualizerProperties().removeVisualizer( index );
             response.sendString( "ok" );
         }
-        else if( "simulation_document_create".equals( action ) )
+        else if( "physicell_document_create".equals( action ) )
         {
             createPhysicellDocument( arguments.getDataElement( DataCollection.class ), response );
         }
-        else if( "simulation_document_image".equals( action ) )
+        else if( "physicell_document_image".equals( action ) )
         {
             sendSimulationImage( arguments.getString( AccessProtocol.KEY_DE ), response );
         }

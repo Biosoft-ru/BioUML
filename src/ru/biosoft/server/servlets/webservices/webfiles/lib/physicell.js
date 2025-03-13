@@ -46,7 +46,7 @@ function PhysicellDocument(completeName)
     
     this.update = function(callback)
     {
-       queryBioUML("web/physicell/simulation_document_image",
+       queryBioUML("web/physicell/physicell_document_image",
        {
            de: _this.simulationName
        }, function(data)
