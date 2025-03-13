@@ -70,7 +70,9 @@ function updateRepositoryTabs()
 		        '<div id="'+root+'_tree" data-id="'+root+'"></div></div>');      
 		//add tab
 		//TODO: check if getJQueryIdSelector(root+'_tree_container') is required in href
-		$("<li><a href='#"+root+"_tree_container'>"+perspective.repository[i].title+"</a></li>" ).appendTo( treeNavBar );
+                var repTitle = perspective.repository[i].title;
+                repTitle = resources.repositoryNames[ repTitle ] || repTitle; 
+		$("<li><a href='#" + root + "_tree_container'>" + repTitle + "</a></li>" ).appendTo( treeNavBar );
 		
 		//TODO: check if getJQueryIdSelector(root+'_tree') is required
 		treeMap[root] = createTreeObject(root, '#'+root+'_tree');

@@ -159,7 +159,7 @@ function DiagramPlotViewPart()
             buttons:
             {
                 
-                "Save" : function()
+                "Save": function()
                 {
                     var _thisDialog = $(this);
                     _this.saveTable(plotSelect.val(), typeSelect.val(), function(){
@@ -376,13 +376,8 @@ function DiagramPlotViewPart()
             variableSelector.trigger("change");
         });
 
-        dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 400,
-            buttons:
-            {
-                "OK": function()
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
                 {
                     var addParams = {
                             de: _this.currentObject.completeName,
@@ -406,13 +401,17 @@ function DiagramPlotViewPart()
                             });
                     
                     return false;
-                },
-                "Close": function()
+                };
+        dialogButtons[ resources.dlgButtonClose ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+        dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 400,
+            buttons: dialogButtons
         });
         dialogDiv.dialog("open");  
     };
@@ -498,14 +497,9 @@ function DiagramPlotViewPart()
             _this.fillVariablesCombos(comboX, _this.xValues, comboY, _this.yValues);
         else if(_this.prevExpPath != undefined)
             _this.updateVariables(_this.prevExpPath, comboX, comboY);
-        
-        expDialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 400,
-            buttons:
-            {
-                "OK": function()
+         
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
                 {
                     var params = {
                         de: _this.currentObject.completeName,
@@ -530,13 +524,17 @@ function DiagramPlotViewPart()
                         });
                     
                     return false;
-                },
-                "Close": function()
+                };
+        dialogButtons[ resources.dlgButtonClose ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+        expDialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 400,
+            buttons: dialogButtons
         });
         expDialogDiv.dialog("open");  
     };
@@ -1542,14 +1540,8 @@ function WorkflowViewPart()
                 saveResearchPropertyPane.setModel(researchDPS);
                 saveResearchPropertyPane.generate();
                 _this.saveResearchPropertyPane = saveResearchPropertyPane;
-                dialogDiv.dialog(
-                {
-                    autoOpen: false,
-                    width: 500,
-                    modal: true,
-                    buttons:
-                    {
-                        "Ok": function()
+                var dialogButtons = {};
+                dialogButtons[ "Ok" ] = function()
                         {
                             var dps = _this.parametersPropertyPane.getModel();
     		                var json = convertDPSToJSON(dps);
@@ -1558,13 +1550,18 @@ function WorkflowViewPart()
                             _this.startWorkflow(json, saveResearchPath);
                             $(this).dialog("close");
                             $(this).remove();
-                        },
-                        "Cancel": function()
+                        };
+                dialogButtons[ resources.dlgButtonCancel ] = function()
                         {
                             $(this).dialog("close");
                             $(this).remove();
-                        }
-                    }
+                        };
+                dialogDiv.dialog(
+                {
+                    autoOpen: false,
+                    width: 500,
+                    modal: true,
+                    buttons: dialogButtons
                 });
                 dialogDiv.dialog("open");
                 addDialogKeys(dialogDiv);
@@ -2612,14 +2609,8 @@ function DiagramUnitsViewPartNew()
                 dialogDiv.dialog("close");
                 dialogDiv.remove();
             };
-            dialogDiv.dialog(
-            {
-                autoOpen: false,
-                width: 500,
-                height: 500,
-                buttons: 
-                {
-                    "Cancel": function()
+            var dialogButtons = {};
+            dialogButtons[ resources.dlgButtonCancel ] = function()
                     {
                         var newName = getElementName(beanPath);
                         if(isNew)
@@ -2649,8 +2640,8 @@ function DiagramUnitsViewPartNew()
                                 }, closeDialog, closeDialog);
                             } else closeDialog();
                         }
-                    },
-                    "Save": function()
+                    };
+            dialogButtons[ resources.dlgButtonSave ] = function()
                     {
                         var data = convertDPSToJSON(propertyPane.getModel());
                         queryBioUML("web/bean/set", 
@@ -2666,8 +2657,13 @@ function DiagramUnitsViewPartNew()
                                 vp.loadTable();
                             _this.loadTable();
                         }, closeDialog);
-                    }
-                }
+                    };
+            dialogDiv.dialog(
+            {
+                autoOpen: false,
+                width: 500,
+                height: 500,
+                buttons: dialogButtons
             });
             addDialogKeys(dialogDiv);
             sortButtons(dialogDiv);
@@ -2919,14 +2915,8 @@ function FbcViewPart(){
             selectControl2.append(option);    
         }
         dialogDiv.append(selectControl2);
-        dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 320,
-            modal: true,
-            buttons: 
-            {
-                "Ok": function()
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
                 {
                 	queryService("fbc.service", 802,
                     {
@@ -2942,13 +2932,18 @@ function FbcViewPart(){
                     });
                     $(this).dialog("close");
                     $(this).remove();
-                },
-    			"Cancel": function()
+                };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
     			{
                     $(this).dialog("close");
                     $(this).remove();
-    			}
-            }
+    			};
+        dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 320,
+            modal: true,
+            buttons: dialogButtons
         });
         addDialogKeys(dialogDiv);
         sortButtons(dialogDiv);
@@ -3397,9 +3392,8 @@ function ComplexSimulationViewPart()
             autoOpen: false,
             width: 700,
             buttons:
-            {
-                
-                "Save" : function()
+            {                
+                "Save": function()
                 {
                     var _thisDialog = $(this);
                     _this.saveTable(plotSelect.val(), typeSelect.val(), function(){
@@ -3616,13 +3610,8 @@ function ComplexSimulationViewPart()
             variableSelector.trigger("change");
         });
 
-        dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 400,
-            buttons:
-            {
-                "OK": function()
+        var dialogButtons = {};
+        dialogButtons[ "OK" ] = function()
                 {
                     var addParams = {
                             de: _this.currentObject.completeName,
@@ -3646,13 +3635,17 @@ function ComplexSimulationViewPart()
                             });
                     
                     return false;
-                },
-                "Close": function()
+                };
+        dialogButtons[ resources.dlgButtonClose ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+        dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 400,
+            buttons: dialogButtons
         });
         dialogDiv.dialog("open");  
     };
@@ -3739,13 +3732,8 @@ function ComplexSimulationViewPart()
         else if(_this.prevExpPath != undefined)
             _this.updateVariables(_this.prevExpPath, comboX, comboY);
         
-        expDialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 400,
-            buttons:
-            {
-                "OK": function()
+        var dialogButtons = {};
+        dialogButtons[ "OK" ] = function()
                 {
                     var params = {
                         de: _this.currentObject.completeName,
@@ -3770,13 +3758,17 @@ function ComplexSimulationViewPart()
                         });
                     
                     return false;
-                },
-                "Close": function()
+                };
+        dialogButtons[ resources.dlgButtonClose ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
                 }
-            }
+        expDialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 400,
+            buttons: dialogButtons
         });
         expDialogDiv.dialog("open");  
     };
@@ -4049,22 +4041,20 @@ function ComplexSimulationViewPart()
                     }
                     
                     var dialogHeight = _this.n > 1 ? 700 : 520;
+                    var dialogButtons = {};
+                    dialogButtons[ resources.dlgButtonClose ] = function()
+                            {
+                                $(this).dialog("close");
+                                $(this).remove();
+                            };
                     _this.dialogDiv[0].dialog(
                     {
                         autoOpen: true,
                         width: 620,
                         height: dialogHeight,
-                        buttons: 
-                        {
-                            "Close": function()
-                            {
-                                $(this).dialog("close");
-                                $(this).remove();
-                            }
-                            
-                        },
+                        buttons: dialogButtons,
                         beforeClose: function( event, ui ) {
-                            //_this.stopSimulation();
+                            _this.stopSimulation();
                         }
                         ,
                         open: function(event, ui){
@@ -4594,14 +4584,8 @@ function ComplexModelViewPart()
                 dialogDiv.dialog("close");
                 dialogDiv.remove();
             };
-            dialogDiv.dialog(
-            {
-                autoOpen: false,
-                width: 500,
-                height: 500,
-                buttons: 
-                {
-                    "Cancel": function()
+            var dialogButtons = {};
+            dialogButtons[ resources.dlgButtonCancel ] = function()
                     {
                         var newName = getElementName(beanPath);
                         if(isNew)
@@ -4631,8 +4615,8 @@ function ComplexModelViewPart()
                                 }, closeDialog, closeDialog);
                             } else closeDialog();
                         }
-                    },
-                    "Save": function()
+                    };
+            dialogButtons[ resources.dlgButtonSave ] = function()
                     {
                         var data = convertDPSToJSON(propertyPane.getModel());
                         queryBioUML("web/bean/set", 
@@ -4646,8 +4630,13 @@ function ComplexModelViewPart()
                             _this.loadModelTable("variables");
                             _this.loadModelTable("units", true);
                         }, closeDialog);
-                    }
-                }
+                    };
+            dialogDiv.dialog(
+            {
+                autoOpen: false,
+                width: 500,
+                height: 500,
+                buttons: dialogButtons
             });
             addDialogKeys(dialogDiv);
             sortButtons(dialogDiv);
@@ -5212,14 +5201,8 @@ function StatesViewPart()
                 dialogDiv.dialog("close");
                 dialogDiv.remove();
             };
-            dialogDiv.dialog(
-            {
-                autoOpen: false,
-                width: 500,
-                height: 500,
-                buttons: 
-                {
-                    "Cancel": function()
+            var dialogButtons = {};
+            dialogButtons[ resources.dlgButtonCancel ] = function()
                     {
                         if(isNew)
                         {
@@ -5248,8 +5231,8 @@ function StatesViewPart()
                                 }, closeDialog, closeDialog);
                             } else closeDialog();
                         }
-                    },
-                    "Save": function()
+                    };
+            dialogButtons[ resources.dlgButtonSave ] = function()
                     {
                         var data = convertDPSToJSON(propertyPane.getModel());
                         queryBioUML("web/bean/set", 
@@ -5263,8 +5246,13 @@ function StatesViewPart()
                             if(callback)
                                 callback(stateName);
                         }, closeDialog);
-                    }
-                }
+                    };
+            dialogDiv.dialog(
+            {
+                autoOpen: false,
+                width: 500,
+                height: 500,
+                buttons: dialogButtons
             });
             addDialogKeys(dialogDiv);
             sortButtons(dialogDiv);

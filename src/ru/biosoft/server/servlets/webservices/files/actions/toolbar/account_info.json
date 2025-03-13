@@ -17,8 +17,17 @@
             window.open(appInfo.userAccountLink);
             return;
         }
-        openNonTreeDocument('account_info_div', 'account_info', 'Account info');
-        $('#account_info_div').load('account_info.html?'+appInfo.build, function(response, status, xhr) 
+        var bioumlLocale = Cookies.getItem( 'bioumlLocale' ) ||
+                   navigator.language || navigator.userLanguage;
+        var acount_page = 'account_info.html';
+        if( bioumlLocale == 'ru' )
+        {
+            acount_page = 'account_info_ru.html';
+        }  
+
+        var uiName = resources.actionNames[ 'Account info' ] || 'Account info';
+        openNonTreeDocument('account_info_div', 'account_info', uiName);
+        $('#account_info_div').load(acount_page + '?'+appInfo.build, function(response, status, xhr) 
 		{
 			if (status == 'error') 
 			{

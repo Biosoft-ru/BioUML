@@ -74,6 +74,28 @@ var contextMenuInitialized = {};
 function loadApplication(startupInfo)
 {
     showWaitDialog(resources.commonLoading);
+
+    if( startupInfo.actions.tree )
+    {
+        startupInfo.actions.tree.forEach( function( action ) {
+           action.label = resources.actionNames[ action.label ] || action.label;
+        });
+    }
+
+    if( startupInfo.actions.toolbar )
+    {
+        startupInfo.actions.toolbar.forEach( function( action ) {
+           action.label = resources.actionNames[ action.label ] || action.label;
+        });
+    }
+
+    if( startupInfo.actions.dynamic )
+    {
+        startupInfo.actions.dynamic.forEach( function( action ) {
+           action.label = resources.actionNames[ action.label ] || action.label;
+        });
+    }
+
     // init perspective
     setPerspective(startupInfo.perspective);
 

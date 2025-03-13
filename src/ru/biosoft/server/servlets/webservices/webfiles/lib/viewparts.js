@@ -128,13 +128,8 @@ function editViewpartSettings()
     
     dialogDiv.append(table);
     
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 350,
-        buttons:
-        {
-            "Save" : function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonSave ] = function()
             {
                 var _thisDialog = $(this);
                 //Some viewparts are inititalized only when specific elements like Diagram, Table are opened. 
@@ -156,13 +151,17 @@ function editViewpartSettings()
                 setPreference("viewpartsHidden", toHide.join(";"), updateViewParts)
                 $(this).dialog("close");
                 $(this).remove();
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
-            },
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 350,
+        buttons: dialogButtons
     });
     dialogDiv.dialog("open");  
 };
@@ -2577,20 +2576,18 @@ function DiagramSimulationViewPart()
                 }
                 
                 var dialogHeight = _this.n > 1 ? 700 : 520;
+                var dialogButtons = {};
+                dialogButtons[ resources.dlgButtonClose ] = function()
+                        {
+                            $(this).dialog("close");
+                            $(this).remove();
+                        };
                 _this.dialogDiv[0].dialog(
                 {
                     autoOpen: true,
                     width: 620,
                     height: dialogHeight,
-                    buttons: 
-                    {
-                        "Close": function()
-                        {
-                            $(this).dialog("close");
-                            $(this).remove();
-                        }
-                        
-                    },
+                    buttons: dialogButtons,
                     beforeClose: function( event, ui ) {
                         _this.stopSimulation();
                     }
@@ -2894,7 +2891,7 @@ function GenomeEnhancerViewPart()
 
 function LogViewPart()
 {
-    createViewPart(this, "common.log", "Logs");
+    createViewPart(this, "common.log", resources.vpTabLogsTitle);
     var _this = this;
     this.autoupdate = false;
     this.disabled = false;
@@ -2937,7 +2934,7 @@ function LogViewPart()
             lookForViewPart('web.log').onProcessTimer();
         },
         function(data){
-            _this.logDiv.text("Log is unavailable");
+            _this.logDiv.text(resources.vpTabLogsUnavailable);
             _this.disabled = true;
             _this.autoupdate = false;
             if(_this.timeOut) clearTimeout(_this.timeOut);
@@ -2953,7 +2950,7 @@ function LogViewPart()
                 _this.timeOut = setTimeout(function() {lookForViewPart('common.log').onProcessTimer();}, 10000);
             }, function()
             {
-                _this.logDiv.text("Log is unavailable");
+                _this.logDiv.text(resources.vpTabLogsUnavailable);
                 _this.disabled = true;
                 _this.autoupdate = false;
                 if(_this.timeOut) clearTimeout(_this.timeOut);
@@ -2969,7 +2966,7 @@ function LogViewPart()
     
     this.initActions = function(toolbarBlock)
     {
-        this.updateAction = createToolbarButton("Refresh", "apply.gif", this.updateLog);
+        this.updateAction = createToolbarButton(resources.vpTabLogsRefresh, "apply.gif", this.updateLog);
         toolbarBlock.append(this.updateAction);
     };
 }

@@ -110,7 +110,7 @@ function createJournalBox(data)
     journalBox = $('<select id="journalComboBox" class="ui-state-default" style="font-size: 10pt;float:right; max-width: 300px"></select>');
 	journalBox.children('option').remove();
 	if(!appInfo.userProjectRequired)
-	    journalBox.append('<option id="-">-</option>');
+	    journalBox.append('<option id="-" value="-">-</option>');
     var current = "-";
     if(data.current)
         current = data.current;
@@ -120,7 +120,9 @@ function createJournalBox(data)
     {
     	if (names[i].length > 0) 
         {
-            journalBox.append('<option id="' + names[i] + '">' + names[i] + '</option>');
+            var v = names[i];
+            var dn = names[i].replace( "Research: ", resources.commonResearch + ": " );
+            journalBox.append('<option id="' + v + '" value="' + v + '">' + dn + '</option>');
         }
     }
     journalBox.val(current);
@@ -619,28 +621,28 @@ function DynamicAction()
                 		var beanDPS = convertJSONToDPS(data.values);
                 	    var dialogDiv = $('<div title="'+resources.commonDynamicActionPropertiesTitle+'"></div>');
                 	    dialogDiv.append('<div id="' + parentID + '"></div>');
-                	    dialogDiv.dialog(
-                	    {
-                	        autoOpen: false,
-                	        modal: true,
-                	        width: 500,
-                	        height: 500,
-                	        buttons: 
-                	        {
-                	            "Cancel": function()
+                            var dialogButtons = {};
+                            dialogButtons[ resources.dlgButtonCancel ] = function()
                 	            {
                 	                $(this).dialog("close");
                 	                $(this).remove();
-                	            },
-                	            "Ok": function()
+                	            };
+                            dialogButtons[ "Ok" ] = function()
                 	            {
                                     var dps = propertyPane.getModel();
                                     var json = convertDPSToJSON(dps);
                                     _thisAction.performAction(params["jsonrows"], json);
                                     $(this).dialog("close");
                                     $(this).remove();
-                	            }
-                	        }
+                	            };
+
+                	    dialogDiv.dialog(
+                	    {
+                	        autoOpen: false,
+                	        modal: true,
+                	        width: 500,
+                	        height: 500,
+                	        buttons: dialogButtons
                 	    });
                 	    addDialogKeys(dialogDiv);
                 	    sortButtons(dialogDiv);

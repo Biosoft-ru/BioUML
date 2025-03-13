@@ -41,6 +41,8 @@ $(function() {
                 .height(infoTabs.height()-infoTabs.children('ul').outerHeight());
         });
         infoTabs.tabs("option", "active", 1);
+        $("#search_tab").html( "<span>" + resources.infoTabSearch + "</span>" );        
+        $("#info_tab").html( "<span>" + resources.infoTabInfo + "</span>" );        
     }
 
     /*
@@ -145,13 +147,13 @@ $(function() {
         templateBox.children('option').remove();
         if (templates == null) 
         {
-            templateBox.append('<option id="Default">Default</option>');
+            templateBox.append('<option id="Default" value="Default">' + resources.infoTabDefault + '</option>');
         }
         else
         {
             for (i = 0; i < templates.length; i++) 
             {
-                templateBox.append('<option id="' + templates[i] + '">' + templates[i] + '</option>');
+                templateBox.append('<option id="' + templates[i] + '" value="' + templates[i] + '">' + templates[i] + '</option>');
             }
             if (BioUML.selection.lastSelected != null) 
             {

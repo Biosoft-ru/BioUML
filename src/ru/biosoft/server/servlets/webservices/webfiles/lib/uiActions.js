@@ -499,6 +499,18 @@ function showImage(imagePath)
         var height = dialogDiv.dialog("option", "height");
         img.attr("src", appInfo.serverPath+"web/img?" + toURI({de: imagePath, w:width-30, h:height-100}));
     };
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
+            {
+                $(this).dialog("close");
+                $(this).remove();
+            };
+    dialogButtons[ resources.dlgButtonSave ] = function()
+            {
+                var width = dialogDiv.dialog("option", "width");
+                var height = dialogDiv.dialog("option", "height");
+                saveImage(imagePath, {w:width-30, h:height-100});
+            };
     dialogDiv.dialog(
     {
         autoOpen: false,
@@ -510,20 +522,7 @@ function showImage(imagePath)
             queryBioUML("web/img/close", {de: imagePath}, function() {}, function() {});
         },
         resizeStop: resizeFn,
-        buttons: 
-        {
-            "Ok": function()
-            {
-                $(this).dialog("close");
-                $(this).remove();
-            },
-            "Save": function()
-            {
-                var width = dialogDiv.dialog("option", "width");
-                var height = dialogDiv.dialog("option", "height");
-                saveImage(imagePath, {w:width-30, h:height-100});
-            }
-        }
+        buttons: dialogButtons
     });
     addDialogKeys(dialogDiv);
     sortButtons(dialogDiv);

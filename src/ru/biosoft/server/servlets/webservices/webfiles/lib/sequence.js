@@ -526,23 +526,8 @@ function SequenceDocument(completeName, paramHash, customId)
                 tracks.append($('<option/>').val(i).text(track.displayName));
             });
             var jobID = undefined;
-            dialogDiv.dialog(
-            {
-                autoOpen: true,
-                width: 450,
-                height: 250,
-                modal: true,
-                beforeClose: function()
-                {
-                    if (jobID != undefined) 
-                    {
-                        cancelJob(jobID);
-                    }
-                    $(this).remove();
-                },
-                buttons: 
-                {
-                    "Ok": function()
+            var dialogButtons = {};
+            dialogButtons[ "Ok" ] = function()
                     {
                         jobID = rnd();
                         var exporterName = formats.val();
@@ -573,8 +558,8 @@ function SequenceDocument(completeName, paramHash, customId)
                             $(":button:contains('Ok')").removeAttr("disabled");
                             jobID = undefined;
                         });
-                    },
-                    "Cancel": function()
+                    };
+            dialogButtons[ resources.dlgButtonCancel ] = function()
                     {
                         if (jobID != undefined) 
                         {
@@ -585,8 +570,22 @@ function SequenceDocument(completeName, paramHash, customId)
                             $(this).dialog("close");
                             $(this).remove();
                         }
+                    };
+            dialogDiv.dialog(
+            {
+                autoOpen: true,
+                width: 450,
+                height: 250,
+                modal: true,
+                beforeClose: function()
+                {
+                    if (jobID != undefined) 
+                    {
+                        cancelJob(jobID);
                     }
-                }
+                    $(this).remove();
+                },
+                buttons: dialogButtons
             });
             addDialogKeys(dialogDiv);
             sortButtons(dialogDiv);

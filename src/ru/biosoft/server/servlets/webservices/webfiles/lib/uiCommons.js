@@ -628,7 +628,18 @@ function addDialogKeys(dialogDiv, inputField, okName, cancelName)
 // Necessary in jQueryUI 1.7.x as buttons are specified in hash, thus unsorted
 function sortButtons(dialogDiv)
 {
+        var bioumlLocale = Cookies.getItem( "bioumlLocale" ) ||
+                   navigator.language || navigator.userLanguage;
+        var isRU = bioumlLocale == 'ru' && hasBioumlLocale( 'ru' );
+
 	var buttonsOrder = ["Ok", "Import", "(default)", "Save", "View", "Add", "Remove", "Yes", "No", "Close", "Cancel"];
+	var buttonsOrderRU = ["Ok", "Импорт", "(default)", "Сохранить", "Просмотр", "Добавить", "Удалить", "Да", "Нет", "Закрыть", "Отмена"];
+
+        if( isRU )
+        {
+            buttonsOrder = buttonsOrderRU; 
+        } 
+
 	var buttonsPane = dialogDiv.parent().find(".ui-dialog-buttonpane");
 	var buttons = buttonsPane.children().sort(function(a,b)
 	{
@@ -713,13 +724,8 @@ function PlotDialog( path, prevSeriesPath )
         this.table = $('<div>'+resources.dlgPlotEditorLoading+'</div>');
         this.dialogDiv.append(this.table);
 
-        this.dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 800,
-            buttons:
-            {
-                "Save" : function()
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonSave ] = function()
                 {
                     var plotPath = pathEditor.getValue();
                     if(!getElementName(plotPath))
@@ -738,30 +744,34 @@ function PlotDialog( path, prevSeriesPath )
                     });
                     return false;
                     
-                },
-                "View": function()
+                };
+        dialogButtons[ resources.dlgButtonView ] = function()
                 {
                     _thisDialog.showPlot();
                     return false;
-                },
-                "Remove": function()
+                };
+        dialogButtons[ resources.dlgButtonRemove ] = function()
                 {
                     _thisDialog.removeSeries();
                     return false;
-                },
-                "Add": function()
+                };
+        dialogButtons[ resources.dlgButtonAdd ] = function()
                 {
                     _thisDialog.addSeries();
                     return false;
-                },
-                "Cancel": function()
+                };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
                 {
                     var _this = $(this);
                     _this.dialog("close");
                     _this.remove();
                     return false;
-                }
-            }
+                };
+        this.dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 800,
+            buttons: dialogButtons
         });
         sortButtons(this.dialogDiv)
         if (isNew) 
@@ -958,23 +968,22 @@ function addPlotSeriesDialog(plotPath, sourcePath, addCallback)
         });
     });
     
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
+            {
+                _this.addSeries(addCallback, plotPath);
+                return false;
+            };
+    dialogButtons[ resources.dlgButtonClose ] = function()
+            {
+                $(this).dialog("close");
+                $(this).remove();
+            };
     seriesDialogDiv.dialog(
     {
         autoOpen: false,
         width: 500,
-        buttons:
-        {
-            "OK": function()
-            {
-                _this.addSeries(addCallback, plotPath);
-                return false;
-            },
-            "Close": function()
-            {
-                $(this).dialog("close");
-                $(this).remove();
-            }
-        }
+        buttons: dialogButtons
     });
     
     
