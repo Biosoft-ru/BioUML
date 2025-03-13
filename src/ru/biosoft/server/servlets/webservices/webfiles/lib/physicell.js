@@ -79,7 +79,7 @@ function PhysicellDocument(completeName)
     
     this.activate = function()
     {
-        selectViewPart("multicellular.result");
+        selectViewPart("physicell.result");
     };
     
     this.createPhysicellDocument = function(callback)
