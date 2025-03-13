@@ -8,24 +8,32 @@ public abstract class StateVisualizer
     protected PhysicellSimulationResult result;
     protected DensityState densityState;
     protected ViewOptions options;
-    
+
     public ViewOptions getOptions()
     {
         return result.getOptions();
     }
-    
+
     public void setResult(PhysicellSimulationResult result)
     {
-        this.result = result;
-        this.options = result.getOptions();
+        try
+        {
+            this.result = result;
+            this.options = result.getOptions();
+            this.densityState = result.getDensity( 0 );
+        }
+        catch( Exception ex )
+        {
+
+        }
     }
-    
+
     public void setDensityState(DensityState density)
     {
         densityState = density;
     }
-    
+
     public abstract void readAgents(String content, String name);
-    
+
     public abstract BufferedImage draw();
 }
