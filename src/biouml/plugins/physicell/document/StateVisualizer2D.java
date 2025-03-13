@@ -33,6 +33,14 @@ public class StateVisualizer2D extends StateVisualizer
     public void setResult(PhysicellSimulationResult result)
     {
         super.setResult( result );
+        try
+        {
+            modelState = ModelState.fromString( result.getPoint( 0 ).getContent() );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
         ModelData data = result.getModelData();
         options2D = result.getOptions().getOptions2D();
         dx = (int)data.getXDim().getStep();
@@ -44,9 +52,9 @@ public class StateVisualizer2D extends StateVisualizer
         double startX = data.getXDim().getFrom();
         double startY = data.getYDim().getFrom();
         double startZ = data.getZDim().getFrom();
-        this.xShift =  -(int) ( Math.floor(startX));
-        this.yShift =  -(int) ( Math.floor(startY));
-        this.zShift =  -(int) ( Math.floor(startZ));
+        this.xShift = -(int) ( Math.floor( startX ) );
+        this.yShift = -(int) ( Math.floor( startY ) );
+        this.zShift = -(int) ( Math.floor( startZ ) );
         int xLength = (int)data.getXDim().getLength();
         int yLength = (int)data.getYDim().getLength();
         int zLength = (int)data.getZDim().getLength();
@@ -74,13 +82,13 @@ public class StateVisualizer2D extends StateVisualizer
         Graphics g = img.getGraphics();
         g.setColor( Color.white );
         g.fillRect( 0, 0, width, height );
-        if( options2D.isDrawDensity() && densityState != null)
+        if( options2D.isDrawDensity() && densityState != null )
             drawDensity( densityState.getDensity( "food" ), g );
         if( options2D.isDrawAgents() )
             drawAgents( state, g );
         if( options.isStatistics() )
             drawText( state.getSize(), state.getTime(), width - extraWidth + textOffset, g );
-       
+
         return img;
     }
 

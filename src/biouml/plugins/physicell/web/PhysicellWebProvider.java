@@ -133,6 +133,7 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         String completeSimulationName = DataElementPath.create( simulationName ).getChildPath( dc.getCompletePath().getPathComponents() )
                 .toString();
         PhysicellSimulationResult simulation = new PhysicellSimulationResult( dc.getName() + " Simulation", dc );
+        simulation.init();
         //        PhysicellResultDocument document = new PhysicellResultDocument( simulation );
         WebServicesServlet.getSessionCache().addObject( completeSimulationName, simulation, true );
         response.sendString( completeSimulationName );
