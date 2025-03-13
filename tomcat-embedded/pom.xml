@@ -22,19 +22,19 @@
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>7.0.109</version>
-            <!--version>8.0.53</version-->
+            <!--version>8.5.100</version-->
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-logging-juli</artifactId>
             <version>7.0.109</version>
-            <!--version>8.0.53</version-->
+            <!--version>8.5.100</version-->
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-jasper</artifactId>
             <version>7.0.109</version>
-            <!--version>8.0.53</version-->
+            <!--version>8.5.100</version-->
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -121,6 +121,41 @@
                     </systemProperties>
                 </configuration>
             </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.4.1</version>
+            <executions>
+              <execution>
+                <id>run-forked</id>
+                <!--phase>package</phase-->
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <!-- Включаем запуск в forked JVM -->
+                  <fork>true</fork>
+                  <environmentVariables>
+                     <CATALINA_HOME>${rootDir}/target/tomcat</CATALINA_HOME>
+                  </environmentVariables>
+                  <executable>java</executable>
+                  <arguments>
+                    <argument>--add-opens</argument>
+                    <argument>java.base/java.net=ALL-UNNAMED</argument>
+                    <argument>-Djava.security.policy=${rootDir}/target/biouml.policy</argument>
+                    <argument>-Dcatalina.home=${rootDir}/target/tomcat</argument>
+                    <argument>-Dbiouml.war=${biouml.war}</argument>
+                    <argument>-Dbioumlweb.war=${bioumlweb.war}</argument>
+                    <argument>-Dbiouml.http.port=8080</argument>
+                    <argument>-jar</argument>
+                    <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-0.9.10-jar-with-dependencies.jar</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
         </plugins>
     </build>
 </project>
