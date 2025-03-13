@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class TaskManager implements JobControlListener
     }
 
     protected DataCollection<TaskInfo> tasks;
-    protected Map<String, TaskInfo> currentTasks = new HashMap<>();
+    protected Map<String, TaskInfo> currentTasks = new ConcurrentHashMap<>();
     
     public static final String EXECUTORS_PROPERTY = "Executors";
     private List<TaskExecutor> executors = new ArrayList<>();

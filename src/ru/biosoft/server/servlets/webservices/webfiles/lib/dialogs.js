@@ -43,36 +43,35 @@ function createYesNoConfirmDialog(message, callback)
 {
     var dialogDiv = $('<div title="'+resources.commonConfirmBoxTitle+'"></div>');
     dialogDiv.html($("<p/>").html(message));
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 300,
-		modal: true,
-        buttons: 
-        {
-            "No": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonNo ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
                 callback(false);
-            },
-            "Yes": function()
+            };
+    dialogButtons[ resources.dlgButtonYes ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
-				callback(true);
-            },
-            "Cancel": function()
+                callback(true);
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 300,
+	modal: true,
+        buttons: dialogButtons
     });
     dialogDiv.dialog("open");
-    addDialogKeys(dialogDiv, null, "Yes");
+    addDialogKeys(dialogDiv, null, resources.dlgButtonYes);
     sortButtons(dialogDiv);
-    dialogDiv.parent().find(":button:contains('Yes')").focus();
+    dialogDiv.parent().find(":button:contains('" + resources.dlgButtonYes + "')").focus();
 }
 
 function createPromptDialog(title, prompt, callback, defaultValue, validateField)
@@ -84,14 +83,8 @@ function createPromptDialog(title, prompt, callback, defaultValue, validateField
     if(defaultValue !== undefined)
     	inputField.val(defaultValue);
     dialogDiv.append(inputField);
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 300,
-        modal: true,
-        buttons: 
-        {
-            "Ok": function()
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
             {
                 if(validateField &&!isDataElementNameValid(inputField.val()))
                 {
@@ -101,13 +94,18 @@ function createPromptDialog(title, prompt, callback, defaultValue, validateField
             	callback(inputField.val());
                 $(this).dialog("close");
                 $(this).remove();
-            },
-			"Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
 			{
                 $(this).dialog("close");
                 $(this).remove();
-			}
-        }
+			};
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 300,
+        modal: true,
+        buttons: dialogButtons
     });
     addDialogKeys(dialogDiv);
     sortButtons(dialogDiv);
@@ -122,25 +120,24 @@ function createTextAreaDialog(title, prompt, callback)
     dialogDiv.html("<p><b>"+prompt+"</b></p>");
     var inputField = $('<textarea/>').width(300).height(200);
     dialogDiv.append(inputField);
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
+            {
+            	callback(inputField.val());
+                $(this).dialog("close");
+                $(this).remove();
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
+			{
+                $(this).dialog("close");
+                $(this).remove();
+			};
     dialogDiv.dialog(
     {
         autoOpen: false,
         width: 320,
         modal: true,
-        buttons: 
-        {
-            "Ok": function()
-            {
-            	callback(inputField.val());
-                $(this).dialog("close");
-                $(this).remove();
-            },
-			"Cancel": function()
-			{
-                $(this).dialog("close");
-                $(this).remove();
-			}
-        }
+        buttons: dialogButtons
     });
     addDialogKeys(dialogDiv);
     sortButtons(dialogDiv);
@@ -164,25 +161,24 @@ function createSelectorDialog(title, message, selectedValue, allValues, callback
         selectControl.append(option);    
     }
     dialogDiv.append(selectControl);
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
+            {
+            	callback(selectControl.val());
+                $(this).dialog("close");
+                $(this).remove();
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
+			{
+                $(this).dialog("close");
+                $(this).remove();
+			};
     dialogDiv.dialog(
     {
         autoOpen: false,
         width: 320,
         modal: true,
-        buttons: 
-        {
-            "Ok": function()
-            {
-            	callback(selectControl.val());
-                $(this).dialog("close");
-                $(this).remove();
-            },
-			"Cancel": function()
-			{
-                $(this).dialog("close");
-                $(this).remove();
-			}
-        }
+        buttons: dialogButtons
     });
     addDialogKeys(dialogDiv);
     sortButtons(dialogDiv);
@@ -264,14 +260,8 @@ function createBeanEditorDialog(title, beanPath, callback, autoUpdate)
             dialogDiv.dialog("close");
             dialogDiv.remove();
         };
-        dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 500,
-            height: 500,
-            buttons: 
-            {
-                "Cancel": function()
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonCancel ] = function()
                 {
                     if(autoUpdate && wasChanged)
                     {
@@ -281,8 +271,8 @@ function createBeanEditorDialog(title, beanPath, callback, autoUpdate)
                             json: origData
                         }, closeDialog, closeDialog);
                     } else closeDialog();
-                },
-                "Save": function()
+                };
+        dialogButtons[ resources.dlgButtonSave ] = function()
                 {
                     var data = convertDPSToJSON(propertyPane.getModel());
                     queryBioUML("web/bean/set", 
@@ -294,8 +284,13 @@ function createBeanEditorDialog(title, beanPath, callback, autoUpdate)
                         if(callback) callback(data);
                         closeDialog();
                     }, closeDialog);
-                }
-            }
+                };
+        dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 500,
+            height: 500,
+            buttons: dialogButtons
         });
         addDialogKeys(dialogDiv);
         sortButtons(dialogDiv);
@@ -348,14 +343,8 @@ function createBeanEditorDialogWithSelector(title, getBeanPath, callback, autoUp
         dialogDiv.dialog("close");
         dialogDiv.remove();
     };
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 500,
-        height: 500,
-        buttons: 
-        {
-            "Cancel": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 if(autoUpdate)
                 {
@@ -366,8 +355,8 @@ function createBeanEditorDialogWithSelector(title, getBeanPath, callback, autoUp
                         json: origData
                     }, closeDialog, closeDialog);
                 } else closeDialog();
-            },
-            "Save": function()
+            };
+    dialogButtons[ resources.dlgButtonSave ] = function()
             {
                 var beanPath = getBeanPath(selectControl.val());
                 var data = convertDPSToJSON(propertyPane.getModel());
@@ -380,8 +369,13 @@ function createBeanEditorDialogWithSelector(title, getBeanPath, callback, autoUp
                     if(callback) callback(data);
                     closeDialog();
                 }, closeDialog);
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 500,
+        height: 500,
+        buttons: dialogButtons
     });
     addDialogKeys(dialogDiv);
     sortButtons(dialogDiv);

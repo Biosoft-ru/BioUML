@@ -184,31 +184,30 @@ function confirmAccount(username, callback)
     var dialogDiv = $('<div title="'+resources.dlgConfirmTitle+'"></div>');
     var loginForm = $('<table><tr><td>Username:</td><td>'+username+'</td></tr><tr><td>Password:</td><td><input type="password" size="25" id="password"/></td></tr></table>');
     dialogDiv.append(loginForm);
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonConfirm ] = function()
+            {
+                callback(dialogDiv.find("#password").val());
+                $(this).remove();
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
+            {
+                $(this).remove();
+            };
     dialogDiv.dialog(
     {
         autoOpen: true,
         modal: true,
         resizable: false,
         width: 300,
-        buttons: 
-        {
-            "Confirm": function()
-            {
-                callback(dialogDiv.find("#password").val());
-                $(this).remove();
-            },
-            "Cancel": function()
-            {
-                $(this).remove();
-            }
-        },
+        buttons: dialogButtons,
         close: function(ev, ui)
         {
             $(this).remove();
         }
     });
     dialogDiv.find('#password').focus();
-    addDialogKeys(dialogDiv, null, "Confirm");
+    addDialogKeys(dialogDiv, null, resources.dlgButtonConfirm);
     sortButtons(dialogDiv);
 }
 
@@ -240,31 +239,30 @@ function ChangePassword(username)
         '<tr><td>'+resources.dlgChangePassNewPass+'<br/>(repeat)</td><td><input type="password" size="25" id="new_password_2"/></td></tr></table>');
         this.dialogDiv.append(loginForm);
         var _this = this;
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonChange ] = function()
+                {
+                    _this.submitForm();
+                    $(this).remove();
+                };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
+                {
+                    $(this).remove();
+                };
         this.dialogDiv.dialog(
         {
             autoOpen: false,
             modal: true,
             resizable: false,
             width: 300,
-            buttons: 
-            {
-                "Change": function()
-                {
-                    _this.submitForm();
-                    $(this).remove();
-                },
-                "Cancel": function()
-                {
-                    $(this).remove();
-                }
-            },
+            buttons: dialogButtons,
             close: function(ev, ui)
             {
                 $(this).remove();
             }
         });
         this.dialogDiv.dialog("open");
-        addDialogKeys(this.dialogDiv, null, "Change");
+        addDialogKeys(this.dialogDiv, null, resources.dlgButtonChange);
         sortButtons(this.dialogDiv);
         $('#old_password').focus();
     };
@@ -316,7 +314,7 @@ function initProjectsTable()
             if(projects[i].admin)
             {
                 (function(i) {
-                    newRow.append($('<td/>').append($('<input type="button" class="ui-state-default"/>').val("Change").click(function()
+                    newRow.append($('<td/>').append($('<input type="button" class="ui-state-default"/>').val(resources.dlgButtonChange).click(function()
                     {
                         createPromptDialog(resources.dlgChangeQuotaTitle.replace("{project}", projects[i].name), "", function(newQuota)
                         {
@@ -345,15 +343,8 @@ function removeProject(completePath)
     '<tr><td colspan="2"><input type="checkbox" id="remove_project"/>'+resources.dlgRemovePrjConfirmation.replace("{name}", name)+'</td></tr>'+
     '</table>');
     dialogDiv.append(loginForm);
-    dialogDiv.dialog(
-    {
-        autoOpen: true,
-        modal: true,
-        resizable: false,
-        width: 400,
-        buttons: 
-        {
-            "Remove": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonRemove ] = function()
             {
                 var pass = dialogDiv.find("#password").val();
                 if( document.querySelector( '#remove_project' ).checked )
@@ -385,19 +376,25 @@ function removeProject(completePath)
                 }
 
                 $(this).remove();
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).remove();
-            }
-        },
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: true,
+        modal: true,
+        resizable: false,
+        width: 400,
+        buttons: dialogButtons,
         close: function(ev, ui)
         {
             $(this).remove();
         }
     });
     dialogDiv.find('#password').focus();
-    addDialogKeys(dialogDiv, null, "Remove");
+    addDialogKeys(dialogDiv, null, resources.dlgButtonRemove);
     sortButtons(dialogDiv);
 }
 
@@ -414,15 +411,8 @@ function createNewProject(callback, cancelCallback, errorCallback)
     '<tr><td>'+resources.dlgCreatePrjDescription+'</td><td><textarea cols="35" rows="5" style = "resize: vertical;" placeholder="'+resources.dlgCreatePrjDescriptionPlaceholder+'" id="project_description"></textarea></td></tr>'+
     '</table>');
     dialogDiv.append(loginForm);
-    dialogDiv.dialog(
-    {
-        autoOpen: true,
-        modal: true,
-        resizable: false,
-        width: 400,
-        buttons: 
-        {
-            "Create": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCreate ] = function()
             {
                 var pass = dialogDiv.find("#password").val();
                 var projectName = dialogDiv.find("#project_name").val().trim();
@@ -465,14 +455,20 @@ function createNewProject(callback, cancelCallback, errorCallback)
                     
                 }
                 $(this).remove();
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
             	if(cancelCallback)
             		cancelCallback();
                 $(this).remove();
-            }
-        },
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: true,
+        modal: true,
+        resizable: false,
+        width: 400,
+        buttons: dialogButtons,
         close: function(ev, ui)
         {
         	if(cancelCallback)
@@ -481,7 +477,7 @@ function createNewProject(callback, cancelCallback, errorCallback)
         }
     });
     dialogDiv.find('#password').focus();
-    addDialogKeys(dialogDiv, null, "Create");
+    addDialogKeys(dialogDiv, null, resources.dlgButtonCreate);
     sortButtons(dialogDiv);
 }
 
@@ -526,25 +522,24 @@ function findProject()
                 }
             });
         });
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonOpen ] = function()
+                {
+                    var path = projectsDC.completeName + "/" + searchStr.val();
+                    openBranch(path, true);
+                    $(this).remove();
+                };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
+                {
+                    $(this).remove();
+                };
         dialogDiv.dialog(
         {
             autoOpen: true,
             modal: true,
             resizable: false,
             width: 300,
-            buttons: 
-            {
-                "Open": function()
-                {
-                    var path = projectsDC.completeName + "/" + searchStr.val();
-                    openBranch(path, true);
-                    $(this).remove();
-                },
-                "Cancel": function()
-                {
-                    $(this).remove();
-                }
-            },
+            buttons: dialogButtons,
             close: function(ev, ui)
             {
                 $(this).remove();

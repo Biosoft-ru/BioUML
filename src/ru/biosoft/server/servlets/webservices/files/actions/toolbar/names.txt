@@ -50,3 +50,6 @@ openastrack.json
 combinetracks.json
 
 pf_highlight.json
+
+english_lang.json
+russian_lang.json

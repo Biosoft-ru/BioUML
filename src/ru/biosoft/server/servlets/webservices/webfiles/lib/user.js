@@ -36,8 +36,29 @@ function User()
         this.dialogDiv.append(loginForm);
         if( appInfo.biostoreForgotPasswordLink )
         {
-        	var forgotPassword = $('<p><a target="_blank" href="' + appInfo.biostoreForgotPasswordLink + '">' + resources.dlgLoginForgotPassword + '</a></p>');
-        	this.dialogDiv.append( forgotPassword );
+            var langStyle = '';
+            var langButton = '';
+            if( hasBioumlLocale( 'ru' ) )
+            {
+                langStyle = ' style="display: flex; justify-content: space-between;"';
+                var bioumlLocale = Cookies.getItem( 'bioumlLocale' ) ||
+                           navigator.language || navigator.userLanguage;                
+
+                if( bioumlLocale == 'ru' )
+                {
+                    langButton = '<span id="bioumlLanguageSelector" class="fg-button ui-state-default fg-button-icon-solo ui-corner-all" title="Switch to English language">'+
+     			'<img class="fg-button-icon-span" src="icons/english_lang.png"></img></span>';
+                }
+                else
+                {
+                    langButton = '<span id="bioumlLanguageSelector" class="fg-button ui-state-default fg-button-icon-solo ui-corner-all" title="Переключиться на русский язык">'+
+     			'<img class="fg-button-icon-span" src="icons/russian_lang.png"></img></span>';
+                }
+            }
+
+            var forgotPassword = $('<p' + langStyle + '><a target="_blank" href="' + appInfo.biostoreForgotPasswordLink + '">' + resources.dlgLoginForgotPassword + 
+                '</a>' + langButton + '</p>');
+            this.dialogDiv.append( forgotPassword );
         }
         if(appInfo.loginFormExtraMessage)
         {
@@ -86,6 +107,24 @@ function User()
             }
         });
         this.dialogDiv.dialog("open").css('overflow', 'hidden');
+        var langSel = $('#bioumlLanguageSelector');
+        if( langSel )
+        { 
+            langSel.click(function()
+            {
+                var bioumlLocale = Cookies.getItem( 'bioumlLocale' ) ||
+                           navigator.language || navigator.userLanguage;
+                if( bioumlLocale == 'ru' )
+                {
+                    setBioumlLocale( 'en' );
+                } 
+                else
+                {
+                    setBioumlLocale( 'ru' );
+                } 
+            });
+        }  
+
         var userName = Cookies.getItem("last_user_name");
         if(userName)
         {

@@ -880,13 +880,8 @@ function ComplexOptimizationViewPart()
         dialogDiv.append("<br/><br/><b>Experiment data:&nbsp;</b>");
         dialogDiv.append(experimentNode);
         
-        dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 300,
-            buttons:
-            {
-                "Ok": function()
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
                 {
                     var newName = newNameInput.val();
                     var what = null;
@@ -914,24 +909,23 @@ function ComplexOptimizationViewPart()
                         var confirmDialog = $('<div title="Confirm"></div>');
                         var message = "Experiment with name "+newName+" already exists. Do you realy want to replace it?"
                         confirmDialog.html("<p>" + message + "</p>");
-                        confirmDialog.dialog(
-                        {
-                            autoOpen: false,
-                            width: 500,
-                            buttons: 
-                            {
-                                "Yes": function()
+                        var dialogButtons2 = {};
+                        dialogButtons2[ resources.dlgButtonYes ] = function()
                                 {
                                     $(this).dialog("close");
                                     $(this).remove();
                                     _this.addExperiment(newName, _this.selectDiagramExperiment.val(), experimentFileEditor.getValue(), true);
-                                },
-                                "No": function()
+                                };
+                        dialogButtons2[ resources.dlgButtonNo ] = function()
                                 {
                                     $(this).dialog("close");
                                     $(this).remove();
-                                }
-                            }
+                                };
+                        confirmDialog.dialog(
+                        {
+                            autoOpen: false,
+                            width: 500,
+                            buttons: dialogButtons2
                         });
                         confirmDialog.dialog("open");
                     }
@@ -939,13 +933,17 @@ function ComplexOptimizationViewPart()
                     {
                         _this.addExperiment(newName, _this.selectDiagramExperiment.val(), experimentFileEditor.getValue());
                     }
-                },
-                "Cancel": function()
+                }; 
+        dialogButtons[ resources.dlgButtonCancel ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+        dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 300,
+            buttons: dialogButtons
         });
         dialogDiv.dialog("open");
         addDialogKeys(dialogDiv);

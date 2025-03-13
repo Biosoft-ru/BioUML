@@ -45,23 +45,23 @@ function exportElement(de, type, extraParameters)
         }
         else 
         {
+            var dialogButtons = {};
+            dialogButtons[ "Ok" ] = function()
+                    {
+                        var __this = $(this);
+                        doExport(de, type, formats.val(), extraParameters, __this);
+                    };
+            dialogButtons[ resources.dlgButtonCancel ] = function()
+                    {
+                        $(this).dialog("close");
+                        $(this).remove();
+                    };
             dialogDiv.dialog({
                 autoOpen: true,
                 width: 300,
                 height: 120,
                 modal: true,
-                buttons: {
-                    "Ok": function()
-                    {
-                        var __this = $(this);
-                        doExport(de, type, formats.val(), extraParameters, __this);
-                    },
-                    "Cancel": function()
-                    {
-                        $(this).dialog("close");
-                        $(this).remove();
-                    }
-                }
+                buttons: dialogButtons
             });
             addDialogKeys(dialogDiv);
             sortButtons(dialogDiv);
@@ -128,6 +128,20 @@ function doExport(de, type, exporterName, extraParameters, __this)
     };
     var propertiesDialog;
     var propertiesDialogDiv = $('<div title="'+resources.dlgExportPropertiesTitle+" ("+exporterName+")"+'" id="export-properties"></div>');
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
+            {
+                $(this).dialog("close");
+                $(this).remove();
+				updatedParameters = convertDPSToJSON(propertyPane.getModel());
+				exportFunction();
+			};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
+            {
+                $(this).dialog("close");
+                $(this).remove();
+            };
+
     propertiesDialogDiv.dialog(
     {
         autoOpen: true,
@@ -139,20 +153,6 @@ function doExport(de, type, exporterName, extraParameters, __this)
 			propertiesDialog = this;
 	      getExportParameters(de, type, exporterName, null, setParameters);
 		},
-        buttons:
-        {
-            "Ok": function()
-            {
-                $(this).dialog("close");
-                $(this).remove();
-				updatedParameters = convertDPSToJSON(propertyPane.getModel());
-				exportFunction();
-			},
-            "Cancel": function()
-            {
-                $(this).dialog("close");
-                $(this).remove();
-            }
-		}
-	});
+        buttons: dialogButtons
+    });
 }

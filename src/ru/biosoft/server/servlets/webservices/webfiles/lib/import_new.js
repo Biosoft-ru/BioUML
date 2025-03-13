@@ -77,6 +77,50 @@ function doUpload()
 	    return false;
 	});
 	
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonCancel ] = function()
+            {
+            	activeUploads.forEach(cancelJob);
+            	activeUploads.forEach(uploadsToRemove.add, uploadsToRemove);
+            	allUploads.forEach(removeUploadedFile);
+
+            	activeUploads.clear();
+            	allUploads = [];
+            	waitForImport = [];
+            	uploadQueue = [];
+
+				$(this).dialog("close");
+				$(this).remove();
+            };
+        dialogButtons[ resources.dlgButtonImportAll ] = function()
+            {
+            	var failed = [];
+            	var importNext = function(successCallback, failCallback) {
+            		var next = waitForImport.shift();
+        			if( next )
+        				detectFormatAndImport(next, successCallback, failCallback);
+        			else
+        			{
+        				//add upload IDs back at the end if import failed
+        				for( var j = 0 ; j < failed.length; j = j + 1 )
+        					waitForImport.push( failed[i] );
+        			}
+            	};
+            	var fail = function(id){
+            		failed.push(id);
+            		importNext(success, fail);
+            	};
+            	var success = function(id){
+            		if( importsNumber === uploadsNumber )
+            		{
+            			$(uploadDialog).dialog("close");
+            			$(uploadDialog).remove();
+            		}
+            		else
+            			importNext(success, fail);
+            	};
+            	importNext(success, fail);
+            };
 	uploadDialogDiv.dialog(
     {
         autoOpen: true,
@@ -144,52 +188,7 @@ function doUpload()
 
 			$(this).remove();
 		},
-        buttons: 
-        {
-            "Cancel": function()
-            {
-            	activeUploads.forEach(cancelJob);
-            	activeUploads.forEach(uploadsToRemove.add, uploadsToRemove);
-            	allUploads.forEach(removeUploadedFile);
-
-            	activeUploads.clear();
-            	allUploads = [];
-            	waitForImport = [];
-            	uploadQueue = [];
-
-				$(this).dialog("close");
-				$(this).remove();
-            },
-            "Import all": function()
-            {
-            	var failed = [];
-            	var importNext = function(successCallback, failCallback) {
-            		var next = waitForImport.shift();
-        			if( next )
-        				detectFormatAndImport(next, successCallback, failCallback);
-        			else
-        			{
-        				//add upload IDs back at the end if import failed
-        				for( var j = 0 ; j < failed.length; j = j + 1 )
-        					waitForImport.push( failed[i] );
-        			}
-            	};
-            	var fail = function(id){
-            		failed.push(id);
-            		importNext(success, fail);
-            	};
-            	var success = function(id){
-            		if( importsNumber === uploadsNumber )
-            		{
-            			$(uploadDialog).dialog("close");
-            			$(uploadDialog).remove();
-            		}
-            		else
-            			importNext(success, fail);
-            	};
-            	importNext(success, fail);
-            }
-        }
+        buttons: dialogButtons
     });
     addDialogKeys(uploadDialogDiv, null, "Import all");
     sortButtons(uploadDialogDiv);
@@ -442,6 +441,25 @@ function detectFormatAndImport(uploadID, success, fail)
    		});
     };
     
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonCancel ] = function()
+			{
+				if( waitForImport.indexOf(uploadID) == -1 )
+					waitForImport.push(uploadID);
+				if (importID != undefined) 
+				{
+					cancelJob(importID);
+				}
+				$(this).dialog("close");
+				$(this).remove();
+			};
+        dialogButtons[ resources.dlgButtonStart ] = function()
+			{
+				importDialogDiv.find("#importHideBlock").show();
+            	$(":button:contains('" + resources.dlgButtonStart + "')").removeAttr("disabled").attr("disabled", "disabled").addClass("ui-state-disabled");
+            	setProjectByCollection(getDataCollection(importPath));
+            	doImport(selectedFormat, uploadID, importID, propertyPane, importDialogDiv, success, fail);
+			};
 	importDialogDiv.dialog(
 	{
 		autoOpen: true,
@@ -482,29 +500,9 @@ function detectFormatAndImport(uploadID, success, fail)
 		{
 			$(this).remove();
 		},
-		buttons: 
-		{
-			"Cancel": function()
-			{
-				if( waitForImport.indexOf(uploadID) == -1 )
-					waitForImport.push(uploadID);
-				if (importID != undefined) 
-				{
-					cancelJob(importID);
-				}
-				$(this).dialog("close");
-				$(this).remove();
-			},
-			"Start": function()
-			{
-				importDialogDiv.find("#importHideBlock").show();
-            	$(":button:contains('Start')").removeAttr("disabled").attr("disabled", "disabled").addClass("ui-state-disabled");
-            	setProjectByCollection(getDataCollection(importPath));
-            	doImport(selectedFormat, uploadID, importID, propertyPane, importDialogDiv, success, fail);
-			}
-		}
+		buttons: dialogButtons
 	});
-    addDialogKeys(importDialogDiv, null, "Start");
+    addDialogKeys(importDialogDiv, null, resources.dlgButtonStart);
     sortButtons(importDialogDiv);
 };
 

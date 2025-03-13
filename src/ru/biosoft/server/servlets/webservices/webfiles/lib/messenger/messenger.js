@@ -501,26 +501,25 @@ function MessageDialog(messageConnector, target)
 		var dialogDiv = $('<div id="message_pane_'+this.target+'" title="'+getUserByJID(this.target)+'"></div>');
 		_this.jabbedPane = $('<div id="jabber_pane">User status: <span id="jabber_status">offline</span><div id="jabber_messages"></div><form name="sendForm" action="#"><div><textarea id="jabber_input" rows="3" cols="80" tabindex="2"></textarea></div></form></div>');
     	dialogDiv.append(_this.jabbedPane);
-    	dialogDiv.dialog(
-    	{
-    		autoOpen: false,
-        	width: 500,
-        	modal: false,
-        	buttons: 
-        	{
-        		"Close": function()
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonClose ] = function()
         	    {
         	    	$(this).dialog("close");
        	        	$(this).remove();
-            	},
-            	"Send": function()
+            	};
+        dialogButtons[ "Send" ] = function()
         	    {
         	        var msg = $(this).find('#jabber_input').val();
        				if(msg == '')
        					return;
        				_this.sendMessage(msg);
-            	}
-        	},
+            	};
+    	dialogDiv.dialog(
+    	{
+    		autoOpen: false,
+        	width: 500,
+        	modal: false,
+        	buttons: dialogButtons,
         	close: _this.quit
     	});
     	dialogDiv.dialog("open");
@@ -625,26 +624,25 @@ function MessageGroupDialog(messageConnector, target)
 		var dialogDiv = $('<div id="message_pane_'+this.target+'" title="'+getUserByJID(this.target)+'"></div>');
 		_this.jabbedPane = $('<div id="jabber_pane"><div id="jabber_messages_gr"></div><form name="sendForm" action="#"><div><textarea id="jabber_input_gr" rows="3" cols="80" tabindex="2"></textarea></div></form><div id="jabber_groupusers"></div></div>');
     	dialogDiv.append(_this.jabbedPane);
-    	dialogDiv.dialog(
-    	{
-    		autoOpen: false,
-        	width: 600,
-        	modal: false,
-        	buttons: 
-        	{
-        		"Close": function()
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonClose ] = function()
         	    {
         	    	$(this).dialog("close");
        	        	$(this).remove();
-            	},
-            	"Send": function()
+            	};
+        dialogButtons[ "Send" ] = function()
         	    {
         	        var msg = $(this).find('#jabber_input_gr').val();
        				if(msg == '')
        					return;
        				_this.sendMessage(msg);
-            	}
-        	},
+            	};
+    	dialogDiv.dialog(
+    	{
+    		autoOpen: false,
+        	width: 600,
+        	modal: false,
+        	buttons: dialogButtons,
         	close: _this.quit
     	});
     	dialogDiv.dialog("open");

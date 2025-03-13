@@ -17,14 +17,8 @@ function gitClone(path, callback)
     dialogDiv.append(progress);
 
     var projectName = null;
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 500,
-        modal: true,
-        buttons: 
-        {
-            "Ok": function()
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
             {
                 var urlInput = $('#git_repository');
 
@@ -56,8 +50,8 @@ function gitClone(path, callback)
                     progress.val( data.values[ 1 ] );
                     projectName = data.values[ 0 ];
                 });
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
@@ -76,8 +70,13 @@ function gitClone(path, callback)
                         });
                     }
                 }
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 500,
+        modal: true,
+        buttons: dialogButtons
     });
 
     addDialogKeys(dialogDiv);
@@ -95,14 +94,8 @@ function gitPull(path, callback)
     dialogDiv.append(progress);
 
     var projectName = null;
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 500,
-        modal: true,
-        buttons: 
-        {
-            "Ok": function()
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
             {
                 var waitButton = git_private_hackButtons(); 
 
@@ -120,8 +113,8 @@ function gitPull(path, callback)
                     progress.val( data.values[ 1 ] );
                     projectName = data.values[ 0 ];
                 });
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
@@ -138,8 +131,13 @@ function gitPull(path, callback)
                         openBranch( path + "/Data" );
                     }
                 } 
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 500,
+        modal: true,
+        buttons: dialogButtons
     });
 
     addDialogKeys(dialogDiv);
@@ -161,14 +159,8 @@ function gitCommit(path, callback)
     dialogDiv.append(progress);
 
     var projectName = null;
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 500,
-        modal: true,
-        buttons: 
-        {
-            "Ok": function()
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
             {
                 if( !msgInput.val() )
                 { 
@@ -193,8 +185,8 @@ function gitCommit(path, callback)
                     progress.val( data.values[ 1 ] );
                     projectName = data.values[ 0 ];
                 });
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
@@ -206,8 +198,13 @@ function gitCommit(path, callback)
                         callback(projectName);
                     }
                 } 
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 500,
+        modal: true,
+        buttons: dialogButtons
     });
 
     addDialogKeys(dialogDiv);
@@ -225,14 +222,8 @@ function gitPush(path, callback)
     dialogDiv.append(progress);
 
     var projectName = null;
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 500,
-        modal: true,
-        buttons: 
-        {
-            "Ok": function()
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
             {
                 var waitButton = git_private_hackButtons(); 
 
@@ -250,8 +241,8 @@ function gitPush(path, callback)
                     progress.val( data.values[ 1 ] );
                     projectName = data.values[ 0 ];
                 });
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
@@ -263,8 +254,13 @@ function gitPush(path, callback)
                         callback(projectName);
                     }
                 } 
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 500,
+        modal: true,
+        buttons: dialogButtons
     });
 
     addDialogKeys(dialogDiv);

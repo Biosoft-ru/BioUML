@@ -2,10 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<meta name="description" content="Integrated Java framework for systems biology" />
-		<!--[if IE 8]>
-		<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
-		<![endif]-->
+        <meta name="description" content="Integrated Java framework for systems biology" />
+        <!--[if IE 8]>
+        <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+        <![endif]-->
         <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
         <link rel="stylesheet" href="lib/jstree/themes/default/style.css" />
         <link rel="stylesheet" type="text/css" href="css/contextMenu/jquery.contextMenu-2.9.2.css" />
@@ -25,7 +25,7 @@
         <link type="text/css" href="lib/codemirror/addon/dialog/dialog.css" rel="stylesheet" />
         
         <!--link rel="stylesheet" href="https://unpkg.com/bpmn-js@8.8.2/dist/assets/diagram-js.css" />
-		<link rel="stylesheet" href="https://unpkg.com/bpmn-js@8.8.2/dist/assets/bpmn-font/css/bpmn.css" /-->
+        <link rel="stylesheet" href="https://unpkg.com/bpmn-js@8.8.2/dist/assets/bpmn-font/css/bpmn.css" /-->
         
         <script type="text/javascript" src="lib/jquery/jquery-3.6.0.min.js"></script>
         <!--script type="text/javascript" src="lib/jquery/jquery.jeditable.js"></script-->
@@ -50,7 +50,13 @@
         <script type="text/javascript" src="lib/codemirror/addon/dialog/dialog.js"></script>
 
         <script type="text/javascript" src="defines.js"></script>
+
+        <script type="text/javascript" src="lib/cookies.js"></script>
         <script type="text/javascript" src="lib/messageBundle.js"></script>
+        <script type="text/javascript" src="lib/messageBundle.en.js"></script>
+        <script type="text/javascript" src="lib/messageBundle.ru.js"></script>
+        <script type="text/javascript" src="lib/setLocale.js"></script>
+
         <script type="text/javascript" src="lib/core.js"></script>
         <script type="text/javascript" src="lib/copy.js"></script>
         <script type="text/javascript" src="lib/serverQuery.js"></script>
@@ -58,7 +64,6 @@
         <script type="text/javascript" src="lib/toolbar.js"></script>
         <script type="text/javascript" src="lib/uiCommons.js"></script>
         <script type="text/javascript" src="lib/uiActions.js"></script>
-        <script type="text/javascript" src="lib/cookies.js"></script>
         <script type="text/javascript" src="lib/documents.js"></script>
         <script type="text/javascript" src="lib/dialogs.js"></script>
         <script type="text/javascript" src="lib/upload.js"></script>
@@ -74,8 +79,8 @@
         <script type="text/javascript" src="lib/contextMenu/jquery.contextMenu-2.9.2.js"></script>
         <script type="text/javascript" src="lib/splitter/jquery.splitter.js"></script>
         <script type="text/javascript" src="lib/ui/jquery-ui-1.13.1.js"></script>
-		<script type="text/javascript" src="lib/ui/ui.tabs.paging.js"></script>
-		<script type="text/javascript" src="lib/table/jquery.dataTables.js"></script>
+        <script type="text/javascript" src="lib/ui/ui.tabs.paging.js"></script>
+        <script type="text/javascript" src="lib/table/jquery.dataTables.js"></script>
         <script type="text/javascript" src="lib/table/tableUtils.js"></script>
         <script type="text/javascript" src="lib/treetable/jquery.treeTable.js"></script>
         <script type="text/javascript" src="lib/propertyInspector/dpiUtils.js"></script>
@@ -90,8 +95,8 @@
         <script type="text/javascript" src="lib/propertyInspector/JSColorSelector.js"></script>
         <script type="text/javascript" src="lib/dataCollection.js"></script>
         <script type="text/javascript" src="lib/onDemandLoader.js"></script>
-		<script type="text/javascript" src="lib/messenger/jsjac.js"></script>
-    	<script type="text/javascript" src="lib/messenger/messenger.js"></script>
+        <script type="text/javascript" src="lib/messenger/jsjac.js"></script>
+        <script type="text/javascript" src="lib/messenger/messenger.js"></script>
         <script type="text/javascript" src="lib/lucene.js"></script>
         <script type="text/javascript" src="lib/tree.js"></script>
         <script type="text/javascript" src="lib/import_new.js"></script>
@@ -130,7 +135,7 @@
                 <div id="rightTopPane">
                     <div id="documentTabs">
                         <ul>
-                        	<li>
+                            <li>
                                 <a href="#intro" id="intro_tab"><span>Start page</span></a>
                             </li>
                         </ul>
@@ -141,55 +146,55 @@
             </div>
             <div id="bottomPane">
                 <div id="leftBottomPane">
-                	<div id="infoTabs">
+                    <div id="infoTabs">
                         <ul>
-                        	<li>
+                            <li>
                                 <a href="#search_tab_container" id="search_tab"><span>Search</span></a>
                             </li>
                             <li>
-                                <a href="#info_tab_container"><span>Info</span></a>
+                                <a href="#info_tab_container" id="info_tab"><span>Info</span></a>
                             </li>
                         </ul>
-						<div id="search_tab_container" style="position:relative;padding:0;background: #ddd;">
-							<div id="lucene_search">
-								<div id="search_target">
-									<b>Select database to search in...</b>
-								</div>
-                        		<table>
-                            		<tr>
-                            			<td><input type="text" id="search_string"/></td>
-      									<td width="20px"><a id="search_button" href="#" class="fg-button ui-state-default fg-button-icon-solo  ui-corner-all" title="Search"><img class="fg-button-icon-span" src="icons/search.gif"></img></a></td>
-									</tr>
-									<tr>
-										<td align="left"><input type="checkbox" id="search_add_asterisk" name="search_add_asterisk"><label for="search_add_asterisk"></label>Add * for your search term</label></td>
-									</tr>
-								</table>
-								<br><br>
-								<div id="filter" width="100%">
-									<table border=0>
-										<tr>
-											<td><b>Collection:</b></td>
-											<td>
-												<select id="collections" style="width:100%;">
-	        										<option value="-All-">-All-</option>
-												</select>
-											</td>
-										</tr>
-										<tr>
-											<td><b>Field name:</b></td>
-											<td>
-												<select id="fields" style="width:100%;">
-	        										<option value="-All-">-All-</option>
-												</select>
-											</td>
-										</tr>
-									</table>
-								</div>	
-							</div>
+                        <div id="search_tab_container" style="position:relative;padding:0;background: #ddd;">
+                            <div id="lucene_search">
+                                <div id="search_target">
+                                    <b>Select database to search in...</b>
+                                </div>
+                                <table>
+                                    <tr>
+                                        <td><input type="text" id="search_string"/></td>
+                                          <td width="20px"><a id="search_button" href="#" class="fg-button ui-state-default fg-button-icon-solo  ui-corner-all" title="Search"><img class="fg-button-icon-span" src="icons/search.gif"></img></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td align="left"><input type="checkbox" id="search_add_asterisk" name="search_add_asterisk"><label for="search_add_asterisk"></label>Add * for your search term</label></td>
+                                    </tr>
+                                </table>
+                                <br><br>
+                                <div id="filter" width="100%">
+                                    <table border=0>
+                                        <tr>
+                                            <td><b>Collection:</b></td>
+                                            <td>
+                                                <select id="collections" style="width:100%;">
+                                                    <option value="-All-">-All-</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>Field name:</b></td>
+                                            <td>
+                                                <select id="fields" style="width:100%;">
+                                                    <option value="-All-">-All-</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>    
+                            </div>
                         </div>
                         <div id="info_tab_container" class="elementDescriptionScrollPane" style="position:relative;padding:0;">
-							<div id="info_area" class="elementDescription">
-                    		</div>
+                            <div id="info_area" class="elementDescription">
+                            </div>
                         </div>
                     </div>
                 </div>

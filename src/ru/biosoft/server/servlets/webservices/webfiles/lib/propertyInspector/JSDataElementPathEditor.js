@@ -595,6 +595,16 @@ JSDataElementPathEditor.prototype.openDialog = function(addMode)
 		e.stopPropagation();
 		e.preventDefault();
 	};
+        var dialogButtons = {};
+        dialogButtons[ resources.dlgButtonCancel ] = function()
+			{
+                $(this).dialog("close");
+                $(this).remove();
+			};
+        dialogButtons[ "Ok" ] = function()
+			{
+				_this.okHandler(_this.popup.value, _this.nameField.val());
+			};
 	dialogContent.dialog(
     {
         modal: true,
@@ -612,18 +622,7 @@ JSDataElementPathEditor.prototype.openDialog = function(addMode)
         {
         	$("#dataElementDialogListBlock li").off();
         },
-        buttons: 
-        {
-			"Cancel": function()
-			{
-                $(this).dialog("close");
-                $(this).remove();
-			},
-            "Ok": function()
-			{
-				_this.okHandler(_this.popup.value, _this.nameField.val());
-			}
-        }
+        buttons: dialogButtons
     });
 	this.popup.setValue(path);
 	this.nameField.focus();

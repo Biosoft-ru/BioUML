@@ -75,6 +75,13 @@ JSTextScriptEditBox.prototype.showScriptEditor = function()
         _this.dialogContent.remove();
     };
     
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
+            {
+                $(this).dialog("close");
+                $(this).remove();
+            };
+    dialogButtons[ "Ok" ] = save;
     this.dialogContent.dialog(
     {
         modal: true,
@@ -96,14 +103,6 @@ JSTextScriptEditBox.prototype.showScriptEditor = function()
               });
             _this.editor.focus();
         },
-        buttons: 
-        {
-            "Cancel": function()
-            {
-                $(this).dialog("close");
-                $(this).remove();
-            },
-            "Ok": save
-        }
+        buttons: dialogButtons
     });
 };

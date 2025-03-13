@@ -49,27 +49,26 @@ JSWorkflowExpressionEditBox.prototype.showVariableSelector = function()
     this.treeNode = this.dialogContent.find("#"+treeId);
     this.createTreeObject();
 
-    this.dialogContent.dialog(
-    {
-        modal: true,
-        autoOpen: true,
-        width: 400,
-        title: "Select variable",
-        buttons: 
-        {
-            "Cancel": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
-            },
-            "Ok": function()
+            };
+    dialogButtons[ "Ok" ] = function()
             {
                 var value = _this.dialogContent.find("#varname").val();
                 $(this).dialog("close");
                 $(this).remove();
                 _this.onVariableSelected(value);
             }
-        }
+    this.dialogContent.dialog(
+    {
+        modal: true,
+        autoOpen: true,
+        width: 400,
+        title: "Select variable",
+        buttons: dialogButtons
     });
 };
 

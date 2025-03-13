@@ -12,10 +12,11 @@ var appInfo =
         serverPath: "../biouml/",
         userProjectsPath: "data/Collaboration",
         help: "http://wiki.biouml.org/",
-        manual: "Manual geneXplain platform.pdf",
+        manual: "Manual.pdf",
         serverAddress: "localhost",
         startPageTitle: "Start page",
-        userAccountLink: "https://store.genexplain.com/",
+        userAccountLink: "https://bio-store.org/",
+        enableLocales: ["en","ru"],
 
         end: ""
 };

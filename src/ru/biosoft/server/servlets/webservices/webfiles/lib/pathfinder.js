@@ -310,15 +310,8 @@ function ShortestPathDialog(diagram)
             $('#targets_div').hide();
     });
     
-    dialogDiv.dialog(
-    {
-        autoOpen: false,
-        width: 350,
-        height: 450,
-        resizable: false,
-        buttons:
-        {
-            "Ok": function()
+    var dialogButtons = {};
+    dialogButtons[ "Ok" ] = function()
             {
                 var sources = [];
                 var cnt = 0;
@@ -372,12 +365,18 @@ function ShortestPathDialog(diagram)
                     logger.error(data.message);
                 });
                 $(this).dialog("close");
-            },
-            "Cancel": function()
+            };
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
-            }
-        },
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 350,
+        height: 450,
+        resizable: false,
+        buttons: dialogButtons,
         open: function()
         {
             pathfinderObject.isOpenedShortpath = true;

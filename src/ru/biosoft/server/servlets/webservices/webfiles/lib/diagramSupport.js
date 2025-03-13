@@ -890,13 +890,8 @@ function NewNodeDialog(diagram, dcName, type, posX, posY)
 
         if (needDialog == true)
         {
-            this.dialogDiv.dialog(
-            {
-                autoOpen: false,
-                width: 520,
-                buttons:
-                {
-                    "Ok": function()
+            var dialogButtons = {};
+            dialogButtons[ "Ok" ] = function()
                     {
                         if (_thisDialog.dcName && _thisDialog.dcName.length > 0)
                         {
@@ -911,14 +906,18 @@ function NewNodeDialog(diagram, dcName, type, posX, posY)
 
                         $(this).dialog("close");
                         $(this).remove();
-                    },
-                    "Cancel": function()
+                    };
+            dialogButtons[ resources.dlgButtonCancel ] = function()
                     {
                         $(this).dialog("close");
                         $(this).remove();
                         _thisDialog.diagram.setSelectMode();
-                    }
-                }
+                    };
+            this.dialogDiv.dialog(
+            {
+                autoOpen: false,
+                width: 520,
+                buttons: dialogButtons
             });
             this.dialogDiv.dialog("open");
             addDialogKeys(this.dialogDiv);
@@ -1125,14 +1124,9 @@ function NewEdgeDialog(diagram, dcName, type)
         
         this.dialogDivPC.append(tableParams);
         
-        this.dialogDivPC.dialog(
-        {
-            autoOpen: false,
-            width: 300,
-            buttons:
-            {
-                "Ok": function()
-                {
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
+                 {
                     var connections = new Array();
                     tableFromTo.find('tr:not(#headerRow)').each(function(row)
                     {
@@ -1144,13 +1138,18 @@ function NewEdgeDialog(diagram, dcName, type)
                     _thisDialog.addElement(from, to, $.toJSON(connections));
                     $(this).dialog("close");
                     $(this).remove();
-                },
-                "Cancel": function()
+                 };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+
+        this.dialogDivPC.dialog(
+        {
+            autoOpen: false,
+            width: 300,
+            buttons: dialogButtons
         });
         this.dialogDivPC.dialog("open");
     };
@@ -1188,25 +1187,24 @@ function NewPortDialog(diagram, dcName, type, posX, posY)
                 }
             });
             
-        this.dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 300,
-            buttons:
-            {
-                "Ok": function()
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
                 {
                     var portElement = selectElement.children('option:selected').val();
                     _thisDialog.addPort(portElement);
                     $(this).dialog("close");
                     $(this).remove();
-                },
-                "Cancel": function()
+                };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
                 {
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+        this.dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 300,
+            buttons: dialogButtons
         });
         this.dialogDiv.dialog("open");
         addDialogKeys(this.dialogDiv);
@@ -1442,13 +1440,8 @@ function NewReactionDialog(diagram, posX, posY)
         this.dialogDiv.append(this.formula);
         
         this.diagram.addSelectListener(this);
-        this.dialogDiv.dialog(
-        {
-            autoOpen: false,
-            width: 750,
-            buttons:
-            {
-                "Ok": function()
+        var dialogButtons = {};
+        dialogButtons[ "Ok" ] = function()
                 {
                     var components = new Array();
                     var addedComponents = {};
@@ -1486,14 +1479,18 @@ function NewReactionDialog(diagram, posX, posY)
                     _thisDialog.diagram.removeSelectListener(_thisDialog);
                     $(this).dialog("close");
                     $(this).remove();
-                },
-                "Cancel": function()
+                };
+        dialogButtons[ resources.dlgButtonCancel ] = function()
                 {
                     _thisDialog.diagram.removeSelectListener(_thisDialog);
                     $(this).dialog("close");
                     $(this).remove();
-                }
-            }
+                };
+        this.dialogDiv.dialog(
+        {
+            autoOpen: false,
+            width: 750,
+            buttons: dialogButtons
         });
         this.dialogDiv.dialog("open");
         addDialogKeys(this.dialogDiv);

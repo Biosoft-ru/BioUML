@@ -55,22 +55,16 @@ function getUploadURLDialog(uploadID, okCallback)
     var uploadForm = getUploadURLForm(uploadID);
     var dialogDiv = $('<div title="'+resources.dlgUploadURLTitle+'"/>');
     dialogDiv.append(uploadForm);
-    dialogDiv.dialog(
-    {
-        autoOpen: true,
-        modal: true,
-        width: 400,
-        buttons: 
-        {
-            "Cancel": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
-            },
-            "Ok": function()
+            }; 
+    dialogButtons[ "Ok" ] = function()
             {
             	$(":button:contains('Ok')").removeAttr("disabled").attr("disabled", "disabled").addClass("ui-state-disabled");
-            	$(":button:contains('Cancel')").removeAttr("disabled").attr("disabled", "disabled").addClass("ui-state-disabled");
+            	$(":button:contains('" + resources.dlgButtonCancel + "')").removeAttr("disabled").attr("disabled", "disabled").addClass("ui-state-disabled");
             	
                 var fileUrl = uploadForm.find(":input[name=fileUrl]");
                 fileUrl.val(decodeURIComponent(fileUrl.val()));
@@ -81,18 +75,23 @@ function getUploadURLDialog(uploadID, okCallback)
                         okCallback(data.values.fileName);
                         __this.dialog("close");
                         __this.remove();
-                        $(":button:contains('Cancel')").removeAttr("disabled").removeClass("ui-state-disabled");
+                        $(":button:contains('" + resources.dlgButtonCancel + "')").removeAttr("disabled").removeClass("ui-state-disabled");
                     },
                     function() {
                         uploadForm.submit();
                         okCallback(fileUrl.val());
                         __this.dialog("close");
                         __this.remove();
-                        $(":button:contains('Cancel')").removeAttr("disabled").removeClass("ui-state-disabled");
+                        $(":button:contains('" + resources.dlgButtonCancel + "')").removeAttr("disabled").removeClass("ui-state-disabled");
                     }
                 );
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: true,
+        modal: true,
+        width: 400,
+        buttons: dialogButtons
     });
     addDialogKeys(dialogDiv);
 }
@@ -102,19 +101,13 @@ function getUploadContentDialog(uploadID, okCallback)
     var dialogDiv = $('<div title="'+resources.dlgTypeContentTitle+'"/>' );
     var contentForm = getTypeContentForm(uploadID);
     dialogDiv.append(contentForm);
-    dialogDiv.dialog(
-    {
-        autoOpen: true,
-        modal: true,
-        width: 400,
-        buttons: 
-        {
-            "Cancel": function()
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
                 $(this).remove();
-            },
-            "Ok": function()
+            };
+    dialogButtons[ "Ok" ] = function()
             {
                 contentForm.submit();
                 var name = contentForm.find(":input[name=fileName]").val();
@@ -126,8 +119,13 @@ function getUploadContentDialog(uploadID, okCallback)
                 okCallback(name);
                 $(this).dialog("close");
                 $(this).remove();
-            }
-        }
+            };
+    dialogDiv.dialog(
+    {
+        autoOpen: true,
+        modal: true,
+        width: 400,
+        buttons: dialogButtons
     });
     //addDialogKeys(dialogDiv);
 } 
