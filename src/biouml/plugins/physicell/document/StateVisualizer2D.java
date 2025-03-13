@@ -74,7 +74,7 @@ public class StateVisualizer2D extends StateVisualizer
         Graphics g = img.getGraphics();
         g.setColor( Color.white );
         g.fillRect( 0, 0, width, height );
-        if( options2D.isDrawDensity() )
+        if( options2D.isDrawDensity() && densityState != null)
             drawDensity( densityState.getDensity( "food" ), g );
         if( options2D.isDrawAgents() )
             drawAgents( state, g );
