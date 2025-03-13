@@ -4,6 +4,7 @@ import com.developmentontheedge.application.ApplicationDocument;
 import com.developmentontheedge.application.DocumentFactory;
 
 import ru.biosoft.access.core.CollectionFactory;
+import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 
@@ -26,9 +27,9 @@ public class PhysicellResultFactory implements DocumentFactory
         {
             ApplicationDocument document = null;
             DataElement de = CollectionFactory.getDataElement( name );
-            if( de instanceof GenericDataCollection )
+            if( de instanceof DataCollection )
             {
-                PhysicellSimulationResult simulation = new PhysicellSimulationResult( de.getName() + " Simulation", (GenericDataCollection)de );
+                PhysicellSimulationResult simulation = new PhysicellSimulationResult( de.getName() + " Simulation", (DataCollection)de );
                 document = new PhysicellResultDocument( simulation );
                 return document;
             }
