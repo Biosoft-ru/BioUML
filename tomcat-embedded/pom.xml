@@ -148,6 +148,7 @@
                     <argument>-Dbiouml.war=${biouml.war}</argument>
                     <argument>-Dbioumlweb.war=${bioumlweb.war}</argument>
                     <argument>-Dbiouml.http.port=8080</argument>
+                    <argument>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n</argument>
                     <argument>-jar</argument>
                     <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-0.9.10-jar-with-dependencies.jar</argument>
                   </arguments>
