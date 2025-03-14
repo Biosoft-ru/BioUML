@@ -45,19 +45,19 @@ public class TestSecurityProvider implements SecurityProvider
     @Override
     public boolean register(String username, String password, String email, Map<String, Object> props)
     {
-        return false;
+        return true;
     }
 
     @Override
     public boolean deleteUser(String username)
     {
-        return false;
+        return true;
     }
 
     @Override
     public boolean changePassword(String username, String oldPassword, String password)
     {
-        return false;
+        return true;
     }
 
     @Override
@@ -69,19 +69,19 @@ public class TestSecurityProvider implements SecurityProvider
     @Override
     public boolean updateUserInfo(String username, String password, Map<String, String> parameters)
     {
-        return false;
+        return true;
     }
 
     @Override
     public void createGroup(String username, String groupName, boolean reuse) throws Exception
     {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean setGroupPermission(String username, String groupName, String collectionName, int permission)
     {
-        return false;
+        return true;
     }
 
     @Override
