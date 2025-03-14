@@ -1,6 +1,5 @@
 @echo off
 
-:: Enable delayed expansion for proper variable handling inside loops
 setlocal enabledelayedexpansion
 
 :: Define arrays for owl_jars and cdk_jars
@@ -8,6 +7,7 @@ set "owl_jars=api apibinding impl util rdfxmlrenderer"
 set "cdk_jars=interfaces data core extra io ioformats nonotify isomorphism smiles smarts pdb standard fingerprint"
 
 :: Iterate over owl_jars and execute mvn command for each element
+echo Starting owl_jars loop...
 for %%j in (%owl_jars%) do (
     echo Installing owlapi-%%j...
     mvn -N install:install-file ^
@@ -16,10 +16,12 @@ for %%j in (%owl_jars%) do (
       -Dversion=1.0 ^
       -Dpackaging=jar ^
       -Dfile=plugins/org.semanticweb.owl_2.1.0/owlapi-%%j.jar ^
-      -DgeneratePom=true
+      -DgeneratePom=true || echo Error occurred while installing owlapi-%%j
 )
+echo Finished owl_jars loop.
 
 :: Iterate over cdk_jars and execute mvn command for each element
+echo Starting cdk_jars loop...
 for %%j in (%cdk_jars%) do (
     echo Installing cdk-%%j...
     mvn -N install:install-file ^
@@ -28,10 +30,11 @@ for %%j in (%cdk_jars%) do (
       -Dversion=1.3.5 ^
       -Dpackaging=jar ^
       -Dfile=plugins/org.openscience.cdk_1.3.5/cdk-%%j.jar ^
-      -DgeneratePom=true
+      -DgeneratePom=true || echo Error occurred while installing cdk-%%j
 )
+echo Finished cdk_jars loop.
 
-:: Install individual jars
+:: Install individual jars (rest of the script remains unchanged)
 echo Installing ftp4j...
 mvn -N install:install-file ^
   -DgroupId=it.sauronsoftware ^
