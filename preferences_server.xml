@@ -4,8 +4,8 @@
         <dynamicPropertySet> 
             <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/> 
             <property name="ApplicationName" type="java.lang.String" value="BioUML server" display-name="ApplicationName" short-description="Application name"/> 
-            <property name="ServerLink" type="java.lang.String" value="http://server.biouml.org/bioumlweb" display-name="ServerLink" short-description="URL to server"/> 
-            <property name="SmtpHost" type="java.lang.String" value="amber.developmentontheedge.com" display-name="SmtpHost" short-description="Smtp host"/> 
+            <property name="ServerLink" type="java.lang.String" value="http://localhost:8080/bioumlweb" display-name="ServerLink" short-description="URL to server"/> 
+            <property name="SmtpHost" type="java.lang.String" value="mail" display-name="SmtpHost" short-description="Smtp host"/> 
             <property name="SmtpFrom" type="java.lang.String" value="support@biouml.org" display-name="SmtpFrom" short-description="Mail from value"/> 
             <property name="AdminMail" type="java.lang.String" value="support@biouml.org" display-name="AdminMail" short-description="Mail of server admin"/> 
         </dynamicPropertySet> 
