@@ -96,9 +96,9 @@
                                      <fileset dir="${rootDir}/configuration"/>
                                 </copy> 
 
+				<copy file="${rootDir}/preferences_server.xml" tofile="${rootDir}/target/preferences.xml"/>
                                 <copy todir="${rootDir}/target" overwrite="true">
                                      <fileset dir="${rootDir}">
-                                        <include name="preferences.xml" />
                                         <include name="biouml.policy" />
                                      </fileset>
                                 </copy> 
