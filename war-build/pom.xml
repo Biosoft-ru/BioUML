@@ -18,7 +18,8 @@
         <rootDir>..</rootDir>
         <pluginDir>${project.basedir}</pluginDir>
         <biouml.plugin.jar.excludes>**/*</biouml.plugin.jar.excludes>
-        <server.path.absolute>${maven.multiModuleProjectDirectory}/target</server.path.absolute>
+<!--        <server.path.absolute>${maven.multiModuleProjectDirectory}/target</server.path.absolute>-->
+        <server.path.absolute>C:/PROJECTS/BioUML/target</server.path.absolute>
     </properties>
 
     <dependencies>

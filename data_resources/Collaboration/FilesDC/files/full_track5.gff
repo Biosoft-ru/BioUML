@@ -1,0 +1,4 @@
+track name=full_track
+1	geneXplain	enhancer	32430932	32432996	0.00000	+	.	12
+3	geneXplain	misc_feature	4467174	4467773	0.00000	-	.	11
+1	ee	enhancer	1234566	1234590	0.0	+	.	11
