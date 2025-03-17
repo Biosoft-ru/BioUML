@@ -9,6 +9,7 @@ import java.util.Properties;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
+import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.bsa.*;
@@ -77,7 +78,7 @@ public class BedTrack extends DataElementSupport implements WritableTrack
         String sequenceName = parts[0];
         int from = Integer.parseInt(parts[1]);
         int to = Integer.parseInt(parts[2]);
-        String name = parts.length > 3 ? parts[3] : String.valueOf(nextId++);
+        String name = (parts.length > 3 ? parts[3] + "_" : "") + String.valueOf(nextId++);
         float score = parts.length > 4 ? Float.parseFloat(parts[4]) : 0.0f;
         char strand = parts.length > 5 ? parts[5].charAt(0) : '.';
 
@@ -100,7 +101,8 @@ public class BedTrack extends DataElementSupport implements WritableTrack
     {
         init();
         VectorDataCollection<Site> result = new VectorDataCollection<>("sites");
-        track.stream().filter(s -> s.getSequence().getName().equals(sequence) && s.getFrom() >= from && s.getTo() <= to)
+        String sequenceName = DataElementPath.create(sequence).getName();
+        track.stream().filter(s -> s.getSequence().getName().equals(sequenceName) && s.getFrom() >= from && s.getTo() <= to)
                 .forEach(result::put);
         return result;
     }
