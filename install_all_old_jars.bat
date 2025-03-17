@@ -10,7 +10,7 @@ set "cdk_jars=interfaces data core extra io ioformats nonotify isomorphism smile
 echo Starting owl_jars loop...
 for %%j in (%owl_jars%) do (
     echo Installing owlapi-%%j...
-    mvn -N install:install-file ^
+    call mvn -N install:install-file ^
       -DgroupId=owlapi ^
       -DartifactId=%%j ^
       -Dversion=1.0 ^
@@ -20,11 +20,11 @@ for %%j in (%owl_jars%) do (
 )
 echo Finished owl_jars loop.
 
-:: Iterate over cdk_jars and execute mvn command for each element
+:: Iterate over cdk_jars and execute call mvn command for each element
 echo Starting cdk_jars loop...
 for %%j in (%cdk_jars%) do (
     echo Installing cdk-%%j...
-    mvn -N install:install-file ^
+    call mvn -N install:install-file ^
       -DgroupId=org.openscience.cdk ^
       -DartifactId=cdk-%%j ^
       -Dversion=1.3.5 ^
@@ -36,7 +36,7 @@ echo Finished cdk_jars loop.
 
 :: Install individual jars (rest of the script remains unchanged)
 echo Installing ftp4j...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=it.sauronsoftware ^
   -DartifactId=ftp4j ^
   -Dversion=1.6 ^
@@ -45,7 +45,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing samtools...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=net.sf.samtools ^
   -DartifactId=samtools ^
   -Dversion=1.62 ^
@@ -54,7 +54,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing glpk-java...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.gnu.glpk ^
   -DartifactId=glpk-java ^
   -Dversion=1.12.0 ^
@@ -63,7 +63,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing gurobi...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=gurobi ^
   -DartifactId=gurobi ^
   -Dversion=6.0.5 ^
@@ -72,7 +72,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing sabioclient...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=sabioclient ^
   -DartifactId=sabioclient ^
   -Dversion=1.0 ^
@@ -81,7 +81,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing chipmunk...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=chipmunk ^
   -DartifactId=chipmunk ^
   -Dversion=1.0 ^
@@ -90,7 +90,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing ensj...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.ensembl ^
   -DartifactId=ensj ^
   -Dversion=39.2 ^
@@ -99,7 +99,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing jdbm...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=jdbm ^
   -DartifactId=jdbm ^
   -Dversion=2.0 ^
@@ -108,7 +108,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing jchempaint...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.openscience.jchempaint ^
   -DartifactId=jchempaint ^
   -Dversion=3.1.2 ^
@@ -117,7 +117,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing cdk-jchempaint...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.openscience.jchempaint ^
   -DartifactId=cdk-jchempaint ^
   -Dversion=1.3.5 ^
@@ -126,7 +126,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing smack...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=jivesoftware ^
   -DartifactId=smack ^
   -Dversion=1.0.0 ^
@@ -135,7 +135,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing smackx...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=jivesoftware ^
   -DartifactId=smackx ^
   -Dversion=1.0.0 ^
@@ -144,7 +144,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing jgraph...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=jgraph ^
   -DartifactId=jgraph ^
   -Dversion=5.1 ^
@@ -153,7 +153,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing jlibsedml...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.jlibsedml ^
   -DartifactId=jlibsedml ^
   -Dversion=2.2.1 ^
@@ -162,7 +162,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing big...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.jetbrains.bio ^
   -DartifactId=big ^
   -Dversion=0.9.1p6-patched ^
@@ -171,7 +171,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing htsjdk...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=com.github.samtools ^
   -DartifactId=htsjdk ^
   -Dversion=2.20.3-4-g87ac4d3-SNAPSHOT ^
@@ -180,7 +180,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing jupyter...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=io.github.spencerpark ^
   -DartifactId=jupyter ^
   -Dversion=2.3.0 ^
@@ -189,7 +189,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing trove...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=gnu.trove ^
   -DartifactId=trove ^
   -Dversion=3.0.3p1 ^
@@ -198,7 +198,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing physicell...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=ru.biosoft.physicell ^
   -DartifactId=physicell ^
   -Dversion=1.0-SNAPSHOT ^
@@ -207,7 +207,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing beakerx...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=com.twosigma ^
   -DartifactId=beakerx ^
   -Dversion=1.0 ^
@@ -216,7 +216,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing batik-all...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.apache.batik ^
   -DartifactId=batik-all ^
   -Dversion=1.7.0 ^
@@ -225,7 +225,7 @@ mvn -N install:install-file ^
   -DgeneratePom=true
 
 echo Installing xml-apis-ext...
-mvn -N install:install-file ^
+call mvn -N install:install-file ^
   -DgroupId=org.w3c ^
   -DartifactId=xml-apis-ext ^
   -Dversion=1.0.0 ^
