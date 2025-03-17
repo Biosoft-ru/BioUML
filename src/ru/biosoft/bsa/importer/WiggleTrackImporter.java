@@ -9,6 +9,7 @@ import ru.biosoft.bsa.Precision;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.StrandType;
+import ru.biosoft.bsa.importer.WiggleTrackImporter.WiggleState;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
@@ -20,7 +21,7 @@ import com.developmentontheedge.beans.DynamicPropertySetAsMap;
  */
 public class WiggleTrackImporter extends TrackImporter
 {
-    private static class WiggleState
+    public static class WiggleState
     {
         private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("(.+)=(.*)");
         public static final int VARIABLE_STEP = 0;
@@ -82,6 +83,13 @@ public class WiggleTrackImporter extends TrackImporter
 
     @Override
     protected Site parseLine(String line)
+    {
+        if( ws == null )
+            ws = new WiggleState();
+        return parseLine(line, ws);
+    }
+
+    public static Site parseLine(String line, WiggleState ws)
     {
         if( ws == null )
             ws = new WiggleState();

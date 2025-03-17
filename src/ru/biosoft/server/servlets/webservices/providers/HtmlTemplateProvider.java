@@ -41,7 +41,8 @@ public class HtmlTemplateProvider extends WebJSONProviderSupport
                 baseId = ( (HtmlDescribedElement)de ).getBaseId() + "/";
             }
             html = result.toString();
-            if( !html.startsWith( "<html>" ) )
+            String htmlNoLeading = html.stripLeading();
+            if( !htmlNoLeading.startsWith("<html>") )
                 html = "<pre>" + html;//non html text should keep its formatting
             html = html.replaceAll( "href=\"de:([^\"]+)\"", "href=\"#de=$1\"" );
             html = html.replaceAll( "<math", "<math displaystyle=\"true\"" );
