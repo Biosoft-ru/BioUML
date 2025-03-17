@@ -14,7 +14,7 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
     {
         property( "time" ).editor( SliderEditor.class ).value( "max", beanClass.getMethod( "getMaxTime", (Class<?>[])null ) )
                 .value( "min", 0 ).add();
-        add("3D");
+        add("2D");
         addHidden("options2D", "is3D");
         addHidden("options3D", "is2D");
         add( "statistics" );

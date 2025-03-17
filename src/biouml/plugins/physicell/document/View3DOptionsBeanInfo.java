@@ -19,6 +19,5 @@ public class View3DOptionsBeanInfo extends BeanInfoEx2<View3DOptions>
         property( "zCutOff" ).editor(SliderEditor.class).value( "max", beanClass.getMethod( "getMaxZ", (Class<?>[] )null ) ).value( "min", 0 ).add();
         property("quality").tags( View3DOptions.QUALITIES).add();
         property("axes").add();
-        add("statistics");
     }
 }
