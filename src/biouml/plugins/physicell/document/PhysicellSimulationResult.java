@@ -55,13 +55,15 @@ public class PhysicellSimulationResult extends BaseSupport
     public void init()
     {
         densityElements.clear();
-        for( Object nameObj : dcDensity.getNameList() )
+        if( dcDensity != null )
         {
-            String name = nameObj.toString();
-            Integer time = Integer.parseInt( name.split( "_" )[1] );
-            densityElements.put( time, name );
+            for( Object nameObj : dcDensity.getNameList() )
+            {
+                String name = nameObj.toString();
+                Integer time = Integer.parseInt( name.split( "_" )[1] );
+                densityElements.put( time, name );
+            }
         }
-        
         agentElements.clear();
         for( Object nameObj : dcAgents.getNameList() )
         {
@@ -71,8 +73,8 @@ public class PhysicellSimulationResult extends BaseSupport
         }
         step = agentElements.navigableKeySet().higher( 0 );
         maxTime = agentElements.navigableKeySet().last();
-        options.setSize( 500, 500, 10, maxTime );
-        options.getOptions2D().setSubstrates( null );
+        options.setSize( (int)modelData.getXDim().getLength(), (int)modelData.getYDim().getLength(), (int)modelData.getZDim().getLength(), maxTime );
+        options.getOptions2D().setSubstrates( modelData.getSubstrates() );
 
     }
     
@@ -88,6 +90,8 @@ public class PhysicellSimulationResult extends BaseSupport
     
     public DensityState getDensity(int time) throws Exception
     {
+        if (dcDensity == null)
+            return null;
         return DensityState.fromTable( (TableDataCollection)dcDensity.get( densityElements.floorEntry( time ).getValue() ));
     }
 }
