@@ -379,6 +379,7 @@ public class JavaScriptSimulationEngine extends JavaScriptHostObjectBase
                 System.out.println( "Simulation..." );
             }
             SimulationResult result = new SimulationResult( resultFolder, resultName );
+            engine.initSimulationResult( result );
             message = engine.simulate( model, new ResultWriter[] {new ResultWriter( result )} );
             resultFolder.put( result );
             if( logging )
