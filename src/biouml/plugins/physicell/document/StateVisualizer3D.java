@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.document;
 
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 
 import ru.biosoft.physicell.ui.ModelData;
@@ -36,6 +37,7 @@ public class StateVisualizer3D extends StateVisualizer
         renderer.setCutOff( options3D.getCutOff() );
         renderer.setAxes( options3D.isAxes() );
         renderer.setStatistics( options.isStatistics() );
+        renderer.setStatisticsLOcation( new Point(options.getStatisticsX(), options.getStatisticsY()) );
         SceneHelper.addDisks( scene, options3D.getXCutOff(), SceneHelper.PLANE_YZ );
         SceneHelper.addDisks( scene, options3D.getYCutOff(), SceneHelper.PLANE_XZ );
         SceneHelper.addDisks( scene, options3D.getZCutOff(), SceneHelper.PLANE_XY );

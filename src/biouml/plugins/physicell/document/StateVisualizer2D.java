@@ -3,6 +3,7 @@ package biouml.plugins.physicell.document;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 
 import biouml.plugins.physicell.document.View2DOptions.Section;
@@ -28,7 +29,7 @@ public class StateVisualizer2D extends StateVisualizer
     protected ModelState modelState;
     private double maxDensity = 1E-13;//6.06;
     private View2DOptions options2D;
-
+    
     @Override
     public void setResult(PhysicellSimulationResult result)
     {
@@ -83,27 +84,29 @@ public class StateVisualizer2D extends StateVisualizer
         g.setColor( Color.white );
         g.fillRect( 0, 0, width, height );
         if( options2D.isDrawDensity() && densityState != null )
-            drawDensity( densityState.getDensity( "food" ), g );
+            drawDensity( densityState.getDensity( options.getOptions2D().getSubstrate() ), g );
         if( options2D.isDrawAgents() )
             drawAgents( state, g );
         if( options.isStatistics() )
-            drawText( state.getSize(), state.getTime(), width - extraWidth + textOffset, g );
+            drawText( state.getSize(), state.getTime(), new Point(options.getStatisticsX(), options.getStatisticsY()), g );
 
         return img;
     }
 
-    private void drawText(int agentsCount, double time, int x, Graphics g)
+    private void drawText(int agentsCount, double time, Point location, Graphics g)
     {
+        int x = location.x;
+        int y = location.y;
         g.setFont( new Font( "TimesRoman", Font.PLAIN, 20 ) );
         g.setColor( Color.BLACK );
-        g.drawString( "Time: " + time, x, 40 );
-        g.drawString( "Cells: " + agentsCount, x, 70 );
+        g.drawString( "Time: " + options.getTime(), x, y );
+        g.drawString( "Cells: " + agentsCount, x, y+30 );
         if( options2D.getSection() == Section.X )
-            g.drawString( "X = " + options2D.getSlice(), x, 100 );
+            g.drawString( "X = " + options2D.getSlice(), x, y+60 );
         else if( options2D.getSection() == Section.Y )
-            g.drawString( "Y = " + options2D.getSlice(), x, 100 );
+            g.drawString( "Y = " + options2D.getSlice(), x, y+60 );
         else
-            g.drawString( "Z = " + options2D.getSlice(), x, 100 );
+            g.drawString( "Z = " + options2D.getSlice(), x, y+60 );
     }
 
     private void drawAgents(ModelState state, Graphics g)

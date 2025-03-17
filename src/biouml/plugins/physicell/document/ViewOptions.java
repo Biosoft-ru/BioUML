@@ -6,15 +6,19 @@ import com.developmentontheedge.beans.annot.PropertyName;
 public class ViewOptions extends Option
 {
     private boolean statistics = true;
+    private int statisticsX = 10;
+    private int statisticsY = 40;
     private int maxTime;
     private int time;
     private View2DOptions options2D = new View2DOptions();
     private View3DOptions options3D = new View3DOptions();
     private boolean is2D;
+    
 
     public ViewOptions()
     {
         options2D.setParent( this );
+        options3D.setParent( this );
     }
     
     public void setSize(int x, int y, int z, int t)
@@ -97,5 +101,31 @@ public class ViewOptions extends Option
         this.options3D = options3D;
         options3D.setParent( this );
         this.firePropertyChange( "options3D", oldValue, options3D );
+    }
+    
+    @PropertyName ( "Statistics X" )
+    public int getStatisticsX()
+    {
+        return statisticsX;
+    }
+
+    public void setStatisticsX(int statisticsX)
+    {
+        int oldValue = this.statisticsX;
+        this.statisticsX = statisticsX;
+        this.firePropertyChange( "statisticsX", oldValue, statisticsX );
+    }
+
+    @PropertyName ( "Statistics Y" )
+    public int getStatisticsY()
+    {
+        return statisticsY;
+    }
+
+    public void setStatisticsY(int statisticsY)
+    {
+        int oldValue = this.statisticsY;
+        this.statisticsY = statisticsY;
+        this.firePropertyChange( "statisticsY", oldValue, statisticsY );
     }
 }
