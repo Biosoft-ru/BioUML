@@ -20,7 +20,7 @@ public class View2DOptions extends Option
     private int maxX = 500;
     private int maxY = 500;
     private int maxZ = 10;
-    private String[] substrates = new String[] {"food"};
+    private String[] substrates = new String[0];
     
     public void setSize(int x, int y, int z)
     {
@@ -57,6 +57,8 @@ public class View2DOptions extends Option
     public void setSubstrates(String[] substrates)
     {
         this.substrates = substrates;
+        if( substrates != null && substrates.length > 0 )
+            this.substrate = substrates[0];
     }
 
     @PropertyName ( "Cells" )

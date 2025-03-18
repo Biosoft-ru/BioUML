@@ -351,6 +351,48 @@ public class JavaScriptSimulationEngine extends JavaScriptHostObjectBase
         return getSimulationResult( engine, diagram );
     }
     
+    public SimulationResult simulateAndSave(Diagram diagram, SimulationEngine engine, boolean logging, DataCollection resultFolder,
+            String resultName)
+    {
+        if( !checkDiagram( diagram ) )
+            return null;
+
+        engine.setDiagram( diagram );
+        engine.setLogLevel( Level.SEVERE );
+
+        long time = System.nanoTime();
+        try
+        {
+            if( logging )
+                System.out.println( "Model generation..." );
+            Model model = engine.createModel();
+
+            if( logging )
+                System.out.println( "Done. Elapsed time: " + ( System.nanoTime() - time ) / 1E9 + " seconds" );
+
+            if( model == null )
+                log.log( Level.SEVERE, "Model was not generated!" );
+
+            if( logging )
+            {
+                time = System.nanoTime();
+                System.out.println( "Simulation..." );
+            }
+            SimulationResult result = new SimulationResult( resultFolder, resultName );
+            engine.initSimulationResult( result );
+            message = engine.simulate( model, new ResultWriter[] {new ResultWriter( result )} );
+            resultFolder.put( result );
+            if( logging )
+                System.out.println( "Done. Elapsed time: " + ( System.nanoTime() - time ) / 1E9 + " seconds" );
+            return result;
+        }
+        catch( Throwable t )
+        {
+            log.log( Level.SEVERE, "Error during model simulation", t );
+            return null;
+        }
+    }
+    
     /**
      * Simulates the diagram.
      * @param diagram the diagram to simulate.

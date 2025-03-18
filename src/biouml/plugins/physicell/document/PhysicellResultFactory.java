@@ -30,6 +30,7 @@ public class PhysicellResultFactory implements DocumentFactory
             if( de instanceof DataCollection )
             {
                 PhysicellSimulationResult simulation = new PhysicellSimulationResult( de.getName() + " Simulation", (DataCollection)de );
+                simulation.init();
                 document = new PhysicellResultDocument( simulation );
                 return document;
             }

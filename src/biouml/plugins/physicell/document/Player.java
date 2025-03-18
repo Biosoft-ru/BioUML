@@ -39,7 +39,7 @@ public class Player extends Thread
         if( time > this.result.getMaxTime() )
         {
             playing = false;
-            listener.stop();
+            listener.finish();
             return;
         }
         int existing = result.floorTime( time );

@@ -150,4 +150,12 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
         stopAction.setEnabled( true );
         pauseAction.setEnabled( false );
     }
+    
+    @Override
+    public void finish()
+    {
+        playAction.setEnabled( false );
+        stopAction.setEnabled( true );
+        pauseAction.setEnabled( false );
+    }
 }
