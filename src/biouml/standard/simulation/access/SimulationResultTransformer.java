@@ -56,9 +56,8 @@ public class SimulationResultTransformer extends AbstractFileTransformer<Simulat
                     continue;
 
                 command = commands.get(name);
-                if( name.equals(TableDataTagCommand.DATA_TAG) )
+                if( name.equals("VL") )
                 {
-                    writer.write(name);
                     SimulationResult sr = getProcessedObject();
                     double[] times = sr.getTimes();
                     double[][] values = sr.getValues();
@@ -68,13 +67,9 @@ public class SimulationResultTransformer extends AbstractFileTransformer<Simulat
 
                     for( int timeSliceNumber = 0; timeSliceNumber < times.length; timeSliceNumber++ )
                     {
+                        writer.write(DoubleStreamEx.of( values[timeSliceNumber] ).prepend( times[timeSliceNumber] ).joining( "\t", "VL    ", "" ));
                         writer.write(endl);
-                        writer.write("VL    " + times[timeSliceNumber] + "\t");
-                        writer.write(endl);
-                        writer.write(DoubleStreamEx.of( values[timeSliceNumber] ).joining( "\t", "", endl ));
                     }
-                    writer.write(endl);
-
                 }
                 else
                 {
