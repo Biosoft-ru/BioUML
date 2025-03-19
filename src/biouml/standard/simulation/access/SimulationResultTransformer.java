@@ -3,6 +3,7 @@ package biouml.standard.simulation.access;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.Writer;
 import java.util.Iterator;
 
 import ru.biosoft.access.AbstractFileTransformer;
@@ -12,7 +13,9 @@ import ru.biosoft.access.support.BeanInfoEntryTransformer;
 import ru.biosoft.access.support.SetPropertyCommand;
 import ru.biosoft.access.support.TagCommand;
 import ru.biosoft.access.support.TagEntryTransformer;
+import ru.biosoft.table.access.TableDataTagCommand;
 import biouml.standard.simulation.SimulationResult;
+import one.util.streamex.DoubleStreamEx;
 
 public class SimulationResultTransformer extends AbstractFileTransformer<SimulationResult>
 {
@@ -38,6 +41,54 @@ public class SimulationResultTransformer extends AbstractFileTransformer<Simulat
             VariablesCommand vc = new VariablesCommand(this);
             addCommand(vc);
             addCommand(new ResultValuesCommand(this, vc));
+        }
+        
+        @Override
+        public void writeObject(Object obj, Writer writer) throws Exception
+        {
+            processedObject = obj;
+
+            String startTag = getStartTag();
+            TagCommand command;
+            for(String name: tagOrder)
+            {
+                if( name.equals(startTag) )
+                    continue;
+
+                command = commands.get(name);
+                if( name.equals(TableDataTagCommand.DATA_TAG) )
+                {
+                    writer.write(name);
+                    SimulationResult sr = getProcessedObject();
+                    double[] times = sr.getTimes();
+                    double[][] values = sr.getValues();
+                    
+                    if (values == null || values.length == 0 || values[0].length == 0)
+                        return;
+
+                    for( int timeSliceNumber = 0; timeSliceNumber < times.length; timeSliceNumber++ )
+                    {
+                        writer.write(endl);
+                        writer.write("VL    " + times[timeSliceNumber] + "\t");
+                        writer.write(endl);
+                        writer.write(DoubleStreamEx.of( values[timeSliceNumber] ).joining( "\t", "", endl ));
+                    }
+                    writer.write(endl);
+
+                }
+                else
+                {
+                    String str = command.getTaggedValue();
+                    if( str != null )
+                    {
+                        writer.write(str);
+                        if( !str.endsWith(endl) )
+                            writer.write(endl);
+                    }
+                }
+            }
+
+            processedObject = null;
         }
     };
     
