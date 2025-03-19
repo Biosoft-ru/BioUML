@@ -494,6 +494,7 @@ public class CompositeModelPreprocessor extends Preprocessor
             readConnection(c);
               
         transformUndirectedConnections();
+        fixMixedConnections();
         
         adjustUniqueNames();
         adjustDirectedConnections();
@@ -1619,15 +1620,13 @@ public class CompositeModelPreprocessor extends Preprocessor
         Map<String, String> toReplace = new HashMap<>();
         for (Entry<String, Set<String>> e: uConnected.entrySet())
         {
-            Variable oldVariable = newVarsToOld.get( e.getKey() );
             String main = e.getKey();
-            Set<String> vars = e.getValue();
             String newVarName = null;
-            for( String varName : vars )
+            for( String varName : e.getValue() )
             {
-                Variable oldVar = newVarsToOld.get( varName );
-                Diagram parent = getParentDiagram( oldVar );
-                if( parent.equals( compositeDiagram ) )
+//                Variable oldVar = newVarsToOld.get( varName );
+//                Diagram parent = getParentDiagram( oldVar );
+                if( getParentDiagram( newVarsToOld.get( varName ) ).equals( compositeDiagram ) )
                 {
                     toReplace.put( main, varName );
                     newVarName = varName;
@@ -1635,7 +1634,43 @@ public class CompositeModelPreprocessor extends Preprocessor
             }
 
             if( newVarName != null )
-                uConnectedInfo.put( newVarName, oldVariable );
+                uConnectedInfo.put( newVarName, newVarsToOld.get( main ) );
+        }
+
+        for( Entry<String, String> e : toReplace.entrySet() )
+        {
+            Set<String> value = uConnected.get( e.getKey() );
+            uConnected.remove( e.getKey() );
+            uConnected.put( e.getValue(), value );
+        }
+    }
+    
+    /**
+     * Fix situation when species is connected to parameter and parameter is main
+     */
+    private void fixMixedConnections()
+    {
+        Map<String, String> toReplace = new HashMap<>();
+        for (Entry<String, Set<String>> e: uConnected.entrySet())
+        {
+            String main = e.getKey();
+            boolean mainIsSpecie = newVarsToOld.get( main ) instanceof VariableRole;
+            if (mainIsSpecie)
+                continue;
+            String newVarName = null;
+            for( String varName : e.getValue() )
+            {
+                boolean auxIsSpecie = newVarsToOld.get( varName ) instanceof VariableRole;
+                if(auxIsSpecie )
+                {
+                    toReplace.put( main, varName );
+                    newVarName = varName;
+                    break;
+                }
+            }
+
+            if( newVarName != null )
+                uConnectedInfo.put( main, newVarsToOld.get( newVarName ) );
         }
 
         for( Entry<String, String> e : toReplace.entrySet() )
