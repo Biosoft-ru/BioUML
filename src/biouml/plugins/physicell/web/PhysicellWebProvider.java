@@ -2,14 +2,19 @@ package biouml.plugins.physicell.web;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.plugins.physicell.CellDefinitionProperties;
 import biouml.plugins.physicell.MulticellEModel;
+import biouml.plugins.physicell.document.DensityState;
 import biouml.plugins.physicell.document.PhysicellSimulationResult;
 import biouml.plugins.physicell.document.StateVisualizer2D;
 import biouml.plugins.server.access.AccessProtocol;
+import biouml.plugins.simulation.document.InputParameter;
+import biouml.plugins.simulation.document.InteractiveSimulation;
+import ru.biosoft.access.TextDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
@@ -86,6 +91,10 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         {
             sendSimulationImage( arguments.getString( AccessProtocol.KEY_DE ), response );
         }
+        else if( "timestep".equals( action ) )
+        {
+            doStep( arguments.getString( AccessProtocol.KEY_DE ), response );
+        }
     }
 
     public static PhysicellSimulationResult getSimulationResult(String simulationDe) throws WebException
@@ -97,7 +106,7 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
             throw new WebException( "EX_QUERY_NO_ELEMENT", simulationDe );
     }
 
-    private static void sendSimulationImage(String simulationDe, JSONResponse response) throws IOException, WebException
+    private static void sendSimulationImage(String simulationDe, JSONResponse response) throws Exception
     {
         PhysicellSimulationResult simulation = getSimulationResult( simulationDe );
         //        PlotsInfo plotsInfo = DiagramUtility.getPlotsInfo( simulation.getDiagram() );
@@ -111,6 +120,11 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         //        } ).map( p -> p.getImage() ).toArray( BufferedImage[]::new );
         StateVisualizer2D visualizer = new StateVisualizer2D();
         visualizer.setResult( simulation );
+        visualizer.getOptions().getOptions2D().setSlice( 750 );
+        TextDataElement tde = simulation.getPoint( simulation.getOptions().getTime() );
+        visualizer.readAgents( tde.getContent(), tde.getName() ); 
+        visualizer.setDensityState( simulation.getDensity( simulation.getOptions().getTime() ) );
+        
         BufferedImage image = visualizer.draw();
         if( image != null )
         {
@@ -137,6 +151,22 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         //        PhysicellResultDocument document = new PhysicellResultDocument( simulation );
         WebServicesServlet.getSessionCache().addObject( completeSimulationName, simulation, true );
         response.sendString( completeSimulationName );
+    }
+    
+    private void doStep(String simulationDe, JSONResponse response)
+            throws IOException, WebException
+    {
+        PhysicellSimulationResult simulation = getSimulationResult( simulationDe );
+        int step = simulation.getStep();
+        int curTime = simulation.getOptions().getTime();
+        simulation.getOptions().setTime( curTime + step );
+//        asList.stream().forEach( parameter -> {
+//            InputParameter selected = simulation.getParameter( parameter );
+//            selected.setValue( selected.getValue() + selected.getValueStep() );
+//            simulation.updateValue( selected );
+//        } );
+//        simulation.doSimulation();
+        response.sendString( "ok" );
     }
 
 }

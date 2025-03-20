@@ -259,8 +259,8 @@ function createSimulationDocument (name, callback)
 function createPhysicellDocument (name, callback)
 {
     loadBioUMLModules(["viewpartsPhysicell", "physicell"], function()
-    {
-        //initSimulationViewParts();
+    {   
+        initPhysicellViewParts();
     }, function()
     {
         callback(new PhysicellDocument(name));

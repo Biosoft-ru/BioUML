@@ -17,13 +17,13 @@ function PhysicellEditorViewpart()
     var _this = this;
     this.selectionDiv = $('<div></div>').css("margin-bottom", "10px");
     this.containerDiv.append(this.selectionDiv);
-    this.table = $('<div>'+resources.commonLoading+'</div>');
-    this.containerDiv.append(this.table);
+    //this.table = $('<div>'+resources.commonLoading+'</div>');
+    //this.containerDiv.append(this.table);
     //TODO: move messages to messageBundle.js
     
     this.isVisible = function(documentObject, callback)
     {
-      if((documentObject != null) && (documentObject instanceof PhysicellResultDocument))
+      if((documentObject != null) && (documentObject instanceof PhysicellDocument))
           callback(true);
       else
           callback(false);
@@ -31,14 +31,14 @@ function PhysicellEditorViewpart()
     
     this.explore = function(documentObject)
     {
-        if ((documentObject != null) && (documentObject instanceof PhysicellResultDocument))
+        if ((documentObject != null) && (documentObject instanceof PhysicellDocument))
         {
-            if (this.simulation != documentObject) 
+            if (this.physicell != documentObject) 
             {
-                this.simulation = documentObject;
-                this.tableObj = undefined;
-                this.selectedParameters=[];
-                this.simulation.addLoadedListener(this);
+                this.physicell = documentObject;
+                //this.tableObj = undefined;
+                //this.selectedParameters=[];
+                //this.simulation.addLoadedListener(this);
             }
         }
     };
@@ -68,7 +68,14 @@ function PhysicellEditorViewpart()
     
     this.playActionClick = function()
     {
-
+		queryBioUML("web/physicell/timestep",
+		           {
+		               de: _this.physicell.simulationName,
+		               //jsonrows: $.toJSON(rows)
+		           }, function(data)
+		           {
+		               _this.physicell.update();
+		           });
     };
     
 	this.pauseActionClick = function()
