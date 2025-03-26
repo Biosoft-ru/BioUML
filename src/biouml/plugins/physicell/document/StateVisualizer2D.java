@@ -146,7 +146,7 @@ public class StateVisualizer2D extends StateVisualizer
                 continue;
             int r = (int)Math.sqrt( radius * radius - d * d );
             double nuclearRadius = agent.getInnerRadius();
-            if( d > nuclearRadius )
+            if( !options.isDrawNuclei() || d > nuclearRadius )
                 drawAgent( agent, c1, c2, r, g );
             else
             {

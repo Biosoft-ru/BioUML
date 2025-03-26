@@ -3,6 +3,8 @@ package biouml.plugins.physicell.document;
 import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import ru.biosoft.access.core.DataElementPath;
+
 public class ViewOptions extends Option
 {
     private boolean statistics = true;
@@ -13,8 +15,10 @@ public class ViewOptions extends Option
     private View2DOptions options2D = new View2DOptions();
     private View3DOptions options3D = new View3DOptions();
     private boolean is2D;
+    private DataElementPath result;
+    private boolean saveResult = false;
+    private boolean drawNuclei = false;
     
-
     public ViewOptions()
     {
         options2D.setParent( this );
@@ -127,5 +131,39 @@ public class ViewOptions extends Option
         int oldValue = this.statisticsY;
         this.statisticsY = statisticsY;
         this.firePropertyChange( "statisticsY", oldValue, statisticsY );
+    }
+    
+    @PropertyName("Result video path")
+    public DataElementPath getResult()
+    {
+        return result;
+    }
+
+    public void setResult(DataElementPath result)
+    {
+        this.result = result;
+    }
+
+    @PropertyName("Save video")
+    public boolean isSaveResult()
+    {
+        return saveResult;
+    }
+
+    public void setSaveResult(boolean saveResult)
+    {
+        this.saveResult = saveResult;
+    }
+    
+    
+    @PropertyName("Draw nuclei")
+    public boolean isDrawNuclei()
+    {
+        return drawNuclei;
+    }
+
+    public void setDrawNuclei(boolean drawNuclei)
+    {
+        this.drawNuclei = drawNuclei;
     }
 }
