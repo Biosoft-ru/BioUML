@@ -5,8 +5,14 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+
 import javax.swing.JPanel;
+
+import biouml.plugins.physicell.PhysicellResultWriter;
+import biouml.plugins.physicell.VideoGenerator;
 import ru.biosoft.access.TextDataElement;
+import ru.biosoft.util.TempFiles;
 
 public class RenderPanel extends JPanel implements PropertyChangeListener
 {
@@ -16,11 +22,13 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
     private StateVisualizer3D visualizer3D = new StateVisualizer3D();
     private BufferedImage img;
     private RotateListener rotateListener;
+    private VideoGenerator videoGenerator;
+    private File tempVideoFile;
 
     public RenderPanel(int width, int height, PhysicellSimulationResult result)
     {
         setPreferredSize( new Dimension( width, height ) );
-     
+
         this.result = result;
         this.options = result.getOptions();
         visualizer2D.setResult( result );
@@ -45,10 +53,12 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
     {
         getCurrentVisualizer().setDensityState( densityData );
     }
-    
+
     public void update()
     {
         img = getCurrentVisualizer().draw();
+        if (options.isSaveResult())
+           updateVideo(img);
         this.repaint();
     }
 
@@ -67,14 +77,69 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
                     || evt.getPropertyName().equals( "is3D" ) )
                 readAgents( result.getPoint( options.getTime() ) );
 
-            if( evt.getPropertyName().equals( "time" ))
-                    readDensity(result.getDensity(options.getTime()));
-            
+            if( evt.getPropertyName().equals( "time" ) )
+                readDensity( result.getDensity( options.getTime() ) );
+
+            if( evt.getPropertyName().equals( "saveResult" ) )
+            {
+                if ((Boolean)evt.getNewValue())
+                    startVideo();
+                else if (videoGenerator != null)
+                    finishVideo();
+                return;
+            }
+
+            if( evt.getPropertyName().equals( "result" ) )
+                return;
+
             update();
         }
         catch( Exception ex )
         {
             ex.printStackTrace();
+        }
+    }
+
+    private void startVideo()
+    {
+        try
+        {
+            tempVideoFile = TempFiles.file( "Video.mp4" );
+            videoGenerator = new VideoGenerator( tempVideoFile );
+            videoGenerator.init();
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    private void updateVideo(BufferedImage img)
+    {
+        try
+        {
+            videoGenerator.update( img );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    private void finishVideo()
+    {
+        try
+        {
+            videoGenerator.finish();
+            PhysicellResultWriter.uploadMP4( tempVideoFile, options.getResult().getParentCollection(), options.getResult().getName() );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            videoGenerator = null;
         }
     }
 }
