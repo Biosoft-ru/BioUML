@@ -226,7 +226,7 @@ public class PhysicellResultWriter
         this.textVisualizer = textVisualizer;
     }
 
-    private static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
+    public static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
     {
         VideoFileImporter importer = new VideoFileImporter();
         importer.getProperties( dc, f, name ).setResolution( "1280 x 720 (High definition)" );
