@@ -6,10 +6,10 @@ function PhysicellDocument(completeName)
     var _this = this;
     this.completeName = null;
     this.diagramName = completeName;
-    this.name = "Simulation result" + getElementName(completeName);
+    this.name = "Simulation result " + getElementName(completeName);
     this.tabId = allocateDocumentId(this.name + '/' + completeName);
     this.scrollPos = undefined;
-    this.simulationName = undefined;
+    this.simulationName = "Simulation "+getElementName(completeName)+"/"+completeName;
     this.loadedListeners = [];
     this.loaded = false;
     
@@ -41,7 +41,6 @@ function PhysicellDocument(completeName)
             selectViewPart("physicell.result");
         });
         resizeDocumentsTabs();
-        
     };
     
     this.update = function(callback)
@@ -63,8 +62,8 @@ function PhysicellDocument(completeName)
                var curPos = _this.scrollPos;
                setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
            }
-           if( callback )
-               callback();
+          // if( callback )
+         //      callback();
         });
     }
     
@@ -104,5 +103,25 @@ function PhysicellDocument(completeName)
         else
             this.loadedListeners.push(listener);
     };
+	
+	this.autoUpdate = function()
+	  {
+	      clearTimeout(this.autoUpdateTimer);
+	      this.autoUpdateTimer = setTimeout(function()
+	      {
+	      	if(isActiveDocument(_this))
+	      	{
+	      		abortQueries("document.physicell.autoupdate");
+				queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
+				{
+				     de: _this.simulationName,
+					//jsonrows: $.toJSON(rows)
+				}, _this.update, function() {});//, function(data)
+	        } else
+	      	{
+	      	    _this.autoUpdate();
+	        }
+	      }, 0);
+	  }
 }
 
