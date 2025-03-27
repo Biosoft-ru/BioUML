@@ -141,7 +141,9 @@ public class ViewOptions extends Option
 
     public void setResult(DataElementPath result)
     {
+        DataElementPath oldValue = this.result;
         this.result = result;
+        this.firePropertyChange( "result", oldValue, result );
     }
 
     @PropertyName("Save video")
@@ -152,7 +154,9 @@ public class ViewOptions extends Option
 
     public void setSaveResult(boolean saveResult)
     {
+        boolean oldValue = this.saveResult;
         this.saveResult = saveResult;
+        this.firePropertyChange( "saveResult", oldValue, saveResult );
     }
     
     
@@ -164,6 +168,8 @@ public class ViewOptions extends Option
 
     public void setDrawNuclei(boolean drawNuclei)
     {
+        boolean oldValue = this.drawNuclei;
         this.drawNuclei = drawNuclei;
+        this.firePropertyChange( "drawNuclei", oldValue, drawNuclei );
     }
 }

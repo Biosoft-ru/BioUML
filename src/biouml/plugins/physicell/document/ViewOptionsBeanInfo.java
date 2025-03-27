@@ -21,7 +21,7 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         add("drawNuclei");
         add("statisticsX");
         add("statisticsY");
-        add("saveResults");
-        add("resulth");
+        add("saveResult");
+        add("result");
     }
 }
