@@ -63,6 +63,7 @@
   
   <extension point="ru.biosoft.access.beans">
     <provider class="biouml.plugins.physicell.web.PhysicellBeanProvider" prefix="diagram/physicell"/>
+    <provider class="biouml.plugins.physicell.web.PhysicellResultOptionsProvider" prefix="physicell/result"/>
   </extension>
   
   <extension point="ru.biosoft.server.servlets.webProvider">
