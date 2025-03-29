@@ -19,7 +19,7 @@ public class Initial extends InitialCellsArranger
 
         double tumorRadius = model.getParameterDouble( "tumor_radius" );// 250.0;  
 
-        List<double[]> positions = createSpherePositions( new double[] {750,750,750}, cellRadius, tumorRadius );
+        List<double[]> positions = createSpherePositions( new double[] {0,0,0}, cellRadius, tumorRadius );
         //        System.out.println( "creating " + positions.size() + " closely-packed tumor cells ... " );
 
         double imm_mean = model.getParameterDouble( "tumor_mean_immunogenicity" );
