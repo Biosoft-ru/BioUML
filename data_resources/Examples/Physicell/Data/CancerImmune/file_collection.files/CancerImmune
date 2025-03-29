@@ -12,12 +12,12 @@
         <property name="cellUpdateType" short-description="cellUpdateType" type="String" value="Experimental"/>
         <property name="diffusionDt" short-description="diffusionDt" type="double" value="0.01"/>
         <property name="finalTime" short-description="finalTime" type="double" value="20000.0"/>
-        <property name="imageInterval" short-description="imageInterval" type="double" value="10.0"/>
+        <property name="imageInterval" short-description="imageInterval" type="double" value="200.0"/>
         <property name="mechanicsDt" short-description="mechanicsDt" type="double" value="0.1"/>
         <property name="parallelDiffusion" short-description="parallelDiffusion" type="boolean" value="true"/>
         <property name="phenotypeDt" short-description="phenotypeDt" type="double" value="6.0"/>
         <property name="reportInterval" short-description="reportInterval" type="double" value="200.0"/>
-        <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Ilya/Data/Diagrams/Cancer_3D_rare"/>
+        <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Ilya/Data/Diagrams/Cancer_3D_3003"/>
         <property name="saveCellsTable" short-description="saveCellsTable" type="boolean" value="false"/>
         <property name="saveCellsText" short-description="saveCellsText" type="boolean" value="true"/>
         <property name="saveDensity" short-description="saveDensity" type="boolean" value="false"/>
@@ -32,7 +32,7 @@
       <property name="solverName" short-description="solverName" type="String" value="Physicell default"/>
     </simulationOptions>
     <nodes>
-      <node height="75" isTitleHidden="false" kernel="stub/Event" kernel_type="event" title="Event" width="75" x="230" y="30">
+      <node height="75" isTitleHidden="false" kernel="stub/Event" kernel_type="event" title="Event" width="75" x="243" y="25">
         <property isHidden="true" isReadOnly="true" name="event" short-description="event" type="biouml.plugins.physicell.EventProperties">
           <property name="comment" short-description="comment" type="String" value="Introduce immunity cells"/>
           <property name="executionCodePath" short-description="executionCodePath" type="dataElementPath" value="data/Examples/Physicell/Data/CancerImmune/ImmunityEvent.java"/>
