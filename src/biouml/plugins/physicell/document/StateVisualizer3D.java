@@ -27,7 +27,7 @@ public class StateVisualizer3D extends StateVisualizer
         super.setResult( result );
         ModelData modelData = result.getModelData();
         options3D = result.getOptions().getOptions3D();
-        renderer = new Renderer3D( (int)modelData.getXDim().getLength(), (int)modelData.getYDim().getLength(), 0, 0 );
+        renderer = new Renderer3D( modelData, 0, 0 );
     }
 
     @Override

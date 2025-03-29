@@ -22,9 +22,18 @@ public class Util
             double y = Double.parseDouble( parts[1] );
             double z = Double.parseDouble( parts[2] );
             double outerRadius = Double.parseDouble( parts[3] );
-            Color outerColor = decodeColor( parts[5] );
-            Color innerColor = decodeColor( parts[7] );
-
+            Color outerColor = null;
+            Color innerColor = null;
+            if (parts.length == 6)
+            {
+                outerColor = decodeColor(parts[5]);
+                innerColor = outerColor;
+            }
+            else
+            {
+                outerColor = decodeColor( parts[5] );
+                innerColor = decodeColor( parts[7] );
+            }
             Mesh mesh = SceneHelper.createSphere( x, y, z, outerRadius, outerColor, innerColor, quality );
             scene.addSphere( mesh );
         }
