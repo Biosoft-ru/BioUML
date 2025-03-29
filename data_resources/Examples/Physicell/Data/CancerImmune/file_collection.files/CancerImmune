@@ -18,8 +18,11 @@
         <property name="phenotypeDt" short-description="phenotypeDt" type="double" value="6.0"/>
         <property name="reportInterval" short-description="reportInterval" type="double" value="200.0"/>
         <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Ilya/Data/Diagrams/Cancer_3D_rare"/>
+        <property name="saveCellsTable" short-description="saveCellsTable" type="boolean" value="false"/>
+        <property name="saveCellsText" short-description="saveCellsText" type="boolean" value="true"/>
+        <property name="saveDensity" short-description="saveDensity" type="boolean" value="false"/>
         <property name="saveGIF" short-description="saveGIF" type="boolean" value="false"/>
-        <property name="saveImage" short-description="saveImage" type="boolean" value="true"/>
+        <property name="saveImage" short-description="saveImage" type="boolean" value="false"/>
         <property name="saveReport" short-description="saveReport" type="boolean" value="false"/>
         <property name="saveVideo" short-description="saveVideo" type="boolean" value="false"/>
         <property name="seed" short-description="seed" type="double" value="0.0"/>
@@ -29,7 +32,7 @@
       <property name="solverName" short-description="solverName" type="String" value="Physicell default"/>
     </simulationOptions>
     <nodes>
-      <node height="75" isTitleHidden="false" kernel="stub/Event" kernel_type="event" title="Event" width="75" x="235" y="30">
+      <node height="75" isTitleHidden="false" kernel="stub/Event" kernel_type="event" title="Event" width="75" x="230" y="30">
         <property isHidden="true" isReadOnly="true" name="event" short-description="event" type="biouml.plugins.physicell.EventProperties">
           <property name="comment" short-description="comment" type="String" value="Introduce immunity cells"/>
           <property name="executionCodePath" short-description="executionCodePath" type="dataElementPath" value="data/Examples/Physicell/Data/CancerImmune/ImmunityEvent.java"/>
@@ -659,7 +662,7 @@
   </diagram>
   <executableModel class="biouml.plugins.physicell.MulticellEModel">
     <options disableAutomatedAdhesion="true"/>
-    <domain use2D="false" xFrom="0.0" xStep="20.0" xTo="1500.0" yFrom="0.0" yStep="20.0" yTo="1500.0" zFrom="-0.0" zStep="20.0" zTo="1500.0"/>
+    <domain use2D="false" xFrom="-750.0" xStep="20.0" xTo="750.0" yFrom="-750.0" yStep="20.0" yTo="750.0" zFrom="-750.0" zStep="20.0" zTo="750.0"/>
     <userParameters>
       <userParameter name="random_seed" value="0"/>
       <userParameter name="thickness_of_immune_seeding_region" value="75"/>
