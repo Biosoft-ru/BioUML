@@ -34,7 +34,7 @@ public class ImmunityEvent extends Event
         CellDefinition cd = model.getCellDefinition( "immune cell" );
         Microenvironment m = model.getMicroenvironment();
         Set<Cell> cells = m.getAgents( Cell.class );
-        double tumor_radius = -9e9; // 250.0; 
+        double tumor_radius = 250.0; 
         double temp_radius = 0.0;
 
         // for the loop, deal with the (faster) norm squared 
