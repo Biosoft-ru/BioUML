@@ -34,6 +34,7 @@ function PhysicellEditorViewpart()
 		if ((documentObject != null) && (documentObject instanceof PhysicellDocument))
 		{
 		     this.physicell = documentObject;
+             this.physicell.addLoadedListener(_this);
 	    		
 	  	//if(this.currentDiagram)
 	  	//{
@@ -46,12 +47,12 @@ function PhysicellEditorViewpart()
 	    //      if( this.currentDiagram.runMode == undefined )
 	    //          this.currentDiagram.runMode = false;
 	  		
-	  		 this.propertyInspector = $('<div id="' + _this.tabId + '_pi"></div>');
-	         this.controlDiv.html(_this.propertyInspector);
+	  		 //this.propertyInspector = $('<div id="' + _this.tabId + '_pi"></div>');
+	         //this.controlDiv.html(_this.propertyInspector);
 			 
-			 _this.controlDiv.show();
+			 //_this.controlDiv.show();
 			 //queryBean("physicell/result/Simulation |||| " +documentObject.diagramName+" |||| "+ documentObject.name +"||||"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
-			 queryBean("physicell/result/"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
+			 //queryBean("physicell/result/"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
 	         //this.showStopped();
 	      }
 	  };
@@ -59,7 +60,7 @@ function PhysicellEditorViewpart()
 	  this.initOptions = function(data)
 	      {
 	  		_this.propertyInspector.empty();
-	  		_this.selectNodeProperty();
+	  		//_this.selectNodeProperty();
 	  	    if (data.type == 0) 
 	  	    {
 	  	    	var beanDPS = convertJSONToDPS(data.values);
@@ -72,7 +73,12 @@ function PhysicellEditorViewpart()
     
     this.simulationLoaded = function()
     {
-        //this.loadTable();
+        _this.propertyInspector = $('<div id="' + _this.tabId + '_pi"></div>');
+        _this.controlDiv.html(_this.propertyInspector);
+         
+        _this.controlDiv.show();
+         //queryBean("physicell/result/Simulation |||| " +documentObject.diagramName+" |||| "+ documentObject.name +"||||"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
+        queryBean("physicell/result/"+_this.physicell.simulationName, {showMode: SHOW_EXPERT}, _this.initOptions);
     };
     
     this.show = function(documentObject) //[Optional]
