@@ -53,7 +53,9 @@ function PhysicellDocument(completeName)
             _this.plotDiv.html("");
             for(var i=0; i < data.values.length; i++)
           {
-               _this.plotDiv.append($('<img src="'+appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd() + '">'));
+               var path = appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd();
+               //console.log(path);
+               _this.plotDiv.append($('<img src="'+path + '">'));
                _this.plotDiv.append($('<br>'));
            }
             
@@ -62,8 +64,9 @@ function PhysicellDocument(completeName)
                var curPos = _this.scrollPos;
                setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
            }
-          // if( callback )
-         //      callback();
+           //_this.autoUpdate();
+          if( callback )
+               callback();
         });
     }
     
@@ -116,12 +119,12 @@ function PhysicellDocument(completeName)
 				{
 				     de: _this.simulationName,
 					//jsonrows: $.toJSON(rows)
-				}, _this.update, function() {});//, function(data)
+				}, function(){_this.update(_this.autoUpdate);}, function() {});//, function(data)
 	        } else
 	      	{
 	      	    _this.autoUpdate();
 	        }
-	      }, 0);
+	      }, 500);
 	  }
 }
 
