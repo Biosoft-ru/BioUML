@@ -74,7 +74,7 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
         try
         {
             if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" )
-                    || evt.getPropertyName().equals( "is3D" ) )
+                    || evt.getPropertyName().equals( "is2D" ) )
                 readAgents( result.getPoint( options.getTime() ) );
 
             if( evt.getPropertyName().equals( "time" ) )
@@ -105,7 +105,7 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
         try
         {
             tempVideoFile = TempFiles.file( "Video.mp4" );
-            videoGenerator = new VideoGenerator( tempVideoFile );
+            videoGenerator = new VideoGenerator( tempVideoFile , options.getFps());
             videoGenerator.init();
         }
         catch( Exception ex )
