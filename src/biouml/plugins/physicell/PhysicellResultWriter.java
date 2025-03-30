@@ -20,6 +20,7 @@ import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.ui.ResultGenerator;
 import ru.biosoft.physicell.ui.Visualizer;
+import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
@@ -156,9 +157,9 @@ public class PhysicellResultWriter
     {
         TextDataElement tde = new TextDataElement( "info.txt", dc );
         StringBuffer buffer = new StringBuffer();
-        buffer.append( "X:\t" + m.mesh.boundingBox[0] + "\t" + m.mesh.boundingBox[3] + "\t" + m.mesh.dx + "\n");
-        buffer.append( "Y:\t" + m.mesh.boundingBox[1] + "\t" + m.mesh.boundingBox[4] + "\t" + m.mesh.dy + "\n");
-        buffer.append( "Z:\t" + m.mesh.boundingBox[2] + "\t" + m.mesh.boundingBox[5] + "\t" + m.mesh.dz + "\n");
+        buffer.append( "X:\t" + m.mesh.boundingBox[0] + "\t" + m.mesh.boundingBox[3] + "\t" + m.mesh.dx + "\n" );
+        buffer.append( "Y:\t" + m.mesh.boundingBox[1] + "\t" + m.mesh.boundingBox[4] + "\t" + m.mesh.dy + "\n" );
+        buffer.append( "Z:\t" + m.mesh.boundingBox[2] + "\t" + m.mesh.boundingBox[5] + "\t" + m.mesh.dz + "\n" );
         buffer.append( "2D:\t" + m.options.simulate2D + "\n" );
         buffer.append( "Substrates:\t" + StreamEx.of( m.densityNames ).joining( "\t" ) + "\n" );
         tde.setContent( buffer.toString() );
@@ -261,5 +262,50 @@ public class PhysicellResultWriter
         TextDataElement logElement = new TextDataElement( "log.txt", resultFolder );
         logElement.setContent( simulationLog.toString() );
         resultFolder.put( logElement );
+    }
+
+    public static void shift(DataCollection dc, int xShift, int yShift, int zShift) throws Exception
+    {
+        DataCollection cells = (DataCollection)dc.get( "Cells" );
+        for( Object name : cells.getNameList() )
+        {
+            TextDataElement tde = (TextDataElement)cells.get( name.toString() );
+            String s = tde.getContent();
+            StringBuffer newString = new StringBuffer();
+            String[] lines = s.split( "\n" );
+            for( int i=1; i<lines.length; i++ )
+            {
+                String line = lines[i];
+                String[] parts = line.split( "\t" );
+                parts[0] = print( Double.parseDouble( parts[0] ) - xShift );
+                parts[1] = print( Double.parseDouble( parts[1] ) - yShift );
+                parts[2] = print( Double.parseDouble( parts[2] ) - zShift );
+                newString.append( StreamEx.of( parts ).joining( "\t" ) );
+                newString.append( "\n" );
+            }
+            tde.setContent( newString.toString() );
+            tde.getOrigin().put( tde );
+        }
+        
+        DataCollection density = (DataCollection)dc.get( "Density" );
+        for( Object name : density.getNameList() )
+        {
+            TableDataCollection tdc = (TableDataCollection)density.get( name.toString() );
+            for (String rowName: tdc.getNameList())
+            {
+                RowDataElement rde = tdc.get( rowName );
+                Object[] values = rde.getValues();
+                values[0] = print(Double.parseDouble(values[0].toString()) - xShift);
+                values[1] = print(Double.parseDouble(values[1].toString()) - yShift);
+                values[2] = print(Double.parseDouble(values[2].toString()) - zShift);
+                rde.setValues( values );
+            }
+            tdc.getOrigin().put( tdc );
+        }
+    }
+    
+    private static String print(double val)
+    {
+        return String.valueOf( Math.round(val * 10)/10);
     }
 }
