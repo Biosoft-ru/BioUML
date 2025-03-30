@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import javax.imageio.ImageIO;
+
 import org.jcodec.api.awt.AWTSequenceEncoder;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.io.SeekableByteChannel;
@@ -13,6 +15,21 @@ import ru.biosoft.physicell.ui.ResultGenerator;
 
 public class VideoGenerator extends ResultGenerator
 {
+    public static void main(String... args) throws IOException
+    {
+        String path = "D:/BIOFVM/Images All/imgs";
+        File f = new File(path);
+        VideoGenerator generator = new VideoGenerator(new File("D:/BIOFVM/Images All/d.mp4"));
+        generator.init();
+        for (File imgFile: f.listFiles())
+        {
+            BufferedImage img = ImageIO.read(imgFile);
+            generator.update( img );
+        }
+        generator.finish();
+    }
+    
+    private int fps = 5;
     private SeekableByteChannel out = null;
     private AWTSequenceEncoder encoder = null;
 
@@ -20,13 +37,18 @@ public class VideoGenerator extends ResultGenerator
     {
         super( file );
     }
-
+    
+    public VideoGenerator(File file, int fps)
+    {
+        super( file );
+        this.fps = fps;
+    }
 
     @Override
     public void init() throws IOException
     {
         out = NIOUtils.writableFileChannel( result.getAbsolutePath() );
-        encoder = new AWTSequenceEncoder( out, Rational.R( 10, 1 ) );
+        encoder = new AWTSequenceEncoder( out, Rational.R( fps, 1 ) );
     }
 
     @Override
