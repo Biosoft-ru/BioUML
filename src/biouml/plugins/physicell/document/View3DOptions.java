@@ -3,47 +3,59 @@ package biouml.plugins.physicell.document;
 import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.render.Vertex;
 
 public class View3DOptions extends Option
 {
     private static final String QUALITY_GOOD = "Good";
     private static final String QUALITY_POOR = "Poor";
-    public static final String[] QUALITIES = new String[] { QUALITY_GOOD, QUALITY_POOR};
+    public static final String[] QUALITIES = new String[] {QUALITY_GOOD, QUALITY_POOR};
     private String quality = QUALITY_POOR;
 
     private boolean axes = true;
-    private int xCutOff = 750;
-    private int yCutOff = 750;
-    private int zCutOff = 750;
+    private int xCutOff = 0;
+    private int yCutOff = 0;
+    private int zCutOff = 0;
     private int head = 0;
     private int pitch = 0;
-    private int maxX = 1500;
-    private int maxY = 1500;
-    private int maxZ = 1500;
+    private ModelData data;
 
-    public void setSize(int x, int y, int z)
+    public void setSize(ModelData data)
     {
-        maxX = x;
-        maxY = y;
-        maxZ = z;
+        this.data = data;
     }
-    
+
     public int getMaxX()
     {
-        return maxX;
+        return (int)data.getXDim().getTo();
     }
 
     public int getMaxY()
     {
-        return maxY;
+        return (int)data.getYDim().getTo();
     }
 
     public int getMaxZ()
     {
-        return maxZ;
+        return (int)data.getZDim().getTo();
     }
-    
+
+    public int getMinX()
+    {
+        return (int)data.getXDim().getFrom();
+    }
+
+    public int getMinY()
+    {
+        return (int)data.getYDim().getFrom();
+    }
+
+    public int getMinZ()
+    {
+        return (int)data.getZDim().getFrom();
+    }
+
     public void setAngle(int head, int pitch)
     {
         head = Util.restrict( head, 180 );
@@ -147,8 +159,8 @@ public class View3DOptions extends Option
     public Vertex getCutOff()
     {
         return new Vertex( getXCutOff(), getYCutOff(), getZCutOff() );
-    } 
-    
+    }
+
     @PropertyName ( "Axes" )
     public boolean isAxes()
     {

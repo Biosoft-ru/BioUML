@@ -73,7 +73,7 @@ public class PhysicellSimulationResult extends BaseSupport
         }
         step = agentElements.navigableKeySet().higher( 0 );
         maxTime = agentElements.navigableKeySet().last();
-        options.setSize( (int)modelData.getXDim().getLength(), (int)modelData.getYDim().getLength(), (int)modelData.getZDim().getLength(), maxTime );
+        options.setSize( modelData, maxTime );
         options.getOptions2D().setSubstrates( modelData.getSubstrates() );
 
     }

@@ -4,6 +4,7 @@ import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.physicell.ui.ModelData;
 
 public class ViewOptions extends Option
 {
@@ -17,6 +18,8 @@ public class ViewOptions extends Option
     private boolean is2D;
     private DataElementPath result;
     private boolean saveResult = false;
+    private int fps = 10;
+
     private boolean drawNuclei = false;
     
     public ViewOptions()
@@ -25,10 +28,10 @@ public class ViewOptions extends Option
         options3D.setParent( this );
     }
     
-    public void setSize(int x, int y, int z, int t)
+    public void setSize(ModelData data, int t)
     {
-        this.options2D.setSize( x, y, z );
-        this.options3D.setSize( x, y, z );
+        this.options2D.setSize( data );
+        this.options3D.setSize(data );
         maxTime = t;
     }
 
@@ -171,5 +174,16 @@ public class ViewOptions extends Option
         boolean oldValue = this.drawNuclei;
         this.drawNuclei = drawNuclei;
         this.firePropertyChange( "drawNuclei", oldValue, drawNuclei );
+    }
+    
+    @PropertyName("Frame per second")
+    public int getFps()
+    {
+        return fps;
+    }
+
+    public void setFps(int fps)
+    {
+        this.fps = fps;
     }
 }

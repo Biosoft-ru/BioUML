@@ -3,13 +3,15 @@ package biouml.plugins.physicell.document;
 import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import ru.biosoft.physicell.ui.ModelData;
+
 public class View2DOptions extends Option
 {
     private static final String XZ_PLANE = "XZ Plane";
     private static final String YZ_PLANE = "YZ Plane";
     private static final String XY_PLANE = "XY Plane";
     public static final String[] SECTION_VALUES = new String[] {XY_PLANE, YZ_PLANE, XZ_PLANE};
-    
+
     private String substrate;
     private boolean drawAgents = true;
     private boolean drawGrid = false;
@@ -17,43 +19,54 @@ public class View2DOptions extends Option
     private Section sec = Section.Z;
     private String sectionString = XY_PLANE;
     private int slice = 0;
-    private int maxX = 500;
-    private int maxY = 500;
-    private int maxZ = 10;
+    private ModelData data;
     private String[] substrates = new String[0];
-    
-    public void setSize(int x, int y, int z)
+
+    public void setSize(ModelData data)
     {
-        maxX = x;
-        maxY = y;
-        maxZ = z;
+        this.data = data;
     }
-    
+
     public int getMaxX()
     {
-        return maxX;
+        return (int)data.getXDim().getTo();
     }
 
     public int getMaxY()
     {
-        return maxY;
+        return (int)data.getYDim().getTo();
     }
 
     public int getMaxZ()
     {
-        return maxZ;
+        return (int)data.getZDim().getTo();
     }
-    
+
+    public int getMinX()
+    {
+        return (int)data.getXDim().getFrom();
+    }
+
+    public int getMinY()
+    {
+        return (int)data.getYDim().getFrom();
+    }
+
+    public int getMinZ()
+    {
+        return (int)data.getZDim().getFrom();
+    }
+
     public enum Section
     {
         X, Y, Z
     }
-    
+
     public String[] getSubstrates()
     {
         return substrates;
     }
-    
+
     public void setSubstrates(String[] substrates)
     {
         this.substrates = substrates;
@@ -102,7 +115,7 @@ public class View2DOptions extends Option
 
     public int getMaxSlice()
     {
-        switch(sectionString)
+        switch( sectionString )
         {
             case XY_PLANE:
                 return getMaxZ();
@@ -110,6 +123,19 @@ public class View2DOptions extends Option
                 return getMaxX();
             default:
                 return getMaxY();
+        }
+    }
+    
+    public int getMinSlice()
+    {
+        switch( sectionString )
+        {
+            case XY_PLANE:
+                return getMinZ();
+            case YZ_PLANE:
+                return getMinX();
+            default:
+                return getMinY();
         }
     }
 
@@ -145,7 +171,7 @@ public class View2DOptions extends Option
                 this.sec = Section.X;
                 break;
             default:
-                this.sec = Section.Y;    
+                this.sec = Section.Y;
         }
         firePropertyChange( "sectionString", sectionString, oldValue );
     }

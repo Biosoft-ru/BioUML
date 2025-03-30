@@ -1,5 +1,7 @@
 package biouml.plugins.physicell.document;
 
+import java.lang.reflect.Method;
+
 import one.util.streamex.StreamEx;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
@@ -13,11 +15,16 @@ public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
     @Override
     public void initProperties() throws Exception
     {
-        property( "slice" ).editor( SliderEditor.class ).value( "max", beanClass.getMethod( "getMaxSlice", (Class<?>[])null ) ).add();
+        property( "slice" ).editor( SliderEditor.class ).value( "max", getMethod( "getMaxSlice")).value( "min", getMethod( "getMinSlice")).add();
         addWithTags( "sectionString", View2DOptions.SECTION_VALUES );
         property( "substrate" ).tags(bean -> StreamEx.of(bean.getSubstrates()) ).add();
         add( "drawAgents" );
         add( "drawDensity" );
         add( "drawGrid" );
+    }
+    
+    private Method getMethod(String name) throws NoSuchMethodException
+    {
+        return beanClass.getMethod( name, (Class<?>[] )null );
     }
 }

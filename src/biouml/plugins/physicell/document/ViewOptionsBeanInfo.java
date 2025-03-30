@@ -22,6 +22,7 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         add("statisticsX");
         add("statisticsY");
         add("saveResult");
+        add("fps");
         add("result");
     }
 }
