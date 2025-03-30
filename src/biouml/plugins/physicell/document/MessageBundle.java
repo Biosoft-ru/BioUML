@@ -11,6 +11,7 @@ import javax.swing.Action;
 import biouml.plugins.physicell.document.PhysicellResultViewPart;
 import biouml.plugins.physicell.document.PhysicellResultViewPart.PauseAction;
 import biouml.plugins.physicell.document.PhysicellResultViewPart.PlayAction;
+import biouml.plugins.physicell.document.PhysicellResultViewPart.RecordAction;
 import biouml.plugins.physicell.document.PhysicellResultViewPart.StopAction;
 
 public class MessageBundle extends ListResourceBundle
@@ -41,8 +42,11 @@ public class MessageBundle extends ListResourceBundle
         { StopAction.KEY    + Action.NAME                 , "Stop"},
         { StopAction.KEY    + Action.SHORT_DESCRIPTION    , "Stop."},
         { StopAction.KEY    + Action.ACTION_COMMAND_KEY   , "cmd-stop"},
-
-      
+        
+        { RecordAction.KEY    + Action.SMALL_ICON           , "record.gif"},
+        { RecordAction.KEY    + Action.NAME                 , "Record"},
+        { RecordAction.KEY    + Action.SHORT_DESCRIPTION    , "Record."},
+        { RecordAction.KEY    + Action.ACTION_COMMAND_KEY   , "cmd-record"},     
     };
 
     /**

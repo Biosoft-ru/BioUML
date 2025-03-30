@@ -1,6 +1,7 @@
 package biouml.plugins.physicell.document;
 
 import java.awt.event.ActionEvent;
+import java.net.URL;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -22,6 +23,7 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
     private PlayAction playAction;
     private PauseAction pauseAction;
     private StopAction stopAction;
+    private RecordAction recordAction;
 
     @Override
     public boolean canExplore(Object model)
@@ -69,7 +71,14 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
             new ActionInitializer( MessageBundle.class ).initAction( stopAction, StopAction.KEY );
             stopAction.setEnabled( true );
         }
-        return new Action[] {playAction, pauseAction, stopAction};
+        if( recordAction == null )
+        {
+            recordAction = new RecordAction();
+            actionManager.addAction( RecordAction.KEY, recordAction );
+            new ActionInitializer( MessageBundle.class ).initAction( recordAction, RecordAction.KEY );
+            recordAction.setEnabled( true );
+        }
+        return new Action[] {playAction, pauseAction, stopAction, recordAction};
     }
 
     public class PlayAction extends AbstractAction
@@ -87,7 +96,7 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
             if( player != null && player.isPlaying() )
                 return;
             player = new Player( result );
-            player.setListener(PhysicellResultViewPart.this);
+            player.setListener( PhysicellResultViewPart.this );
             player.setPlaying( true );
             player.start();
         }
@@ -128,6 +137,34 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
         }
     }
 
+    public class RecordAction extends AbstractAction
+    {
+        public static final String KEY = "Record video";
+
+        public RecordAction()
+        {
+            super( KEY );
+            setEnabled( true );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            boolean isRecord = result.getOptions().isSaveResult();
+            result.getOptions().setSaveResult( !isRecord );
+            setPressed(!isRecord);
+        }
+        
+        public void setPressed(boolean pressed)
+        {
+            String iconPath = pressed ? "recordOff.gif" : "record.gif";
+
+            URL url = getClass().getResource("resources/" + iconPath);
+            if( url != null )
+                putValue(Action.SMALL_ICON, new javax.swing.ImageIcon(url));
+        }
+    }
+
     @Override
     public void start()
     {
@@ -142,7 +179,7 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
         stopAction.setEnabled( false );
         pauseAction.setEnabled( false );
     }
-    
+
     @Override
     public void stop()
     {
@@ -150,7 +187,7 @@ public class PhysicellResultViewPart extends EditorPartSupport implements Player
         stopAction.setEnabled( true );
         pauseAction.setEnabled( false );
     }
-    
+
     @Override
     public void finish()
     {
