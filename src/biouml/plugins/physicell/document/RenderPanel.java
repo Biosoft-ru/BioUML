@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import biouml.plugins.physicell.PhysicellResultWriter;
 import biouml.plugins.physicell.VideoGenerator;
 import ru.biosoft.access.TextDataElement;
+import ru.biosoft.physicell.ui.DensityState;
 import ru.biosoft.util.TempFiles;
 
 public class RenderPanel extends JPanel implements PropertyChangeListener
