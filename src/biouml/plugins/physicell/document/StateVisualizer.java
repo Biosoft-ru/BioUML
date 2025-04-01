@@ -2,6 +2,8 @@ package biouml.plugins.physicell.document;
 
 import java.awt.image.BufferedImage;
 
+import ru.biosoft.physicell.ui.DensityState;
+
 public abstract class StateVisualizer
 {
     protected String currentName = "";
@@ -20,7 +22,6 @@ public abstract class StateVisualizer
         {
             this.result = result;
             this.options = result.getOptions();
-            this.densityState = result.getDensity( 0 );
         }
         catch( Exception ex )
         {

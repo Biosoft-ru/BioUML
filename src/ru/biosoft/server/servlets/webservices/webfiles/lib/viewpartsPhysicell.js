@@ -103,7 +103,14 @@ function PhysicellEditorViewpart()
 	{
 		var dps = _this.propertyPane.getModel();
 		var json = convertDPSToJSON(dps);
-		_this.physicell.update(json);
+		queryBioUML("web/physicell/physicell_document_image", 
+		{
+		      de: _this.physicell.simulationName,
+		      options: json,
+		}, function(data)
+		{
+		      _this.physicell.draw(data);
+		});
 	}
 	
     this.playActionClick = function()
