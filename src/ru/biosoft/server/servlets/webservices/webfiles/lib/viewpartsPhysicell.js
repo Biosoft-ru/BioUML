@@ -74,10 +74,8 @@ function PhysicellEditorViewpart()
     this.simulationLoaded = function()
     {
         _this.propertyInspector = $('<div id="' + _this.tabId + '_pi"></div>');
-        _this.controlDiv.html(_this.propertyInspector);
-         
+        _this.controlDiv.html(_this.propertyInspector);        
         _this.controlDiv.show();
-         //queryBean("physicell/result/Simulation |||| " +documentObject.diagramName+" |||| "+ documentObject.name +"||||"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
         queryBean("physicell/result/"+_this.physicell.simulationName, {showMode: SHOW_EXPERT}, _this.initOptions);
     };
     
@@ -91,14 +89,23 @@ function PhysicellEditorViewpart()
     
     this.initActions = function(toolbarBlock)
     {
+		this.applyAction = createToolbarButton("Apply", "apply.gif", this.applyActionClick);
+	    toolbarBlock.append(this.applyAction);
         this.playAction = createToolbarButton("Play", "simulate.gif", this.playActionClick);
         toolbarBlock.append(this.playAction);
-        this.pauseAction = createToolbarButton("Pause", "pause.gif", this.pauseActionClick);
+        this.pauseAction = createDisabledToolbarButton("Pause", "pause.gif", this.pauseActionClick);
         toolbarBlock.append(this.pauseAction);
-        this.stopAction = createToolbarButton("Stop", "stopTask.gif", this.stopActionClick);
+        this.stopAction = createDisabledToolbarButton("Stop", "stopTask.gif", this.stopActionClick);
         toolbarBlock.append(this.stopAction);
     };
     
+	this.applyActionClick = function()
+	{
+		var dps = _this.propertyPane.getModel();
+		var json = convertDPSToJSON(dps);
+		_this.physicell.update(json);
+	}
+	
     this.playActionClick = function()
     {
 		//queryBioUML("web/physicell/timestep",
@@ -107,13 +114,18 @@ function PhysicellEditorViewpart()
 		////               //jsonrows: $.toJSON(rows)
 		//           }, function(data)
 		//           {
+			setToolbarButtonEnabled(_this.playAction, false);
+			setToolbarButtonEnabled(_this.pauseAction, _this.stopAction, true);
+			_this.physicell.play = true;
 		               _this.physicell.autoUpdate();
 		//           });
     };
     
 	this.pauseActionClick = function()
 	{
-	    
+		_this.physicell.play = false;
+		setToolbarButtonEnabled(_this.playAction, true);
+		setToolbarButtonEnabled(_this.pauseAction, _this.stopAction, false);
 	};
 	 
 	this.stopActionClick = function()
