@@ -12,7 +12,8 @@ function PhysicellDocument(completeName)
     this.simulationName = "Simulation "+getElementName(completeName)+"/"+completeName;
     this.loadedListeners = [];
     this.loaded = false;
-    
+    this.play = false;
+	
     this.open = function(parent)
     {
         opennedDocuments[this.tabId] = this;
@@ -112,7 +113,7 @@ function PhysicellDocument(completeName)
 	      clearTimeout(this.autoUpdateTimer);
 	      this.autoUpdateTimer = setTimeout(function()
 	      {
-	      	if(isActiveDocument(_this))
+	      	if(isActiveDocument(_this) && _this.play)
 	      	{
 	      		abortQueries("document.physicell.autoupdate");
 				queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
@@ -124,7 +125,7 @@ function PhysicellDocument(completeName)
 	      	{
 	      	    _this.autoUpdate();
 	        }
-	      }, 500);
+	      }, 200);
 	  }
 }
 
