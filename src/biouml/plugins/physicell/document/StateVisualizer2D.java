@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 
 import biouml.plugins.physicell.document.View2DOptions.Section;
+import one.util.streamex.DoubleStreamEx;
 import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.ModelState;
 import ru.biosoft.physicell.ui.ModelState.AgentState;
@@ -254,7 +255,9 @@ public class StateVisualizer2D extends StateVisualizer
 
         int n = (int) ( ( options2D.getSlice() + shift ) / size3 );
 
-        double actualMaxDensity = 0;
+        double actualMaxDensity = DoubleStreamEx.of( densities ).max().orElse( 0 );
+        if( actualMaxDensity == 0 )
+            actualMaxDensity = 1;
         for( int i = 0; i < n1; i++ )
         {
             for( int j = 0; j < n2; j++ )
@@ -273,10 +276,10 @@ public class StateVisualizer2D extends StateVisualizer
                         index = i + n1 * j + n * n1 * n2;
                 }
                 double density = densities[index];
-                if( density > actualMaxDensity )
-                    actualMaxDensity = density;
+//                if( density > actualMaxDensity )
+//                    actualMaxDensity = density;
 
-                double ratio = ( density / maxDensity );
+                double ratio = ( density / actualMaxDensity );
                 ratio = Math.min( 1, ratio );
                 red = (int) ( ( 1 - ratio ) * 255 );
 
@@ -284,11 +287,11 @@ public class StateVisualizer2D extends StateVisualizer
                 g.fillRect( i * size1, j * size2, size1, size2 );
             }
         }
-        if( actualMaxDensity > 0 )
-        {
-            maxDensity = actualMaxDensity;
-            if( maxDensity < 1E-20 )
-                maxDensity = 1E-20;
-        }
+//        if( actualMaxDensity > 0 )
+//        {
+//            maxDensity = actualMaxDensity;
+//            if( maxDensity < 1E-20 )
+//                maxDensity = 1E-20;
+//        }
     }
 }
