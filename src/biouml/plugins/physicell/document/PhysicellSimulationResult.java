@@ -15,7 +15,6 @@ public class PhysicellSimulationResult extends BaseSupport
     private DataCollection<DataElement> dcAgents = null;
     private DataCollection<DataElement> dcDensity = null;
     protected ModelData modelData;
-//    protected DensityState densityState;
     
     private ViewOptions options = new ViewOptions();
     private TreeMap<Integer, String> agentElements = new TreeMap<>();
@@ -41,11 +40,6 @@ public class PhysicellSimulationResult extends BaseSupport
     public ModelData getModelData()
     {
         return modelData;
-    }
-
-    public int getStep()
-    {
-        return step;
     }
 
     public int getMaxTime()
@@ -75,6 +69,7 @@ public class PhysicellSimulationResult extends BaseSupport
         step = agentElements.navigableKeySet().higher( 0 );
         maxTime = agentElements.navigableKeySet().last();
         options.setSize( modelData, maxTime );
+        options.setTimeStep( step );
         options.getOptions2D().setSubstrates( modelData.getSubstrates() );
 
     }

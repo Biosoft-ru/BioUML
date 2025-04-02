@@ -35,7 +35,7 @@ public class Player extends Thread
     
     private void doStep()
     {
-        time += result.getStep();
+        time += result.getOptions().getTimeStep();
         if( time > this.result.getMaxTime() )
         {
             playing = false;

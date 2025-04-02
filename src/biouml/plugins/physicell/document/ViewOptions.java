@@ -19,6 +19,7 @@ public class ViewOptions extends Option
     private DataElementPath result;
     private boolean saveResult = false;
     private int fps = 10;
+    private int timeStep;
 
     private boolean drawNuclei = false;
     
@@ -186,4 +187,16 @@ public class ViewOptions extends Option
     {
         this.fps = fps;
     }
+    
+    @PropertyName("Time step")
+    public int getTimeStep()
+    {
+        return timeStep;
+    }
+
+    public void setTimeStep(int timeStep)
+    {
+        this.timeStep = timeStep;
+    }
+
 }

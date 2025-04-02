@@ -154,7 +154,7 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
     private void doStep(String simulationDe, JSONResponse response) throws IOException, WebException
     {
         PhysicellSimulationResult simulation = getSimulationResult( simulationDe );
-        int step = simulation.getStep();
+        int step = simulation.getOptions().getTimeStep();
         int curTime = simulation.getOptions().getTime();
         simulation.getOptions().setTime( curTime + step );
         if( simulation.getOptions().getMaxTime() < curTime + step )
