@@ -79,7 +79,7 @@ function PhysicellEditorViewpart()
         this.pauseAction = createDisabledToolbarButton("Pause", "pause.gif", this.pauseActionClick);
         toolbarBlock.append(this.pauseAction);
         //this.stopAction = createDisabledToolbarButton("Stop", "stopTask.gif", this.stopActionClick);
-       // toolbarBlock.append(this.stopAction);
+        //toolbarBlock.append(this.stopAction);
     };
     
 	this.applyActionClick = function()

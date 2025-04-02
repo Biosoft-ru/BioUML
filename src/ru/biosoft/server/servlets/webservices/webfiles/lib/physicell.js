@@ -130,8 +130,19 @@ function PhysicellDocument(completeName)
         		abortQueries("document.physicell.autoupdate");
         		queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
         		{
-        		         de: _this.simulationName,
-        		}, function(){_this.update(_this.autoUpdate);}, function() {});
+        		    de: _this.simulationName,
+        		}, 
+				function(data)
+				{   
+					if (data.values == "stop")
+					{
+					    _this.play = false;
+					}
+					else
+					{
+					    _this.update(_this.autoUpdate);
+					}
+				}, function() {});
                 } else
         	    {
         	        _this.autoUpdate();
@@ -144,4 +155,3 @@ function PhysicellDocument(completeName)
         this.stopUpdating = true;
     }
 }
-
