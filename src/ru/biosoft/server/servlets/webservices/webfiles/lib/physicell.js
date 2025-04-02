@@ -12,7 +12,8 @@ function PhysicellDocument(completeName)
     this.simulationName = "Simulation "+getElementName(completeName)+"/"+completeName;
     this.loadedListeners = [];
     this.loaded = false;
-    
+    this.play = false;
+	
     this.open = function(parent)
     {
         opennedDocuments[this.tabId] = this;
@@ -48,30 +49,35 @@ function PhysicellDocument(completeName)
         queryBioUML("web/physicell/physicell_document_image",
             {
             de: _this.simulationName
-            }, function(data)
-            {
-                //_this.plotDiv.html("");
-                for(var i=0; i < data.values.length; i++)
-                {
-                    var imageId = "phys_img_"+i  + _this.tabId;
-                    var path = appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd();
-                    if(_this.plotDiv.children("#"+imageId).length==0)
-                    {
-                        _this.plotDiv.append($('<img id="'+imageId+'">'));
-                        _this.plotDiv.append($('<br>'));
-                    }
-                    _this.plotDiv.children("#"+imageId).attr( "src", path);
-                }
-                //Scrolling should not change when only img src is changed. Uncomment lines below if scrolling is not set automatically.
-                //if(_this.scrollPos > 0)
-                //{
-                    //var curPos = _this.scrollPos;
-                    //setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
-                //}
+            },  function(data){
+                _this.draw(data);
                 if( callback )
                     callback();
-        });
+            });
     }
+	
+	this.draw = function(data)
+	{
+        //_this.plotDiv.html("");
+        for(var i=0; i < data.values.length; i++)
+        {
+            var imageId = "phys_img_"+i  + _this.tabId;
+            var path = appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd();
+            if(_this.plotDiv.children("#"+imageId).length==0)
+            {
+                _this.plotDiv.append($('<img id="'+imageId+'">'));
+                _this.plotDiv.append($('<br>'));
+            }
+            _this.plotDiv.children("#"+imageId).attr( "src", path);
+        }
+        //Scrolling should not change when only img src is changed. Uncomment lines below if scrolling is not set automatically.
+        //if(_this.scrollPos > 0)
+        //{
+            //var curPos = _this.scrollPos;
+            //setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
+        //}
+    }
+	
     
     this.isChanged = function()
     {
@@ -94,7 +100,6 @@ function PhysicellDocument(completeName)
                 de:_this.diagramName
             }, function(data) {
                 _this.simulationName = data.values;
-                
                 
                 if(callback)
                     callback();
@@ -120,7 +125,7 @@ function PhysicellDocument(completeName)
         }
         _this.autoUpdateTimer = setTimeout(function()
         {
-        	if(isActiveDocument(_this))
+        	if(isActiveDocument(_this) && _this.play)
         	{
         		abortQueries("document.physicell.autoupdate");
         		queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
@@ -132,7 +137,7 @@ function PhysicellDocument(completeName)
         	{
         	        _this.autoUpdate();
             }
-        }, 500);
+        }, 200);
     }
     
     this.stopUpdate = function()

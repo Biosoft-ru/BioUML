@@ -6,6 +6,7 @@ import biouml.standard.type.BaseSupport;
 import ru.biosoft.access.TextDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.physicell.ui.DensityState;
 import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.table.TableDataCollection;
 
@@ -14,7 +15,7 @@ public class PhysicellSimulationResult extends BaseSupport
     private DataCollection<DataElement> dcAgents = null;
     private DataCollection<DataElement> dcDensity = null;
     protected ModelData modelData;
-    protected DensityState densityState;
+//    protected DensityState densityState;
     
     private ViewOptions options = new ViewOptions();
     private TreeMap<Integer, String> agentElements = new TreeMap<>();
@@ -92,6 +93,6 @@ public class PhysicellSimulationResult extends BaseSupport
     {
         if (dcDensity == null)
             return null;
-        return DensityState.fromTable( (TableDataCollection)dcDensity.get( densityElements.floorEntry( time ).getValue() ));
+        return Util.fromTable( (TableDataCollection)dcDensity.get( densityElements.floorEntry( time ).getValue() ));
     }
 }

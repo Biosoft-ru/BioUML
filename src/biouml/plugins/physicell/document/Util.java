@@ -4,10 +4,13 @@ import java.awt.Color;
 
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.TextDataElement;
+import ru.biosoft.physicell.ui.DensityState;
 import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.render.Mesh;
 import ru.biosoft.physicell.ui.render.Scene;
 import ru.biosoft.physicell.ui.render.SceneHelper;
+import ru.biosoft.table.TableDataCollection;
+import ru.biosoft.table.TableDataCollectionUtils;
 
 public class Util
 {
@@ -115,6 +118,19 @@ public class Util
             }
         }
         return modelData;
+    }
+    
+    public static DensityState fromTable(TableDataCollection tdc)
+    {
+        DensityState result = new DensityState(tdc.getName());
+        int count = tdc.getColumnModel().getColumnCount();
+        for( int i = 3; i < count; i++ )
+        {
+            String name = tdc.getColumnModel().getColumn( i ).getName();
+            double[] vals = TableDataCollectionUtils.getColumn( tdc, name );
+            result.addDensity( name, vals );
+        }
+        return result;
     }
 
 }
