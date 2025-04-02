@@ -57,19 +57,24 @@ function PhysicellEditorViewpart()
 	      }
 	  };
 	  
-	  this.initOptions = function(data)
-	      {
-	  		_this.propertyInspector.empty();
-	  		//_this.selectNodeProperty();
-	  	    if (data.type == 0) 
-	  	    {
-	  	    	var beanDPS = convertJSONToDPS(data.values);
-	  	        _this.propertyPane = new JSPropertyInspector();
-	  	        _this.propertyPane.setParentNodeId(_this.propertyInspector.attr('id'));
-	  	        _this.propertyPane.setModel(beanDPS);
-	  	        _this.propertyPane.generate();  	       
-	  	    }
-	      };
+    this.initOptions = function(data)
+    {
+        _this.propertyInspector.empty();
+//_this.selectNodeProperty();
+        if (data.type == 0) 
+        {
+        	var beanDPS = convertJSONToDPS(data.values);
+            _this.propertyPane = new JSPropertyInspector();
+            _this.propertyPane.setParentNodeId(_this.propertyInspector.attr('id'));
+            _this.propertyPane.setModel(beanDPS);
+            _this.propertyPane.generate();
+            _this.propertyPane.addChangeListener(function(ctl,oldval,newval) {
+                _this.propertyPane.updateModel();
+                var json = convertDPSToJSON(_this.propertyPane.getModel(), ctl.getModel().getName());
+                _this.setOptionsFromJson(json);
+            });  	       
+        }
+    };
     
     this.simulationLoaded = function()
     {
@@ -118,6 +123,17 @@ function PhysicellEditorViewpart()
 	 
 	this.stopActionClick = function()
 	{
-	     
+        _this.physicell.stopUpdate();
 	};
+    
+    this.setOptionsFromJson = function(json)
+    {
+        var beanPath = "physicell/result/"+_this.physicell.simulationName;
+        queryBioUML("web/bean/set",
+            {
+                de: beanPath,
+                json: json
+            }, 
+            _this.initOptions);
+    };
 }

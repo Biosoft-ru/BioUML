@@ -132,9 +132,9 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
             //            for( int i = 0; i < resultImages.length; i++ )
             //            {
             //                imageNames[i] = simulationDe + "_img_" + i;
-            WebSession.getCurrentSession().putImage( "image", image );
+            WebSession.getCurrentSession().putImage("physicell_image", image);
             //            }
-            response.sendStringArray( new String[] {"image"} );
+            response.sendStringArray(new String[] { "physicell_image" });
         }
         else
             response.sendStringArray( new String[0]);

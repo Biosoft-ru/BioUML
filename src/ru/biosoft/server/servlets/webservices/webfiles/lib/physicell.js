@@ -23,7 +23,7 @@ function PhysicellDocument(completeName)
         this.plotDocumentContainer = $('<div id="' + this.tabId + '_container" class="documentTab"/>');
         this.plotDocument.append(this.plotDocumentContainer);
         parent.append(this.plotDocument);
-        this.plotDiv = $('<div id="graph"></div>');
+        this.plotDiv = $('<div id="physicell_graph_"'+this.tabId+'"></div>');
         this.plotDocumentContainer.append(this.plotDiv);
 
         this.createPhysicellDocument (function(){
@@ -45,28 +45,31 @@ function PhysicellDocument(completeName)
     
     this.update = function(callback)
     {
-       queryBioUML("web/physicell/physicell_document_image",
-       {
-           de: _this.simulationName
-       }, function(data)
-       {
-            _this.plotDiv.html("");
-            for(var i=0; i < data.values.length; i++)
-          {
-               var path = appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd();
-               //console.log(path);
-               _this.plotDiv.append($('<img src="'+path + '">'));
-               _this.plotDiv.append($('<br>'));
-           }
-            
-            if(_this.scrollPos > 0)
+        queryBioUML("web/physicell/physicell_document_image",
             {
-               var curPos = _this.scrollPos;
-               setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
-           }
-           //_this.autoUpdate();
-          if( callback )
-               callback();
+            de: _this.simulationName
+            }, function(data)
+            {
+                //_this.plotDiv.html("");
+                for(var i=0; i < data.values.length; i++)
+                {
+                    var imageId = "phys_img_"+i  + _this.tabId;
+                    var path = appInfo.serverPath+'web/img?de=' + data.values[i] + '&rnd=' + rnd();
+                    if(_this.plotDiv.children("#"+imageId).length==0)
+                    {
+                        _this.plotDiv.append($('<img id="'+imageId+'">'));
+                        _this.plotDiv.append($('<br>'));
+                    }
+                    _this.plotDiv.children("#"+imageId).attr( "src", path);
+                }
+                //Scrolling should not change when only img src is changed. Uncomment lines below if scrolling is not set automatically.
+                //if(_this.scrollPos > 0)
+                //{
+                    //var curPos = _this.scrollPos;
+                    //setTimeout(function(){_this.plotDocumentContainer.scrollTop(curPos);}, 250);
+                //}
+                if( callback )
+                    callback();
         });
     }
     
@@ -108,23 +111,33 @@ function PhysicellDocument(completeName)
     };
 	
 	this.autoUpdate = function()
-	  {
-	      clearTimeout(this.autoUpdateTimer);
-	      this.autoUpdateTimer = setTimeout(function()
-	      {
-	      	if(isActiveDocument(_this))
-	      	{
-	      		abortQueries("document.physicell.autoupdate");
-				queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
-				{
-				     de: _this.simulationName,
-					//jsonrows: $.toJSON(rows)
-				}, function(){_this.update(_this.autoUpdate);}, function() {});//, function(data)
-	        } else
-	      	{
-	      	    _this.autoUpdate();
-	        }
-	      }, 500);
-	  }
+    {
+        clearTimeout(_this.autoUpdateTimer);
+        if(_this.stopUpdating)
+        {
+            _this.stopUpdating = false;
+            return; 
+        }
+        _this.autoUpdateTimer = setTimeout(function()
+        {
+        	if(isActiveDocument(_this))
+        	{
+        		abortQueries("document.physicell.autoupdate");
+        		queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
+        		{
+        		         de: _this.simulationName,
+        			//jsonrows: $.toJSON(rows)
+        		}, function(){_this.update(_this.autoUpdate);}, function() {});//, function(data)
+            } else
+        	{
+        	        _this.autoUpdate();
+            }
+        }, 500);
+    }
+    
+    this.stopUpdate = function()
+    {
+        this.stopUpdating = true;
+    }
 }
 
