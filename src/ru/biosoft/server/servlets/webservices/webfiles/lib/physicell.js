@@ -131,13 +131,12 @@ function PhysicellDocument(completeName)
         		queryBioUMLWatched("document.physicell.autoupdate", "web/physicell/timestep",
         		{
         		         de: _this.simulationName,
-        			//jsonrows: $.toJSON(rows)
-        		}, function(){_this.update(_this.autoUpdate);}, function() {});//, function(data)
-            } else
-        	{
+        		}, function(){_this.update(_this.autoUpdate);}, function() {});
+                } else
+        	    {
         	        _this.autoUpdate();
-            }
-        }, 200);
+                }
+        }, 50);
     }
     
     this.stopUpdate = function()

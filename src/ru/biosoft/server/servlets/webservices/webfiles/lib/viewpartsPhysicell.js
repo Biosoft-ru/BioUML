@@ -1,13 +1,12 @@
 /**
- * Viewparts for Interactive Simulation document
+ * Viewparts for Physicell document
  */
 function initPhysicellViewParts()
 {
     if(viewPartsInitialized['physicell'])
         return;
     
-    viewParts.push(new PhysicellEditorViewpart());
-    
+    viewParts.push(new PhysicellEditorViewpart());    
     viewPartsInitialized['physicell'] = true;
 }
 
@@ -15,52 +14,31 @@ function PhysicellEditorViewpart()
 {
     createViewPart(this, "physicell.result", "Physicell editor");
     var _this = this;
-    //this.selectionDiv = $('<div></div>').css("margin-bottom", "10px");
-    //this.containerDiv.append(this.selectionDiv);
 	this.controlDiv = $('<div></div>');
 	this.containerDiv.append(this.controlDiv);
     //TODO: move messages to messageBundle.js
     
     this.isVisible = function(documentObject, callback)
     {
-      if((documentObject != null) && (documentObject instanceof PhysicellDocument))
-          callback(true);
-      else
-          callback(false);
+         if((documentObject != null) && (documentObject instanceof PhysicellDocument))
+             callback(true);
+         else
+             callback(false);
     };
     
 	this.explore = function(documentObject)
-	  {
-		if ((documentObject != null) && (documentObject instanceof PhysicellDocument))
-		{
+	{
+		 if ((documentObject != null) && (documentObject instanceof PhysicellDocument))
+		 {
 		     this.physicell = documentObject;
              this.physicell.addLoadedListener(_this);
-	    		
-	  	//if(this.currentDiagram)
-	  	//{
-	  	//	this.currentDiagram.removeSelectListener(this);
-	  	//}
-	  	//if ((documentObject != null) && documentObject instanceof Diagram ) 
-	      //{
-	  		//this.currentDiagram = documentObject.getDiagram();
-	  		//this.currentDiagram.addSelectListener(this);
-	    //      if( this.currentDiagram.runMode == undefined )
-	    //          this.currentDiagram.runMode = false;
-	  		
-	  		 //this.propertyInspector = $('<div id="' + _this.tabId + '_pi"></div>');
-	         //this.controlDiv.html(_this.propertyInspector);
-			 
-			 //_this.controlDiv.show();
-			 //queryBean("physicell/result/Simulation |||| " +documentObject.diagramName+" |||| "+ documentObject.name +"||||"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
-			 //queryBean("physicell/result/"+documentObject.simulationName, {showMode: SHOW_EXPERT}, this.initOptions);
-	         //this.showStopped();
-	      }
-	  };
+	     }
+	};
 	  
     this.initOptions = function(data)
     {
         _this.propertyInspector.empty();
-//_this.selectNodeProperty();
+
         if (data.type == 0) 
         {
         	var beanDPS = convertJSONToDPS(data.values);
@@ -100,8 +78,8 @@ function PhysicellEditorViewpart()
         toolbarBlock.append(this.playAction);
         this.pauseAction = createDisabledToolbarButton("Pause", "pause.gif", this.pauseActionClick);
         toolbarBlock.append(this.pauseAction);
-        this.stopAction = createDisabledToolbarButton("Stop", "stopTask.gif", this.stopActionClick);
-        toolbarBlock.append(this.stopAction);
+        //this.stopAction = createDisabledToolbarButton("Stop", "stopTask.gif", this.stopActionClick);
+       // toolbarBlock.append(this.stopAction);
     };
     
 	this.applyActionClick = function()
@@ -120,17 +98,10 @@ function PhysicellEditorViewpart()
 	
     this.playActionClick = function()
     {
-		//queryBioUML("web/physicell/timestep",
-		//           {
-		//               de: _this.physicell.simulationName,
-		////               //jsonrows: $.toJSON(rows)
-		//           }, function(data)
-		//           {
-			setToolbarButtonEnabled(_this.playAction, false);
-			setToolbarButtonEnabled(_this.pauseAction, _this.stopAction, true);
-			_this.physicell.play = true;
-		               _this.physicell.autoUpdate();
-		//           });
+		setToolbarButtonEnabled(_this.playAction, false);
+	    setToolbarButtonEnabled(_this.pauseAction, _this.stopAction, true);
+        _this.physicell.play = true;
+		_this.physicell.autoUpdate();
     };
     
 	this.pauseActionClick = function()
