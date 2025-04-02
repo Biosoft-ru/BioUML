@@ -78,6 +78,14 @@ function PhysicellEditorViewpart()
         toolbarBlock.append(this.playAction);
         this.pauseAction = createDisabledToolbarButton("Pause", "pause.gif", this.pauseActionClick);
         toolbarBlock.append(this.pauseAction);
+		this.recordAction = createToolbarButton("Record", "record.gif", this.recordActionClick);
+	    toolbarBlock.append(this.recordAction);
+		this.recordStopAction = createDisabledToolbarButton("Stop record", "recordStop.gif", this.recordStopActionClick);
+	    toolbarBlock.append(this.recordStopAction);
+		this.rotateLeftAction = createToolbarButton("Rotate left", "redo.gif", this.rotateLeftActionClick);
+	    toolbarBlock.append(this.rotateLeftAction);
+		this.rotateRightAction = createToolbarButton("Rotate right", "undo.gif", this.rotateRightActionClick);
+		toolbarBlock.append(this.rotateRightAction);
         //this.stopAction = createDisabledToolbarButton("Stop", "stopTask.gif", this.stopActionClick);
         //toolbarBlock.append(this.stopAction);
     };
@@ -89,7 +97,7 @@ function PhysicellEditorViewpart()
 		queryBioUML("web/physicell/physicell_document_image", 
 		{
 		      de: _this.physicell.simulationName,
-		      options: json,
+		      options: json
 		}, function(data)
 		{
 		      _this.physicell.draw(data);
@@ -115,7 +123,55 @@ function PhysicellEditorViewpart()
 	{
         _this.physicell.stopUpdate();
 	};
-    
+	
+	this.recordActionClick = function()
+	{
+	    setToolbarButtonEnabled(_this.recordAction, false);
+		setToolbarButtonEnabled(_this.recordStopAction, true);
+		queryBioUML("web/physicell/record", 
+		{
+			de: _this.physicell.simulationName
+		}, function(data){});
+	}
+	 
+	 this.recordStopActionClick = function()
+	 {
+	 	setToolbarButtonEnabled(_this.recordStopAction, false);
+	    setToolbarButtonEnabled(_this.recordAction, true);
+		queryBioUML("web/physicell/record_stop", 
+		{
+			de: _this.physicell.simulationName
+		}, function(data){});
+	 };
+	 
+	 this.rotateLeftActionClick = function()
+	 {
+		var dps = _this.propertyPane.getModel();
+		var json = convertDPSToJSON(dps);
+	 	queryBioUML("web/physicell/rotate_left", 
+	 	{
+	 		de: _this.physicell.simulationName,
+			options: json
+	 	}, function(data)
+		{
+			_this.physicell.draw(data);
+		});
+	 }
+	 
+	 this.rotateRightActionClick = function()
+     {
+		var dps = _this.propertyPane.getModel();
+		var json = convertDPSToJSON(dps);
+        queryBioUML("web/physicell/rotate_right", 
+		{
+		 	de: _this.physicell.simulationName,
+			options: json
+		}, function(data)
+		{
+			_this.physicell.draw(data);
+		});
+	}
+	
     this.setOptionsFromJson = function(json)
     {
         var beanPath = "physicell/result/"+_this.physicell.simulationName;
