@@ -3206,6 +3206,7 @@ function ComplexSimulationViewPart()
     this.diagram = null;
     this.shown = "engine_container";
     this.shownIndex = 0;
+    this.noPlot = false;
 
     var _this = this;
     
@@ -3852,10 +3853,13 @@ function ComplexSimulationViewPart()
             {
                 _this.lockDiv.hide();
                 _this.data = data;
+                _this.noPlot = false;
                 _this.initPlotFromJson(data);
             }, function(data)
             {
-                _this.plotDiv.html(resources.commonErrorViewpartUnavailable);
+                _this.lockDiv.hide();
+                _this.plotPI.html(resources.commonErrorViewpartUnavailable);
+                _this.noPlot = true;
             });
     };
     
@@ -3870,10 +3874,13 @@ function ComplexSimulationViewPart()
                 //_this.plotDiv.empty().append(_this.containerDiv);
                 _this.lockDiv.hide();
                 _this.data = data;
+                _this.noPlot = false;
                 _this.initPlotFromJson(data);
             }, function(data)
             {
-                _this.tabDiv.html(resources.commonErrorViewpartUnavailable);
+                _this.lockDiv.hide();
+                _this.noPlot = true;
+                _this.plotPI.html(resources.commonErrorViewpartUnavailable);
             });
     };
 
