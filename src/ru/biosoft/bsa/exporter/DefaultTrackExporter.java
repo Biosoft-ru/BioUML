@@ -199,7 +199,7 @@ public class DefaultTrackExporter extends TrackExporter
         double score = 0;
         String source = Application.getGlobalValue("ApplicationName");
         String frame = ".";
-        String group = "";
+        String group = ".";
         String type = s.getType();
         try
         {
