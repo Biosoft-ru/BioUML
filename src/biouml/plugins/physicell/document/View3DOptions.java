@@ -17,8 +17,8 @@ public class View3DOptions extends Option
     private int xCutOff = 0;
     private int yCutOff = 0;
     private int zCutOff = 0;
-    private int head = 0;
-    private int pitch = 0;
+    private int head = -40;
+    private int pitch = -40;
     private ModelData data;
 
     public void setSize(ModelData data)
