@@ -147,7 +147,6 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
                 .toString();
         PhysicellSimulationResult simulation = new PhysicellSimulationResult( dc.getName() + " Simulation", dc );
         simulation.init();
-        //        PhysicellResultDocument document = new PhysicellResultDocument( simulation );
         WebServicesServlet.getSessionCache().addObject( completeSimulationName, simulation, true );
         response.sendString( completeSimulationName );
     }
@@ -158,13 +157,9 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         int step = simulation.getStep();
         int curTime = simulation.getOptions().getTime();
         simulation.getOptions().setTime( curTime + step );
-        //        asList.stream().forEach( parameter -> {
-        //            InputParameter selected = simulation.getParameter( parameter );
-        //            selected.setValue( selected.getValue() + selected.getValueStep() );
-        //            simulation.updateValue( selected );
-        //        } );
-        //        simulation.doSimulation();
-        response.sendString( "ok" );
+        if( simulation.getOptions().getMaxTime() < curTime + step )
+            response.sendString( "stop" );
+        else
+            response.sendString( "ok" );
     }
-
 }
