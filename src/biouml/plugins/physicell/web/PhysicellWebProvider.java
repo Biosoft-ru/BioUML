@@ -129,8 +129,6 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         TextDataElement tde = result.getPoint( result.getOptions().getTime() );
         visualizer.readAgents( tde.getContent(), tde.getName() );
         visualizer.setDensityState( result.getDensity( result.getOptions().getTime() ) );
-        visualizer.setDensityState( result.getDensity( result.getOptions().getTime() ) );
-
         BufferedImage image = visualizer.draw();
         if( image != null )
         {
