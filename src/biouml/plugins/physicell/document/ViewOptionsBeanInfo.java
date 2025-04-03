@@ -19,10 +19,12 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         addHidden("options2D", "is3D");
         addHidden("options3D", "is2D");
         add( "statistics" );
+        add( "axes" );
+        add("cells");
         add("drawNuclei");
         add("statisticsX");
         add("statisticsY");
-        add("saveResult");
+        //add("saveResult");
         add("fps");
         add("result");
     }

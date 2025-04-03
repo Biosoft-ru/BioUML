@@ -23,7 +23,6 @@ public class View3DOptionsBeanInfo extends BeanInfoEx2<View3DOptions>
         property( "zCutOff" ).editor( SliderEditor.class ).value( "max", getMethod( "getMaxZ" ) ).value( "min", getMethod( "getMinX" ) )
                 .add();
         property( "quality" ).tags( View3DOptions.QUALITIES ).add();
-        property( "axes" ).add();
     }
     
     private Method getMethod(String name) throws NoSuchMethodException

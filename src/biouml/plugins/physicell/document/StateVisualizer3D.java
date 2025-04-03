@@ -28,6 +28,15 @@ public class StateVisualizer3D extends StateVisualizer
         ModelData modelData = result.getModelData();
         options3D = result.getOptions().getOptions3D();
         renderer = new Renderer3D( modelData, 0, 0 );
+
+        try
+        {
+            renderer.setDensityState( result.getDensity( 0 ) );
+            renderer.setDrawDensity( true );
+        }
+        catch( Exception ex )
+        {
+        }
     }
 
     @Override
@@ -35,9 +44,10 @@ public class StateVisualizer3D extends StateVisualizer
     {
         renderer.setAngle( options3D.getHead(), options3D.getPitch() );
         renderer.setCutOff( options3D.getCutOff() );
-        renderer.setAxes( options3D.isAxes() );
+        renderer.setAxes( options.isAxes() );
+        renderer.setAgents(options.isCells());
         renderer.setStatistics( options.isStatistics() );
-        renderer.setStatisticsLOcation( new Point(options.getStatisticsX(), options.getStatisticsY()) );
+        renderer.setStatisticsLOcation( new Point( options.getStatisticsX(), options.getStatisticsY() ) );
         SceneHelper.addDisks( scene, options3D.getXCutOff(), SceneHelper.PLANE_YZ );
         SceneHelper.addDisks( scene, options3D.getYCutOff(), SceneHelper.PLANE_XZ );
         SceneHelper.addDisks( scene, options3D.getZCutOff(), SceneHelper.PLANE_XY );

@@ -13,7 +13,6 @@ public class View3DOptions extends Option
     public static final String[] QUALITIES = new String[] {QUALITY_GOOD, QUALITY_POOR};
     private String quality = QUALITY_POOR;
 
-    private boolean axes = true;
     private int xCutOff = 0;
     private int yCutOff = 0;
     private int zCutOff = 0;
@@ -159,17 +158,5 @@ public class View3DOptions extends Option
     public Vertex getCutOff()
     {
         return new Vertex( getXCutOff(), getYCutOff(), getZCutOff() );
-    }
-
-    @PropertyName ( "Axes" )
-    public boolean isAxes()
-    {
-        return axes;
-    }
-    public void setAxes(boolean axes)
-    {
-        boolean oldValue = this.axes;
-        this.axes = axes;
-        this.firePropertyChange( "axes", oldValue, axes );
     }
 }

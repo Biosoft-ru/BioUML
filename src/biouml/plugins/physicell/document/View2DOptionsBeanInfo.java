@@ -18,7 +18,6 @@ public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
         property( "slice" ).editor( SliderEditor.class ).value( "max", getMethod( "getMaxSlice")).value( "min", getMethod( "getMinSlice")).add();
         addWithTags( "sectionString", View2DOptions.SECTION_VALUES );
         property( "substrate" ).tags(bean -> StreamEx.of(bean.getSubstrates()) ).add();
-        add( "drawAgents" );
         add( "drawDensity" );
         add( "drawGrid" );
     }

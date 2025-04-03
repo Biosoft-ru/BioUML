@@ -20,7 +20,9 @@ public class ViewOptions extends Option
     private boolean saveResult = false;
     private int fps = 10;
     private int timeStep;
+    private boolean cells;
 
+    private boolean axes = true;
     private boolean drawNuclei = false;
     
     public ViewOptions()
@@ -197,6 +199,31 @@ public class ViewOptions extends Option
     public void setTimeStep(int timeStep)
     {
         this.timeStep = timeStep;
+    }
+    
+    @PropertyName ( "Axes" )
+    public boolean isAxes()
+    {
+        return axes;
+    }
+    public void setAxes(boolean axes)
+    {
+        boolean oldValue = this.axes;
+        this.axes = axes;
+        this.firePropertyChange( "axes", oldValue, axes );
+    }
+
+    @PropertyName ( "Cells" )
+    public boolean isCells()
+    {
+        return cells;
+    }
+
+    public void setCells(boolean cells)
+    {
+        boolean oldValue = this.cells;
+        this.cells = cells;
+        this.firePropertyChange( "cells", oldValue, cells );
     }
 
 }

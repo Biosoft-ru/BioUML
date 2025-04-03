@@ -13,7 +13,6 @@ public class View2DOptions extends Option
     public static final String[] SECTION_VALUES = new String[] {XY_PLANE, YZ_PLANE, XZ_PLANE};
 
     private String substrate;
-    private boolean drawAgents = true;
     private boolean drawGrid = false;
     private boolean drawDensity = true;
     private Section sec = Section.Z;
@@ -72,19 +71,6 @@ public class View2DOptions extends Option
         this.substrates = substrates;
         if( substrates != null && substrates.length > 0 )
             this.substrate = substrates[0];
-    }
-
-    @PropertyName ( "Cells" )
-    public boolean isDrawAgents()
-    {
-        return drawAgents;
-    }
-
-    public void setDrawAgents(boolean drawAgents)
-    {
-        boolean oldValue = this.drawAgents;
-        this.drawAgents = drawAgents;
-        firePropertyChange( "drawAgents", drawAgents, oldValue );
     }
 
     @PropertyName ( "Grid" )

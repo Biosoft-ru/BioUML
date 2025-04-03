@@ -7,7 +7,6 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 
 import biouml.plugins.physicell.document.View2DOptions.Section;
-import one.util.streamex.DoubleStreamEx;
 import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.ModelState;
 import ru.biosoft.physicell.ui.ModelState.AgentState;
@@ -25,12 +24,10 @@ public class StateVisualizer2D extends StateVisualizer
     private int zShift;
     private int width;
     private int height;
-    private int extraWidth = 130;
-    private int textOffset = 10;
     protected ModelState modelState;
     private double maxDensity = 1E-13;//6.06;
     private View2DOptions options2D;
-    
+
     @Override
     public void setResult(PhysicellSimulationResult result)
     {
@@ -75,7 +72,6 @@ public class StateVisualizer2D extends StateVisualizer
             default:
                 break;
         }
-        width += extraWidth;
     }
 
     public BufferedImage draw(ModelState state)
@@ -86,11 +82,12 @@ public class StateVisualizer2D extends StateVisualizer
         g.fillRect( 0, 0, width, height );
         if( options2D.isDrawDensity() && densityState != null )
             drawDensity( densityState.getDensity( options.getOptions2D().getSubstrate() ), g );
-        if( options2D.isDrawAgents() )
+        if( options.isCells() )
             drawAgents( state, g );
         if( options.isStatistics() )
-            drawText( state.getSize(), state.getTime(), new Point(options.getStatisticsX(), options.getStatisticsY()), g );
-
+            drawText( state.getSize(), state.getTime(), new Point( options.getStatisticsX(), options.getStatisticsY() ), g );
+        if( options.isAxes() )
+            drawLines( g );
         return img;
     }
 
@@ -101,13 +98,13 @@ public class StateVisualizer2D extends StateVisualizer
         g.setFont( new Font( "TimesRoman", Font.PLAIN, 20 ) );
         g.setColor( Color.BLACK );
         g.drawString( "Time: " + options.getTime(), x, y );
-        g.drawString( "Cells: " + agentsCount, x, y+30 );
+        g.drawString( "Cells: " + agentsCount, x, y + 30 );
         if( options2D.getSection() == Section.X )
-            g.drawString( "X = " + options2D.getSlice(), x, y+60 );
+            g.drawString( "X = " + options2D.getSlice(), x, y + 60 );
         else if( options2D.getSection() == Section.Y )
-            g.drawString( "Y = " + options2D.getSlice(), x, y+60 );
+            g.drawString( "Y = " + options2D.getSlice(), x, y + 60 );
         else
-            g.drawString( "Z = " + options2D.getSlice(), x, y+60 );
+            g.drawString( "Z = " + options2D.getSlice(), x, y + 60 );
     }
 
     private void drawAgents(ModelState state, Graphics g)
@@ -256,9 +253,9 @@ public class StateVisualizer2D extends StateVisualizer
         int n = (int) ( ( options2D.getSlice() + shift ) / size3 );
         double actualMaxDensity = 0;
         double maxDensity = 1;
-//        double actualMaxDensity = DoubleStreamEx.of( densities ).max().orElse( 0 );
-//        if( actualMaxDensity == 0 )
-//            actualMaxDensity = 1;
+        //        double actualMaxDensity = DoubleStreamEx.of( densities ).max().orElse( 0 );
+        //        if( actualMaxDensity == 0 )
+        //            actualMaxDensity = 1;
         for( int i = 0; i < n1; i++ )
         {
             for( int j = 0; j < n2; j++ )
@@ -294,5 +291,41 @@ public class StateVisualizer2D extends StateVisualizer
             if( maxDensity < 1E-20 )
                 maxDensity = 1E-20;
         }
+    }
+
+    private void drawLines(Graphics g)
+    {
+        g.setFont( new Font( "TimesRoman", Font.BOLD, 20 ) );
+        g.setColor( Color.BLACK );
+        int w = width - 100;
+        int h =  100;
+        int x1 = xShift;
+        int y1 = yShift;
+        String title1 = "X";
+        String title2 = "Y";
+        int arrowLength = 50;
+        int arrowWidth = 10;
+        switch( options2D.getSection() )
+        {
+            case X:
+                x1 = yShift;
+                y1 = zShift;
+                title1 = "Y";
+                title2 = "Z";
+                break;
+            case Y:
+                x1 = xShift;
+                y1 = zShift;
+                title1 = "X";
+                title2 = "Z";
+                break;
+            default:
+        }
+        g.drawLine( x1, y1, w, y1 );
+        g.drawString( title1, w - 20, y1 - 20 );
+        g.drawLine( x1, y1, x1, h );
+        g.drawString( title2, x1 + 10, h  );
+        g.fillPolygon( new int[] {w,  w-arrowLength, w-arrowLength}, new int[] {y1, y1+arrowWidth, y1-arrowWidth}, 3 );
+        g.fillPolygon( new int[] {x1,  x1-arrowWidth, x1+arrowWidth}, new int[] {h, h+arrowLength, h+arrowLength}, 3 );
     }
 }
