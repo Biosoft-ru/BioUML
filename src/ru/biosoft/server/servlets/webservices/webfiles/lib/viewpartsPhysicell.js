@@ -14,8 +14,10 @@ function PhysicellEditorViewpart()
 {
     createViewPart(this, "physicell.result", "Physicell editor");
     var _this = this;
+    this.lockDiv = $('<div id="lock_physicell_bean" class="ui-widget-overlay" style="position:absolute; top:30px; left:0; z-index:1001;"></div>');
 	this.controlDiv = $('<div></div>');
 	this.containerDiv.append(this.controlDiv);
+    this.containerDiv.append(this.lockDiv);
     //TODO: move messages to messageBundle.js
     
     this.isVisible = function(documentObject, callback)
@@ -32,6 +34,7 @@ function PhysicellEditorViewpart()
 		 {
 		     this.physicell = documentObject;
              this.physicell.addLoadedListener(_this);
+             this.lockDiv.hide();
 	     }
 	};
 	  
@@ -108,13 +111,23 @@ function PhysicellEditorViewpart()
     {
 		setToolbarButtonEnabled(_this.playAction, false);
 	    setToolbarButtonEnabled(_this.pauseAction, _this.stopAction, true);
+        _this.lockDiv.show();
         _this.physicell.play = true;
-		_this.physicell.autoUpdate();
+		_this.physicell.autoUpdate(_this.piUpdate);
+        _this.piUpdate();
     };
+    
+    this.piUpdate = function()
+    {
+        queryBean("physicell/result/"+_this.physicell.simulationName, {showMode: SHOW_EXPERT}, _this.initOptions);
+    }
     
 	this.pauseActionClick = function()
 	{
 		_this.physicell.play = false;
+        _this.lockDiv.hide();
+        if(_this.piUpdateTimer)
+            clearTimeout(_this.piUpdateTimer);
 		setToolbarButtonEnabled(_this.playAction, true);
 		setToolbarButtonEnabled(_this.pauseAction, _this.stopAction, false);
 	};
@@ -155,6 +168,7 @@ function PhysicellEditorViewpart()
 	 	}, function(data)
 		{
 			_this.physicell.draw(data);
+            _this.piUpdate();
 		});
 	 }
 	 
@@ -169,6 +183,7 @@ function PhysicellEditorViewpart()
 		}, function(data)
 		{
 			_this.physicell.draw(data);
+            _this.piUpdate();
 		});
 	}
 	

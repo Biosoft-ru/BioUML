@@ -115,7 +115,7 @@ function PhysicellDocument(completeName)
             this.loadedListeners.push(listener);
     };
 	
-	this.autoUpdate = function()
+	this.autoUpdate = function(callback)
     {
         clearTimeout(_this.autoUpdateTimer);
         if(_this.stopUpdating)
@@ -140,7 +140,8 @@ function PhysicellDocument(completeName)
 					}
 					else
 					{
-					    _this.update(_this.autoUpdate);
+					    _this.update(function(){
+                            _this.autoUpdate(callback); if(callback) callback();});
 					}
 				}, function() {});
                 } else
