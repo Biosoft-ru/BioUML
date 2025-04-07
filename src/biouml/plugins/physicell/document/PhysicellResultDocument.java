@@ -22,8 +22,10 @@ public class PhysicellResultDocument extends Document
         scrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );
         viewPane.add( scrollPane );
 
-        renderPanel.readAgents( result.getPoint( result.getOptions().getTime() ) );
-        renderPanel.readDensity(result.getDensity(result.getOptions().getTime()));
+        if( result.getOptions().isCells() )
+            renderPanel.readAgents( result.getPoint( result.getOptions().getTime() ) );
+        if( result.getOptions().isDrawDensity() && result.hasDensity())
+            renderPanel.readDensity( result.getDensity( result.getOptions().getTime(), result.getOptions().getSubstrate() ) );
         renderPanel.update();
     }
 

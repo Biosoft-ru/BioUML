@@ -16,6 +16,9 @@ public class View3DOptions extends Option
     private int xCutOff = 0;
     private int yCutOff = 0;
     private int zCutOff = 0;
+    private boolean densityX = false;
+    private boolean densityY = false;
+    private boolean densityZ = true;
     private int head = -40;
     private int pitch = -40;
     private ModelData data;
@@ -119,7 +122,7 @@ public class View3DOptions extends Option
         return QUALITIES;
     }
 
-    @PropertyName ( "XY slice, Z =" )
+    @PropertyName ( "YZ slice, X =" )
     public int getXCutOff()
     {
         return xCutOff;
@@ -131,7 +134,7 @@ public class View3DOptions extends Option
         this.firePropertyChange( "xCutOff", oldValue, xCutOff );
     }
 
-    @PropertyName ( "YZ slice, X =" )
+    @PropertyName ( "XZ slice, Y =" )
     public int getYCutOff()
     {
         return yCutOff;
@@ -143,7 +146,7 @@ public class View3DOptions extends Option
         this.firePropertyChange( "yCutOff", oldValue, yCutOff );
     }
 
-    @PropertyName ( "XZ slice, Y =" )
+    @PropertyName ( "XY slice, Z =" )
     public int getZCutOff()
     {
         return zCutOff;
@@ -157,6 +160,46 @@ public class View3DOptions extends Option
 
     public Vertex getCutOff()
     {
-        return new Vertex( getXCutOff(), getYCutOff(), getZCutOff() );
+        return new Vertex( getXCutOff(), -getYCutOff(), getZCutOff() );
     }
+    
+    @PropertyName ( "Density YZ plane" )
+    public boolean isDensityX()
+    {
+        return densityX;
+    }
+
+    public void setDensityX(boolean densityX)
+    {
+        boolean oldValue = this.densityX;
+        this.densityX = densityX;
+        this.firePropertyChange( "densityX", oldValue, densityX );
+    }
+
+    @PropertyName ( "Density XZ plane" )
+    public boolean isDensityY()
+    {
+        return densityY;
+    }
+
+    public void setDensityY(boolean densityY)
+    {
+        boolean oldValue = this.densityY;
+        this.densityY = densityY;
+        this.firePropertyChange( "densityY", oldValue, densityY );
+    }
+
+    @PropertyName ( "Density XY plane" )
+    public boolean isDensityZ()
+    {
+        return densityZ;
+    }
+
+    public void setDensityZ(boolean densityZ)
+    {
+        boolean oldValue = this.densityZ;
+        this.densityZ = densityZ;
+        this.firePropertyChange( "densityZ", oldValue, densityZ );
+    }
+
 }

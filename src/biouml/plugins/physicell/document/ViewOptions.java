@@ -1,5 +1,7 @@
 package biouml.plugins.physicell.document;
 
+import java.awt.Color;
+
 import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -8,6 +10,8 @@ import ru.biosoft.physicell.ui.ModelData;
 
 public class ViewOptions extends Option
 {
+    private String[] substrates = new String[0];
+    
     private boolean statistics = true;
     private int statisticsX = 10;
     private int statisticsY = 40;
@@ -20,10 +24,13 @@ public class ViewOptions extends Option
     private boolean saveResult = false;
     private int fps = 10;
     private int timeStep;
-    private boolean cells;
-
+    private boolean cells = true;
+    private boolean drawDensity = false;
+    private String substrate;
     private boolean axes = true;
     private boolean drawNuclei = false;
+    private double maxDensity = 38;
+    private Color densityColor = Color.red;
     
     public ViewOptions()
     {
@@ -225,5 +232,65 @@ public class ViewOptions extends Option
         this.cells = cells;
         this.firePropertyChange( "cells", oldValue, cells );
     }
+    
+    public String[] getSubstrates()
+    {
+        return substrates;
+    }
 
+    public void setSubstrates(String[] substrates)
+    {
+        this.substrates = substrates;
+        if( substrates != null && substrates.length > 0 )
+            this.substrate = substrates[0];
+    }
+
+    @PropertyName ( "Substrate" )
+    public boolean isDrawDensity()
+    {
+        return drawDensity;
+    }
+
+    public void setDrawDensity(boolean drawDensity)
+    {
+        boolean oldValue = this.drawDensity;
+        this.drawDensity = drawDensity;
+        firePropertyChange( "drawDensity", oldValue, drawDensity );
+    }
+    
+
+    @PropertyName ( "Substrate name" )
+    public String getSubstrate()
+    {
+        return substrate;
+    }
+
+    public void setSubstrate(String substrate)
+    {
+        String oldValue = this.substrate;
+        this.substrate = substrate;
+        firePropertyChange( "substrate", oldValue, substrate );
+    }
+    
+    @PropertyName("Maximum density")
+    public double getMaxDensity()
+    {
+        return maxDensity;
+    }
+    public void setMaxDensity(double maxDensity)
+    {
+        this.maxDensity = maxDensity;
+    }
+
+    @PropertyName("Density Color")
+    public Color getDensityColor()
+    {
+        return densityColor;
+    }
+    public void setDensityColor(Color densityColor)
+    {
+        Color oldValue = this.densityColor;
+        this.densityColor = densityColor;
+        firePropertyChange( "densityColor", oldValue, densityColor );
+    }
 }

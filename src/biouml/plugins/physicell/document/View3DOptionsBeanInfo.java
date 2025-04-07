@@ -22,6 +22,9 @@ public class View3DOptionsBeanInfo extends BeanInfoEx2<View3DOptions>
                 .add();
         property( "zCutOff" ).editor( SliderEditor.class ).value( "max", getMethod( "getMaxZ" ) ).value( "min", getMethod( "getMinX" ) )
                 .add();
+        add("densityZ");
+        add("densityY");
+        add("densityX");
         property( "quality" ).tags( View3DOptions.QUALITIES ).add();
     }
     

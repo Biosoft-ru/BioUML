@@ -74,18 +74,21 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
     {
         try
         {
-            if( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" )
-                    || evt.getPropertyName().equals( "is2D" ) )
+            if( options.isCells() && ( evt.getPropertyName().equals( "quality" ) || evt.getPropertyName().equals( "time" )
+                    || evt.getPropertyName().equals( "is2D" ) ) )
                 readAgents( result.getPoint( options.getTime() ) );
 
-            if( evt.getPropertyName().equals( "time" ) )
-                readDensity( result.getDensity( options.getTime() ) );
+            if( result.hasDensity() && options.isDrawDensity()
+                    && ( evt.getPropertyName().equals( "time" ) || evt.getPropertyName().equals( "substrate" ) || evt.getPropertyName().equals( "drawDensity" )) )
+            {
+                readDensity( result.getDensity( options.getTime(), options.getSubstrate() ) );
+            }
 
             if( evt.getPropertyName().equals( "saveResult" ) )
             {
-                if ((Boolean)evt.getNewValue())
+                if( (Boolean)evt.getNewValue() )
                     startVideo();
-                else if (videoGenerator != null)
+                else if( videoGenerator != null )
                     finishVideo();
                 return;
             }

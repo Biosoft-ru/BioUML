@@ -120,16 +120,16 @@ public class Util
         return modelData;
     }
     
-    public static DensityState fromTable(TableDataCollection tdc)
+    public static DensityState fromTable(TableDataCollection tdc, String substrate)
     {
         DensityState result = new DensityState(tdc.getName());
         int count = tdc.getColumnModel().getColumnCount();
-        for( int i = 3; i < count; i++ )
-        {
-            String name = tdc.getColumnModel().getColumn( i ).getName();
-            double[] vals = TableDataCollectionUtils.getColumn( tdc, name );
-            result.addDensity( name, vals );
-        }
+//        for( int i = 3; i < count; i++ )
+//        {
+//            String name = tdc.getColumnModel().getColumn( i ).getName();
+            double[] vals = TableDataCollectionUtils.getColumn( tdc, substrate );
+            result.addDensity( substrate, vals );
+//        }
         return result;
     }
 

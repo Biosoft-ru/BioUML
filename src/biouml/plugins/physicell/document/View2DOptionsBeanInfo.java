@@ -2,7 +2,6 @@ package biouml.plugins.physicell.document;
 
 import java.lang.reflect.Method;
 
-import one.util.streamex.StreamEx;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
@@ -17,8 +16,6 @@ public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
     {
         property( "slice" ).editor( SliderEditor.class ).value( "max", getMethod( "getMaxSlice")).value( "min", getMethod( "getMinSlice")).add();
         addWithTags( "sectionString", View2DOptions.SECTION_VALUES );
-        property( "substrate" ).tags(bean -> StreamEx.of(bean.getSubstrates()) ).add();
-        add( "drawDensity" );
         add( "drawGrid" );
     }
     

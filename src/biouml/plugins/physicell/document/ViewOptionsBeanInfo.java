@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.document;
 
+import one.util.streamex.StreamEx;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
@@ -22,6 +23,10 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         add( "axes" );
         add("cells");
         add("drawNuclei");
+        property( "substrate" ).tags(bean -> StreamEx.of(bean.getSubstrates()) ).add();
+        add( "drawDensity" );
+        add("densityColor");
+//        add("maxDensity");
         add("statisticsX");
         add("statisticsY");
         //add("saveResult");

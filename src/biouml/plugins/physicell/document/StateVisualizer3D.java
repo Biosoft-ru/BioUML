@@ -31,8 +31,11 @@ public class StateVisualizer3D extends StateVisualizer
 
         try
         {
-            renderer.setDensityState( result.getDensity( 0 ) );
-            renderer.setDrawDensity( true );
+            if( options.isDrawDensity() )
+            {
+                renderer.setDensityState( result.getDensity( 0, options.getSubstrate() ) );
+                renderer.setDrawDensity( true );
+            }
         }
         catch( Exception ex )
         {
@@ -47,10 +50,22 @@ public class StateVisualizer3D extends StateVisualizer
         renderer.setAxes( options.isAxes() );
         renderer.setAgents(options.isCells());
         renderer.setStatistics( options.isStatistics() );
+        renderer.setDensityColor( options.getDensityColor() );
+        renderer.setDensityState( densityState );
+        renderer.setDrawDensity( options.isDrawDensity() );
+        renderer.setSubstrate( options.getSubstrate() );
         renderer.setStatisticsLOcation( new Point( options.getStatisticsX(), options.getStatisticsY() ) );
-        SceneHelper.addDisks( scene, options3D.getXCutOff(), SceneHelper.PLANE_YZ );
-        SceneHelper.addDisks( scene, options3D.getYCutOff(), SceneHelper.PLANE_XZ );
-        SceneHelper.addDisks( scene, options3D.getZCutOff(), SceneHelper.PLANE_XY );
+        renderer.setDensityX( options3D.isDensityX() );
+        renderer.setDensityY( options3D.isDensityY() );
+        renderer.setDensityZ( options3D.isDensityZ() );
+        if( options.isCells() )
+        {
+            SceneHelper.addDisks( scene, options3D.getXCutOff(), SceneHelper.PLANE_YZ );
+            SceneHelper.addDisks( scene, -options3D.getYCutOff(), SceneHelper.PLANE_XZ );
+            SceneHelper.addDisks( scene, options3D.getZCutOff(), SceneHelper.PLANE_XY );
+        }
+        else
+            scene.clear();
         return renderer.render( scene, options.getTime() );
     }
 }
