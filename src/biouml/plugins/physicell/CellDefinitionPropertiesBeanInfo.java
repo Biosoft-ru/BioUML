@@ -32,5 +32,6 @@ public class CellDefinitionPropertiesBeanInfo extends BeanInfoEx2<CellDefinition
         addHidden( "customDataProperties" );
         addHidden( "intracellularProperties" );
         addHidden( "rulesProperties" );
+        addHidden( "integrityProperties" );
     }
 }

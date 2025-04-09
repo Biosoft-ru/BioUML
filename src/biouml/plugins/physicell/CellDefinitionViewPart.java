@@ -52,6 +52,8 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
     private PropertyInspectorEx transformationsInspector = new PropertyInspectorEx();
     private PropertyInspectorEx customDataInspector = new PropertyInspectorEx();
     private PropertyInspectorEx intracellularInspector = new PropertyInspectorEx();
+    private PropertyInspectorEx integrityInspector = new PropertyInspectorEx();
+    
     private RulesTab ruleTab = new RulesTab();
 
     public CellDefinitionViewPart()
@@ -70,6 +72,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         transformationsInspector.setDefaultNumberFormat( null );
         customDataInspector.setDefaultNumberFormat( null );
         intracellularInspector.setDefaultNumberFormat( null );
+        integrityInspector.setDefaultNumberFormat( null );
         ruleTab.setDefaultNumberFormat( null );
     }
 
@@ -120,6 +123,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         transformationsInspector.explore( cdp.getTransformationsProperties() );
         customDataInspector.explore( cdp.getCustomDataProperties() );
         intracellularInspector.explore( cdp.getIntracellularProperties() );
+        integrityInspector.explore(cdp.getIntegrityProperties());
         ruleTab.explore( cdp.getRulesProperties() );
     }
 
@@ -139,6 +143,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         tabbedPane.addTab( "Death", deathInspector );
         tabbedPane.addTab( "Volume", volumeInspector );
         tabbedPane.addTab( "Mechanics", mechanicsInspector );
+        tabbedPane.addTab( "Integrity", integrityInspector );
         tabbedPane.addTab( "Motility", motilityInspector );
         tabbedPane.addTab( "Secretion", secretionInspector );
         tabbedPane.addTab( "Interactions", interactionsInspector );
