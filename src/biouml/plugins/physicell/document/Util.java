@@ -32,10 +32,10 @@ public class Util
                 outerColor = decodeColor(parts[5]);
                 innerColor = outerColor;
             }
-            else
+            if (parts.length >= 7)
             {
-                outerColor = decodeColor( parts[5] );
-                innerColor = decodeColor( parts[7] );
+                outerColor = decodeColor(parts[5]);
+                innerColor = decodeColor(parts[6]);
             }
             Mesh mesh = SceneHelper.createSphere( x, y, z, outerRadius, outerColor, innerColor, quality );
             scene.addSphere( mesh );
