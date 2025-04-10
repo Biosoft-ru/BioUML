@@ -3,22 +3,19 @@ package ru.biosoft.bsa.track.big;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.jetbrains.bio.CompressionType;
-import org.jetbrains.bio.big.BedEntry;
-import org.jetbrains.bio.big.BigBedFile;
-
 import com.google.common.collect.Lists;
 
-import kotlin.Pair;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.Repository;
@@ -27,6 +24,12 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.security.Permission;
+import ru.biosoft.bigbed.AutoSql;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.BigBedFile;
+import ru.biosoft.bigbed.BigBedWriter;
+import ru.biosoft.bigbed.BigBedWriterOptions;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.WithSite;
 import ru.biosoft.util.LazyValue;
@@ -66,7 +69,6 @@ public class BigBedTrack<T> extends BigTrack
         bbFile = BigBedFile.read(bbPath);
     }
     
-    //sites should be sorted by chr,from
     public void write(List<T> sites, Map<String, Integer> chromSizes) throws IOException
     {
         write(sites, chromSizes, 3, 3, null);
@@ -74,17 +76,37 @@ public class BigBedTrack<T> extends BigTrack
     
     public void write(List<T> sites, Map<String, Integer> chromSizes, int totalFieldCount, int bedFieldCount, String autoSql) throws IOException
     {
+    	//set up chromInfos before calling converter
+    	chromByName = new LinkedHashMap<>();
+    	chromById = new LinkedHashMap<>();
+        int i = 0;
+        for(Map.Entry<String,Integer> e : chromSizes.entrySet())
+        {
+        	String externalChrName = e.getKey();
+        	String internalChrName = externalToInternalName(externalChrName);
+        	ChromInfo chrInfo = new ChromInfo();
+        	chrInfo.name = internalChrName;
+        	chrInfo.length = e.getValue();
+        	chrInfo.id = i++;
+        	chromByName.put(externalChrName, chrInfo);
+        	chromById.put(chrInfo.id, chrInfo);
+        }
+
+        
         List<BedEntry> bedEntries = Lists.transform( sites, converter::toBedEntry );
-        List<Pair<String, Integer>> kotlinChromSizes = chromSizes.entrySet().stream()
-                .map( e->new kotlin.Pair<>( e.getKey(), e.getValue() ) )
-                .collect( Collectors.toList() );
+        Comparator<BedEntry> cmp = Comparator.comparingInt(e->e.chrId);
+        cmp = cmp.thenComparingInt(e->e.start); 
+        bedEntries.sort(cmp);
+        
+        List<ChromInfo> chromList = new ArrayList<>(chromByName.values());
+        BigBedWriterOptions options = new BigBedWriterOptions();
+        options.compress = true;
+        if(autoSql != null)
+        	options.autoSql = AutoSql.parse(autoSql);
+        options.bedN = bedFieldCount;
         try
         {
-        	BigBedFile.write(bedEntries, kotlinChromSizes, Paths.get(bbPath), 1024, 1, CompressionType.DEFLATE,  ByteOrder.nativeOrder(),
-                    null,//cancel checker
-                    totalFieldCount,
-                    bedFieldCount, //field count that are standard BED fields
-                    autoSql);
+			BigBedWriter.write(bedEntries, chromList, new File(bbPath), options );
         	//reopen
         	close();open();
         }
@@ -94,12 +116,21 @@ public class BigBedTrack<T> extends BigTrack
         	throw e;
         }
     }
+    
+    
+    public int getSiteCount()
+    {
+    	return getBBFile().getSiteCount();
+    }
    
     
     public List<T> query(String chr) throws IOException
     {
-        chr = externalToInternalName( chr );
-        List<BedEntry> bedList = getBBFile().query(chr);
+    	ChromInfo chrInfo = getChromInfo(chr);
+        if(chrInfo == null)
+        	return Collections.emptyList();
+        
+        List<BedEntry> bedList = getBBFile().queryIntervals(chrInfo.id, 0, chrInfo.length, 0);
         List<T> result = fromBedList( bedList );
         postProcessSites( result, chr );
         return result;
@@ -108,8 +139,11 @@ public class BigBedTrack<T> extends BigTrack
     //from, to - one based, both inclusive
     public List<T> query(String chr, int from, int to) throws IOException
     {
-        chr = externalToInternalName( chr );
-        List<BedEntry> bedList = getBBFile().query( chr, from-1, to, true );
+    	ChromInfo chrInfo = getChromInfo(chr);
+        if(chrInfo == null)
+        	return Collections.emptyList();
+        
+        List<BedEntry> bedList = getBBFile().queryIntervals( chrInfo.id, from-1, to, 0 );
         List<T> result = fromBedList( bedList );
         postProcessSites( result, chr, from, to );
         return result;
@@ -120,8 +154,10 @@ public class BigBedTrack<T> extends BigTrack
     
     public int count(String chr, int from, int to) throws IOException
     {
-        chr = externalToInternalName( chr );
-        return bbFile.query( chr, from - 1, to, true ).size();
+    	ChromInfo chrInfo = getChromInfo(chr);
+        if(chrInfo == null)
+        	return 0;
+        return bbFile.queryIntervals( chrInfo.id, from - 1, to, 0 ).size();
     }
 
     //TODO: methods to iterate over sites without loading all of them into memory
@@ -138,11 +174,6 @@ public class BigBedTrack<T> extends BigTrack
         List<T> result = new ArrayList<>(bedList.size());
         for(BedEntry bed : bedList)
         {
-            if(chrMapping != null)
-            {
-                String chr = internalToExternal( bed.getChrom() );
-                bed = new BedEntry( chr, bed.getStart(), bed.getEnd(), bed.getRest() );
-            }
             T t = converter.fromBedEntry( bed );
             result.add( t );
         }
@@ -307,16 +338,18 @@ public class BigBedTrack<T> extends BigTrack
     @Override
     public List<String> getIndexes()
     {
-        return bbFile.getExtraIndices().stream()
-                .map(x->x.getName())
-                .filter(x->x!=null)
-                .collect(Collectors.toList());
+    	return getBBFile().getExtraIndices().stream().map(x->x.name).collect(Collectors.toList());
     }
     
     @Override
     public List<Site> queryIndex(String index, String query)
     {
-        List<BedEntry> bedList = getBBFile().queryExtraIndex( index, query );
+        List<BedEntry> bedList;
+		try {
+			bedList = getBBFile().queryExtraIndex( index, query, 0 );
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
         List<T> objList = fromBedList( bedList );
         List<Site> siteList = new ArrayList<>();
         for(T obj : objList)

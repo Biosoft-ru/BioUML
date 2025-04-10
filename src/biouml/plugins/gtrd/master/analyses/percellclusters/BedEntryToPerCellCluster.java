@@ -1,9 +1,10 @@
 package biouml.plugins.gtrd.master.analyses.percellclusters;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import org.jetbrains.bio.big.BedEntry;
-
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
 import ru.biosoft.util.TextUtil;
@@ -20,9 +21,11 @@ public class BedEntryToPerCellCluster implements BedEntryConverter<PerCellCluste
     public PerCellCluster fromBedEntry(BedEntry e)
     {
         PerCellCluster res = new PerCellCluster();
-        res.setChr( e.getChrom() );
-        res.setFrom( e.getStart()+1 );
-        res.setTo( e.getEnd() );
+        ChromInfo chrInfo = origin.getChromInfo(e.chrId);
+        String chrName = origin.internalToExternal(chrInfo.name);
+        res.setChr( chrName );
+        res.setFrom( e.start+1 );
+        res.setTo( e.end );
         String[] parts = TextUtil.split( e.getRest(), '\t' );
         res.setMasterSiteId( parts[0] );
         res.setSummit( Integer.parseInt( parts[1] ) );
@@ -45,6 +48,10 @@ public class BedEntryToPerCellCluster implements BedEntryConverter<PerCellCluste
             .append( c.chipExoExpCount ).append( '\t' )
             .append( c.dnasePeakCount ).append( '\t' )
             .append( c.motifCount );
-        return new BedEntry( c.getChr(), c.getFrom()-1, c.getTo(), rest.toString() );
+        String chrName = c.getChr();
+        ChromInfo chrInfo = origin.getChromInfo(chrName);
+        BedEntry e = new BedEntry(chrInfo.id, c.getFrom()-1, c.getTo());
+        e.data = rest.toString().getBytes(StandardCharsets.UTF_8);
+        return e;
     }
 }

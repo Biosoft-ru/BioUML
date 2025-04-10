@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.jetbrains.bio.big.BedEntry;
-
 import biouml.plugins.gtrd.DNaseExperiment;
 import biouml.plugins.gtrd.master.index.ListOfSitesWrapper;
 import biouml.plugins.gtrd.master.meta.Metadata;
@@ -23,6 +21,7 @@ import biouml.plugins.gtrd.master.sites.bedconv.BedEntryToMasterSite;
 import biouml.plugins.gtrd.master.sites.dnase.DNasePeak;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.bigbed.BedEntry;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
@@ -77,7 +76,7 @@ public class MasterTrack extends BigBedTrack<MasterSite>
     }
     
     @Override
-    public void close()
+    public void close() throws IOException
     {
         super.close();
         metadata = null;

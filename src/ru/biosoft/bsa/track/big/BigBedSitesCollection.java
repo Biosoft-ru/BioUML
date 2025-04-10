@@ -7,9 +7,9 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.zip.DataFormatException;
 
-import org.jetbrains.bio.big.BedEntry;
-
 import ru.biosoft.access.core.AbstractDataCollection;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.BigBedRandomAccess;
 import ru.biosoft.bsa.Site;
 
 public class BigBedSitesCollection extends AbstractDataCollection<Site>
@@ -22,13 +22,6 @@ public class BigBedSitesCollection extends AbstractDataCollection<Site>
         super( null, new Properties() );
         this.bbTrack = bbTrack;
         randomAccess = new BigBedRandomAccess( bbTrack.getBBFile() );
-        if(bbTrack.siteCount != randomAccess.getSiteCount())
-        {
-            //Maybe we are wrong in randomAccess, that rely on itemsPerSlot
-            //But most probably we have a bigBed file produces by original jetbrains library that didn't write siteCount to bigBed
-            log.warning( "BigBed site count field didn't match number of indexed sites (" + bbTrack.siteCount + "!=" + randomAccess.getSiteCount() + ")" );
-            bbTrack.siteCount = randomAccess.getSiteCount();
-        }
     }
 
     @Override
@@ -45,9 +38,9 @@ public class BigBedSitesCollection extends AbstractDataCollection<Site>
             @Override
             public int size()
             {
-                if(randomAccess.getSiteCount() > Integer.MAX_VALUE-100)
+                if(bbTrack.getSiteCount() > Integer.MAX_VALUE-100)
                     return Integer.MAX_VALUE-100;
-                return (int)randomAccess.getSiteCount();
+                return (int)bbTrack.getSiteCount();
             }
         };
     }

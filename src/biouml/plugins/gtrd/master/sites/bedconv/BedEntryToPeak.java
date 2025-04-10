@@ -1,14 +1,15 @@
 package biouml.plugins.gtrd.master.sites.bedconv;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
-import org.jetbrains.bio.big.BedEntry;
 
 import biouml.plugins.gtrd.Experiment;
 import biouml.plugins.gtrd.master.meta.Metadata;
 import biouml.plugins.gtrd.master.sites.Peak;
 import biouml.plugins.gtrd.master.utils.StringPool;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
 import ru.biosoft.util.TextUtil;
@@ -50,10 +51,11 @@ public abstract class BedEntryToPeak<P extends Peak<E>, E extends Experiment> im
         P peak = createPeak();
         initPeak(peak);
         
-        String chr = e.getChrom();
+        ChromInfo chrInfo = origin.getChromInfo(e.chrId);
+        String chr = origin.internalToExternal(chrInfo.name);
         peak.setChr( StringPool.get(chr) );
-        peak.setFrom( e.getStart() + 1 );
-        peak.setTo( e.getEnd() );
+        peak.setFrom( e.start + 1 );
+        peak.setTo( e.end );
         peak.setOrigin( origin );
         
         if(exp == null)
@@ -76,7 +78,10 @@ public abstract class BedEntryToPeak<P extends Peak<E>, E extends Experiment> im
     public BedEntry toBedEntry(P peak)
     {
         String rest = createRestStringFromPeak(peak);
-        return new BedEntry( peak.getChr(), peak.getFrom() - 1, peak.getTo(), rest );
+        ChromInfo chrInfo = origin.getChromInfo(peak.getChr());
+        BedEntry e =  new BedEntry( chrInfo.id, peak.getFrom() - 1, peak.getTo());
+        e.data = rest.getBytes(StandardCharsets.UTF_8);
+        return e;
     }
 
     private void initExp()

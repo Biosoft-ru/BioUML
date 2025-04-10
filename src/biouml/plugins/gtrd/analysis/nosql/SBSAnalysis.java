@@ -5,17 +5,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-
-import org.jetbrains.bio.big.BedEntry;
-import org.jetbrains.bio.big.BigBedFile;
 
 import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.annot.PropertyDescription;
@@ -34,6 +33,9 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.BigBedFile;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.ChrNameMapping;
 import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Position;
@@ -327,20 +329,24 @@ public class SBSAnalysis extends AnalysisMethodSupport<SBSAnalysis.Parameters>
         int size = 0;
         if(gene != null)
         {
-            for(BedEntry entry : bb.query( gene.chr, (gene.from-1)-parameters.getMaxGeneDistance(), gene.to + parameters.getMaxGeneDistance() ))
+            for(BedEntry entry : bb.queryIntervals( gene.chr, (gene.from-1)-parameters.getMaxGeneDistance(), gene.to + parameters.getMaxGeneDistance(), 0 ))
             {
-                String line = fixBedEntry(entry, e);
+                String line = fixBedEntry(entry, e, gene.chr);
                 writer.append( line ).append( '\n' );
                 size++;
             }
         }
         else
         {
-            for(String chr : bb.getChromosomes().valueCollection())
+        	List<ChromInfo> chrList = new ArrayList<>();
+        	bb.traverseChroms(chrInfo->{
+        		chrList.add(chrInfo);
+        	});
+        	for(ChromInfo chr : chrList)
             {
-                for(BedEntry entry : bb.query( chr ))
+                for(BedEntry entry : bb.queryIntervals( chr.id, 0, chr.length, 0 ))
                 {
-                    String line = fixBedEntry(entry, e);
+                    String line = fixBedEntry(entry, e, chr.name);
                     writer.append( line ).append( '\n' );
                     size++;
                 }
@@ -349,7 +355,7 @@ public class SBSAnalysis extends AnalysisMethodSupport<SBSAnalysis.Parameters>
         return size;
     }
 
-    private String fixBedEntry(BedEntry entry, ChIPseqExperiment e) throws IOException
+    private String fixBedEntry(BedEntry entry, ChIPseqExperiment e, String chr) throws IOException
     {
         String[] values = entry.getRest().split( "\t" );
         if(parameters.getDataset().equals( "sissrs peaks" ) && values.length == 4)
@@ -389,7 +395,7 @@ public class SBSAnalysis extends AnalysisMethodSupport<SBSAnalysis.Parameters>
             
         }
         
-        return entry.getChrom() + "\t" + entry.getStart() + "\t" + entry.getEnd() + "\t" + String.join( "\t", values );
+        return chr + "\t" + entry.start + "\t" + entry.end + "\t" + String.join( "\t", values );
     }
 
     private GeneLocation geneLocation;

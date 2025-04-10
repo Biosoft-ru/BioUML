@@ -11,11 +11,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.jetbrains.bio.RomBuffer;
-import org.jetbrains.bio.RomBufferFactory;
-import org.jetbrains.bio.big.BPlusLeaf;
-import org.jetbrains.bio.big.BigFile;
-
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -24,6 +19,9 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.bigbed.BigBedFile;
+import ru.biosoft.bigbed.BigFile;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.ChrCache;
 import ru.biosoft.bsa.ChrNameMapping;
 import ru.biosoft.bsa.GenomeSelector;
@@ -41,12 +39,14 @@ public abstract class BigTrack extends AbstractDataCollection<DataElement> imple
     public static final String PROP_VIEW_BUILDER_CLASS = "ViewBuilderClass";
     
     protected String bbPath;
+
     protected ChrNameMapping chrMapping;
     protected ChrCache chrCache;
-    protected Map<String, Integer> chromSizes;
+    protected Map<String, ChromInfo> chromByName;//by external chr name, but ChromInfo.name is internal name
+    protected Map<Integer, ChromInfo> chromById;
     protected GenomeSelector genomeSelector;
+    
     protected BigFile<?> bbFile;
-    protected long siteCount;
     
     protected BigTrack(DataCollection<?> parent, Properties properties, boolean open) throws IOException
     {
@@ -74,17 +74,16 @@ public abstract class BigTrack extends AbstractDataCollection<DataElement> imple
     protected abstract BigFile<?> getBBFile();
     
     
-    //open for reading, should be called once before any reading operation
+    //open for reading, should be called once
     public void open() throws IOException
     {
         if(isRemote() || Files.exists( Paths.get( bbPath ) ))
         {
             doOpen();
-            initSiteCount();
         }
     }
     
-    public void close()
+    public void close() throws IOException
     {
         if(bbFile != null)
         {
@@ -94,18 +93,6 @@ public abstract class BigTrack extends AbstractDataCollection<DataElement> imple
     }
 
     protected abstract void doOpen() throws IOException;
-    
-    protected void initSiteCount() throws IOException
-    {
-        RomBufferFactory factory = bbFile.getBuffFactory$big();
-        try(RomBuffer input = factory.create())
-        {
-            long offset = bbFile.header.getUnzoomedDataOffset();
-            input.setPosition( offset );
-            siteCount = input.readLong();
-        }
-
-    }
     
     public static boolean isRemotePath(String path)
     {
@@ -117,11 +104,6 @@ public abstract class BigTrack extends AbstractDataCollection<DataElement> imple
         return isRemotePath( bbPath );
     }
     
-    public long getSiteCount()
-    {
-        return siteCount;
-    }
-
     public long getSizeOnDisk()
     {
         if(!isRemote())
@@ -133,9 +115,10 @@ public abstract class BigTrack extends AbstractDataCollection<DataElement> imple
     {
         this.chrMapping = chrNameMapping;
         chrCache.clear();
+        chromByName = null;
         chromSizes = null;
     }
-    protected String internalToExternal(String chr)
+    public String internalToExternal(String chr)
     {
         if(chrMapping == null)
             return chr;
@@ -161,24 +144,56 @@ public abstract class BigTrack extends AbstractDataCollection<DataElement> imple
     }
     public Set<String> getChromosomes()
     {
-        return getChromSizes().keySet();
-    }
-    public Map<String, Integer> getChromSizes()
-    {
-        if(chromSizes == null)
-        {
-            Map<String, BPlusLeaf> prefetched = getBBFile().getPrefetchedChr2Leaf$big();
-            chromSizes = new LinkedHashMap<>();
-            for(BPlusLeaf leaf : prefetched.values())
-            {
-                String chr = leaf.getKey();
-                chr = internalToExternal( chr );
-                chromSizes.put(chr, leaf.getSize());
-            }
-        }
-        return chromSizes;
+    	initChromosomes();
+        return chromByName.keySet();
     }
     
+    public ChromInfo getChromInfo(int chrId)
+    {
+    	initChromosomes();
+    	return chromById.get(chrId);
+    }
+
+    public ChromInfo getChromInfo(String name)
+    {
+    	initChromosomes();
+    	return chromByName.get(name);
+    }
+    
+    private void initChromosomes()
+    {
+    	if(chromByName == null)
+        {
+        	chromByName = new LinkedHashMap<>();
+        	chromById = new LinkedHashMap<>();
+        	try {
+				bbFile.traverseChroms(chromInfo->{
+					String chr = chromInfo.name;
+				    chr = internalToExternal( chr );
+				    chromByName.put(chr, chromInfo);
+				    chromById.put(chromInfo.id, chromInfo);
+				});
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+        }
+    }
+    
+    
+    //chrom sizes
+    //kept mostly for compatibility with previous version
+	private Map<String, Integer> chromSizes;
+
+	public Map<String, Integer> getChromSizes() {
+		if (chromSizes == null) {
+			chromSizes = new LinkedHashMap<>();
+			chromByName.forEach((externalChrName, chrInfo) -> {
+				chromSizes.put(externalChrName, chrInfo.length);
+			});
+		}
+		return chromSizes;
+	}
+        
 
     protected TrackViewBuilder viewBuilder;
     @Override
