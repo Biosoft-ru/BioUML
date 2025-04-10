@@ -110,7 +110,7 @@ public class ClientDataCollectionTest extends TestCase
     	DataCollection dc = CollectionFactory.getDataCollection( "data/Collaboration/Demo/Data/BPMN" );
 
     	//System.out.println("\n" + ( ( ru.biosoft.access.TextDataElement )dc.get( "diagram_big.bpmn" ) ).getContent() );
-    	assertTrue( ( ( ru.biosoft.access.TextDataElement )dc.get( "test_spec.bpmn" ) ).getContent().
+        assertTrue( ((ru.biosoft.access.core.TextDataElement) dc.get( "test_spec.bpmn" )).getContent().
                 startsWith( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ) );
     }    
 }

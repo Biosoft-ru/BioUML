@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 
 import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.VectorDataCollection;

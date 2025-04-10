@@ -6,7 +6,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.FileDataElement;
 import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.bsa.SequenceCollection;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.table.TableDataCollection;

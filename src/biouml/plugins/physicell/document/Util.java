@@ -3,7 +3,7 @@ package biouml.plugins.physicell.document;
 import java.awt.Color;
 
 import one.util.streamex.StreamEx;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.physicell.ui.DensityState;
 import ru.biosoft.physicell.ui.ModelData;
 import ru.biosoft.physicell.ui.render.Mesh;

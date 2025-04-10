@@ -52,7 +52,7 @@
 	<classpathentry kind="lib" path="plugins/plaf.metal_1.5.0.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.exception-1.0.0.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.jobcontrol-2.0.0.jar"/>
-	<classpathentry kind="lib" path="plugins/ru.biosoft.physicell_0.9.10.jar" sourcepath="/JPhysiCell/src"/>
+	<classpathentry kind="lib" path="plugins/ru.biosoft.physicell_2025.2.jar" sourcepath="/JPhysiCell/src"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.rtree-0.0.1.jar"/>
 	<classpathentry kind="lib" path="plugins/streamex-0.7.0.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.graph/graph.jar"/>
@@ -63,10 +63,10 @@
 	<classpathentry kind="lib" path="plugins/org.jgraph.jgraphaddons_1.0.3/jgraphaddons.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jgraph.jgraph_5.1/jgraph.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar"/>
-	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.file-1.0.0.jar"/>
-	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.util-1.0.0.jar"/>
+	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.file-2.0.0.jar"/>
+	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.util-2.0.0.jar"/>
 	<classpathentry kind="lib" path="plugins/htsjdk_2.24.1/htsjdk-2.24.1.jar"/>
-	<classpathentry kind="lib" path="plugins/ru.biosoft.server.tomcat_0.9.10/tomcat/servlet.jar"/>
+	<classpathentry kind="lib" path="plugins/ru.biosoft.server.tomcat_2025.2/tomcat/servlet.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/jsr305.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jivesoftware.smack_1.0.0/smack.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jivesoftware.smack_1.0.0/smackx.jar"/>

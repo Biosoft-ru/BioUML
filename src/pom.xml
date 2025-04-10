@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.biouml</groupId>
         <artifactId>biouml</artifactId>
-        <version>0.9.10</version>
+        <version>2025.2</version>
         <relativePath>../pom.xml</relativePath> <!-- Adjust the path to the parent POM -->
     </parent>
 
@@ -15,8 +15,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <rootDir>..</rootDir>
     </properties>
 

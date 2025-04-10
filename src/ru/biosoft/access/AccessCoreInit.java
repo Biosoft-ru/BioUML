@@ -21,7 +21,8 @@ public class AccessCoreInit
         Environment.setIconManager( new BiosoftIconManager() );
         
         
-        ru.biosoft.access.file.Environment.INSTANCE = new ru.biosoft.access.file.Environment() {
+        ru.biosoft.access.file.v1.Environment.INSTANCE = new ru.biosoft.access.file.v1.Environment()
+        {
 
             @Override
             public DataElement createFileDataElement(String name, DataCollection<?> parent, File file)

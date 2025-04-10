@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-SymbolicName: ru.biosoft.server.tomcat;singleton:=true
-Bundle-Version: 0.9.10
+Bundle-Version: 2025.2
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.osgi,
  org.apache.commons.fileupload,

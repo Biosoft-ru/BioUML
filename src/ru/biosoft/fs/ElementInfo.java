@@ -17,7 +17,7 @@ import ru.biosoft.access.core.DataCollectionInfo;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementDescriptor;
 import ru.biosoft.access.core.FolderCollection;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.exception.Assert;
 
 /**

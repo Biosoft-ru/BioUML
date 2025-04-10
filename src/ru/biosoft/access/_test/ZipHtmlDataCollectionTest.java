@@ -9,7 +9,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import junit.framework.TestCase;
 

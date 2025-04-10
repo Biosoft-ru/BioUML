@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 
 import biouml.plugins.physicell.PhysicellResultWriter;
 import biouml.plugins.physicell.VideoGenerator;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.physicell.ui.DensityState;
 import ru.biosoft.util.TempFiles;
 

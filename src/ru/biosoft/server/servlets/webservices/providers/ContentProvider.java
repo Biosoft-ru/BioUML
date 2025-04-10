@@ -14,7 +14,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.FileDataElement;
 import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;

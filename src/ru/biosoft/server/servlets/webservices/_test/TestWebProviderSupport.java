@@ -9,7 +9,7 @@ import org.json.JSONArray;
 
 import junit.framework.TestCase;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;

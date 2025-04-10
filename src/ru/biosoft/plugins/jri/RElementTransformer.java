@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.support.FileTextTransformer;
 
 import com.developmentontheedge.application.ApplicationUtils;

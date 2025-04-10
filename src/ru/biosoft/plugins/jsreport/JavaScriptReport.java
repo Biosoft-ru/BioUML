@@ -23,7 +23,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.FileDataElement;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.ZipHTMLImporter;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.access.security.CodePrivilege;

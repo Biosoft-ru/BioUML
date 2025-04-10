@@ -8,7 +8,7 @@ import junit.framework.TestCase;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.SqlDataCollection;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;

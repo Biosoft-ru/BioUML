@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutionException;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.exception.ProductNotAvailableException;
 import ru.biosoft.access.log.BiosoftLogger;
 import ru.biosoft.access.log.DefaultBiosoftLogger;

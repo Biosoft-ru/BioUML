@@ -2,7 +2,7 @@ package ru.biosoft.bpmn;
 
 import com.developmentontheedge.beans.annot.PropertyName;
 
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
 

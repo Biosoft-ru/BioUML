@@ -7,7 +7,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.model.Module;
 import biouml.plugins.research.FileSystemModuleUtils;
 import ru.biosoft.access.LocalRepository;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollectionConfigConstants;

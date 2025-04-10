@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.eclipsesource.json.JsonObject;
 
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.VectorDataCollection;

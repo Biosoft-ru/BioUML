@@ -24,7 +24,7 @@ import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.LocalRepository;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.exception.ExceptionRegistry;

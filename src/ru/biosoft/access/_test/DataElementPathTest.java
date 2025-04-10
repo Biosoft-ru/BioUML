@@ -3,7 +3,7 @@ package ru.biosoft.access._test;
 import java.util.Arrays;
 
 import junit.framework.TestCase;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.WildcardPathSet;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;

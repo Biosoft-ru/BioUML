@@ -3,6 +3,7 @@ package ru.biosoft.access;
 
 import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.TextDataElement;
 
 import com.developmentontheedge.beans.annot.PropertyName;
 

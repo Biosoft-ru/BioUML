@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.generic.PriorityTransformer;
 
 import com.developmentontheedge.application.ApplicationUtils;
