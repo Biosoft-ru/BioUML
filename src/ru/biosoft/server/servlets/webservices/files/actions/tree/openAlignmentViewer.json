@@ -12,7 +12,7 @@
 		if(!path || !name) return -1;
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
-        if (instanceOf(type,'ru.biosoft.access.TextDataElement') && name.endsWith('fasta')) 
+        if (instanceOf(type,'ru.biosoft.access.core.TextDataElement') && name.endsWith('fasta')) 
         {
             return true;
         }

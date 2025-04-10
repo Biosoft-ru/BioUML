@@ -23,7 +23,7 @@
   <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
   	<class class="ru.biosoft.access.core.DataCollection"/>
   	<class class="ru.biosoft.access.FileDataElement"/>
-  	<class class="ru.biosoft.access.TextDataElement"/>
+  	<class class="ru.biosoft.access.core.TextDataElement"/>
   	<class class="ru.biosoft.access.HtmlDataElement"/>
   	<class class="ru.biosoft.access.ImageDataElement"/>
   	<class class="ru.biosoft.access.FileCollection"/>
@@ -185,7 +185,7 @@
       <transformer name="HTML file" inputClass="ru.biosoft.access.FileDataElement" 
         outputClass="ru.biosoft.access.HtmlDataElement" transformerClass="ru.biosoft.access.support.FileHtmlTransformer"/> 
       <transformer name="Plain text" inputClass="ru.biosoft.access.FileDataElement" 
-        outputClass="ru.biosoft.access.TextDataElement" transformerClass="ru.biosoft.access.support.FileTextTransformer"/> 
+        outputClass="ru.biosoft.access.core.TextDataElement" transformerClass="ru.biosoft.access.support.FileTextTransformer"/> 
       <transformer name="ZIP-archive with HTML pages" inputClass="ru.biosoft.access.FileDataElement" 
         outputClass="ru.biosoft.access.html.ZipHtmlDataCollection" transformerClass="ru.biosoft.access.support.FileZipHtmlTransformer"/>
       <transformer name="Video" inputClass="ru.biosoft.access.FileDataElement" 

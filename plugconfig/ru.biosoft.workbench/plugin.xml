@@ -34,7 +34,7 @@
       /> 
       <documentFactory 
         documentClass="ru.biosoft.workbench.documents.TextDocument"
-        key="ru.biosoft.access.TextDataElement"
+        key="ru.biosoft.access.core.TextDataElement"
       />
       <documentFactory 
         documentClass="ru.biosoft.workbench.documents.HtmlDocument"
