@@ -69,7 +69,7 @@ import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -262,7 +262,7 @@ public class WorkflowTest extends AbstractBioUMLTest
         property = parameters.getProperty("input");
         assertNotNull(property);
         assertEquals(TableDataCollection.class, property.getDescriptor().getValue(DataElementPathEditor.ELEMENT_CLASS));
-        property.setValue(TextUtil.fromString(property.getType(), "test/path"));
+        property.setValue(TextUtil2.fromString(property.getType(), "test/path"));
 
         property = parameters.getProperty("mode");
         assertNotNull(property);
@@ -275,7 +275,7 @@ public class WorkflowTest extends AbstractBioUMLTest
         String[] expectedTags = FilterTableParameters.MODES;
         assertEquals(expectedTags.length, tags.length);
         assertArrayEquals( "Tags", expectedTags, tags );
-        property.setValue(TextUtil.fromString(property.getType(), expectedTags[1]));
+        property.setValue(TextUtil2.fromString(property.getType(), expectedTags[1]));
 
         // Check whether values were passed correctly to analysis node
         FilterTableParameters analysisParameters = (FilterTableParameters)WorkflowEngine.getAnalysisParametersByNode(analysis);

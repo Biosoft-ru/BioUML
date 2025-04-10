@@ -17,7 +17,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.util.LazyDynamicPropertySet;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import ru.biosoft.jobcontrol.AbstractJobControl;
 import ru.biosoft.jobcontrol.JobControl;
@@ -91,7 +91,7 @@ public class TasksSqlTransformer extends SqlTransformerSupport<TaskInfo>
                 + validateValue(ti.getSource() == null ? ti.getData() : ti.getSource().toString()) + ","
                 + ( ti.getJobControl() == null ? -1 : ti.getJobControl().getStatus() ) + ","
                 + validateValue(ti.getUser()) + ","
-                + validateValue(TextUtil.writeDPSToJSON(ti.getAttributes())) + ")");
+                + validateValue(TextUtil2.writeDPSToJSON(ti.getAttributes())) + ")");
     }
 
     @Override
@@ -105,7 +105,7 @@ public class TasksSqlTransformer extends SqlTransformerSupport<TaskInfo>
                 + ( endTime > 0 ? ",end=" + validateValue(new Timestamp(endTime).toString()) : "" )
                 + ( user != null ? ",user=" + validateValue(user) : "" )
                 + ( message != null ? ",message=" + validateValue( message ) : "" ) + ",properties="
-                + validateValue( TextUtil.writeDPSToJSON( ti.getAttributes() ) ) + " WHERE name=" + validateValue( ti.getName() ) );
+                + validateValue( TextUtil2.writeDPSToJSON( ti.getAttributes() ) ) + " WHERE name=" + validateValue( ti.getName() ) );
     }
 
     @Override
@@ -273,7 +273,7 @@ public class TasksSqlTransformer extends SqlTransformerSupport<TaskInfo>
     public static void logTaskRecord(TaskInfo ti, boolean isHidden) throws Exception
     {
         logTaskRecord( ti.getUser(), ti.getName(), new Timestamp( ti.getStartTime() ), new Timestamp( ti.getEndTime() ), ti.getType(),
-                ti.getSource() == null ? ti.getData() : ti.getSource().toString(), TextUtil.writeDPSToJSON( ti.getAttributes() ),
+                ti.getSource() == null ? ti.getData() : ti.getSource().toString(), TextUtil2.writeDPSToJSON( ti.getAttributes() ),
                 ti.getLogInfo(), isHidden );
     }
 }

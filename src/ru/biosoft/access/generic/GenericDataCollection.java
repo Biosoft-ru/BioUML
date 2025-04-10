@@ -61,7 +61,7 @@ import ru.biosoft.exception.MissingParameterException;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.HashMapWeakValues;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Special implementation of DataCollection to store different type's elements in one collection.
@@ -99,7 +99,7 @@ public class GenericDataCollection extends DerivedDataCollection<ru.biosoft.acce
 
     public void setDescription(String description)
     {
-        getInfo().setDescription( TextUtil.nullToEmpty( description ) );
+        getInfo().setDescription( TextUtil2.nullToEmpty( description ) );
         try
         {
             getCompletePath().save(getCompletePath().getDataElement());

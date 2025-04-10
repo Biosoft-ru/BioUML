@@ -4,7 +4,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.exception.ExceptionDescriptor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -22,13 +22,13 @@ public class CollectionLoginException extends RepositoryException
     public CollectionLoginException(Throwable t, DataElementPath path, String user)
     {
         super(t, ED_CANNOT_LOGIN, path);
-        properties.put( KEY_USER, TextUtil.isEmpty( user ) ? "anonymous" : user );
+        properties.put( KEY_USER, TextUtil2.isEmpty( user ) ? "anonymous" : user );
     }
 
     public CollectionLoginException(DataElementPath path, String user)
     {
         super(null, ED_LOGIN_INCORRECT, path);
-        properties.put( KEY_USER, TextUtil.isEmpty( user ) ? "anonymous" : user );
+        properties.put( KEY_USER, TextUtil2.isEmpty( user ) ? "anonymous" : user );
     }
 
     public CollectionLoginException(Throwable t, DataElement de, String user)

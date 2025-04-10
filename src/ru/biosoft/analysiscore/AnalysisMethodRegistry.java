@@ -35,7 +35,7 @@ import ru.biosoft.analysiscore.AnalysesGroupRegistry.GroupItem;
 import ru.biosoft.analysiscore.javascript.JavaScriptAnalysisHost;
 import ru.biosoft.plugins.Plugins;
 import ru.biosoft.plugins.VisiblePlugin;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Registry for analysis methods
@@ -290,7 +290,7 @@ public class AnalysisMethodRegistry extends VisiblePlugin<DataCollection<Analysi
 
     protected AnalysisMethodInfo getMethod(String methodName)
     {
-        String[] parts = TextUtil.split( methodName, '/' );
+        String[] parts = TextUtil2.split( methodName, '/' );
         
         String justName = parts.length > 1 ? parts[1] : methodName;
         String groupName = parts.length > 1? parts[0] : null;

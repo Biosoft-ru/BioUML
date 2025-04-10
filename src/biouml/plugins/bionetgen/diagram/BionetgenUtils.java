@@ -27,7 +27,7 @@ import biouml.standard.type.Reaction;
 import biouml.standard.type.SpecieReference;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BionetgenUtils
 {
@@ -107,13 +107,13 @@ public class BionetgenUtils
     }
     private static boolean isSatOrMM(String rate)
     {
-        String[] parts = TextUtil.split(rate, '(');
+        String[] parts = TextUtil2.split(rate, '(');
         if( parts.length != 2 || ( !"MM".equals(parts[0]) && !"Sat".equals(parts[0]) ) )
             return false;
-        parts = TextUtil.split(parts[1], ')');
+        parts = TextUtil2.split(parts[1], ')');
         if( parts.length != 2 || !parts[1].isEmpty() )
             return false;
-        parts = TextUtil.split(parts[0], ',');
+        parts = TextUtil2.split(parts[0], ',');
         if( parts.length != 2 )
             return false;
         return isCorrectExpression(parts[0]) && isCorrectExpression(parts[1]);

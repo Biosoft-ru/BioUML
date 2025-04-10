@@ -19,7 +19,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -296,7 +296,7 @@ public class DiagramStateUtility
                             baseProp.setValue(value.getClass().getMethod("clone").invoke(value));
                             continue;
                         }
-                        Object newValue = TextUtil.fromString(value.getClass(), TextUtil.toString(value));
+                        Object newValue = TextUtil2.fromString(value.getClass(), TextUtil2.toString(value));
                         if(newValue != null)
                         {
                             baseProp.setValue(newValue);

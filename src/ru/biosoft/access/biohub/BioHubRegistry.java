@@ -41,7 +41,7 @@ import ru.biosoft.journal.ProjectUtils;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.ExtensionRegistrySupport;
 import ru.biosoft.util.Maps;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.Util;
 
 /**
@@ -239,8 +239,8 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
         String classNamesProperty = dcProperties.getProperty( BioHub.BIOHUB_CLASS );
         if( classNamesProperty != null )
         {
-            String[] classNames = TextUtil.split( classNamesProperty, ';' );
-            String[] hubNames = TextUtil.split( dcProperties.getProperty( BioHub.BIOHUB_NAME ), ';' );
+            String[] classNames = TextUtil2.split( classNamesProperty, ';' );
+            String[] hubNames = TextUtil2.split( dcProperties.getProperty( BioHub.BIOHUB_NAME ), ';' );
             for( int i = 0; i < classNames.length; i++ )
             {
                 try

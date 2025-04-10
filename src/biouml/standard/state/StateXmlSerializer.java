@@ -22,7 +22,7 @@ import ru.biosoft.exception.InternalException;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -256,7 +256,7 @@ public class StateXmlSerializer
                 return "role";
             }
         }
-        return TextUtil.toString(value);
+        return TextUtil2.toString(value);
     }
 
     public static State readXmlElement(Element element, Diagram diagram, DiagramReader diagramReader)
@@ -417,7 +417,7 @@ public class StateXmlSerializer
                 return null;
             }
         }
-        return TextUtil.fromString( type, value );
+        return TextUtil2.fromString( type, value );
     }
 
     protected static void readDeleted(Element element, Diagram diagram)

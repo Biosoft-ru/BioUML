@@ -14,7 +14,7 @@ import ru.biosoft.analysiscore.AnalysisMethod;
 import ru.biosoft.analysiscore.AnalysisMethodInfo;
 import ru.biosoft.analysiscore.AnalysisMethodRegistry;
 import ru.biosoft.analysiscore.AnalysisParameters;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * This class allows to test analyzes using common testing protocol defined in resources/*.t files
@@ -66,7 +66,7 @@ public class AnalysesTest extends AbstractBioUMLTest
 
             try
             {
-                String[] fields = TextUtil.split( name, '/' );
+                String[] fields = TextUtil2.split( name, '/' );
                 String analysisName = fields[1];
                 AnalysisMethodInfo info = AnalysisMethodRegistry.getMethodInfo(analysisName);
                 assertNotNull(name, info);

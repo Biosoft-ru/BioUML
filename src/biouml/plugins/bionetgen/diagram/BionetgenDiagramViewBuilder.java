@@ -24,7 +24,7 @@ import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.PolygonView;
 import ru.biosoft.graphics.SimplePath;
 import ru.biosoft.graphics.TextView;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BionetgenDiagramViewBuilder extends PathwaySimulationDiagramViewBuilder
 {
@@ -148,7 +148,7 @@ public class BionetgenDiagramViewBuilder extends PathwaySimulationDiagramViewBui
         String graphStr = compartment.getAttributes().getValueAsString( BionetgenConstants.GRAPH_ATTR );
         if( graphStr != null && !graphStr.isEmpty() )
         {
-            int size = TextUtil.split( graphStr, '.' ).length;
+            int size = TextUtil2.split( graphStr, '.' ).length;
             int width = (int)Math.sqrt( size );
             if( width * width != size )
                 width++;

@@ -47,7 +47,7 @@ import ru.biosoft.plugins.javascript.JavaScriptUtils;
 import ru.biosoft.table.columnbeans.Descriptor;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.table.exception.TableNoColumnException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Base class for table collections
@@ -400,7 +400,7 @@ public abstract class TableDataCollection extends AbstractDataCollection<RowData
 
         public SortOrder(String sortOrder)
         {
-            String[] so = TextUtil.split( sortOrder, ':' );
+            String[] so = TextUtil2.split( sortOrder, ':' );
             if( so.length == 2 )
             {
                 try
@@ -516,7 +516,7 @@ public abstract class TableDataCollection extends AbstractDataCollection<RowData
 
     public void setDescription(String description)
     {
-        getInfo().setDescription( TextUtil.nullToEmpty( description ) );
+        getInfo().setDescription( TextUtil2.nullToEmpty( description ) );
         try
         {
             getCompletePath().save(this);

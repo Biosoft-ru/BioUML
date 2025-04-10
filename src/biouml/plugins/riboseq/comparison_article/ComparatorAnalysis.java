@@ -21,7 +21,7 @@ import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,7 +139,7 @@ public class ComparatorAnalysis extends AnalysisMethodSupport<ComparatorParamete
         final List<Integer> exonList = new ArrayList<>( exonCount );
 
         final String exonStartsStr = (String)row.getValue( exonStartsNameStr );
-        final String[] exonStartsStrArray = TextUtil.split( exonStartsStr, ',' );
+        final String[] exonStartsStrArray = TextUtil2.split( exonStartsStr, ',' );
         for( int i = 0; i < exonCount; i++ )
         {
             exonList.add( Integer.parseInt( exonStartsStrArray[i] ) );

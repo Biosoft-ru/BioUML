@@ -9,7 +9,7 @@ import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.templates.TemplateInfo;
 import ru.biosoft.templates.TemplateRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -46,7 +46,7 @@ public class HtmlTemplateProvider extends WebJSONProviderSupport
                 html = "<pre>" + html;//non html text should keep its formatting
             html = html.replaceAll( "href=\"de:([^\"]+)\"", "href=\"#de=$1\"" );
             html = html.replaceAll( "<math", "<math displaystyle=\"true\"" );
-            html = TextUtil.processHTMLImages( html, baseId );
+            html = TextUtil2.processHTMLImages( html, baseId );
         }
         TemplateInfo[] infos = suitableTemplates;
         JSONArray templates = new JSONArray();

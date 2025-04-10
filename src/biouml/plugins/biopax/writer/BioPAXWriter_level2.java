@@ -21,7 +21,7 @@ import org.semanticweb.owl.model.OWLObjectProperty;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.Module;
 import biouml.plugins.biopax.BioPAXOntologyFormat;
@@ -1128,7 +1128,7 @@ public class BioPAXWriter_level2 extends BioPAXWriter
     {
         if( synonyms != null )
         {
-            String syn[] = TextUtil.split( synonyms, ';' );
+            String syn[] = TextUtil2.split( synonyms, ';' );
             for( String element : syn )
             {
                 String synonym = element.trim();

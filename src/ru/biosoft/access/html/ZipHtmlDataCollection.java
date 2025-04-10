@@ -31,7 +31,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.access.core.RepositoryAccessDeniedException;
 import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.util.HashMapWeakValues;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -116,7 +116,7 @@ public class ZipHtmlDataCollection extends VectorDataCollection<DataElement> imp
                 if(!zipEntry.isDirectory())
                 {
                     ZipHtmlDataCollection current = this;
-                    String[] nameComponents = TextUtil.split( zipEntry.getName(), '/' );
+                    String[] nameComponents = TextUtil2.split( zipEntry.getName(), '/' );
                     for(int i=0; i<nameComponents.length-1; i++)
                     {
                         String nameComponent = nameComponents[i];

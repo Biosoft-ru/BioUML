@@ -19,7 +19,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.project.Project;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
@@ -83,7 +83,7 @@ public class OpenPerTFView extends AnalysisMethodSupport<OpenPerTFView.Parameter
         
         public String getUniprotId()
         {
-            return TextUtil.split( getTf(), ' ' )[1];
+            return TextUtil2.split( getTf(), ' ' )[1];
         }
     }
     

@@ -44,7 +44,7 @@ import ru.biosoft.bsa.track.big.BigBedTrack;
 import ru.biosoft.bsa.track.big.BigBedTrackImporter;
 import ru.biosoft.bsa.view.DefaultTrackViewBuilder;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
@@ -469,7 +469,7 @@ public class SBSAnalysis extends AnalysisMethodSupport<SBSAnalysis.Parameters>
         }
         public String getUniprotId()
         {
-            return TextUtil.split( getTf(), ' ' )[1];
+            return TextUtil2.split( getTf(), ' ' )[1];
         }
         
         private String dataSet = "meta clusters";

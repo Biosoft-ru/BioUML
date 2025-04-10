@@ -24,7 +24,7 @@ import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.TrackUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 import biouml.plugins.ensembl.JavaScriptEnsembl;
 
@@ -111,7 +111,7 @@ public class AnnotateTrackWithGenes extends AnalysisMethodSupport<AnnotateTrackW
                                     if(exonsObj != null)
                                     {
                                         Interval prevExon = null;
-                                        for( String blockStr : TextUtil.split( exonsObj.toString(), ';' ) )
+                                        for( String blockStr : TextUtil2.split( exonsObj.toString(), ';' ) )
                                         {
                                             Interval exon;
                                             try

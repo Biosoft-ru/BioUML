@@ -136,10 +136,10 @@ public class SbmlSupport extends SbmlConstants
 
             String html = sw.toString();
 
-            String body = ru.biosoft.util.TextUtil.getSection("body", html);
+            String body = ru.biosoft.util.TextUtil2.getSection("body", html);
             if( body == null )
             {
-                body = ru.biosoft.util.TextUtil.getSection("notes", html);
+                body = ru.biosoft.util.TextUtil2.getSection("notes", html);
             }
             if( body == null )
             {
@@ -193,7 +193,7 @@ public class SbmlSupport extends SbmlConstants
         try
         {
             String html = notes;
-            String body = ru.biosoft.util.TextUtil.getSection("body", html);
+            String body = ru.biosoft.util.TextUtil2.getSection("body", html);
             if( body != null )
             {
                 html = body;

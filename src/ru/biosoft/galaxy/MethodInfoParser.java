@@ -41,7 +41,7 @@ import ru.biosoft.galaxy.preprocess.Preprocessor;
 import ru.biosoft.galaxy.validators.Validator;
 import ru.biosoft.galaxy.validators.ValidatorFactory;
 import ru.biosoft.util.OptionEx;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 import ru.biosoft.util.XmlUtil;
 
@@ -567,7 +567,7 @@ public class MethodInfoParser
 
     protected static void parseDrillDownOptions(SourceStaticFilter filter, Element optionsElement, int depth)
     {
-        String prefix = TextUtil.times( '-', depth )+" ";
+        String prefix = TextUtil2.times( '-', depth )+" ";
         for( Element element : XmlUtil.elements(optionsElement, OPTION_ELEMENT) )
         {
             String title = element.getAttribute(NAME_ATTR);

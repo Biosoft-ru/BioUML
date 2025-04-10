@@ -39,7 +39,7 @@ import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.SiteModel;
 import ru.biosoft.bsa.SiteModelCollection;
 import ru.biosoft.bsa.TranscriptionFactor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
@@ -360,7 +360,7 @@ public class ExportMetadata extends AnalysisMethodSupport<ExportMetadata.Paramet
         }
         public String getUniprotId()
         {
-            return TextUtil.split( getTf(), ' ' )[1];
+            return TextUtil2.split( getTf(), ' ' )[1];
         }
         
         private int version = 1;

@@ -36,7 +36,7 @@ import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.util.bean.JSONBean;
 import ru.biosoft.util.bean.StaticDescriptor;
@@ -293,7 +293,7 @@ public class MergePeakCallers extends AnalysisMethodSupport<MergePeakCallers.Par
 
         private String strJoinTruncate(Iterable<?> strList, int maxPropWidth)
         {
-            return TextUtil.joinTruncate( strList, maxPropWidth, ";", "..." );
+            return TextUtil2.joinTruncate( strList, maxPropWidth, ";", "..." );
         }
     }
 

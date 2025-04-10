@@ -45,7 +45,7 @@ import ru.biosoft.gui.UndoAction;
 import ru.biosoft.gui.ZoomInAction;
 import ru.biosoft.gui.ZoomOutAction;
 import ru.biosoft.gui.setupwizard.OpenSetupWizardAction;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.workbench.AboutAction;
 import ru.biosoft.workbench.HelpAction;
 
@@ -728,7 +728,7 @@ public class MessageBundle extends ListResourceBundle
     {
         try
         {
-            return TextUtil.calculateTemplate(getString(key), Application.getPreferences().getValue("Global"), true);
+            return TextUtil2.calculateTemplate(getString(key), Application.getPreferences().getValue("Global"), true);
         }
         catch( Throwable t )
         {

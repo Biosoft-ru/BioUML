@@ -52,7 +52,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControlEvent;
 import ru.biosoft.jobcontrol.JobControlListener;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @SuppressWarnings ( "serial" )
 public class ImportBioPAXDialog extends ProcessElementDialog implements JobControlListener
@@ -286,7 +286,7 @@ public class ImportBioPAXDialog extends ProcessElementDialog implements JobContr
         savePreferences();
         try
         {
-            final String[] filenames = TextUtil.split( filename, ';' );
+            final String[] filenames = TextUtil2.split( filename, ';' );
             for(String file: filenames)
             {
                 BioPAXReaderFactory.checkBioPAXFile(new File(file));

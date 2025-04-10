@@ -9,6 +9,7 @@ import ru.biosoft.access.task.JobControlTask;
 import ru.biosoft.jobcontrol.ClassJobControl;
 import ru.biosoft.jobcontrol.JobControlException;
 import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -48,8 +49,7 @@ public class AnalysisTask extends JobControlTask
             {
                 throw new IllegalArgumentException(
                         "Process requested too much memory to run. Please reconsider input data and parameters to use less memory.\n"
-                                + "Memory requested: " + TextUtil.formatSize(estimatedMemory) + "\nMemory allowed for current user: "
-                                + TextUtil.formatSize(allowedMemory));
+                                + "Memory requested: " + TextUtil.formatSize( estimatedMemory ) + "\nMemory allowed for current user: " + TextUtil.formatSize( allowedMemory ) );
             }
         }
         catch( LoggedException e )
@@ -84,9 +84,9 @@ public class AnalysisTask extends JobControlTask
                         .log( Level.SEVERE,
                                 "Process requested too much memory to run. Please reconsider input data and parameters to use less memory or wait till more memory will be available.\n"
                                 + "Memory requested: "
-                                + TextUtil.formatSize(estimatedMemory)
+                                        + TextUtil.formatSize( estimatedMemory )
                                 + "\nMemory available in the system: "
-                                + TextUtil.formatSize(availableMemory));
+                                        + TextUtil.formatSize( availableMemory ) );
                 emulateFailure( null );
                 return;
             }

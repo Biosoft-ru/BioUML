@@ -20,7 +20,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.TransformedDataCollection;
 import ru.biosoft.bsa.TranscriptionFactor;
 import ru.biosoft.util.ExProperties;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class TranscriptionFactorTransformer extends AbstractTransformer<Entry, TranscriptionFactor>
 {
@@ -46,7 +46,7 @@ public class TranscriptionFactorTransformer extends AbstractTransformer<Entry, T
         String line;
         while( ( line = bReader.readLine() ) != null )
         {
-            String[] fields = TextUtil.splitPos( line, 2 );
+            String[] fields = TextUtil2.splitPos( line, 2 );
             String tag = fields[0];
             if( tag.equals( "//" ) )
                 break;

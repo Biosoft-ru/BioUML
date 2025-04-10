@@ -29,7 +29,7 @@ import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 // TODO: Add Javascript method
 @ClassIcon("resources/track-to-gene-set.gif")
@@ -165,7 +165,7 @@ public class TrackToGeneSet extends AnalysisMethodSupport<TrackToGeneSetParamete
                         {
                             // TODO: intron-relative coordinates
                             siteData = new SiteData(Location.INTRON, gene.getStrand(), Math.abs(siteInterval.getFrom() - gene.getStart()));
-                            for( String blockStr : TextUtil.split( exonsObj.toString(), ';' ) )
+                            for( String blockStr : TextUtil2.split( exonsObj.toString(), ';' ) )
                             {
                                 Interval interval;
                                 try

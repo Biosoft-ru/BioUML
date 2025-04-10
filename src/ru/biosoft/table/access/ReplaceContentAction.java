@@ -9,7 +9,7 @@ import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.Option;
@@ -59,12 +59,12 @@ public class ReplaceContentAction extends BackgroundDynamicAction
                         boolean rowChanged = false;
                         for(int j=0; j<values.length; j++)
                         {
-                            String value = TextUtil.toString(values[j]);
+                            String value = TextUtil2.toString(values[j]);
                             if(parameters.isExactMatch())
                             {
                                 if(value.equals(parameters.getFrom()))
                                 {
-                                    values[j] = TextUtil.fromString(types.get(j).getType(), parameters.getTo());
+                                    values[j] = TextUtil2.fromString(types.get(j).getType(), parameters.getTo());
                                     rowChanged = true;
                                 }
                             } else
@@ -72,7 +72,7 @@ public class ReplaceContentAction extends BackgroundDynamicAction
                                 if(value.contains(parameters.getFrom()))
                                 {
                                     value = value.replace(parameters.getFrom(), parameters.getTo());
-                                    values[j] = TextUtil.fromString(types.get(j).getType(), value);
+                                    values[j] = TextUtil2.fromString(types.get(j).getType(), value);
                                     rowChanged = true;
                                 }
                             }

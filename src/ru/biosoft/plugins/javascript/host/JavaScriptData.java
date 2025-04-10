@@ -52,7 +52,7 @@ import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.columnbeans.ColumnGroup;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.ExProperties;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class JavaScriptData extends JavaScriptHostObjectBase
 {
@@ -394,7 +394,7 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         {
             for( ru.biosoft.access.core.DataElement de : dc )
             {
-                if( TextUtil.isEmpty(column) )
+                if( TextUtil2.isEmpty(column) )
                 {
                     objectsAL.add(de.getName());
                 }
@@ -641,7 +641,7 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         {
             leftColumns = TableDataCollectionUtils.getColumnNames(leftSource);
         }
-        else if( TextUtil.isEmpty(strLeftColumns) )
+        else if( TextUtil2.isEmpty(strLeftColumns) )
         {
             leftColumns = new String[0];
         }
@@ -649,13 +649,13 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         {
             leftColumns = TableDataCollectionUtils.parseStringToColumnNames(strLeftColumns, leftSource);
         }
-        if( TextUtil.isEmpty(newLeftColumnsStr) )
+        if( TextUtil2.isEmpty(newLeftColumnsStr) )
         {
             newLeftColumns = leftColumns;
         }
         else
         {
-            newLeftColumns = TextUtil.split( newLeftColumnsStr, ',' );
+            newLeftColumns = TextUtil2.split( newLeftColumnsStr, ',' );
         }
 
         String unknownCols = StreamEx.of( leftColumns ).remove( col -> leftSource.getColumnModel().hasColumn( col ) ).joining( ", " );
@@ -671,7 +671,7 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         {
             rightColumns = TableDataCollectionUtils.getColumnNames(rightSource);
         }
-        else if( TextUtil.isEmpty(strRightColumns) )
+        else if( TextUtil2.isEmpty(strRightColumns) )
         {
             rightColumns = new String[0];
         }
@@ -680,13 +680,13 @@ public class JavaScriptData extends JavaScriptHostObjectBase
             rightColumns = TableDataCollectionUtils.parseStringToColumnNames(strRightColumns, rightSource);
         }
 
-        if( TextUtil.isEmpty(newRightColumnsStr) )
+        if( TextUtil2.isEmpty(newRightColumnsStr) )
         {
             newRightColumns = rightColumns;
         }
         else
         {
-            newRightColumns = TextUtil.split( newRightColumnsStr, ',' );
+            newRightColumns = TextUtil2.split( newRightColumnsStr, ',' );
         }
 
         unknownCols = StreamEx.of( rightColumns ).remove( col -> rightSource.getColumnModel().hasColumn( col ) ).joining( ", " );
@@ -697,7 +697,7 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         }
 
         // String resultName = CollectionFactory.getLastToken(resultPath);
-        if( TextUtil.isEmpty(resultPath) )
+        if( TextUtil2.isEmpty(resultPath) )
         {
             setLastError(new Throwable("Incorrect result path"));
             return null;

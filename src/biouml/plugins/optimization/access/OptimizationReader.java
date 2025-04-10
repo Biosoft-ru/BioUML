@@ -40,7 +40,7 @@ import ru.biosoft.analysis.optimization.OptimizationMethodParameters.StateInfo;
 import ru.biosoft.analysis.optimization.Parameter;
 import ru.biosoft.analysis.optimization.methods.SRESOptMethod;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlUtil;
 
 public class OptimizationReader extends OptimizationSupport
@@ -347,7 +347,7 @@ public class OptimizationReader extends OptimizationSupport
         Class<?> propertyType = getPropertyType(type);
         if( propertyType != null )
         {
-            return new DynamicProperty(name, name, propertyType, TextUtil.fromString(propertyType, value));
+            return new DynamicProperty(name, name, propertyType, TextUtil2.fromString(propertyType, value));
         }
         return null;
     }

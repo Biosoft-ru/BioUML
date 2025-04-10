@@ -38,7 +38,7 @@ import ru.biosoft.graph.ShapeChanger;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.View;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Prototype DiagramViewBuider is used:
@@ -246,7 +246,7 @@ public class XmlDiagramViewBuilder extends DefaultDiagramViewBuilder
                     }
                     if( value == null )
                     {
-                        value = TextUtil.fromString(dp.getType(), dp.getValue().toString());
+                        value = TextUtil2.fromString(dp.getType(), dp.getValue().toString());
                     }
                 }
                 oldAttributes.add(new DynamicProperty(pName, dp.getType(), value));

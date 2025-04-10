@@ -20,7 +20,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.access.sql.SqlConnectionPool;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.util.HtmlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.DynamicPropertySetAsMap;
@@ -172,8 +172,8 @@ public class ClassificationUnitAsSQL extends AbstractDataCollection<Classificati
     @Override
     public String toString()
     {
-        return TextUtil.isEmpty(getClassName()) ? getName() : getClassName()
-                + ( TextUtil.isEmpty(getDescription()) ? "" : "; " + getDescription() );
+        return TextUtil2.isEmpty(getClassName()) ? getName() : getClassName()
+                + ( TextUtil2.isEmpty(getDescription()) ? "" : "; " + getDescription() );
     }
 
     public String getDisplayName()

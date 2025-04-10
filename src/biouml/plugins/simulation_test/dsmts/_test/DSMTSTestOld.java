@@ -26,7 +26,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.dynamics.VariableRole;
 import biouml.plugins.sbml.SbmlModelFactory;
@@ -383,7 +383,7 @@ public class DSMTSTestOld extends TestCase implements ResultListener
         }
         if( line == null )
             throw new IllegalArgumentException("File '" + file.getName() + "' is empty");
-        String[] species = TextUtil.split( line, ',' );
+        String[] species = TextUtil2.split( line, ',' );
         for( String specie : species )
         {
             specie = specie.trim();
@@ -410,7 +410,7 @@ public class DSMTSTestOld extends TestCase implements ResultListener
             int i = 0;
             while( ( line = reader.readLine() ) != null )
             {
-                String[] vals = TextUtil.split( line, ',' );
+                String[] vals = TextUtil2.split( line, ',' );
 
                 for( int j = 0; j < speciesNumber; j++ )
                 {

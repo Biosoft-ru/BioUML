@@ -3,7 +3,7 @@ package ru.biosoft.bsa.view;
 import ru.biosoft.bsa.project.Project;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.HtmlEditor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @SuppressWarnings ( "serial" )
 public class ProjectDescriptionEditor extends HtmlEditor
@@ -40,7 +40,7 @@ public class ProjectDescriptionEditor extends HtmlEditor
         if( project != null )
         {
             String text = getText();
-            String body = TextUtil.getSection("body", text);
+            String body = TextUtil2.getSection("body", text);
             if( body != null )
                 text = body;
 

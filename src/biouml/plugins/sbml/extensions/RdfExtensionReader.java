@@ -27,7 +27,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlUtil;
 
 public class RdfExtensionReader extends SbmlExtensionSupport
@@ -222,7 +222,7 @@ public class RdfExtensionReader extends SbmlExtensionSupport
                         {
                             databaseName = "urn:miriam:ensembl";
 
-                            id = TextUtil.decodeURL( address.substring( URN_MIRIAM.length() + 1 ) );
+                            id = TextUtil2.decodeURL( address.substring( URN_MIRIAM.length() + 1 ) );
                         }
                         else
                         {
@@ -233,7 +233,7 @@ public class RdfExtensionReader extends SbmlExtensionSupport
                                 continue;
                             }
                             databaseName = address.substring( 0, pos );
-                            id = TextUtil.decodeURL( address.substring( pos + 1 ) );
+                            id = TextUtil2.decodeURL( address.substring( pos + 1 ) );
                         }
 
                         DatabaseInfo info = miriamUrnToInfo.get( databaseName );
@@ -260,7 +260,7 @@ public class RdfExtensionReader extends SbmlExtensionSupport
                             // Delete erroneous EC-prefix from ec-code URL (appears in some SBML files in a wild)
                             if( databaseName.equals( "MIR:00000004" ) )
                             {
-                                String[] ids = TextUtil.split( id, ';' );
+                                String[] ids = TextUtil2.split( id, ';' );
                                 for( String singleId : ids )
                                 {
                                     if( singleId.startsWith( "EC" ) )
@@ -636,7 +636,7 @@ public class RdfExtensionReader extends SbmlExtensionSupport
                     {
                         DatabaseInfo info = miriamCollection.get( dr.getDatabaseName() );
                         if( info != null )
-                            drElement.setAttribute( RESOURCE_ATTRIBUTE, info.getURN() + ":" + TextUtil.encodeURL( dr.getId() ) );
+                            drElement.setAttribute( RESOURCE_ATTRIBUTE, info.getURN() + ":" + TextUtil2.encodeURL( dr.getId() ) );
                         else
                         {
                             //                            String divider = dr.getDatabaseName().startsWith( URN_MIRIAM ) ? ":" : "/";

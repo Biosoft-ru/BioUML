@@ -96,7 +96,7 @@ import ru.biosoft.bsa.analysis.WeightMatrixCollection;
 import ru.biosoft.graphics.chart.Chart;
 import ru.biosoft.jobcontrol.JobControl;
 //import ru.biosoft.util.ListUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author yura
@@ -358,9 +358,9 @@ public class ExploratoryAnalysisUtil
         FunSite[] result = new FunSite[rowNames.length];
         for( int i = 0; i < result.length; i++ )
         {
-            String[] strings = TextUtil.split(rowNames[i], ':');
+            String[] strings = TextUtil2.split(rowNames[i], ':');
             String chromosomeName = strings[0].substring(3);
-            strings = TextUtil.split(strings[1], '-');
+            strings = TextUtil2.split(strings[1], '-');
             Interval coordinates = new Interval(Integer.parseInt(strings[0]), Integer.parseInt(strings[1]));
             result[i] = new FunSite(chromosomeName, coordinates, 0, new DataMatrix(Integer.toString(i), new String[]{RankAggregation.RA_SCORE, "Indicator"}, new double[]{scores[i], indicators[i]}));
             result[i].setObjects(new Object[]{indicators[i]});
@@ -508,7 +508,7 @@ public class ExploratoryAnalysisUtil
         public Feature(String feature)
         {
             this.feature = feature;
-            String[] array = TextUtil.split(feature, '_');
+            String[] array = TextUtil2.split(feature, '_');
             int n = array.length;
             if( n == 3 )
                 tfClass = array[0];
@@ -596,10 +596,10 @@ public class ExploratoryAnalysisUtil
             String line = column[index];
             //StringUtils.remove(line, ":I");
             line = line.replace(":I", "II");
-            String[] array = TextUtil.split(line, ':');
+            String[] array = TextUtil2.split(line, ':');
             for( int j = 0; j < numberOfCorrelatedFeatures; j++ )
             {
-                String[] arrayFeatures = TextUtil.split(array[j + 1], ',');
+                String[] arrayFeatures = TextUtil2.split(array[j + 1], ',');
                 correlatedFeatures[i][j] = new Feature(arrayFeatures[0]);
                 // corr[i][j] = Double.parseDouble(arrayFeatures[1]);
                 corr[i][j] = StringUtils.substring(arrayFeatures[1], 0, 5);
@@ -938,7 +938,7 @@ public class ExploratoryAnalysisUtil
         {
             log.info("i = " + i + " fileNames[i] = " + fileNames[i]);
             dm = new DataMatrix(pathToInputFolder.getChildPath(fileNames[i]), new String[]{"TPM_lg"});
-            columnNames[i] = TextUtil.split(fileNames[i], '_')[0];
+            columnNames[i] = TextUtil2.split(fileNames[i], '_')[0];
             MatrixUtils.fillColumn(matrix, dm.getColumn(0), i);
         }
         dm = new DataMatrix(rowNames, columnNames, matrix);
@@ -2285,7 +2285,7 @@ public class ExploratoryAnalysisUtil
         {
         	log.info(" i = " + i + " uniprotIds = " + uniprotIdsInTable[i]);
         	if( uniprotIdsInTable[i] == null || uniprotIdsInTable[i].equals("") ) continue;
-        	String[] tokens = TextUtil.split(uniprotIdsInTable[i], ',');
+        	String[] tokens = TextUtil2.split(uniprotIdsInTable[i], ',');
         	boolean doContainUuniprotIds = false;
         	for( String s : tokens )
         		if( ArrayUtils.contains(uniprotIds, s) )
@@ -2295,7 +2295,7 @@ public class ExploratoryAnalysisUtil
         		}
         	if( ! doContainUuniprotIds ) continue;
         	if( cellLinesInTable[i] == null || cellLinesInTable[i].equals("") || cellLinesInTable[i].equals("null")) continue;
-        	tokens = TextUtil.split(cellLinesInTable[i], ';');
+        	tokens = TextUtil2.split(cellLinesInTable[i], ';');
         	for( String s : tokens )
         		set.add(s);
         }
@@ -2344,7 +2344,7 @@ public class ExploratoryAnalysisUtil
         {
             DynamicPropertySet dps = site.getProperties();
             String string = dps.getValueAsString(propertyName);
-            String[] strings = TextUtil.split(string, ',');
+            String[] strings = TextUtil2.split(string, ',');
             for( String s : strings )
             	set.add(s);
         }
@@ -2678,7 +2678,7 @@ public class ExploratoryAnalysisUtil
         for( int i = 0; i < column.length; i++ )
         {
         	if( column[i] == null || column[i].equals("") ) continue;
-        	String[] tokens = TextUtil.split(column[i], ',');
+        	String[] tokens = TextUtil2.split(column[i], ',');
         	if( ! ArrayUtils.contains(tokens, uniprotId) ) continue;
         	DataMatrixString preRow = dms.getRow(i);
         	String[] row = preRow.getRow(rowNames[i]);
@@ -2720,7 +2720,7 @@ public class ExploratoryAnalysisUtil
         	String cellLineInGtrd = distinctCellLinesInGtrd[index];
         	if( ! ArrayUtils.contains(givenCellLinesInMetaClusters, cellLineInGtrd)) continue;
         	
-        	String[] tokens = TextUtil.split(column[i], ',');
+        	String[] tokens = TextUtil2.split(column[i], ',');
         	if( ! ArrayUtils.contains(tokens, uniprotId) ) continue;
         	DataMatrixString preRow = dms.getRow(i);
         	String[] row = preRow.getRow(rowNames[i]);
@@ -2751,7 +2751,7 @@ public class ExploratoryAnalysisUtil
         for( int i = 0; i < column.length; i++ )
         {
         	if( column[i] == null || column[i].equals("") ) continue;
-        	String[] tokens = TextUtil.split(column[i], ',');
+        	String[] tokens = TextUtil2.split(column[i], ',');
         	for( String s : tokens )
         		list.add(s);
         }
@@ -4226,7 +4226,7 @@ public class ExploratoryAnalysisUtil
     		}
     		
     		// 2.3. Calculate distinctTrackNames and trackNamesNew as String. 
-            String[] strings = TextUtil.split(trackNamesNew, ',');
+            String[] strings = TextUtil2.split(trackNamesNew, ',');
             String[] distinctTrackNames = UtilsGeneral.getDistinctValues(strings);
             
             String distinctTrackNamesAsString = "";

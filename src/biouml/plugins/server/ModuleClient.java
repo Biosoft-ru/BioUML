@@ -16,7 +16,7 @@ import ru.biosoft.access.exception.BiosoftNetworkException;
 import ru.biosoft.exception.LoggedClassNotFoundException;
 import ru.biosoft.server.Connection;
 import ru.biosoft.server.Request;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.CollectionDescription;
 import biouml.plugins.server.access.ClientDataCollection;
 import biouml.plugins.server.access.ClientModule;
@@ -148,7 +148,7 @@ public class ModuleClient
             while( tokenizer.hasMoreTokens() )
             {
                 String oneDescription = tokenizer.nextToken();
-                String[] values = TextUtil.split( oneDescription, '@' );
+                String[] values = TextUtil2.split( oneDescription, '@' );
                 if( values.length >= 4 )
                 {
                     CollectionDescription cd = new CollectionDescription();

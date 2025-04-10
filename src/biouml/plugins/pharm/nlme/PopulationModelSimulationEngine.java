@@ -34,7 +34,7 @@ import ru.biosoft.table.export.TableElementExporter;
 import ru.biosoft.util.ApplicationUtils;
 import ru.biosoft.util.TempFile;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 import ru.biosoft.access.core.PluginEntry;
@@ -203,7 +203,7 @@ public class PopulationModelSimulationEngine extends SimulationEngine
         observedColumn = null;
         timeColumn = null;
         String formula = model.getFormula();
-        String[] parts = TextUtil.split( formula, '~' ); //TODO: check formula
+        String[] parts = TextUtil2.split( formula, '~' ); //TODO: check formula
         observedColumn = parts[0];
         DataCollection<PopulationVariable> variables = ( (PopulationEModel)executableModel ).getPopulationVariables();
         for( Variable var : model.getVariables() )

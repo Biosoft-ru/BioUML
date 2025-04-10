@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.LocalRepository;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.workbench.BioUMLApplication;
 import biouml.workbench.resources.MessageBundle;
 
@@ -239,7 +239,7 @@ public abstract class AbstractLoadPane extends JPanel
 
     protected boolean canLoad()
     {
-        if( TextUtil.isEmpty( getSelectedUrl() ) )
+        if( TextUtil2.isEmpty( getSelectedUrl() ) )
         {
             return false;
         }

@@ -24,7 +24,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.exception.BiosoftNetworkException;
 import ru.biosoft.access.security.CodePrivilege;
 import ru.biosoft.access.security.CodePrivilegeType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.application.ApplicationUtils;
 import com.eclipsesource.json.JsonObject;
@@ -123,7 +123,7 @@ public class ServerConnector
             urlc.setDoOutput(true);
             if( parameters != null )
             {
-                String paramStr = EntryStream.of( parameters ).mapKeys( TextUtil::encodeURL ).mapValues( TextUtil::encodeURL ).join( "=" )
+                String paramStr = EntryStream.of( parameters ).mapKeys( TextUtil2::encodeURL ).mapValues( TextUtil2::encodeURL ).join( "=" )
                         .joining( "&" );
                 try( OutputStreamWriter wr = new OutputStreamWriter( urlc.getOutputStream() ) )
                 {
@@ -135,7 +135,7 @@ public class ServerConnector
             List<String> cookies = urlc.getHeaderFields().get("Set-Cookie");
             if( cookies != null )
             {
-                sessionCookie = StreamEx.of(cookies).map( cookie -> TextUtil.split( cookie, ';' )[0] ).joining( "; " );
+                sessionCookie = StreamEx.of(cookies).map( cookie -> TextUtil2.split( cookie, ';' )[0] ).joining( "; " );
             }
             return urlc.getInputStream();
         }

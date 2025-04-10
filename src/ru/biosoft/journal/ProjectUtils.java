@@ -17,7 +17,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.util.DatabaseVersionComparator;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -116,7 +116,7 @@ public class ProjectUtils
     {
         if(dc == null)
             return "";
-        return TextUtil.nullToEmpty( dc.getInfo().getProperty( "version" ) );
+        return TextUtil2.nullToEmpty( dc.getInfo().getProperty( "version" ) );
     }
 
     public static DataElementPath getPreferredDatabasePath(String wantedDatabase)

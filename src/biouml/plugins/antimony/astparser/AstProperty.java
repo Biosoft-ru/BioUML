@@ -2,7 +2,7 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.antimony.astparser;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class AstProperty extends SimpleNode
 {
@@ -40,7 +40,7 @@ public class AstProperty extends SimpleNode
     {
         for( int i = 0; i < this.jjtGetNumChildren(); i++ )
             if( this.jjtGetChild(i) instanceof AstText )
-                ( (AstText)this.jjtGetChild(i) ).setText("\"" + TextUtil.toString(newValue) + "\"");
+                ( (AstText)this.jjtGetChild(i) ).setText("\"" + TextUtil2.toString(newValue) + "\"");
     }
 
     @Override

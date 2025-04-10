@@ -2,7 +2,7 @@ package biouml.plugins.state.analyses;
 
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.JSONBean;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -45,7 +45,7 @@ public class StateChange extends Option implements JSONBean
             Diagram diagram = getDiagram();
             DiagramElement bean = diagram.getDiagramElement( getElementId() );
             Object value = BeanUtil.getBeanPropertyValue( bean, elementProperty );
-            setPropertyValue( TextUtil.toString( value ) );
+            setPropertyValue( TextUtil2.toString( value ) );
         }
         catch( Exception ignore )
         {

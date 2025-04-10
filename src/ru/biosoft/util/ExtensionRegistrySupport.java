@@ -260,15 +260,15 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                                 firstPlugin = false;
                             } else
                             {
-                                debugInfo.append(TextUtil.whiteSpace(extensionPointId.length())).append(
+                                debugInfo.append(TextUtil2.whiteSpace(extensionPointId.length())).append(
                                         pluginIterator.hasNext() ? " |- " : " \\- ");
                             }
                             debugInfo.append(pluginEntry.getKey()).append(" -- ");
                         } else
                         {
-                            debugInfo.append(TextUtil.whiteSpace(extensionPointId.length()))
+                            debugInfo.append(TextUtil2.whiteSpace(extensionPointId.length()))
                                     .append(pluginIterator.hasNext() ? " |  " : "    ")
-                                    .append(TextUtil.whiteSpace(pluginEntry.getKey().length())).append(extensionIterator.hasNext() ? " |- " : " \\- ");
+                                    .append(TextUtil2.whiteSpace(pluginEntry.getKey().length())).append(extensionIterator.hasNext() ? " |- " : " \\- ");
                         }
                         debugInfo.append(extension).append("\n");
                     }

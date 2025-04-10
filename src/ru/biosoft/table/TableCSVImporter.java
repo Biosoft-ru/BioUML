@@ -44,7 +44,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.ReferenceTypeSelector;
 
@@ -175,7 +175,7 @@ public class TableCSVImporter implements DataElementImporter
     public static void fillTable(@Nonnull File file, TableDataCollection table, FunctionJobControl jobControl, NullImportProperties properties)
             throws IOException
     {
-        String columnForID = TextUtil.nullToEmpty( properties.getColumnForID() );
+        String columnForID = TextUtil2.nullToEmpty( properties.getColumnForID() );
         boolean addSuffix = properties.isAddSuffix();
         int headerRowIndex = properties.getHeaderRow();
         int firstDataRowIndex = properties.getDataRow();
@@ -401,7 +401,7 @@ public class TableCSVImporter implements DataElementImporter
                         if( !br.ready() )
                             break;
                         String line = br.readLine();
-                        if( !TextUtil.isEmpty(line) )
+                        if( !TextUtil2.isEmpty(line) )
                         {
                             for( String del : dels )
                             {
@@ -640,7 +640,7 @@ public class TableCSVImporter implements DataElementImporter
             {
                 if( columnScores.size() <= i )
                     columnScores.add(new TObjectLongHashMap<Class<?>>());
-                if( TextUtil.isEmpty(values[i]) )
+                if( TextUtil2.isEmpty(values[i]) )
                     continue;
                 Class<?> type = detectColumnType(values[i]);
                 int scoreAdd = type == Integer.class ? 1 : type == Double.class ? 30 : 1000;
@@ -679,11 +679,11 @@ public class TableCSVImporter implements DataElementImporter
 
     private static Class<?> detectColumnType(String string)
     {
-        if( TextUtil.isIntegerNumber(string) )
+        if( TextUtil2.isIntegerNumber(string) )
         {
             return Integer.class;
         }
-        else if( TextUtil.isFloatingPointNumber(string) )
+        else if( TextUtil2.isFloatingPointNumber(string) )
         {
             return Double.class;
         }
@@ -722,7 +722,7 @@ public class TableCSVImporter implements DataElementImporter
             int columnForIDindex,
             int limit) throws IOException
     {
-        String columnForID = TextUtil.nullToEmpty( properties.getColumnForID() );
+        String columnForID = TextUtil2.nullToEmpty( properties.getColumnForID() );
         if( columnForID.equals( GENERATE_UNIQUE_ID ) )
             return ReferenceTypeRegistry.getDefaultReferenceType();
 
@@ -967,7 +967,7 @@ public class TableCSVImporter implements DataElementImporter
                     if( !br.ready() )
                         break;
                     String line = br.readLine();
-                    if( !TextUtil.isEmpty( line ) )
+                    if( !TextUtil2.isEmpty( line ) )
                     {
                         for( int i = 0; i < dels.length; i++ )
                         {
@@ -1014,7 +1014,7 @@ public class TableCSVImporter implements DataElementImporter
                     DataType[] rowTypes = new DataType[values.length];
                     for( int i = 0; i < values.length; i++ )
                     {
-                        if( TextUtil.isFloatingPointNumber( values[i] ) )
+                        if( TextUtil2.isFloatingPointNumber( values[i] ) )
                             rowTypes[i] = DataType.Float;
                         else
                             rowTypes[i] = DataType.Text;
@@ -1155,7 +1155,7 @@ public class TableCSVImporter implements DataElementImporter
                     String line = br.readLine();
                     if( null == line )
                         break;
-                    if( !TextUtil.isEmpty( line ) )
+                    if( !TextUtil2.isEmpty( line ) )
                     {
                         numLines++;
                         String trimmedLine = line.trim();

@@ -7,7 +7,7 @@ import ru.biosoft.analysis.Util.CubicSpline;
 import ru.biosoft.analysis.Util.LinearSpline;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -115,7 +115,7 @@ public class TableElementPreprocessor extends Preprocessor
 
         String leftCol = null;
         String rightCol = null;
-        String[] vars = TextUtil.split( formula, '~' );
+        String[] vars = TextUtil2.split( formula, '~' );
         if( vars.length != 2 )
             throw new Exception( "Illegal formula in table element " + node.getName() + " : " + formula );
         vars[0] = vars[0].trim();

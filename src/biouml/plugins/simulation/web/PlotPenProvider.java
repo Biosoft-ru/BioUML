@@ -11,14 +11,14 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.BeanProvider;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.servlets.webservices.providers.WebBeanProvider;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class PlotPenProvider implements BeanProvider
 {
     @Override
     public Object getBean(String path)
     {
-        String[] params = TextUtil.split( path, ';' );
+        String[] params = TextUtil2.split( path, ';' );
         
         if( params.length >= 2 )
         {

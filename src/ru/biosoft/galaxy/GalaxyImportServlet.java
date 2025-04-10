@@ -25,7 +25,7 @@ import ru.biosoft.server.AbstractServlet;
 import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.util.NetworkConfigurator;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -55,7 +55,7 @@ public class GalaxyImportServlet extends AbstractServlet
                 {
                     String[] fields = toolName.split("\\?");
                     toolName = fields[0];
-                    fields = TextUtil.split( fields[1], '=' );
+                    fields = TextUtil2.split( fields[1], '=' );
                     parameters.put(fields[0], fields[1]);
                 }
                 DataElement toolElement = CollectionFactory.getDataElement(toolName);
@@ -72,8 +72,8 @@ public class GalaxyImportServlet extends AbstractServlet
                         String[] query = queryStr.split("[\\&\\;]");
                         for( String queryParameter : query )
                         {
-                            String[] fields = TextUtil.split( queryParameter, '=' );
-                            parameters.put( TextUtil.decodeURL( fields[0] ), TextUtil.decodeURL( fields[1] ) );
+                            String[] fields = TextUtil2.split( queryParameter, '=' );
+                            parameters.put( TextUtil2.decodeURL( fields[0] ), TextUtil2.decodeURL( fields[1] ) );
                         }
                     }
                 }
@@ -91,7 +91,7 @@ public class GalaxyImportServlet extends AbstractServlet
                 if(urlMethod.equals("post"))
                 {
                     connection.setRequestMethod("POST");
-                    String postData = EntryStream.of( galaxyParameters ).mapKeys( TextUtil::encodeURL ).mapValues( TextUtil::encodeURL )
+                    String postData = EntryStream.of( galaxyParameters ).mapKeys( TextUtil2::encodeURL ).mapValues( TextUtil2::encodeURL )
                             .join( "=" ).joining( "&" );
                     connection.setDoOutput(true);
                     try (OutputStreamWriter wr = new OutputStreamWriter( connection.getOutputStream() ))

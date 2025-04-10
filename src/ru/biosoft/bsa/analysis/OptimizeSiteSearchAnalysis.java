@@ -442,7 +442,7 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
             }
             catch(Exception e)
             {
-                throw new ParameterNotAcceptableException(e, parameters, "in"+TextUtil.ucFirst(TRACK_NAME[trackNum])+"Track");
+                throw new ParameterNotAcceptableException( e, parameters, "in" + TextUtil.ucFirst( TRACK_NAME[trackNum] ) + "Track" );
             }
             sites[trackNum] = getAllSites(trackInfo[trackNum]);
             models.addAll(sites[trackNum].keySet());

@@ -20,7 +20,7 @@ import ru.biosoft.access.sql.SqlConnectionPool;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.server.MapClientServerTransformer;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Module;
 import biouml.plugins.server.access.AccessProtocol;
 import biouml.plugins.server.access.ClientDataCollection;
@@ -39,7 +39,7 @@ public class EnsemblSequenceSetsCollection extends ReadOnlyVectorCollection<SqlD
     {
         super(parent, properties);
         if(properties.containsKey(CHROMOSOMES_KEY))
-            chromosomes = TextUtil.split( properties.getProperty(CHROMOSOMES_KEY), ',' );
+            chromosomes = TextUtil2.split( properties.getProperty(CHROMOSOMES_KEY), ',' );
     }
 
     @Override

@@ -4,7 +4,7 @@ import java.util.List;
 
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.gui.Document;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.Role;
@@ -63,14 +63,14 @@ public class TestVariable extends Option
 
     public TestVariable(String text)
     {
-        String[] names = TextUtil.split( text, ',' );
+        String[] names = TextUtil2.split( text, ',' );
         this.subDiagramName = names[0];
         this.name = names[1];
     }
 
     public void setContent(String text)
     {
-        String[] names = TextUtil.split( text, ',' );
+        String[] names = TextUtil2.split( text, ',' );
         this.subDiagramName = names[0];
         this.name = names[1];
     }

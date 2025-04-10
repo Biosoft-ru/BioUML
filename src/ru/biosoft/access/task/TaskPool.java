@@ -23,7 +23,7 @@ import ru.biosoft.access.security.SessionThreadFactory;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.Iteration;
 import ru.biosoft.jobcontrol.JobControl;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -136,7 +136,7 @@ public class TaskPool
 
     protected ThreadPool getUserPool()
     {
-        String user = TextUtil.nullToEmpty( SecurityManager.getSessionUser() );
+        String user = TextUtil2.nullToEmpty( SecurityManager.getSessionUser() );
         int threadsNumber = SecurityManager.getMaximumThreadsNumber();
         ThreadPool executor = userThreads.get(user);
         if(executor != null)

@@ -24,7 +24,7 @@ import ru.biosoft.access.script.NullScriptEnvironment;
 import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl.BreakType;
 import ru.biosoft.plugins.jri.RUtility;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.plugins.jri.rdirect.Message.MessageType;
 
 public class RDirectSession implements AutoCloseable
@@ -141,7 +141,7 @@ public class RDirectSession implements AutoCloseable
         String err = errors.toString();
         if(!err.trim().isEmpty())
             return null;
-        String[] results = TextUtil.split( result.toString(), '\n' );
+        String[] results = TextUtil2.split( result.toString(), '\n' );
         if(results.length < 2)
             return null;
         String type = results[0];
@@ -301,7 +301,7 @@ public class RDirectSession implements AutoCloseable
         if(!err.trim().isEmpty())
             return null;
         boolean[] results = new boolean[length];
-        String[] split = TextUtil.split( result.chomp().toString(), '\n');
+        String[] split = TextUtil2.split( result.chomp().toString(), '\n');
         for(int i=0; i<results.length; i++)
             results[i] = Boolean.parseBoolean( split[i] );
         return results.length == 1 ? results[0] : results;

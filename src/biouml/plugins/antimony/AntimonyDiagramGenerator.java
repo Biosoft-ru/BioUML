@@ -125,7 +125,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.math.model.LinearFormatter;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class AntimonyDiagramGenerator
 {
@@ -1138,8 +1138,8 @@ public class AntimonyDiagramGenerator
         if( node == null )
             return null;
         node = (Node)validateSpecieNode(node, prototype.astNodes,
-                TextUtil.nullToEmpty((String)prototype.dynamicProperty.get(AntimonyConstants.SBGN_STRUCTURE)),
-                TextUtil.nullToEmpty((String)prototype.dynamicProperty.get(AntimonyConstants.SBGN_TYPE)));
+                TextUtil2.nullToEmpty((String)prototype.dynamicProperty.get(AntimonyConstants.SBGN_STRUCTURE)),
+                TextUtil2.nullToEmpty((String)prototype.dynamicProperty.get(AntimonyConstants.SBGN_TYPE)));
 
         if( SbgnUtil.isComplex(node) )
             validateComplexComponents(prototype, (Compartment)node);
@@ -1376,7 +1376,7 @@ public class AntimonyDiagramGenerator
         if( dp == null )
             attributes.add(new DynamicProperty(property, String.class, value));
         else
-            dp.setValue(TextUtil.fromString(dp.getType(), value));
+            dp.setValue(TextUtil2.fromString(dp.getType(), value));
 
     }
 

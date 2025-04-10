@@ -29,7 +29,7 @@ public class LazyDynamicPropertySet extends AbstractDynamicPropertySet
         {
             try
             {
-                this.original = TextUtil.readDPSFromJSON(serialized);
+                this.original = TextUtil2.readDPSFromJSON(serialized);
             }
             catch( Exception e )
             {

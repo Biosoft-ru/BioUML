@@ -21,7 +21,7 @@ import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
@@ -319,7 +319,7 @@ public class TableDataTagCommand extends DividedLineTagCommand<TableDataCollecti
             String paramsArray[] = line.split("\\n");
             for( String param : paramsArray )
             {
-                String preGroup[] = TextUtil.split( param, '=' );
+                String preGroup[] = TextUtil2.split( param, '=' );
                 if( preGroup.length > 1 )
                 {
                     int index = preGroup[0].indexOf(' ');
@@ -362,7 +362,7 @@ public class TableDataTagCommand extends DividedLineTagCommand<TableDataCollecti
             String paramsArray[] = line.split("\\n");
             for( String param : paramsArray )
             {
-                String preGroup[] = TextUtil.split( param, '=' );
+                String preGroup[] = TextUtil2.split( param, '=' );
                 if( preGroup.length > 1 )
                 {
                     String value = preGroup[1].replaceAll("\\\\t", "\t");
@@ -381,11 +381,11 @@ public class TableDataTagCommand extends DividedLineTagCommand<TableDataCollecti
             List<String> list = samples.getNameList();
             for( String param : paramsArray )
             {
-                String preProp[] = TextUtil.split( param, '=' );
+                String preProp[] = TextUtil2.split( param, '=' );
                 if( preProp.length == 2 )
                 {
                     String name = preProp[0];
-                    String values[] = TextUtil.split( preProp[1], ';' );
+                    String values[] = TextUtil2.split( preProp[1], ';' );
                     for( int j = 0; j < values.length; j++ )
                     {
                         Sample ms = null;

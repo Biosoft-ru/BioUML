@@ -1,6 +1,6 @@
 package biouml.plugins.research.workflow.items;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Cycle which iterates over semicolon-separated list of values
@@ -17,7 +17,7 @@ public class EnumCycleType implements CycleType
     private String[] parse(String expression)
     {
         if(expression == null) return new String[0];
-        return TextUtil.split(expression, ';');
+        return TextUtil2.split(expression, ';');
     }
 
     @Override

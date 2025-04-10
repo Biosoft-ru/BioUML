@@ -62,7 +62,7 @@ import ru.biosoft.graph.Graph;
 import ru.biosoft.graph.PathwayLayouter;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.util.Maps;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class SemanticSimulatorTest extends SimulatorTest
 {
@@ -382,7 +382,7 @@ public class SemanticSimulatorTest extends SimulatorTest
                 logger.testCompleted();
 
                 if( generateImages )
-                    outputFigures(diagram, null, TextUtil.split(testName, '/')[0]);
+                    outputFigures(diagram, null, TextUtil2.split(testName, '/')[0]);
                 return;
             }
             else
@@ -464,7 +464,7 @@ public class SemanticSimulatorTest extends SimulatorTest
                 if( DiagramUtility.isComposite(initialDiagram) )
                     processedDiagram = engine.getDiagram();
 
-                outputFigures(initialDiagram, processedDiagram, TextUtil.split(testName, '/')[0]);
+                outputFigures(initialDiagram, processedDiagram, TextUtil2.split(testName, '/')[0]);
             }
             catch( Exception e )
             {

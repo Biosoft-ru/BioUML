@@ -14,7 +14,7 @@ import biouml.standard.type.Gene;
 import biouml.standard.type.Publication;
 import ru.biosoft.access.Entry;
 import ru.biosoft.bsa.Const;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 /**
@@ -55,13 +55,13 @@ public class GeneTransformer extends TransfacTransformerSupport<Gene>
             String line;
             while( ( line = reader.readLine() ) != null )
             {
-                String[] fields = TextUtil.splitPos(line, 2);
+                String[] fields = TextUtil2.splitPos(line, 2);
 
                 if( fields[0].equals("//") )
                     break;
                 if( fields[0].equals("OS") )
                 {
-                    species = TextUtil.split(fields[1], '/')[0];
+                    species = TextUtil2.split(fields[1], '/')[0];
                 }
                 else if( fields[0].equals("BS"))
                 {

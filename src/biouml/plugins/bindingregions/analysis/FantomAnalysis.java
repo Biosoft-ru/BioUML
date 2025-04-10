@@ -57,7 +57,7 @@ import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.graphics.chart.Chart;
 import ru.biosoft.util.ConstantResourceBundle;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericMultiSelectEditor;
 
@@ -324,7 +324,7 @@ public class FantomAnalysis extends AnalysisMethodSupport<FantomAnalysis.FantomA
         {
             String[][] vocabularyFrom = new String[column.length][];
             for( int i = 0; i < column.length; i++ )
-                vocabularyFrom[i] = column[i].equals("") ? new String[]{""} : TextUtil.split(column[i], ',');
+                vocabularyFrom[i] = column[i].equals("") ? new String[]{""} : TextUtil2.split(column[i], ',');
             return vocabularyFrom;
         }
     }
@@ -369,7 +369,7 @@ public class FantomAnalysis extends AnalysisMethodSupport<FantomAnalysis.FantomA
             for( int ii = 0; ii < column.length; ii++ )
             {
                 if( column[ii].equals("") ) continue;
-                String[] words = TextUtil.split(column[ii], ',');
+                String[] words = TextUtil2.split(column[ii], ',');
                 Set<String> set = new HashSet<>();
                 for( String s : words )
                 {
@@ -402,7 +402,7 @@ public class FantomAnalysis extends AnalysisMethodSupport<FantomAnalysis.FantomA
         {
             if( jobControl != null )
                 jobControl.setPreparedness(fromNew + (i + 1) * difference / fileLines.length);
-            String[] tokens = TextUtil.split(fileLines[i], '\t');
+            String[] tokens = TextUtil2.split(fileLines[i], '\t');
             if( tokens.length < 9 || tokens[0].length() < 4 || ! tokens[0].substring(0, 3).equals("chr") ) continue;
             String chromosome = tokens[0].substring(3), newName = "F_" + Integer.toString(index++);
             chromosome = chromosome.equals("M") ? "MT" : chromosome;
@@ -452,7 +452,7 @@ public class FantomAnalysis extends AnalysisMethodSupport<FantomAnalysis.FantomA
         for( int i = 0; i < fileLines.length; i++ )
         {
             jobControl.setPreparedness(from + (i + 1) * difference / fileLines.length);
-            String[] tokens = TextUtil.split(fileLines[i], '\t');
+            String[] tokens = TextUtil2.split(fileLines[i], '\t');
             if( tokens.length < 10 ) continue;
             if( tokens[0].equals(cagePeakNamesOld[index]) )
             {

@@ -41,7 +41,7 @@ import ru.biosoft.access.sql.FastBulkInsert;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.util.HtmlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -209,7 +209,7 @@ public class HubBuilder extends AbstractBioUMLTest
             id = id.replaceAll("[^\\d\\.]", "");
             int pos = title.indexOf(": ");
             if(pos > 0) title = title.substring(pos+2);
-            level = TextUtil.split(id, '.').length;
+            level = TextUtil2.split(id, '.').length;
         }
 
         public String getParentID(Map<String, ClassInfo> classes)
@@ -221,7 +221,7 @@ public class HubBuilder extends AbstractBioUMLTest
 
         public String getPreviousSiblingID()
         {
-            String[] elements = TextUtil.split(id, '.');
+            String[] elements = TextUtil2.split(id, '.');
             int siblingNumber = Integer.parseInt(elements[elements.length-1])-1;
             if(siblingNumber <= 0) return "";
             elements[elements.length-1] = String.valueOf(siblingNumber);

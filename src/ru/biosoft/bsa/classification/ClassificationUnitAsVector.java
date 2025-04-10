@@ -13,7 +13,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.bsa.Const;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ClassificationUnitAsVector extends VectorDataCollection<ClassificationUnit> implements ClassificationUnit
 {
@@ -157,6 +157,6 @@ public class ClassificationUnitAsVector extends VectorDataCollection<Classificat
     @Override
     public String toString()
     {
-        return TextUtil.isEmpty(getClassName())?getName():getClassName()+(TextUtil.isEmpty(getDescription())?"":"\n"+getDescription().replace("; ", "\n"));
+        return TextUtil2.isEmpty(getClassName())?getName():getClassName()+(TextUtil2.isEmpty(getDescription())?"":"\n"+getDescription().replace("; ", "\n"));
     }
 }

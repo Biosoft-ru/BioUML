@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.ArrayUtils;
 
 import ru.biosoft.analysis.Util;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.machinelearning.utils.PrimitiveOperations;
 import biouml.plugins.machinelearning.utils.StatUtils.UnivariateSample;
 import biouml.plugins.machinelearning.utils.UtilsGeneral.UtilsForArray;
@@ -215,12 +215,12 @@ public class TreeUtils
         
         public static RegressionNode[] readNodesInLines(String[] lines)
         {
-            String[] tokens = TextUtil.split(lines[0], '\t');
+            String[] tokens = TextUtil2.split(lines[0], '\t');
             int n = Integer.parseInt(tokens[1]), index = 0;
             RegressionNode[] result = new RegressionNode[n];
             for( int i = 0; i < n; i++ )
             {
-                tokens = TextUtil.split(lines[++index], '\t');
+                tokens = TextUtil2.split(lines[++index], '\t');
                 int nodeSize = Integer.parseInt(tokens[1]);
                 double meanResponse = Double.parseDouble(tokens[3]);
                 int[] variableIndices = new int[nodeSize];
@@ -228,7 +228,7 @@ public class TreeUtils
                 boolean[] areLess = new boolean[nodeSize];
                 for( int j = 0; j < nodeSize; j++ )
                 {
-                    tokens = TextUtil.split(lines[++index], '\t');
+                    tokens = TextUtil2.split(lines[++index], '\t');
                     variableIndices[j] = Integer.parseInt(tokens[0]);
                     breakValues[j] = Double.parseDouble(tokens[1]);
                     areLess[j] = tokens[2].equals("true") ? true : false;

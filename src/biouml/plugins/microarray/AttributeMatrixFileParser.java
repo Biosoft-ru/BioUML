@@ -20,7 +20,7 @@ import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class AttributeMatrixFileParser
 {
@@ -37,7 +37,7 @@ public class AttributeMatrixFileParser
         return headerName;
     }
 
-    private static final String ATT_MAT_EXTENSIONS[] = TextUtil.split( MessageBundle.getMessage("ATT_MAT_FILE_EXT"), ' ' );
+    private static final String ATT_MAT_EXTENSIONS[] = TextUtil2.split( MessageBundle.getMessage("ATT_MAT_FILE_EXT"), ' ' );
 
     public AttributeMatrixFileParser()
     {
@@ -242,11 +242,11 @@ public class AttributeMatrixFileParser
 
     private DataType tryToResolveType(String string)
     {
-        if( TextUtil.isIntegerNumber(string) )
+        if( TextUtil2.isIntegerNumber(string) )
         {
             return DataType.Integer;
         }
-        else if( TextUtil.isFloatingPointNumber(string) )
+        else if( TextUtil2.isFloatingPointNumber(string) )
         {
             return DataType.Float;
         }

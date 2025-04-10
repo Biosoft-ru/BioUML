@@ -20,7 +20,7 @@ import java.util.zip.GZIPInputStream;
 import biouml.plugins.download.FileDownloader;
 import ru.biosoft.access.sql.Connectors;
 import ru.biosoft.access.biohub.SQLBasedHub;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class MiRBaseHubImporter
 {
@@ -72,7 +72,7 @@ public class MiRBaseHubImporter
                     stemLoopAcc = stemLoopAcc.substring( 0, stemLoopAcc.length() - 1 );
                 }
                 else if(line.startsWith( "DR   ENTREZGENE;" ))
-                    entrezId = TextUtil.split( line, ';' )[1].trim();
+                    entrezId = TextUtil2.split( line, ';' )[1].trim();
                 else if(line.startsWith( "DE   " ))
                 {
                     species = line.substring( "DE   ".length() );
@@ -184,7 +184,7 @@ public class MiRBaseHubImporter
             {
                 String acc = line.split( "\t" )[0];
                 String group = line.substring( line.indexOf( '\t' ) + 1, line.length() - 1 );
-                String[] elements = TextUtil.split( group, ';' );
+                String[] elements = TextUtil2.split( group, ';' );
                 for(String e : elements)
                     aliases.put( e, elements );
                 aliases.put( acc, elements );

@@ -16,7 +16,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.BeanInfoConstants;
 import com.developmentontheedge.beans.Option;
@@ -361,7 +361,7 @@ public class ColumnGroup extends Option implements PropertyChangeListener
         catch(JSONException e)
         {
             // Old format
-            String[] elements = TextUtil.split( str, ';' );
+            String[] elements = TextUtil2.split( str, ';' );
             ColumnGroup result = new ColumnGroup(parent);
             if( elements.length > 0 )
             {
@@ -375,7 +375,7 @@ public class ColumnGroup extends Option implements PropertyChangeListener
             List<Column> columns = new ArrayList<>();
             for( int i = 1; i < elements.length; i++ )
             {
-                String[] cParams = TextUtil.split( elements[i], ':' );
+                String[] cParams = TextUtil2.split( elements[i], ':' );
                 if( cParams.length == 3 )
                 {
                     Column column = new Column(result, cParams[0], cParams[1], Column.generateTimePoint(cParams[2]));

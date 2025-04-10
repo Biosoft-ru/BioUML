@@ -8,7 +8,7 @@ import com.eclipsesource.json.JsonObject;
 
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.exception.LoggedClassNotFoundException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class Rule
 {
@@ -20,14 +20,14 @@ public class Rule
     {
         this.allow = allow;
         this.template = template;
-        this.regExp = Pattern.compile(TextUtil.wildcardToRegex(template));
+        this.regExp = Pattern.compile(TextUtil2.wildcardToRegex(template));
     }
     
     protected Rule(IConfigurationElement element)
     {
         allow = checkAllowed( element );
         template = element.getAttribute("id");
-        regExp = Pattern.compile(TextUtil.wildcardToRegex(template));
+        regExp = Pattern.compile(TextUtil2.wildcardToRegex(template));
     }
     
     private boolean checkAllowed(IConfigurationElement element)

@@ -13,7 +13,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.BeanWithAutoProperties;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
@@ -119,7 +119,7 @@ public class WorkflowItemFactory
             try
             {
                 WorkflowParameter parameter = (WorkflowParameter)findProperty(name).getDescriptor().getValue(WorkflowParameter.ITEM_PROPERTY);
-                return TextUtil.isEmpty(parameter.getDefaultValueString()) ? AutoPropertyStatus.NOT_AUTO_PROPERTY : parameter
+                return TextUtil2.isEmpty(parameter.getDefaultValueString()) ? AutoPropertyStatus.NOT_AUTO_PROPERTY : parameter
                         .isDefaultValueSet() ? AutoPropertyStatus.AUTO_MODE_ON : AutoPropertyStatus.AUTO_MODE_OFF;
             }
             catch( Exception e )

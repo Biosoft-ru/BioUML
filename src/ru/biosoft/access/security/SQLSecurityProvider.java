@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.sql.Query;
 import ru.biosoft.access.sql.SqlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Implementation of {@link SecurityProvider} base on bioumlsupport2 SQL database
@@ -346,8 +346,8 @@ public class SQLSecurityProvider implements SecurityProvider
         try
         {
             Connection connection = GlobalDatabaseManager.getDatabaseConnection();
-            String firstName = TextUtil.nullToEmpty( parameters.get("firstName") );
-            String lastName = TextUtil.nullToEmpty( parameters.get("lastName") );
+            String firstName = TextUtil2.nullToEmpty( parameters.get("firstName") );
+            String lastName = TextUtil2.nullToEmpty( parameters.get("lastName") );
 
             String sql = "SELECT ID FROM persons WHERE user=?";
             String personID = null;

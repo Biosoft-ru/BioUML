@@ -150,7 +150,7 @@ import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.Pair;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Diagram utility functions for web support
@@ -2421,7 +2421,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         Diagram diagram = Diagram.getDiagram( compartment );
         for( String oneElementString : oneElementStrings )
         {
-            String[] fields = TextUtil.split( oneElementString, ';' );
+            String[] fields = TextUtil2.split( oneElementString, ';' );
             if( !fields[0].isEmpty() )
             {
                 DataElement de = CollectionFactory.getDataElement(fields[0]);

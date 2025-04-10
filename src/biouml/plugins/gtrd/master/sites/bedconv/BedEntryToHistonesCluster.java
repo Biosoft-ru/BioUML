@@ -7,7 +7,7 @@ import biouml.plugins.gtrd.master.sites.histones.HistonesCluster;
 import biouml.plugins.gtrd.master.utils.StringPool;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public abstract class BedEntryToHistonesCluster<T extends HistonesCluster> implements BedEntryConverter<T>
 {
@@ -37,7 +37,7 @@ public abstract class BedEntryToHistonesCluster<T extends HistonesCluster> imple
         c.setFrom( e.getStart()+1 );
         c.setTo( e.getEnd() );
         
-        String[] parts = TextUtil.split( e.getRest(), '\t' );
+        String[] parts = TextUtil2.split( e.getRest(), '\t' );
         parseRestString(c, parts);
         
         return c;

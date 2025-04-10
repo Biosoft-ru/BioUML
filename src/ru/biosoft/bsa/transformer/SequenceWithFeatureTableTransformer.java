@@ -13,7 +13,7 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.Entry;
 import ru.biosoft.bsa.MapAsVectorWithLazyFTInit;
 import ru.biosoft.bsa.Sequence;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Support class for sequence transformers that process Fearture Table
@@ -66,6 +66,6 @@ public abstract class SequenceWithFeatureTableTransformer extends SequenceTransf
     {
         String str = Integer.toString( j );
         int cnt = fieldSize - str.length();
-        return TextUtil.whiteSpace( cnt ) + str;
+        return TextUtil2.whiteSpace( cnt ) + str;
     }
 }

@@ -25,7 +25,7 @@ import ru.biosoft.graphics.LineView;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.font.ColorFont;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.ensembl.analysis.SiteData.Location;
 
 /**
@@ -361,7 +361,7 @@ public class GeneTrackViewBuilder extends TrackViewBuilder
             List<Feature> exons = new ArrayList<>();
             if(geneEndPoint.x - geneStartPoint.x > 2)
             {
-                for( String blockStr : TextUtil.split( site.getProperties().getProperty("exons").getValue().toString(), ';' ) )
+                for( String blockStr : TextUtil2.split( site.getProperties().getProperty("exons").getValue().toString(), ';' ) )
                 {
                     Interval interval;
                     try

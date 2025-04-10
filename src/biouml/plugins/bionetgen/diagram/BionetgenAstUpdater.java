@@ -10,7 +10,7 @@ import one.util.streamex.StreamEx;
 
 import org.apache.commons.lang.StringUtils;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -310,7 +310,7 @@ public class BionetgenAstUpdater extends BionetgenAstCreator
     private BionetgenMolecule recreateMolecule(Compartment parent)
     {
         String molComps = parent.stream( Node.class ).filter( BionetgenUtils::isMoleculeComponent ).map( Node::getTitle ).joining( "," );
-        String moleculeName = TextUtil.split(parent.getAttributes().getValueAsString(BionetgenConstants.MOLECULE_ATTR), '(')[0];
+        String moleculeName = TextUtil2.split(parent.getAttributes().getValueAsString(BionetgenConstants.MOLECULE_ATTR), '(')[0];
         if( molComps.isEmpty() )
             return new BionetgenMolecule(new BionetgenSpeciesGraph(""), moleculeName);
         return new BionetgenMolecule( new BionetgenSpeciesGraph( "" ), moleculeName + "(" + molComps + ")" );
@@ -1182,7 +1182,7 @@ public class BionetgenAstUpdater extends BionetgenAstCreator
         {
             if( oldLaw.startsWith("MM") || oldLaw.startsWith("Sat") )
             {
-                String[] rateConstants = TextUtil.split(oldLaw.substring(oldLaw.indexOf('(') + 1, oldLaw.lastIndexOf(')')), ',');
+                String[] rateConstants = TextUtil2.split(oldLaw.substring(oldLaw.indexOf('(') + 1, oldLaw.lastIndexOf(')')), ',');
                 dp.setValue(rateConstants[0]);
                 dp = dps.getProperty(BionetgenConstants.BACKWARD_RATE_ATTR);
                 if( dp == null )

@@ -13,7 +13,7 @@ import biouml.plugins.gtrd.master.sites.dnase.Hotspot2DNasePeak;
 import biouml.plugins.gtrd.master.sites.dnase.MACS2DNasePeak;
 import biouml.plugins.gtrd.master.utils.StringPool;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class DNasePeakSerializer extends GenomeLocationSerializer<DNasePeak>
 {
@@ -70,7 +70,7 @@ public class DNasePeakSerializer extends GenomeLocationSerializer<DNasePeak>
             throw new JsonParseException(parser, "id should be the first field, but get " + name);
 
         String idString = parser.getValueAsString();//p.EXP003098.macs2.10719
-        String[] parts = TextUtil.split(idString, '.');
+        String[] parts = TextUtil2.split(idString, '.');
         
         String peakCaller = parts[2].toLowerCase();
         switch(peakCaller)
@@ -84,7 +84,7 @@ public class DNasePeakSerializer extends GenomeLocationSerializer<DNasePeak>
         result.setOrigin( origin );
         result.setId( Integer.parseInt( parts[3] ) );
         
-        String[] parts2 = TextUtil.split(parts[1], '_' );
+        String[] parts2 = TextUtil2.split(parts[1], '_' );
         String expId = parts2[0];
         result.setExp( exps.get( expId ) );
         

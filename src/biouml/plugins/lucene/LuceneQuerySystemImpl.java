@@ -88,7 +88,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  *
@@ -1174,7 +1174,7 @@ public class LuceneQuerySystemImpl extends DefaultQuerySystem implements LuceneQ
         Object value = null;
         if( !dp.getType().equals( String.class ) )
         {
-            value = TextUtil.fromString(dp.getType(), docField.stringValue());
+            value = TextUtil2.fromString(dp.getType(), docField.stringValue());
         }
         if( value == null )
         {

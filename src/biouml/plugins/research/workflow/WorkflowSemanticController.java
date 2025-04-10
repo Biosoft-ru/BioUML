@@ -77,7 +77,7 @@ import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.FileItem;
 import ru.biosoft.util.OkCancelDialog;
 import ru.biosoft.util.PropertiesDialog;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Semantic controller for workflow diagrams
@@ -252,7 +252,7 @@ public class WorkflowSemanticController extends BaseResearchSemanticController
 
         Property property = paramsModel;
         StringBuilder description = new StringBuilder();
-        for( String propertyPart : TextUtil.split( name, '/' ) )
+        for( String propertyPart : TextUtil2.split( name, '/' ) )
         {
             property = property.findProperty( propertyPart );
             if( description.length() > 0 )

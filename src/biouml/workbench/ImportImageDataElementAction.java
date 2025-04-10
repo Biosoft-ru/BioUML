@@ -24,7 +24,7 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.workbench.resources.MessageBundle;
 
 import com.developmentontheedge.application.Application;
@@ -75,7 +75,7 @@ public class ImportImageDataElementAction extends AbstractAction
                 if( file.isFile() && null != file.getName() )
                 {
                     String fileName = file.getName().toLowerCase();
-                    String extensions[] = TextUtil.split( mb.getResourceString("PIC_EXTENSIONS"), ' ' );
+                    String extensions[] = TextUtil2.split( mb.getResourceString("PIC_EXTENSIONS"), ' ' );
                     for( String extension : extensions )
                     {
                         if( fileName.endsWith(extension) )

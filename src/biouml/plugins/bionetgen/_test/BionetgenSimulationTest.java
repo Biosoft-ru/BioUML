@@ -15,7 +15,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.dynamics.plot.PlotsInfo;
@@ -179,7 +179,7 @@ public class BionetgenSimulationTest extends BionetgenDiagramGeneratorTest
             throws IOException
     {
         Diagram diagram = engine.getDiagram();
-        String name = TextUtil.split(diagram.getName(), '.')[0];
+        String name = TextUtil2.split(diagram.getName(), '.')[0];
         try (PrintWriter pw = new PrintWriter( new File( path + name + "-settings.txt" ), StandardCharsets.UTF_8.toString() ))
         {
             pw.println( "start: " + engine.getInitialTime() );
@@ -233,7 +233,7 @@ public class BionetgenSimulationTest extends BionetgenDiagramGeneratorTest
     protected static void writeInfoFile(String directory, JavaSimulationEngine engine, long time) throws Exception
     {
         String solverName = engine.getSimulator().getInfo().name;
-        String name = TextUtil.split( engine.getDiagram().getName(), '.' )[0];
+        String name = TextUtil2.split( engine.getDiagram().getName(), '.' )[0];
         File target = new File(directory, name + ".info");
         if( !target.getParentFile().exists() && !target.getParentFile().mkdirs() )
             throw new Exception("Failed to create necessary directories");

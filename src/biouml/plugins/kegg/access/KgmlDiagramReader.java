@@ -30,7 +30,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graph.LabelLayouter;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramType;
@@ -256,7 +256,7 @@ public class KgmlDiagramReader extends DefaultHandler
     {
         String id = attributes.getValue(ID_ATTRIBUTE);
         String name = attributes.getValue(NAME_ATTRIBUTE);
-        if(TextUtil.isEmpty(name))
+        if(TextUtil2.isEmpty(name))
             name = id;
         String type = attributes.getValue(TYPE_ATTRIBUTE);
         String reactionLink = attributes.getValue(REACTION_ATTRIBUTE);
@@ -356,7 +356,7 @@ public class KgmlDiagramReader extends DefaultHandler
             if( ORTHOLOG_TYPE.equals(type) )
             {
                 // if name contains several ids we should split it
-                String[] names = TextUtil.split( name, ' ' );
+                String[] names = TextUtil2.split( name, ' ' );
                 // trim "ko:" prefix
                 kernel = (Base)module.getKernel(Module.DATA + "/ortholog/" + names[0].substring(3));
                 type = Type.TYPE_PROTEIN;
@@ -365,7 +365,7 @@ public class KgmlDiagramReader extends DefaultHandler
             else if( ENZYME_TYPE.equals(type) )
             {
                 // if name contains several ids we should split it
-                String[] names = TextUtil.split( name, ' ' );
+                String[] names = TextUtil2.split( name, ' ' );
                 // trim "ec:" prefix
                 kernel = (Base)module.getKernel(Module.DATA + "/enzyme/EC " + names[0].substring(3));
                 type = Type.TYPE_PROTEIN;

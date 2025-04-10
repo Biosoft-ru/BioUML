@@ -14,7 +14,7 @@ import org.w3c.dom.NodeList;
 import com.developmentontheedge.beans.DynamicProperty;
 
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -357,7 +357,7 @@ public class SimulationExtension extends SbmlExtensionSupport
     {
         Element result = document.createElement(type);
 
-        String[] params = TextUtil.split( value, ':' );
+        String[] params = TextUtil2.split( value, ':' );
         if( params.length < 3 )
             return null;
 

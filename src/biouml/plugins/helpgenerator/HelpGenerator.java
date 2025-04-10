@@ -42,7 +42,7 @@ import org.w3c.dom.NodeList;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.analysiscore.AnalysisMethodInfo;
 import ru.biosoft.analysiscore.AnalysisMethodRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -357,7 +357,7 @@ public class HelpGenerator extends ConsoleApplicationSupport
                     {
                         URL url = src.contains("://")?new URL(src):new URL(base, src);
                         URLConnection connection = url.openConnection();
-                        String type = TextUtil.split( connection.getContentType(), '/' )[1];
+                        String type = TextUtil2.split( connection.getContentType(), '/' )[1];
                         InputStream inputStream = connection.getInputStream();
 
                         String imgName = src.contains("/")?src.substring(src.lastIndexOf("/")):src;
@@ -546,7 +546,7 @@ public class HelpGenerator extends ConsoleApplicationSupport
     private Map<String, String> parseStyle(Element element)
     {
         return StreamEx.split(element.getAttribute( "style" ), ';')
-                .map( style -> TextUtil.split( style.trim(), ':' ) )
+                .map( style -> TextUtil2.split( style.trim(), ':' ) )
                 .filter( fields -> fields.length >= 2 )
                 .toMap( fields -> fields[0].trim(), fields -> fields[1].trim() );
     }

@@ -3,7 +3,7 @@ package biouml.plugins.hemodynamics;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.MutableDataElement;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.DiagramElement;
@@ -34,7 +34,7 @@ public class Vessel extends EModelRoleSupport implements MutableDataElement, Com
 
     public Vessel(String str)
     {
-        String[] strs = TextUtil.split( str, ';' );
+        String[] strs = TextUtil2.split( str, ';' );
         this.title = strs[0];
     }
 

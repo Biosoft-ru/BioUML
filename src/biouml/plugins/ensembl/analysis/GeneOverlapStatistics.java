@@ -37,7 +37,7 @@ import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.ensembl.access.EnsemblSequenceTransformer;
 
 public class GeneOverlapStatistics extends AnalysisMethodSupport<GeneOverlapStatisticsParameters>
@@ -191,8 +191,8 @@ public class GeneOverlapStatistics extends AnalysisMethodSupport<GeneOverlapStat
                 genes.add( new Interval( left, right ) );
 
 
-                String[] exonStarts = TextUtil.split( rs.getString( 4 ), ',' );
-                String[] exonEnds = TextUtil.split( rs.getString( 5 ), ',' );
+                String[] exonStarts = TextUtil2.split( rs.getString( 4 ), ',' );
+                String[] exonEnds = TextUtil2.split( rs.getString( 5 ), ',' );
                 List<Interval> exons = StreamEx.zip( exonStarts, exonEnds,
                         (start, end) -> new Interval( Integer.parseInt( start ), Integer.parseInt( end ) ) )
                         .sorted().toList();

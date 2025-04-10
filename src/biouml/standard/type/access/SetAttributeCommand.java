@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import ru.biosoft.access.support.SerializableAsText;
 import ru.biosoft.access.support.TagCommand;
 import ru.biosoft.access.support.TagEntryTransformer;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 import biouml.standard.type.BaseSupport;
 
@@ -121,8 +121,8 @@ public class SetAttributeCommand implements TagCommand
         if( str == null || str.isEmpty() )
             return null;
 
-        String tagStr = tag + TextUtil.whiteSpace(indent - tag.length());
-        String indentStr = TextUtil.whiteSpace(indent);
+        String tagStr = tag + TextUtil2.whiteSpace(indent - tag.length());
+        String indentStr = TextUtil2.whiteSpace(indent);
 
         try (BufferedReader reader = new BufferedReader(new StringReader(str)))
         {
@@ -231,7 +231,7 @@ public class SetAttributeCommand implements TagCommand
     private String getTagStrWithIndent()
     {
         if( tagStrWithIndent == null )
-            tagStrWithIndent = tag + TextUtil.whiteSpace(indent - tag.length());
+            tagStrWithIndent = tag + TextUtil2.whiteSpace(indent - tag.length());
         return tagStrWithIndent;
     }
 }

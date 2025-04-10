@@ -64,6 +64,7 @@ import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * BioUML server support functions.

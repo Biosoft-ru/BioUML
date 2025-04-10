@@ -83,7 +83,7 @@ import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.JsonUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class WebOptimizationProvider extends WebJSONProviderSupport
 {
@@ -899,7 +899,7 @@ public class WebOptimizationProvider extends WebJSONProviderSupport
         String html = mi.getDescriptionHTML();
         html = html.replaceAll( "href=\"de:([^\"]+)\"", "href=\"#de=$1\"" );
         String baseId = mi.getBaseId() + "/";
-        html = TextUtil.processHTMLImages( html, baseId );
+        html = TextUtil2.processHTMLImages( html, baseId );
         response.sendString( html );
     }
 

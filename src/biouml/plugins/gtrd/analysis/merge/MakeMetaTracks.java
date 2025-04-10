@@ -74,7 +74,7 @@ import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.util.OptionEx;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.util.bean.JSONBean;
 import ru.biosoft.util.bean.StaticDescriptor;
@@ -376,7 +376,7 @@ public class MakeMetaTracks extends AnalysisMethodSupport<MakeMetaTracks.Paramet
                     i++;
                 }
                 PropertyDescriptor descriptor = DESCRIPTOR_CACHE.computeIfAbsent( "motif", StaticDescriptor::create );
-                sCopy.getProperties().add( new DynamicProperty( descriptor , String.class, TextUtil.joinTruncate( motifInfoList, 1000, "\n", "..." ) ) );
+                sCopy.getProperties().add( new DynamicProperty( descriptor , String.class, TextUtil2.joinTruncate( motifInfoList, 1000, "\n", "..." ) ) );
                 if(closestSiteInfo != null)
                 {
                     descriptor = DESCRIPTOR_CACHE.computeIfAbsent( "closestMotif", StaticDescriptor::create );

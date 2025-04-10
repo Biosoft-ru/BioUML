@@ -22,7 +22,7 @@ import ru.biosoft.access.SqlTransformerSupport;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.graph.GraphAlgorithms;
 import ru.biosoft.util.LazyValue;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 /**
@@ -126,7 +126,7 @@ public class EnsemblSequenceTransformer extends SqlTransformerSupport<AnnotatedS
     {
         String chromosomesString = owner.getInfo().getProperties().getProperty(CHROMOSOMES_KEY);
         if( chromosomesString == null || chromosomesString.isEmpty() ) return "";
-        String[] chromosomes = TextUtil.split( chromosomesString, ',' );
+        String[] chromosomes = TextUtil2.split( chromosomesString, ',' );
         return "name IN ('"+String.join("','", chromosomes)+"')";
     }
 

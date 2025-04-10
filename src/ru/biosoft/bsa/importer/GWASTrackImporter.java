@@ -31,7 +31,7 @@ import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SiteType;
 import ru.biosoft.bsa.StrandType;
 import ru.biosoft.jobcontrol.FunctionJobControl;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Columns in format description: 
@@ -67,7 +67,7 @@ public class GWASTrackImporter extends VCFTrackImporter
     @Override
     protected Site parseLine(String line)
     {
-        String[] fields = TextUtil.split( line, '\t' );
+        String[] fields = TextUtil2.split( line, '\t' );
         if( fields.length < maxRequiredIndex + 1 )
             return null;
         String chr = normalizeChromosome( fields[columnName2Index.get( CHROMOSOME_COLUMN )] );
@@ -154,7 +154,7 @@ public class GWASTrackImporter extends VCFTrackImporter
         //trim starting comment symbols if any
         if( line.startsWith( "#" ) )
             line = line.replaceAll( "^#+", "" );
-        String[] values = TextUtil.split( line, '\t' );
+        String[] values = TextUtil2.split( line, '\t' );
         for( int i = 0; i < values.length; i++ )
         {
             String colName = values[i];

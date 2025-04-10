@@ -19,7 +19,7 @@ import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.SequenceRegion;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.analysis.IPSSiteModel;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.bindingregions.utils.EnsemblUtils;
 import biouml.plugins.bindingregions.utils.LinearRegression;
 import biouml.plugins.bindingregions.utils.MatrixUtils;
@@ -203,7 +203,7 @@ public class GeneTranscript
     {
         byte[] result = null;
         if( transcriptName.contains(":") )
-            result = EnsemblUtils.getSequenceFromFastaTrack(pathToSequences, TextUtil.split(transcriptName, ':')[0]);
+            result = EnsemblUtils.getSequenceFromFastaTrack(pathToSequences, TextUtil2.split(transcriptName, ':')[0]);
         else
         {
             Sequence fullChromosome = pathToSequences.getChildPath(chromosome).getDataElement(AnnotatedSequence.class).getSequence();
@@ -430,7 +430,7 @@ public class GeneTranscript
         if( transcriptSequence == null ) return null;
         if( mrnaFeatureName.contains(Olig.OLIGONUCLEOTIDE) )
         {
-            String[] array = TextUtil.split( mrnaFeatureName, '_');
+            String[] array = TextUtil2.split( mrnaFeatureName, '_');
             String olig = array[1];
             int pos1 = Integer.parseInt(array[2]), pos2 = Integer.parseInt(array[3]);
             Boolean existance = isGivenOligNearStartCodon(transcriptSequence, pos1, pos2, olig.toLowerCase().getBytes());
@@ -442,9 +442,9 @@ public class GeneTranscript
             if( cdsFromAndTo == null ) return null;
             String matrixName = null;
             if( mrnaFeatureName.contains(MATRIX_FOR_START_CODON) )
-                matrixName = (TextUtil.splitPos( mrnaFeatureName, MATRIX_FOR_START_CODON.length()))[1];
+                matrixName = (TextUtil2.splitPos( mrnaFeatureName, MATRIX_FOR_START_CODON.length()))[1];
             else if( mrnaFeatureName.contains(MATRIX_FOR_STOP_CODON) )
-                matrixName = (TextUtil.splitPos( mrnaFeatureName, MATRIX_FOR_STOP_CODON.length()))[1];
+                matrixName = (TextUtil2.splitPos( mrnaFeatureName, MATRIX_FOR_STOP_CODON.length()))[1];
             else return null;
             IPSSiteModel siteModel = nameAndSiteModel.get(matrixName);
             int window = siteModel.getWindow();
@@ -710,11 +710,11 @@ public class GeneTranscript
             String[] exonNames = new String[exons.length];
             for( String exon : exons )
             {
-                String[] array = TextUtil.split( exon, ';');
+                String[] array = TextUtil2.split( exon, ';');
                 int exonIndex = Integer.parseInt(array[1]) - 1;
-                array = TextUtil.split( array[0], ':');
+                array = TextUtil2.split( array[0], ':');
                 exonNames[exonIndex] = array[0];
-                array = TextUtil.split( array[1], '-');
+                array = TextUtil2.split( array[1], '-');
                 exonIntervals[exonIndex] = new Interval(Integer.parseInt(array[0]), Integer.parseInt(array[1]));
             }
             
@@ -722,8 +722,8 @@ public class GeneTranscript
             Interval cdsInterval = null;
             if( cds != null )
             {
-                String array[] = TextUtil.split( cds, ' ');
-                String subarray1[] = TextUtil.split( array[0], ':'), subarray2[] = TextUtil.split( array[1], ':');
+                String array[] = TextUtil2.split( cds, ' ');
+                String subarray1[] = TextUtil2.split( array[0], ':'), subarray2[] = TextUtil2.split( array[1], ':');
                 String name1 = subarray1[0], name2 = subarray2[0];
                 int pos1 = Integer.parseInt(subarray1[1]), pos2 = Integer.parseInt(subarray2[1]);
                 for( int i = 0; i < exonIntervals.length; i++ )

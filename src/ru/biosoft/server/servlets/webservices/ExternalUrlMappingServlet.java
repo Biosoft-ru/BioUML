@@ -14,7 +14,7 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.server.AbstractServlet;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author anna
@@ -113,8 +113,8 @@ public class ExternalUrlMappingServlet extends AbstractServlet
         if( urlParts.length > 1 )
         {
             String query = urlParts[1];
-            return StreamEx.split( query, '&' ).map( param -> TextUtil.split( param, '=' ) )
-                    .mapToEntry( pair -> TextUtil.decodeURL( pair[0] ), pair -> pair.length > 1 ? TextUtil.decodeURL( pair[1] ) : "" )
+            return StreamEx.split( query, '&' ).map( param -> TextUtil2.split( param, '=' ) )
+                    .mapToEntry( pair -> TextUtil2.decodeURL( pair[0] ), pair -> pair.length > 1 ? TextUtil2.decodeURL( pair[1] ) : "" )
                     .grouping();
         }
         return Collections.emptyMap();

@@ -39,7 +39,7 @@ import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.bsa.Track;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 /***
@@ -135,7 +135,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
             {
                 String line = reader.readLine();
                 if( line == null ) break;
-                String[] fields = TextUtil.split(line, '\t');
+                String[] fields = TextUtil2.split(line, '\t');
                 if( ! fields[0].equals(FILE) || fields.length < 2 ) continue;
                 result.add(fields[1]);
             }
@@ -154,7 +154,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
             {
                 String line = reader.readLine();
                 if( line == null ) break;
-                String[] fields = TextUtil.split(line, '\t');
+                String[] fields = TextUtil2.split(line, '\t');
                 if( ! fields[0].equals(COMMON) || fields.length < 3 ) continue;
                 if( fields[1].equals(DYNAMYC_PROPERTY) )
                     result.add(fields[2]);
@@ -178,7 +178,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
             {
                 String line = reader.readLine();
                 if( line == null ) break;
-                String[] fields = TextUtil.split(line, '\t');
+                String[] fields = TextUtil2.split(line, '\t');
                 if( fields.length < 4 ) continue;
                 switch(fields[0])
                 {
@@ -206,7 +206,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
             {
                 String line = reader.readLine();
                 if( line == null ) break;
-                String[] fields = TextUtil.split(line, '\t');
+                String[] fields = TextUtil2.split(line, '\t');
                 if( fields.length < 4 ) continue;
                 switch( fields[0] )
                 {
@@ -254,7 +254,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
                 String line = reader.readLine();
                 if( line == null ) break;
                 if( ++i == 1 ) continue;
-                String[] fields = TextUtil.split(line, '\t');
+                String[] fields = TextUtil2.split(line, '\t');
                 if( fields.length < list.size() )
                 {
                     reader.close();
@@ -301,7 +301,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
             {
                 String line = reader.readLine();
                 if( line != null )
-                    result = TextUtil.split(line, '\t');
+                    result = TextUtil2.split(line, '\t');
                 break;
             }
         }
@@ -318,7 +318,7 @@ public class ConvertFilesToTracks extends AnalysisMethodSupport<ConvertFilesToTr
             {
                 String line = reader.readLine();
                 if( line == null ) break;
-                strings.add(TextUtil.split(line, '\t'));
+                strings.add(TextUtil2.split(line, '\t'));
             }
         }
         return strings.toArray(new String[strings.size()][]);

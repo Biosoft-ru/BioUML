@@ -36,7 +36,7 @@ import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.bsa.WritableTrack;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 public abstract class TrackImporter implements DataElementImporter
@@ -173,7 +173,7 @@ public abstract class TrackImporter implements DataElementImporter
             properties.put(Track.SEQUENCES_COLLECTION_PROPERTY, getProperties().getSequenceCollectionPath().toString());
             seqBase = getProperties().getSequenceCollection();
         }
-        if( !TextUtil.isEmpty(getProperties().getGenomeId()) )
+        if( !TextUtil2.isEmpty(getProperties().getGenomeId()) )
             properties.put(Track.GENOME_ID_PROPERTY, getProperties().getGenomeId());
         properties.putAll(getProperties().getTrackProperties());
         WritableTrack track = TrackUtils.createTrack( parent, properties, getTrackClass() );

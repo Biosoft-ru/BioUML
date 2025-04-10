@@ -26,7 +26,7 @@ import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.table.SqlTableDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
@@ -192,7 +192,7 @@ public class SearchByRegulation<T extends SearchByRegulation.Parameters> extends
         
         public String getUniprotId()
         {
-            return TextUtil.split( getTf(), ' ' )[1];
+            return TextUtil2.split( getTf(), ' ' )[1];
         }
 
         
@@ -326,13 +326,13 @@ public class SearchByRegulation<T extends SearchByRegulation.Parameters> extends
             if( !treatment.equals( "Any" ) )
                 query += " AND ce.treatment=" + SqlUtil.quoteString( treatment );
             if( !tf.equals( "Any" ) )
-                query += " AND ce.tf_uniprot_id=" + SqlUtil.quoteString( TextUtil.split( tf, ' ' )[1] );
+                query += " AND ce.tf_uniprot_id=" + SqlUtil.quoteString( TextUtil2.split( tf, ' ' )[1] );
             
             dataSets.addAll( SqlUtil.stringStream( con, query ).map( x->x+" peaks" ).toList() );
             
             query = "SELECT DISTINCT cluster_type FROM clusters_finished WHERE specie=" + SqlUtil.quoteString( organism.getLatinName() );
             if( !tf.equals( "Any" ) )
-                    query += " AND uniprot_id=" + SqlUtil.quoteString( TextUtil.split( tf, ' ' )[1] );
+                    query += " AND uniprot_id=" + SqlUtil.quoteString( TextUtil2.split( tf, ' ' )[1] );
             dataSets.addAll( SqlUtil.stringStream( con, query ).map( x->x+" clusters" ).toList() );
             
             String[] order = {"meta clusters", "macs2 clusters", "macs clusters", "sissrs clusters", "gem clusters", "pics clusters",
@@ -397,7 +397,7 @@ public class SearchByRegulation<T extends SearchByRegulation.Parameters> extends
                     query += " AND ce.treatment=" + SqlUtil.quoteString( treatment );
             }
             if( !tf.equals( "Any" ) )
-                query += " AND ce.tf_uniprot_id=" + SqlUtil.quoteString( TextUtil.split( tf, ' ' )[1] );
+                query += " AND ce.tf_uniprot_id=" + SqlUtil.quoteString( TextUtil2.split( tf, ' ' )[1] );
             query += " ORDER by 1";
             
             cachedOrganismLatinName = organism.getLatinName();
@@ -453,7 +453,7 @@ public class SearchByRegulation<T extends SearchByRegulation.Parameters> extends
                 }
             }
             if( !tf.equals( "Any" ) )
-                query += " AND ce.tf_uniprot_id=" + SqlUtil.quoteString( TextUtil.split( tf, ' ' )[1] );
+                query += " AND ce.tf_uniprot_id=" + SqlUtil.quoteString( TextUtil2.split( tf, ' ' )[1] );
 
             query += " ORDER by 1";
             

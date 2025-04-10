@@ -5,7 +5,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
 import ru.biosoft.access.WildcardPathSet;
 import ru.biosoft.util.FileItem;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.workbench.editors.FileSelector;
 
 /**
@@ -75,7 +75,7 @@ public class VariableType
      */
     public Object fromString(String data)
     {
-        return TextUtil.fromString(getTypeClass(), data);
+        return TextUtil2.fromString(getTypeClass(), data);
     }
 
     /**

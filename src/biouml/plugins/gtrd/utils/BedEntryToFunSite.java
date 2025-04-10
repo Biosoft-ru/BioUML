@@ -15,7 +15,7 @@ import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 public class BedEntryToFunSite implements BedEntryConverter<FunSite>
@@ -69,7 +69,7 @@ public class BedEntryToFunSite implements BedEntryConverter<FunSite>
     {
     	initColumns(); //late init, so that BigBedTrack will be open
     	
-        String[] parts = TextUtil.split( e.getRest(), '\t' );
+        String[] parts = TextUtil2.split( e.getRest(), '\t' );
 
         Interval coordinates = new Interval(e.getStart(), e.getEnd());
         Sequence seq = origin.getChromosomeSequence( e.getChrom() );

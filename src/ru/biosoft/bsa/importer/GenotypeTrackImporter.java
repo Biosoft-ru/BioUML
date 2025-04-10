@@ -11,7 +11,7 @@ import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SiteType;
 import ru.biosoft.bsa.StrandType;
 import com.developmentontheedge.beans.PropertiesDPS;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -24,7 +24,7 @@ public class GenotypeTrackImporter extends TrackImporter
     @Override
     protected Site parseLine(String line)
     {
-        String[] fields = TextUtil.split( line, ' ' );
+        String[] fields = TextUtil2.split( line, ' ' );
         if(fields.length < 5) return null;
         Matcher matcher = POS_PATTERN.matcher(fields[1]);
         if(!matcher.matches()) return null;

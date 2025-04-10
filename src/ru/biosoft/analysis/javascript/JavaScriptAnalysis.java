@@ -34,7 +34,7 @@ import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.columnbeans.ColumnGroup;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 
 public class JavaScriptAnalysis extends JavaScriptHostObjectBase
@@ -253,10 +253,10 @@ public class JavaScriptAnalysis extends JavaScriptHostObjectBase
             parameters.setOutputType(outputType);
             parameters.setMethod(method);
             parameters.setInputLogarithmBase(logarithmBase);
-            String[] experimentNames = TextUtil.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
+            String[] experimentNames = TextUtil2.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
                     : parseStringToColumnNames(experimentColumns, experiment);
 
-            String[] controlNames = TextUtil.isEmpty(controlColumns) ? TableDataCollectionUtils.getColumnNames(control)
+            String[] controlNames = TextUtil2.isEmpty(controlColumns) ? TableDataCollectionUtils.getColumnNames(control)
                     : parseStringToColumnNames(controlColumns, control);
 
             parameters.setExperimentData(new ColumnGroup(parameters, experimentNames, DataElementPath.create(experiment)));
@@ -308,10 +308,10 @@ public class JavaScriptAnalysis extends JavaScriptHostObjectBase
             parameters.setInputLogarithmBase( inputLogarithmBase );
             parameters.setOutputLogarithmBase( outputLogarithmBase );
 
-            String[] experimentNames = TextUtil.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
+            String[] experimentNames = TextUtil2.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
                     : parseStringToColumnNames(experimentColumns, experiment);
 
-            String[] controlNames = TextUtil.isEmpty(controlColumns) ? TableDataCollectionUtils.getColumnNames(control)
+            String[] controlNames = TextUtil2.isEmpty(controlColumns) ? TableDataCollectionUtils.getColumnNames(control)
                     : parseStringToColumnNames(controlColumns, control);
 
             parameters.setExperimentData(new ColumnGroup(parameters, experimentNames, DataElementPath.create(experiment)));
@@ -345,7 +345,7 @@ public class JavaScriptAnalysis extends JavaScriptHostObjectBase
             ClusterAnalysisParameters parameters = new ClusterAnalysisParameters();
             parameters.setOutputTablePath(DataElementPath.create(outputTablePath));
 
-            String[] experimentNames = TextUtil.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
+            String[] experimentNames = TextUtil2.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
                     : parseStringToColumnNames(experimentColumns, experiment);
             parameters.setExperimentData(new ColumnGroup(parameters, experimentNames, DataElementPath.create(experiment)));
             parameters.setMethod(method);
@@ -373,7 +373,7 @@ public class JavaScriptAnalysis extends JavaScriptHostObjectBase
         {
             CRClusterAnalysisParameters parameters = new CRClusterAnalysisParameters();
             parameters.setOutputTablePath(DataElementPath.create(outputTablePath));
-            String[] experimentNames = TextUtil.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
+            String[] experimentNames = TextUtil2.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
                     : parseStringToColumnNames(experimentColumns, experiment);
             parameters.setExperimentData(new ColumnGroup(parameters, experimentNames, DataElementPath.create(experiment)));
             parameters.setChainsCount(chainsCount);
@@ -412,7 +412,7 @@ public class JavaScriptAnalysis extends JavaScriptHostObjectBase
             parameters.setOutputTablePath(DataElementPath.create(outputTablePath));
             parameters.setPvalue(pvalue);
             parameters.setThreshold(new Threshold(parameters, thresholdDown, thresholdUp));
-            String[] experimentNames = TextUtil.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
+            String[] experimentNames = TextUtil2.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
                     : parseStringToColumnNames(experimentColumns, experiment);
             parameters.setExperimentData(new ColumnGroup(parameters, experimentNames, DataElementPath.create(experiment)));
             parameters.setFdr(fdr);
@@ -488,10 +488,10 @@ public class JavaScriptAnalysis extends JavaScriptHostObjectBase
             CorrelationAnalysisParameters parameters = new CorrelationAnalysisParameters();
             parameters.setOutputTablePath(DataElementPath.create(outputTablePath));
 
-            String[] experimentNames = TextUtil.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
+            String[] experimentNames = TextUtil2.isEmpty(experimentColumns) ? TableDataCollectionUtils.getColumnNames(experiment)
                     : parseStringToColumnNames(experimentColumns, experiment);
 
-            String[] controlNames = TextUtil.isEmpty(controlColumns) ? TableDataCollectionUtils.getColumnNames(control)
+            String[] controlNames = TextUtil2.isEmpty(controlColumns) ? TableDataCollectionUtils.getColumnNames(control)
                     : parseStringToColumnNames(controlColumns, control);
 
             parameters.setExperimentData(new ColumnGroup(parameters, experimentNames, DataElementPath.create(experiment)));

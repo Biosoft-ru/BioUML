@@ -13,7 +13,7 @@ import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.templates.TemplateRegistry;
 import ru.biosoft.templates.TemplateUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -64,7 +64,7 @@ public class HtmlPageTemplateProvider extends WebProviderSupport
             {
                 html = html.substring( 0, matcher.start() ) + "<img" + matcher.group( 1 ) + " src=\"img?id="
                         + ( matcher.group( 2 ).contains( "://" ) ? "" : baseId )
-                        + TextUtil.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\""
+                        + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\""
                         + html.substring( matcher.end() );
                 start = matcher.end();
                 matcher = pattern.matcher( html );

@@ -105,7 +105,7 @@ public class ColorUtils
     
     public static Paint parsePaint(String paint)
     {
-        String[] tokens = TextUtil.split( paint, ':' );
+        String[] tokens = TextUtil2.split( paint, ':' );
         if(tokens.length == 1)
             return parseColor( tokens[0] );
         float angle = 0;

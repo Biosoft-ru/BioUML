@@ -14,7 +14,7 @@ import biouml.plugins.gtrd.master.sites.chipseq.MACS2ChIPSeqPeak;
 import biouml.plugins.gtrd.master.sites.chipseq.PICSPeak;
 import biouml.plugins.gtrd.master.sites.chipseq.SISSRSPeak;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ChIPSeqPeakSerializer extends GenomeLocationSerializer<ChIPSeqPeak>
 {
@@ -80,7 +80,7 @@ public class ChIPSeqPeakSerializer extends GenomeLocationSerializer<ChIPSeqPeak>
             throw new JsonParseException(parser, "id should be the first field");
 
         String idString = parser.getValueAsString();//p.EXP003098.macs2.10719
-        String[] parts = TextUtil.split( idString, '.' );
+        String[] parts = TextUtil2.split( idString, '.' );
         
         String peakCaller = parts[2];
         switch(peakCaller)

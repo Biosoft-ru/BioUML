@@ -24,7 +24,7 @@ import ru.biosoft.graph.Util;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.View;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -357,7 +357,7 @@ public class DiagramToGraphTransformer
             double value = 0;
             if( values != null )
             {
-                String[] valuesArray = TextUtil.split( values.toString(), ';' );
+                String[] valuesArray = TextUtil2.split( values.toString(), ';' );
                 for( String valueStr : valuesArray )
                 {
                     if( valueStr.trim().length() == 0 )

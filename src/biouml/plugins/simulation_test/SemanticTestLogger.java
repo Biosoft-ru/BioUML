@@ -15,7 +15,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.plugins.simulation_test.SemanticTestListParser.Category;
 import ru.biosoft.access.exception.BiosoftParseException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class SemanticTestLogger
 {
@@ -595,7 +595,7 @@ public class SemanticTestLogger
         {
             return;
         }
-        testName = TextUtil.split( testName, '/' )[0];
+        testName = TextUtil2.split( testName, '/' )[0];
         File testFigs = new File( figsDirectory, testName );
         if( !testFigs.exists() || !testFigs.isDirectory() )
         {
@@ -610,7 +610,7 @@ public class SemanticTestLogger
             String line = br.readLine();
             if( line == null )
                 throw new BiosoftParseException( new IllegalArgumentException( "Empty file" ), figuresList.getPath() );
-            start = TextUtil.split(line, '/')[0];
+            start = TextUtil2.split(line, '/')[0];
             while( line != null )
             {
                 String[] fileNames = line.split("\t");

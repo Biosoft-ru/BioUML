@@ -11,7 +11,7 @@ import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -27,7 +27,7 @@ public class TaskProvider extends WebJSONProviderSupport
         String rows = arguments.get("rows");
         if( rows != null )
         {
-            String selectedNames[] = TextUtil.split( rows, ',' );
+            String selectedNames[] = TextUtil2.split( rows, ',' );
 
             TaskManager taskManager = TaskManager.getInstance();
             String user = SecurityManager.getSessionUser();

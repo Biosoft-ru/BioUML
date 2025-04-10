@@ -38,7 +38,7 @@ import ru.biosoft.analysiscore.AnalysisMethod;
 import ru.biosoft.analysiscore.AnalysisMethodInfo;
 import ru.biosoft.analysiscore.AnalysisParameters;
 import ru.biosoft.plugins.javascript.Global;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -290,13 +290,13 @@ public class AnalysisFunction extends BaseFunction
                             Object value2 = arrayValue.get(i, scope);
                             if( value2 instanceof DataElement )
                                 value2 = DataElementPath.create((DataElement)value2);
-                            Array.set(newValue, i, TextUtil.fromString(arrayProperty.getItemClass(), value2.toString()));
+                            Array.set(newValue, i, TextUtil2.fromString(arrayProperty.getItemClass(), value2.toString()));
                         }
                     }
                     else if(value == null)
                         property.setValue( null );
                     else
-                        property.setValue(TextUtil.fromString(property.getValueClass(), value.toString()));
+                        property.setValue(TextUtil2.fromString(property.getValueClass(), value.toString()));
                 }
                 catch( Exception e )
                 {

@@ -60,7 +60,7 @@ import ru.biosoft.bsa.analysis.IPSSiteModel;
 import ru.biosoft.bsa.analysis.WeightMatrixModel;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.DataElementComboBoxSelector;
 
@@ -346,7 +346,7 @@ public class LincRNAandMrnaFeatures extends AnalysisMethodSupport<LincRNAandMrna
                 index += 1;
                 String line = reader.readLine();
                 if( line == null ) break;
-                String[] tokens = TextUtil.split(line, '\t');
+                String[] tokens = TextUtil2.split(line, '\t');
                 if( tokens.length < 8 || tokens[0].length() < 4 ) continue;
                 String chromosome = tokens[0].substring(3);
                 Object[] row = new Object[]{chromosome, tokens[5], tokens[1], tokens[2], tokens[6],
@@ -373,7 +373,7 @@ public class LincRNAandMrnaFeatures extends AnalysisMethodSupport<LincRNAandMrna
                 index += 1;
                 String line = reader.readLine();
                 if( line == null ) break;
-                String[] tokens = TextUtil.split(line, '\t');
+                String[] tokens = TextUtil2.split(line, '\t');
                 if( tokens.length < 3 || tokens[0].length() < 3 ) continue;
                 if( tokens[0].charAt(0) == '#' && tokens[0].charAt(1) == '#' ) continue;
                 if( tokens[0].equals("01STAT:MAPPED") ) continue;

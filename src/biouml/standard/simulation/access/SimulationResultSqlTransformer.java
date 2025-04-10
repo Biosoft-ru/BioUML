@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.SqlTransformerSupport;
 import ru.biosoft.access.sql.SqlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.dynamics.Variable;
 import biouml.standard.simulation.SimulationResult;
 
@@ -173,7 +173,7 @@ public class SimulationResultSqlTransformer extends SqlTransformerSupport<Simula
             {
                 try
                 {
-                    String units = TextUtil.nullToEmpty( var.getUnits() );
+                    String units = TextUtil2.nullToEmpty( var.getUnits() );
                     String str = "INSERT INTO initial_values (resultID, name, value, units) VALUES(" + validateValue(sr.getName()) + ", "
                             + validateValue(var.getName()) + ", " + validateValue("" + var.getInitialValue()) + ", " + validateValue(units)
                             + ")";

@@ -27,7 +27,7 @@ import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * TableDataCollection to FileDataElement transformer (version 2)
@@ -290,7 +290,7 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
             {
                 for( String param : paramsArray )
                 {
-                    String sample[] = TextUtil.split( param, ';' );
+                    String sample[] = TextUtil2.split( param, ';' );
                     if( sample.length > 2 )
                     {
                         String columnName = sample[0].trim();

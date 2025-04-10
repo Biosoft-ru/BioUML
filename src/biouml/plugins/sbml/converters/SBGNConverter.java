@@ -42,7 +42,7 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graph.Path;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * SBML/SBGN converter
@@ -413,7 +413,7 @@ public class SBGNConverter extends SBGNConverterSupport
     {
         if( node instanceof Compartment )
         {
-            String[] stateArray = TextUtil.split( states, ';' );
+            String[] stateArray = TextUtil2.split( states, ';' );
             for( String state : stateArray )
             {
                 Stub stateKenel = new Stub( null, node.getName() + "_" + state, "variable" );

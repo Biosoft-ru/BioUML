@@ -22,7 +22,7 @@ import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControlEvent;
 import ru.biosoft.jobcontrol.JobControlListenerAdapter;
 import ru.biosoft.util.ExProperties;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * All indexes rebuilder.
@@ -84,7 +84,7 @@ public class IndexRebuilder extends ConsoleApplicationSupport
             String sessionID = "index_rebuild_session";
             Properties properties = new ExProperties(new File(propFileName));
 
-            String[] repositoryPaths = TextUtil.split( properties.getProperty( "repositories" ), ';');
+            String[] repositoryPaths = TextUtil2.split( properties.getProperty( "repositories" ), ';');
 
             String repositoryPath = repositoryPaths[0];
 

@@ -19,7 +19,7 @@ import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.columnbeans.ColumnGroup;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Basic class for microarray analysis parameters
@@ -194,7 +194,7 @@ public abstract class MicroarrayAnalysisParameters extends AbstractAnalysisParam
 
         public Threshold(String from)
         {
-            String[] fields = TextUtil.split( from, ',' );
+            String[] fields = TextUtil2.split( from, ',' );
             this.thresholdDown = Double.NEGATIVE_INFINITY;
             this.thresholdUp = Double.POSITIVE_INFINITY;
             try

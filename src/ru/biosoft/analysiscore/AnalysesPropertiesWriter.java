@@ -13,7 +13,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.ColorUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.j2html.tags.ContainerTag;
 import ru.biosoft.util.j2html.tags.DomContent;
 import ru.biosoft.util.j2html.tags.Tag;
@@ -36,7 +36,7 @@ public class AnalysesPropertiesWriter
         ContainerTag result = div().with(
             b().withText( "Result of workflow" ),
             new Text(": "),
-            a().withHref( "de:"+TextUtil.encodeURL( workflowPath ) + "&fromDE=" + TextUtil.encodeURL( dc.getCompletePath().toString() ) )
+            a().withHref( "de:"+TextUtil2.encodeURL( workflowPath ) + "&fromDE=" + TextUtil2.encodeURL( dc.getCompletePath().toString() ) )
                 .withTitle(workflowPath).withText( DataElementPath.create( workflowPath ).getName() ),
             br()
         );
@@ -83,8 +83,8 @@ public class AnalysesPropertiesWriter
         else
         {
             tag = tag.with( a()
-                    .withHref( "de:" + TextUtil.encodeURL( analysisPath.toString() ) + "&fromDE="
-                            + TextUtil.encodeURL( dc.getCompletePath().toString() ) )
+                    .withHref( "de:" + TextUtil2.encodeURL( analysisPath.toString() ) + "&fromDE="
+                            + TextUtil2.encodeURL( dc.getCompletePath().toString() ) )
                     .withTitle( String.valueOf( analysisPath ) ).withText( analysisName ) );
         }
         return tag.render().concat( analysisParametersDescription );
@@ -162,7 +162,7 @@ public class AnalysesPropertiesWriter
     {
         if( path.exists() )
         {
-            return a().withHref( "de:" + TextUtil.encodeURL( path.toString() ) ).withTitle( path.toString() ).withText( path.getName() );
+            return a().withHref( "de:" + TextUtil2.encodeURL( path.toString() ) ).withTitle( path.toString() ).withText( path.getName() );
         }
         return span().withTitle( path.toString() ).withText( path.getName() );
     }

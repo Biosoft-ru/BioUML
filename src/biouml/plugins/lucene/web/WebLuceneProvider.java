@@ -63,7 +63,7 @@ import ru.biosoft.util.HtmlUtil;
 import ru.biosoft.util.JsonUtils;
 import ru.biosoft.util.OptionEx;
 import ru.biosoft.util.PropertyInfo;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericMultiSelectEditor;
 
@@ -362,7 +362,7 @@ public class WebLuceneProvider extends WebJSONProviderSupport
         {
             return StreamEx.of((SpecieReference[])rawValue).map( SpecieReference::getName ).toCollection( StringSet::new );
         }
-        return TextUtil.toString( rawValue );
+        return TextUtil2.toString( rawValue );
     }
 
     private TableDataCollection wrap(SearchResult result)

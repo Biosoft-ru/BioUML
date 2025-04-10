@@ -30,7 +30,7 @@ import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.TextFileImporter;
 
 import ru.biosoft.util.TempFileManager;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import ru.biosoft.workbench.Framework;
 
@@ -48,7 +48,7 @@ public class GitWebProvider extends WebJSONProviderSupport
 
     private File getProjectDirectory( String prjName )
     {
-        String userPath = TextUtil.subst( CollectionFactoryUtils.getUserProjectsPath().toString(), "data/", "" );
+        String userPath = TextUtil2.subst( CollectionFactoryUtils.getUserProjectsPath().toString(), "data/", "" );
         for( String repo : Framework.getRepositoryPaths() )
         {
             File prjDir = new File( repo + "/" + userPath + "/" + prjName );
@@ -78,7 +78,7 @@ public class GitWebProvider extends WebJSONProviderSupport
             {
                 if( !readLine.startsWith( "remote: " ) )
                 {
-                    readLine = TextUtil.subst( readLine, "remote: ", "\remote: " );
+                    readLine = TextUtil2.subst( readLine, "remote: ", "\remote: " );
                 }
                 processOutput.append(readLine + "\n");
             }
@@ -138,8 +138,8 @@ public class GitWebProvider extends WebJSONProviderSupport
             String username = arguments.get( "username" );
             String password = arguments.get( "password" );
 
-            username = TextUtil.encodeURL( username );
-            password = TextUtil.encodeURL( password );
+            username = TextUtil2.encodeURL( username );
+            password = TextUtil2.encodeURL( password );
 
             String fullUrl = repository;
             if( fullUrl.indexOf( "@" ) == -1 )
@@ -154,8 +154,8 @@ public class GitWebProvider extends WebJSONProviderSupport
                      }
                      repl += "@";
                 }
-                fullUrl = TextUtil.subst( fullUrl, "https://", "https://" + repl );
-                fullUrl = TextUtil.subst( fullUrl, "http://", "http://" + repl );
+                fullUrl = TextUtil2.subst( fullUrl, "https://", "https://" + repl );
+                fullUrl = TextUtil2.subst( fullUrl, "http://", "http://" + repl );
             }
  
             String command = "git clone " + fullUrl;
@@ -173,9 +173,9 @@ public class GitWebProvider extends WebJSONProviderSupport
                 String gitOut = gitCommand( processBuilder );
 
                 String prjName = repository;
-                prjName = TextUtil.subst( prjName, "http://", "" );
-                prjName = TextUtil.subst( prjName, "https://", "" );
-                prjName = TextUtil.subst( prjName, "/", "_" );
+                prjName = TextUtil2.subst( prjName, "http://", "" );
+                prjName = TextUtil2.subst( prjName, "https://", "" );
+                prjName = TextUtil2.subst( prjName, "/", "_" );
                 prjName = username + "@" + prjName;
 
                 boolean bCloneSuccess = gitOut.endsWith( "done." );   
@@ -300,7 +300,7 @@ public class GitWebProvider extends WebJSONProviderSupport
                 {
                     if( line.indexOf( "url = " ) > 0 )
                     {                        
-                        url = TextUtil.subst( line, "url = ", "" ).trim();
+                        url = TextUtil2.subst( line, "url = ", "" ).trim();
                         break;
                     }
                 }

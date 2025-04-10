@@ -65,7 +65,7 @@ import ru.biosoft.util.ApplicationUtils;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.ListUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 @PropertyName ( "track" )
@@ -946,7 +946,7 @@ public class SqlTrack extends AbstractDataCollection<AnnotatedSequence> implemen
 
     public void setDescription(String description)
     {
-        getInfo().setDescription( TextUtil.nullToEmpty( description ) );
+        getInfo().setDescription( TextUtil2.nullToEmpty( description ) );
         try
         {
             getCompletePath().save(this);

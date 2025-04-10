@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
@@ -114,9 +114,9 @@ public class BionetgenAstCreator
         BNGDescription description = new BNGDescription(BionetgenParser.JJTDESCRIPTION);
         String[] lines;
         if( comment.contains("\r") )
-            lines = TextUtil.split(comment.replaceAll("\r\n", "\n").replaceAll("\r", "\n"), '\n');
+            lines = TextUtil2.split(comment.replaceAll("\r\n", "\n").replaceAll("\r", "\n"), '\n');
         else
-            lines = TextUtil.split(comment, '\n');
+            lines = TextUtil2.split(comment, '\n');
 
         for( String line : lines )
         {

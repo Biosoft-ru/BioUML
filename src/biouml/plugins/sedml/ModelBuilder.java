@@ -19,7 +19,7 @@ import ru.biosoft.access.FolderVectorCollection;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.analysiscore.AnalysisDPSUtils;
 import ru.biosoft.analysiscore.AnalysisMethodRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -218,7 +218,7 @@ public class ModelBuilder extends WorkflowBuilder
                 StateChange stateChange = new StateChange();
                 stateChange.setElementId( ( (DiagramElement)undo.getSource() ).getCompleteNameInDiagram() );
                 stateChange.setElementProperty( undo.getPropertyName() );
-                stateChange.setPropertyValue( TextUtil.toString( undo.getNewValue() ) );
+                stateChange.setPropertyValue( TextUtil2.toString( undo.getNewValue() ) );
                 return stateChange;
             });
         parameters.setChanges( Stream.concat( Stream.of( parameters.getChanges() ), stateChanges ).toArray( StateChange[]::new ) );

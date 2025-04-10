@@ -12,7 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ru.biosoft.access.repository.JSONSerializable;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.editors.CustomEditorSupport;
 
@@ -85,7 +85,7 @@ public class GenericComboBoxEditor extends CustomEditorSupport implements JSONSe
         else
         {
             Object valueStr = valueObj;
-            String key = TextUtil.nullToEmpty( (String)getDescriptor().getValue("key") );
+            String key = TextUtil2.nullToEmpty( (String)getDescriptor().getValue("key") );
 
             Object[] availVals = getAvailableValues();
             if( availVals == null )

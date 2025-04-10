@@ -1,7 +1,7 @@
 package biouml.model.dynamics;
 
 import one.util.streamex.StreamEx;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.DiagramElement;
 import biouml.model.Role;
 
@@ -213,7 +213,7 @@ public class State extends EModelRoleSupport implements ExpressionOwner
 
         for( int i = 0; i < entryLen; i++ )
         {
-            String[] maths = TextUtil.split( exps[i], '=' );
+            String[] maths = TextUtil2.split( exps[i], '=' );
             Assignment assignment = onEntryAssignment[i];
             assignment.setVariable(maths[0]);
             assignment.setMath(maths[1]);
@@ -221,7 +221,7 @@ public class State extends EModelRoleSupport implements ExpressionOwner
 
         for( int i = 0; i < exitLen; i++ )
         {
-            String[] maths = TextUtil.split( exps[i + entryLen], '=' );
+            String[] maths = TextUtil2.split( exps[i + entryLen], '=' );
             Assignment assignment = onExitAssignment[i];
             assignment.setVariable(maths[0]);
             assignment.setMath(maths[1]);

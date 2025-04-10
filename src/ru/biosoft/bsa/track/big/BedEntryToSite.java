@@ -15,7 +15,7 @@ import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.StrandType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 public class BedEntryToSite implements BedEntryConverter<Site>
@@ -82,7 +82,7 @@ public class BedEntryToSite implements BedEntryConverter<Site>
         
         Sequence seq = origin.getChromosomeSequence( e.getChrom() );
         
-        String[] parts = TextUtil.split( e.getRest(), '\t' );
+        String[] parts = TextUtil2.split( e.getRest(), '\t' );
         String id;
         if(idColumn != -1)
         {

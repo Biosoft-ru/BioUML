@@ -30,7 +30,7 @@ import ru.biosoft.access.biohub.TargetOptions;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.jobcontrol.JobControl;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Index builder for {@link LuceneBasedBioHub}
@@ -142,7 +142,7 @@ public class IndexBuilder
 
         String rType = element2.getRelationType();
         float length = element2.getLinkedLength();
-        String path = TextUtil.nullToEmpty( element2.getLinkedPath() );
+        String path = TextUtil2.nullToEmpty( element2.getLinkedPath() );
         writer.addDocument(fillDocument(path1, path2, rType, length, path));
     }
 

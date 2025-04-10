@@ -25,7 +25,7 @@ import org.w3c.dom.Element;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.graph.Path;
 import ru.biosoft.graphics.Brush;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 import ru.biosoft.util.XmlUtil;
 import biouml.model.Compartment;
@@ -627,7 +627,7 @@ public class DiagramLayouter
 
     static int[] strToIntArray(String str)
     {
-        String[] strs = TextUtil.split(str, ' ');
+        String[] strs = TextUtil2.split(str, ' ');
         int[] ints = new int[strs.length];
         for( int i = 0; i < strs.length; i++ )
         {

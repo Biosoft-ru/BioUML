@@ -96,7 +96,7 @@ import ru.biosoft.graphics.editor.GridOptions;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.ColorUtils;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 import ru.biosoft.util.XmlUtil;
 
@@ -588,7 +588,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
         Color color = Color.gray;
         try
         {
-            String[] vals = TextUtil.split( colorStr, ',' );
+            String[] vals = TextUtil2.split( colorStr, ',' );
             if( vals.length <= 4 )
             {
                 int alpha = 255;
@@ -1636,7 +1636,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
                 {
                     //                    name.startsWith(Module.DIAGRAM)
                     //                            || ( TextUtil.isFullPath(name) && name.indexOf(Module.DIAGRAM + "/") != -1 );
-                    DataElementPath path = TextUtil.isFullPath( name ) || module == null ? kernelRef : module.getCompletePath()
+                    DataElementPath path = TextUtil2.isFullPath( name ) || module == null ? kernelRef : module.getCompletePath()
                             .getRelativePath( "./" + name );
                     if( path.getParentPath().isDescendantOf( diagram.getCompletePath() ) )
                         throw new KernelNotFoundException( name );
@@ -1928,7 +1928,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
                 if( isEligibleToTextUtil( type ) )
                 {
                     for( Element e : items )
-                        array[j++] = TextUtil.fromString( type, e.getFirstChild().getNodeValue() );
+                        array[j++] = TextUtil2.fromString( type, e.getFirstChild().getNodeValue() );
                 }
                 else
                 {
@@ -2029,7 +2029,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
             DynamicPropertySet dps = readDPS( element, getNestedRegistry( name, registry ) );
             if( type != null )
             {
-                Object result = TextUtil.fromString( type, value );
+                Object result = TextUtil2.fromString( type, value );
                 if( result == null )
                 {
                     try
@@ -2069,7 +2069,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
         if( PortOrientation.class.equals( type ) )
             return PortOrientation.getOrientation( value );
 
-        Object result = TextUtil.fromString( type, value );
+        Object result = TextUtil2.fromString( type, value );
 
         if( result != null )
             return result;

@@ -9,7 +9,7 @@ import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import one.util.streamex.StreamEx;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.bionetgen.bnglparser.BNGList;
 import biouml.plugins.bionetgen.bnglparser.BNGMoleculeType;
 import biouml.plugins.bionetgen.bnglparser.BNGSpecies;
@@ -29,9 +29,9 @@ public class BionetgenMoleculeType
                     + speciesStr);
         if( speciesStr.contains("(") )
         {
-            String[] parts = TextUtil.split(speciesStr, '(');
+            String[] parts = TextUtil2.split(speciesStr, '(');
             String nameAndState = parts[0];
-            parts = TextUtil.split(parts[1], ')');
+            parts = TextUtil2.split(parts[1], ')');
             setNameAndState(nameAndState + parts[1]);
             generateComponents(parts[0]);
         }
@@ -67,7 +67,7 @@ public class BionetgenMoleculeType
     {
         if( str.isEmpty() )
             return;
-        String[] components = TextUtil.split(str, ',');
+        String[] components = TextUtil2.split(str, ',');
         try
         {
             for( String component : components )

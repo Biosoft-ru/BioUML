@@ -29,7 +29,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.LoggedClassCastException;
 import ru.biosoft.exception.LoggedClassNotFoundException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ClassLoading
 {
@@ -111,7 +111,7 @@ public class ClassLoading
             String pluginId = extension.getNamespaceIdentifier();
             String name = extension.getAttribute("name").trim();
             String[] descriptor = new String[] {pluginId, name};
-            for(String oldName: TextUtil.split(extension.getAttribute("oldNames"), ','))
+            for(String oldName: TextUtil2.split(extension.getAttribute("oldNames"), ','))
                 movedClasses.put(oldName.trim(), descriptor);
         }
     }
@@ -339,7 +339,7 @@ public class ClassLoading
         pluginList.add("ru.biosoft.access");
         if( pluginNames != null )
         {
-            StreamEx.split(pluginNames, ';').map( String::trim ).filter( TextUtil::nonEmpty ).forEach( pluginList::add );
+            StreamEx.split(pluginNames, ';').map( String::trim ).filter( TextUtil2::nonEmpty ).forEach( pluginList::add );
         }
         return pluginList;
     }

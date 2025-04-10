@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ru.biosoft.util.ApplicationUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.standard.type.DatabaseReference;
 import biouml.standard.type.Specie;
 
@@ -37,7 +37,7 @@ public class SbmlTypeMapper
                 String line = null;
                 while( ( line = br.readLine() ) != null )
                 {
-                    String[] values = TextUtil.split( line, ' ' );
+                    String[] values = TextUtil2.split( line, ' ' );
                     if( values.length >= 2 )
                     {
                         typeMap.put( values[0], values[1] );

@@ -21,7 +21,7 @@ import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class ExportPerCellClusters extends AnalysisMethodSupport<ExportPerCellClusters.Parameters>
@@ -92,7 +92,7 @@ public class ExportPerCellClusters extends AnalysisMethodSupport<ExportPerCellCl
             List<PerCellCluster> clusters = byCell.get( cell );
             
             String uniprotName = metadata.tf.uniprotName;
-            uniprotName = TextUtil.split( uniprotName, '_' )[0];//remove _HUMAN
+            uniprotName = TextUtil2.split( uniprotName, '_' )[0];//remove _HUMAN
             String name = uniprotName + "_" + metadata.tf.uniprotId + "_Metaclusters_" + cell + ".bb";
             DataElementPath outPath = parameters.getOutFolder().getChildPath( name );
             

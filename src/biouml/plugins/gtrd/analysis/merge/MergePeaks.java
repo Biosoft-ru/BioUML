@@ -40,7 +40,7 @@ import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
@@ -226,7 +226,7 @@ public class MergePeaks extends AnalysisMethodSupport<MergePeaks.Parameters>
 
     private String strJoinTruncate(Iterable<?> strList)
     {
-        return TextUtil.joinTruncate( strList, parameters.getMaxPropWidth(), ";", "..." );
+        return TextUtil2.joinTruncate( strList, parameters.getMaxPropWidth(), ";", "..." );
     }
 
 

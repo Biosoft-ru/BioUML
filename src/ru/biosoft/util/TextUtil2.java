@@ -44,10 +44,13 @@ import ru.biosoft.util.bean.JSONBean;
 /**
  * Various utils for working with text date.
  *
- * @version     2.5.0, 21 February 2000
- * @author      Fedor A. Kolpakov
+ * @version 2.5.0, 21 February 2000
+ * @author Fedor A. Kolpakov
+ * 
+ * Changed
+ * @author anna
  */
-public class TextUtil
+public class TextUtil2
 {
     public static final String SERIALIZABLE_PROPERTY = "serializableProperty";
 
@@ -108,29 +111,6 @@ public class TextUtil
         if( negative )
             return -result;
         return result;
-    }
-
-    /**
-     * Returns string, that represents double value,
-     * with specified number of decimal digits.
-     *
-     * <p>If the value indeed is the integer,
-     * than the decimal digits are omitted.
-     *
-     * @param value double value
-     * @param decDig number of decimal digits
-     */
-    public static String valueOf(double value, int decDig)
-    {
-        StringBuilder decs = new StringBuilder("");
-        if( decDig > 0 )
-        {
-            decs.append('.');
-            for( int i = 0; i < decDig; i++ )
-                decs.append('#');
-        }
-
-        return new DecimalFormat("##,###,###,###,###,###,###,###,###,###,###" + decs).format(value);
     }
 
     ////////////////////////////////////////
@@ -462,7 +442,7 @@ public class TextUtil
     
     private static JsonObject toJSONObject(JSONBean child)
     {
-        return BeanUtil.properties( child ).remove( TextUtil::skipProperty ).mapToEntry( Property::getName, property -> {
+        return BeanUtil.properties( child ).remove( TextUtil2::skipProperty ).mapToEntry( Property::getName, property -> {
             Object value = property.getValue();
             if( value == null )
                 return Json.NULL;
@@ -647,7 +627,7 @@ public class TextUtil
             JsonObject jsonDynamicProperty = val.asObject();
 
             Class<?> type = ClassLoading.loadClass( jsonDynamicProperty.get("type").asString() );
-            Object value = TextUtil.fromString(type, jsonDynamicProperty.get("value").asString());
+            Object value = TextUtil2.fromString(type, jsonDynamicProperty.get("value").asString());
 
             String name = jsonDynamicProperty.get("name").asString();
             PropertyDescriptor descriptor = BeanUtil.createDescriptor(name);
@@ -688,7 +668,7 @@ public class TextUtil
             JsonObject jsonDynamicProperty = new JsonObject()
                 .add("name", dp.getName())
                 .add("type", dp.getType().getName())
-                .add("value", TextUtil.toString(dp.getValue()))
+                .add("value", TextUtil2.toString(dp.getValue()))
                 .add("bound", descriptor.isBound())
                 .add("constrained", descriptor.isConstrained())
                 .add("displayName", descriptor.getDisplayName())
@@ -813,17 +793,6 @@ public class TextUtil
         return new String[] {str.substring(0, pos).trim(), str.substring(pos).trim()};
     }
 
-    public static String formatSize(long size)
-    {
-        String suffixes = "kMGTPE";
-        double normalizedSize = size;
-        int i;
-        for(i=0; normalizedSize>=1024 && i<suffixes.length(); i++, normalizedSize/=1024);
-        return i == 0
-                ? size == 1 ? "1 byte" : String.format(Locale.ENGLISH, "%,d bytes", size)
-                : String.format(Locale.ENGLISH, "%.1f%cb (%,d bytes)", normalizedSize, suffixes.charAt(i - 1), size);
-    }
-
     public static String calculateTemplate(String template, Object bean)
     {
         return calculateTemplate(template, bean, false);
@@ -876,13 +845,6 @@ public class TextUtil
         {
             return null;
         }
-    }
-
-    public static String ucFirst(String string)
-    {
-        if(string == null)
-            return null;
-        return Character.toTitleCase( string.charAt( 0 ) )+string.substring(1);
     }
 
     /**
@@ -991,7 +953,7 @@ public class TextUtil
         {
             html = html.substring( 0, matcher.start() ) + "<img" + matcher.group( 1 ) + " src=\"../biouml/web/img?id="
                     + ( matcher.group( 2 ).contains( "://" ) ? "" : baseId )
-                    + TextUtil.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\"" + html.substring( matcher.end() );
+                    + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\"" + html.substring( matcher.end() );
             start = matcher.end();
             matcher = pattern.matcher( html );
         }

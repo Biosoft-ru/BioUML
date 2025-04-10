@@ -2,7 +2,7 @@ package biouml.model.dynamics;
 
 import one.util.streamex.StreamEx;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Role;
@@ -133,7 +133,7 @@ public class Assignment extends Option implements ExpressionOwner
     public Assignment(String str)
     {
         str = str.replace("Assignment:", "");
-        String[] strings = TextUtil.split( str, '=' );
+        String[] strings = TextUtil2.split( str, '=' );
         this.variable = strings[0].trim();
         this.math = strings[1].trim();
     }

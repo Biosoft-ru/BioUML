@@ -2,7 +2,7 @@ package biouml.workbench.diagram;
 
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.HtmlEditor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.standard.type.DiagramInfo;
 
@@ -47,7 +47,7 @@ public class DiagramDescriptionEditor extends HtmlEditor
         {
             DiagramInfo info = (DiagramInfo)diagram.getKernel();
             String text = getText();
-            String body = TextUtil.getSection("body", text);
+            String body = TextUtil2.getSection("body", text);
             if( body != null )
                 text = body;
 

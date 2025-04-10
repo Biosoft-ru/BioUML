@@ -111,7 +111,7 @@ public class JsonUtils
                 return Json.value( (boolean)value );
             if( value instanceof Long )
                 return Json.value( (long)value );
-            return Json.value( TextUtil.toString( value ) );
+            return Json.value( TextUtil2.toString( value ) );
         }
     }
 

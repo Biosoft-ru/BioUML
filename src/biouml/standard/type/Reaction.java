@@ -26,7 +26,7 @@ import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.LoggedException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @ClassIcon ( "resources/reaction.gif" )
 @PropertyName ( "Reaction" )
@@ -51,7 +51,7 @@ public class Reaction extends Referrer implements DataCollection<SpecieReference
 
     protected void init(String name)
     {
-        String dcName = TextUtil.nullToEmpty(name);
+        String dcName = TextUtil2.nullToEmpty(name);
         collection = new VectorDataCollection<>(dcName);
         kineticLaw = new KineticLaw(this);
     }

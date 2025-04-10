@@ -7,7 +7,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
@@ -71,7 +71,7 @@ public class BiomodelsPlotLinksLoader
             String line;
             while( ( line = br.readLine() ) != null )
             {
-                String[] values = TextUtil.split( line, ' ' );
+                String[] values = TextUtil2.split( line, ' ' );
                 if( values.length >= 2 )
                 {
                     links.put(values[0].trim(), values[1].trim());

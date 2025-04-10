@@ -3,7 +3,7 @@ package ru.biosoft.server.servlets.webservices;
 import java.awt.Rectangle;
 import java.util.Map;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * 
@@ -77,7 +77,7 @@ public class TileInfo
         String width = (String)arguments.get("width");
         String height = (String)arguments.get("height");
 
-        if( TextUtil.isEmpty(xmin) || TextUtil.isEmpty(ymin) || TextUtil.isEmpty(width) || TextUtil.isEmpty(height) )
+        if( TextUtil2.isEmpty(xmin) || TextUtil2.isEmpty(ymin) || TextUtil2.isEmpty(width) || TextUtil2.isEmpty(height) )
         {
             return null;
         }
@@ -97,7 +97,7 @@ public class TileInfo
         }
 
         String scale = (String)arguments.get("scale");
-        if( TextUtil.isEmpty(scale) )
+        if( TextUtil2.isEmpty(scale) )
         {
             tile.setScale(1.0);
         }

@@ -11,7 +11,7 @@ import biouml.plugins.gtrd.master.utils.StringPool;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public abstract class BedEntryToPeak<P extends Peak<E>, E extends Experiment> implements  BedEntryConverter<P>
 {
@@ -60,7 +60,7 @@ public abstract class BedEntryToPeak<P extends Peak<E>, E extends Experiment> im
             initExp();
         peak.setExp( exp  );
         
-        String[] parts = TextUtil.split(e.getRest(), '\t');
+        String[] parts = TextUtil2.split(e.getRest(), '\t');
         updatePeakFromColumns( peak, parts );
         
         //TODO: export id to .bb file

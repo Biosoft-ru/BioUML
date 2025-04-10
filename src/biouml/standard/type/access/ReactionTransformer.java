@@ -8,7 +8,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.Entry;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;
 import ru.biosoft.access.support.TagCommand;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.standard.type.KineticLaw;
 import biouml.standard.type.Reaction;
 import biouml.standard.type.SpecieReference;
@@ -77,7 +77,7 @@ public class ReactionTransformer extends BeanInfoEntryTransformer<Reaction>
 
         while( (str = readSection(reader)) != null )
         {
-            String name = TextUtil.getField(str, "NM");
+            String name = TextUtil2.getField(str, "NM");
             if( name == null )
                 break;
 

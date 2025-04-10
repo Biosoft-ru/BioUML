@@ -23,7 +23,7 @@ import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -49,7 +49,7 @@ public class TableToTrack extends AnalysisMethodSupport<TableToTrackParameters>
         final SqlTrack result = SqlTrack.createTrack( parameters.getOutputTrack(), null, null, getTrackClass() );
         if( parameters.getSequenceCollectionPath() != null )
             result.getInfo().getProperties().put(Track.SEQUENCES_COLLECTION_PROPERTY, parameters.getSequenceCollectionPath().toString());
-        if( !TextUtil.isEmpty(parameters.getGenomeId()) )
+        if( !TextUtil2.isEmpty(parameters.getGenomeId()) )
             result.getInfo().getProperties().put(Track.GENOME_ID_PROPERTY, parameters.getGenomeId());
 
         log.info("Writing the result...");

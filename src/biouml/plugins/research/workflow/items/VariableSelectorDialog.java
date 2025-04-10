@@ -21,7 +21,7 @@ import javax.swing.tree.TreeSelectionModel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 
 import com.developmentontheedge.beans.model.Property;
@@ -115,7 +115,7 @@ public class VariableSelectorDialog extends OkCancelDialog
                 setText("/");
             else
             {
-                String[] fields = TextUtil.split( value.toString(), '/' );
+                String[] fields = TextUtil2.split( value.toString(), '/' );
                 setText(fields[fields.length-1]);
             }
             return this;

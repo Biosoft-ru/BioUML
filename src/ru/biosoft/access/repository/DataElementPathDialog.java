@@ -40,7 +40,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
 import ru.biosoft.journal.JournalRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @SuppressWarnings ( "serial" )
 public class DataElementPathDialog extends OkCancelDialog
@@ -344,7 +344,7 @@ public class DataElementPathDialog extends OkCancelDialog
             if(multiSelect)
             {
                 selValues.clear();
-                for(String val: TextUtil.split(name, ';'))
+                for(String val: TextUtil2.split(name, ';'))
                 {
                     selValues.add(value.getSiblingPath(val));
                 }

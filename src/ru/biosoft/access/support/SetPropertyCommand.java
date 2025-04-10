@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.Option;
 
@@ -177,8 +177,8 @@ public class SetPropertyCommand implements TagCommand
             if( str == null  || str.length()==0 )
                 return null;
 
-            String tagStr = tag + TextUtil.whiteSpace(Math.max(1, indent-tag.length()));
-            String indentStr = TextUtil.whiteSpace(indent);
+            String tagStr = tag + TextUtil2.whiteSpace(Math.max(1, indent-tag.length()));
+            String indentStr = TextUtil2.whiteSpace(indent);
 
             String line = null;
             BufferedReader reader = new BufferedReader( new StringReader(str) );
@@ -289,7 +289,7 @@ public class SetPropertyCommand implements TagCommand
     {
         if( tagStrWithIndent==null )
         {
-            tagStrWithIndent = tag + TextUtil.whiteSpace(indent-tag.length());
+            tagStrWithIndent = tag + TextUtil2.whiteSpace(indent-tag.length());
         }
         return tagStrWithIndent;
     }

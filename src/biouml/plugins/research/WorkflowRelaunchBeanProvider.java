@@ -8,7 +8,7 @@ import ru.biosoft.access.BeanProvider;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -28,7 +28,7 @@ public class WorkflowRelaunchBeanProvider implements BeanProvider
             DynamicPropertySet workflowParameters = WorkflowItemFactory.getWorkflowParameters(diagram);
             String properties = dc.getInfo().getProperty("workflow_properties");
             if(properties == null) return null;
-            DynamicPropertySet dps = TextUtil.readDPSFromJSON(properties);
+            DynamicPropertySet dps = TextUtil2.readDPSFromJSON(properties);
             BeanUtil.copyBean(dps, workflowParameters);
             return workflowParameters;
         }

@@ -33,7 +33,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.LoggedClassCastException;
 import ru.biosoft.access.core.ClassIcon;
 import com.developmentontheedge.beans.DPSProperties;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -170,7 +170,7 @@ public class Compartment extends Node implements DataCollection<DiagramElement>
     public DiagramElement getDiagramElement(String completeNameInDiagram)
     {
         if(completeNameInDiagram.isEmpty()) return this;
-        String[] path = TextUtil.split(completeNameInDiagram, '.');
+        String[] path = TextUtil2.split(completeNameInDiagram, '.');
         Compartment comp = this;
         for( int i = 0; i < path.length - 1; i++ )
         {

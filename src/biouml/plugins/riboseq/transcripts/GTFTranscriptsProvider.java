@@ -16,7 +16,7 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.bsa.DiscontinuousCoordinateSystem;
 import ru.biosoft.bsa.Interval;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class GTFTranscriptsProvider extends TranscriptsProvider
 {
@@ -40,7 +40,7 @@ public class GTFTranscriptsProvider extends TranscriptsProvider
             Pattern pattern = Pattern.compile( "transcript_id\\s+\"(.+)\"" );
             while( line != null )
             {
-                String[] fields = TextUtil.split( line, '\t' );
+                String[] fields = TextUtil2.split( line, '\t' );
                 if( fields.length != 9 )
                     throw new Exception( "Invalid line " + line );
                 String featureType = fields[2];

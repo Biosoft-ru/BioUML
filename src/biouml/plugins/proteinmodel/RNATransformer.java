@@ -9,7 +9,7 @@ import biouml.standard.type.DatabaseReference;
 import biouml.standard.type.RNA;
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.SqlTransformerSupport;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class RNATransformer extends SqlTransformerSupport<RNA>
 {
@@ -33,7 +33,7 @@ public class RNATransformer extends SqlTransformerSupport<RNA>
                 value = null;
             rna.getAttributes().add(new DynamicProperty(fieldName, Double.class, value));
         }
-        rna.getAttributes().add(new DynamicProperty("gene_names", String[].class, TextUtil.split( resultSet.getString("gene_names"), ';' )));
+        rna.getAttributes().add(new DynamicProperty("gene_names", String[].class, TextUtil2.split( resultSet.getString("gene_names"), ';' )));
         DatabaseReference[] refs = ProteinModelUtils.createReferences( resultSet.getString( "refseq_mrna_ids" ), "RefSeq" ).toArray(
                 DatabaseReference[]::new );
         rna.setDatabaseReferences(refs);

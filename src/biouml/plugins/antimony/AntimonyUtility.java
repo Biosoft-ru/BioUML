@@ -53,7 +53,7 @@ import biouml.standard.type.Stub;
 import biouml.standard.type.Unit;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class AntimonyUtility
 {
@@ -139,7 +139,7 @@ public class AntimonyUtility
     {
         if( name == null )
             return null;
-        String[] validName = TextUtil.split(name, '.');
+        String[] validName = TextUtil2.split(name, '.');
         String antimonyName = validName[validName.length - 1];
         antimonyName = antimonyName.replaceAll("[-+()]", "_").replace("$", "");
         return antimonyName.split("[0-9]")[0].isEmpty() ? "_" + antimonyName : antimonyName;
