@@ -14,7 +14,7 @@
 	</extension>
 	
 	<extension point="ru.biosoft.access.transformer">
-      <transformer name="SBOL diagram" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="SBOL diagram" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.sbol.SbolDiagramTransformer" />
     </extension>
 	

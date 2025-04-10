@@ -3,12 +3,16 @@ package biouml.standard.simulation.access.stochastic;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.core.FileTypePriority;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.generic.PriorityTransformer;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;
 import ru.biosoft.access.support.SetPropertyCommand;
@@ -96,5 +100,11 @@ public class StochasticSimulationResultTransformer extends AbstractFileTransform
     public int getOutputPriority(String name)
     {
         return 0;
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        return Collections.emptyMap();
     }
 }

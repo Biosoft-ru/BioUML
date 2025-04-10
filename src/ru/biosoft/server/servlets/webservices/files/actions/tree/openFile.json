@@ -12,7 +12,7 @@
 		if(!path || !name) return -1;
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
-        if (instanceOf(type,'ru.biosoft.access.FileDataElement') || instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')) 
+        if (instanceOf(type,'ru.biosoft.access.file.FileDataElement') || instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')) 
         {
             return true;
         }

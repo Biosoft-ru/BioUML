@@ -24,7 +24,7 @@ import biouml.plugins.gtrd.ChIPseqExperiment;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.repository.DataElementPathEditor;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;

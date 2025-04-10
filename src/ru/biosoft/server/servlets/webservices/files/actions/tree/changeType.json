@@ -19,7 +19,7 @@
         return -1;
       var parentType = parPar.getChildClass(parentName);
       //console.log('Parent collection type: ' + parentType );
-      if (instanceOf(parentType,'ru.biosoft.access.file.FileDataCollection')) 
+      if (instanceOf(parentType,'ru.biosoft.access.file.FileDataCollection') || instanceOf(parentType,'ru.biosoft.access.file.GenericFileDataCollection')) 
         return true;
       return -1;
     }",

@@ -249,7 +249,7 @@
   </extension>
   
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="JavaScript file" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="JavaScript file" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.plugins.javascript.JSElement" transformerClass="ru.biosoft.plugins.javascript.JSTransformer"/> 
   </extension>
 
@@ -346,7 +346,7 @@
 		<function name="createFile" description="creates FileDataElement in given FileCollection and returns it">
 			<argument name="parent" type="FileCollection" obligatory="true" description="Parent FileCollection to create FileDataElement in"/>
 			<argument name="name" type="String" obligatory="true" description="Name of the file to create"/>
-            <returns type="ru.biosoft.access.FileDataElement" description="null on failure"/>
+            <returns type="ru.biosoft.access.file.FileDataElement" description="null on failure"/>
         </function>
 		
 	<function name="importFileDataElement" description="imports FileDataElement in given DataCollection using specified importer">

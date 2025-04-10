@@ -28,7 +28,7 @@ import biouml.plugins.gtrd.access.BigBedFiles;
 import biouml.plugins.gtrd.master.sites.bedconv.BedEntryToPeak;
 import biouml.standard.type.Species;
 import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;

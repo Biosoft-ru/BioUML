@@ -7,7 +7,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import one.util.streamex.StreamEx;
@@ -18,9 +20,10 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.core.AbstractTransformer;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.core.FileTypePriority;
 import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.access.generic.PriorityTransformer;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableColumn;
@@ -348,5 +351,13 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
     public int getOutputPriority(String name)
     {
         return name.endsWith( ".tsv" )?2:0;
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        Map<String, FileTypePriority> extToProprity = new HashMap<>();
+        extToProprity.put( "tsv", FileTypePriority.HIGH_PRIORITY );
+        return extToProprity;
     }
 }

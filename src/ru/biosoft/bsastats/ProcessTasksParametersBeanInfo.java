@@ -1,6 +1,6 @@
 package ru.biosoft.bsastats;
 
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 

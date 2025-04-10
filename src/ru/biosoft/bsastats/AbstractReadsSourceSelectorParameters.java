@@ -5,7 +5,7 @@ import org.apache.commons.lang.ArrayUtils;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.bsa.AlignmentSite;

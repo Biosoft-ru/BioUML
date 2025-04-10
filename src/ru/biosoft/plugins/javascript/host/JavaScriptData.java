@@ -28,7 +28,7 @@ import ru.biosoft.access.DataElementExporterRegistry;
 import ru.biosoft.access.DataElementExporterRegistry.ExporterInfo;
 import ru.biosoft.access.DataElementImporterRegistry;
 import ru.biosoft.access.DataElementImporterRegistry.ImporterInfo;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;

@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;
 import ru.biosoft.access.support.SetPropertyCommand;
 import ru.biosoft.access.support.TagCommand;

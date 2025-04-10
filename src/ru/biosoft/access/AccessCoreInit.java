@@ -8,6 +8,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.Environment;
 import ru.biosoft.access.core.Transformer;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.generic.TransformerRegistry.TransformerInfo;
 import ru.biosoft.access.security.BiosoftClassLoading;

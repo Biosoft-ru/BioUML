@@ -18,7 +18,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.plugins.machinelearning.utils.UtilsGeneral.ChartUtils;
 import biouml.plugins.machinelearning.utils.UtilsGeneral.UtilsForArray;
 import ru.biosoft.access.CollectionFactoryUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElementPath;

@@ -29,7 +29,7 @@ import ru.biosoft.access.DataElementExporterRegistry.ExporterInfo;
 import ru.biosoft.access.core.DataElementImporter;
 import ru.biosoft.access.DataElementImporterRegistry;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.TextUtil2;

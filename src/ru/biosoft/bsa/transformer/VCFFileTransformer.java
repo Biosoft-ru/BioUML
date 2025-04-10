@@ -1,12 +1,15 @@
 package ru.biosoft.bsa.transformer;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.core.FileTypePriority;
 import ru.biosoft.access.generic.PriorityTransformer;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.VCFFileTrack;
@@ -55,5 +58,13 @@ public class VCFFileTransformer extends AbstractFileTransformer<VCFFileTrack> im
         if(name.toLowerCase().endsWith( ".vcf" ))
             return 2;
         return 0;
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        Map<String, FileTypePriority> extToProprity = new HashMap<>();
+        extToProprity.put( "vcf", FileTypePriority.HIGH_PRIORITY );
+        return extToProprity;
     }
 }

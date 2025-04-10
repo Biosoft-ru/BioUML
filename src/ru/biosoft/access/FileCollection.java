@@ -21,6 +21,7 @@ import ru.biosoft.access.core.DataElementDescriptor;
 import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.file.FileBasedCollection;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.repository.IconFactory;
 
 

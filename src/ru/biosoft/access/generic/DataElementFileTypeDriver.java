@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import one.util.streamex.EntryStream;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.FileCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;

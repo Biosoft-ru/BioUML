@@ -37,6 +37,7 @@ import ru.biosoft.access.exception.BiosoftSQLException;
 import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.exception.QuotaException;
 import ru.biosoft.access.file.FileBasedCollection;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.generic2.GenericDataCollection2;
 import ru.biosoft.access.repository.DataCollectionTreeModelAdapter;

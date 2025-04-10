@@ -23,14 +23,15 @@ public class GFFTrackImporter extends TrackImporter
     @Override
     protected Site parseLine(String line)
     {
-        return parseGFFLine( line );
+        return parseGFFLine( line, true );
     }
-    public static Site parseGFFLine(String line)
+
+    public static Site parseGFFLine(String line, boolean normalizeChromosome)
     {
         String[] fields = line.split("\t");
         if( fields.length < 5 )
             return null;
-        String chrom = normalizeChromosome(fields[0]);
+        String chrom = normalizeChromosome( fields[0], normalizeChromosome );
         String strand = fields.length < 7 ? "." : fields[6];
         if( !strand.equals("+") && !strand.equals("-") && !strand.equals(".") )
             return null;

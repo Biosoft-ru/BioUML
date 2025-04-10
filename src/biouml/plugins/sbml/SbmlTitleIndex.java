@@ -11,7 +11,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.FileCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.TransformedDataCollection;
 import ru.biosoft.access.security.PrivilegedAction;
 import ru.biosoft.access.security.SecurityManager;

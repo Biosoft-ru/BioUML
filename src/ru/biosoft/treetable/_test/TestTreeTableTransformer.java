@@ -2,7 +2,7 @@ package ru.biosoft.treetable._test;
 
 import java.io.File;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.treetable.TreeTableElement;
 import ru.biosoft.treetable.access.FileViewTransformer;

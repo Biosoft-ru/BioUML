@@ -8,7 +8,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.plugins.downloadext.FTPUploadAnalysis;
 import biouml.plugins.downloadext.FTPUploadAnalysisParameters;
 import ru.biosoft.access.FileCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.ImporterFormat;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;

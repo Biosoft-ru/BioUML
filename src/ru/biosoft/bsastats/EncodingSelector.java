@@ -11,7 +11,7 @@ import java.util.Map;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
 public class EncodingSelector extends GenericComboBoxEditor

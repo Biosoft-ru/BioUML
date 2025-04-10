@@ -11,7 +11,9 @@ import org.eclipse.core.runtime.IConfigurationElement;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.FileType;
+import ru.biosoft.access.file.FileTypeRegistry;
 import ru.biosoft.access.core.Transformer;
 import ru.biosoft.util.Clazz;
 import ru.biosoft.util.ExtensionRegistrySupport;
@@ -170,6 +172,23 @@ public class TransformerRegistry extends ExtensionRegistrySupport<TransformerReg
         Class<? extends DataElement> outputClass = getClassAttribute( element, OUTPUT_CLASS, DataElement.class );
         @SuppressWarnings ( "rawtypes" )
         Class<? extends Transformer> transformerClass = getClassAttribute( element, TRANSFORMER_CLASS, Transformer.class );
+        if(PriorityTransformer.class.isAssignableFrom(transformerClass))
+        {
+            PriorityTransformer t;
+            try
+            {
+                t = (PriorityTransformer)(transformerClass.getDeclaredConstructor( ).newInstance(  ));
+                t.getExtensionPriority().entrySet().stream().forEach( entry -> {
+                    String ext = entry.getKey();
+                    String fileTypeName = elementName + " (" + ext + ")";
+                    FileTypeRegistry.register( new FileType( fileTypeName, new String[] { ext }, transformerClass.getCanonicalName(), entry.getValue(), fileTypeName + " file" ) );
+                } );
+            }
+            catch( InstantiationException | IllegalAccessException e )
+            {
+                //do nothing
+            }
+        }
         return new TransformerInfo(elementName, transformerClass, inputClass, outputClass);
     }
 }

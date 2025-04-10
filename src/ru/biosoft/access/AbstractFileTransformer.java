@@ -10,6 +10,7 @@ import ru.biosoft.access.core.AbstractTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.file.FileBasedCollection;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.util.TempFiles;
 

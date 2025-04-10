@@ -1,11 +1,14 @@
 package ru.biosoft.access.support;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.core.FileTypePriority;
 import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.generic.PriorityTransformer;
 
@@ -60,5 +63,13 @@ public class FileTextTransformer extends AbstractFileTransformer<TextDataElement
         if(extensionRegexp.matcher( name ).find())
             return 3;
         return 0;
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        Map<String, FileTypePriority> extToProprity = new HashMap<>();
+        extToProprity.put( "txt", FileTypePriority.HIGH_PRIORITY );
+        return extToProprity;
     }
 }

@@ -3,7 +3,7 @@ package biouml.plugins.kegg.access;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import biouml.model.Diagram;
 import biouml.model.Module;
 import biouml.model.util.DiagramXmlTransformer;

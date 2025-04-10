@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 import biouml.plugins.bindingregions.utils.Classification;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.access.script.LogScriptEnvironment;
 import ru.biosoft.access.script.ScriptDataElement;

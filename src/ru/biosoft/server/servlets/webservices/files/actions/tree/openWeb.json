@@ -15,8 +15,8 @@
         var type = dc.getChildClass(name);
         if( instanceOf(type,'ru.biosoft.access.HtmlDataElement')
         	|| instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')
-        	|| (instanceOf(type,'ru.biosoft.access.FileDataElement') && name.match(/\\.gif/i))
-        	|| (instanceOf(type,'ru.biosoft.access.FileDataElement') && name.match(/\\.pdf/i)))
+        	|| (instanceOf(type,'ru.biosoft.access.file.FileDataElement') && name.match(/\\.gif/i))
+        	|| (instanceOf(type,'ru.biosoft.access.file.FileDataElement') && name.match(/\\.pdf/i)))
         {
             return true;
         }

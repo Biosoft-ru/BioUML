@@ -26,7 +26,7 @@ import biouml.plugins.download.FileDownloader;
 import biouml.plugins.download.FileDownloader.RemoteFileInfo;
 import biouml.plugins.server.access.AccessProtocol;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
 import ru.biosoft.access.security.SessionCacheManager;

@@ -24,7 +24,7 @@ import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.Entry;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.MutableDataElementSupport;
 import ru.biosoft.exception.LoggedClassNotFoundException;
 import ru.biosoft.access.core.DataElementReadException;

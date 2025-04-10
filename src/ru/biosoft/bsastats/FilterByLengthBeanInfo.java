@@ -1,6 +1,6 @@
 package ru.biosoft.bsastats;
 
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.repository.DataElementPathEditor;
 
 public class FilterByLengthBeanInfo extends TaskProcessorBeanInfo

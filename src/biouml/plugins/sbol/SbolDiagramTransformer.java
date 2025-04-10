@@ -28,9 +28,10 @@ import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
 import ru.biosoft.access.AbstractFileTransformer;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.core.FileTypePriority;
 import ru.biosoft.access.generic.PriorityTransformer;
 import ru.biosoft.graph.Path;
 
@@ -260,5 +261,18 @@ public class SbolDiagramTransformer extends AbstractFileTransformer<Diagram> imp
         {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        Map<String, FileTypePriority> extToProprity = new HashMap<>();
+        extToProprity.put( "rdf", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "ttl", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "nt", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "jsonld", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "rj", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "xml", FileTypePriority.BELOW_MEDIUM_PRIORITY );
+        return extToProprity;
     }
 }

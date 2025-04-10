@@ -347,9 +347,9 @@
         outputClass="ru.biosoft.bsa.SiteModel" transformerClass="ru.biosoft.bsa.transformer.SiteModelTransformer"/>
       <transformer name="Frequency matrix" inputClass="ru.biosoft.access.Entry" 
         outputClass="ru.biosoft.bsa.analysis.FrequencyMatrix" transformerClass="ru.biosoft.bsa.transformer.WeightMatrixTransformer"/>
-      <transformer name="Filtered track" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Filtered track" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.bsa.analysis.FilteredTrack" transformerClass="ru.biosoft.access.XMLTransformer"/> 
-      <transformer name="Combined track" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Combined track" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.bsa.track.combined.CombinedTrack" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer"/>
   </extension> 
   
@@ -969,19 +969,19 @@
 
   
   <extension point="ru.biosoft.access.transformer">
-    <transformer name="BedFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="BedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.BedTrack" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" />
-    <transformer name="GFFFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="GFFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.GFFTrack" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" />
-    <transformer name="FastaFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="FastaFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/> 
-    <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="BAMFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/> 
-    <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="VCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
-    <transformer name="BCFFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="BCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/> 
-    <transformer name="GenebankFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="GenebankFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/> 
   </extension>
 

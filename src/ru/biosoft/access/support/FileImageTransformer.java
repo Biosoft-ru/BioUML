@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.imageio.IIOImage;
@@ -20,7 +22,8 @@ import javax.imageio.stream.ImageOutputStream;
 import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.core.FileTypePriority;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.generic.PriorityTransformer;
 
@@ -124,5 +127,17 @@ public class FileImageTransformer extends AbstractFileTransformer<ImageDataEleme
         if(EXTENSION_REGEXP.matcher( name ).find())
             return 3;
         return 0;
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        Map<String, FileTypePriority> extToProprity = new HashMap<>();
+        extToProprity.put( "png", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "gif", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "jpg", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "jpeg", FileTypePriority.HIGH_PRIORITY );
+        extToProprity.put( "bmp", FileTypePriority.HIGH_PRIORITY );
+        return extToProprity;
     }
 }

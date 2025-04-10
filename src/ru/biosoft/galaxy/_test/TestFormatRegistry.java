@@ -5,7 +5,7 @@ import java.io.File;
 import java.util.Properties;
 
 import ru.biosoft.access.DataElementExporter;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElementImporter;

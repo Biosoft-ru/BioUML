@@ -13,6 +13,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.TransformedDataCollection;
 import ru.biosoft.access.file.FileBasedCollection;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.access.security.Permission;

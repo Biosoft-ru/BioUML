@@ -11,7 +11,7 @@ import biouml.model.util.ImageGenerator;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageElement;
 import ru.biosoft.access.core.TextDataElement;

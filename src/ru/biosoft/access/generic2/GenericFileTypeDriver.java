@@ -10,7 +10,7 @@ import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.Transformer;
 import ru.biosoft.exception.LoggedException;
 import ru.biosoft.exception.ExceptionRegistry;

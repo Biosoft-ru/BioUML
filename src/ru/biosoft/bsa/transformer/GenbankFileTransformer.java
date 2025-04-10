@@ -1,6 +1,8 @@
 package ru.biosoft.bsa.transformer;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import ru.biosoft.access.AbstractFileTransformer;
@@ -8,6 +10,7 @@ import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.core.FileTypePriority;
 import ru.biosoft.access.Entry;
 import ru.biosoft.access.FileEntryCollection2;
 import ru.biosoft.access.JDBM2Index;
@@ -52,5 +55,13 @@ public class GenbankFileTransformer extends AbstractFileTransformer<GenbankSeque
         if(name.toLowerCase().endsWith( ".gb" ))
             return 2;
         return 0;
+    }
+
+    @Override
+    public Map<String, FileTypePriority> getExtensionPriority()
+    {
+        Map<String, FileTypePriority> extToProprity = new HashMap<>();
+        extToProprity.put( "gb", FileTypePriority.HIGH_PRIORITY );
+        return extToProprity;
     }
 }

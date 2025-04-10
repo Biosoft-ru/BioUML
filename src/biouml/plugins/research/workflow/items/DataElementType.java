@@ -3,7 +3,7 @@ package biouml.plugins.research.workflow.items;
 import biouml.model.Diagram;
 import biouml.standard.type.Species;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.core.TextDataElement;

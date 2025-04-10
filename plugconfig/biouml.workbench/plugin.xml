@@ -173,9 +173,9 @@
 	</extension>
 
 	<extension point="ru.biosoft.access.transformer">
-		<transformer name="Diagram" inputClass="ru.biosoft.access.FileDataElement" 
+		<transformer name="Diagram" inputClass="ru.biosoft.access.file.FileDataElement" 
 		  outputClass="biouml.model.Diagram" transformerClass="biouml.model.util.DiagramXmlTransformer" />
-		<transformer name="State" inputClass="ru.biosoft.access.FileDataElement"
+		<transformer name="State" inputClass="ru.biosoft.access.file.FileDataElement"
 		  outputClass="biouml.standard.state.State" transformerClass="biouml.standard.state.StateTransformer" />
         <transformer name="Chemical structure" inputClass="ru.biosoft.access.Entry"
           outputClass="biouml.standard.type.Structure" transformerClass="biouml.standard.type.access.StructureTransformer"/> 

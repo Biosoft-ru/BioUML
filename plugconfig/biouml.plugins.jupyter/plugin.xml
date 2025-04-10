@@ -14,7 +14,7 @@
   </extension>
 
   <extension point="ru.biosoft.access.transformer"> 
-    <transformer name="IPython" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="IPython" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="biouml.plugins.jupyter.access.IPythonElement" transformerClass="biouml.plugins.jupyter.IPythonFileTransformer"/>
   </extension>
 

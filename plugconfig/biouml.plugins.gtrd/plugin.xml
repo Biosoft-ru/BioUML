@@ -657,7 +657,7 @@
   </extension>
 
   <extension point="ru.biosoft.access.transformer">
-  	<transformer name="GTRDMetadata" inputClass="ru.biosoft.access.FileDataElement" 
+  	<transformer name="GTRDMetadata" inputClass="ru.biosoft.access.file.FileDataElement" 
   	  outputClass="biouml.plugins.gtrd.master.meta.Metadata" transformerClass="biouml.plugins.gtrd.master.meta.MetadataJSONFileTransformer" />
   </extension>
 

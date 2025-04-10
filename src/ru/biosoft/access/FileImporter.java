@@ -23,6 +23,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementImporter;
 import ru.biosoft.access.core.MessageBundle;
 import ru.biosoft.access.file.FileDataCollection;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.access.support.FileImageTransformer;
 import ru.biosoft.jobcontrol.FunctionJobControl;
