@@ -817,6 +817,7 @@ function DataCollection(completeName)
         this.info = null;
         this.templateList = null;
         this.beanDPS = null;
+        thisClass = undefined;
         if(this.getLinkTarget())
             getDataCollection(this.getLinkTarget()).invalidateCollection();
     };
