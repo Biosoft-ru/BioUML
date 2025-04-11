@@ -48,7 +48,8 @@ public class SequenceQuerySystem implements QuerySystem
     public SequenceQuerySystem(DataCollection dc)
     {
         Properties properties = dc.getInfo().getProperties();
-        String indexPath = properties.getProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY) + "/" + dc.getName();
+        String configPath = properties.getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
+        String indexPath = configPath != null ? configPath + "/" + dc.getName() : dc.getName();
 
         try
         {
