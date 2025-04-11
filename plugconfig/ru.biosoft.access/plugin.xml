@@ -185,7 +185,7 @@
       <transformer name="HTML file" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="ru.biosoft.access.HtmlDataElement" transformerClass="ru.biosoft.access.support.FileHtmlTransformer"/> 
       <transformer name="Plain text" inputClass="ru.biosoft.access.file.FileDataElement" 
-        outputClass="ru.biosoft.access.core.TextDataElement" transformerClass="ru.biosoft.access.support.FileTextTransformer"/> 
+        outputClass="ru.biosoft.access.core.TextDataElement" transformerClass="ru.biosoft.access.file.FileTextTransformer"/> 
       <transformer name="ZIP-archive with HTML pages" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="ru.biosoft.access.html.ZipHtmlDataCollection" transformerClass="ru.biosoft.access.support.FileZipHtmlTransformer"/>
       <transformer name="Video" inputClass="ru.biosoft.access.file.FileDataElement" 
