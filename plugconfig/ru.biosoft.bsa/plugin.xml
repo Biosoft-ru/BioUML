@@ -982,7 +982,14 @@
     <transformer name="BCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/> 
     <transformer name="GenebankFile" inputClass="ru.biosoft.access.file.FileDataElement" 
-      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/> 
+      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/>
+    <transformer name="ChrNameMapping" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.ChrNameMapping" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer"/> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="BedFile" extensions="bed" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" priority="20" description="BED track file"/>
+    <fileType name="ChrNameMappingFile" extensions="txt" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer" priority="2" description="ChrNameMapping file"/>
   </extension>
 
 </plugin>

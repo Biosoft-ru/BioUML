@@ -19,6 +19,7 @@
   <extension-point name="beans" id="beans"/>
   <extension-point name="movedClass" id="movedClass"/>
   <extension-point id="scriptType" name="scriptType" schema="plugconfig/ru.biosoft.access/schemas/scriptType.exsd"/>
+  <extension-point name="fileType" id="fileType"/>
   
   <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
   	<class class="ru.biosoft.access.core.DataCollection"/>

@@ -9,6 +9,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.Environment;
 import ru.biosoft.access.core.Transformer;
 import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.FileTypeRegistry;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.generic.TransformerRegistry.TransformerInfo;
 import ru.biosoft.access.security.BiosoftClassLoading;
@@ -20,6 +21,7 @@ public class AccessCoreInit
     {
         Environment.setClassLoading( new BiosoftClassLoading() );
         Environment.setIconManager( new BiosoftIconManager() );
+        Environment.setValue( FileTypeRegistry.FILE_TYPE_REGISTRY_CLASS, BiosoftFileTypeRegistry.class );
         
         
         ru.biosoft.access.file.v1.Environment.INSTANCE = new ru.biosoft.access.file.v1.Environment()

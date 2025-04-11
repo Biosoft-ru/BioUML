@@ -15,6 +15,8 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.Transformer;
 import ru.biosoft.access.file.FileDataCollection;
 import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.FileType;
+import ru.biosoft.access.file.FileTypeRegistry;
 import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.generic.TransformerRegistry.TransformerInfo;
@@ -80,6 +82,11 @@ public class FDCBeanProvider implements BeanProvider
         {
             TransformerInfo ti = TransformerRegistry.getTransformerInfo( fi.transformer );
             yaml.put( "transformer", ti.getTransformerClass().getName() );
+            //TODO: workaround to get type by transformer.
+            //FileType should be used in selector of FileInfo
+            FileType fileType = FileTypeRegistry.getFileTypeByTransformer( ti.getTransformerClass().getName() );
+            if( fileType != null )
+                yaml.put( "type", fileType.getName() );
         }
 
         if(fi.transformerOptions != null)
