@@ -73,6 +73,8 @@ public class AccessCoreInit
             
         };
         
+        TransformerRegistry.initTransformers();
+
         /*
         Transformers.registerTransformer( new FastaFileTransformer(), "fa" );
         Transformers.registerTransformer( new FastaFileTransformer(), "fna" );

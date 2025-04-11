@@ -7,7 +7,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.TextDataElement;
-import ru.biosoft.access.support.FileTextTransformer;
+import ru.biosoft.access.file.FileTextTransformer;
 
 public class JavaElementTransformer extends FileTextTransformer
 {

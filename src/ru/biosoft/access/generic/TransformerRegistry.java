@@ -191,4 +191,9 @@ public class TransformerRegistry extends ExtensionRegistrySupport<TransformerReg
         }
         return new TransformerInfo(elementName, transformerClass, inputClass, outputClass);
     }
+
+    public static void initTransformers()
+    {
+        instance.init();
+    }
 }
