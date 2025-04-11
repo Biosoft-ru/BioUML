@@ -211,7 +211,7 @@ mvn -N install:install-file \
   -DartifactId=physicell \
   -Dversion=1.0-SNAPSHOT \
   -Dpackaging=jar \
-  -Dfile=plugins/ru.biosoft.physicell_0.9.10.jar \
+  -Dfile=plugins/ru.biosoft.physicell_2025.2.jar \
   -DgeneratePom=true
 
 ## BeakerX
