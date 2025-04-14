@@ -3,6 +3,7 @@ package ru.biosoft.access;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -47,6 +48,15 @@ public class BiosoftFileTypeRegistry extends FileTypeRegistryImpl
 
     public void register(FileType fileType)
     {
+        if(byName.containsKey( fileType.getName() ))
+        {
+            if( fileType.getTransformerClassName().equals( byName.get( fileType.getName() ).getTransformerClassName() ) )
+                log.warning( "FileTypeRegistry: file type '" + fileType.getName() + "'registered more than once with the same transformer class" );
+            else
+                log.warning( "FileTypeRegistry: duplicated fileType name '" + fileType.getName() + System.lineSeparator() + "FileType (used):    "
+                        + byName.get( fileType.getName() ) + System.lineSeparator() + "FileType (skipped): " + fileType );
+            return;
+        }
         byName.put( fileType.getName(), fileType );
 
         for ( String extension : fileType.getExtensions() )
@@ -84,7 +94,9 @@ public class BiosoftFileTypeRegistry extends FileTypeRegistryImpl
     public FileType getFileTypeByTransformer(String transformerClassName)
     {
         init();
-        return byName.values().stream().filter( ft -> ft.getTransformerClassName().equals( transformerClassName ) ).findFirst().orElse( null );
+        if( transformerClassName == null )
+            return FileTypeRegistry.FILE_TYPE_BINARY;
+        return byName.values().stream().filter( ft -> transformerClassName.equals( ft.getTransformerClassName() ) ).findFirst().orElse( null );
     }
 
     protected final void init()
@@ -191,5 +203,12 @@ public class BiosoftFileTypeRegistry extends FileTypeRegistryImpl
                 curPriority = ftp;
         }
         return curPriority;
+    }
+
+    @Override
+    public Stream<FileType> fileTypes()
+    {
+        init();
+        return byName.values().stream();
     }
 }

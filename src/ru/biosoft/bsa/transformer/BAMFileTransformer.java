@@ -2,6 +2,7 @@ package ru.biosoft.bsa.transformer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -85,10 +86,7 @@ public class BAMFileTransformer extends AbstractFileTransformer<BAMTrack> implem
     @Override
     public Map<String, FileTypePriority> getExtensionPriority()
     {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "bam", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "sam", FileTypePriority.MEDIUM_PRIORITY );
-        return extToProprity;
+        return Collections.emptyMap();
     }
 
 }

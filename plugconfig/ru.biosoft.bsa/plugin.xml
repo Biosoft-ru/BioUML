@@ -978,7 +978,7 @@
     <transformer name="BAMFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/> 
     <transformer name="VCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
-      outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
+      outputClass="ru.biosoft.bsa.track.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
     <transformer name="BCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/> 
     <transformer name="GenebankFile" inputClass="ru.biosoft.access.file.FileDataElement" 
@@ -989,7 +989,10 @@
   
   <extension point="ru.biosoft.access.fileType">
     <fileType name="BedFile" extensions="bed" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" priority="20" description="BED track file"/>
+    <fileType name="GFFFile" extensions="gff" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" priority="20" description="GFF track file"/>
     <fileType name="ChrNameMappingFile" extensions="txt" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer" priority="2" description="ChrNameMapping file"/>
+    <fileType name="BAMTrack" extensions="bam;sam" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer" priority="20" description="BAM track file"/>
+    <fileType name="Fasta" extensions="fa;fasta;fna" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer" priority="20" description="FASTA sequence collection"/>
   </extension>
 
 </plugin>

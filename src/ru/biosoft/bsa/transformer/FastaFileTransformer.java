@@ -1,7 +1,7 @@
 package ru.biosoft.bsa.transformer;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -52,10 +52,6 @@ public class FastaFileTransformer extends AbstractFileTransformer<FastaSequenceC
     @Override
     public Map<String, FileTypePriority> getExtensionPriority()
     {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "fa", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "fasta", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "fna", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
+        return Collections.emptyMap();
     }
 }

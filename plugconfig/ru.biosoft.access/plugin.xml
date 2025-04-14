@@ -220,4 +220,8 @@
   <extension point="ru.biosoft.access.beans">
 	<provider class="ru.biosoft.access.FDCBeanProvider" prefix="properties/fdc"/>
   </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Image" extensions="png;gif;jpg;bmp;jpeg" transformerClass="ru.biosoft.access.support.FileImageTransformer" priority="20" description="Image file"/>
+  </extension>  
 </plugin>

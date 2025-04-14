@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -132,12 +133,6 @@ public class FileImageTransformer extends AbstractFileTransformer<ImageDataEleme
     @Override
     public Map<String, FileTypePriority> getExtensionPriority()
     {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "png", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "gif", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "jpg", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "jpeg", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "bmp", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
+        return Collections.emptyMap();
     }
 }
