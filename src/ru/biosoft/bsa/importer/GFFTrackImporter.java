@@ -60,10 +60,14 @@ public class GFFTrackImporter extends TrackImporter
         properties.add(new DynamicProperty(getDescriptor("source"), String.class, fields[1]));
         if(!fields[7].equals("."))
             properties.add(new DynamicProperty(getDescriptor("frame"), String.class, fields[7]));
-        HashMap<String, String> descrProps = getPropsFromDescr(fields[8]);
-        for(String dp : descrProps.keySet())
+        //Workaround for incorrect GFF with last empty column (should be ".")
+        if( fields.length > 8 && !fields[8].equals( "." ) )
         {
-        	properties.add(new DynamicProperty(getDescriptor(dp), String.class, descrProps.get(dp)));
+            HashMap<String, String> descrProps = getPropsFromDescr( fields[8] );
+            for ( String dp : descrProps.keySet() )
+            {
+                properties.add( new DynamicProperty( getDescriptor( dp ), String.class, descrProps.get( dp ) ) );
+            }
         }
         return new SiteImpl(null, chrom, fields[2].equals("") ? null : fields[2], Basis.BASIS_USER, strand.equals("-") ? end : start,
                 end - start + 1, Precision.PRECISION_EXACTLY, strand.equals("+") ? StrandType.STRAND_PLUS : strand.equals("-")
