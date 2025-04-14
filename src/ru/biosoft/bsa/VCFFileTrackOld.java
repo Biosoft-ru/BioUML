@@ -34,7 +34,7 @@ import ru.biosoft.bsa.view.TrackViewBuilder;
 
 @ClassIcon ( "resources/trackvcf.png" )
 @PropertyName ( "track" )
-public class VCFFileTrack extends AbstractDataCollection<DataElement> implements Track
+public class VCFFileTrackOld extends AbstractDataCollection<DataElement> implements Track
 {
     public static final String INDEX_PATH_PROPERTY="indexPath";
     
@@ -44,7 +44,7 @@ public class VCFFileTrack extends AbstractDataCollection<DataElement> implements
     private ChrCache chrCache;
     
     
-    public VCFFileTrack(DataCollection<?> parent, Properties properties) throws IOException
+    public VCFFileTrackOld(DataCollection<?> parent, Properties properties) throws IOException
     {
         super( parent, properties );
         

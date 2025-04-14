@@ -12,7 +12,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.FileTypePriority;
 import ru.biosoft.access.generic.PriorityTransformer;
 import ru.biosoft.bsa.Track;
-import ru.biosoft.bsa.VCFFileTrack;
+import ru.biosoft.bsa.track.VCFFileTrack;
 
 public class VCFFileTransformer extends AbstractFileTransformer<VCFFileTrack> implements PriorityTransformer
 {
@@ -31,7 +31,8 @@ public class VCFFileTransformer extends AbstractFileTransformer<VCFFileTrack> im
         properties.setProperty( DataCollectionConfigConstants.FILE_PROPERTY, input.getAbsolutePath() );
         
         String configDir = origin.getInfo().getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
-        properties.setProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, configDir );
+        if( configDir != null )
+            properties.setProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, configDir );
         
         String seqBase = origin.getInfo().getProperty( Track.SEQUENCES_COLLECTION_PROPERTY );
         if(seqBase != null)
