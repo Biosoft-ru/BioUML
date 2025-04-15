@@ -10,7 +10,7 @@ import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.FileEntryCollection2;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.FileTypePriority;
+import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.generic.PriorityTransformer;
 import ru.biosoft.bsa.SequenceImporter;
 

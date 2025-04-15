@@ -3,7 +3,7 @@ package ru.biosoft.access.generic;
 import java.util.Map;
 
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.FileTypePriority;
+import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.core.Transformer;
 
 /**

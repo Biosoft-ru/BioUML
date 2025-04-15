@@ -10,7 +10,7 @@ import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.FileTypePriority;
+import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.Entry;
 import ru.biosoft.access.FileEntryCollection2;
 import ru.biosoft.access.JDBM2Index;

@@ -14,7 +14,7 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 
 import com.developmentontheedge.application.Application;
 
-import ru.biosoft.access.core.FileTypePriority;
+import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.exception.ExtensionInitException;
 import ru.biosoft.access.exception.InitializationException;
 import ru.biosoft.access.file.FileType;
