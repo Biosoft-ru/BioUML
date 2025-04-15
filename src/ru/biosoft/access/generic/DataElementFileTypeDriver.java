@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import one.util.streamex.EntryStream;
 import ru.biosoft.access.ClassLoading;
+import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.FileCollection;
 import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.CollectionFactory;
@@ -218,7 +219,8 @@ public class DataElementFileTypeDriver implements DataElementTypeDriver
             {
                 try
                 {
-                    dataElement = (FileDataElement)dataElement.clone(getPrimaryCollection(), dataElement.getName());
+                    dataElement = (FileDataElement) dataElement.cloneWithFile( getPrimaryCollection(), dataElement.getName(),
+                            DataCollectionUtils.getChildFile( getPrimaryCollection(), dataElement.getName() ) );
                 }
                 catch( CloneNotSupportedException e )
                 {
