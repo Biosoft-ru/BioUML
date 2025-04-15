@@ -46,6 +46,7 @@ import ru.biosoft.access.core.Index;
 import ru.biosoft.access.core.QuerySystem;
 import ru.biosoft.access.core.filter.FilteredDataCollection;
 import ru.biosoft.access.file.FileDataCollection;
+import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.GlobalDatabaseManager;
@@ -857,7 +858,7 @@ public class SupportServlet extends AbstractJSONServlet
                 if(projectType == ProjectType.SQL)
                     return createSQLBasedProject( projectName, userProjectsParent );
                 else if(projectType == ProjectType.FILE)
-                    return createFileBasedProject(projectName, userProjectsParent);
+                    return createFileBasedProject( projectName, userProjectsParent );
             }
             else if( reuse )
             {
@@ -944,28 +945,20 @@ public class SupportServlet extends AbstractJSONServlet
         return researchBuilder.createResearch((Repository)userProjectsParent, projectName, true);
     }
     
-
     private static DataCollection createFileBasedProject(String projectName, DataCollection userProjectsParent) throws Exception
     {
         String projectsFolder = userProjectsParent.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
-        File projectFolder = new File(projectsFolder, projectName);
+        File projectFolder = new File( projectsFolder, projectName );
         projectFolder.mkdirs();
-        File files = new File(projectFolder, "files");
-        files.mkdirs();
-        File configs = new File(projectFolder, "configs");
-        configs.mkdir();
 
         Properties props = new Properties();
         props.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, projectName );
-        props.setProperty( DataCollectionConfigConstants.CLASS_PROPERTY, FileDataCollection.class.getName() );
-        props.setProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY, files.getAbsolutePath() );
-        props.setProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, configs.getAbsolutePath());
-        
-        ExProperties.store( props, new File(projectFolder, DataCollectionConfigConstants.DEFAULT_CONFIG_FILE) );
+        props.setProperty( DataCollectionConfigConstants.CLASS_PROPERTY, GenericFileDataCollection.class.getName() );
 
-        ((Repository)userProjectsParent).updateRepository();
-        
-        return (DataCollection)userProjectsParent.get( projectName );
+        GenericFileDataCollection.initGenericFileDataCollection( userProjectsParent, projectFolder );
+
+        ((Repository) userProjectsParent).updateRepository();
+        return (DataCollection) userProjectsParent.get( projectName );
     }
 
 
