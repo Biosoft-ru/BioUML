@@ -1,7 +1,7 @@
 package ru.biosoft.bsa.transformer;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -80,8 +80,6 @@ public class WiggleFileTransformer extends AbstractFileTransformer<WiggleFileTra
     @Override
     public Map<String, FileTypePriority> getExtensionPriority()
     {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "wig", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
+        return Collections.emptyMap();
     }
 }
