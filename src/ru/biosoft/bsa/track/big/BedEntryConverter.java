@@ -1,7 +1,8 @@
 package ru.biosoft.bsa.track.big;
 
-import org.jetbrains.bio.big.BedEntry;
+import ru.biosoft.bigbed.BedEntry;
 
+//converter should fetch chromInfo and chromMapping from BigBedTrack
 public interface BedEntryConverter<T>
 {
     static final String PROP_PREFIX = "BigBedConverter.";

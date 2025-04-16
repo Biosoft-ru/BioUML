@@ -1,0 +1,27 @@
+#macro( strField $name $label )
+	#if($name && !$name.toString().equals(""))
+		<b>$label</b>: $name <br>
+	#end
+#end
+
+#macro( getDataCollectionProperties $dc )
+	#set($properties= $propertieswriter.getWorkflowDescription($dc))
+	#if (($properties!="")&&($properties!=$null)) 
+		$properties
+	#end	
+	#set($properties= $propertieswriter.getParametersDescription($dc))
+	#if (($properties!="")&&($properties!=$null)) 
+		$properties
+	#end	
+#end
+
+<html>
+	<body>
+		<h1>BigWig track $de.getName()</h1>
+		#strField($de.getInfo().getProperty("SequencesCollection"), "Sequence collection")
+		#if(!$de.isRemote())
+          #strField($utils.formatSize($de.getSizeOnDisk()), "Size on disk")
+		#end
+		#getDataCollectionProperties($de)
+	</body>
+</html>

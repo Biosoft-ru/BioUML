@@ -36,6 +36,7 @@ import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysis.Stat;
+import ru.biosoft.bigbed.AutoSql;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.LinearSequence;
@@ -48,9 +49,6 @@ import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.bsa.track.big.BigBedTrack;
 import ru.biosoft.util.ListUtil;
 import ru.biosoft.util.TextUtil;
-
-import org.jetbrains.bio.big.AutoSql;
-import org.jetbrains.bio.big.Column;
 
 /**
  * @author yura
@@ -908,19 +906,17 @@ public class FunSiteUtils
         private static AutoSql getAutoSql(FunSite fs, String trackName, String description, String[] propertyNames)
         {
         	AutoSql autosql = new AutoSql();
-            autosql.setName("\"" + trackName + "\"");
-            autosql.setDescription(description);
-            ArrayList<Column> columns = new ArrayList<Column>();
-            columns.add(new Column("string", "chrom", "chrom"));
-            columns.add(new Column("uint", "chromStart", "start"));
-            columns.add(new Column("uint", "chromEnd", "end"));
+            autosql.name = "\"" + trackName + "\"";
+            autosql.description = description;
+            autosql.columns.add(new AutoSql.Column("string", "chrom", "chrom"));
+            autosql.columns.add(new AutoSql.Column("uint", "chromStart", "start"));
+            autosql.columns.add(new AutoSql.Column("uint", "chromEnd", "end"));
             // special symbols and - should be removed from property names
             for(int i = 0; i < propertyNames.length; i++)
             {
             	Object value = fs.getObjects()[i];
-            	columns.add(new Column(convertJavaToAutoSqlType(value), propertyNames[i], propertyNames[i]));
+            	autosql.columns.add(new AutoSql.Column(convertJavaToAutoSqlType(value), propertyNames[i], propertyNames[i]));
             }
-            autosql.setColumns(columns);
             return autosql;
         }
         

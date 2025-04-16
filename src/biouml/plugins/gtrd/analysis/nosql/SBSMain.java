@@ -10,9 +10,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
@@ -22,15 +21,15 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.jetbrains.bio.CompressionType;
-import org.jetbrains.bio.big.BPlusLeaf;
-import org.jetbrains.bio.big.BedEntry;
-import org.jetbrains.bio.big.BigBedFile;
 
 import biouml.plugins.gtrd.ChIPseqExperiment;
 import biouml.plugins.gtrd.access.BigBedFiles;
 import biouml.plugins.gtrd.master.meta.json.Experiments;
-import kotlin.Pair;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.BigBedFile;
+import ru.biosoft.bigbed.BigBedWriter;
+import ru.biosoft.bigbed.BigBedWriterOptions;
+import ru.biosoft.bigbed.ChromInfo;
 
 //replacement for SearchBindingSites analysis that works directly with bigBed files and metadata in json
 public class SBSMain
@@ -190,7 +189,7 @@ public class SBSMain
             time = System.currentTimeMillis();
             
             List<BedEntry> result = new ArrayList<>();
-            Map<String, BPlusLeaf> chroms = null;
+            List<ChromInfo> chroms = null;
             for(ChIPseqExperiment e : exps.chipSeqExps.values())
             {
                 if(e.isControlExperiment())
@@ -211,17 +210,20 @@ public class SBSMain
                     continue;
                 System.err.println("Processing file " + bbFile.getAbsolutePath());
                 BigBedFile bb = BigBedFile.read(bbFile.getAbsolutePath());
-                chroms = bb.getPrefetchedChr2Leaf$big();
+                if(chroms == null) {
+                	chroms = new ArrayList<>();
+                	bb.traverseChroms(chroms::add);
+                }
                 if(ensemblGeneId.isPresent())
                 {
-                    List<BedEntry> entries = bb.query( loc.chr, (loc.from-1)-maxGeneDistance, loc.to + maxGeneDistance );
+                    List<BedEntry> entries = bb.queryIntervals( loc.chr, (loc.from-1)-maxGeneDistance, loc.to + maxGeneDistance, 0 );
                     result.addAll( entries );
                 }
                 else
                 {
-                    for(String chr : bb.getChromosomes().valueCollection())
+                    for(ChromInfo chr : chroms)
                     {
-                        List<BedEntry> entries = bb.query( chr );
+                        List<BedEntry> entries = bb.queryIntervals( chr.id, 0, chr.length, 0 );
                         result.addAll( entries );
                     }
                 }
@@ -232,17 +234,14 @@ public class SBSMain
                 Files.write( outputFile.toPath(), new byte[0] );
                 return;
             }
-            List<Pair<String, Integer>> chromSizes = new ArrayList<>();
-            chroms.forEach( (k,v)->{
-                chromSizes.add( new Pair<>( k, v.getSize() ) );
-            } );
+            chroms.sort(Comparator.comparingInt(chr->chr.id));
             System.out.println("Done in " +(System.currentTimeMillis() - time) + "ms");
             System.out.println("Found " + result.size() + " sites");
             
             System.out.println("Writing results");
             time = System.currentTimeMillis();
-            Collections.sort( result );
-            BigBedFile.write( result, chromSizes, outputFile.toPath(), 1024, 1, CompressionType.DEFLATE );
+            BigBedWriterOptions options = new BigBedWriterOptions();
+			BigBedWriter.write(result, chroms, outputFile, options);
             System.out.println("Done in " +(System.currentTimeMillis() - time) + "ms");
         }else if(dataSet.equals( "meta clusters" ))
         {

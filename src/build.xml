@@ -61,7 +61,6 @@
         <property name="JFREECHART" value="${PLUGIN_DIR}/org.jfree_1.5.0/jfreechart-1.5.0.jar;${PLUGIN_DIR}/org.jfree_1.5.0/jcommon-1.0.24.jar" />
         <property name="CROMWELL" value="${PLUGIN_DIR}/cromwell_83/womtool-83.jar" />
         <property name="JLIBSEDML" value="${PLUGIN_DIR}/org.jlibsedml_2.2.1/jaxen-1.1.1.jar;${PLUGIN_DIR}/org.jlibsedml_2.2.1/jdom-1.1.3.jar;${PLUGIN_DIR}/org.jlibsedml_2.2.1/jdom-contrib.jar;${PLUGIN_DIR}/org.jlibsedml_2.2.1/jlibsedml.jar;${PLUGIN_DIR}/org.jlibsedml_2.2.1/jmathml.jar;${PLUGIN_DIR}/org.jlibsedml_2.2.1/xom-1.2.1.jar;" />   
-        <property name="BIG" value="${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/annotations-13.0.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/jackson-core-2.11.2.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/big-0.9.1p6.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/checker-qual-2.11.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/commons-compress-1.4.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/commons-jexl-2.1.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/commons-logging-1.1.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/commons-math3-3.6.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/error_prone_annotations-2.3.4.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/failureaccess-1.0.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/guava-29.0-jre.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/htsjdk-2.10.1.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/j2objc-annotations-1.3.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/jsr305-3.0.2.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/kotlin-stdlib-1.2.71.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/kotlin-stdlib-common-1.2.71.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/log4j-1.2.17.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/logback-classic-1.2.3.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/logback-core-1.2.3.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/ngs-java-1.2.4.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/slf4j-api-1.7.25.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/snappy-0.4.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/snappy-java-1.0.3-rc3.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/trove4j-3.0.3.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/util-mmap-1.0.35.jar;${PLUGIN_DIR}/org.jetbrains.bio.big_0.9.1/xz-1.5.jar" />
         <property name="HTSJDK" value="${PLUGIN_DIR}/htsjdk_2.24.1/commons-jexl-2.1.1.jar;${PLUGIN_DIR}/htsjdk_2.24.1/xz-1.8.jar;${PLUGIN_DIR}/htsjdk_2.24.1/mjson-1.4.1.jar;${PLUGIN_DIR}/htsjdk_2.24.1/commons-logging-1.1.1.jar;${PLUGIN_DIR}/htsjdk_2.24.1/commons-compress-1.19.jar;${PLUGIN_DIR}/htsjdk_2.24.1/htsjdk-2.24.1.jar;${PLUGIN_DIR}/htsjdk_2.24.1/snappy-java-1.1.7.3.jar;${PLUGIN_DIR}/htsjdk_2.24.1/ngs-java-2.9.0.jar" />
         <!--property name="MYSQL_JAR" value="${PLUGIN_DIR}/com.mysql.jdbc_5.1.18.jar" /-->
         <property name="MYSQL_JAR" value="${PLUGIN_DIR}/com.mysql.jdbc_8.0.25.jar" />
@@ -88,7 +87,7 @@
         <property name="CDK" value="${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-valencycheck.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-annotation.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-atomtype.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-charges.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-control.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-core.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-data.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-datadebug.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-dict.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-diff.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-extra.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-fingerprint.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-forcefield.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-formula.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-inchi.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-interfaces.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-io.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-ioformats.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-ionpot.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-io-sources.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-isomorphism.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-libiocml.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-libiomd.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-log4j.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-nonotify.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-pcore.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-pdb.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-pdbcml.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qm.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsar.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsaratomic.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsarbond.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsarcml.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsarionpot.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsarmolecular.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-qsarprotein.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-reaction.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-render.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-sdg.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-smarts.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-smiles.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-smsd.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-standard.jar;${PLUGIN_DIR}/org.openscience.cdk_1.3.5/cdk-structgen.jar" />
         <property name="CHEMPAINT" value="${PLUGIN_DIR}/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar;${PLUGIN_DIR}/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar" />
         <property name="JMOL" value="${PLUGIN_DIR}/org.openscience.jmol_12.2.4.jar" />
-        <property name="JSON" value="${PLUGIN_DIR}/org.json-20170516.jar;${PLUGIN_DIR}/com.eclipsesource.json_0.9.4.jar" />
+        <property name="JSON" value="${PLUGIN_DIR}/org.json-20170516.jar;${PLUGIN_DIR}/com.eclipsesource.json_0.9.4.jar;${PLUGIN_DIR}/jackson-core-2.11.2.jar" />
         <property name="TROVE" value="${PLUGIN_DIR}/gnu.trove_3.0.3.jar" />
         <property name="JSOUP" value="${PLUGIN_DIR}/org.jsoup_1.11.3.jar" />
         <property name="VELOCITY" value="${PLUGIN_DIR}/org.apache.velocity_1.6.2.jar" />
@@ -103,6 +102,7 @@
         <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar;" />
         <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-1.0.0.jar;" />
         <property name="RTREE" value="${PLUGIN_DIR}/ru.biosoft.rtree-0.0.1.jar" />
+        <property name="BIGBED" value="${PLUGIN_DIR}/ru.biosoft.bigbed-0.0.1.jar" />
         <property name="UTIL" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.util-1.0.0.jar" />
         <property name="JUPYTER_BASE_KERNEL" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar" />
     	<property name="BEAKERX_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar" />
@@ -124,8 +124,8 @@
         <!-- misc -->
 
         <!-- ROSUDA must go before CHEMPAINT as they have conflicting classes -->
-        <property name="BUILD_CLASSPATH" value=".;${ECLIPSE_JARS};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${RHINO};${JMAIL};${LOG4J};${DOTEBEANS};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${BIG};${ROSUDA};${GRAPH};${JGRAPH};${JGRAPHADDONS};${BATIK};${JAMA};${JTAR};${JDBM};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${CERN};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${CHIPMUNK};${PERFECTOSAPE};${FTPCLIENT};${JERICHO};${SMACK};${JUNIT};${PICARD};${JSOUP};${YAML};${BCEL_JAR};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${ACCESSCORE};${ACCESSFILE};${RTREE};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${PHYSICELL_JARS};${SBOL};${BEAKERX_JARS}" />
-        <property name="RUN_CLASSPATH" value=".;${OUTDIR};${DOTEBEANS};${ACCESSCORE};${ACCESSFILE};${BELOGGER};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${LOG4J};${RHINO};${JMAIL};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${BIG};${GRAPH};${JGRAPH};${JGRAPHADDONS};${JAMA};${ROSUDA};${JTAR};${JDBM};${BATIK};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${FTPCLIENT};${CHIPMUNK};${PERFECTOSAPE};${JERICHO};${SMACK};${CERN};${JUNIT};${PICARD};${JSOUP};${YAML};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${RTREE};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${SBOL}" />
+        <property name="BUILD_CLASSPATH" value=".;${ECLIPSE_JARS};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${RHINO};${JMAIL};${LOG4J};${DOTEBEANS};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${ROSUDA};${GRAPH};${JGRAPH};${JGRAPHADDONS};${BATIK};${JAMA};${JTAR};${JDBM};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${CERN};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${CHIPMUNK};${PERFECTOSAPE};${FTPCLIENT};${JERICHO};${SMACK};${JUNIT};${PICARD};${JSOUP};${YAML};${BCEL_JAR};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${ACCESSCORE};${ACCESSFILE};${RTREE};${BIGBED};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${PHYSICELL_JARS};${SBOL};${BEAKERX_JARS}" />
+        <property name="RUN_CLASSPATH" value=".;${OUTDIR};${DOTEBEANS};${ACCESSCORE};${ACCESSFILE};${BELOGGER};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${LOG4J};${RHINO};${JMAIL};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${GRAPH};${JGRAPH};${JGRAPHADDONS};${JAMA};${ROSUDA};${JTAR};${JDBM};${BATIK};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${ENSEMBL_JAR};${MYSQL_JAR};${OWLAPI};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GLPK};${SABIO};${POI};${FTPCLIENT};${CHIPMUNK};${PERFECTOSAPE};${JERICHO};${SMACK};${CERN};${JUNIT};${PICARD};${JSOUP};${YAML};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${RTREE};${BIGBED};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${SBOL}" />
 
         <property name="WORKBENCH" value="${PLUGIN_DIR}/ru.biosoft.workbench_${VERSION}" />
         <property name="BIOUML_WORKBENCH" value="${PLUGIN_DIR}/biouml.workbench_${VERSION}" />
@@ -176,6 +176,7 @@
                 <exclude name="ru.biosoft.editor*.jar"/>
                 <exclude name="ru.biosoft.exception*.jar"/>
                 <exclude name="ru.biosoft.rtree*.jar"/>
+                <exclude name="ru.biosoft.bigbed*.jar"/>
                 <exclude name="ru.biosoft.jobcontrol*.jar"/>
                 <exclude name="ru.biosoft.access.core*.jar"/>
                 <exclude name="ru.biosoft.access.file*.jar"/>
@@ -1331,7 +1332,6 @@ GRAPHICSPLUGIN=${GRAPHICSPLUGIN}
 JFREECHART=${JFREECHART}
 CROMWELL=${CROMWELL}
 JLIBSEDML=${JLIBSEDML}
-BIG=${BIG}
 HTSJDK=${HTSJDK}
 GRAPH=${GRAPH}
 JGRAPH=${JGRAPH}
@@ -1359,6 +1359,7 @@ EXCEPTION=${EXCEPTION}
 ACCESSCORE=${ACCESSCORE}
 ACCESSFILE=${ACCESSFILE}
 RTREE=${RTREE}
+BIGBED=${BIGBED}
 UTIL=${UTIL}
 JADE=${JADE}
             
