@@ -167,7 +167,7 @@ public class TrackOptions
                     properties.putAll(fiProps);
                     try
                     {
-                        fdc.storeElementProperties1(element, properties);
+                        fdc.storeElementProperties( element, null, properties );
                     }
                     catch (Exception e)
                     {
