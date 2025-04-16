@@ -3,6 +3,7 @@ package biouml.plugins.sbol;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -266,13 +267,6 @@ public class SbolDiagramTransformer extends AbstractFileTransformer<Diagram> imp
     @Override
     public Map<String, FileTypePriority> getExtensionPriority()
     {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "rdf", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "ttl", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "nt", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "jsonld", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "rj", FileTypePriority.HIGH_PRIORITY );
-        extToProprity.put( "xml", FileTypePriority.BELOW_MEDIUM_PRIORITY );
-        return extToProprity;
+        return Collections.emptyMap();
     }
 }
