@@ -24,6 +24,7 @@ import ru.biosoft.access.core.DataElementImporter;
 import ru.biosoft.access.core.MessageBundle;
 import ru.biosoft.access.file.FileDataCollection;
 import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.access.support.FileImageTransformer;
 import ru.biosoft.jobcontrol.FunctionJobControl;
@@ -51,6 +52,8 @@ public class FileImporter implements DataElementImporter
         {
             if(parent instanceof FileDataCollection)
                 return suffix == null ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_UNSUPPORTED; //Allow only 'GenericFile' importer for FileDataCollection
+            if( parent instanceof GenericFileDataCollection )
+                return suffix == null ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_UNSUPPORTED; //Allow only 'GenericFile' importer for GenericFileDataCollection
             if(suffix != null)
             {
                 return file.getName().toLowerCase().endsWith(suffix) ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_LOW_PRIORITY;
