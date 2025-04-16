@@ -27,7 +27,15 @@
     {
        var name = getElementName(completePath);
        createBeanEditorDialog('Edit ' + name, 'properties/fdc/' + completePath, function() {
-         refreshTreeBranch(getElementPath(completePath));
+           closeDocumentByPath(completePath);
+           refreshTreeBranch(getElementPath(completePath));
+           var curDoc = getActiveDocument();
+           if(curDoc && curDoc.updateItemView)
+           {
+              dc = getDataCollection(completePath);
+              curDoc.updateItemView(dc);
+           }
+           refreshTreeBranch(getElementPath(completePath));
        }, true);     
     }"
 }

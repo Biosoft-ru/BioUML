@@ -1351,6 +1351,16 @@ function SequenceDocument(completeName, paramHash, customId)
             if(tr)
                 this.reloadTrack(tr.id);
         }
+        else
+        {
+            //remove from view if item is not a track but exists in track list
+            var tr = _.find(this.enabledTracks, function(track)
+            {
+                return track.de == item.completeName; 
+            });
+            if(tr)
+                this.removeTrack(tr.id);
+        }
     }
 }
 
