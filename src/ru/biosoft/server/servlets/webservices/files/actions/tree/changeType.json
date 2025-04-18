@@ -35,7 +35,6 @@
               dc = getDataCollection(completePath);
               curDoc.updateItemView(dc);
            }
-           refreshTreeBranch(getElementPath(completePath));
        }, true);     
     }"
 }
