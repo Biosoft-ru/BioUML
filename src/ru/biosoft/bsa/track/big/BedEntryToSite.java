@@ -1,16 +1,17 @@
 package ru.biosoft.bsa.track.big;
 
 import java.beans.PropertyDescriptor;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.jetbrains.bio.big.AutoSql;
-import org.jetbrains.bio.big.BedEntry;
-
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
 
+import ru.biosoft.bigbed.AutoSql;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
@@ -48,15 +49,12 @@ public class BedEntryToSite implements BedEntryConverter<Site>
         if(autoSql != null)
         {
             columns = new ArrayList<>();
-            for(int i = 3; i < autoSql.getColumns().size(); i++)
+            for(int i = 3; i < autoSql.columns.size(); i++)
             {
-                org.jetbrains.bio.big.Column autoSqlColumn = autoSql.getColumns().get( i );
-                autoSqlColumn.getType();
-                autoSqlColumn.getName();
-                autoSqlColumn.getDescription();
+            	ru.biosoft.bigbed.AutoSql.Column autoSqlColumn = autoSql.columns.get( i );
                 Column col = new Column();
-                col.pd = StaticDescriptor.create( autoSqlColumn.getName(), null, autoSqlColumn.getDescription(), null, false, true );
-                col.type = convertAutoSqlTypeToJava(autoSqlColumn.getType());
+                col.pd = StaticDescriptor.create( autoSqlColumn.name, null, autoSqlColumn.description, null, false, true );
+                col.type = convertAutoSqlTypeToJava(autoSqlColumn.type);
                 columns.add( col );
             }
         }
@@ -80,18 +78,21 @@ public class BedEntryToSite implements BedEntryConverter<Site>
     {
         initColumns();//late init, so that BigBedTrack will be open
         
-        Sequence seq = origin.getChromosomeSequence( e.getChrom() );
+        ChromInfo chrInfo = origin.getChromInfo(e.chrId);
+        String externalChrName = origin.internalToExternal(chrInfo.name);
+        Sequence seq = origin.getChromosomeSequence( externalChrName );
         
-        String[] parts = TextUtil2.split( e.getRest(), '\t' );
+        String dataStr = new String(e.data, StandardCharsets.UTF_8);
+        String[] parts = TextUtil2.split( dataStr, '\t' );
         String id;
         if(idColumn != -1)
         {
             id = parts[idColumn];
         }else
-            id = e.getChrom() + ":" + (e.getStart()+1) + "-" + e.getEnd(); 
+            id = externalChrName + ":" + (e.start+1) + "-" + e.end; 
         
         
-        SiteImpl s = new SiteImpl( null, id, e.getStart() + 1, e.getEnd() - e.getStart(), StrandType.STRAND_NOT_KNOWN, seq );
+        SiteImpl s = new SiteImpl( null, id, e.start + 1, e.end - e.start, StrandType.STRAND_NOT_KNOWN, seq );
         
         DynamicPropertySet dps = s.getProperties();
         
@@ -133,8 +134,14 @@ public class BedEntryToSite implements BedEntryConverter<Site>
             String propValue = val == null ? "" : val.toString();
             propValues.add( propValue );
         }
-        String rest = String.join( "\t", propValues );
-        return new BedEntry( s.getOriginalSequence().getName(), s.getFrom()-1, s.getTo(), rest );
+        String data = String.join( "\t", propValues );
+        
+        String externalChrName = s.getOriginalSequence().getName();
+        ChromInfo chromInfo = origin.getChromInfo(externalChrName);
+        BedEntry res = new BedEntry(chromInfo.id, s.getFrom()-1, s.getTo());
+        if(data.length() > 0)
+        	res.data = data.getBytes(StandardCharsets.UTF_8);        
+        return res;
     }
     
    

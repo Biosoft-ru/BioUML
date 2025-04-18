@@ -208,6 +208,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             cdp.getCustomDataProperties().createCustomData( cd );
             cdp.getIntracellularProperties().createIntracellular( cd, model );
             cdp.getRulesProperties().createRules( cd, model );
+            cdp.getIntegrityProperties().createIntegrity( cd );
 
             FunctionsProperties fp = cdp.getFunctionsProperties();
             CellFunctions f = cd.functions;

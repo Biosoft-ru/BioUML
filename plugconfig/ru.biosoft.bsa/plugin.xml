@@ -868,6 +868,12 @@
           <filter class="ru.biosoft.bsa.track.big.BigBedTrack" subclasses="yes"/>
       </template>
   </extension>
+
+  <extension id="BigWig track template" point="ru.biosoft.templates.template">
+      <template name="BigWig track" file="ru/biosoft/bsa/track/big/resources/bigwig_track.vm" description="BigWig track information" isBrief="no" order="0">
+          <filter class="ru.biosoft.bsa.track.big.BigWigTrack" subclasses="yes"/>
+      </template>
+  </extension>
   
   <extension id="SQL track template" point="ru.biosoft.templates.template">
       <template name="SQL track" file="ru/biosoft/bsa/resources/sqltrack.vm" description="SQL track information" isBrief="no" order="0">

@@ -1,8 +1,7 @@
 package biouml.plugins.gtrd.analysis.nosql;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
-import org.jetbrains.bio.big.BedEntry;
 
 import biouml.plugins.gtrd.master.sites.GenomeLocation;
 import biouml.plugins.gtrd.master.sites.bedconv.BedEntryToGEMChipSeqPeak;
@@ -14,6 +13,8 @@ import biouml.plugins.gtrd.master.sites.chipseq.GEMPeak;
 import biouml.plugins.gtrd.master.sites.chipseq.MACS2ChIPSeqPeak;
 import biouml.plugins.gtrd.master.sites.chipseq.PICSPeak;
 import biouml.plugins.gtrd.master.sites.chipseq.SISSRSPeak;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
@@ -68,13 +69,16 @@ public class BedEntryWithStableIdConverter implements BedEntryConverter<Site>
             
             //replace stable id with numeric id
             parts[stableIdCol==-1?parts.length-1:stableIdCol] = id;
-            e = new BedEntry( e.getChrom(), e.getStart(), e.getEnd(), String.join( "\t", parts ) );
+            BedEntry e2 = new BedEntry( e.chrId, e.start, e.end);
+            e2.data = String.join( "\t", parts ).getBytes(StandardCharsets.UTF_8);
             
-            return converter.fromBedEntry( e );
+            return converter.fromBedEntry( e2 );
         }else if(siteType.equals( "ms" ))//meta cluster
         {
-            Sequence seq = origin.getChromosomeSequence( e.getChrom() );
-            SiteImpl s = new SiteImpl( null, stableId, e.getStart() + 1, e.getEnd() - e.getStart(), StrandType.STRAND_NOT_KNOWN, seq );
+        	ChromInfo chrInfo = origin.getChromInfo(e.chrId);
+        	String chrName = origin.internalToExternal(chrInfo.name);
+            Sequence seq = origin.getChromosomeSequence( chrName );
+            SiteImpl s = new SiteImpl( null, stableId, e.start + 1, e.end - e.start, StrandType.STRAND_NOT_KNOWN, seq );
             s.setType( parts[parts.length-2] );//TF name
             return s;
         }else

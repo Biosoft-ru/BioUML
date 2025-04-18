@@ -1,16 +1,15 @@
 package biouml.plugins.gtrd.utils;
 
 import java.beans.PropertyDescriptor;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.jetbrains.bio.big.AutoSql;
-import org.jetbrains.bio.big.BedEntry;
-
-
-import biouml.plugins.gtrd.utils.FunSite;
 import biouml.plugins.machinelearning.utils.DataMatrix;
+import ru.biosoft.bigbed.AutoSql;
+import ru.biosoft.bigbed.BedEntry;
+import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
@@ -41,15 +40,12 @@ public class BedEntryToFunSite implements BedEntryConverter<FunSite>
         if(autoSql != null)
         {
             columns = new ArrayList<>();
-            for(int i = 3; i < autoSql.getColumns().size(); i++)
+            for(int i = 3; i < autoSql.columns.size(); i++)
             {
-                org.jetbrains.bio.big.Column autoSqlColumn = autoSql.getColumns().get( i );
-                autoSqlColumn.getType();
-                autoSqlColumn.getName();
-                autoSqlColumn.getDescription();
+                AutoSql.Column autoSqlColumn = autoSql.columns.get( i );
                 Column col = new Column();
-                col.pd = StaticDescriptor.create( autoSqlColumn.getName(), null, autoSqlColumn.getDescription(), null, false, true );
-                col.type = convertAutoSqlTypeToJava( autoSqlColumn.getType() );
+                col.pd = StaticDescriptor.create( autoSqlColumn.name, null, autoSqlColumn.description, null, false, true );
+                col.type = convertAutoSqlTypeToJava( autoSqlColumn.type );
                 columns.add( col );
             }
         }
@@ -71,8 +67,10 @@ public class BedEntryToFunSite implements BedEntryConverter<FunSite>
     	
         String[] parts = TextUtil2.split( e.getRest(), '\t' );
 
-        Interval coordinates = new Interval(e.getStart(), e.getEnd());
-        Sequence seq = origin.getChromosomeSequence( e.getChrom() );
+        Interval coordinates = new Interval(e.start, e.end);
+        ChromInfo chrInfo = origin.getChromInfo(e.chrId);
+        String chrName = origin.internalToExternal(chrInfo.name);
+        Sequence seq = origin.getChromosomeSequence( chrName );
         
         double[] propertyValues = new double[parts.length];
         String[] propertyNames = new String[parts.length];
@@ -111,7 +109,7 @@ public class BedEntryToFunSite implements BedEntryConverter<FunSite>
         }
         
         DataMatrix dataMatrix = new DataMatrix(null, propertyNames, new double[][]{propertyValues});
-        FunSite fs = new FunSite(e.getChrom(), coordinates, 0, dataMatrix, seq);
+        FunSite fs = new FunSite(chrName, coordinates, 0, dataMatrix, seq);
 
         return fs;
     }
@@ -132,7 +130,11 @@ public class BedEntryToFunSite implements BedEntryConverter<FunSite>
         }
 
         String rest = String.join( "\t", propValues );
-        return new BedEntry( fs.getChromosomeName(), fs.getStartPosition()-1, fs.getFinishPosition(), rest );
+        
+        ChromInfo chrInfo = origin.getChromInfo(fs.getChromosomeName());
+        BedEntry e = new BedEntry(chrInfo.id, fs.getStartPosition()-1, fs.getFinishPosition());
+        e.data = rest.getBytes(StandardCharsets.UTF_8);
+        return e;
         
     }
 

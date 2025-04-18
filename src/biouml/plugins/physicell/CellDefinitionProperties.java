@@ -53,6 +53,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     private CustomDataProperties customData = new CustomDataProperties();
     private IntracellularProperties intracellular = new IntracellularProperties();
     private RulesProperties rules = new RulesProperties();
+    private IntegrityProperties integrity = new IntegrityProperties();
 
     protected MouseListener selectionListener;
 
@@ -318,6 +319,15 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     public void setRulesProperties(RulesProperties rules)
     {
         this.rules = rules;
+    }
+    
+    public IntegrityProperties getIntegrityProperties()
+    {
+        return this.integrity;
+    }
+    public void setIntegrityrProperties(IntegrityProperties integrity)
+    {
+        this.integrity = integrity;
     }
 
     @Override

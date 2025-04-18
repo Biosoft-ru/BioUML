@@ -52,12 +52,12 @@ public class TumorPhenotype extends UpdatePhenotype
         //        temp *= dt;
         //        temp *= damageRate;
 
-        damage += ( drug * dt * damageRate ) / ( repairRate * dt + 1 );//temp; // d_prev + dt*chemo*damage_rate
+        damage = ( damage + drug * dt * damageRate ) / ( 1 + repairRate * dt );//temp; // d_prev + dt*chemo*damage_rate
 
         //        temp = repairRate;
         //        temp *= dt;
         //        temp += 1.0;
-        damage /= ( repairRate * dt + 1 );//temp; // (d_prev + dt*chemo*damage_rate)/(1 + dt*repair_rate)
+        //damage /= ( repairRate * dt + 1 );//temp; // (d_prev + dt*chemo*damage_rate)/(1 + dt*repair_rate)
 
         // then, see if the cell undergoes death from the therapy
         double temp = dt * damage * drugDeathRate / maxDamage;
@@ -67,7 +67,7 @@ public class TumorPhenotype extends UpdatePhenotype
         //        temp /= maxDamage; // dt*(damage/max_damage)*death_rate
 
         // make sure we write the damage (not current a behavior)
-        pCell.state.damage = damage;
+        pCell.phenotype.cellIntegrity.damage = damage;
         if( rng.checkRandom( temp ) )
         {
             // pCell.start_death( apoptosis_model_index );

@@ -68,7 +68,7 @@ public class BacterialPhenotype extends UpdatePhenotype
         // damage increases death 
         int nApoptosis = phenotype.death.findDeathModelIndex( PhysiCellConstants.apoptosis_death_model );
 
-        signal = cell.state.damage;
+        signal = cell.phenotype.cellIntegrity.damage;
         base = cd.phenotype.death.rates.get( nApoptosis );
 
         double damageHalfmax = data.get( "damage_halfmax" );
