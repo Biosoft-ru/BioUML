@@ -43,6 +43,7 @@ public class PhysicellSimulator implements Simulator
         writer.init(  this.model, this.options );  
         if( !this.model.isInit() )
             this.model.init();
+        writer.saveAllResults( this.model );
     }
 
     @Override
@@ -58,10 +59,9 @@ public class PhysicellSimulator implements Simulator
         while( curTime < options.getFinalTime() && running )
         {
             model.doStep();
-
             model.executeEvents();
-            writer.saveAllResults( model );
             curTime += options.getDiffusionDt();
+            writer.saveAllResults( this.model );
         }
         return false;
     }
