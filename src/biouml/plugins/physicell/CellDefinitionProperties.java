@@ -54,6 +54,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     private IntracellularProperties intracellular = new IntracellularProperties();
     private RulesProperties rules = new RulesProperties();
     private IntegrityProperties integrity = new IntegrityProperties();
+    private DivisionProperties division = new DivisionProperties();
 
     protected MouseListener selectionListener;
 
@@ -74,6 +75,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         geometry = new GeometryProperties( cd.phenotype.geometry );
         customData = new CustomDataProperties( cd.custom_data );
         cycle = new CycleProperties( cd.phenotype.cycle );
+        division = new DivisionProperties( cd.phenotype.cycle );
         death = new DeathProperties( cd.phenotype.death );
         secretions = new SecretionsProperties( node );
         this.interactions = new InteractionsProperties( node );
@@ -121,6 +123,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         result.transformations = transformations.clone( de );
         result.customData = customData.clone();
         result.rules = rules.clone(de);
+        result.division = division.clone();
         if( result.intracellular != null )
             result.intracellular = intracellular.clone( de );
         return result;
@@ -325,9 +328,18 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     {
         return this.integrity;
     }
-    public void setIntegrityrProperties(IntegrityProperties integrity)
+    public void setIntegrityProperties(IntegrityProperties integrity)
     {
         this.integrity = integrity;
+    }
+    
+    public DivisionProperties getDivisionProperties()
+    {
+        return this.division;
+    }
+    public void setDivisionProperties(DivisionProperties division)
+    {
+        this.division = division;
     }
 
     @Override

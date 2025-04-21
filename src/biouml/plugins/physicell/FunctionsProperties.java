@@ -20,6 +20,7 @@ public class FunctionsProperties extends Option
     private String migrationUpdate;
     private String contact;
     private String orientation;
+    private String division = PhysicellConstants.NOT_SELECTED;
     private String instantiate = PhysicellConstants.NOT_SELECTED;
 
     private DataElementPath customRuleCustom;
@@ -32,6 +33,7 @@ public class FunctionsProperties extends Option
     private DataElementPath contactCustom;
     private DataElementPath orientationCustom;
     private DataElementPath instantiateCustom;
+    private DataElementPath divisionCustom;
 
     public FunctionsProperties()
     {
@@ -51,6 +53,7 @@ public class FunctionsProperties extends Option
         this.contact = getName( functions.contact );
         this.orientation = getName( functions.set_orientation );
         this.instantiate = getName( functions.customCellRule );
+        this.division = getName(functions.cellDivision);
     }
 
     private String getName(Function f)
@@ -190,6 +193,19 @@ public class FunctionsProperties extends Option
         firePropertyChange( "instantiate", oldValue, instantiate );
         firePropertyChange( "*", null, null );
     }
+    
+    @PropertyName ( "Cell division" )
+    public String getDivision()
+    {
+        return division;
+    }
+    public void setDivision(String division)
+    {
+        Object oldValue = this.division;
+        this.division = division;
+        firePropertyChange( "division", oldValue, division );
+        firePropertyChange( "*", null, null );
+    }
 
     public CellFunctions getFunctions()
     {
@@ -318,7 +334,21 @@ public class FunctionsProperties extends Option
     }
     public void setInstantiateCustom(DataElementPath instantiateCustom)
     {
+        Object oldValue = this.instantiateCustom;
         this.instantiateCustom = instantiateCustom;
+        firePropertyChange( "instantiateCustom", oldValue, instantiateCustom );
+    }
+    
+    @PropertyName ( "Custom Division" )
+    public DataElementPath getDivisionCustom()
+    {
+        return divisionCustom;
+    }
+    public void setDivisionCustom(DataElementPath divisionCustom)
+    {
+        Object oldValue = this.divisionCustom;
+        this.divisionCustom = divisionCustom;
+        firePropertyChange( "divisionCustom", oldValue, divisionCustom );
     }
 
     public boolean isDefaultPhenotype()
@@ -369,6 +399,11 @@ public class FunctionsProperties extends Option
     public boolean isDefaultInstantiate()
     {
         return !PhysicellConstants.CUSTOM.equals( this.getInstantiate() );
+    }
+    
+    public boolean isDefaultDivision()
+    {
+        return !PhysicellConstants.CUSTOM.equals( this.getDivision() );
     }
 
     public void setCustom(String name, DataElementPath dep)

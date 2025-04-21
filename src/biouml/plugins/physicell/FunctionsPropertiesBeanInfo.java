@@ -39,6 +39,8 @@ public class FunctionsPropertiesBeanInfo extends BeanInfoEx2<FunctionsProperties
         property( "contactCustom" ).hidden( "isDefaultContact" ).inputElement( ScriptDataElement.class ).add();
         property( "instantiate" ).tags( toNames( FunctionRegistry.getIntsnatiateFunctions() ) ).add();
         property( "instantiateCustom" ).hidden( "isDefaultInstantiate" ).inputElement( ScriptDataElement.class ).add();
+        property( "division" ).tags( toNames( FunctionRegistry.getDivisionFunctions() ) ).add();
+        property( "divisionCustom" ).hidden( "isDefaultDivision" ).inputElement( ScriptDataElement.class ).add();
     }
 
     private String[] toNames(Function[] functions)

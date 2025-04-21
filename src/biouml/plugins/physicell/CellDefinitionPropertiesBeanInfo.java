@@ -24,6 +24,7 @@ public class CellDefinitionPropertiesBeanInfo extends BeanInfoEx2<CellDefinition
         addHidden( "volumeProperties" );
         addHidden( "geometryProperties" );
         addHidden( "cycleProperties" );
+        addHidden( "divisionProperties" );
         addHidden( "deathProperties" );
         addHidden( "functionsProperties" );
         addHidden( "secretionsProperties" );
