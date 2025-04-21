@@ -993,6 +993,10 @@
       outputClass="ru.biosoft.bsa.ChrNameMapping" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer"/>
     <transformer name="WiggleFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.WiggleFileTrack" transformerClass="ru.biosoft.bsa.transformer.WiggleFileTransformer"/> 
+    <!--transformer name="BigBedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.big.BigBedTrack" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer"/>
+    <transformer name="BigWigFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/--> 
   </extension>
   
   <extension point="ru.biosoft.access.fileType">
@@ -1003,6 +1007,8 @@
     <fileType name="Fasta" extensions="fa;fasta;fna" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer" priority="20" description="FASTA sequence collection"/>
     <fileType name="Wiggle track" extensions="wig" transformerClass="ru.biosoft.bsa.transformer.WiggleFileTransformer" priority="20" description="Wiggle track file"/>
     <fileType name="VCF track" extensions="vcf" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer" priority="20" description="VCF track file"/>
+    <fileType name="BigBed track" extensions="bb;bigBed" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer" priority="20" description="BigBed track file"/>
+    <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
   </extension>
 
 </plugin>

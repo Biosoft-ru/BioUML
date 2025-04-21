@@ -29,8 +29,7 @@ public class BigBedTrackImporter implements DataElementImporter
     @Override
     public int accept(DataCollection<?> parent, File file)
     {
-        if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() )
-                || ! ( DataCollectionUtils.getTypeSpecificCollection( parent, getResultType() ) instanceof Repository ) )
+        if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() ) )
             return ACCEPT_UNSUPPORTED;
         if( file == null || file.getName().toLowerCase().endsWith(".bb") || file.getName().toLowerCase().endsWith(".bigbed") )
             return ACCEPT_HIGHEST_PRIORITY;

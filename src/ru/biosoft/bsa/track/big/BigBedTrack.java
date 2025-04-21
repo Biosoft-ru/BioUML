@@ -30,6 +30,7 @@ import ru.biosoft.bigbed.BigBedFile;
 import ru.biosoft.bigbed.BigBedWriter;
 import ru.biosoft.bigbed.BigBedWriterOptions;
 import ru.biosoft.bigbed.ChromInfo;
+import ru.biosoft.bigbed.ExtraIndex;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.WithSite;
 import ru.biosoft.util.LazyValue;
@@ -338,7 +339,10 @@ public class BigBedTrack<T> extends BigTrack
     @Override
     public List<String> getIndexes()
     {
-    	return getBBFile().getExtraIndices().stream().map(x->x.name).collect(Collectors.toList());
+        List<ExtraIndex> extraIndices = getBBFile().getExtraIndices();
+        if( extraIndices == null )
+            return Collections.emptyList();
+        return extraIndices.stream().map( x -> x.name ).collect( Collectors.toList() );
     }
     
     @Override
