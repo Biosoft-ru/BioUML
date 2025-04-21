@@ -96,7 +96,7 @@ public class PhysicellResultWriter
     public void saveAllResults(PhysicellModel model) throws Exception
     {
         double curTime = model.getCurrentTime();
-        if( curTime >= nextReport )
+        if( Math.abs( curTime - nextReport ) < 1E-8 )
         {
             nextReport += options.getReportInterval();
             saveResults( curTime );
