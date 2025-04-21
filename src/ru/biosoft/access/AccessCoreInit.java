@@ -17,6 +17,8 @@ import ru.biosoft.access.security.BiosoftClassLoading;
 public class AccessCoreInit
 {
     private static Logger log = Logger.getLogger( AccessCoreInit.class.getName() );
+
+    @SuppressWarnings("deprecation")
     public static void init()
     {
         Environment.setClassLoading( new BiosoftClassLoading() );
@@ -56,15 +58,38 @@ public class AccessCoreInit
             
             public Transformer getTransformerForDataElement(DataElement de)
             {
+                Transformer transformer = null;
                 try
                 {
-                    return TransformerRegistry.getBestTransformer( de, FileDataElement.class );
+                    transformer = TransformerRegistry.getBestTransformer( de, FileDataElement.class );
                 }
                 catch( Exception e )
                 {
                     log.log( Level.WARNING, "Can not find transformer for " + de.getCompletePath(), e );
                     return null;
                 }
+                if( transformer == null )
+                {
+                    //try to get transformer via FileType 
+                    transformer = FileTypeRegistry.fileTypes().map( fileType -> {
+                        String className = fileType.getTransformerClassName();
+                        Class<? extends Transformer> clazz;
+                        try
+                        {
+                            clazz = ClassLoading.loadSubClass( className, Transformer.class );
+                            Transformer tr = (Transformer) clazz.getDeclaredConstructor().newInstance();
+                            if( tr.isInputType( FileDataElement.class ) && tr.isOutputType( de.getClass() ) )
+                                return tr;
+                            else
+                                return null;
+                        }
+                        catch (Exception ex)
+                        {
+                            return null;
+                        }
+                    } ).filter( tr -> tr != null ).findFirst().orElse( null );
+                }
+                return transformer;
             }
 
             @Override
