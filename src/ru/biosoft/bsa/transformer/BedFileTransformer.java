@@ -27,7 +27,7 @@ public class BedFileTransformer extends AbstractFileTransformer<BedTrack> implem
     @Override
     public BedTrack load(File file, String name, DataCollection<BedTrack> origin) throws Exception
     {
-        Properties trackProps = (Properties) properties.clone();
+        Properties trackProps = properties != null ? (Properties) properties.clone() : new Properties();
         trackProps.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, name );
         trackProps.setProperty( DataCollectionConfigConstants.FILE_PROPERTY, file.getAbsolutePath() );
         return new BedTrack( origin, trackProps );

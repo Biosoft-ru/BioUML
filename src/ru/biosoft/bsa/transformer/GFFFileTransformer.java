@@ -25,7 +25,7 @@ public class GFFFileTransformer extends AbstractFileTransformer<GFFTrack> implem
     @Override
     public GFFTrack load(File file, String name, DataCollection<GFFTrack> origin) throws Exception
     {
-        Properties trackProps = (Properties) properties.clone();
+        Properties trackProps = properties != null ? (Properties) properties.clone() : new Properties();
         trackProps.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, name );
         trackProps.setProperty( DataCollectionConfigConstants.FILE_PROPERTY, file.getAbsolutePath() );
         return new GFFTrack( origin, trackProps );
