@@ -5,7 +5,7 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 public class PhysicellImportProperties extends Option
 {
-    private String diagramName;
+    private String diagramName = "Model";
     private boolean importDefaultDefinition = false;
 
     @PropertyName ( "Diagram name" )
