@@ -665,9 +665,27 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
             {
                 bamSequencesWithChrPrefix = true;
                 SAMFileReader reader = new SAMFileReader(bamFile);
-                for(SAMSequenceRecord s : reader.getFileHeader().getSequenceDictionary().getSequences())
-                    if(!s.getSequenceName().startsWith("chr"))
-                        bamSequencesWithChrPrefix = false;
+                List<SAMSequenceRecord> sequences = reader.getFileHeader().getSequenceDictionary().getSequences();
+                if( sequences.isEmpty() )
+                {
+                    SAMRecordIterator iterator = reader.iterator();
+                    if( iterator.hasNext() )
+                    {
+                        SAMRecord record = iterator.next();
+                        String seqName = record.getReferenceName();
+                        if( !seqName.startsWith( "chr" ) )
+                            bamSequencesWithChrPrefix = false;
+                    }
+                }
+                else
+                {
+                    for ( SAMSequenceRecord s : sequences )
+                        if( !s.getSequenceName().startsWith( "chr" ) )
+                        {
+                            bamSequencesWithChrPrefix = false;
+                            break;
+                        }
+                }
                 reader.close();
             }
         }
