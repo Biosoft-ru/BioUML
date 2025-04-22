@@ -17,6 +17,7 @@ import java.util.Properties;
 import ru.biosoft.access.core.AbstractDataCollection;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.Index.IndexEntry;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.ErrorLetterPolicy;
@@ -46,6 +47,10 @@ public class FastaSimpleSequenceCollection extends AbstractDataCollection<Annota
 		this(parent, createProperties(name, file));
 	}
 
+	@Override
+	public Class<? extends DataElement> getDataElementType() {
+		return AnnotatedSequence.class;
+	}
 
 	private static Properties createProperties(String name, File file) {
 		Properties properties = new Properties();
@@ -77,7 +82,7 @@ public class FastaSimpleSequenceCollection extends AbstractDataCollection<Annota
 					nameBuffer[iNameBuffer++] = (byte)c;
 					pos++;
 				}
-				String name = new String(nameBuffer, StandardCharsets.UTF_8);
+				String name = new String(nameBuffer, 0, iNameBuffer, StandardCharsets.UTF_8);
 				long offset = pos;
 				long length = 0;
 				

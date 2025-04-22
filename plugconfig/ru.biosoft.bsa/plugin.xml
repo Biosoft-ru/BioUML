@@ -980,7 +980,7 @@
     <transformer name="GFFFile" inputClass="ru.biosoft.access.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.GFFTrack" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" />
     <transformer name="FastaFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/> 
+      outputClass="ru.biosoft.bsa.transformer.FastaSimpleSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaSimpleFileTransformer"/> 
     <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement" 
       outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/> 
     <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement" 
