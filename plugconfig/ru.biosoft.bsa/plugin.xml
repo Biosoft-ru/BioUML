@@ -993,10 +993,10 @@
       outputClass="ru.biosoft.bsa.ChrNameMapping" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer"/>
     <transformer name="WiggleFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.WiggleFileTrack" transformerClass="ru.biosoft.bsa.transformer.WiggleFileTransformer"/> 
-    <!--transformer name="BigBedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+    <transformer name="BigBedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.big.BigBedTrack" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer"/>
     <transformer name="BigWigFile" inputClass="ru.biosoft.access.file.FileDataElement" 
-      outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/--> 
+      outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/> 
   </extension>
   
   <extension point="ru.biosoft.access.fileType">

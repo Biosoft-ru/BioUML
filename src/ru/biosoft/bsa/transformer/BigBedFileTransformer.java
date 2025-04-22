@@ -51,7 +51,7 @@ public class BigBedFileTransformer extends AbstractFileTransformer<BigBedTrack> 
     @Override
     public int getInputPriority(Class<? extends DataElement> inputClass, DataElement output)
     {
-        return -1;
+        return 1;
     }
 
     @Override

@@ -49,7 +49,7 @@ public class BigWigFileTransformer extends AbstractFileTransformer<BigWigTrack> 
     @Override
     public int getInputPriority(Class<? extends DataElement> inputClass, DataElement output)
     {
-        return -1;
+        return 1;
     }
 
     @Override
