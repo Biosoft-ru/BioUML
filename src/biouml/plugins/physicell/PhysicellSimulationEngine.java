@@ -35,6 +35,7 @@ import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
 import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
+import ru.biosoft.physicell.core.standard.StandardAssymetricDivision;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.GIFGenerator;
@@ -200,6 +201,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             cdp.getVolumeProperties().createVolume( cd );
             cdp.getMechanicsProperties().createMechanics( cd, model );
             cdp.getCycleProperties().createCycle( cd );
+            cdp.getDivisionProperties().createDivision( cd, model );
             cdp.getDeathProperties().createDeath( cd );
             cdp.getSecretionsProperties().createSecretion( cd );
             cdp.getMotilityProperties().createMotility( cd );
@@ -224,6 +226,9 @@ public class PhysicellSimulationEngine extends SimulationEngine
             f.set_orientation = getFunction( fp.getOrientation(), fp.getOrientationCustom(), set_orientation.class, model );
             f.updateMigration = getFunction( fp.getMigrationUpdate(), fp.getMigrationUpdateCustom(), UpdateMigrationBias.class, model );
             f.instantiator = getFunction( fp.getInstantiate(), fp.getInstantiateCustom(), Instantiator.class, model );
+            
+            if (cdp.getDivisionProperties().isAsymmetric())
+                f.cellDivision = new StandardAssymetricDivision( model.getRNG() );
         }
 
         if( getCustomReportGenerator() != null && !getCustomReportGenerator().isEmpty() )

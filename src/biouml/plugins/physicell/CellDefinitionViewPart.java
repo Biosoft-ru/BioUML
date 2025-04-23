@@ -41,6 +41,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
     private Action[] actions;
 
     private PropertyInspectorEx cycleInspector = new PropertyInspectorEx();
+    private PropertyInspectorEx divisionInspector = new PropertyInspectorEx();
     private PropertyInspectorEx deathInspector = new PropertyInspectorEx();
     private PropertyInspectorEx motilityInspector = new PropertyInspectorEx();
     private PropertyInspectorEx mechanicsInspector = new PropertyInspectorEx();
@@ -61,6 +62,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         tabbedPane = new JTabbedPane( SwingConstants.LEFT );
         add( BorderLayout.CENTER, tabbedPane );
         cycleInspector.setDefaultNumberFormat( null );
+        divisionInspector.setDefaultNumberFormat( null );
         deathInspector.setDefaultNumberFormat( null );
         motilityInspector.setDefaultNumberFormat( null );
         mechanicsInspector.setDefaultNumberFormat( null );
@@ -117,6 +119,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         geometryInspector.explore( cdp.getGeometryProperties() );
         deathInspector.explore( cdp.getDeathProperties() );
         cycleInspector.explore( cdp.getCycleProperties() );
+        divisionInspector.explore( cdp.getDivisionProperties() );
         functionsInspector.explore( cdp.getFunctionsProperties() );
         secretionInspector.explore( cdp.getSecretionsProperties() );
         interactionsInspector.explore( cdp.getInteractionsProperties() );
@@ -140,6 +143,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
     {
         tabbedPane.removeAll();
         tabbedPane.addTab( "Cycle", cycleInspector );
+        tabbedPane.addTab( "Division", divisionInspector );
         tabbedPane.addTab( "Death", deathInspector );
         tabbedPane.addTab( "Volume", volumeInspector );
         tabbedPane.addTab( "Mechanics", mechanicsInspector );
