@@ -169,21 +169,25 @@ public class PhysicellImporter implements DataElementImporter
 
         TableDataCollection table = TableDataCollectionUtils.createTableDataCollection( dc, tableName );
 
-        //        String[] header = cells.get(0).split(","); //todo: read header, derive column types
-        table.getColumnModel().addColumn( "x", DataType.Float );
-        table.getColumnModel().addColumn( "y", DataType.Float );
-        table.getColumnModel().addColumn( "z", DataType.Float );
-        table.getColumnModel().addColumn( "type", DataType.Text );
+        String[] header = cells.get(0).split(","); //todo: read header, derive column types
+        
+        for( int i = 0; i < header.length; i++ )
+            table.getColumnModel().addColumn( header[i], DataType.Text );
 
         for( int i = 1; i < cells.size(); i++ )
         {
             String[] data = cells.get( i ).split( "," );
-            Double x = Double.parseDouble( data[0] );
-            Double y = Double.parseDouble( data[1] );
-            Double z = Double.parseDouble( data[2] );
-            String type = data[3];
-            TableDataCollectionUtils.addRow( table, String.valueOf( i ), new Object[] {x, y, z, type} );
+            Object[] vals = new Object[header.length];
+            vals[0] = Double.parseDouble( data[0] );
+            vals[1] = Double.parseDouble( data[1] );
+            vals[2] = Double.parseDouble( data[2] );
+            vals[3] = data[3];
+
+            for( int j = 4; j < data.length; j++ )
+                vals[j] = data[j];
+            TableDataCollectionUtils.addRow( table, String.valueOf( i ), vals );
         }
+        
         dc.put( table );
         InitialCondition c = result.getRole( MulticellEModel.class ).getInitialCondition();
         c.setCustomCondition( true );
@@ -251,6 +255,7 @@ public class PhysicellImporter implements DataElementImporter
             if( !properties.isImportDefaultDefinition() && cd.name.equals( "default" ) && model.getDefinitionsCount() != 1 )
                 continue;
             CellDefinitionProperties cdp = new CellDefinitionProperties( cd.name );
+            cdp.setColor( result.getRole( MulticellEModel.class ).createDefinitionColor() );
             Node cdNode = cdp.doCreateElements( result, new Point(), null ).nodesStream().findAny().orElse( null );
             result.put( cdNode );
             cdp.setDefinition( cd );
