@@ -1,5 +1,6 @@
 package biouml.plugins.physicell;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseListener;
@@ -34,7 +35,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     private String name;
     private int initialNumber = 0;
     private String comment;
-    private Brush color;
+    private Brush color = new Brush(Color.gray);
     
     private Node node;
     private boolean isCompleted;
