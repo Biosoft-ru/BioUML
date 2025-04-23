@@ -1,0 +1,55 @@
+ID	cells.csv
+OS	
+PLATFORM	
+INFO
+plugins=ru.biosoft.table
+name=cells.csv
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	x; Float; NONE;  x
+#2	y; Float; NONE;  y
+#3	z; Float; NONE;  z
+#4	type; Text; NONE;  type
+#5	apoptosis; Text; NONE;  apoptosis
+#6	necrosis; Text; NONE;  necrosis
+#7	migration speed; Text; NONE;  migration speed
+#8	phagocytose apoptotic cell; Text; NONE;  phagocytose apoptotic cell
+#9	phagocytose necrotic cell; Text; NONE;  phagocytose necrotic cell
+#10	attack tumor cell; Text; NONE;  attack tumor cell
+#11	attack duration; Text; NONE;  attack duration
+#12	attack damage rate; Text; NONE;  attack damage rate
+#13	damage rate; Text; NONE;  damage rate
+#14	damage repair rate; Text; NONE;  damage repair rate
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+1	0.0	0.0	0.0	tumor cell	9e9	0	0	0	0	skip	skip	skip	1	0
+2	15.0	0.0	0.0	macrophage	skip	skip	0	0.05	0.000000	skip	skip	skip	skip	skip
+3	100.0	0.0	0.0	tumor cell	0	9e9	0	0	0	skip	skip	skip	skip	skip
+4	115.0	0.0	0.0	macrophage	skip	skip	0	0.0000000	0.05	skip	skip	skip	skip	skip
+5	100.0	100.0	0.0	fast T cell	skip	skip	0	0.00000	0.00	0.025	5	1	skip	skip
+6	115.0	100.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+7	107.5	113.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+8	107.5	87.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+9	100.0	115.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+10	100.0	85.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+11	92.5	113.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+12	92.5	87.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+13	85.0	100.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+14	-100.0	100.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+15	-100.0	85.0	0.0	fast T cell	skip	skip	0	0.00000	0.00	0.025	5	1	skip	skip
+16	-100.0	115.0	0.0	fast T cell	skip	skip	0	0.00000	0.00	0.025	5	1	skip	skip
+17	-115.0	100.0	0.0	fast T cell	skip	skip	0	0.00000	0.00	0.025	5	1	skip	skip
+18	-85.0	100.0	0.0	fast T cell	skip	skip	0	0.00000	0.00	0.025	5	1	skip	skip
+19	0.0	-100.0	0.0	tumor cell	9e9	0	0	0	0	skip	skip	skip	1	0.05
+20	-100.0	-100.0	0.0	slow T cell	skip	skip	0	0.00000	0.00	0.025	50	0.1	skip	skip
+21	-115.0	-100.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+22	-107.5	-113.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+23	-107.5	-87.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+24	-100.0	-115.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+25	-100.0	-85.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+26	-92.5	-113.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+27	-92.5	-87.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+28	-85.0	-100.0	0.0	tumor cell	0	0	0	0	0	skip	skip	skip	skip	skip
+//
