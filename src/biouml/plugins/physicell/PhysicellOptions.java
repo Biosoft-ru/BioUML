@@ -12,14 +12,14 @@ public class PhysicellOptions extends Options
 {
     private DataElementPath resultPath;
     private double finalTime = 100;
-    private boolean saveReport = true;
+    private boolean saveReport = false;
     private boolean saveDensity = true;
     private double reportInterval = 10;
     private boolean saveImage = false;
-    private boolean saveCellsText = false;
-    private boolean saveCellsTable = true;
+    private boolean saveCellsText = true;
+    private boolean saveCellsTable = false;
     private boolean saveGIF = false;
-    private boolean saveVideo = true;
+    private boolean saveVideo = false;
     private boolean parallelDiffusion = false;
 
     private String cellUpdateType = CellContainerParallel.PARALLEL_CONTAINER_NAME;

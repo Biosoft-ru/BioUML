@@ -1,0 +1,13 @@
+import ru.biosoft.physicell.core.Cell;
+import ru.biosoft.physicell.core.CellFunctions.CellDivision;
+
+public class Division extends CellDivision
+{
+    public void execute( Cell parent, Cell daughter ) throws Exception
+    { 
+        if ( parent.getModel().getRNG().UniformRandom() < 0.5)
+            daughter.convert( parent.getModel().getCellDefinition("default") ); 
+        else
+            parent.convert( parent.getModel().getCellDefinition("ctype1") ); 
+    }
+} 

@@ -1,0 +1,53 @@
+import java.awt.Color;
+
+import ru.biosoft.physicell.core.Cell;
+import ru.biosoft.physicell.ui.AgentColorerDefault;
+
+public class Colorer extends AgentColorerDefault
+{
+    @Override
+    public Color[] findColors(Cell cell)
+    {
+        try
+        {
+	  if( cell.typeName.equals("tumor cell") )
+	  {
+                 double damage = cell.getModel().signals.getSingleSignal( cell , "damage"); 
+	       double max_damage = 30; 
+	       int color = (int) Math.round( 255.0 * damage / max_damage ); 
+	       if( color > 255 )
+	            color = 255;
+                  if( cell.getModel().signals.getSingleSignal(cell,"dead") < 0.5 )
+                      return new Color[]{new Color(color, color, 255-color)};
+                  else
+		  return super.findColors(cell); 
+  	  }
+  	  else if (cell.typeName.equals("macrophage") ) 
+            {
+                return new Color[]{Color.orange};
+            }
+            else if( cell.typeName.equals("fast T cell") ) 
+	  {
+                 if ( cell.getModel().signals.getSingleSignal(cell, "attacking") > 0.5 )
+                     return new Color[]{new Color(196, 0,0)}; 
+                 else 
+                     return new Color[]{new Color(255, 164, 164)};
+            }
+	  else if( cell.typeName.equals("slow T cell") ) 
+	  {
+                  if ( cell.getModel().signals.getSingleSignal(cell, "attacking") > 0.5 )
+                       return new Color[]{new Color(0, 128, 0)}; 
+                  else 
+                       return new Color[]{new Color(164, 255, 164)};
+	  }
+            else
+            { 
+                  return super.findColors(cell); 
+            }
+       }
+       catch (Exception ex)
+       {
+            return new Color[]{new Color(0, 0, 0)};
+       }
+    }
+}

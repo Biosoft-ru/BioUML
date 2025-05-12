@@ -1,10 +1,12 @@
 package biouml.plugins.physicell;
 
+import java.awt.Color;
 import java.util.List;
 
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.dynamics.EModelRoleSupport;
+import ru.biosoft.graphics.Brush;
 
 public class MulticellEModel extends EModelRoleSupport
 {
@@ -175,6 +177,13 @@ public class MulticellEModel extends EModelRoleSupport
         emodel.comment = comment;
         emodel.updateCellDefinitions();
         return emodel;
+    }
+    
+    private static Color[] colors = new Color[] {Color.gray, Color.blue, Color.green, Color.cyan, Color.red, Color.orange, Color.magenta, Color.pink};
+    
+    public Brush createDefinitionColor()
+    {
+        return new Brush(colors[this.getCellDefinitions().size() % colors.length]);
     }
 
     /**

@@ -18,6 +18,7 @@ import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellContainer;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.CellFunctions;
+import ru.biosoft.physicell.core.CellFunctions.CellDivision;
 import ru.biosoft.physicell.core.CellFunctions.Contact;
 import ru.biosoft.physicell.core.CellFunctions.CustomCellRule;
 import ru.biosoft.physicell.core.CellFunctions.DistanceCalculator;
@@ -34,6 +35,7 @@ import ru.biosoft.physicell.core.CellFunctions.set_orientation;
 import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
 import ru.biosoft.physicell.core.Rules;
+import ru.biosoft.physicell.core.SignalBehavior;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
 import ru.biosoft.physicell.core.standard.StandardAssymetricDivision;
 import ru.biosoft.physicell.core.standard.StandardModels;
@@ -226,9 +228,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             f.set_orientation = getFunction( fp.getOrientation(), fp.getOrientationCustom(), set_orientation.class, model );
             f.updateMigration = getFunction( fp.getMigrationUpdate(), fp.getMigrationUpdateCustom(), UpdateMigrationBias.class, model );
             f.instantiator = getFunction( fp.getInstantiate(), fp.getInstantiateCustom(), Instantiator.class, model );
-            
-            if (cdp.getDivisionProperties().isAsymmetric())
-                f.cellDivision = new StandardAssymetricDivision( model.getRNG() );
+            f.cellDivision = getFunction( fp.getDivision(), fp.getDivisionCustom(), CellDivision.class, model );
         }
 
         if( getCustomReportGenerator() != null && !getCustomReportGenerator().isEmpty() )
@@ -351,7 +351,20 @@ public class PhysicellSimulationEngine extends SimulationEngine
                 int code = (int)Double.parseDouble( row[3].toString() );
                 cd = model.getCellDefinition( code );
             }
-            Cell.createCell( cd, model, new double[] {x, y, z} );
+            Cell cell = Cell.createCell( cd, model, new double[] {x, y, z} );
+
+            //additional properties
+            for( int i = 4; i < row.length; i++ )
+            {
+                String val = row[i].toString();
+                if( val.equals( "skip" ) )
+                    continue;
+                String colName = tdc.getColumnModel().getColumn( i ).getName();
+                if( colName.equals( "volume" ) )
+                    cell.setTotalVolume( Double.parseDouble( row[i].toString() ) );
+                else
+                    cell.getModel().signals.setSingleBehavior( cell, colName, Double.parseDouble( row[i].toString() ) );
+            }
         }
     }
 
