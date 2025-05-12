@@ -39,19 +39,16 @@ public class BiosoftFileTypeRegistry extends FileTypeRegistryImpl
 
     private static String extensionPointId = "ru.biosoft.access.fileType";
 
-
-    static
-    {
-        byName.put( FileTypeRegistry.FILE_TYPE_TEXT.getName(), FileTypeRegistry.FILE_TYPE_TEXT );
-        byName.put( FileTypeRegistry.FILE_TYPE_BINARY.getName(), FileTypeRegistry.FILE_TYPE_BINARY );
-    }
-
     public void register(FileType fileType)
     {
         if(byName.containsKey( fileType.getName() ))
         {
-            if( fileType.getTransformerClassName().equals( byName.get( fileType.getName() ).getTransformerClassName() ) )
+            String newClass = fileType.getTransformerClassName();
+            String oldClass = byName.get( fileType.getName() ).getTransformerClassName();
+            if( (newClass == null && oldClass == null) || (newClass != null && newClass.equals( oldClass )) )
+            {
                 log.warning( "FileTypeRegistry: file type '" + fileType.getName() + "'registered more than once with the same transformer class" );
+            }
             else
                 log.warning( "FileTypeRegistry: duplicated fileType name '" + fileType.getName() + System.lineSeparator() + "FileType (used):    "
                         + byName.get( fileType.getName() ) + System.lineSeparator() + "FileType (skipped): " + fileType );
@@ -152,7 +149,7 @@ public class BiosoftFileTypeRegistry extends FileTypeRegistryImpl
                             String extensionsStr = element.getAttribute( EXTENSIONS_ATTR );
                             String[] extensions = extensionsStr.split( ";" );
                             String transformerClass = element.getAttribute( TRANSFORMER_CLASS );
-                            int priority = getIntAttribute( element, DESCRIPTION_ATTR );
+                            int priority = getIntAttribute( element, PRIORITY_ATTR );
                             String description = element.getAttribute( DESCRIPTION_ATTR );
                             FileType ft = new FileType( name, extensions, transformerClass, getPriorityByValue( priority ), description );
                             register( ft );
