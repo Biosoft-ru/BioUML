@@ -26,6 +26,8 @@ public class ChrNameMappingTransformer extends AbstractFileTransformer<ChrNameMa
             while( ( line = reader.readLine() ) != null )
             {
                 String[] parts = line.split( "\t", 2 );
+                if( parts.length < 2 )
+                    continue;
                 result.srcToDst.put( parts[0], parts[1] );
             }
         }
