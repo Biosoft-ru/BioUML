@@ -77,7 +77,7 @@ public class EnsemblGeneDataCollection3 extends EnsemblGeneDataCollection {
                     .getDataElement( AnnotatedSequence.class ).getSequence();
             Site site = new SiteImpl( null, name, SiteType.TYPE_GENE, Basis.BASIS_ANNOTATED, strand == StrandType.STRAND_PLUS ? from : to,
                     to - from + 1, strand, sequence );
-            Gene gene = new Gene(this, name, site, driver);
+            Gene gene = new Gene( this, name, site );
             gene.setTitle(rs.getString(1));
             String description = rs.getString(2);
             if( description != null )

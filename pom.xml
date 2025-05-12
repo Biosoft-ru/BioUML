@@ -683,14 +683,6 @@
      </dependency>
 
      <dependency>
-         <groupId>org.ensembl</groupId>
-         <artifactId>ensj</artifactId>
-         <version>39.2</version>
-          <!--scope>system</scope-->
-          <!--systemPath>${project.basedir}/plugins/org.ensembl.ensj_39.2/ensj-39.2.jar</systemPath-->
-     </dependency>
-
-     <dependency>
          <groupId>sabioclient</groupId>
          <artifactId>sabioclient</artifactId>
          <version>1.0</version>
