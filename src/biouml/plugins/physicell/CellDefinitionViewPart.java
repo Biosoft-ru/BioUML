@@ -54,6 +54,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
     private PropertyInspectorEx customDataInspector = new PropertyInspectorEx();
     private PropertyInspectorEx intracellularInspector = new PropertyInspectorEx();
     private PropertyInspectorEx integrityInspector = new PropertyInspectorEx();
+    private PropertyInspectorEx initialDistributionInspector = new PropertyInspectorEx();
     
     private RulesTab ruleTab = new RulesTab();
 
@@ -76,6 +77,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         intracellularInspector.setDefaultNumberFormat( null );
         integrityInspector.setDefaultNumberFormat( null );
         ruleTab.setDefaultNumberFormat( null );
+        initialDistributionInspector.setDefaultNumberFormat( null );
     }
 
     protected void showStub()
@@ -128,6 +130,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         intracellularInspector.explore( cdp.getIntracellularProperties() );
         integrityInspector.explore(cdp.getIntegrityProperties());
         ruleTab.explore( cdp.getRulesProperties() );
+        initialDistributionInspector.explore( cdp.getInitialDistributionProperties() );
     }
 
 
@@ -156,6 +159,7 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
         tabbedPane.addTab( "Functions", functionsInspector );
         tabbedPane.addTab( "Intracellular", intracellularInspector );
         tabbedPane.addTab( "Rules", ruleTab );
+        tabbedPane.addTab( "Initial distribution", initialDistributionInspector );
         tabbedPane.addChangeListener( new ChangeListener()
         {
             @Override
