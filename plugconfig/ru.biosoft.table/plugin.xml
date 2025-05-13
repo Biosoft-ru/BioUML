@@ -6,7 +6,7 @@
       <transformer name="Table" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="ru.biosoft.table.FileTableDataCollection" transformerClass="ru.biosoft.table.access.TableDataFileTransformer"/> 
       <transformer name="TSV" inputClass="ru.biosoft.access.file.FileDataElement" 
-        outputClass="ru.biosoft.table.FileTableDataCollection" transformerClass="ru.biosoft.table.access.TableDataFileTransformer2"/> 
+        outputClass="ru.biosoft.table.StandardTableDataCollection" transformerClass="ru.biosoft.table.access.TableDataFileTransformer2"/> 
   </extension> 
   
   <extension id="table document factory" point="ru.biosoft.workbench.documentFactory"> 
