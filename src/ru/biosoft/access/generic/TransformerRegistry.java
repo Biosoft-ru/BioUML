@@ -87,7 +87,20 @@ public class TransformerRegistry extends ExtensionRegistrySupport<TransformerReg
                 .map( TransformerInfo::getTransformerClass ).collect( Collectors.toList() );
     }
     
+    /**
+     * Return transformer for parent class if it can transform child class
+     * May cause incorrect behavior, use only for special cases
+     * For example, Table-related actions may check isAcceptable for TableDataCollection class which is generic whereas action should be available at least for one child table class.
+     */
     @SuppressWarnings ( "rawtypes" )
+    public static @Nonnull List<Class<? extends Transformer>> getTransformerProbableClass(Class<? extends DataElement> inputClass, Class<? extends DataElement> outputClass)
+    {
+        return instance.stream()
+                .filter( info -> info.inputClass.equals( inputClass ) && (info.outputClass.isAssignableFrom( outputClass ) || (outputClass.isAssignableFrom( info.outputClass ))) )
+                .map( TransformerInfo::getTransformerClass ).collect( Collectors.toList() );
+    }
+
+    @SuppressWarnings("rawtypes")
     public static Transformer getBestTransformer(DataElement output, Class<? extends DataElement> inputType) throws Exception
     {
         return StreamEx.of(TransformerRegistry.getTransformerClass(inputType, output.getClass()))

@@ -1,6 +1,7 @@
 package ru.biosoft.access;
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,6 +99,15 @@ public class AccessCoreInit
                 return ((FileDataElement)fde).getFile();
             }
             
+            @Override
+            public List<Class<? extends Transformer>> getTransformerForClass(Class<? extends DataElement> inputClass, Class<? extends DataElement> outputClass, boolean strict)
+            {
+                if( strict )
+                    return TransformerRegistry.getTransformerClass( inputClass, outputClass );
+                else
+                    return TransformerRegistry.getTransformerProbableClass( inputClass, outputClass );
+            }
+
         };
         
         TransformerRegistry.initTransformers();

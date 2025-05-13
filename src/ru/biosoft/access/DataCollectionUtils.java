@@ -38,6 +38,7 @@ import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.exception.QuotaException;
 import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.generic2.GenericDataCollection2;
 import ru.biosoft.access.repository.DataCollectionTreeModelAdapter;
@@ -80,8 +81,13 @@ public class DataCollectionUtils
             if( childClass != null )
             {
                 DataCollection<?> element = path.optDataCollection();
-                if( element == null || !element.isAcceptable(childClass) )
+                if( element == null )
                     return false;
+                if( element instanceof GenericFileDataCollection )
+                    return ((GenericFileDataCollection) element).isAcceptable( childClass, false );
+                else
+                    return element.isAcceptable( childClass );
+
             }
             if( referenceType != null )
             {
