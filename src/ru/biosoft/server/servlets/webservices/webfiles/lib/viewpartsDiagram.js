@@ -6071,7 +6071,7 @@ function CellTypesViewPart()
     
     this.init = function()
     {
-        this.types = ["cycle", "death", "volume", "mechanics", "motility", "secretion", "interactions", "transformations", "custom_data", "functions", "intracellular", "rules"];
+        this.types = ["cycle", "division", "death", "volume", "mechanics", "integrity", "motility", "secretion", "interactions", "transformations", "custom_data", "functions", "intracellular", "rules", "distribution"];
         //this.needSelector = {"compartments": true, "entities":true, "reactions": true, "variables" : true, "equations":true, "functions":true, "events":true, "constraints":true, "ports":true, "connections":true, "subdiagrams":true, "buses":true, "units":true};
         
         createViewPart(this, this.tabId, this.tabName);
