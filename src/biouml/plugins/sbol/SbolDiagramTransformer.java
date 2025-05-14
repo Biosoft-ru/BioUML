@@ -263,10 +263,4 @@ public class SbolDiagramTransformer extends AbstractFileTransformer<Diagram> imp
             ex.printStackTrace();
         }
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
 }

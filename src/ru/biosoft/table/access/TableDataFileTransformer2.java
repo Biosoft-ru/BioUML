@@ -352,12 +352,4 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
     {
         return name.endsWith( ".tsv" )?2:0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "tsv", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
 }

@@ -42,10 +42,4 @@ public class FastaSimpleFileTransformer  extends AbstractFileTransformer<FastaSi
 		ApplicationUtils.linkOrCopyFile( output, fasta.getFile(), null );
 	}
 
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
-
 }

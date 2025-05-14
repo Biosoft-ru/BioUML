@@ -64,12 +64,4 @@ public class DiagramXmlTransformer extends AbstractFileTransformer<Diagram> impl
     {
         return name.endsWith( ".dml" ) ? 2 : 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "dml", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
 }

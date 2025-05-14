@@ -1012,6 +1012,8 @@
     <fileType name="VCF track" extensions="vcf" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer" priority="20" description="VCF track file"/>
     <fileType name="BigBed track" extensions="bb;bigBed" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer" priority="20" description="BigBed track file"/>
     <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
+    <fileType name="BCF track" extensions="bcf" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer" priority="20" description="BCF track file"/>
+    <fileType name="GenBank track" extensions="gb" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer" priority="20" description="BCF track file"/>
   </extension>
 
 </plugin>

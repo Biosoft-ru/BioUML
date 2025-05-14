@@ -129,10 +129,4 @@ public class FileImageTransformer extends AbstractFileTransformer<ImageDataEleme
             return 3;
         return 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
 }

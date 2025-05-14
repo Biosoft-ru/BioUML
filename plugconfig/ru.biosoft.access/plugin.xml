@@ -223,5 +223,8 @@
   
   <extension point="ru.biosoft.access.fileType">
     <fileType name="Image" extensions="png;gif;jpg;bmp;jpeg" transformerClass="ru.biosoft.access.support.FileImageTransformer" priority="20" description="Image file"/>
+    <fileType name="HTML" extensions="html;htm" transformerClass="ru.biosoft.access.support.FileHtmlTransformer" priority="20" description="HTML file"/>
+    <fileType name="Video" extensions="mp4;ogg;webm" transformerClass="ru.biosoft.access.support.FileVideoTransformer" priority="20" description="Video file"/>
+    <fileType name="ZIP archive" extensions="zip" transformerClass="ru.biosoft.access.support.FileZipHtmlTransformer" priority="20" description="ZIP file"/>
   </extension>  
 </plugin>

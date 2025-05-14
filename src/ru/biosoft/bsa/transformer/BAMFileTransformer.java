@@ -82,11 +82,4 @@ public class BAMFileTransformer extends AbstractFileTransformer<BAMTrack> implem
             ApplicationUtils.removeDir(dir);
         }
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
-
 }

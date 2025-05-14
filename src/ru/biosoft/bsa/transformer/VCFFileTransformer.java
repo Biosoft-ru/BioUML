@@ -60,10 +60,4 @@ public class VCFFileTransformer extends AbstractFileTransformer<VCFFileTrack> im
             return 2;
         return 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
 }

@@ -48,10 +48,4 @@ public class FastaFileTransformer extends AbstractFileTransformer<FastaSequenceC
             return 2;
         return 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
 }

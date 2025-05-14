@@ -58,12 +58,4 @@ public class BCFFileTransformer extends AbstractFileTransformer<BCFFileTrack> im
             return 2;
         return 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "bcf", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
 }

@@ -180,6 +180,11 @@
         <transformer name="Chemical structure" inputClass="ru.biosoft.access.Entry"
           outputClass="biouml.standard.type.Structure" transformerClass="biouml.standard.type.access.StructureTransformer"/> 
 	</extension>
+	
+	<extension point="ru.biosoft.access.fileType">
+        <fileType name="BioUML diagram" extensions="dml" transformerClass="biouml.model.util.DiagramXmlTransformer" priority="20" description="BioUML diagram file"/>
+        <fileType name="Diagram state" extensions="state" transformerClass="biouml.standard.state.StateTransformer" priority="20" description="Diagram state file"/>
+    </extension>
 
 	<!-- ================================================================ -->
 	<!-- Import/Export                                                    -->

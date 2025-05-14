@@ -63,14 +63,6 @@ public class BigBedFileTransformer extends AbstractFileTransformer<BigBedTrack> 
     }
 
     @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "bb", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
-
-    @Override
     public Properties getProperties()
     {
         return properties;

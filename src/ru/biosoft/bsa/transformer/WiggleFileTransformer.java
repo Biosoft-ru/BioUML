@@ -76,10 +76,4 @@ public class WiggleFileTransformer extends AbstractFileTransformer<WiggleFileTra
         newProps.setProperty(ChrNameMapping.PROP_CHR_MAPPING, "");
         return newProps;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
 }

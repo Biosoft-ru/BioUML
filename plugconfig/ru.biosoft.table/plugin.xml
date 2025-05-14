@@ -9,6 +9,11 @@
         outputClass="ru.biosoft.table.StandardTableDataCollection" transformerClass="ru.biosoft.table.access.TableDataFileTransformer2"/> 
   </extension> 
   
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Table (tab-separated)" extensions="tsv" transformerClass="ru.biosoft.table.access.TableDataFileTransformer2" priority="20" description="Table in tab separated format"/>
+    <fileType name="Table (BioUML format)" extensions="tbl" transformerClass="ru.biosoft.table.access.TableDataFileTransformer" priority="10" description="BioUML table file"/>
+  </extension>
+  
   <extension id="table document factory" point="ru.biosoft.workbench.documentFactory"> 
       <documentFactory 
         class="ru.biosoft.table.document.TableFactory"

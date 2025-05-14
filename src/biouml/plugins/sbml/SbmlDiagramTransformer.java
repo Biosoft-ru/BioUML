@@ -133,12 +133,4 @@ public class SbmlDiagramTransformer extends AbstractFileTransformer<Diagram> imp
     {
         return name.endsWith(".sbml") ? 2 : 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "sbml", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
 }

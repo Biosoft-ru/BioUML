@@ -161,4 +161,8 @@
       <transformer name="SBML diagram" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.sbml.SbmlDiagramTransformer" />
   </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+      <fileType name="SBML diagram" extensions="sbml" transformerClass="biouml.plugins.sbml.SbmlDiagramTransformer" priority="20" description="SBML diagram file"/>
+  </extension>
 </plugin>

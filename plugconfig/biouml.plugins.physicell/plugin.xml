@@ -108,6 +108,10 @@
         outputClass="biouml.plugins.physicell.javacode.JavaElement" transformerClass="biouml.plugins.physicell.javacode.JavaTransformer"/> 
   </extension>
   
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Java code" extensions="java" transformerClass="biouml.plugins.physicell.javacode.JavaTransformer" priority="10" description="Java code file"/>
+  </extension>
+  
   	  <extension id="repository actions" point="ru.biosoft.access.repositoryActionsProvider"> 
       <repositoryActionsProvider class="biouml.plugins.physicell.document.RepositoryActionsProvider"/> 
   </extension> 

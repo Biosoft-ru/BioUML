@@ -101,10 +101,4 @@ public class StochasticSimulationResultTransformer extends AbstractFileTransform
     {
         return 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        return Collections.emptyMap();
-    }
 }

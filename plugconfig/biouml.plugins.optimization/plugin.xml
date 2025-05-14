@@ -15,6 +15,14 @@
         outputClass="biouml.standard.simulation.StochasticSimulationResult" transformerClass="biouml.standard.simulation.access.stochastic.StochasticSimulationResultTransformer"/>  
   </extension>
   
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Optimization document" extensions="opt" transformerClass="biouml.plugins.optimization.access.OptimizationTransformer" priority="20" description="Optimization document file"/>
+    <fileType name="Simulation result" extensions="sres" transformerClass="biouml.standard.simulation.access.SimulationResultTransformer" priority="20" description="Simulation result file"/>
+    <fileType name="Simulation plot" extensions="plot" transformerClass="biouml.standard.simulation.plot.access.PlotTransformer" priority="20" description="Simulation plot file"/>
+    <fileType name="Stochastic simulation result" extensions="ssres" transformerClass="biouml.standard.simulation.access.stochastic.StochasticSimulationResultTransformer" 
+        priority="20" description="Stochastic simulation result file"/>
+  </extension>
+  
   <extension id="Parameter fitting" point="ru.biosoft.analysiscore.method">
 	<analysisClass class="biouml.plugins.optimization.analysis.ParameterFitting" group="Parameter fitting" name="Parameter fitting" description="" />
   </extension>

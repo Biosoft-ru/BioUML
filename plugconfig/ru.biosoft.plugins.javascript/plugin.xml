@@ -252,6 +252,10 @@
       <transformer name="JavaScript file" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.plugins.javascript.JSElement" transformerClass="ru.biosoft.plugins.javascript.JSTransformer"/> 
   </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="JavaScript" extensions="js" transformerClass="ru.biosoft.plugins.javascript.JSTransformer" priority="20" description="JavaScript file"/>
+  </extension>
 
   <extension point="ru.biosoft.access.elementAction"> 
      <action name="New JS script" class="ru.biosoft.plugins.javascript.AddJSAction" priority="10">

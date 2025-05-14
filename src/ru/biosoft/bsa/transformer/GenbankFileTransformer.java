@@ -56,12 +56,4 @@ public class GenbankFileTransformer extends AbstractFileTransformer<GenbankSeque
             return 2;
         return 0;
     }
-
-    @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "gb", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
 }

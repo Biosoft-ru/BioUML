@@ -61,14 +61,6 @@ public class BigWigFileTransformer extends AbstractFileTransformer<BigWigTrack> 
     }
 
     @Override
-    public Map<String, FileTypePriority> getExtensionPriority()
-    {
-        Map<String, FileTypePriority> extToProprity = new HashMap<>();
-        extToProprity.put( "bw", FileTypePriority.HIGH_PRIORITY );
-        return extToProprity;
-    }
-
-    @Override
     public Properties getProperties()
     {
         return properties;
