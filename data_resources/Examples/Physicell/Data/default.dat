@@ -3969,3 +3969,153 @@ plugins	ru.biosoft.access
 modifiedDate	1745355535413
 class	ru.biosoft.access.generic.GenericDataCollection
 //
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108480602
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747145015205
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747145015205
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747147302267
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747147302267
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747152170757
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747152170757
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747155181529
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747155181529
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747155201294
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108463762
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	CellTypes3
+createdDate	1725009486318
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747156446416
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108525856
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	RulesSample
+createdDate	1725009479026
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747156564947
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1745328103625
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	VirusMacrophage
+createdDate	1725009470456
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747156574433
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1729108546841
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Worm
+createdDate	1725009462730
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747156589274
+class	ru.biosoft.access.generic.GenericDataCollection
+//
+
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747155201294
+class	ru.biosoft.access.generic.GenericDataCollection
+//deleted
+ID	Heterogeneity
+createdDate	1725009458115
+driver	ru.biosoft.access.generic.DataElementGenericCollectionTypeDriver
+plugins	ru.biosoft.access
+modifiedDate	1747216968142
+class	ru.biosoft.access.generic.GenericDataCollection
+//
