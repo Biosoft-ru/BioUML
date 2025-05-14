@@ -1,8 +1,10 @@
 package biouml.plugins.physicell;
 
+import java.util.Set;
 import java.util.stream.Stream;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import one.util.streamex.StreamEx;
 import ru.biosoft.physicell.core.SignalBehavior;
 
 /**
@@ -36,9 +38,14 @@ public class RuleProperties
         return getAvailableSignals( model, cellDefinition );
     }
     
+    public static Stream<String> getAvailableDistributed(MulticellEModel model,  CellDefinitionProperties cellDefinition)
+    {
+        return StreamEx.of(getAvailableBehaviors( model, cellDefinition )).append( "volume" ).sorted();
+    }
+    
     public Stream<String> getAvailableBehaviors()
     {
-        return getAvailableBehaviors( model, cellDefinition );
+        return getAvailableBehaviors( model, cellDefinition ).stream();
     }
     
     public static Stream<String> getAvailableSignals(MulticellEModel model,  CellDefinitionProperties cellDefinition)
@@ -56,7 +63,7 @@ public class RuleProperties
         return SignalBehavior.getSignals( substrates, cellTypes, custom ).stream().sorted();
     }
 
-    public static Stream<String> getAvailableBehaviors(MulticellEModel model,  CellDefinitionProperties cellDefinition)
+    public static Set<String> getAvailableBehaviors(MulticellEModel model,  CellDefinitionProperties cellDefinition)
     {
         String[] substrates = new String[0];
         String[] cellTypes = new String[0];
@@ -68,7 +75,7 @@ public class RuleProperties
         }
         if( cellDefinition != null )
             custom = Stream.of( cellDefinition.getCustomDataProperties().getVariables() ).map( s -> s.getName() ).toArray( String[]::new );
-        return SignalBehavior.getBehaviors( substrates, cellTypes, custom ).stream().sorted();
+        return SignalBehavior.getBehaviors( substrates, cellTypes, custom );
     }
 
     public void setEModel(MulticellEModel emodel)
