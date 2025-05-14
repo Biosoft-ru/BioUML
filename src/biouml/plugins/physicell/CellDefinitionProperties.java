@@ -56,6 +56,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     private RulesProperties rules = new RulesProperties();
     private IntegrityProperties integrity = new IntegrityProperties();
     private DivisionProperties division = new DivisionProperties();
+    private InitialDistributionProperties initialDistribution = new InitialDistributionProperties();
 
     protected MouseListener selectionListener;
 
@@ -83,6 +84,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         interactions.setDamageRate( cd.phenotype.cellInteractions.damageRate );
         interactions.setDeadPhagocytosisRate( cd.phenotype.cellInteractions.deadPhagocytosisRate );
         this.transformations = new TransformationsProperties( node );
+        this.initialDistribution = new InitialDistributionProperties(node);
         if( cd.phenotype.intracellular instanceof IntracellularODEBioUML )
             this.intracellular = new IntracellularProperties( (IntracellularODEBioUML)cd.phenotype.intracellular, node );
     }
@@ -124,6 +126,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         result.transformations = transformations.clone( de );
         result.customData = customData.clone();
         result.rules = rules.clone(de);
+        result.initialDistribution = initialDistribution.clone((Node)de);
         result.division = division.clone();
         if( result.intracellular != null )
             result.intracellular = intracellular.clone( de );
@@ -180,6 +183,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         interactions.update();
         transformations.update();
         intracellular.update();
+        initialDistribution.update();
     }
 
     @Override
@@ -206,6 +210,7 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
         this.interactions.setDiagramElement( de );
         this.transformations.setDiagramElement( de );
         this.rules.setDiagramElement( de );
+        this.initialDistribution.setDiagramElement( node );
     }
 
     public VolumeProperties getVolumeProperties()
@@ -341,6 +346,15 @@ public class CellDefinitionProperties extends InitialElementPropertiesSupport im
     public void setDivisionProperties(DivisionProperties division)
     {
         this.division = division;
+    }
+    
+    public InitialDistributionProperties getInitialDistributionProperties()
+    {
+        return this.initialDistribution;
+    }
+    public void setInitialDistributionProperties(InitialDistributionProperties initialDistribution)
+    {
+        this.initialDistribution = initialDistribution;
     }
 
     @Override

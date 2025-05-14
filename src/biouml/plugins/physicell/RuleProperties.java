@@ -33,6 +33,16 @@ public class RuleProperties
 
     public Stream<String> getAvailableSignals()
     {
+        return getAvailableSignals( model, cellDefinition );
+    }
+    
+    public Stream<String> getAvailableBehaviors()
+    {
+        return getAvailableBehaviors( model, cellDefinition );
+    }
+    
+    public static Stream<String> getAvailableSignals(MulticellEModel model,  CellDefinitionProperties cellDefinition)
+    {
         String[] substrates = new String[0];
         String[] cellTypes = new String[0];
         String[] custom = new String[0];
@@ -46,7 +56,7 @@ public class RuleProperties
         return SignalBehavior.getSignals( substrates, cellTypes, custom ).stream().sorted();
     }
 
-    public Stream<String> getAvailableBehaviors()
+    public static Stream<String> getAvailableBehaviors(MulticellEModel model,  CellDefinitionProperties cellDefinition)
     {
         String[] substrates = new String[0];
         String[] cellTypes = new String[0];

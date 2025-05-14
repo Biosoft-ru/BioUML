@@ -213,6 +213,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             cdp.getIntracellularProperties().createIntracellular( cd, model );
             cdp.getRulesProperties().createRules( cd, model );
             cdp.getIntegrityProperties().createIntegrity( cd );
+            cdp.getInitialDistributionProperties().createInitialDistribution( cd, model );
 
             FunctionsProperties fp = cdp.getFunctionsProperties();
             CellFunctions f = cd.functions;
@@ -254,7 +255,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             {
                 PhysiCellUtilities.place( model, model.getCellDefinition( cdp.getName() ), cdp.getInitialNumber() );
             }
-        }
+        }        
 
         if( logReport )
             log.info( model.display() );
