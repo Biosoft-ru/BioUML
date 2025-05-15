@@ -273,6 +273,12 @@ public class SimulationProvider extends WebJSONProviderSupport
                 String message = webJob.getJobMessage();
                 imageNames[imageNames.length - 1] = message;
             }
+            else
+            {
+                //send only message if no image results should be generated for this simulation
+                String message = webJob.getJobMessage();
+                imageNames = new String[] { message };
+            }
 
             if ( status < JobControl.COMPLETED )
             {
