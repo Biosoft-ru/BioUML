@@ -24,7 +24,7 @@ import ru.biosoft.exception.InternalException;
 import ru.biosoft.exception.LoggedClassCastException;
 import ru.biosoft.exception.LoggedClassNotFoundException;
 import ru.biosoft.access.exception.ParameterNotAcceptableException;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.generic.TransformerRegistry.TransformerInfo;
 import ru.biosoft.access.generic.TransformerWithProperties;
