@@ -54,7 +54,7 @@ public class VCFTrackImporter extends TrackImporter
 
     private final Map<String, String> formatTypeMap = new HashMap<>();
     private final Map<String, String> infoTypeMap = new HashMap<>();
-    private List<String> sampleIdsList;
+    private List<String> sampleIdsList = new ArrayList<>();
 
     //store current file for logging issues
     private String curFile = "";
@@ -78,7 +78,7 @@ public class VCFTrackImporter extends TrackImporter
     {
         String[] fields = TextUtil2.split(line, '\t');
         if(fields.length < 8) return null;
-        String chr = normalizeChromosome(fields[0]);
+        String chr = normalizeChromosome( fields[0], normalizeChromosome );
         int start;
         try
         {
@@ -142,7 +142,7 @@ public class VCFTrackImporter extends TrackImporter
             {
 
                 String[] formatValues = TextUtil2.split( fields[j + 9], ':' );
-                String sampleName = ( sampleIdsList.size() > j ) ? sampleIdsList.get( j ) : j + "";
+                String sampleName = (sampleIdsList.size() > j) ? sampleIdsList.get( j ) : j + "";
                 for( int i = 0; i < Math.min( formatFields.length, formatValues.length ); i++ )
                 {
                     String fieldType = formatTypeMap.getOrDefault( formatFields[i], null );
@@ -325,7 +325,6 @@ public class VCFTrackImporter extends TrackImporter
             {
                 if( fields[8].equals( "FORMAT" ) )
                 {
-                    sampleIdsList = new ArrayList<>();
                     for( int i = 9; i < fields.length; i++ )
                     {
                         sampleIdsList.add( fields[i] );

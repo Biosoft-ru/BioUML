@@ -70,7 +70,7 @@ public class GWASTrackImporter extends VCFTrackImporter
         String[] fields = TextUtil2.split( line, '\t' );
         if( fields.length < maxRequiredIndex + 1 )
             return null;
-        String chr = normalizeChromosome( fields[columnName2Index.get( CHROMOSOME_COLUMN )] );
+        String chr = normalizeChromosome( fields[columnName2Index.get( CHROMOSOME_COLUMN )], true );
         int start;
         try
         {

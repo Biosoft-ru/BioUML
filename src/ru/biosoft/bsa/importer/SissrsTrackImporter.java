@@ -67,7 +67,7 @@ public class SissrsTrackImporter extends TrackImporter
             }
             int mandatoryFields = tMode ? 3 : 4;
             if(fields.length < mandatoryFields) return null;
-            String chrom = normalizeChromosome(fields[0]);
+            String chrom = normalizeChromosome( fields[0], true );
             int start = Integer.parseInt(fields[1]);
             int length = tMode ? 1 : Integer.parseInt(fields[2])-start;
             Properties properties = new Properties();

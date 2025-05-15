@@ -74,7 +74,7 @@ public class IntervalTrackImporter extends TrackImporter
             }
         }
 
-        String chrom = normalizeChromosome( fields[chromIdx]);
+        String chrom = normalizeChromosome( fields[chromIdx], true );
         int start, length;
         try
         {

@@ -20,7 +20,7 @@ public class PindelTrackImporter extends TrackImporter
         if(line.startsWith("#")) return null;
         String[] fields = line.split("\\s+");
         if(fields.length < 27) return null;
-        String chr = normalizeChromosome(fields[7]);
+        String chr = normalizeChromosome( fields[7], true );
         int start, length;
         try
         {
