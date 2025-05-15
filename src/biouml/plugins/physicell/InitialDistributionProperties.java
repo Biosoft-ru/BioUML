@@ -11,7 +11,6 @@ import biouml.model.Node;
 import one.util.streamex.StreamEx;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.DistributedParameter;
-import ru.biosoft.physicell.core.DistributedParameter2;
 import ru.biosoft.physicell.core.Distribution;
 import ru.biosoft.physicell.core.Model;
 import ru.biosoft.util.bean.BeanInfoEx2;
@@ -44,7 +43,10 @@ public class InitialDistributionProperties extends Option
     {
         this.parameterDistributions = parameterDistributions;
         for( ParameterDistribution pDistribution : parameterDistributions )
+        {
+            pDistribution.setParent( this );
             pDistribution.setAvailableParameters( availableParameters );
+        }
     }
 
     public void setDiagramElement(Node node)
@@ -52,7 +54,7 @@ public class InitialDistributionProperties extends Option
         this.node = node;
         cellDefinition = node.getRole( CellDefinitionProperties.class );
         model = Diagram.getDiagram( node ).getRole( MulticellEModel.class );
-        availableParameters = RuleProperties.getAvailableBehaviors( model, cellDefinition ).toArray( String[]::new );
+        availableParameters = RuleProperties.getAvailableDistributed( model, cellDefinition).toArray( String[]::new );
         for( ParameterDistribution pDistribution : parameterDistributions )
             pDistribution.setAvailableParameters( availableParameters );
     }
@@ -120,9 +122,15 @@ public class InitialDistributionProperties extends Option
     {
         private String parameter = "volume";
         private String distribution = "Uniform";
-        private DistributionProperties properties = new UniformProperties();
+        private DistributionProperties properties;
         private String[] availableParameters = new String[0];
 
+        public ParameterDistribution()
+        {
+            properties = new UniformProperties();
+            properties.setParent( this );
+        }
+        
         public void setAvailableParameters(String[] availableParameters)
         {
             this.availableParameters = availableParameters;
@@ -157,7 +165,7 @@ public class InitialDistributionProperties extends Option
             else
                 setProperties( new NormalProperties() );
             firePropertyChange( "distribution", oldValue, distribution );
-            firePropertyChange( "*", null, null );
+//            firePropertyChange( "*", null, null );
         }
 
         @PropertyName ( "Distribution properties" )
@@ -169,6 +177,7 @@ public class InitialDistributionProperties extends Option
         {
             DistributionProperties oldValue = this.properties;
             this.properties = properties;
+            this.properties.setParent( this );
             firePropertyChange( "properties", oldValue, properties );
             firePropertyChange( "*", null, null );
         }
@@ -353,8 +362,6 @@ public class InitialDistributionProperties extends Option
             super.initProperties();
             add( "mu" );
             add( "sigma" );
-            add( "min" );
-            add( "max" );
         }
     }
 }

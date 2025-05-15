@@ -5,7 +5,7 @@ import ru.biosoft.physicell.xml.ModelReader;
 import ru.biosoft.physicell.ui.AgentColorer;
 import java.awt.Color;
 
-public class RegularVisualizer extends AgentColorer
+public class RegularVisualizer implements AgentColorer
 {
     private Model model;
     private Color aColor;

@@ -37,26 +37,26 @@ public class Initial extends InitialCellsArranger
             while( x < xOuter )
             {
                 cell = Cell.createCell( pCD, model, new double[] {x, y, 0.0} ); // tumor cell 
-                double p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
-                model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
+                //double p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
+                //model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
 
                 if( Math.abs( y ) > 0.01 )
                 {
                     cell = Cell.createCell( pCD, model, new double[] {x, -y, 0.0} ); // tumor cell 
-                    p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
-                    model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
+                    //p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
+                    //model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
                 }
                 if( Math.abs( x ) > 0.01 )
                 {
                     cell = Cell.createCell( pCD, model, new double[] { -x, y, 0} ); // tumor cell 
-                    p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
-                    model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
+                   // p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
+                    //model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
 
                     if( Math.abs( y ) > 0.01 )
                     {
                         cell = Cell.createCell( pCD, model, new double[] { -x, -y, 0} ); // tumor cell
-                        p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
-                        model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
+                        // p = model.getRNG().NormalRestricted( pMean, pSD, pMin, pMax );
+                        //model.signals.setSingleBehavior( cell, CUSTOM_ONCOPROTEIN, p );
                     }
                 }
                 x += cellSpacing;

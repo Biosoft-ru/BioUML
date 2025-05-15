@@ -68,3 +68,20 @@ modifiedDate	1729108463753
 de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
 class	biouml.plugins.physicell.javacode.JavaElement
 //
+
+ID	RegularVisualizer.java
+createdDate	1725884937520
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1729108463753
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	RegularVisualizer.java
+createdDate	1725884937520
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1747156446403
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
