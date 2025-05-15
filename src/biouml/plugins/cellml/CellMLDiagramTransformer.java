@@ -2,7 +2,7 @@ package biouml.plugins.cellml;
 
 import java.io.File;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import biouml.model.Diagram;
 

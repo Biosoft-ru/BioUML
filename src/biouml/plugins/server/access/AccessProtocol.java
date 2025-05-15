@@ -12,7 +12,7 @@ import org.jfree.util.Log;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;

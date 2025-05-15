@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.Writer;
 import java.util.StringTokenizer;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 
