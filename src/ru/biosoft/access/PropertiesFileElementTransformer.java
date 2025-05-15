@@ -8,6 +8,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.exception.BiosoftCustomException;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.PropertyInfo;

@@ -148,7 +148,7 @@ public class PhysicellResultWriter
             for( String s : model.getReportHeader() )
                 result.getColumnModel().addColumn( s, DataType.Float );
             for( Cell cell : m.getAgents( Cell.class ) )
-                TableDataCollectionUtils.addRow( result, String.valueOf( cell.ID ), model.getReport( cell ) );
+                TableDataCollectionUtils.addRow( result, String.valueOf( cell.ID ), model.getReport( cell ), true );
             subDC.put( result );
         }
     }

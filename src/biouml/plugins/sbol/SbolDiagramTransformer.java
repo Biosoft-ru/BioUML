@@ -28,7 +28,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;

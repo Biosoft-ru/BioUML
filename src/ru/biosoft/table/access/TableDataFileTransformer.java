@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.file.FileDataElement;

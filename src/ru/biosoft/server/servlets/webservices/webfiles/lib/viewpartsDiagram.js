@@ -3244,7 +3244,7 @@ function ComplexSimulationViewPart()
         
         this.plotDiv = tabDiv.find("#plot_container");
         this.engineDiv = tabDiv.find("#engine_container");
-        //this.engineDiv.css({"width":"850px"});
+        this.engineDiv.css({"overflow":"hidden"});
         
         //plot
         this.lockDiv = $('<div id="lock_plot_bean" class="ui-widget-overlay" style="position:absolute; top:0; left:0; z-index:1001;"></div>');
@@ -3253,9 +3253,9 @@ function ComplexSimulationViewPart()
         this.plotDiv.append(this.plotPI);
         
         //engine
-        this.enginePI = $('<div id="' + this.tabId + '_pi2"></div>').css({"width":"500px", "float":"left"});
+        this.enginePI = $('<div id="' + this.tabId + '_pi2"></div>').css({"width":"500px", "float":"left", "margin-right": "15px"});
         this.engineDiv.append(this.enginePI);
-        this.mainLogDiv = $('<div id="' + this.tabId + '_log"><div style="text-align:center;">Simulation log</div></div>').css({"min-width":"320px", "float":"left", "min-height":"300px", "border":"1px solid #ccc", "margin-left":"15px", "padding":"5px"});
+        this.mainLogDiv = $('<div id="' + this.tabId + '_log"><div style="text-align:center;">Simulation log</div></div>').css({"min-width":"320px", "min-height":"300px", "border":"1px solid #ccc", "overflow": "hidden", "padding":"5px"});
         this.engineDiv.append(this.mainLogDiv);
         
         
