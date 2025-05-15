@@ -13,7 +13,7 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.PropertiesHolder;
 import ru.biosoft.access.file.FileTypePriority;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.bsa.ChrNameMapping;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.Track;

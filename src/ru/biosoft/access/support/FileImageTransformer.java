@@ -26,7 +26,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.core.PriorityTransformer;
 
 /**
  * {@link ImageDataElement} to {@link FileDataElement} transformer

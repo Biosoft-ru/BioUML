@@ -22,7 +22,7 @@ import ru.biosoft.access.core.AbstractTransformer;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.file.FileBasedCollection;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.StandardTableDataCollection;

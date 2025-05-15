@@ -14,7 +14,7 @@ import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.Transformer;
 import ru.biosoft.exception.LoggedException;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.generic.TransformerWithProperties;
 
