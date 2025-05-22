@@ -35,9 +35,7 @@ import ru.biosoft.physicell.core.CellFunctions.set_orientation;
 import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
 import ru.biosoft.physicell.core.Rules;
-import ru.biosoft.physicell.core.SignalBehavior;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
-import ru.biosoft.physicell.core.standard.StandardAssymetricDivision;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.GIFGenerator;
@@ -59,6 +57,12 @@ public class PhysicellSimulationEngine extends SimulationEngine
         simulator = new PhysicellSimulator();
         simulatorType = "MULTICELL";
         needToShowPlot = false;
+    }
+    
+    @Override
+    public void restoreOriginalDiagram()
+    {
+        this.diagram = originalDiagram;
     }
 
     @Override
