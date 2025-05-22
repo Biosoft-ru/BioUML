@@ -425,6 +425,15 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
                 nameList = null;
             }
         }
+        // Remove from internal storage
+        synchronized (elementsNoConfigs)
+        {
+            if( elementsNoConfigs.containsKey( name ) )
+            {
+                elementsNoConfigs.remove( name );
+                nameList = null;
+            }
+        }
 
         // sort in order to remove file first than subdirs
         Collections.sort(otherFiles, (o1, o2) -> {
@@ -635,7 +644,7 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
     public boolean contains(String name)
     {
         init();
-        return elementsConfigs.containsKey( name );
+        return elementsConfigs.containsKey( name ) || elementsNoConfigs.containsKey( name );
     }
 
     ////////////////////////////////////////
