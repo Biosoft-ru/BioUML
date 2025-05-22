@@ -8,7 +8,14 @@
     visible: "function(completePath)
     {
 		var path = getElementPath(completePath);
+        if(!path)
+            return -1;
+        
 		if(path == appInfo.userProjectsPath) return true;
+        
+        var dc = getDataCollection(path);
+        if( dc && dc.isGitEnabled() ) return true;
+         
 		return -1;
     }",
     action: "function(completePath)

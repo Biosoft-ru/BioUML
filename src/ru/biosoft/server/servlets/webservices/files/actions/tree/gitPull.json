@@ -8,7 +8,7 @@
         var name = getElementName(completePath);
         if(!path || !name) return -1;
         var edc = getDataCollection(completePath);
-        if( edc && instanceOf( edc.getClass(),'biouml.model.Module' ) && edc.isGitEnabled() && edc.isMutable() ) 
+        if( edc && instanceOf( edc.getClass(),'ru.biosoft.access.git.GitDataCollection' ) && edc.isGitEnabled() && edc.isMutable() ) 
         {
             return true;
         }

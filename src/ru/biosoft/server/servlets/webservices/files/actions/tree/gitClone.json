@@ -8,7 +8,7 @@
         var name = getElementName(completePath);
         if(!path || !name) return -1;
         var edc = getDataCollection(completePath);
-        if( edc && instanceOf( edc.getClass(),'ru.biosoft.access.security.NetworkRepository' ) && edc.isGitEnabled() ) 
+        if( edc && edc.isGitEnabled() ) 
         {
             return true;
         }

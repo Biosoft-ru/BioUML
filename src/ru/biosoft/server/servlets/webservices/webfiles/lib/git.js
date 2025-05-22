@@ -7,6 +7,8 @@ function gitClone(path, callback)
      <tr><td>Repository:</td><td><input size="65" id="git_repository"/></td></tr> \
      <tr><td>Username:</td><td><input size="25" id="git_username"/></td></tr> \
      <tr><td>Password:</td><td><input type="password" size="25" id="git_password"/></td></tr> \
+     <tr><td>Branch:</td><td><input size="25" id="git_branch"/></td></tr> \
+     <tr><td>Project&nbsp;name (if&nbsp;exists):</td><td><input size="25" id="git_prjname"/></td></tr> \
      </table>');
 
     dialogDiv.append( form );
@@ -18,7 +20,7 @@ function gitClone(path, callback)
 
     var projectName = null;
     var dialogButtons = {};
-    dialogButtons[ "Ok" ] = function()
+    dialogButtons[ "Clone" ] = function()
             {
                 var urlInput = $('#git_repository');
 
@@ -32,13 +34,18 @@ function gitClone(path, callback)
                 var passInput = $('#git_password');
 
                 var waitButton = git_private_hackButtons(); 
+                
+                var branch = $('#git_branch');
+                var projectAltName = $('#git_prjname');
 
                 queryBioUML("web/git/clone",
                 {
                     de: path,
                     repository: urlInput.val(),
                     username: userInput.val(),
-                    password: passInput.val()
+                    password: passInput.val(),
+                    branch: branch.val(),
+                    projectAltName: projectAltName.val()  
                 },
                 function(data)
                 {
@@ -74,7 +81,7 @@ function gitClone(path, callback)
     dialogDiv.dialog(
     {
         autoOpen: false,
-        width: 500,
+        width: 550,
         modal: true,
         buttons: dialogButtons
     });
@@ -95,7 +102,7 @@ function gitPull(path, callback)
 
     var projectName = null;
     var dialogButtons = {};
-    dialogButtons[ "Ok" ] = function()
+    dialogButtons[ "Pull" ] = function()
             {
                 var waitButton = git_private_hackButtons(); 
 
@@ -160,7 +167,7 @@ function gitCommit(path, callback)
 
     var projectName = null;
     var dialogButtons = {};
-    dialogButtons[ "Ok" ] = function()
+    dialogButtons[ "Commit" ] = function()
             {
                 if( !msgInput.val() )
                 { 
@@ -202,7 +209,7 @@ function gitCommit(path, callback)
     dialogDiv.dialog(
     {
         autoOpen: false,
-        width: 500,
+        width: 550,
         modal: true,
         buttons: dialogButtons
     });
@@ -223,7 +230,7 @@ function gitPush(path, callback)
 
     var projectName = null;
     var dialogButtons = {};
-    dialogButtons[ "Ok" ] = function()
+    dialogButtons[ "Push" ] = function()
             {
                 var waitButton = git_private_hackButtons(); 
 
@@ -276,7 +283,7 @@ function git_private_hackButtons()
     for( var i = 0; i < buttons.length; i++ )
     {
         var b = $(buttons[ i ]);
-        if( b.text() == "Ok" )
+        if( b.text() != resources.dlgButtonCancel )
         {
             waitButton = b; 
             b.button( "disable" ).text( "Wait..." );    
