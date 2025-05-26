@@ -400,5 +400,30 @@ public class GitWebProvider extends WebJSONProviderSupport
             } 
             return;
         }
+
+        else if( "status".equals( action ) )
+        {
+            try
+            {
+                GitDataCollection project = (GitDataCollection) de;
+                File workDir = getProjectDirectory( project );
+
+                ProcessBuilder processBuilder = new ProcessBuilder().directory( workDir ).command( "git", "status" );
+
+                Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
+
+                response.sendString( gitOut1.getSecond() );
+                return;
+            }
+            catch (Exception exc)
+            {
+                log.log( Level.SEVERE, "Error in " + path.getName(), exc );
+                String errorMessage = "";
+                //errorMessage += "<font color=\"red\">" + exc.getMessage() + "</font><br />\n";
+                errorMessage += exc.getMessage() + "\n";
+                response.error( errorMessage );
+            }
+            return;
+        }
     }
 }

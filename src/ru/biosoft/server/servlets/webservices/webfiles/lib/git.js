@@ -275,6 +275,49 @@ function gitPush(path, callback)
     dialogDiv.dialog("open");
 }
 
+function gitStatus(path, callback)
+{
+    var dialogDiv = $('<div title="Git repository status"></div>');
+    var progress = $('<textarea style="width:98%; background-color:#F8F8F8" rows="10"></textarea>').attr("readonly", "readonly");
+    
+    dialogDiv.append('Server output:<br />');
+    dialogDiv.append(progress);
+        
+    
+    var dialogButtons = {};
+    dialogButtons[ resources.dlgButtonCancel ] = function()
+    {
+        $(this).dialog("close");
+        $(this).remove();
+        if(callback)
+        {
+            callback(path);
+        }
+    };
+    dialogDiv.dialog(
+    {
+        autoOpen: false,
+        width: 500,
+        modal: true,
+        buttons: dialogButtons
+    });
+
+    addDialogKeys(dialogDiv);
+    sortButtons(dialogDiv);
+    
+    queryBioUML("web/git/status",
+    {
+        de: path
+    },
+    function(data)
+    {
+        progress.val( data.values );
+        dialogDiv.dialog("open");
+    }, function(data){
+        progress.val( data.values );
+        dialogDiv.dialog("open");
+    });
+}
 
 function git_private_hackButtons()
 {
