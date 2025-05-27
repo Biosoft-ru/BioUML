@@ -70,11 +70,7 @@ function gitClone(path, callback)
                     }
                     else
                     {
-                        refreshTreeBranch(appInfo.userProjectsPath);
-                        initProjectsTable();
-                        initJournals( function() {
-                            setCurrentProject(projectName);
-                        });
+                        refreshTreeBranch(path);
                     }
                 }
             };
@@ -134,8 +130,8 @@ function gitPull(path, callback)
                     }
                     else
                     {
-                        refreshTreeBranch( path + "/Data" );
-                        openBranch( path + "/Data" );
+                        refreshTreeBranch( path  );
+                        openBranch( path );
                     }
                 } 
             };

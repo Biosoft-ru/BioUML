@@ -56,10 +56,10 @@ setCurrentProject.json
 openMolecule.json:Experimental
 openAlignmentViewer.json:Experimental
 changeType.json
-gitStatus.json:Experimental
-gitClone.json:Experimental
-gitPull.json:Experimental
-gitCommit.json:Experimental
-gitPush.json:Experimental
+gitStatus.json
+gitClone.json
+gitPull.json
+gitCommit.json
+gitPush.json
 openOASYS.json:Experimental
 runDockerCwlWorkflow.json:Experimental
