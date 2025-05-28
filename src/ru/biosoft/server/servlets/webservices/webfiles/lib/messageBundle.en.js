@@ -528,6 +528,10 @@ var resourcesEN = {
     vpSettingsTitle: "Viewpart name",
     vpSettingsChecked: "Visible",
     
+    vpGitConsoleTitle: "Git console",
+    vpGitConsoleRun: "Run command",
+    vpGitConsoleClose: "Close console",
+    
     /* Analysis document (prefix: an) */
     anLoading: "Loading properties...",
     anButtonRun: "Run",

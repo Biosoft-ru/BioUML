@@ -593,6 +593,12 @@ span.clickable:hover {
 	font-weight:bold;
 	padding: 5px 0;
 }
+.script_response_error {
+    font-family: monospace;
+    font-size: 100%;
+    color: #FF0000;
+}
+
 .uploadSourceListItem{
 	background-color: white;
 }

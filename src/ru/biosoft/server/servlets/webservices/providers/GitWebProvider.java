@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
@@ -425,5 +427,56 @@ public class GitWebProvider extends WebJSONProviderSupport
             }
             return;
         }
+        else if( "console".equals( action ) )
+        {
+            try
+            {
+                GitDataCollection project = (GitDataCollection) de;
+                File workDir = getProjectDirectory( project );
+                String command = arguments.getString( "command" );
+                String checkResult = checkGitCommand( command );
+                if( checkResult != null )
+                {
+                    response.error( checkResult );
+                    return;
+                }
+                List<String> list = new ArrayList<String>();
+                Matcher m = Pattern.compile( "([^\"]\\S*|\".+?\")\\s*" ).matcher( command );
+                while ( m.find() )
+                    list.add( m.group( 1 ).replace( "\"", "" ) ); // Add .replace("\"", "") to remove surrounding quotes.
+
+                String[] commandSplit = list.toArray( new String[] {} );//.split( "\\s+" );
+                ProcessBuilder processBuilder = new ProcessBuilder().directory( workDir ).command( commandSplit );
+                Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
+                if( gitOut1.getFirst() != 0 )
+                    response.error( gitOut1.getSecond() );
+                else
+                    response.sendString( gitOut1.getSecond() );
+                return;
+            }
+            catch (Exception exc)
+            {
+                log.log( Level.SEVERE, "Error in " + path.getName(), exc );
+                String errorMessage = "";
+                //errorMessage += "<font color=\"red\">" + exc.getMessage() + "</font><br />\n";
+                errorMessage += exc.getMessage() + "\n";
+                response.error( errorMessage );
+            }
+            return;
+        }
+    }
+
+    private String checkGitCommand(String command)
+    {
+        if( !command.startsWith( "git " ) )
+            return "Command should start with 'git'";
+        if( command.contains( "|" ) )
+            return "Command contains not allowed symbols";
+        if( command.contains( "--output" ) )
+            return "'output' argument is not allowed";
+        String[] commandSplit = command.split( "\\s+" );
+        if( commandSplit.length > 1 && commandSplit[1].equalsIgnoreCase( "clone" ) )
+            return "'clone' operation can not be done with console. Please, use tree action instead.";
+        return null;
     }
 }

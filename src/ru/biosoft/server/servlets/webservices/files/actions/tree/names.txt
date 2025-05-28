@@ -61,5 +61,6 @@ gitClone.json
 gitPull.json
 gitCommit.json
 gitPush.json
+gitConsole.json
 openOASYS.json:Experimental
 runDockerCwlWorkflow.json:Experimental

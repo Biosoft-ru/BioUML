@@ -1,0 +1,30 @@
+{
+    id: "git_console",
+    label: "Git console",
+    icon: "icons/git_console.png",
+    visible: "function(completePath)
+    {
+        var path = getElementPath(completePath);
+        var name = getElementName(completePath);
+        if(!path || !name) return -1;
+        var edc = getDataCollection(completePath);
+        if( edc && instanceOf( edc.getClass(),'ru.biosoft.access.git.GitDataCollection' ) && edc.isGitEnabled() && edc.isMutable() ) 
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+        loadBioUMLModules(['git'], function()
+        {
+        }, function()
+        {
+            var consoleViewPart = lookForViewPart('git.console');
+            consoleViewPart.visible=true;
+            consoleViewPart.setProject(path);
+            updateViewParts();
+            selectViewPart('git.console');
+        });
+    }"
+}
