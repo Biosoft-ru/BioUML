@@ -52,11 +52,14 @@ public class InitialDistributionProperties extends Option
     public void setDiagramElement(Node node)
     {
         this.node = node;
-        cellDefinition = node.getRole( CellDefinitionProperties.class );
-        model = Diagram.getDiagram( node ).getRole( MulticellEModel.class );
-        availableParameters = RuleProperties.getAvailableDistributed( model, cellDefinition).toArray( String[]::new );
-        for( ParameterDistribution pDistribution : parameterDistributions )
-            pDistribution.setAvailableParameters( availableParameters );
+        if( node != null )
+        {
+            cellDefinition = node.getRole( CellDefinitionProperties.class );
+            model = Diagram.getDiagram( node ).getRole( MulticellEModel.class );
+            availableParameters = RuleProperties.getAvailableDistributed( model, cellDefinition ).toArray( String[]::new );
+            for( ParameterDistribution pDistribution : parameterDistributions )
+                pDistribution.setAvailableParameters( availableParameters );
+        }
     }
 
     public void update()
