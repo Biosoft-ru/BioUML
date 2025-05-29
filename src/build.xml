@@ -102,7 +102,7 @@
         <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar;" />
         <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-2.0.0.jar;" />
         <property name="RTREE" value="${PLUGIN_DIR}/ru.biosoft.rtree-0.0.1.jar" />
-        <property name="BIGBED" value="${PLUGIN_DIR}/ru.biosoft.bigbed-0.0.1.jar" />
+        <property name="BIGBED" value="${PLUGIN_DIR}/ru.biosoft.bigbed-1.0.0.jar" />
         <property name="UTIL" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.util-2.0.0.jar" />
         <property name="JUPYTER_BASE_KERNEL" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.node/jupyter-jvm-basekernel-2.3.0.jar" />
     	<property name="BEAKERX_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar" />

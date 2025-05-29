@@ -5,8 +5,8 @@
 
 function initGeneralViewParts()
 {
-    if(viewPartsInitialized['wdl'])
-        return;
+    if(viewPartsInitialized['general'])
+            return;
     
     var descriptionViewPart = new DescriptionViewPart();
     descriptionViewPart.init();
@@ -40,17 +40,19 @@ function initGeneralViewParts()
     tasksViewPart.init();
     viewParts.push(tasksViewPart);
     
-    var geViewPart = new GenomeEnhancerViewPart();
+    /*var geViewPart = new GenomeEnhancerViewPart();
     geViewPart.init();
-    viewParts.push(geViewPart);
+    viewParts.push(geViewPart);*/
     
     var logViewPart = new LogViewPart();
     logViewPart.init();
     viewParts.push(logViewPart);
     
-    if(viewPartsInitialized['general'])
-        return;
-
+    var gitViewPart = new GitConsoleViewPart();
+    gitViewPart.init();
+    viewParts.push(gitViewPart);
+    
+    viewPartsInitialized['general'] = true;
 }
 
 /*
@@ -2648,4 +2650,160 @@ function LogViewPart()
         this.updateAction = createToolbarButton("Refresh", "apply.gif", this.updateLog);
         toolbarBlock.append(this.updateAction);
     };
+}
+
+function GitConsoleViewPart ()
+{
+    this.tabId = "git.console";
+    this.tabName = resources.vpGitConsoleTitle;
+    this.tabDiv;
+    this.visible = false;
+    this.project = null;
+    this.projectName = null;
+    this.history = [];
+    this.commandStack = [];
+    this.stackPos = 0;
+    
+    var _this = this;
+    
+    /*
+     * Create div for view part
+     */
+    this.init = function()
+    {
+        this.tabDiv = createViewPartContainer(this.tabId);
+        this.tabDiv.append($("<div class='git_console_project'>").text("Project"));
+        //this.submitButton = $('<input type="button"/>').css({float: "right"}).val(resources.vpScriptButtonExecute).addClass("ui-state-default").click(this.executeCommand);
+        //this.tabDiv.append(this.submitButton);
+        var div = $("<div/>").height(130).css({border: "1px solid black"});
+                    var textArea = $('<textarea style="width: 100%; height: 100%;"/>');
+                    div.append(textArea);
+        //this.console = $('<textarea style="width:100%; height: 90%; background-color:#F8F8F8" ></textarea>')
+        this.tabDiv.append(div);
+        var mode ="txt";
+        this.editor = CodeMirror.fromTextArea(textArea.get(0), {
+            mode: mode,
+            lineNumbers: false,
+            lineWrapping: true,
+            styleActiveLine: false,
+            styleSelectedText: false,
+            extraKeys: {
+                "Ctrl-Space": mode+"_autocomplete",
+                "Tab": mode+"_autocomplete",
+                "Ctrl-H": "replace", 
+                "Enter": _this.executeCommand,
+                "Ctrl-Enter": "newlineAndIndent",
+                "Ctrl-Up": "goLineUp",
+                "Ctrl-Down": "goLineDown",
+                "Up": function() {
+                    if (_this.stackPos > 0) 
+                    {
+                        _this.stackPos--;
+                        _this.editor.setValue(_this.commandStack[_this.stackPos]);
+                        _this.editor.setCursor(_this.editor.lineCount(), 0);
+                    }
+                },
+                "Down": function() {
+                    if (_this.stackPos < _this.commandStack.length - 1) 
+                    {
+                        _this.stackPos++;
+                        _this.editor.setValue(_this.commandStack[_this.stackPos]);
+                        _this.editor.setCursor(_this.editor.lineCount(), 0);
+                    }
+                    else 
+                    {
+                        _this.stackPos = _this.commandStack.length;
+                        _this.editor.setValue("");
+                    }
+                }
+               }
+        });            
+    };
+    
+    /*
+     * Indicates if view part is visible
+     */
+    this.isVisible = function(documentObject, callback)
+    {
+        callback(_this.visible)
+    };
+    
+    /*
+     * Open document event handler
+     */
+    this.explore = function(documentObject)
+    {
+    };
+    
+    /*
+     * Save function
+     */
+    this.save = function()
+    {
+        // nothing to do
+    };
+    
+    this.executeCommand = function()
+    {
+        var commandText = _this.editor.getValue();
+        queryBioUML("web/git/console",
+        {
+            de: _this.project,
+            command: commandText
+        },
+        function(data)
+        {
+            //console.log( data );
+            //openNonTreeDocument('gitlog', 'git_log_container', 'Git log', 'git.console');
+            //$("#git_log_container").children("#gitlog").append($("<div class='script_command'>").text(_this.projectName + " > " + commandText));
+            //var htmlDiv = $("<div class='script_responce'>").html(data.values.replace(/\n/g, "<br>"));
+            //$("#git_log_container").children("#gitlog").append(htmlDiv);
+            //$("#git_log_container").scrollTop($("#git_log_container")[0].scrollHeight);
+            //_this.console.val("");
+            //alert(data);
+            _this.addResult(commandText, data.values, false);
+        }, function (data){
+            _this.addResult(commandText, data.message, true);
+        });
+        
+    };
+    
+    this.addResult = function (commandText, message, isError)
+    {
+        openNonTreeDocument('gitlog', 'git_log_container', 'Git log', 'git.console');
+        $("#git_log_container").children("#gitlog").append($("<div class='script_command'>").text(_this.projectName + " > " + commandText));
+        var htmlDiv = $("<div>").addClass(isError? 'script_response_error':'script_response');
+        htmlDiv.html(message.replace(/\n/g, "<br>"));
+        $("#git_log_container").children("#gitlog").append(htmlDiv);
+        $("#git_log_container").scrollTop($("#git_log_container")[0].scrollHeight);
+        _this.commandStack = _.without(_this.commandStack, commandText);
+        _this.commandStack.push(commandText);
+        _this.stackPos = _this.commandStack.length;
+        _this.editor.setValue("");
+    }
+    
+    /*
+     * Creates toolbar actions for this tab
+     */
+    this.initActions = function(toolbarBlock)
+    {
+        this.runAction = createToolbarButton(resources.vpGitConsoleRun, "simulate.gif", this.executeCommand);
+        toolbarBlock.append(this.runAction);
+        
+        this.hideViewpartAction = createToolbarButton(resources.vpGitConsoleClose, "cancel.gif", this.hideActionClick);
+        toolbarBlock.append(this.hideViewpartAction);
+    };
+    
+    this.hideActionClick = function()
+    {
+        _this.visible = false;
+        updateViewParts();
+    };
+    
+    this.setProject = function(path)
+    {
+        this.project = path;
+        this.projectName = getElementName(path);
+        this.tabDiv.children(".git_console_project").html("Project <b>" + this.projectName + "</b>");
+    }
 }

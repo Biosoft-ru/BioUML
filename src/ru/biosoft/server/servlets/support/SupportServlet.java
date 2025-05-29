@@ -2,7 +2,6 @@ package ru.biosoft.server.servlets.support;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
@@ -45,7 +44,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.Index;
 import ru.biosoft.access.core.QuerySystem;
 import ru.biosoft.access.core.filter.FilteredDataCollection;
-import ru.biosoft.access.file.FileDataCollection;
+import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.history.HistoryFacade;
@@ -62,10 +61,8 @@ import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.server.servlets.webservices.WebSession.SessionInfo;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
-import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil;
-import ru.biosoft.util.TextUtil2;
 
 /**
  * BioUML server support functions.
@@ -506,6 +503,11 @@ public class SupportServlet extends AbstractJSONServlet
     public static String deleteProject(final String projectName) throws Exception
     {
         final DataCollection parentDC = CollectionFactoryUtils.getUserProjectsPath().getDataCollection();
+        return deleteProject( projectName, parentDC );
+    }
+
+    public static String deleteProject(final String projectName, final DataCollection parentDC) throws Exception
+    {
         if( parentDC.contains(projectName) )
         {
             Permission permission = SecurityManager.getPermissions(CollectionFactoryUtils.getUserProjectsPath().getChildPath(projectName));
@@ -523,6 +525,10 @@ public class SupportServlet extends AbstractJSONServlet
                         DataCollection dataCollection = (DataCollection)research.get(Module.DATA);
                         research = DataCollectionUtils.fetchPrimaryCollectionPrivileged(research);
                         String localPath = research.getInfo().getProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY);
+                        if( localPath == null && research instanceof GenericFileDataCollection )
+                        {
+                            localPath = research.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
+                        }
                         String dbName = null;
                         if ( dataCollection != null )
                         {
@@ -858,11 +864,18 @@ public class SupportServlet extends AbstractJSONServlet
                 if(projectType == ProjectType.SQL)
                     return createSQLBasedProject( projectName, userProjectsParent );
                 else if(projectType == ProjectType.FILE)
-                    return createFileBasedProject( projectName, userProjectsParent );
+                    return createFileBasedProject( projectName, userProjectsParent, null );
             }
-            else if( reuse )
+            else
             {
-                return (DataCollection)userProjectsParent.get(projectName);
+                if( reuse )
+                    return (DataCollection) userProjectsParent.get( projectName );
+                else
+                {
+                    errors.add( "Project " + projectName + " already exist. Please, select another project name." );
+                    log.log( Level.INFO, errors.get( 0 ) );
+                    return null;
+                }
             }
         }
         catch( Exception e )
@@ -871,9 +884,58 @@ public class SupportServlet extends AbstractJSONServlet
             log.log(Level.SEVERE, "Create project error", e );
         }
         return null;
-        
     }
     
+    public static DataCollection createNewProject(String projectName, DataElementPath parentPath, String user, boolean reuse, List<String> errors, ProjectType projectType,
+            Properties properties)
+    {
+        try
+        {
+            if( !SecurityManager.getPermissions( parentPath.getChildPath( projectName ) ).isWriteAllowed() )
+            {
+                errors.add( "No write permission for the user '" + user + "' to create project '" + projectName + "'" );
+                log.log( Level.INFO, errors.get( 0 ) );
+                return null;
+            }
+            if( !isProjectNameValid( projectName ) )
+            {
+                errors.add( "Project name contains unacceptable characters. Only latin letters, numbers, spaces and underscores ( _ ) are allowed." );
+                log.log( Level.INFO, errors.get( 0 ) );
+                return null;
+            }
+
+            DataCollection projectsParent = parentPath.getDataCollection();
+            DataCollection primaryParent = null;
+            if( projectsParent instanceof FilteredDataCollection )
+                primaryParent = ((FilteredDataCollection) projectsParent).getPrimaryCollection();
+
+            if( !projectsParent.contains( projectName ) && (primaryParent == null || !primaryParent.contains( projectName )) )
+            {
+                if( projectType == ProjectType.SQL )
+                    return createSQLBasedProject( projectName, projectsParent );
+                else if( projectType == ProjectType.FILE )
+                    return createFileBasedProject( projectName, projectsParent, properties );
+            }
+            else
+            {
+                if( reuse )
+                    return (DataCollection) projectsParent.get( projectName );
+                else
+                {
+                    errors.add( "Project " + projectName + " already exist. Please, select another project name." );
+                    log.log( Level.INFO, errors.get( 0 ) );
+                    return null;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            errors.add( e.getMessage() );
+            log.log( Level.SEVERE, "Create project error", e );
+        }
+        return null;
+    }
+
     //This method is used from genexplain, and creates SQL based project
     public static DataCollection createNewProject( String projectName, String user, boolean reuse, List<String> errors )
     {
@@ -945,17 +1007,13 @@ public class SupportServlet extends AbstractJSONServlet
         return researchBuilder.createResearch((Repository)userProjectsParent, projectName, true);
     }
     
-    private static DataCollection createFileBasedProject(String projectName, DataCollection userProjectsParent) throws Exception
+    public static DataCollection createFileBasedProject(String projectName, DataCollection userProjectsParent, Properties properties) throws Exception
     {
         String projectsFolder = userProjectsParent.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
         File projectFolder = new File( projectsFolder, projectName );
         projectFolder.mkdirs();
 
-        Properties props = new Properties();
-        props.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, projectName );
-        props.setProperty( DataCollectionConfigConstants.CLASS_PROPERTY, GenericFileDataCollection.class.getName() );
-
-        GenericFileDataCollection.initGenericFileDataCollection( userProjectsParent, projectFolder );
+        GenericFileDataCollection.initGenericFileDataCollection( userProjectsParent, projectFolder, properties );
 
         ((Repository) userProjectsParent).updateRepository();
         return (DataCollection) userProjectsParent.get( projectName );
@@ -1074,6 +1132,8 @@ public class SupportServlet extends AbstractJSONServlet
         String user = getStrictParameter( params, "user" );
         String password = getStrictParameter( params, "pass" );
         String jwToken = getStringParameter( params, "jwtoken" );
+        String dcPath = getStringParameter( params, "dc" );
+        DataCollection dc = dcPath != null ? DataElementPath.create( dcPath ).optDataCollection() : null;
         boolean askBiostore = ! ( "true".equals( getStringParameter( params, "skipBiostore" ) ) );
 
         String projectNamesJson = getStrictParameter( params, "projects" );
@@ -1091,7 +1151,10 @@ public class SupportServlet extends AbstractJSONServlet
             //First remove project from repository
             try
             {
-                resp = deleteProject( projectName );
+                if( dc != null )
+                    resp = deleteProject( projectName, dc );
+                else
+                    resp = deleteProject( projectName );
                 if( resp != null )
                     curRemoveErrors.append( resp );
             }

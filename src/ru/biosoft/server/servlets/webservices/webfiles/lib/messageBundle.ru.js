@@ -639,6 +639,10 @@ var resourcesRU = {
     vpSettingsDialogTitle: "Настройка видимости элементов интерфейса",
     vpSettingsTitle: "Название элемента интерфейса",
     vpSettingsChecked: "Видимость",
+    
+    vpGitConsoleTitle: "Консоль Git",
+    vpGitConsoleRun: "Выполнить",
+    vpGitConsoleClose: "Закрыть консоль",
 
     /* Analysis document (prefix: an) */
     anLoading: "Загрузка свойств...",

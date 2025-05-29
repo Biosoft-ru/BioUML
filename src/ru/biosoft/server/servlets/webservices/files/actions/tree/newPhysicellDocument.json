@@ -10,16 +10,12 @@
 		var path = getElementPath(completePath);
 		var name = getElementName(completePath);
 		if(!path || !name) return -1;
-        var dc = getDataCollection(path);
-        var type = dc.getChildClass(name);
-        //if (instanceOf(type,'biouml.model.Diagram')) 
-        //{
-        //    if( getDataCollection(completePath).diagramHasModel() )
-        //    {
-                return true;
-        //    }
-        //}s
-        //return -1;
+        var dc = getDataCollection(completePath);
+        if (dc && dc.getElementInfo('model.txt')) 
+        {
+            return true;
+        }
+        return -1;
     }",
     action: "function(path)
     {

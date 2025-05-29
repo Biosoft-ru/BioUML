@@ -1,6 +1,6 @@
 {
-    id: "git_push",
-    label: "Git push",
+    id: "git_status",
+    label: "Git status",
     icon: "icons/Git.png",
     visible: "function(completePath)
     {
@@ -8,7 +8,7 @@
         var name = getElementName(completePath);
         if(!path || !name) return -1;
         var edc = getDataCollection(completePath);
-        if( edc && instanceOf( edc.getClass(),'ru.biosoft.access.git.GitDataCollection' )  && edc.isGitEnabled() && edc.isMutable() ) 
+        if( edc && instanceOf( edc.getClass(),'ru.biosoft.access.git.GitDataCollection' ) && edc.isGitEnabled() && edc.isMutable() ) 
         {
             return true;
         }
@@ -20,7 +20,7 @@
         {
         }, function()
         {
-            gitPush(path);
+            gitStatus(path);
         });
     }"
 }

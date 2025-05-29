@@ -1,46 +1,39 @@
 package ru.biosoft.server.servlets.webservices.providers;
 
-import java.io.InputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
-//import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
+import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
-
+import ru.biosoft.access.core.filter.FilteredDataCollection;
+import ru.biosoft.access.git.GitConstants;
+import ru.biosoft.access.git.GitDataCollection;
+import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.server.servlets.support.SupportServlet;
+import ru.biosoft.server.servlets.support.SupportServlet.ProjectType;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
-import ru.biosoft.server.servlets.webservices.WebException;
-
-import ru.biosoft.server.servlets.support.SupportServlet;
-
-import ru.biosoft.access.security.SecurityManager;
-import ru.biosoft.access.security.NetworkDataCollection;
-
-import ru.biosoft.access.CollectionFactoryUtils;
-import ru.biosoft.access.TextFileImporter;
-
+import ru.biosoft.util.Pair;
 import ru.biosoft.util.TempFileManager;
 import ru.biosoft.util.TextUtil2;
-
 import ru.biosoft.workbench.Framework;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class GitWebProvider extends WebJSONProviderSupport
 {
@@ -61,14 +54,22 @@ public class GitWebProvider extends WebJSONProviderSupport
         return null;
     }
 
+    private File getProjectDirectory(DataCollection dc)
+    {
+        if( dc instanceof GitDataCollection )
+            return new File( ((GitDataCollection) dc).getInfo().getProperties().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY ) );
+        return getProjectDirectory( dc.getName() );
+    }
 
-    private String gitCommand( ProcessBuilder processBuilder ) throws Exception
+
+    private Pair<Integer, String> gitCommand(ProcessBuilder processBuilder) throws Exception
     {
         processBuilder.redirectErrorStream(true);
 
         Process process = processBuilder.start();
         StringBuilder processOutput = new StringBuilder();
 
+        int exitCode = -1;
         try (BufferedReader processOutputReader = new BufferedReader(
                 new InputStreamReader(process.getInputStream()));)
         {
@@ -83,10 +84,11 @@ public class GitWebProvider extends WebJSONProviderSupport
                 processOutput.append(readLine + "\n");
             }
 
-            process.waitFor();
+            exitCode = process.waitFor();
+
         }
 
-        return processOutput.toString().trim();
+        return new Pair<>( exitCode, processOutput.toString().trim() );
     }
 
     @Override
@@ -102,42 +104,29 @@ public class GitWebProvider extends WebJSONProviderSupport
         //log.info( "DataElement = " + de );
         if( "isEnabled".equals( action ) )
         {
-            if( "Collaboration".equals( path.getName() ) )
+            DataCollection<?> dc = (DataCollection<?>) de;
+            if( dc instanceof GitDataCollection || Boolean.valueOf( dc.getInfo().getProperties().getProperty( GitConstants.GIT_ENABLED_PROPERTY, "false" ) ) )
             {
                 ProcessBuilder processBuilder = new ProcessBuilder().command( "git", "--version" );
-                String gitOut = gitCommand( processBuilder );
-                if( gitOut != null && gitOut.startsWith( "git version" ) )
+                Pair<Integer, String> gitOut = gitCommand( processBuilder );
+                if( gitOut != null && gitOut.getSecond().startsWith( "git version" ) )
                 {
                     response.sendString( "ok" );
                     return;
                 }
             }
-            else
-            {
-                //log.info( "\n0 = " + path.getName() );
-                File prjDir = getProjectDirectory( path.getName() );
-                //log.info( "\n1 = " + prjDir );
-                if( prjDir != null )
-                {
-                    File workDir = new File( new File( prjDir, "Data" ), "file_collection.files" );
-                    //log.info( "\n2 = " + workDir );
-                    if( new File( workDir, ".git" ).exists() )
-                    {
-                        response.sendString( "ok" );
-                        return;
-                    }
-                }
-            }
-
             response.sendString( "false" );
             return;
         }
         else if( "clone".equals( action ) )
         {
+            DataCollection<?> dc = (DataCollection<?>) de;
+
             String repository = arguments.get( "repository" );
             String username = arguments.get( "username" );
             String password = arguments.get( "password" );
 
+            String branch = arguments.getOrDefault( "branch", "" );
             username = TextUtil2.encodeURL( username );
             password = TextUtil2.encodeURL( password );
 
@@ -165,36 +154,63 @@ public class GitWebProvider extends WebJSONProviderSupport
             { 
                 TempFileManager tempFileManager = TempFileManager.getDefaultManager();
                 File tmpGitFolder = tempFileManager.dir( "git" );
+                String branchSuffix = "";
+
+                List<String> commands = new ArrayList<>( Arrays.asList( new String[] { "git", "clone" } ) );
+                if( !branch.isEmpty() )
+                {
+                    commands.add( "-b" + TextUtil2.encodeURL( branch ) );
+                    commands.add( "--single-branch" );
+                    branchSuffix = " (" + branch + ")";
+                }
+                commands.add( "--progress" );
+                commands.add( fullUrl );
 
                 ProcessBuilder processBuilder = new ProcessBuilder()
                     .directory( tmpGitFolder )
-                    .command( "git", "clone", "--progress", fullUrl );
+                        .command( commands.toArray( new String[] {} ) );
 
-                String gitOut = gitCommand( processBuilder );
+                Pair<Integer, String> gitOut = gitCommand( processBuilder );
+                String gitOutStr = gitOut.getSecond();
 
                 String prjName = repository;
                 prjName = TextUtil2.subst( prjName, "http://", "" );
                 prjName = TextUtil2.subst( prjName, "https://", "" );
-                prjName = TextUtil2.subst( prjName, "/", "_" );
-                prjName = username + "@" + prjName;
+                //prjName = TextUtil2.subst( prjName, "/", "_" );
+                prjName = TextUtil2.subst( prjName, ".git", "" );
+                prjName = DataElementPath.create( prjName ).getName() + branchSuffix;
+                //prjName = username + "@" + prjName;
+                String projectAltName = arguments.getOrDefault( "projectAltName", "" );
+                if( projectAltName.isEmpty() )
+                    projectAltName = TextUtil2.decodeURL( username ) + "@" + prjName + branchSuffix;
 
-                boolean bCloneSuccess = gitOut.endsWith( "done." );   
+                if( dc.contains( prjName ) )
+                    prjName = projectAltName;
+
+                boolean bCloneSuccess = gitOut.getFirst() == 0;//gitOut.endsWith( "done." );   
                 boolean bProjectSuccess = false;   
 
                 if( bCloneSuccess )
                 { 
                     ArrayList<String> errors = new ArrayList<>();
-                    DataCollection<?> project = SupportServlet.createNewProject( prjName, bioumlUser, true, errors );
+                    Properties properties = new Properties();
+                    properties.put( DataCollectionConfigConstants.CLASS_PROPERTY, GitDataCollection.class.getName() );
+                    if( !branch.isEmpty() )
+                        properties.setProperty( GitConstants.GIT_BRANCH_PROPERTY, branch );
+
+                    DataCollection<?> project = SupportServlet.createNewProject( prjName, path, bioumlUser, true, errors, ProjectType.FILE, properties );
+
                     if( project == null )
                     {
                         response.error( errors.size() > 0 ? errors.get( 0 ) : "Failed to create project: reason unknown" );
                     }
                     else
                     {
-                        File prjDir = getProjectDirectory( prjName );
+                        DataCollection primaryProject = project;
+                        if( project instanceof FilteredDataCollection )
+                            primaryProject = ((FilteredDataCollection<?>) project).getPrimaryCollection();
+                        File prjDir = getProjectDirectory( primaryProject );
                         log.info( "\nprjDir = " + prjDir );
-                        NetworkDataCollection Data = ( NetworkDataCollection )project.get( "Data" ); 
-                        DataCollection<?> target = Data; // or project?
 
                         // skip directory created by git
                         File gitDir = null;
@@ -208,8 +224,9 @@ public class GitWebProvider extends WebJSONProviderSupport
                         {
                             String fileName = file.getName();
                             //log.info( "\npull: got filename = " + fileName );
-                            if( file.isDirectory() ) // for now
+                            if( file.isDirectory() )
                             {
+                                ApplicationUtils.copyFolder( new File( prjDir, file.getName() ), file );
                                 continue;
                             }                    
                             if( ".git".equals( fileName ) )
@@ -220,53 +237,54 @@ public class GitWebProvider extends WebJSONProviderSupport
                             {
                                 continue;
                             }
-                            if( target.contains( fileName ) )
+                            if( project.contains( fileName ) )
                             {
                                 //log.info( "!!!!file '" + fileName + "' already exists!" );
                                 continue;
                             }
-                            new TextFileImporter().doImport( target, file, file.getName(), null, log );
+                            ApplicationUtils.copyFile( new File( prjDir, file.getName() ), file );
                         }
 
                         File gitConfDir = new File( gitDir, ".git" );
-                        File file_collection = new File( new File( prjDir, "Data" ), "file_collection.files" );
-                        if( new File( file_collection, ".git" ).exists() )
+                        if( new File( prjDir, ".git" ).exists() )
                         {
-                            Files.walk( new File( file_collection, ".git" ).toPath() )
+                            Files.walk( new File( prjDir, ".git" ).toPath() )
                                  .sorted( Comparator.reverseOrder() )
                                  .map( Path::toFile )
                                  .forEach( File::delete );
                         }
 
-                        Process mv = Runtime.getRuntime().exec( new String[] {"mv", gitConfDir.getCanonicalPath(), file_collection.getCanonicalPath() } );
+                        Process mv = Runtime.getRuntime().exec( new String[] { "mv", gitConfDir.getCanonicalPath(), prjDir.getCanonicalPath() } );
                         mv.waitFor();
 
                         processBuilder = new ProcessBuilder()
-                            .directory( file_collection )
+                                .directory( prjDir )
                             .command( "git", "config", "user.email", bioumlUser );
 
-                        String gitOut1 = gitCommand( processBuilder );
+                        Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
 
                         processBuilder = new ProcessBuilder()
-                            .directory( file_collection )
+                                .directory( prjDir )
                             .command( "git", "config", "user.name", bioumlUser );
 
-                        String gitOut2 = gitCommand( processBuilder );
+                        Pair<Integer, String> gitOut2 = gitCommand( processBuilder );
 
-                        gitOut += gitOut1 + gitOut2;
+                        gitOutStr += gitOut1.getSecond() + gitOut2.getSecond();
 
-                        //log.info( "\nData.getPrimaryCollection() = " + Data.getPrimaryCollection() );
+                        if( primaryProject instanceof GitDataCollection )
+                            ((GitDataCollection) primaryProject).initGitFilter();
+
                         bProjectSuccess = true;
                     }
                 }   
 
                 if( bCloneSuccess && bProjectSuccess )
                 { 
-                    response.sendStringArray( prjName, gitOut );
+                    response.sendStringArray( prjName, gitOutStr );
                 }
                 else if( !bCloneSuccess )
                 {
-                    response.error( gitOut );
+                    response.error( gitOutStr );
                 } 
             }
             catch( Exception exc )
@@ -284,18 +302,11 @@ public class GitWebProvider extends WebJSONProviderSupport
         {
             try
             { 
+                GitDataCollection project = ( GitDataCollection )de;
 
-                DataCollection<?> project = ( DataCollection<?> )de;
-                NetworkDataCollection Data = ( NetworkDataCollection )project.get( "Data" ); 
-                DataCollection<?> target = Data; // or project?
-
-                TempFileManager tempFileManager = TempFileManager.getDefaultManager();
-                File tmpGitFolder = tempFileManager.dir( "git" );
-
-                File prjDir = getProjectDirectory( path.getName() );
-                File workDir = new File( new File( prjDir, "Data" ), "file_collection.files" );
+                File prjDir = getProjectDirectory( project );
                 String url = null;
-                List<String> lines = Files.readAllLines( new File( new File( workDir, ".git" ), "config" ).toPath() );
+                List<String> lines = Files.readAllLines( new File( new File( prjDir, ".git" ), "config" ).toPath() );
                 for( String line : lines )
                 {
                     if( line.indexOf( "url = " ) > 0 )
@@ -315,54 +326,12 @@ public class GitWebProvider extends WebJSONProviderSupport
                 }
 
                 ProcessBuilder processBuilder = new ProcessBuilder()
-                    .directory( tmpGitFolder )
-                    .command( "git", "clone", /*"--progress",*/ url );
-
-                String gitOut = gitCommand( processBuilder );
-
-                File gitDir = null;
-                for( File file : tmpGitFolder.listFiles() )
-                {
-                    gitDir = file;
-                    break;
-                } 
-                 
-                for( File file : gitDir.listFiles() )
-                {
-                    String fileName = file.getName();
-                    //log.info( "\npull: got filename = " + fileName );
-                    if( file.isDirectory() ) // for now
-                    {
-                        continue;
-                    }                    
-                    if( ".git".equals( fileName ) )
-                    {
-                        continue;
-                    }
-                    if( fileName.endsWith( ".config" ) || fileName.endsWith( ".dat" ) || fileName.endsWith( ".dat.id" ) )
-                    {
-                        continue;
-                    }
-                    if( target.contains( fileName ) )
-                    {
-                        //log.info( "\npull: file '" + fileName + "' already exists!" );
-                        continue;
-                    }
-                    new TextFileImporter().doImport( target, file, file.getName(), null, log );
-                    processBuilder = new ProcessBuilder()
-                        .directory( workDir )
-                        .command( "git", "add", file.getName() );
-
-                    gitOut += gitCommand( processBuilder );
-                }
-
-                processBuilder = new ProcessBuilder()
-                    .directory( workDir )
+                        .directory( prjDir )
                     .command( "git", "pull", "--ff-only" );
 
-                gitOut += "\n" + gitCommand( processBuilder );
+                String gitOutStr = gitCommand( processBuilder ).getSecond();
 
-                response.sendStringArray( path.getName(), gitOut );
+                response.sendStringArray( path.getName(), gitOutStr );
                 return;
             }
             catch( Exception exc )
@@ -377,25 +346,25 @@ public class GitWebProvider extends WebJSONProviderSupport
         }
         else if( "commit".equals( action ) )
         {
+            GitDataCollection project = (GitDataCollection) de;
             String message = arguments.get( "message" );
             try
             { 
-                File prjDir = getProjectDirectory( path.getName() );
-                File workDir = new File( new File( prjDir, "Data" ), "file_collection.files" );
+                File workDir = getProjectDirectory( project );
 
                 ProcessBuilder processBuilder = new ProcessBuilder()
                     .directory( workDir )
                     .command( "git", "add", /*"--progress",*/ "." );
 
-                String gitOut1 = gitCommand( processBuilder );
+                Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
 
                 processBuilder = new ProcessBuilder()
                     .directory( workDir )
                     .command( "git", "commit", /*"--progress",*/ "-a", "-m", message );
 
-                String gitOut2 = gitCommand( processBuilder );
+                Pair<Integer, String> gitOut2 = gitCommand( processBuilder );
 
-                response.sendStringArray( path.getName(), gitOut1 + gitOut2 );
+                response.sendStringArray( path.getName(), gitOut1.getSecond() + gitOut2.getSecond() );
                 return;
             }
             catch( Exception exc )
@@ -411,16 +380,16 @@ public class GitWebProvider extends WebJSONProviderSupport
         {
             try
             { 
-                File prjDir = getProjectDirectory( path.getName() );
-                File workDir = new File( new File( prjDir, "Data" ), "file_collection.files" );
+                GitDataCollection project = (GitDataCollection) de;
+                File workDir = getProjectDirectory( project );
 
                 ProcessBuilder processBuilder = new ProcessBuilder()
                     .directory( workDir )
                     .command( "git", "push" );
 
-                String gitOut1 = gitCommand( processBuilder );
+                Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
 
-                response.sendStringArray( path.getName(), gitOut1 );
+                response.sendStringArray( path.getName(), gitOut1.getSecond() );
                 return;
             }
             catch( Exception exc )
@@ -433,5 +402,81 @@ public class GitWebProvider extends WebJSONProviderSupport
             } 
             return;
         }
+
+        else if( "status".equals( action ) )
+        {
+            try
+            {
+                GitDataCollection project = (GitDataCollection) de;
+                File workDir = getProjectDirectory( project );
+
+                ProcessBuilder processBuilder = new ProcessBuilder().directory( workDir ).command( "git", "status" );
+
+                Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
+
+                response.sendString( gitOut1.getSecond() );
+                return;
+            }
+            catch (Exception exc)
+            {
+                log.log( Level.SEVERE, "Error in " + path.getName(), exc );
+                String errorMessage = "";
+                //errorMessage += "<font color=\"red\">" + exc.getMessage() + "</font><br />\n";
+                errorMessage += exc.getMessage() + "\n";
+                response.error( errorMessage );
+            }
+            return;
+        }
+        else if( "console".equals( action ) )
+        {
+            try
+            {
+                GitDataCollection project = (GitDataCollection) de;
+                File workDir = getProjectDirectory( project );
+                String command = arguments.getString( "command" );
+                String checkResult = checkGitCommand( command );
+                if( checkResult != null )
+                {
+                    response.error( checkResult );
+                    return;
+                }
+                List<String> list = new ArrayList<String>();
+                Matcher m = Pattern.compile( "([^\"]\\S*|\".+?\")\\s*" ).matcher( command );
+                while ( m.find() )
+                    list.add( m.group( 1 ).replace( "\"", "" ) ); // Add .replace("\"", "") to remove surrounding quotes.
+
+                String[] commandSplit = list.toArray( new String[] {} );//.split( "\\s+" );
+                ProcessBuilder processBuilder = new ProcessBuilder().directory( workDir ).command( commandSplit );
+                Pair<Integer, String> gitOut1 = gitCommand( processBuilder );
+                if( gitOut1.getFirst() != 0 )
+                    response.error( gitOut1.getSecond() );
+                else
+                    response.sendString( gitOut1.getSecond() );
+                return;
+            }
+            catch (Exception exc)
+            {
+                log.log( Level.SEVERE, "Error in " + path.getName(), exc );
+                String errorMessage = "";
+                //errorMessage += "<font color=\"red\">" + exc.getMessage() + "</font><br />\n";
+                errorMessage += exc.getMessage() + "\n";
+                response.error( errorMessage );
+            }
+            return;
+        }
+    }
+
+    private String checkGitCommand(String command)
+    {
+        if( !command.startsWith( "git " ) )
+            return "Command should start with 'git'";
+        if( command.contains( "|" ) )
+            return "Command contains not allowed symbols";
+        if( command.contains( "--output" ) )
+            return "'output' argument is not allowed";
+        String[] commandSplit = command.split( "\\s+" );
+        if( commandSplit.length > 1 && commandSplit[1].equalsIgnoreCase( "clone" ) )
+            return "'clone' operation can not be done with console. Please, use tree action instead.";
+        return null;
     }
 }

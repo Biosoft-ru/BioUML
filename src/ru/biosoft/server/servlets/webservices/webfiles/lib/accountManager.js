@@ -344,6 +344,7 @@ function removeProject(completePath)
     '</table>');
     dialogDiv.append(loginForm);
     var dialogButtons = {};
+    var path = getElementPath(completePath);
     dialogButtons[ resources.dlgButtonRemove ] = function()
             {
                 var pass = dialogDiv.find("#password").val();
@@ -353,7 +354,8 @@ function removeProject(completePath)
                     {
                         "user" : currentUser,
                         "pass" : pass,
-                        "project" : name
+                        "project" : name,
+                        "dc" : path
                     },
                     function(data)
                     {
