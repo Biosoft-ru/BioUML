@@ -35,5 +35,6 @@ public class PhysicellOptionsBeanInfo extends BeanInfoEx2<PhysicellOptions>
         add( "seed" );
         add("calculateGradient");
         add("trackInnerSubstrates");
+        property("modelType").tags( PhysicellOptions.DEFAULT_MODEL, PhysicellOptions.COVID_MODEL ).add();
     }
 }

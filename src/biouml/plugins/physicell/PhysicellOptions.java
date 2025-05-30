@@ -10,6 +10,10 @@ import ru.biosoft.physicell.core.CellContainerParallel;
 
 public class PhysicellOptions extends Options
 {
+    public static String DEFAULT_MODEL = "Default";
+    public static String COVID_MODEL = "Covid";
+    private String modelType = DEFAULT_MODEL;
+    
     private DataElementPath resultPath;
     private double finalTime = 100;
     private boolean saveReport = false;
@@ -102,6 +106,16 @@ public class PhysicellOptions extends Options
     public void setSaveCellsText(boolean saveCellsText)
     {
         this.saveCellsText = saveCellsText;
+    }
+    
+    @PropertyName ( "Model type" )
+    public String getModelType()
+    {
+        return modelType;
+    }
+    public void setModelType(String type)
+    {
+        this.modelType = type;
     }
     
     @PropertyName ( "Save cells data as table" )

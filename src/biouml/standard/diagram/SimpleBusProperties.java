@@ -15,6 +15,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
+import biouml.model.SemanticController;
 import biouml.standard.type.Stub;
 import biouml.standard.type.Type;
 import com.developmentontheedge.beans.Option;
@@ -122,11 +123,17 @@ public class SimpleBusProperties extends Option implements InitialElementPropert
         if (bus == null)
             throw new Exception("Can not create new Bus node for Bus "+name+". Can not find it.");
 
+        node.setRole( bus );
+        node.setTitle( bus.getName() );
+        
+        Diagram diagram = Diagram.getDiagram(compartment);
+        SemanticController controller = diagram.getType().getSemanticController();
+        if( !controller.canAccept(compartment, node) )
+            return new DiagramElementGroup();
+        
         if( newBus )
             bus.setColor( color );
         bus.addNode( node );
-        node.setRole( bus );
-        node.setTitle( bus.getName() );
 
         if( viewPane != null )
         {

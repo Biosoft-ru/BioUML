@@ -7,10 +7,12 @@ import ru.biosoft.graphics.editor.ViewEditorPane;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Compartment;
+import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
 import biouml.model.Node;
+import biouml.model.SemanticController;
 import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.Variable;
 import biouml.model.dynamics.VariableRole;
@@ -108,6 +110,11 @@ public class BusProperties extends Option implements InitialElementProperties
         node.setRole( variable );
         node.setTitle( variable.getName().replace( VariableRole.PREFIX, "" ) );
 
+        Diagram diagram = Diagram.getDiagram(compartment);
+        SemanticController controller = diagram.getType().getSemanticController();
+        if( !controller.canAccept(compartment, node) )
+            return new DiagramElementGroup();
+        
         if( viewPane != null )
         {
             node.setNotificationEnabled(true);

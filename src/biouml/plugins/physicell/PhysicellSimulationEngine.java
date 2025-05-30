@@ -105,8 +105,13 @@ public class PhysicellSimulationEngine extends SimulationEngine
     @Override
     public PhysicellModel createModel() throws Exception
     {
-        ru.biosoft.physicell.core.Model model = new ru.biosoft.physicell.core.Model();
-
+        PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
+        
+        ru.biosoft.physicell.core.Model model = null;
+        if( opts.getModelType().equals( PhysicellOptions.COVID_MODEL ) )
+            model = new ru.biosoft.physicell.covid.ModelCovid();
+        else
+            model = new ru.biosoft.physicell.core.Model();
 
         Microenvironment m = model.getMicroenvironment();
         m.options.initial_condition_vector = new double[1];
@@ -175,9 +180,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
-
-
-        PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
+        
         model.setDiffusionDt( opts.getDiffusionDt() );
         model.setMechanicsDt( opts.getMechanicsDt() );
         model.setPhenotypeDt( opts.getPhenotypeDt() );
@@ -241,7 +244,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
         model.disableAutomatedSpringAdhesions = emodel.getOptions().isDisableAutomatedAdhesions();
         model.signals.setupDictionaries( model );
-
+        model.setupInitial();
 
         InitialCondition condition = emodel.getInitialCondition();
         if( condition.isCustomCondition() )
@@ -281,9 +284,13 @@ public class PhysicellSimulationEngine extends SimulationEngine
             }
             else
             {
-                colorer = new DefinitionVisualizer();
-                for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-                    ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+                colorer = model.getDefaultColorer();
+                if( colorer == null )
+                {
+                    colorer = new DefinitionVisualizer();
+                    for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+                        ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+                }
             }
             if( emodel.getReportProperties().isCustomVisualizer() )
             {

@@ -96,7 +96,7 @@ public class PhysicellResultWriter
     public void saveAllResults(PhysicellModel model) throws Exception
     {
         double curTime = model.getCurrentTime();
-        if( Math.abs( curTime - nextReport ) < 1E-8 )
+        if( Math.abs( curTime - nextReport ) < 1E-6 )
         {
             nextReport += options.getReportInterval();
             saveResults( curTime );
@@ -146,7 +146,7 @@ public class PhysicellResultWriter
             TableDataCollection result = TableDataCollectionUtils.createTableDataCollection( subDC, "Report_" + suffix );
             Microenvironment m = model.getMicroenvironment();
             for( String s : model.getReportHeader() )
-                result.getColumnModel().addColumn( s, DataType.Float );
+                result.getColumnModel().addColumn( s, DataType.Text );
             for( Cell cell : m.getAgents( Cell.class ) )
                 TableDataCollectionUtils.addRow( result, String.valueOf( cell.ID ), model.getReport( cell ), true );
             subDC.put( result );
