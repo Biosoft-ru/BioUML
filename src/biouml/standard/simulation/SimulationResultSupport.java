@@ -34,7 +34,7 @@ public abstract class SimulationResultSupport extends BaseSupport
 
     public String getDiagramName()//TODO: remove?
     {
-        return diagramName.toString();
+        return diagramName != null? diagramName.toString(): "";
     }
     public void setDiagramName(String diagramName)//TODO: remove?
     {
