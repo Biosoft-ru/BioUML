@@ -32,4 +32,14 @@ public class PhysicellUtil
         de.setRole( role );
         return role;
     }
+
+    public static CellDefinitionProperties findCellDefinition(String name, MulticellEModel emodel)
+    {
+        for( CellDefinitionProperties cdp : emodel.getCellDefinitions() )
+        {
+            if( cdp.getName().equals( name ) )
+                return cdp;
+        }
+        return null;
+    }
 }

@@ -19,6 +19,7 @@ public class PhysicellOptions extends Options
     private boolean saveReport = false;
     private boolean saveDensity = true;
     private double reportInterval = 10;
+    private boolean savePlots = false;
     private boolean saveImage = false;
     private boolean saveCellsText = true;
     private boolean saveCellsTable = false;
@@ -67,6 +68,17 @@ public class PhysicellOptions extends Options
     {
         this.saveReport = saveReport;
     }
+    
+    @PropertyName ( "Save plots" )
+    public boolean isSavePlots()
+    {
+        return savePlots;
+    }
+    public void setSavePlots(boolean savePlots)
+    {
+        this.savePlots = savePlots;
+    }
+    
     
     @PropertyName ( "Save density" )
     public boolean isSaveDensity()

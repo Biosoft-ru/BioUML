@@ -6,7 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import biouml.plugins.physicell.plot.CurveProperties;
+import biouml.plugins.physicell.plot.PlotProperties;
 import biouml.plugins.simulation.Simulator;
+import biouml.standard.simulation.SimulationResult;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.FileImporter;
@@ -38,9 +41,12 @@ public class PhysicellResultWriter
     private double nextImage = 0;
     private StringBuffer simulationLog;
     private PhysicellModel model;
+    private PlotProperties plotProperties;
+    private SimulationResult result = null;
+
     protected static final Logger log = Logger.getLogger( Simulator.class.getName() );
 
-    public void init(PhysicellModel model, PhysicellOptions options) throws Exception
+    public void init(PhysicellModel model, PhysicellOptions options, PlotProperties plotProperties) throws Exception
     {
         visualizerResult = new HashMap<>();
         visualizerImageResult = new HashMap<>();
@@ -49,6 +55,8 @@ public class PhysicellResultWriter
         this.nextReport = 0;
         this.nextImage = 0;
         this.simulationLog = new StringBuffer();
+
+        this.plotProperties = plotProperties;
 
         DataElementPath dep = options.getResultPath();
         if( dep == null )
@@ -89,6 +97,22 @@ public class PhysicellResultWriter
         int nums = String.valueOf( Math.round( options.getFinalTime() ) ).length() + 1;
         format = "%0" + nums + "d";
 
+        if( options.isSavePlots() && plotProperties != null )
+        {
+            Map<String, Integer> variableMap = new HashMap<>();
+            CurveProperties[] curveProperties = plotProperties.getProperties();
+            result = new SimulationResult( resultFolder, "Counts" );
+            result.setDiagramPath( dep );
+            for( int i = 0; i < curveProperties.length; i++ )
+            {
+                String name = curveProperties[i].getName();
+                if( name == null )
+                    name = "Curve_" + i;
+                variableMap.put( name, i );
+            }
+            variableMap.put( "time", curveProperties.length );
+            result.setVariablePathMap( variableMap );
+        }
         saveAllResults( model );
         writeInfo( resultFolder, model.getMicroenvironment() );
     }
@@ -102,7 +126,8 @@ public class PhysicellResultWriter
             saveResults( curTime );
             log.info( model.getLog() );
             simulationLog.append( "\n" + model.getLog() );
-
+            if( options.isSavePlots() )
+                countCellTypes( model );
         }
 
         if( ( options.isSaveCellsText() || options.isSaveCellsTable() || options.isSaveImage() || options.isSaveVideo()
@@ -262,6 +287,9 @@ public class PhysicellResultWriter
         TextDataElement logElement = new TextDataElement( "log.txt", resultFolder );
         logElement.setContent( simulationLog.toString() );
         resultFolder.put( logElement );
+        
+        if( options.isSavePlots() )
+            resultFolder.put( result );
     }
 
     public static void shift(DataCollection dc, int xShift, int yShift, int zShift) throws Exception
@@ -273,7 +301,7 @@ public class PhysicellResultWriter
             String s = tde.getContent();
             StringBuffer newString = new StringBuffer();
             String[] lines = s.split( "\n" );
-            for( int i=1; i<lines.length; i++ )
+            for( int i = 1; i < lines.length; i++ )
             {
                 String line = lines[i];
                 String[] parts = line.split( "\t" );
@@ -286,26 +314,66 @@ public class PhysicellResultWriter
             tde.setContent( newString.toString() );
             tde.getOrigin().put( tde );
         }
-        
+
         DataCollection density = (DataCollection)dc.get( "Density" );
         for( Object name : density.getNameList() )
         {
             TableDataCollection tdc = (TableDataCollection)density.get( name.toString() );
-            for (String rowName: tdc.getNameList())
+            for( String rowName : tdc.getNameList() )
             {
                 RowDataElement rde = tdc.get( rowName );
                 Object[] values = rde.getValues();
-                values[0] = print(Double.parseDouble(values[0].toString()) - xShift);
-                values[1] = print(Double.parseDouble(values[1].toString()) - yShift);
-                values[2] = print(Double.parseDouble(values[2].toString()) - zShift);
+                values[0] = print( Double.parseDouble( values[0].toString() ) - xShift );
+                values[1] = print( Double.parseDouble( values[1].toString() ) - yShift );
+                values[2] = print( Double.parseDouble( values[2].toString() ) - zShift );
                 rde.setValues( values );
             }
             tdc.getOrigin().put( tdc );
         }
     }
-    
+
     private static String print(double val)
     {
-        return String.valueOf( Math.round(val * 10)/10);
+        return String.valueOf( Math.round( val * 10 ) / 10 );
+    }
+
+    private void countCellTypes(PhysicellModel model) throws Exception
+    {
+        double[] counts = new double[plotProperties.getProperties().length+1];
+
+        for( Cell cell : model.getMicroenvironment().getAgents( Cell.class ) )
+        {
+            for( int i = 0; i < plotProperties.getProperties().length; i++ )
+            {
+                CurveProperties curve = plotProperties.getProperties()[i];
+                if( accepts( curve, cell ) )
+                    counts[i]++;
+            }
+        }
+        counts[plotProperties.getProperties().length] = model.getCurrentTime();
+        this.result.add( model.getCurrentTime(), counts );
+    }
+
+    private boolean accepts(CurveProperties curve, Cell cell) throws Exception
+    {
+        if (!cell.getDefinition().name.equals( curve.getCellType() ))
+                return false;
+        
+        if (curve.isNoSignal())
+            return true;
+        double value = cell.getModel().getSignals().getSingleSignal( cell, curve.getSignal() );
+
+        switch ( curve.getRelationInt()  )
+        {
+            case CurveProperties.LT:
+                return value < curve.getValue();
+            case CurveProperties.LEQ:
+                return value <= curve.getValue();
+            case CurveProperties.GT:
+                return value > curve.getValue();
+            case CurveProperties.GEQ:
+                return value >= curve.getValue();
+        }
+        return false;
     }
 }

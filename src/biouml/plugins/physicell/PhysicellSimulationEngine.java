@@ -6,7 +6,12 @@ import java.util.List;
 import java.util.Map;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import biouml.model.Diagram;
+import biouml.model.Role;
+import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.plot.PlotInfo;
+import biouml.model.dynamics.plot.PlotsInfo;
+import biouml.plugins.physicell.plot.PlotProperties;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.standard.simulation.ResultListener;
@@ -45,6 +50,7 @@ import ru.biosoft.physicell.ui.render.Visualizer3D;
 import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
+import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.TempFiles;
 
 public class PhysicellSimulationEngine extends SimulationEngine
@@ -420,6 +426,9 @@ public class PhysicellSimulationEngine extends SimulationEngine
     {
         try
         {
+            Object plotsObj = diagram.getAttributes().getValue( PLOTS );
+            if( plotsObj instanceof PlotProperties )
+                ( (PhysicellSimulator)simulator ).setPlotProperties( (PlotProperties)plotsObj );
             this.simulator.start( model, null, resultListeners, jobControl );
             return "";
         }
@@ -491,5 +500,25 @@ public class PhysicellSimulationEngine extends SimulationEngine
     public String[] getVariableNames()
     {
         return new String[0];
+    }
+    
+    public static final String PLOTS = "Plots";
+    
+    @Override
+    public Object getPlotsBean(Diagram diagram)
+    {
+        Role role = diagram.getRole();
+        if (!(role instanceof MulticellEModel))
+            return null;
+        Object plotsObj = diagram.getAttributes().getValue( PLOTS );
+        PlotProperties result = null;
+        if( ! ( plotsObj instanceof PlotProperties ) )
+        {
+            result = new  PlotProperties ( (MulticellEModel)role );
+            diagram.getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( PLOTS, PlotProperties.class, result ) );
+        }
+        else
+            result = (PlotProperties)plotsObj;
+        return result;
     }
 }

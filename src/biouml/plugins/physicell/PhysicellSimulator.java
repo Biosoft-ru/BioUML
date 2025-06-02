@@ -4,6 +4,7 @@ package biouml.plugins.physicell;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import biouml.plugins.physicell.plot.PlotProperties;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.Options;
 import biouml.plugins.simulation.Simulator;
@@ -21,6 +22,7 @@ public class PhysicellSimulator implements Simulator
     private boolean running = false;
     protected static final Logger log = Logger.getLogger( Simulator.class.getName() );
     private PhysicellResultWriter writer = new PhysicellResultWriter();
+    private PlotProperties plotProperties;
 
     @Override
     public SimulatorInfo getInfo()
@@ -40,7 +42,7 @@ public class PhysicellSimulator implements Simulator
         this.model = (PhysicellModel)model;
         this.options = (PhysicellOptions)getOptions();
         this.running = true;
-        writer.init(  this.model, this.options );  
+        writer.init(  this.model, this.options, plotProperties );  
         if( !this.model.isInit() )
             this.model.init();
         writer.saveAllResults( this.model );
@@ -123,5 +125,10 @@ public class PhysicellSimulator implements Simulator
     public void addTextVisualizer(VisualizerText textVisualizer)
     {
         writer.addTextVisualizer( textVisualizer );
+    }
+    
+    public void setPlotProperties(PlotProperties plotProperties)
+    {
+        this.plotProperties = plotProperties;
     }
 }
