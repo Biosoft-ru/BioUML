@@ -163,7 +163,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
             diagram.setDiagramFilter( filter );
     }
 
-    private static Object readElement(Element element, Class<?> expectedType)
+    protected static Object readElement(Element element, Class<?> expectedType)
     {
         if( element == null )
             return null;
@@ -245,7 +245,7 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
         }
     }
 
-    public static void readPlotsInfo(Element element, Diagram diagram, Map<String, String> newPaths)
+    public void readPlotsInfo(Element element, Diagram diagram, Map<String, String> newPaths)
     {
         try
         {

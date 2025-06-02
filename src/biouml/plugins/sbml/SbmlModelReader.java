@@ -1154,7 +1154,7 @@ public abstract class SbmlModelReader extends SbmlSupport
             {
                 Element plotsElement = getElement( bioumlElement, BIOUML_PLOT_INFO_ELEMENT );
                 if( plotsElement != null )
-                    DiagramXmlReader.readPlotsInfo( plotsElement, diagram, newPaths );
+                    new DiagramXmlReader().readPlotsInfo( plotsElement, diagram, newPaths );
             }
             catch( Exception ex )
             {

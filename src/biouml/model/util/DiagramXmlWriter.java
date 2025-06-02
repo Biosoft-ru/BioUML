@@ -940,7 +940,7 @@ public class DiagramXmlWriter extends DiagramXmlSupport implements DiagramWriter
         return element;
     }
 
-    public static Element writePlotsInfo(Document doc, String elementName, Diagram diagram, Map<String, String> newPaths)
+    public Element writePlotsInfo(Document doc, String elementName, Diagram diagram, Map<String, String> newPaths)
     {
         DynamicProperty dp = diagram.getAttributes().getProperty("Plots");
         if( dp == null || dp.getValue() == null )
