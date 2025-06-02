@@ -11,9 +11,12 @@
 		var name = getElementName(completePath);
 		if(!path || !name) return -1;
         var dc = getDataCollection(completePath);
-        if (dc && dc.getElementInfo('model.txt')) 
+        if (dc) 
         {
-            return true;
+            var parentDc = getDataCollection(path);
+            var type = parentDc.getChildClass(name);
+            if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') && dc.getElementInfo('model.txt'))
+                return true;
         }
         return -1;
     }",
