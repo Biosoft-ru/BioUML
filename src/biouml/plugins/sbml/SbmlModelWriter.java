@@ -249,7 +249,7 @@ abstract public class SbmlModelWriter extends SbmlSupport
         if( simulationInfoElement != null )
             bioumlElement.appendChild(simulationInfoElement);
 
-        Element plots = DiagramXmlWriter.writePlotsInfo(document, BIOUML_PLOT_INFO_ELEMENT, diagram, newPaths);
+        Element plots = new DiagramXmlWriter().writePlotsInfo(document, BIOUML_PLOT_INFO_ELEMENT, diagram, newPaths);
         if( plots != null )
             bioumlElement.appendChild(plots);
  
