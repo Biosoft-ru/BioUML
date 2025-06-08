@@ -1,0 +1,1001 @@
+/***************************************************************
+                   OPTIONS
+***************************************************************/
+options
+{
+  MULTI = true;
+  NODE_DEFAULT_VOID = true;
+  STATIC = false;
+  NODE_PREFIX = "Ast";
+  DEBUG_PARSER = false;
+  TRACK_TOKENS=true;
+}
+
+/***************************************************************
+                   PARSER BEGIN
+***************************************************************/
+PARSER_BEGIN(WDLParser)
+package com.wdl.parser;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+public class WDLParser
+{
+	protected Logger log = Logger.getLogger(WDLParser.class.getName());
+	private String version;
+	private boolean workflowExist = false;
+    /** Default constructor. */
+    public WDLParser()
+    {
+        this (new StringReader("0"));
+    }
+
+    public AstStart parse(Reader reader) throws ParseException
+    {
+        ReInit(reader);
+        AstStart astStart = Start();
+        return astStart;
+    }
+    
+    public String getVersion()
+    {
+    	return version;
+    }
+
+}
+
+
+PARSER_END(WDLParser)
+
+/***************************************************************
+                       SKIP & TOKENS
+***************************************************************/
+
+TOKEN_MGR_DECLS : {
+	int prevLexState;
+	int braceLevel = 0;
+	boolean isHeredoc = false;
+}
+
+TOKEN :
+{
+< EOL :   ("\n" | "\r"  | "\r\n" ) >
+}
+
+<*> SPECIAL_TOKEN : /* instead of SKIP */
+{
+  <([" ", "\t"])+>
+| <"#"> { prevLexState = curLexState; }: ML_COMMENT
+}
+
+<ML_COMMENT> SPECIAL_TOKEN :
+{
+  < ML_EOL : < EOL > > {SwitchTo(prevLexState);}
+| <~["\n"]>
+}
+
+
+TOKEN : /* STATE SWITCHERS */
+{
+< COMMAND: "command" > : BASH_COMMAND
+
+| < PARAMETER_META : "parameter_meta" > 
+
+| < META : "meta" > 
+
+| < RUNTIME: "runtime" > 
+
+| < HINTS: "hints" > 
+
+| < REQUIREMENTS:  "requirements" > 
+}
+
+
+< BASH_COMMAND > TOKEN:
+{
+< COMMAND_HEREDOC_START: "<<<" > {isHeredoc = true;}: BASH_STRING
+| < COMMAND_START:  < BRACE_L > > 
+{braceLevel+=1;}: BASH_STRING
+}
+
+< BASH_STRING > TOKEN:
+{
+< START : < BRACE_L > > {braceLevel+=1;}
+| < COMMAND_END:  < BRACE_R > > 
+{
+	braceLevel-=1;
+	if (braceLevel == 0 && !isHeredoc)
+	{
+		isHeredoc = false;
+		SwitchTo(DEFAULT);
+	}
+}
+| < COMMAND_HEREDOC_END: ">>>" > : DEFAULT
+| < ANY : (~["{", "}"]) >
+}
+
+ TOKEN : /* RESERVED WORDS */
+{
+  < TASK : "task" >
+
+| < WORKFLOW : "workflow" >
+
+| < VERSION : "version" >
+
+| < INPUT : "input" >
+
+| < OUTPUT : "output" >
+
+| < PRIMITIVE_TYPE :  "Boolean" | "File" |
+                    "Float"| "Int"| "String" >
+| < ARRAY : "Array">
+
+| < NONE : "None" >
+
+| < OBJECT_TYPE : "Object" >
+
+| < PAIR : "Pair" >
+
+| < MAP : "Map">
+
+| < ALIAS : "alias" >
+
+| < AS : "as" >
+
+| < CALL : "call" >
+
+| < ELSE : "else" >
+
+| < TRUE_OR_FALSE : ("true"|"false") >
+
+| < IF : "if" >
+
+| < IN : "in" >
+
+| < IMPORT : "import" >
+
+| < OBJECT: "object" >
+
+| < SCATTER : "scatter" >
+
+| < STRUCT : "struct" >
+
+| < THEN : "then" >
+
+| < NULL : "null" >
+
+| < DOT : ".">
+/*
+| < STANDARD_FUNCTION :( 
+						"floor" | "ceil" | "round" | "sub" | "base_name" |
+						"glob" | "size" | "stdout" | "stderr" | "read_string" |
+						"read_int" | "read_float" | "read_boolean" | 
+						"read_lines" | "write_lines" | "read_tsv" | 
+						"write_tsv" | "read_map" | "write_map" | "read_json" | 
+						"write_json" | "read_object" | "read_objects" | 
+						"write_object" | "write_objects" | "prefix" | 
+						"length" | "range" | "transpose" | "cross" | "zip" | 
+						"flatten" | "select_first" | "select_all" | "defined" |
+						
+						"min" | "max" | "suffix" | "quote" | "squote" | "sep" |
+						"unzip" | "as_map" | "as_pairs" | "keys" | 
+						"collect_by_key" ) >
+*/
+
+| < AND: "&&">
+
+| < OR : "||">
+
+| < NOT : "!" >
+
+| < BRAKET_L : "(">
+
+| < BRAKET_R : ")">
+
+| < COLON : ":">
+
+| < EQUAL : "=" >
+
+| < PLUS : "+">
+
+| < MINUS : "-">
+
+| < SEMICOLON : ";">
+
+| < COMMA : "," >
+
+}
+
+TOKEN : /* SPECIAL SYMBOLS */
+{
+< QUESTION_MARK: "?" >
+}
+
+TOKEN : /* RESERVED FOR FUTURE VERSIONS */
+{
+ < DIRECTORY: "Directory" >
+}
+
+TOKEN : /* LITERALS */
+{
+  < TEXT_STRING : ("\""  ( ~[ "\"", "\n", "\t" ] )* "\"")
+    | ("'" ( ~[ "'", "\n", "\t" ] )* "'")> //TODO: /"~"(?!{)/, /"$"(?!{)/
+  | < OCTAL_ESCAPE : "\\" ((["0"-"7"]){1, 3}) >
+  | < HEX_ESCAPE : "\\x" ((["0"-"9","a"-"f","A"-"F"]){2}) >
+  | < UNICODE : ("\\u" ((["0"-"9","a"-"f","A"-"F"]){4}))
+    | ("\\U" ((["0"-"9","a"-"f","A"-"F"]){8}))>
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < #LETTER : [ "a"-"z", "A"-"Z" ] >
+| < #DIGIT : [ "0"-"9" ] >
+| < SYMBOL : ( < LETTER > | "_" ) ( < LETTER > | < DIGIT > | "_" )* >
+| < INTEGER: (<DIGIT>)+>
+| < TRIANGULAR_BRACKET_L : "<" >
+| < TRIANGULAR_BRACKET_R : ">" >
+| < SQUARE_BRACKET_L : "[" >
+| < SQUARE_BRACKET_R : "]" >
+| < OPERATOR : [ "/", "%"] >
+| < STAR : "*" >
+| < #EXPONENT: ["e","E"] (< PLUS > | < MINUS >)? (["0"-"9"])+ >
+| < FLOATING_POINT_LITERAL:
+            (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)?
+            | "." (["0"-"9"])+ (<EXPONENT>)?
+            | (["0"-"9"])+ (<EXPONENT>)?
+    >
+| < BRACE_L: "{" >
+| < BRACE_R: "}" >
+}
+
+/***************************************************************
+                   GRAMMAR START
+***************************************************************/
+AstStart Start() #Start:
+{}
+{
+    version()
+
+    (astElement())+
+    
+    <EOF>
+    {
+        return jjtThis;
+    }
+}
+
+void astElement():
+{}
+{
+	( task()| workflow() | struct() | importWDL() | sepEol())
+}
+
+// version of WDL
+void version() #Version:
+{}
+{
+    < VERSION > < FLOATING_POINT_LITERAL > {this.version = token.image;}
+}
+
+void task() #Task:
+{}
+{
+    < TASK >
+    symbol() {jjtThis.setName(token.image);}
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol() | input() | 
+    declaration(true) 
+    | output() | command() 
+    | runtime()  //deprecated at 1.2 and removed from 2.0
+    | requirements() //introduced in 1.2
+    | hints() // introduced in 1.2
+    | meta() | parameter_meta())*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void meta() #Meta:
+{}
+{
+	< META >
+	(sepEol())*
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    metablock()
+    (sepEol())+
+    (
+    metablock()
+    (sepEol())+
+    )*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
+void parameter_meta() #Meta:
+{}
+{
+	< PARAMETER_META >
+	(sepEol())*
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    metablock()
+    (sepEol())+
+    (
+    metablock()
+    (sepEol())+
+    )*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void metablock():
+{}
+{
+	symbol() 
+	(sepEol())*
+    (< COLON > #RegularFormulaElement)
+    (sepEol())*
+    ( 
+    	metadataFormulaElement()
+		| metaArray()
+		| metaMap()		
+	)
+}
+
+void metadataFormulaElement() #MetaFormulaElement:
+{}
+{
+	(< TRUE_OR_FALSE >
+    | < TEXT_STRING >
+    | < FLOATING_POINT_LITERAL > 
+    | < NULL > )
+}
+
+void metaArray() #Array:
+{
+}
+{
+	((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(	
+		LOOKAHEAD(3)
+		(sepEol())*
+	    ( 
+	    	metadataFormulaElement()
+			| metaArray()
+			| metaMap()		
+		)
+        (
+        	LOOKAHEAD(3)
+        	(sepEol())*
+            (< COMMA > #Comma)
+            (sepEol())*
+            ( 
+		    	metadataFormulaElement()
+				| metaArray()
+				| metaMap()		
+			)
+        )*
+    )?
+    (sepEol())*
+	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
+void metaMap() #Map:
+{
+}
+{
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
+    metaKeyValue()
+    (
+    	LOOKAHEAD(3)
+    	(sepEol())*
+        (< COMMA > #Comma)
+        (sepEol())*
+        metaKeyValue()
+    )*
+    (sepEol())*
+	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
+void metaKeyValue() #KeyValue:
+{}
+{
+	< SYMBOL > {jjtThis.setKey(token.image);}
+	(sepEol())*
+	(< COLON > #Colon) 
+	(sepEol())*
+	( 
+    	metadataFormulaElement()
+		| metaArray()
+		| metaMap()		
+	)
+}
+
+void workflow() #Workflow:
+{
+	if (workflowExist)
+		throw new ParseException("The file can contain only one workflow declaration");
+}
+{
+    < WORKFLOW >
+    symbol() {jjtThis.setName(token.image);}
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    ( sepEol()
+    | input()
+    | declaration(true)
+    | output() | call() | scatter()
+    | meta() | parameter_meta() | conditional())*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    {this.workflowExist = true;}
+}
+
+void scatter() #Scatter:
+{}
+{
+    < SCATTER > // TODO:
+    (sepEol())*
+    ((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    symbol()
+    (sepEol())*
+    (< IN >  #In)
+    (sepEol())*
+    expression()
+    (sepEol())*
+    ((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (
+    sepEol()
+    | declaration(true)
+    | call() | scatter() | conditional())*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void conditional() #Conditional:
+{}
+{
+	< IF >
+	((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
+	expression()
+	(sepEol())*
+	((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (
+    sepEol()
+    | declaration(true) 
+    | call() 
+    | scatter() 
+    | conditional())*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
+void command() #Command:
+{}
+{
+    < COMMAND > 
+    (
+    (
+		((< COMMAND_HEREDOC_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+		(((< ANY > | < START > | < COMMAND_END >{jjtThis.setElement(token.image);}) #RegularFormulaElement)* #BashString)
+		((< COMMAND_HEREDOC_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	)
+	|
+    (
+		((< COMMAND_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+		( (bashString())* #BashString)
+		((< COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	))
+}
+
+void bashString():
+{}
+{
+	placeholder() 
+	| ((< ANY > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	| ((< COMMAND_HEREDOC_END >{jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void placeholder():
+{}
+{
+	((< START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(bashString())*
+	((< COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement) 
+}
+
+void call() #Call:
+{}
+{
+    < CALL >
+    (LOOKAHEAD(2)
+    subSymbol()
+    |
+    (< SYMBOL > #Symbol)
+    {jjtThis.setName(token.image);}) 
+    (
+        as()
+    )?
+    (
+    LOOKAHEAD(3)
+    (sepEol())*
+    (
+    (< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	    (sepEol())*
+	    (
+	        (< INPUT > #Input)
+	        (sepEol())*
+	        (< COLON > #Colon)
+	        (sepEol())* 
+	        equationSymbol()
+	        (
+	        	LOOKAHEAD(3)
+		        (sepEol())*
+		        (< COMMA > #Comma) 
+		        (sepEol())*
+		        equationSymbol()
+	        )*
+	    	(sepEol())*
+	    )?
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    )?
+}
+
+void subSymbol() #SubSymbol:
+{}
+{
+	<SYMBOL> ( < DOT > < SYMBOL >)+
+}
+
+void equationSymbol() #Symbol:
+{}
+{
+	< SYMBOL > { jjtThis.setName(token.image); }
+	((< EQUAL > #Equal)
+	expression())?
+}
+
+void runtime() #Runtime:
+{
+	switch (this.version) {
+		case ("1.2"):
+			log.log(Level.WARNING, "The runtime section is deprecated and will be removed in WDL 2.0.");
+			break;
+		default:
+			break;
+	}
+}
+{
+    < RUNTIME > 
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    execEngineBlock()
+    (sepEol())+
+    (
+    execEngineBlock()
+    (sepEol())+
+    )*
+    
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void requirements() #Runtime:
+{
+	switch (this.version) {
+		case ("1.0"):
+		case ("1.1"):
+			throw new ParseException("The requirements section was introduced in WDL 1.2. Use \"runtime\" instead.");
+		default:
+			break;
+	}
+}
+{
+    < REQUIREMENTS >
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    execEngineBlock()
+    (sepEol())+
+    (
+    execEngineBlock()
+    (sepEol())+
+    )*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void hints() #Hints:
+{
+	switch (this.version) {
+		case ("1.0"):
+		case ("1.1"):
+			throw new ParseException("The hints section was introduced in WDL 1.2. Specify attributes in \"runtime\" instead.");
+		default:
+			break;
+	}
+}
+{
+    < HINTS >
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+    execEngineBlock()
+    (sepEol())+
+    (
+    execEngineBlock()
+    (sepEol())+
+    )*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void execEngineBlock():
+{}
+{
+	symbol()
+	(sepEol())* 
+    (< COLON > #RegularFormulaElement)
+    (sepEol())*
+    expression()
+}
+
+void sepEol() #EOL:
+{}
+{
+	< EOL>
+}
+void input() #Input:
+{}
+{
+    < INPUT >
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol() | declaration(true))*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void output() #Output:
+{}
+{
+    < OUTPUT >
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol() | declaration(true))*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void struct() #Struct:
+{}
+{
+    < STRUCT >
+    symbol() {jjtThis.setStructName(token.image);}
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol() | declaration(false))*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void declaration(boolean canBeInitialized) #Declaration:
+{
+}
+{
+    type() {jjtThis.setType(token.image.replace(" ", ""));}
+
+    (< SYMBOL > { jjtThis.setName(token.image);}	#Symbol)
+    
+    
+    
+    (
+    ((< EQUAL > 
+    {
+    	if (!canBeInitialized)
+    		throw new ParseException("Variable can not be initialized at line " + token.beginLine);
+    	jjtThis.setElement(token.image);
+    }
+    ) #RegularFormulaElement) 
+    expression()
+    )?
+    
+}
+
+void type():
+{
+}
+{
+	(
+	    ((< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL >)
+	    #Type)
+	    | arrayType()
+	    | mapType() 
+	    | pairType()
+	    )
+    (
+        < QUESTION_MARK > // parameter can be undefined
+    )? 
+}
+
+void arrayType() #ArrayType:
+{}
+{
+    < ARRAY >
+    ((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    type()
+    ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    ((( < PLUS > {jjtThis.setElement(token.image);}) #RegularFormulaElement) {jjtThis.setNonEmpty(true);})? 
+}
+
+void pairType() #PairType: // TODO: values accessed via left and right
+{}
+{
+    < PAIR >
+    ((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    type()
+    (< COMMA > #Comma)
+    type()
+    ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void mapType() #MapType:
+{}
+{
+    < MAP >
+    ((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    type()
+    (< COMMA > #Comma)
+    type()
+    ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void ternary() #Ternary:
+{}
+{
+    < IF >
+    expression()
+    (< THEN > #Then)
+    expression()
+    (< ELSE > #Else)
+    expression()
+}
+
+void expression() #Expression:
+{}
+{
+    (LOOKAHEAD(10) subsymbolChain()
+    | LOOKAHEAD(10) constructor()
+    | LOOKAHEAD(10) expressionInBrackets() 
+    | text()
+    | array()
+    | map()
+    | pair()
+    | LOOKAHEAD(5) containerElement()
+    | LOOKAHEAD(5)function()
+    | (< NONE > #None)
+    | regularFormulaElement()
+    | ternary())+
+}
+
+void expressionInBrackets() #Expression:
+{}
+{
+    (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+    (sepEol())*
+    expression()
+    (sepEol())*
+    (< BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+}
+
+void containerElement() #ContainerElement:
+{}
+{
+    < SYMBOL > {jjtThis.setContainerName(token.image);}
+    < SQUARE_BRACKET_L >
+    (sepEol())*
+    (
+    LOOKAHEAD(2) subsymbolChain() | symbol() | text() | (< INTEGER > #RegularFormulaElement)
+    )
+    (sepEol())*
+    < SQUARE_BRACKET_R >
+}
+
+void subsymbolChain() #SubSymbol:
+{}
+{
+	(LOOKAHEAD(5) containerElement() | symbol()) (< DOT > (LOOKAHEAD(5) containerElement() | symbol()))+
+}
+
+void constructor() #Constructor:
+{}
+{
+    (< OBJECT > | < SYMBOL >) {jjtThis.setName(token.image);}
+    (sepEol())*
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (
+    	LOOKAHEAD(3) (sepEol())*
+        constructorKeyValue()
+        (
+        	LOOKAHEAD(3) (sepEol())*
+	        (< COMMA > #Comma)
+	        (sepEol())*
+	        constructorKeyValue()
+        )*
+    )?
+    (sepEol())*
+    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+
+void constructorKeyValue() #KeyValue:
+{}
+{
+	< SYMBOL > {jjtThis.setKey(token.image);}
+	(sepEol())*
+	(< COLON > #Colon) 
+	(sepEol())*
+	expression()
+}
+
+void importWDL() #Import:
+{
+}
+{
+    < IMPORT >
+    text()
+    (LOOKAHEAD(2) (sepEol())? as())?
+    (LOOKAHEAD(2) (sepEol())? alias())*
+}
+
+
+void alias() #Alias:
+{}
+{
+	< ALIAS >
+	symbol()
+	(sepEol())*
+	as()
+}
+
+
+void text() #Text:
+{
+}
+{
+    < TEXT_STRING >
+    {jjtThis.setText(token.image.substring(1, token.image.length() - 1));}
+}
+
+void function() #Function:
+{}
+{
+    (< SYMBOL >){jjtThis.setName(token.image); }
+    (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+    (
+    	LOOKAHEAD(3) (sepEol())*
+        expression()
+        (
+        	LOOKAHEAD(3) (sepEol())*
+            (< COMMA > #Comma)
+            (sepEol())*
+            expression()
+        )*
+    )?
+    (sepEol())*
+    <  BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement
+
+}
+
+void regularFormulaElement() #RegularFormulaElement:
+{
+}
+{
+    (
+            < SYMBOL > {jjtThis.setVariable(true);}
+            | < TRUE_OR_FALSE >
+            | < STAR >
+            | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
+            | < NOT > | < EQUAL >
+            | < PLUS > | < MINUS > | <AND> | <OR>
+            | < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
+            | < INTEGER > {jjtThis.setNumber(true);}
+
+    ){jjtThis.setElement(token.image);}
+}
+
+
+
+
+void as() #As:
+{}
+{
+    < AS >
+    (sepEol())*
+    symbol()
+}
+
+
+void symbol() #Symbol:
+{
+}
+{
+  < SYMBOL > { jjtThis.setName(token.image); }
+}
+
+void array() #Array:
+{
+}
+{
+	((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(
+		LOOKAHEAD(3) (sepEol())*
+	    expression()
+        (
+        	LOOKAHEAD(3) (sepEol())*
+            (< COMMA > #Comma)
+            (sepEol())*
+            expression()
+        )*
+    )?
+    (sepEol())*
+	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
+void map() #Map:
+{
+}
+{
+	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
+    keyValue()
+    (
+    	LOOKAHEAD(3) (sepEol())*
+        (< COMMA > #Comma)
+        (sepEol())*
+        keyValue()
+    )*
+    (sepEol())*
+	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
+void keyValue() #KeyValue:
+{}
+{
+	primitiveType() {jjtThis.setKey(token.image);}
+	(sepEol())*
+    (< COLON > #Colon)
+    (sepEol())*
+    expression()
+}
+
+void primitiveType():
+{}
+{
+    < TRUE_OR_FALSE >
+    | < FLOATING_POINT_LITERAL > 
+    | < INTEGER >
+    | < TEXT_STRING > 
+}
+
+void pair() #Pair:
+{
+}
+{
+	((< BRAKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	(sepEol())*
+	    expression()
+	    (sepEol())*
+        (< COMMA > #Comma)
+        (sepEol())*
+        expression()
+        (sepEol())*
+	((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+}
+
