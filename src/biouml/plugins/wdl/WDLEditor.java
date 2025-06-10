@@ -38,22 +38,24 @@ import ru.biosoft.gui.GUI;
 @SuppressWarnings ( "serial" )
 public class WDLEditor extends EditorPartSupport
 {
-    protected Logger log = Logger.getLogger( WDLEditor.class.getName() );
+    private Logger log = Logger.getLogger( WDLEditor.class.getName() );
 
-    protected WDLTab wdlTab;
-    protected Diagram diagram;
+    private WDLTab wdlTab;
+    private Diagram diagram;
 
-    protected Action[] actions;
+    private Action[] actions;
 
-    protected Action updateWDLAction = new UpdateWDLAction();
-    protected Action updateDiagramAction = new UpdateDiagramAction();
+    private Action updateWDLAction = new UpdateWDLAction();
+    private Action updateDiagramAction = new UpdateDiagramAction();
 
-    protected WDLGenerator wdlGenerator;
-
+    private WDLGenerator wdlGenerator;
+    private WDLImporter wdlImporter;
+    
     public WDLEditor()
     {
         wdlTab = new WDLTab();
         wdlGenerator = new WDLGenerator();
+        wdlImporter = new WDLImporter();
     }
 
     @Override
@@ -67,6 +69,7 @@ public class WDLEditor extends EditorPartSupport
     {
         try
         {
+            setDiagram( (Diagram)model );
             String wdl = wdlGenerator.generateWDL( (Diagram)model );
             setText( wdl );
         }
@@ -101,7 +104,7 @@ public class WDLEditor extends EditorPartSupport
         {
             actionManager.addAction( UpdateWDLAction.KEY, updateWDLAction );
             actionManager.addAction( UpdateDiagramAction.KEY, updateDiagramAction );
-          
+
             ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
 
             initializer.initAction( updateWDLAction, UpdateWDLAction.KEY );
@@ -116,7 +119,7 @@ public class WDLEditor extends EditorPartSupport
     {
         wdlTab.setText( text );
     }
-    
+
     public String getText()
     {
         return wdlTab.getText();
@@ -161,7 +164,7 @@ public class WDLEditor extends EditorPartSupport
         {
             wdlPane.setTextSilent( text );
         }
-        
+
         private String getText()
         {
             return wdlPane.getText();
@@ -216,36 +219,24 @@ public class WDLEditor extends EditorPartSupport
         //            }
         //        }
     }
-    
+
     public void updateDiagram(Diagram newDiagram)
     {
         Document currentDocument = GUI.getManager().getCurrentDocument();
-        this.document = ( DiagramUtility.isComposite(newDiagram) ) ? new CompositeDiagramDocument(newDiagram)
-                : new DiagramDocument(newDiagram);
+        this.document = ( DiagramUtility.isComposite( newDiagram ) ) ? new CompositeDiagramDocument( newDiagram )
+                : new DiagramDocument( newDiagram );
 
         this.document.update();
 
         if( GUI.getManager().getCurrentDocument() != null )
         {
-            GUI.getManager().replaceDocument(currentDocument, this.document);
-            GUI.getManager().getDocumentViewAccessProvider().enableDocumentActions(true);
+            GUI.getManager().replaceDocument( currentDocument, this.document );
+            GUI.getManager().getDocumentViewAccessProvider().enableDocumentActions( true );
         }
         else
         {
-            log.info("replacing document, but document is null");
+            log.info( "replacing document, but document is null" );
         }
-//    }
-//    catch( Exception ex )
-//    {
-//        ExceptionRegistry.log(ex);
-//        ApplicationUtils.errorBox("Incorrect antimony text: " + ex.getMessage());
-//        if( antimony.astStart == null )
-//            removeAntimony();
-//    }
-//    finally
-//    {
-//        antimonyIsApplying = false;
-//    }
     }
 
     class UpdateWDLAction extends AbstractAction
@@ -271,7 +262,7 @@ public class WDLEditor extends EditorPartSupport
             }
         }
     }
-    
+
     class UpdateDiagramAction extends AbstractAction
     {
         public static final String KEY = "Update Diagram";
@@ -286,9 +277,10 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                AstStart start = new WDLParser().parse( new StringReader(getText()) );
-                diagram = new WDLImporter().generateDiagram( start, null, diagram.getName() );
-                updateDiagram(diagram);
+                AstStart start = new WDLParser().parse( new StringReader( getText() ) );
+                diagram = wdlImporter.generateDiagram( start, null, diagram.getName() );
+                wdlImporter.layout( diagram );
+                updateDiagram( diagram );
             }
             catch( Exception ex )
             {

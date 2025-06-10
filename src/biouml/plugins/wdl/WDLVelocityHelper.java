@@ -15,17 +15,17 @@ public class WDLVelocityHelper
     {
         this.diagram = diagram;
     }
-    
+
     public String getName()
     {
         return diagram.getName();
     }
-    
+
     public List<Node> getExternalParameters()
     {
         return WDLUtil.getExternalParameters( diagram );
     }
-    
+
     public List<Node> getExternalOutputs()
     {
         return WDLUtil.getExternalOutputs( diagram );
@@ -88,9 +88,9 @@ public class WDLVelocityHelper
 
     public String getDeclaration(Node n)
     {
-        if (n == null)
+        if( n == null )
             return "??";
-        if( getExpression( n ) != null && !getExpression( n ).isEmpty())
+        if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
             return getType( n ) + " " + getName( n ) + " = " + getExpression( n );
         return getType( n ) + " " + getName( n );
     }
@@ -98,5 +98,10 @@ public class WDLVelocityHelper
     public String getVersion()
     {
         return WDLUtil.getVersion( diagram );
+    }
+
+    public String getTaskRef(Compartment c)
+    {
+        return WDLUtil.getTaskRef( c );
     }
 }

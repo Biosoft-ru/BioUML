@@ -59,7 +59,7 @@ workflow $helper.getName() {
   }$BR
 #end
 #foreach( $call in $helper.getCalls())
-  call $call.getName() {
+  call $helper.getTaskRef($call) {
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
      input: #foreach($input in $inputs) $helper.getName($input)#comma($inputs)#end

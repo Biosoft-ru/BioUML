@@ -318,7 +318,7 @@ public class WDLImporter implements DataElementImporter
         Stub kernel = new Stub( null, name, WDLConstants.CALL_TYPE );
 
         Compartment c = new Compartment( parent, name, kernel );
-
+        WDLUtil.setTaskRef( c, taskСompartment.getName() );
         c.setTitle( name );
         c.setNotificationEnabled( false );
         c.setShapeSize( taskСompartment.getShapeSize() );
@@ -366,45 +366,7 @@ public class WDLImporter implements DataElementImporter
         return e;
     }
 
-    //    public Compartment createCallNode(Compartment parent, AstCall astCall)//,  Map<Object, Node> wdlToBioUML)
-    //    {
-    //        String name = astCall.getName();//fixName(wdlNode.localName());
-    //        name = WDLSemanticController.uniqName( parent, name );
-    ////        Stub kernel = new Stub( null, name, NodeType.COMMAND_CALL.name() );
-    //
-    ////        Compartment anNode = new Compartment( parent, name, kernel );
-    //
-    //        anNode.setTitle( name );
-    //        anNode.setNotificationEnabled( false );
-    //
-    //        AstSymbol[] inputs = astCall.getInputs();
-    //        //      List<InputPort> inputPorts = toJavaList( wdlNode.inputPorts() );
-    //        //      List<OutputPort> outputPorts = toJavaList( wdlNode.outputPorts() );
-    //
-    //        //      int maxPorts = Math.max(inputPorts.size(), outputPorts.size());
-    //        //      int height = Math.max(50, 24 * maxPorts + 8);
-    //        //      anNode.setShapeSize(new Dimension(200, height));
-    //        //      anNode.getAttributes().add(new DynamicProperty("innerNodesPortFinder", Boolean.class, true));
-    //        //      for( int i = 0; i < inputPorts.size(); i++ )
-    //        //      {
-    //        //          InputPort in = inputPorts.get( i );
-    //        //          Node node = addInOutNode( in.name(), NodeType.INPUT_PORT.name(), i, anNode, true);
-    //        //          wdlToBioUML.put( in, node );
-    //        //      }
-    //        //
-    //        //      for( int i = 0; i < outputPorts.size(); i++ )
-    //        //      {
-    //        //          OutputPort out = outputPorts.get( i );
-    //        //          Node node = addInOutNode( out.internalName(), NodeType.OUTPUT_PORT.name(), i, anNode, false);
-    //        //          wdlToBioUML.put( out, node );
-    //        //      }
-    //        //      anNode.setNotificationEnabled(true);
-    //        //      
-    //        //      wdlToBioUML.put( wdlNode, anNode );
-    //        return anNode;
-    //    }
-
-    private static void layout(Diagram diagram)
+    public void layout(Diagram diagram)
     {
         HierarchicLayouter layouter = new HierarchicLayouter();
         layouter.setHoistNodes( true );

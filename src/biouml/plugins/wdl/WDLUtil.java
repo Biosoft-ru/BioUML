@@ -157,5 +157,13 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.COMMAND_ATTR );
     }
-
+    
+    public static void setTaskRef(Compartment c, String ref)
+    {
+        c.getAttributes().add( new DynamicProperty( WDLConstants.TASK_REF_ATTR, String.class, ref ) );
+    }
+    public static String getTaskRef(Compartment c)
+    {
+        return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
+    }
 }
