@@ -398,7 +398,8 @@
         plugin.sedml,
         plugin.virtualcell,
         plugin.users,
-        plugin.sbol"
+        plugin.sbol,
+    	plugin.wdl"
             />
 
     <target name="plugin.workbench" depends="compile">
@@ -961,6 +962,10 @@
     
 	<target name="plugin.sbol" depends="compile">
         <create.plugin plugin="biouml.plugins.sbol" source="biouml/plugins/sbol"/>
+    </target>
+	
+	<target name="plugin.wdl" depends="compile">
+        <create.plugin plugin="biouml.plugins.wdl" source="biouml/plugins/wdl"/>
     </target>
 	
     <!-- =================================================================== -->
