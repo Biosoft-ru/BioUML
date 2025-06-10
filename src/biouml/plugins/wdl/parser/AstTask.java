@@ -3,7 +3,9 @@
 package biouml.plugins.wdl.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AstTask extends AstScope
 {
@@ -33,6 +35,30 @@ public class AstTask extends AstScope
     public void setName(String name)
     {
         this.name = name;
+    }
+    
+    public String getCommand()
+    {
+        for (Node node: children)
+        {
+            if (node instanceof AstCommand)
+            {
+                return ((AstCommand)node).getBashString().getCommand();
+            }
+        }
+        return null;
+    }
+    
+    public Map<String, String> getRuntime()
+    {
+        for (Node node: children)
+        {
+            if (node instanceof AstRuntime)
+            {
+                return ((AstRuntime)node).getValues();
+            }
+        }
+        return new HashMap<String, String>();
     }
     
     public AstInput getInput()
