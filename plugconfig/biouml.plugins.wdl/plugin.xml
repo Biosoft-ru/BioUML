@@ -36,7 +36,18 @@
 			importer="biouml.plugins.wdl.diagram.WDLImporter" 
 			description="WDL Importer"
 			 />
-	</extension>
+   </extension>
   
+   <extension id="WDL" point="biouml.workbench.diagramViewPart">
+	  <diagramViewPart
+	      editor="true"
+	      class="biouml.plugins.wdl.WDLEditor"
+	      id="diagram.wdl"
+	      Name="WDL"
+	      ShortDescription="WDL"
+	      Priority="4"
+	      ignoreInIDE="true"
+	  />
+   </extension>
 </plugin>
 
