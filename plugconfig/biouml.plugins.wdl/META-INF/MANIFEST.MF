@@ -7,6 +7,7 @@ Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.osgi,
  org.apache.http,
  org.apache.commons.lang,
+ org.apache.velocity,
  one.util.streamex,
  json,
  com.developmentontheedge.util,
