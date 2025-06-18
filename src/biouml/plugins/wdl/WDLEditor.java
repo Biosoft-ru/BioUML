@@ -3,6 +3,10 @@ package biouml.plugins.wdl;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.logging.Logger;
 
@@ -16,6 +20,7 @@ import javax.swing.text.StyledEditorKit;
 
 import com.Ostermiller.Syntax.HighlightedDocument;
 import com.developmentontheedge.application.Application;
+import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
 
@@ -31,6 +36,7 @@ import biouml.workbench.diagram.DiagramDocument;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.GUI;
+import ru.biosoft.util.TempFile;
 
 @SuppressWarnings ( "serial" )
 public class WDLEditor extends EditorPartSupport
@@ -48,6 +54,7 @@ public class WDLEditor extends EditorPartSupport
 
     private Action updateWDLAction = new UpdateWDLAction();
     private Action updateDiagramAction = new UpdateDiagramAction();
+    private Action runScriptAction = new RunScriptAction();
 
     private WDLGenerator wdlGenerator;
     private NextFlowGenerator nextFlowGenerator;
@@ -137,12 +144,14 @@ public class WDLEditor extends EditorPartSupport
         {
             actionManager.addAction( UpdateWDLAction.KEY, updateWDLAction );
             actionManager.addAction( UpdateDiagramAction.KEY, updateDiagramAction );
+            actionManager.addAction( RunScriptAction.KEY, runScriptAction );
 
             ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
 
             initializer.initAction( updateWDLAction, UpdateWDLAction.KEY );
             initializer.initAction( updateDiagramAction, UpdateDiagramAction.KEY );
-            actions = new Action[] {updateWDLAction, updateDiagramAction};
+            initializer.initAction( runScriptAction, RunScriptAction.KEY );
+            actions = new Action[] {updateWDLAction, updateDiagramAction, runScriptAction};
         }
 
         return actions.clone();
@@ -173,7 +182,7 @@ public class WDLEditor extends EditorPartSupport
             super();
             setEditorKit( new StyledEditorKit() );
             HighlightedDocument document = new HighlightedDocument();
-//            document.setHighlightStyle( WDLColorer.class );
+            //            document.setHighlightStyle( WDLColorer.class );
             this.setDocument( document );
             setFont( new Font( "Monospaced", Font.PLAIN, 12 ) );
         }
@@ -227,6 +236,22 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
+    class RunScriptAction extends AbstractAction
+    {
+        public static final String KEY = "Run Script";
+
+        public RunScriptAction()
+        {
+            super( KEY );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            runNextFlow( diagram.getName(), getNextFlow() );
+        }
+    }
+
     class UpdateDiagramAction extends AbstractAction
     {
         public static final String KEY = "Update Diagram";
@@ -252,4 +277,85 @@ public class WDLEditor extends EditorPartSupport
             }
         }
     }
+
+    private static void runNextFlow(String name, String script)
+    {
+        try
+        {
+            File f = TempFile.createTempFile( name, ".nf" );
+            ApplicationUtils.writeString( f, script );
+            String parent = f.getParentFile().getAbsolutePath().replace( "\\", "/" );
+            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
+                    "/data/" + f.getName()};
+
+            executeCommand( command );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    private String getUnixPath(File f)
+    {
+        return f.getAbsolutePath().replace( "\\", "/" );
+    }
+
+    public static void main(String ... strings)
+    {
+        try
+        {
+            String[] cmd = {"docker", "run", "-v", "/c/users/damag/nextflow:/data", "nextflow/nextflow", "nextflow", "run",
+                    "/data/hello_world.nf"};
+            executeCommand( cmd );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    private static void executeCommand(String[] command) throws Exception
+    {
+
+
+        System.out.println( "Executing command " + command );
+        Process process = Runtime.getRuntime().exec( command );
+
+        new Thread( new Runnable()
+        {
+            public void run()
+            {
+                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+                String line = null;
+
+                try
+                {
+                    while( ( line = input.readLine() ) != null )
+                        System.out.println( line );
+                }
+                catch( IOException e )
+                {
+                    e.printStackTrace();
+                }
+                //                
+                //for some reason cwl-runner outputs everything into error stream
+                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
+                line = null;
+
+                try
+                {
+                    while( ( line = err.readLine() ) != null )
+                        System.out.println( line );
+                }
+                catch( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        } ).start();
+
+        process.waitFor();
+    }
+
 }

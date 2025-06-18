@@ -14,9 +14,10 @@
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
 #foreach( $externalParameter in $externalParameters )
-  params.$helper.getName($externalParameter) = ""
+$helper.getExternalInput($externalParameter)
 #end
 #end
+#if($externalParameters.size() > 0)$BR#end
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################

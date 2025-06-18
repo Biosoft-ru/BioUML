@@ -53,7 +53,8 @@ public class NextFlowVelocityHelper
 
     public String getCommand(Compartment c)
     {
-        return WDLUtil.getCommand( c );
+        String command = WDLUtil.getCommand( c );
+        return command.replace( "~{", "$(" );
     }
 
     public Map<String, String> getRequirements(Compartment c)
@@ -93,6 +94,15 @@ public class NextFlowVelocityHelper
         if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
             return getType( n ) + " " + getName( n ) + " = " + getExpression( n );
         return getType( n ) + " " + getName( n );
+    }
+
+    public String getExternalInput(Node n)
+    {
+        if( n == null )
+            return "??";
+        if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
+            return "params." + getName( n ) + " = " + getExpression( n );
+        return "params." + getName( n );
     }
 
     public String getVersion()

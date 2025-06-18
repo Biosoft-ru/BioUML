@@ -4,6 +4,7 @@ import java.util.ListResourceBundle;
 
 import javax.swing.Action;
 
+import biouml.plugins.wdl.WDLEditor.RunScriptAction;
 import biouml.plugins.wdl.WDLEditor.UpdateDiagramAction;
 import biouml.plugins.wdl.WDLEditor.UpdateWDLAction;
 
@@ -24,7 +25,12 @@ public class MessageBundle extends ListResourceBundle
                 {UpdateDiagramAction.KEY + Action.SMALL_ICON, "updateDiagram.gif"},
                 {UpdateDiagramAction.KEY + Action.NAME, "Update diagram"},
                 {UpdateDiagramAction.KEY + Action.SHORT_DESCRIPTION, "Update Diagram from WDL."},
-                {UpdateDiagramAction.KEY + Action.ACTION_COMMAND_KEY, "update-diagram"}};
+                {UpdateDiagramAction.KEY + Action.ACTION_COMMAND_KEY, "update-diagram"},
+                
+                {RunScriptAction.KEY + Action.SMALL_ICON, "run.gif"},
+                {RunScriptAction.KEY + Action.NAME, "Run workflow"},
+                {RunScriptAction.KEY + Action.SHORT_DESCRIPTION, "Run workflow."},
+                {RunScriptAction.KEY + Action.ACTION_COMMAND_KEY, "run-workflow"}};
     }
 
     /**
