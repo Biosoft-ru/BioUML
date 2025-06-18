@@ -800,6 +800,12 @@
           <version>2.4.0</version>
       </dependency>
 
+      <dependency>
+          <groupId>javastraw</groupId>
+          <artifactId>javastraw</artifactId>
+          <version>1.0.0</version>
+      </dependency>
+
     </dependencies>
 
     <build>

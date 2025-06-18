@@ -251,3 +251,10 @@ mvn -N install:install-file \
   -DgeneratePom=true
 
 
+mvn -N install:install-file \
+  -DgroupId=javastraw \
+  -DartifactId=javastraw \
+  -Dversion=1.0.0 \
+  -Dpackaging=jar \
+  -Dfile=plugins/javastraw_1/javastraw.jar \
+  -DgeneratePom=true
