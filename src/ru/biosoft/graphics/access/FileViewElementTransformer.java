@@ -4,9 +4,9 @@ import java.io.File;
 
 import org.json.JSONObject;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.graphics.CompositeView;
 
 import com.developmentontheedge.application.ApplicationUtils;

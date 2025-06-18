@@ -93,7 +93,7 @@ JSFileUploader.prototype.createHTMLNode = function()
             function()
             {
                 createOpenElementDialog(resources.dlgImportSelectFromRepo,
-                        "ru.biosoft.access.FileDataElement", null, function(
+                        "ru.biosoft.access.file.FileDataElement", null, function(
                                 filePath)
                         {
                             fileName = getElementName(filePath);

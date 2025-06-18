@@ -6,7 +6,12 @@ import java.util.List;
 import java.util.Map;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import biouml.model.Diagram;
+import biouml.model.Role;
+import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.plot.PlotInfo;
+import biouml.model.dynamics.plot.PlotsInfo;
+import biouml.plugins.physicell.plot.PlotProperties;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.standard.simulation.ResultListener;
@@ -18,6 +23,7 @@ import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellContainer;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.CellFunctions;
+import ru.biosoft.physicell.core.CellFunctions.CellDivision;
 import ru.biosoft.physicell.core.CellFunctions.Contact;
 import ru.biosoft.physicell.core.CellFunctions.CustomCellRule;
 import ru.biosoft.physicell.core.CellFunctions.DistanceCalculator;
@@ -35,7 +41,6 @@ import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
 import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
-import ru.biosoft.physicell.core.standard.StandardAssymetricDivision;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.GIFGenerator;
@@ -45,6 +50,7 @@ import ru.biosoft.physicell.ui.render.Visualizer3D;
 import ru.biosoft.physicell.ui.Visualizer2D;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
+import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.TempFiles;
 
 public class PhysicellSimulationEngine extends SimulationEngine
@@ -57,6 +63,12 @@ public class PhysicellSimulationEngine extends SimulationEngine
         simulator = new PhysicellSimulator();
         simulatorType = "MULTICELL";
         needToShowPlot = false;
+    }
+    
+    @Override
+    public void restoreOriginalDiagram()
+    {
+        this.diagram = originalDiagram;
     }
 
     @Override
@@ -99,8 +111,13 @@ public class PhysicellSimulationEngine extends SimulationEngine
     @Override
     public PhysicellModel createModel() throws Exception
     {
-        ru.biosoft.physicell.core.Model model = new ru.biosoft.physicell.core.Model();
-
+        PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
+        
+        ru.biosoft.physicell.core.Model model = null;
+        if( opts.getModelType().equals( PhysicellOptions.COVID_MODEL ) )
+            model = new ru.biosoft.physicell.covid.ModelCovid();
+        else
+            model = new ru.biosoft.physicell.core.Model();
 
         Microenvironment m = model.getMicroenvironment();
         m.options.initial_condition_vector = new double[1];
@@ -169,9 +186,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         m.options.Z_range = new double[] {options.getZFrom(), options.getZTo()};
         m.options.simulate2D = options.isUse2D();
 
-
-
-        PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
+        
         model.setDiffusionDt( opts.getDiffusionDt() );
         model.setMechanicsDt( opts.getMechanicsDt() );
         model.setPhenotypeDt( opts.getPhenotypeDt() );
@@ -211,6 +226,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             cdp.getIntracellularProperties().createIntracellular( cd, model );
             cdp.getRulesProperties().createRules( cd, model );
             cdp.getIntegrityProperties().createIntegrity( cd );
+            cdp.getInitialDistributionProperties().createInitialDistribution( cd, model );
 
             FunctionsProperties fp = cdp.getFunctionsProperties();
             CellFunctions f = cd.functions;
@@ -226,9 +242,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             f.set_orientation = getFunction( fp.getOrientation(), fp.getOrientationCustom(), set_orientation.class, model );
             f.updateMigration = getFunction( fp.getMigrationUpdate(), fp.getMigrationUpdateCustom(), UpdateMigrationBias.class, model );
             f.instantiator = getFunction( fp.getInstantiate(), fp.getInstantiateCustom(), Instantiator.class, model );
-            
-            if (cdp.getDivisionProperties().isAsymmetric())
-                f.cellDivision = new StandardAssymetricDivision( model.getRNG() );
+            f.cellDivision = getFunction( fp.getDivision(), fp.getDivisionCustom(), CellDivision.class, model );
         }
 
         if( getCustomReportGenerator() != null && !getCustomReportGenerator().isEmpty() )
@@ -236,7 +250,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
 
         model.disableAutomatedSpringAdhesions = emodel.getOptions().isDisableAutomatedAdhesions();
         model.signals.setupDictionaries( model );
-
+        model.setupInitial();
 
         InitialCondition condition = emodel.getInitialCondition();
         if( condition.isCustomCondition() )
@@ -254,7 +268,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
             {
                 PhysiCellUtilities.place( model, model.getCellDefinition( cdp.getName() ), cdp.getInitialNumber() );
             }
-        }
+        }        
 
         if( logReport )
             log.info( model.display() );
@@ -276,9 +290,13 @@ public class PhysicellSimulationEngine extends SimulationEngine
             }
             else
             {
-                colorer = new DefinitionVisualizer();
-                for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
-                    ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+                colorer = model.getDefaultColorer();
+                if( colorer == null )
+                {
+                    colorer = new DefinitionVisualizer();
+                    for( CellDefinitionProperties cd : emodel.getCellDefinitions() )
+                        ( (DefinitionVisualizer)colorer ).setColor( cd.getName(), cd.getColor() );
+                }
             }
             if( emodel.getReportProperties().isCustomVisualizer() )
             {
@@ -351,7 +369,20 @@ public class PhysicellSimulationEngine extends SimulationEngine
                 int code = (int)Double.parseDouble( row[3].toString() );
                 cd = model.getCellDefinition( code );
             }
-            Cell.createCell( cd, model, new double[] {x, y, z} );
+            Cell cell = Cell.createCell( cd, model, new double[] {x, y, z} );
+
+            //additional properties
+            for( int i = 4; i < row.length; i++ )
+            {
+                String val = row[i].toString();
+                if( val.equals( "skip" ) )
+                    continue;
+                String colName = tdc.getColumnModel().getColumn( i ).getName();
+                if( colName.equals( "volume" ) )
+                    cell.setTotalVolume( Double.parseDouble( row[i].toString() ) );
+                else
+                    cell.getModel().signals.setSingleBehavior( cell, colName, Double.parseDouble( row[i].toString() ) );
+            }
         }
     }
 
@@ -395,6 +426,9 @@ public class PhysicellSimulationEngine extends SimulationEngine
     {
         try
         {
+            Object plotsObj = diagram.getAttributes().getValue( PLOTS );
+            if( plotsObj instanceof PlotProperties )
+                ( (PhysicellSimulator)simulator ).setPlotProperties( (PlotProperties)plotsObj );
             this.simulator.start( model, null, resultListeners, jobControl );
             return "";
         }
@@ -466,5 +500,25 @@ public class PhysicellSimulationEngine extends SimulationEngine
     public String[] getVariableNames()
     {
         return new String[0];
+    }
+    
+    public static final String PLOTS = "Plots";
+    
+    @Override
+    public Object getPlotsBean(Diagram diagram)
+    {
+        Role role = diagram.getRole();
+        if (!(role instanceof MulticellEModel))
+            return null;
+        Object plotsObj = diagram.getAttributes().getValue( PLOTS );
+        PlotProperties result = null;
+        if( ! ( plotsObj instanceof PlotProperties ) )
+        {
+            result = new  PlotProperties ( (MulticellEModel)role );
+            diagram.getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( PLOTS, PlotProperties.class, result ) );
+        }
+        else
+            result = (PlotProperties)plotsObj;
+        return result;
     }
 }

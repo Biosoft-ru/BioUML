@@ -81,7 +81,7 @@ import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.util.Cache;
 import ru.biosoft.util.JsonUtils;
 import ru.biosoft.util.LazyValue;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Provides loading actions from plug-ins
@@ -141,7 +141,7 @@ public class WebActionsProvider extends WebProviderSupport
                         }
                         else
                         {
-                            String[] fields = TextUtil.split(name, ':');
+                            String[] fields = TextUtil2.split(name, ':');
                             String fileName = ACTIONS_PATH + type + "/" + fields[0];
                             try
                             {
@@ -304,8 +304,8 @@ public class WebActionsProvider extends WebProviderSupport
         String id = name.toLowerCase().replaceAll(" ", "_");
         json.add( "id", id );
         json.add( "label", name.toLowerCase() );
-        json.add( "icon", icon.equals("Select") ? "select.gif" : "/web/action?action=toolbar_icon&type=diagram&name=" + TextUtil.encodeURL( icon ) + "&diagramType="
-                + TextUtil.encodeURL( typeToString( diagram.getType() ) ) );
+        json.add( "icon", icon.equals("Select") ? "select.gif" : "/web/action?action=toolbar_icon&type=diagram&name=" + TextUtil2.encodeURL( icon ) + "&diagramType="
+                + TextUtil2.encodeURL( typeToString( diagram.getType() ) ) );
         json.add( "visible", "function(node, treeObj){return true;}" );
         json.add(
                 "action",
@@ -519,7 +519,7 @@ public class WebActionsProvider extends WebProviderSupport
 
     private static List<DataElement> getSelectedItems(BiosoftWebRequest arguments) throws WebException
     {
-        DataCollection<?> selectionBase = arguments.getDataCollection( TextUtil.isEmpty( arguments.get( SELECTION_BASE ) )
+        DataCollection<?> selectionBase = arguments.getDataCollection( TextUtil2.isEmpty( arguments.get( SELECTION_BASE ) )
                 ? AccessProtocol.KEY_DE : SELECTION_BASE );
         String[] rows = arguments.optStrings("jsonrows");
         if( rows == null )

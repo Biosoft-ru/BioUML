@@ -48,7 +48,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.editor.ViewPane;
 import ru.biosoft.util.OkCancelDialog;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @SuppressWarnings ( "serial" )
 public class NodeImageChoiceDialog extends OkCancelDialog
@@ -283,7 +283,7 @@ public class NodeImageChoiceDialog extends OkCancelDialog
                 if( file.isFile() && null != file.getName() )
                 {
                     String fileName = file.getName().toLowerCase();
-                    String extensions[] = TextUtil.split( mb.getResourceString( "PIC_EXTENSIONS" ), ' ' );
+                    String extensions[] = TextUtil2.split( mb.getResourceString( "PIC_EXTENSIONS" ), ' ' );
                     return StreamEx.of( extensions ).anyMatch( fileName::endsWith );
                 }
                 return false;

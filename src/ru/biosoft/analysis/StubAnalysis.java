@@ -6,7 +6,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.TextFileImporter;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.access.script.LogScriptEnvironment;

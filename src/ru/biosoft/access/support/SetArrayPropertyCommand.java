@@ -8,7 +8,7 @@ import java.util.Vector;
 
 import one.util.streamex.StreamEx;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class SetArrayPropertyCommand extends SetPropertyCommand
 {
@@ -116,8 +116,8 @@ public class SetArrayPropertyCommand extends SetPropertyCommand
                 return null;
 
             String tagStr = getTag();
-            String indentStr = TextUtil.whiteSpace(indent);
-            tagStr += TextUtil.whiteSpace(Math.max(1, indent-tagStr.length()));
+            String indentStr = TextUtil2.whiteSpace(indent);
+            tagStr += TextUtil2.whiteSpace(Math.max(1, indent-tagStr.length()));
 
             result = new StringBuilder();
             for( Object val : vals )

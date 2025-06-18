@@ -3,7 +3,7 @@ package biouml.plugins.gtrd.master.meta;
 import java.io.File;
 
 import biouml.plugins.gtrd.master.meta.json.MetadataSerializer;
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 
 public class MetadataJSONFileTransformer extends AbstractFileTransformer<Metadata>

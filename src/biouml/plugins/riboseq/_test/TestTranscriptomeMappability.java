@@ -18,7 +18,7 @@ import biouml.plugins.riboseq.transcripts.EnsemblTranscriptsProvider;
 import biouml.plugins.riboseq.transcripts.Transcript;
 import biouml.plugins.riboseq.transcripts.TranscriptSet;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Sequence;

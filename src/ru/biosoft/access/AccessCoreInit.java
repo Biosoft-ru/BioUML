@@ -1,6 +1,7 @@
 package ru.biosoft.access;
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -8,6 +9,8 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.Environment;
 import ru.biosoft.access.core.Transformer;
+import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.FileTypeRegistry;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.generic.TransformerRegistry.TransformerInfo;
 import ru.biosoft.access.security.BiosoftClassLoading;
@@ -15,13 +18,17 @@ import ru.biosoft.access.security.BiosoftClassLoading;
 public class AccessCoreInit
 {
     private static Logger log = Logger.getLogger( AccessCoreInit.class.getName() );
+
+    @SuppressWarnings("deprecation")
     public static void init()
     {
         Environment.setClassLoading( new BiosoftClassLoading() );
         Environment.setIconManager( new BiosoftIconManager() );
+        Environment.setValue( FileTypeRegistry.FILE_TYPE_REGISTRY_CLASS, BiosoftFileTypeRegistry.class );
         
         
-        ru.biosoft.access.file.Environment.INSTANCE = new ru.biosoft.access.file.Environment() {
+        ru.biosoft.access.file.v1.Environment.INSTANCE = new ru.biosoft.access.file.v1.Environment()
+        {
 
             @Override
             public DataElement createFileDataElement(String name, DataCollection<?> parent, File file)
@@ -52,15 +59,38 @@ public class AccessCoreInit
             
             public Transformer getTransformerForDataElement(DataElement de)
             {
+                Transformer transformer = null;
                 try
                 {
-                    return TransformerRegistry.getBestTransformer( de, FileDataElement.class );
+                    transformer = TransformerRegistry.getBestTransformer( de, FileDataElement.class );
                 }
                 catch( Exception e )
                 {
                     log.log( Level.WARNING, "Can not find transformer for " + de.getCompletePath(), e );
                     return null;
                 }
+                if( transformer == null )
+                {
+                    //try to get transformer via FileType 
+                    transformer = FileTypeRegistry.fileTypes().map( fileType -> {
+                        String className = fileType.getTransformerClassName();
+                        Class<? extends Transformer> clazz;
+                        try
+                        {
+                            clazz = ClassLoading.loadSubClass( className, Transformer.class );
+                            Transformer tr = (Transformer) clazz.getDeclaredConstructor().newInstance();
+                            if( tr.isInputType( FileDataElement.class ) && tr.isOutputType( de.getClass() ) )
+                                return tr;
+                            else
+                                return null;
+                        }
+                        catch (Exception ex)
+                        {
+                            return null;
+                        }
+                    } ).filter( tr -> tr != null ).findFirst().orElse( null );
+                }
+                return transformer;
             }
 
             @Override
@@ -69,8 +99,19 @@ public class AccessCoreInit
                 return ((FileDataElement)fde).getFile();
             }
             
+            @Override
+            public List<Class<? extends Transformer>> getTransformerForClass(Class<? extends DataElement> inputClass, Class<? extends DataElement> outputClass, boolean strict)
+            {
+                if( strict )
+                    return TransformerRegistry.getTransformerClass( inputClass, outputClass );
+                else
+                    return TransformerRegistry.getTransformerProbableClass( inputClass, outputClass );
+            }
+
         };
         
+        TransformerRegistry.initTransformers();
+
         /*
         Transformers.registerTransformer( new FastaFileTransformer(), "fa" );
         Transformers.registerTransformer( new FastaFileTransformer(), "fna" );

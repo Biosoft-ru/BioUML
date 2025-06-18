@@ -1,0 +1,7 @@
+chrI	I
+chrII	II
+chrIII	III
+chrIV	IV
+chrM	MtDNA
+chrV	V
+chrX	X

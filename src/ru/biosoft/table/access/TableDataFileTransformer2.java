@@ -7,7 +7,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import one.util.streamex.StreamEx;
@@ -18,16 +20,17 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.core.AbstractTransformer;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.file.FileTypePriority;
 import ru.biosoft.access.file.FileBasedCollection;
-import ru.biosoft.access.generic.PriorityTransformer;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.core.PriorityTransformer;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * TableDataCollection to FileDataElement transformer (version 2)
@@ -290,7 +293,7 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
             {
                 for( String param : paramsArray )
                 {
-                    String sample[] = TextUtil.split( param, ';' );
+                    String sample[] = TextUtil2.split( param, ';' );
                     if( sample.length > 2 )
                     {
                         String columnName = sample[0].trim();

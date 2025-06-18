@@ -20,7 +20,7 @@ import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
 import ru.biosoft.table.TableDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ExpressionFilterProvider extends WebJSONProviderSupport
 {
@@ -138,7 +138,7 @@ public class ExpressionFilterProvider extends WebJSONProviderSupport
     private static void selectDiagramFilter(Diagram diagram, String filterName) throws WebException
     {
         disableExpressionFilters( diagram );
-        if( TextUtil.isEmpty(filterName) )
+        if( TextUtil2.isEmpty(filterName) )
         {
             diagram.setDiagramFilter(null);
             return;

@@ -1,6 +1,6 @@
 package ru.biosoft.analysis;
 
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.biohub.ReferenceTypeRegistry;
 import ru.biosoft.access.repository.DataElementPathEditor;
 import ru.biosoft.analysis.gui.MessageBundle;

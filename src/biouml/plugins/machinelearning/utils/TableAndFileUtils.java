@@ -18,7 +18,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.plugins.machinelearning.utils.UtilsGeneral.ChartUtils;
 import biouml.plugins.machinelearning.utils.UtilsGeneral.UtilsForArray;
 import ru.biosoft.access.CollectionFactoryUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElementPath;
@@ -29,7 +29,7 @@ import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author yura
@@ -93,7 +93,7 @@ public class TableAndFileUtils
     {
         String[] fileLines = readLinesInFile(pathToFile), result = new String[fileLines.length - 1];
         for( int i = 0; i < result.length; i++ )
-            result[i] = TextUtil.split(fileLines[i + 1], '\t')[0];
+            result[i] = TextUtil2.split(fileLines[i + 1], '\t')[0];
         return result;
     }
     
@@ -231,7 +231,7 @@ public class TableAndFileUtils
     public static Object[] readMatrixOrSubmatixInFile(DataElementPath pathToFile, String[] columnNames, String matrixType)
     {
         // 1. Read 'fileLines' and calculate 'columnNamesOutput'.
-        String[] fileLines = readLinesInFile(pathToFile), columnNamesInMatrix = TextUtil.split(fileLines[0], '\t');
+        String[] fileLines = readLinesInFile(pathToFile), columnNamesInMatrix = TextUtil2.split(fileLines[0], '\t');
         if( columnNamesInMatrix.length < 2 || fileLines.length < 2 ) return null;
         String[] columnNamesOutput = columnNames == null ? (String[])ArrayUtils.remove(columnNamesInMatrix, 0) : columnNames;
         
@@ -255,7 +255,7 @@ public class TableAndFileUtils
         int[][] matrixInteger = matrixType.equals(INT_TYPE) ? new int[rowNames.length][indices.length] : null;
         for( int i = 0; i < rowNames.length; i++ )
         {
-            String[] tokens = TextUtil.split(fileLines[i + 1], '\t');
+            String[] tokens = TextUtil2.split(fileLines[i + 1], '\t');
             if( tokens.length < 1 + columnNamesOutput.length ) return null;
             rowNames[i] = tokens[0];
             switch( matrixType )
@@ -310,7 +310,7 @@ public class TableAndFileUtils
         {
             e.printStackTrace();
         }
-        String[] tokens = TextUtil.split(line, '\t');
+        String[] tokens = TextUtil2.split(line, '\t');
         return (String[])ArrayUtils.remove(tokens, 0);
     }
 

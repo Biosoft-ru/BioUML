@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class WatchTable extends JTable
 {
@@ -128,7 +128,7 @@ public class WatchTable extends JTable
                     String result = "";
                     if( expr.length() > 0 )
                     {
-                        result = TextUtil.nullToEmpty( jsPanel.getDim().eval(expr) );
+                        result = TextUtil2.nullToEmpty( jsPanel.getDim().eval(expr) );
                     }
                     values.setElementAt(result, row);
                     updateModel();
@@ -157,7 +157,7 @@ public class WatchTable extends JTable
                 String result;
                 if( expr.length() > 0 )
                 {
-                    result = TextUtil.nullToEmpty( jsPanel.getDim().eval(expr) );
+                    result = TextUtil2.nullToEmpty( jsPanel.getDim().eval(expr) );
                 }
                 else
                 {

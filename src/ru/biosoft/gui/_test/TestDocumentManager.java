@@ -2,7 +2,7 @@ package ru.biosoft.gui._test;
 
 import com.developmentontheedge.application.DocumentFactory;
 
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.gui.DefaultDocumentFactory;
 import ru.biosoft.gui.DocumentManager;

@@ -23,7 +23,7 @@ import ru.biosoft.access.core.DataElementDescriptor;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DerivedDataCollection;
 import ru.biosoft.access.FileCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.util.ExProperties;
 

@@ -32,7 +32,7 @@ import ru.biosoft.access.core.DerivedDataCollection;
 import ru.biosoft.access.core.QuerySystem;
 import ru.biosoft.access.exception.Assert;
 import ru.biosoft.exception.InternalException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * The module data is hierarchically organized in following manner:
@@ -244,7 +244,7 @@ public class Module extends DerivedDataCollection implements HtmlDescribedElemen
      */
     public DataElement getKernel(String relativeName)
     {
-        if( TextUtil.isFullPath(relativeName) )
+        if( TextUtil2.isFullPath(relativeName) )
         {
             return CollectionFactory.getDataElement(relativeName);
         }

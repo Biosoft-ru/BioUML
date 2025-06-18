@@ -17,7 +17,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.ImageFileImporter;
 import ru.biosoft.bsa.Site;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.j2html.TagCreator;
 
 public class VATTrackImporter extends VCFTrackImporter
@@ -42,7 +42,7 @@ public class VATTrackImporter extends VCFTrackImporter
 
     private String addLinkToImages(String annotationString)
     {
-        String[] fields = TextUtil.split(annotationString, ':');
+        String[] fields = TextUtil2.split(annotationString, ':');
 
         for( int i = 0; i < fields.length; i++ )
         {

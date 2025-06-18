@@ -37,7 +37,7 @@ import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.Util;
 
 import ru.biosoft.jobcontrol.JobControl;
@@ -316,7 +316,7 @@ public class WebScriptsProvider extends WebJSONProviderSupport
         }
         if( action.equals("runInline") )
         {
-            executeScript(TextUtil.stripUnicodeMagic(arguments.getString("script")), arguments.get("jobID"), arguments.getString("type"));
+            executeScript(TextUtil2.stripUnicodeMagic(arguments.getString("script")), arguments.get("jobID"), arguments.getString("type"));
             response.sendString("ok");
             return;
         }
@@ -324,7 +324,7 @@ public class WebScriptsProvider extends WebJSONProviderSupport
         ScriptDataElement script = arguments.getDataElement(ScriptDataElement.class);
         if( action.equals("run") )
         {
-            executeScript(script, TextUtil.stripUnicodeMagic(arguments.getString("script")), arguments.get("jobID"));
+            executeScript(script, TextUtil2.stripUnicodeMagic(arguments.getString("script")), arguments.get("jobID"));
             response.sendString("ok");
         }
         else throw new WebException("EX_QUERY_PARAM_INVALID_VALUE", BiosoftWebRequest.ACTION);

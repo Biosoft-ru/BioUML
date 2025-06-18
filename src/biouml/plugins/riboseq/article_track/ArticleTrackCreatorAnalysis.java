@@ -18,7 +18,7 @@ import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.riboseq.comparison_article.util_data_structure.ArticleGenePointAdditionInfo;
 import biouml.plugins.riboseq.comparison_article.util_data_structure.ArticleGenePointCollection;
 import biouml.plugins.riboseq.comparison_article.util_data_structure.ArticleGenePointInfo;
@@ -140,7 +140,7 @@ public class ArticleTrackCreatorAnalysis extends AnalysisMethodSupport<ArticleTr
         final List<Integer> exonList = new ArrayList<>( exonCount );
 
         final String exonStartsStr = (String)row.getValue( exonStartsNameStr );
-        final String[] exonStartsStrArray = TextUtil.split( exonStartsStr, ',' );
+        final String[] exonStartsStrArray = TextUtil2.split( exonStartsStr, ',' );
         for( int i = 0; i < exonCount; i++ )
         {
             exonList.add( Integer.parseInt( exonStartsStrArray[i] ) );

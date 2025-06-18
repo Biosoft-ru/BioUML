@@ -47,7 +47,7 @@ import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.OptionEx;
 import ru.biosoft.util.Pair;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.TransformedIterator;
 import com.developmentontheedge.beans.annot.PropertyName;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
@@ -302,7 +302,7 @@ public class GalaxyAnalysisParameters extends AbstractAnalysisParameters impleme
                 String valueStr = parameter.toString();
                 if( multiple != null && (Boolean)multiple )
                 {
-                    SelectorOption[] selectorOptions = StreamEx.split(valueStr, ',').remove( TextUtil::isEmpty )
+                    SelectorOption[] selectorOptions = StreamEx.split(valueStr, ',').remove( TextUtil2::isEmpty )
                             .mapToEntry( availableValues::get ).mapKeyValue( SelectorOption::new ).toArray( SelectorOption[]::new );
                     result = new GalaxyParameter(pName, SelectorOption.class, parameter);
                     result.setValue(selectorOptions);
@@ -1194,7 +1194,7 @@ public class GalaxyAnalysisParameters extends AbstractAnalysisParameters impleme
             }
             else
             {
-                setValue(TextUtil.fromString(getType(), value));
+                setValue(TextUtil2.fromString(getType(), value));
             }
         }
         

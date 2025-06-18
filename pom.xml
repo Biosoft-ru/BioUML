@@ -5,13 +5,13 @@
 
     <groupId>org.biouml</groupId>
     <artifactId>biouml</artifactId>
-    <version>0.9.10</version>
+    <version>2025.2</version>
     <packaging>pom</packaging>
     <!--packaging>jar</packaging-->
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <rootDir>${project.basedir}</rootDir>
         <pluginDir>${rootDir}</pluginDir>
@@ -310,13 +310,13 @@
         <dependency>
             <groupId>ru.biosoft.access</groupId>
             <artifactId>core</artifactId>
-            <version>[1.1.1,)</version>
+            <version>[2.0.0,)</version>
         </dependency>
 
         <dependency>
             <groupId>ru.biosoft.access</groupId>
             <artifactId>file</artifactId>
-            <version>[1.1.1,)</version>
+            <version>[2.0.0,)</version>
         </dependency>
 
         <dependency>
@@ -337,6 +337,12 @@
             <version>2.0.0</version>
         </dependency>
 
+	<dependency>
+      <groupId>ru.biosoft</groupId>
+      <artifactId>util</artifactId>
+      <version>[2.0.0,)</version>
+    </dependency>
+
         <dependency>
             <groupId>ru.biosoft.physicell</groupId>
             <artifactId>physicell</artifactId>
@@ -351,9 +357,9 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.biosoft.bigbed</groupId>
-            <artifactId>ru.biosoft.bigbed</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>ru.biosoft</groupId>
+            <artifactId>bigbed</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- Другие зависимости -->
@@ -677,14 +683,6 @@
      </dependency>
 
      <dependency>
-         <groupId>org.ensembl</groupId>
-         <artifactId>ensj</artifactId>
-         <version>39.2</version>
-          <!--scope>system</scope-->
-          <!--systemPath>${project.basedir}/plugins/org.ensembl.ensj_39.2/ensj-39.2.jar</systemPath-->
-     </dependency>
-
-     <dependency>
          <groupId>sabioclient</groupId>
          <artifactId>sabioclient</artifactId>
          <version>1.0</version>
@@ -798,6 +796,13 @@
           <groupId>org.sbolstandard</groupId>
           <artifactId>libSBOLj</artifactId>
           <version>2.4.0</version>
+      </dependency>
+      
+      <!-- https://mvnrepository.com/artifact/one.util/streamex -->
+      <dependency>
+          <groupId>one.util</groupId>
+          <artifactId>streamex</artifactId>
+          <version>0.8.3</version>
       </dependency>
 
       <dependency>

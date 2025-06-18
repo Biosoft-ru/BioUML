@@ -11,7 +11,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Utility class for reading TableDataCollection from CSV file
@@ -55,7 +55,7 @@ public class TableCSVReader
         }
         else
         {
-            String[] columnNames = TextUtil.split( line, ' ' );
+            String[] columnNames = TextUtil2.split( line, ' ' );
             for( String columnName : columnNames )
             {
                 tdc.getColumnModel().addColumn(columnName, String.class);
@@ -73,7 +73,7 @@ public class TableCSVReader
         String line;
         while( ( line = reader.readLine() ) != null )
         {
-            String[] values = TextUtil.split( line, ' ' );
+            String[] values = TextUtil2.split( line, ' ' );
             if( values.length != columnCount )
             {
                 log.log(Level.SEVERE, "Incollect line in CSV file, parsing stopped");

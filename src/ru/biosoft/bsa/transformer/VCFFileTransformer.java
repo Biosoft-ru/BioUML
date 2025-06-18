@@ -1,15 +1,18 @@
 package ru.biosoft.bsa.transformer;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.file.FileTypePriority;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.bsa.Track;
-import ru.biosoft.bsa.VCFFileTrack;
+import ru.biosoft.bsa.track.VCFFileTrack;
 
 public class VCFFileTransformer extends AbstractFileTransformer<VCFFileTrack> implements PriorityTransformer
 {
@@ -28,7 +31,8 @@ public class VCFFileTransformer extends AbstractFileTransformer<VCFFileTrack> im
         properties.setProperty( DataCollectionConfigConstants.FILE_PROPERTY, input.getAbsolutePath() );
         
         String configDir = origin.getInfo().getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
-        properties.setProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, configDir );
+        if( configDir != null )
+            properties.setProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, configDir );
         
         String seqBase = origin.getInfo().getProperty( Track.SEQUENCES_COLLECTION_PROPERTY );
         if(seqBase != null)

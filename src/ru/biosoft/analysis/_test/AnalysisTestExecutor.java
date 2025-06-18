@@ -31,7 +31,7 @@ import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.BeanUtil;
 import com.developmentontheedge.beans.util.Beans.ObjectPropertyAccessor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -363,7 +363,7 @@ public class AnalysisTestExecutor
             try
             {
                 ObjectPropertyAccessor accessor = BeanUtil.getBeanPropertyAccessor( parameters, row.getName() );
-                accessor.set( TextUtil.fromString(accessor.getType(), row.getValues()[0]));
+                accessor.set( TextUtil2.fromString(accessor.getType(), row.getValues()[0]));
             }
             catch( Exception e )
             {

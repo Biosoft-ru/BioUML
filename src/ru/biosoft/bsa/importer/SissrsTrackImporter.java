@@ -16,7 +16,7 @@ import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SiteType;
 import ru.biosoft.bsa.StrandType;
 import com.developmentontheedge.beans.PropertiesDPS;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -59,7 +59,7 @@ public class SissrsTrackImporter extends TrackImporter
     {
         try
         {
-            String[] fields = TextUtil.split(line, '\t');
+            String[] fields = TextUtil2.split(line, '\t');
             if(fields[0].equals("Chr"))
             {
                 tMode = fields[1].equals("Bsite");
@@ -67,7 +67,7 @@ public class SissrsTrackImporter extends TrackImporter
             }
             int mandatoryFields = tMode ? 3 : 4;
             if(fields.length < mandatoryFields) return null;
-            String chrom = normalizeChromosome(fields[0]);
+            String chrom = normalizeChromosome( fields[0], true );
             int start = Integer.parseInt(fields[1]);
             int length = tMode ? 1 : Integer.parseInt(fields[2])-start;
             Properties properties = new Properties();

@@ -10,7 +10,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 
 import com.developmentontheedge.beans.model.ComponentFactory;
@@ -100,7 +100,7 @@ public class VariablesTreeModel implements TreeModel
         }
         Property property = getProperty(parent.toString());
         if(property == null) return -1;
-        String[] fields = TextUtil.split( child.toString(), '/' );
+        String[] fields = TextUtil2.split( child.toString(), '/' );
         String childName = fields[fields.length-1];
         for(int i=0; i<property.getPropertyCount(); i++)
         {

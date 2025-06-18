@@ -42,7 +42,7 @@ import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.util.ApplicationUtils;
 import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.PropertiesDialog;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @SuppressWarnings ( "serial" )
 public class ImportElementDialog extends ProcessElementDialog implements JobControlListener
@@ -168,7 +168,7 @@ public class ImportElementDialog extends ProcessElementDialog implements JobCont
     @Override
     protected void okPressed()
     {
-        final String[] fileNames = TextUtil.split( tfPath.getText(), ';' );
+        final String[] fileNames = TextUtil2.split( tfPath.getText(), ';' );
         savePreferences();
 
         try

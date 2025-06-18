@@ -9,9 +9,9 @@
   </extension>
   
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="TestModel" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="TestModel" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="biouml.plugins.test.TestModel" transformerClass="biouml.plugins.test.access.TestModelFileTransformer"/> 
-      <transformer name="TestSuite" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="TestSuite" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="biouml.plugins.test.AcceptanceTestSuite" transformerClass="biouml.plugins.test.access.TestSuiteFileTransformer"/> 
   </extension> 
   

@@ -14,7 +14,7 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.standard.type.Base;
 import biouml.standard.type.DatabaseReference;
 import biouml.standard.type.LinkResolver;
@@ -70,7 +70,7 @@ public class ExternalURLMapper
                         Object baseFormProperty = attr.getValue("precursors");
                         if( baseFormProperty != null )
                         {
-                            String baseFormId = TextUtil.stream( baseFormProperty ).findFirst().orElse( null );
+                            String baseFormId = TextUtil2.stream( baseFormProperty ).findFirst().orElse( null );
                             int start = baseFormId.indexOf('<');
                             int end = baseFormId.indexOf('>');
 

@@ -24,7 +24,7 @@ import biouml.plugins.machinelearning.utils.DataMatrix;
 import biouml.plugins.machinelearning.utils.DataMatrixInteger;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;

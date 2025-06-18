@@ -54,7 +54,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ru.biosoft.access.security.SecurityManager;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -175,7 +175,7 @@ public class HttpServer
             String sessionId = "";
             for(Header header: request.getHeaders("Cookie"))
             {
-                String[] fields = TextUtil.split(header.getValue(), '=');
+                String[] fields = TextUtil2.split(header.getValue(), '=');
                 if(fields.length >= 2 && fields[0].equals("JSESSIONID"))
                     sessionId = fields[1];
             }
@@ -194,7 +194,7 @@ public class HttpServer
             List<String> uriParameters = new ArrayList<>();
             if( pos >= 0 )
             {
-                uriParameters.addAll(Arrays.asList(TextUtil.split(target.substring(pos+1), '&')));
+                uriParameters.addAll(Arrays.asList(TextUtil2.split(target.substring(pos+1), '&')));
                 target = target.substring(0, pos);
             }
             final String subTarget = target.substring(1);
@@ -209,7 +209,7 @@ public class HttpServer
                     MultipartFormRequestContext requestContext = new MultipartFormRequestContext(entity);
                     if(!FileUpload.isMultipartContent(requestContext))
                     {
-                        uriParameters.addAll(Arrays.asList(TextUtil.split(new String(EntityUtils.toByteArray(entity)), '&')));
+                        uriParameters.addAll(Arrays.asList(TextUtil2.split(new String(EntityUtils.toByteArray(entity)), '&')));
                     }
                     else
                     {
@@ -243,9 +243,9 @@ public class HttpServer
                 }
                 for(String uriParameter: uriParameters)
                 {
-                    String[] fields = TextUtil.split(uriParameter, '=');
+                    String[] fields = TextUtil2.split(uriParameter, '=');
                     if(fields.length > 1)
-                        arguments.put( TextUtil.decodeURL( fields[0] ), new String[] {TextUtil.decodeURL( fields[1] )} );
+                        arguments.put( TextUtil2.decodeURL( fields[0] ), new String[] {TextUtil2.decodeURL( fields[1] )} );
                 }
 
                 servlet.service(subTarget, session, arguments, out, new ServerHttpResponseWrapper(response));

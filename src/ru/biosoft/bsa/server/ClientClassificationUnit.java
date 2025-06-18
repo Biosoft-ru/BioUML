@@ -9,7 +9,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.bsa.Const;
 import ru.biosoft.bsa.classification.ClassificationUnit;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.server.access.DataClientCollection;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
@@ -113,7 +113,7 @@ public class ClientClassificationUnit extends DataClientCollection<Classificatio
     @Override
     public String toString()
     {
-        return TextUtil.isEmpty(getClassName())?getName():getClassName()+(TextUtil.isEmpty(getDescription())?"":"\n"+getDescription().replace("; ", "\n"));
+        return TextUtil2.isEmpty(getClassName())?getName():getClassName()+(TextUtil2.isEmpty(getDescription())?"":"\n"+getDescription().replace("; ", "\n"));
     }
 
     private DynamicPropertySet attributes;

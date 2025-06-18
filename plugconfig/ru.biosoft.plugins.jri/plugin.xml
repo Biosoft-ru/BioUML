@@ -2,8 +2,12 @@
 <plugin>
   
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="R script" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="R script" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.plugins.jri.RElement" transformerClass="ru.biosoft.plugins.jri.RElementTransformer"/> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="R script" extensions="r" transformerClass="ru.biosoft.plugins.jri.RElementTransformer" priority="20" description="R script file"/>
   </extension>
 
   <extension point="ru.biosoft.access.scriptType">

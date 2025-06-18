@@ -22,11 +22,11 @@
         var type = dc.getChildClass(name);
 		if (instanceOf(type,'ru.biosoft.bsa.Track') || instanceOf(type,'ru.biosoft.table.TableDataCollection')
 			|| (instanceOf(type,'ru.biosoft.access.core.FolderCollection') && instanceOf(dc.getClass(),'ru.biosoft.access.core.FolderCollection')) 
-			|| instanceOf(type,'ru.biosoft.access.FileDataElement')
+			|| instanceOf(type,'ru.biosoft.access.file.FileDataElement')
 			|| instanceOf(type,'ru.biosoft.bsa.project.Project') || instanceOf(type,'ru.biosoft.plugins.javascript.JSElement')
 			|| (instanceOf(type,'ru.biosoft.access.TransformedDataCollection') && instanceOf(getDataCollection(completePath).getChildClass(),'ru.biosoft.bsa.SiteModel'))
             || instanceOf(type,'biouml.plugins.optimization.Optimization') || instanceOf(type,'biouml.standard.simulation.plot.Plot')
-            || instanceOf(type,'ru.biosoft.access.ImageDataElement') || instanceOf(type,'ru.biosoft.access.TextDataElement')
+            || instanceOf(type,'ru.biosoft.access.ImageDataElement') || instanceOf(type,'ru.biosoft.access.core.TextDataElement')
             || (instanceOf(type,'biouml.model.Diagram') && path.substring(0,5)=='data/')
             || (instanceOf(type,'ru.biosoft.bsa.analysis.WeightMatrixCollection') && path.substring(0,5)=='data/'))
         {

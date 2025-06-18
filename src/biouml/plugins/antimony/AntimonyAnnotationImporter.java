@@ -13,7 +13,7 @@ import biouml.plugins.antimony.astparser_v2.AstMap;
 import biouml.plugins.antimony.astparser_v2.AstSingleProperty;
 import biouml.plugins.antimony.astparser_v2.Node;
 import biouml.plugins.antimony.astparser_v2.SimpleNode;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElementPath;
 

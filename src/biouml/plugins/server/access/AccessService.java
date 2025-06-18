@@ -69,7 +69,7 @@ import ru.biosoft.util.FileItem;
 import ru.biosoft.util.JsonUtils;
 import ru.biosoft.util.TempFile;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Provides functionality to access to all data collections.
@@ -229,7 +229,7 @@ public class AccessService extends AccessProtocol implements Service
         {
             if( !classNames.isEmpty() )
             {
-                for( String className : TextUtil.split( classNames, ',' ) )
+                for( String className : TextUtil2.split( classNames, ',' ) )
                 {
                     Class<?> clazz = ClassLoading.loadClass( className );
                     classMap.put( clazz, new HashSet<Class<?>>() );
@@ -299,11 +299,11 @@ public class AccessService extends AccessProtocol implements Service
             String elementClassName = request.get(AccessProtocol.ELEMENT_CLASS_NAME);
             String referenceTypeName = request.get(AccessProtocol.REFERENCE_TYPE_NAME);
             boolean extended = Boolean.parseBoolean(request.get(AccessProtocol.KEY_EXTENDED));
-            Class<? extends DataElement> childClass = TextUtil.isEmpty(childClassName) ? null
+            Class<? extends DataElement> childClass = TextUtil2.isEmpty(childClassName) ? null
                     : (Class<? extends DataElement>)ClassLoading.loadClass( childClassName );
-            Class<? extends DataElement> elementClass = TextUtil.isEmpty(elementClassName) ? null
+            Class<? extends DataElement> elementClass = TextUtil2.isEmpty(elementClassName) ? null
                     : (Class<? extends DataElement>)ClassLoading.loadClass( elementClassName );
-            Class<? extends ReferenceType> referenceType = TextUtil.isEmpty(referenceTypeName) ? null
+            Class<? extends ReferenceType> referenceType = TextUtil2.isEmpty(referenceTypeName) ? null
                     : ReferenceTypeRegistry.getReferenceType(referenceTypeName).getClass();
             int from = request.getInt(AccessProtocol.KEY_FROM, -1);
             int to = request.getInt(AccessProtocol.KEY_TO, -1);

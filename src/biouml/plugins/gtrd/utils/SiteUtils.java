@@ -15,7 +15,7 @@ import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.graphics.chart.Chart;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.plugins.machinelearning.utils.DataMatrix;
 import biouml.plugins.machinelearning.utils.DataMatrix.DataMatrixConstructor;
 import biouml.plugins.machinelearning.utils.DataMatrixString;
@@ -155,7 +155,7 @@ public class SiteUtils
             	{
             		indexEnd = i;
             		String s = lines[indexStart].replace("  ", " ");
-                	String[] strings = TextUtil.split(s, ' ');
+                	String[] strings = TextUtil2.split(s, ' ');
                 	int index = ArrayUtils.indexOf(transfacSiteIds, strings[1]);
                 	if( index < 0 ) continue;
                 	
@@ -167,7 +167,7 @@ public class SiteUtils
                 		s = lines[j].replace("  ", " ");
                     	s = s.replace(":", " ");
                     	s = s.replace("..", " ");
-                    	strings = TextUtil.split(s, ' ');
+                    	strings = TextUtil2.split(s, ' ');
                     	String chromosomeName = strings[1].substring(3, strings[1].length());
                     	int start = Integer.valueOf(strings[2]), end = Integer.valueOf(strings[3]);
                     	tfSites[index] = new TransfacSite(chromosomeName, new Interval(start, end), strand, uniprotId, qualities[index]);
@@ -238,7 +238,7 @@ public class SiteUtils
             for( int i = indexStart; i < indexEnd; i++ )
             {
             	if( ! rowNames[i].equals("DR") ) continue;
-            	String[] strings = TextUtil.split(lines[i], ' ');
+            	String[] strings = TextUtil2.split(lines[i], ' ');
             	String s = strings[strings.length - 1];
             	s = s.replace(".", "");
             	if( ArrayUtils.contains(transpathIds, s) ) return true;
@@ -257,7 +257,7 @@ public class SiteUtils
             	String s = lines[i].replace(";", "");
             	s = s.replace(":", " ");
             	s = s.replace("  ", " ");
-            	String[] strings = TextUtil.split(s, ' ');
+            	String[] strings = TextUtil2.split(s, ' ');
         		list.add(strings[1]);
         		Integer quality = null;
         		if( strings[3].equals("Quality") && strings[4].length() == 1 )

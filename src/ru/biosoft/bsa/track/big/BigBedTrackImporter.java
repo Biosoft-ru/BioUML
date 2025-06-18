@@ -20,7 +20,7 @@ import ru.biosoft.bsa.importer.TrackImportProperties;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BigBedTrackImporter implements DataElementImporter
 {
@@ -29,8 +29,7 @@ public class BigBedTrackImporter implements DataElementImporter
     @Override
     public int accept(DataCollection<?> parent, File file)
     {
-        if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() )
-                || ! ( DataCollectionUtils.getTypeSpecificCollection( parent, getResultType() ) instanceof Repository ) )
+        if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() ) )
             return ACCEPT_UNSUPPORTED;
         if( file == null || file.getName().toLowerCase().endsWith(".bb") || file.getName().toLowerCase().endsWith(".bigbed") )
             return ACCEPT_HIGHEST_PRIORITY;
@@ -59,7 +58,7 @@ public class BigBedTrackImporter implements DataElementImporter
             trackProperties.put(DataCollectionConfigConstants.CLASS_PROPERTY, BigBedTrack.class.getName());
             if(properties.getSequenceCollectionPath() != null)
                 trackProperties.put(Track.SEQUENCES_COLLECTION_PROPERTY, properties.getSequenceCollectionPath().toString());
-            if( !TextUtil.isEmpty(properties.getGenomeId()) )
+            if( !TextUtil2.isEmpty(properties.getGenomeId()) )
                 trackProperties.put(Track.GENOME_ID_PROPERTY, properties.getGenomeId());
             trackProperties.putAll( properties.getTrackProperties() );
 

@@ -5,12 +5,12 @@
 
     <groupId>org.biouml</groupId>
     <artifactId>tomcat-embedded</artifactId>
-    <version>0.9.10</version>
+    <version>2025.2</version>
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <rootDir>${maven.multiModuleProjectDirectory}</rootDir>
         <biouml.war>${rootDir}/target/biouml.war</biouml.war>
@@ -150,7 +150,7 @@
                     <argument>-Dbiouml.http.port=8080</argument>
                     <argument>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n</argument>
                     <argument>-jar</argument>
-                    <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-0.9.10-jar-with-dependencies.jar</argument>
+                    <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-2025.2-jar-with-dependencies.jar</argument>
                   </arguments>
                 </configuration>
               </execution>

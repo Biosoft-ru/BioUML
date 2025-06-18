@@ -1,6 +1,6 @@
 package ru.biosoft.analysis;
 
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.repository.DataElementPathEditor;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.bean.BeanInfoEx2;

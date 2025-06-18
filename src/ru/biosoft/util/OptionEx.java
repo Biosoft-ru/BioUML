@@ -126,8 +126,8 @@ public class OptionEx extends Option implements BeanWithAutoProperties
                 else
                 {
                     Property property = autoPropertiesMap.get(evt.getPropertyName());
-                    Object calcValue = TextUtil.fromString(property.getValueClass(),
-                            TextUtil.calculateTemplate(property.getDescriptor().getValue(TEMPLATE_PROPERTY).toString(), this));
+                    Object calcValue = TextUtil2.fromString(property.getValueClass(),
+                            TextUtil2.calculateTemplate(property.getDescriptor().getValue(TEMPLATE_PROPERTY).toString(), this));
                     if( calcValue != null && calcValue.equals(evt.getNewValue()) )
                         activeAutoProperties.add(evt.getPropertyName());
                     else
@@ -144,8 +144,8 @@ public class OptionEx extends Option implements BeanWithAutoProperties
             {
                 Property property = autoPropertiesMap.get(propertyName);
                 Object oldValue = property.getValue();
-                Object newValue = TextUtil.fromString(property.getValueClass(),
-                        TextUtil.calculateTemplate(property.getDescriptor().getValue(TEMPLATE_PROPERTY).toString(), this));
+                Object newValue = TextUtil2.fromString(property.getValueClass(),
+                        TextUtil2.calculateTemplate(property.getDescriptor().getValue(TEMPLATE_PROPERTY).toString(), this));
                 if( !Objects.equals( oldValue, newValue ) )
                 {
                     property.setValue(newValue);

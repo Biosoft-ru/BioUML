@@ -48,7 +48,7 @@ import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.bsa.track.big.BigBedTrack;
 import ru.biosoft.util.ListUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author yura
@@ -1019,30 +1019,30 @@ public class FunSiteUtils
 
     public static FunSite[] readSitesInLines(String[] lines)
     {
-        String[] tokens = TextUtil.split(lines[0], '\t');
+        String[] tokens = TextUtil2.split(lines[0], '\t');
         int n = Integer.parseInt(tokens[1]), type = Integer.parseInt(tokens[3]), index = 0;
         FunSite[] result = new FunSite[n];
         for( int i = 0; i < n; i++ )
         {
-            tokens = TextUtil.split(lines[++index], '\t');
+            tokens = TextUtil2.split(lines[++index], '\t');
             String chromosomeName = tokens[1];
             Interval coordinates = new Interval(Integer.parseInt(tokens[3]), Integer.parseInt(tokens[4]));
             int strand = Integer.parseInt(tokens[5]);
-            tokens = TextUtil.split(lines[++index], '\t');
+            tokens = TextUtil2.split(lines[++index], '\t');
             int numberOfDataMatrices = Integer.parseInt(tokens[1]);
             DataMatrix[] dms = new DataMatrix[numberOfDataMatrices];
             for( int ii = 0; ii < numberOfDataMatrices; ii++ )
             {
-                tokens = TextUtil.split(lines[++index], '\t');
+                tokens = TextUtil2.split(lines[++index], '\t');
                 int rowNumber = Integer.parseInt(tokens[1]), columnNumber = Integer.parseInt(tokens[2]);
                 String[] rowNames = new String[rowNumber], columnNames = new String[columnNumber];
                 double[][] matrix = new double[rowNumber][columnNumber];
-                tokens = TextUtil.split(lines[++index], '\t');
+                tokens = TextUtil2.split(lines[++index], '\t');
                 for( int j = 0; j < columnNumber; j++ )
                     columnNames[j] = tokens[j + 1];
                 for( int j = 0; j < rowNumber; j++ )
                 {
-                    tokens = TextUtil.split(lines[++index], '\t');
+                    tokens = TextUtil2.split(lines[++index], '\t');
                     rowNames[j] = tokens[0];
                     for( int jj = 0; jj < columnNumber; jj++ )
                         matrix[j][jj] = Double.parseDouble(tokens[jj + 1]);
@@ -1061,7 +1061,7 @@ public class FunSiteUtils
         String[] lines = TableAndFileUtils.readLinesInFile(pathToFile);
         for( String line : lines )
         {
-            String[] tokens = TextUtil.split(line, '\t');
+            String[] tokens = TextUtil2.split(line, '\t');
             if( tokens.length < 3 || tokens[columnIndexForChromosome].length() < 3 ) break;
             String chromosomeName = tokens[columnIndexForChromosome].substring(3, tokens[columnIndexForChromosome].length());
             int start = Integer.parseInt(tokens[columnIndexForStartPosition]), end = Integer.parseInt(tokens[columnIndexForEndPosition]);

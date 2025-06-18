@@ -12,7 +12,7 @@ import biouml.plugins.gtrd.master.sites.histones.HistonesCluster;
 import biouml.plugins.gtrd.master.sites.histones.MACS2HistonesCluster;
 import biouml.plugins.gtrd.master.utils.StringPool;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class HistonesClusterSerializer extends GenomeLocationSerializer<HistonesCluster>
 {

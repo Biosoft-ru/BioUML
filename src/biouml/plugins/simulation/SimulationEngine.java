@@ -27,6 +27,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.exception.BiosoftParseException;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.util.ApplicationUtils;
+import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.WeakPropertyChangeForwarder;
 import ru.biosoft.util.bean.JSONBean;
 import com.developmentontheedge.beans.annot.PropertyDescription;
@@ -974,5 +975,10 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     public ResultListener generateResultPlot(FunctionJobControl jobControl, PlotInfo plotInfo)
     {
         return new ResultPlotPane( this, jobControl, plotInfo );
+    }
+    
+    public Object getPlotsBean(Diagram diagram)
+    {
+        return null;
     }
 }

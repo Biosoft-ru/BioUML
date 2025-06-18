@@ -29,10 +29,10 @@ import ru.biosoft.access.DataElementExporterRegistry.ExporterInfo;
 import ru.biosoft.access.core.DataElementImporter;
 import ru.biosoft.access.DataElementImporterRegistry;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Registry to convert galaxy types to BioUML import/export and file's extensions
@@ -257,7 +257,7 @@ public class FormatRegistry
                         {
                             try
                             {
-                                property.setValue(TextUtil.fromString(property.getValueClass(), entry.getValue()));
+                                property.setValue(TextUtil2.fromString(property.getValueClass(), entry.getValue()));
                             }
                             catch( NoSuchMethodException e )
                             {
@@ -345,7 +345,7 @@ public class FormatRegistry
             {
                 try
                 {
-                    entry.getKey().setValue( TextUtil.fromString( entry.getKey().getValueClass(), entry.getValue() ) );
+                    entry.getKey().setValue( TextUtil2.fromString( entry.getKey().getValueClass(), entry.getValue() ) );
                 }
                 catch( NoSuchMethodException e )
                 {

@@ -7,7 +7,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.LocalRepository;
 import ru.biosoft.access.Repository;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;

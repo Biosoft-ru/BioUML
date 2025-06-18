@@ -10,7 +10,7 @@ import java.util.List;
 
 import javax.annotation.CheckForNull;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BionetgenReactionRecord
 {
@@ -216,7 +216,7 @@ public class BionetgenReactionRecord
     {
         String[] result = new String[2];
         String consts = rateLaw.substring(rateLaw.indexOf('(') + 1, rateLaw.lastIndexOf(')'));
-        String[] parts = TextUtil.split(consts, ',');
+        String[] parts = TextUtil2.split(consts, ',');
         result[0] = parts[0];
         result[1] = parts[1];
         return result;

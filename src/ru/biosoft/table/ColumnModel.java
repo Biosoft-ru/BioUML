@@ -20,7 +20,7 @@ import ru.biosoft.table.document.TableDataCollectionColumnModel;
 import ru.biosoft.table.exception.TableAddColumnException;
 import ru.biosoft.table.exception.TableNoColumnException;
 import ru.biosoft.table.exception.TableRemoveColumnException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.swing.table.Column;
@@ -360,7 +360,7 @@ public class ColumnModel implements Iterable<TableColumn>
         expressions = false;
         for( int i = 0; i < columnsInfo.length; i++ )
         {
-            if( !TextUtil.isEmpty(columnsInfo[i].getExpression()) )
+            if( !TextUtil2.isEmpty(columnsInfo[i].getExpression()) )
                 expressions = true;
             columnName2Index.put(columnsInfo[i].getName().toLowerCase(), i);
         }
@@ -432,7 +432,7 @@ public class ColumnModel implements Iterable<TableColumn>
         {
             Object oldValue = getExpression();
             super.setExpression(value);
-            if( !TextUtil.isEmpty(value) )
+            if( !TextUtil2.isEmpty(value) )
                 expressions = true;
             if( ( oldValue == null && value != null ) || ( oldValue != null && value == null )
                     || ( oldValue != null && value != null && !oldValue.equals(value) ) )

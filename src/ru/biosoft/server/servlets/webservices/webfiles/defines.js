@@ -2,7 +2,7 @@ var appInfo =
 {
         name: "BioUML",
         edition: "web edition",
-        version: "2020.4",
+        version: "2025.2",
         disableAnonymous: false,
         build: "43",
         //externalLogin: true,

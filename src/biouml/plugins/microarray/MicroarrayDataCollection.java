@@ -12,7 +12,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.Entry;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.SimpleFileFilter;
 import ru.biosoft.access.core.VectorDataCollection;
 

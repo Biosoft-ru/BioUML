@@ -1,0 +1,21 @@
+ID	cells.csv
+OS	
+PLATFORM	
+INFO
+plugins=ru.biosoft.table
+name=cells.csv
+class=ru.biosoft.table.FileTableDataCollection
+SAMPLES
+#1	x; Float; NONE;  x
+#2	y; Float; NONE;  y
+#3	z; Float; NONE;  z
+#4	type; Text; NONE;  type
+COLUMN_EXPRESSIONS
+PROPERTIES
+GROUPS
+DATA
+1	-80.0	80.0	0.0	default
+2	80.0	80.0	0.0	default
+3	-80.0	-80.0	0.0	default
+4	80.0	-80.0	0.0	default
+//

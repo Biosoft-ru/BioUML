@@ -52,7 +52,7 @@ import ru.biosoft.plugins.javascript.JSProperty;
 import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
 import ru.biosoft.plugins.jsconsistent.JavaScriptConsistent;
 import ru.biosoft.util.BeanAsMapUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @CodePrivilege({CodePrivilegeType.REPOSITORY, CodePrivilegeType.THREAD, CodePrivilegeType.TEMP_RESOURCES_ACCESS, CodePrivilegeType.LAUNCH, CodePrivilegeType.REFLECTION})
 public abstract class AnalysisMethodSupport<T extends AnalysisParameters> implements AnalysisMethod
@@ -357,7 +357,7 @@ public abstract class AnalysisMethodSupport<T extends AnalysisParameters> implem
             }
             if(inputPaths.containsKey(path))
             {
-                throw new IllegalArgumentException(property.getDisplayName()+" is the same as "+TextUtil.toLower(inputPaths.get(path))+": "+path+". Please specify different path.");
+                throw new IllegalArgumentException(property.getDisplayName()+" is the same as "+TextUtil2.toLower(inputPaths.get(path))+": "+path+". Please specify different path.");
             }
             if( !SecurityManager.getPermissions(parentPath).isWriteAllowed() )
                 throw new IllegalArgumentException(property.getDisplayName() + ": specified collection is write protected: "
@@ -606,7 +606,7 @@ public abstract class AnalysisMethodSupport<T extends AnalysisParameters> implem
                     putNonDefaultParameters(params, property, defProperty, prefix+property.getName()+"/");
                 } else
                 {
-                    params.put(prefix+property.getName(), TextUtil.toString(value));
+                    params.put(prefix+property.getName(), TextUtil2.toString(value));
                     try
                     {
                         defProperty.setValue(value);

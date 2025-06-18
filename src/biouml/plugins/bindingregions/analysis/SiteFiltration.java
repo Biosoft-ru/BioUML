@@ -36,7 +36,7 @@ import ru.biosoft.bsa.Track;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericMultiSelectEditor;
 
@@ -310,7 +310,7 @@ public class SiteFiltration extends AnalysisMethodSupport<SiteFiltration.SiteFil
         for( String codes : frequencies.keySet() )
         {
             Object[] objects = new Object[histoneAndTracks.size() + 2];
-            String[] array = TextUtil.split( codes, '_' );
+            String[] array = TextUtil2.split( codes, '_' );
             for( int i = 0; i < array.length; i++ )
                 if( array[i].equals("+") )
                     objects[i] = true;

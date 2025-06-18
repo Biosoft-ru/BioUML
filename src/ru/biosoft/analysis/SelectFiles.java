@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 
 public class SelectFiles extends AnalysisMethodSupport<SelectFilesParameters>

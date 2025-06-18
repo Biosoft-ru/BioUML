@@ -64,7 +64,7 @@ import ru.biosoft.exception.InternalException;
 import ru.biosoft.exception.LoggedException;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.ExProperties;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * New implementation of GenericDataCollection (draft)
@@ -728,7 +728,7 @@ public class GenericDataCollection2 extends AbstractDataCollection<DataElement> 
 
     public void setDescription(String description)
     {
-        getInfo().setDescription( TextUtil.nullToEmpty( description ) );
+        getInfo().setDescription( TextUtil2.nullToEmpty( description ) );
         try
         {
             getCompletePath().save(getCompletePath().getDataElement());

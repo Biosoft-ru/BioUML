@@ -6,7 +6,7 @@ import java.util.List;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElementPath;

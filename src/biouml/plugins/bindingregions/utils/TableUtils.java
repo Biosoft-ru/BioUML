@@ -24,7 +24,7 @@ import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.FileImporter;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementReadException;
@@ -40,7 +40,7 @@ import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.ColorUtils;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class TableUtils
 {
@@ -762,7 +762,7 @@ public class TableUtils
             String[] lines = readLinesInFile(pathToFile);
             String[][] result = new String[lines.length][];
             for( int i = 0; i < lines.length; i++ )
-                result[i] = TextUtil.split(lines[i], '\t');
+                result[i] = TextUtil2.split(lines[i], '\t');
             return result;
         }
         
@@ -772,7 +772,7 @@ public class TableUtils
             File file = pathToFile.getDataElement(FileDataElement.class).getFile();
             BufferedReader reader = ApplicationUtils.asciiReader(file);
             String line = reader.readLine();
-            String[] tokens = TextUtil.split(line, '\t');
+            String[] tokens = TextUtil2.split(line, '\t');
             return (String[])ArrayUtils.remove(tokens, 0);
         }
         
@@ -783,7 +783,7 @@ public class TableUtils
         {
             // 1. Read 'fileLines' and calculate 'columnNamesOutput'.
             String[] fileLines = readLinesInFile(pathToFile);
-            String[] columnNamesInMatrix = TextUtil.split(fileLines[0], '\t');
+            String[] columnNamesInMatrix = TextUtil2.split(fileLines[0], '\t');
             if( columnNamesInMatrix.length < 2 ) return null;
             if( fileLines.length < 2 ) return null;
             String[] columnNamesOutput = columnNames == null ? (String[])ArrayUtils.remove(columnNamesInMatrix, 0) : columnNames;
@@ -807,7 +807,7 @@ public class TableUtils
             String[][] dataMatrixString = matrixType.equals(STRING_TYPE) ? new String[fileLines.length - 1][] : null;
             for( int i = 0; i < rowNames.length; i++ )
             {
-                String[] tokens = TextUtil.split(fileLines[i + 1], '\t');
+                String[] tokens = TextUtil2.split(fileLines[i + 1], '\t');
                 if( tokens.length < 1 + columnNamesOutput.length ) return null;
                 rowNames[i] = tokens[0];
                 switch( matrixType )

@@ -31,7 +31,7 @@ import ru.biosoft.access.DataElementExporterRegistry.ExporterInfo;
 import ru.biosoft.access.FileExporter;
 import ru.biosoft.util.LazyValue;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
 import com.developmentontheedge.beans.BeanInfoEx;
@@ -145,7 +145,7 @@ public class GenericZipExporter implements DataElementExporter
                     DataElementExporter exporter = info.cloneExporter();
                     if( exporter.accept(element) > 0 )
                     {
-                        String suffix = TextUtil.isEmpty(info.getSuffix()) ? "" : "." + info.getSuffix();
+                        String suffix = TextUtil2.isEmpty(info.getSuffix()) ? "" : "." + info.getSuffix();
                         File elementFile = null;
                         try
                         {

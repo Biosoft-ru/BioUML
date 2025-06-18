@@ -20,7 +20,7 @@ import one.util.streamex.StreamEx;
 
 import ru.biosoft.access.exception.BiosoftSQLException;
 import ru.biosoft.util.ReadAheadIterator;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -350,7 +350,7 @@ public class SqlUtil
         else if(clazz.equals(boolean.class) || clazz.equals(Boolean.class))
             value = rs.getBoolean(i+1);
         else
-            value = TextUtil.fromString(clazz, rs.getString(i+1));
+            value = TextUtil2.fromString(clazz, rs.getString(i+1));
         return value;
     }
     

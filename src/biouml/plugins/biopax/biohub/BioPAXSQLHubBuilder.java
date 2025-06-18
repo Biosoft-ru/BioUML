@@ -19,7 +19,7 @@ import ru.biosoft.access.biohub.TargetOptions;
 import ru.biosoft.access.exception.BiosoftSQLException;
 import ru.biosoft.access.sql.SqlConnectionPool;
 import ru.biosoft.access.sql.SqlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author anna
@@ -80,7 +80,7 @@ public class BioPAXSQLHubBuilder implements BioHubBuilder
             String matchingTypesProperty = properties.getProperty(ReferenceType.MATCHING_TYPE_PROPERTY);
             if( matchingTypesProperty != null )
             {
-                String[] typeNames = TextUtil.split( matchingTypesProperty, ';' );
+                String[] typeNames = TextUtil2.split( matchingTypesProperty, ';' );
                 for( String typeName : typeNames )
                 {
                     ReferenceType type = ReferenceTypeRegistry.optReferenceType(typeName);

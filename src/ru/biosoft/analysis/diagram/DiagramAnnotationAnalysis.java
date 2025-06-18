@@ -22,7 +22,7 @@ import ru.biosoft.graphics.HtmlView;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @ClassIcon("resources/AnnotateDiagram.gif")
 public class DiagramAnnotationAnalysis extends AnalysisMethodSupport<DiagramAnnotationAnalysisParameters>
@@ -48,7 +48,7 @@ public class DiagramAnnotationAnalysis extends AnalysisMethodSupport<DiagramAnno
             if(row != null)
             {
                 Stub.Note kernel = new Stub.Note( compartment, "note_"+node.getName() );
-                String title = TextUtil.toString( row.getValues()[columnIndex] );
+                String title = TextUtil2.toString( row.getValues()[columnIndex] );
                 kernel.setTitle( title );
                 Node note = new Node(compartment, kernel);
                 Rectangle bounds = GraphicsUtils.getAsComplexTextView(new HtmlView( title, result.getViewOptions().getDefaultFont(), new Point(0,0), new Dimension(200, 10))).getBounds();

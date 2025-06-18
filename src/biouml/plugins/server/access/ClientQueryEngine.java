@@ -28,7 +28,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.server.JSONUtils;
 import ru.biosoft.server.Request;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Remote {@link QueryEngine} implementation
@@ -277,7 +277,7 @@ public class ClientQueryEngine extends QueryEngineSupport
                 {
                     break;
                 }
-                String[] params = TextUtil.split( new String(statusBytes, "UTF-16BE"), ':');
+                String[] params = TextUtil2.split( new String(statusBytes, "UTF-16BE"), ':');
                 if( params.length != 2 )
                 {
                     break;
@@ -318,7 +318,7 @@ public class ClientQueryEngine extends QueryEngineSupport
         while( tokens.hasMoreTokens() )
         {
             String line = tokens.nextToken();
-            String params[] = TextUtil.split( line, ';' );
+            String params[] = TextUtil2.split( line, ';' );
             if( params.length >= 5 )
             {
                 DataElement de = CollectionFactory.getDataElement(params[0]);

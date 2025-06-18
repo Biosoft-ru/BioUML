@@ -4,7 +4,7 @@ import java.awt.image.BufferedImage;
 
 import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import junit.framework.TestCase;
 
 /**

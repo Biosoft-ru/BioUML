@@ -12,7 +12,7 @@ import biouml.plugins.gtrd.master.sites.chipexo.ChIPexoGEMPeak;
 import biouml.plugins.gtrd.master.sites.chipexo.ChIPexoPeak;
 import biouml.plugins.gtrd.master.sites.chipexo.ChIPexoPeakzillaPeak;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ChIPexoPeakSerializer extends GenomeLocationSerializer<ChIPexoPeak>
 {
@@ -67,7 +67,7 @@ public class ChIPexoPeakSerializer extends GenomeLocationSerializer<ChIPexoPeak>
             throw new JsonParseException(parser, "id should be the first field");
 
         String idString = parser.getValueAsString();//p.EEXP003098.macs2.10719
-        String[] parts = TextUtil.split(idString, '.');
+        String[] parts = TextUtil2.split(idString, '.');
         
         String peakCaller = parts[2];
         switch(peakCaller)

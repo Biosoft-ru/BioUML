@@ -31,7 +31,7 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.graph.Path;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class CellDesignerUtils implements CellDesignerConstants
 {
@@ -50,7 +50,7 @@ public class CellDesignerUtils implements CellDesignerConstants
      */
     public static DoublePoint getPointByBase(String pair, DoublePoint p1, DoublePoint p2, DoublePoint p3)
     {
-        String[] vals = TextUtil.split(pair, ',');
+        String[] vals = TextUtil2.split(pair, ',');
         if( vals.length == 2 )
         {
             try

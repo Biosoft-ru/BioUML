@@ -13,7 +13,7 @@ import ru.biosoft.access.DataElementImporterRegistry;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.access.core.FolderCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.Module;
 import biouml.workbench.diagram.NewDiagramAction;
@@ -59,7 +59,7 @@ public class RepositoryActionsProvider implements ActionsProvider
         }
 
         // New module
-        if( TextUtil.isFullPath(de.getName()) )
+        if( TextUtil2.isFullPath(de.getName()) )
         {
             actions.add(actionManager.getAction(NewModuleAction.KEY));
             actions.add(actionManager.getAction(NewCompositeModuleAction.KEY));

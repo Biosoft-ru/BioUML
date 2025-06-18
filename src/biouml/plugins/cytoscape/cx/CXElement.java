@@ -8,7 +8,7 @@ import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.DynamicPropertySetAsMap;
 
 import biouml.plugins.cytoscape.CytoscapeConstants;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public abstract class CXElement
 {
@@ -51,7 +51,7 @@ public abstract class CXElement
             throw new IllegalArgumentException( getErrorMsg( ATTRIBUTE_TYPE, CytoscapeConstants.ATTRIBUTE_VALUE_KEY ) );
         String typeStr = obj.optString( CytoscapeConstants.ATTRIBUTE_DATATYPE_KEY, "" );
         Class<?> type = CytoscapeConstants.getClassForCXType( typeStr );
-        Object processedValue = TextUtil.fromString( type, obj.get( CytoscapeConstants.ATTRIBUTE_VALUE_KEY ).toString() );
+        Object processedValue = TextUtil2.fromString( type, obj.get( CytoscapeConstants.ATTRIBUTE_VALUE_KEY ).toString() );
         return new DynamicProperty( attrName, type, processedValue );
     }
 

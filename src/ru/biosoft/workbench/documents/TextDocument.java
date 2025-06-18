@@ -5,7 +5,7 @@ import javax.swing.Action;
 import javax.swing.text.StyledDocument;
 
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.graphics.editor.ViewPane;
 import ru.biosoft.gui.Document;

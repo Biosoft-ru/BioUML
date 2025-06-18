@@ -3,6 +3,7 @@ package biouml.plugins.sbol;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,11 +28,12 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
-import ru.biosoft.access.AbstractFileTransformer;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.AbstractFileTransformer;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.file.FileTypePriority;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.graph.Path;
 
 public class SbolDiagramTransformer extends AbstractFileTransformer<Diagram> implements PriorityTransformer

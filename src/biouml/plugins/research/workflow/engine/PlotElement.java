@@ -10,7 +10,7 @@ import java.util.logging.Level;
 
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.util.Pair;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.standard.simulation.SimulationDataGenerator;
 import biouml.standard.simulation.plot.DataGeneratorSeries;
 import biouml.standard.simulation.plot.Plot;
@@ -66,14 +66,14 @@ public class PlotElement extends WorkflowElement implements PropertyChangeListen
         if( xSeriesSources != null )
             for( String source : xSeriesSources )
             {
-                String[] seriesParams = TextUtil.split( source, ';' ); //seriesName;xVar
+                String[] seriesParams = TextUtil2.split( source, ';' ); //seriesName;xVar
                 varSeries.computeIfAbsent( seriesParams[0], k -> new Pair<>() ).setFirst( seriesParams[1] );
             }
 
         if( ySeriesSources != null )
             for( String source : ySeriesSources )
             {
-                String[] seriesParams = TextUtil.split( source, ';' ); //seriesName;yVar
+                String[] seriesParams = TextUtil2.split( source, ';' ); //seriesName;yVar
                 varSeries.computeIfAbsent( seriesParams[0], k -> new Pair<>() ).setSecond( seriesParams[1] );
             }
         for( Map.Entry<String, Pair<String, String>> entry : varSeries.entrySet() )
@@ -92,7 +92,7 @@ public class PlotElement extends WorkflowElement implements PropertyChangeListen
         if( xGenSources != null )
             for( int i = 0; i < xGenSources.size(); i++ )
             {
-                String[] seriesParams = TextUtil.split( xGenSources.get(i), ';' ); //seriesName;xGeneratorName
+                String[] seriesParams = TextUtil2.split( xGenSources.get(i), ';' ); //seriesName;xGeneratorName
                 if( !genSeries.containsKey(seriesParams[0]) )
                     genSeries.put(seriesParams[0], new Pair<String, String>());
                 genSeries.get(seriesParams[0]).setFirst(seriesParams[1]);
@@ -101,7 +101,7 @@ public class PlotElement extends WorkflowElement implements PropertyChangeListen
         if( yGenSources != null )
             for( int i = 0; i < yGenSources.size(); i++ )
             {
-                String[] seriesParams = TextUtil.split( yGenSources.get(i), ';' ); //seriesName;yGeneratorName
+                String[] seriesParams = TextUtil2.split( yGenSources.get(i), ';' ); //seriesName;yGeneratorName
                 if( !genSeries.containsKey(seriesParams[0]) )
                     genSeries.put(seriesParams[0], new Pair<String, String>());
                 genSeries.get(seriesParams[0]).setSecond(seriesParams[1]);

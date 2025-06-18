@@ -13,7 +13,7 @@ import biouml.plugins.gtrd.master.sites.dnase.WellingtonFootprint;
 import biouml.plugins.gtrd.master.sites.dnase.WellingtonHotspot2Footprint;
 import biouml.plugins.gtrd.master.sites.dnase.WellingtonMACS2Footprint;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class FootprintSerializer extends GenomeLocationSerializer<DNaseFootprint>
 {
@@ -61,7 +61,7 @@ public class FootprintSerializer extends GenomeLocationSerializer<DNaseFootprint
             throw new JsonParseException(parser, "id should be the first field");
 
         String idString = parser.getValueAsString();//p.DEXP003098_1.wellington_macs2.10719
-        String[] parts = TextUtil.split(idString, '.');
+        String[] parts = TextUtil2.split(idString, '.');
         
         String peakCaller = parts[2];
         switch(peakCaller)
@@ -74,7 +74,7 @@ public class FootprintSerializer extends GenomeLocationSerializer<DNaseFootprint
         
         result.setId( Integer.parseInt( parts[3] ) );
         
-        String[] parts2 = TextUtil.split(parts[1], '_');
+        String[] parts2 = TextUtil2.split(parts[1], '_');
         String expId = parts2[0];
         result.setExp( exps.get( expId ) );
         

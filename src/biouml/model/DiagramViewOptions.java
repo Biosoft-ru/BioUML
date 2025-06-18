@@ -25,7 +25,7 @@ import ru.biosoft.graphics.editor.GridOptions;
 import ru.biosoft.graphics.editor.GridOptionsMessageBundle;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -498,7 +498,7 @@ public class DiagramViewOptions extends Option implements Cloneable
             Object val = from.get(property.getName());
             try
             {
-                property.setValue(TextUtil.fromString(property.getValueClass(), val.toString()));
+                property.setValue(TextUtil2.fromString(property.getValueClass(), val.toString()));
             }
             catch( NoSuchMethodException e )
             {
@@ -517,7 +517,7 @@ public class DiagramViewOptions extends Option implements Cloneable
                 if( value != null )
                 {
                     String name = property.getName();
-                    Object object = TextUtil.toString(value);
+                    Object object = TextUtil2.toString(value);
                     json.putOpt(name, object);
                 }
             }

@@ -16,7 +16,7 @@ import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.jobcontrol.SubFunctionJobControl;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class DownloadModel extends AnalysisMethodSupport<DownloadModel.Parameters>
@@ -57,7 +57,7 @@ public class DownloadModel extends AnalysisMethodSupport<DownloadModel.Parameter
             //source = "http://biomodels.caltech.edu/download?mid=" + id;
         }
 
-        URL url = new URL( TextUtil.decodeURL( source ) );
+        URL url = new URL( TextUtil2.decodeURL( source ) );
         File modelFile = TempFiles.file( SBML_EXTENSION );
         FileDownloader.downloadFile( url, modelFile, new SubFunctionJobControl( jobControl, 0, 50 ) );
         return (Diagram)new SbmlImporter().doImport( parent, modelFile, name, new SubFunctionJobControl( jobControl, 50, 100 ), log );

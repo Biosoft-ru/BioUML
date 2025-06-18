@@ -24,7 +24,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.HtmlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import uk.ac.manchester.cs.owl.OWLDataPropertyImpl;
 import uk.ac.manchester.cs.owl.OWLObjectPropertyImpl;
 import biouml.model.Compartment;
@@ -1132,7 +1132,7 @@ public class BioPAXReader_level3 extends BioPAXReader
             return get( publications, name );
         }
         Publication pb = new Publication( publications, name );
-        String title = TextUtil.nullToEmpty( getStringProperty( "title", individual ) );
+        String title = TextUtil2.nullToEmpty( getStringProperty( "title", individual ) );
 
         String authors = getAuthors( individual );
         if( authors.isEmpty() )
@@ -1436,7 +1436,7 @@ public class BioPAXReader_level3 extends BioPAXReader
     private String getComments(OWLIndividual individual)
     {
         return join( Stream.of( getStringListProperty( "comment", individual ) )
-                .map( s -> s.replaceAll( "[^a-zA-Z0-9!@#$%^&*()\\?;=+',-:_<>.\"/\\\\]", " " ).trim() ).filter( TextUtil::nonEmpty )
+                .map( s -> s.replaceAll( "[^a-zA-Z0-9!@#$%^&*()\\?;=+',-:_<>.\"/\\\\]", " " ).trim() ).filter( TextUtil2::nonEmpty )
                 .toArray( String[]::new ) ).trim();
     }
 

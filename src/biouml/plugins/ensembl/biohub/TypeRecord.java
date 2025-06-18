@@ -3,7 +3,7 @@ package biouml.plugins.ensembl.biohub;
 
 import ru.biosoft.access.biohub.ReferenceType;
 import ru.biosoft.access.biohub.ReferenceTypeRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class TypeRecord
 {
@@ -26,7 +26,7 @@ public class TypeRecord
         this.stripRegExp = stripRegExp;
         if(this.stripRegExp != null && this.stripRegExp.contains("/"))
         {
-            String[] fields = TextUtil.split( this.stripRegExp, '/' );
+            String[] fields = TextUtil2.split( this.stripRegExp, '/' );
             this.stripRegExp = fields[0];
             this.toRegExp = fields[1];
         }

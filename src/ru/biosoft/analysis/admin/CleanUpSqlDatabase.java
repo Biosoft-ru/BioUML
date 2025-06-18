@@ -106,11 +106,11 @@ public class CleanUpSqlDatabase extends AnalysisMethodSupport<CleanUpSqlDatabase
                     long tableSize = SqlUtil.getTableSize(connection, table2);
                     wasteSpace+=tableSize;
                     if(parameters.isVerbose())
-                        log.info("Orphaned: "+table2+"; size: "+TextUtil.formatSize(tableSize));
+                        log.info( "Orphaned: " + table2 + "; size: " + TextUtil.formatSize( tableSize ) );
                     if(jobControl.isStopped()) return false;
                 }
-                log.info("Used tables: "+usedTables.size()+"; size: "+TextUtil.formatSize(usedSpace));
-                log.info("Orphaned tables: "+orphanedTables.size()+"; size: "+TextUtil.formatSize(wasteSpace));
+                log.info( "Used tables: " + usedTables.size() + "; size: " + TextUtil.formatSize( usedSpace ) );
+                log.info( "Orphaned tables: " + orphanedTables.size() + "; size: " + TextUtil.formatSize( wasteSpace ) );
                 if(jobControl.isStopped()) return false;
                 if(parameters.isActualCleanUp())
                 {

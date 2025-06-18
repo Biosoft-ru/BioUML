@@ -5,7 +5,7 @@ import ru.biosoft.physicell.core.Model;
 import ru.biosoft.physicell.core.SignalBehavior;
 import ru.biosoft.physicell.ui.AgentColorer;
 
-public class Visualizer extends AgentColorer
+public class Visualizer implements AgentColorer
 {
     private double pMin;
     private double pMax;

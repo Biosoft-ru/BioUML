@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.application.Application;
 
@@ -15,7 +15,7 @@ public class AboutAction extends AbstractAction
 
     public static void setStartupPluginName(String name)
     {
-        startupPluginName = TextUtil.nullToEmpty( name );
+        startupPluginName = TextUtil2.nullToEmpty( name );
     }
 
     public static String getStartupPluginName()

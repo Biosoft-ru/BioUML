@@ -1,51 +1,23 @@
-
 package ru.biosoft.access;
 
-import ru.biosoft.access.core.ClassIcon;
-import ru.biosoft.access.core.CloneableDataElement;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElementSupport;
-
-import com.developmentontheedge.beans.annot.PropertyName;
 
 /**
- * @author anna
- *
+ * Class duplicates moved class ru.biosoft.access.core.TextDataElement for
+ * backward compatibility in already existing Data Collections.
+ * 
+ * Deprecated. Use moved class instead.
  */
-@ClassIcon ( "resources/txt.gif" )
-@PropertyName("text")
-public class TextDataElement extends DataElementSupport implements CloneableDataElement
+@Deprecated
+public class TextDataElement extends ru.biosoft.access.core.TextDataElement
 {
     public TextDataElement(String name, DataCollection<?> origin)
     {
-        super(name, origin);
+        super( name, origin );
     }
-    
+
     public TextDataElement(String name, DataCollection<?> origin, String content)
     {
-        super(name, origin);
-        this.content = content;
-    }
-    
-    protected String content;
-
-    public String getContent()
-    {
-        return content;
-    }
-
-    public void setContent(String content)
-    {
-        this.content = content;
-    }
-    
-    public long getContentLength()
-    {
-        return content.length();
-    }
-    
-    public String getContentType()
-    {
-        return "text/plain";
+        super( name, origin, content );
     }
 }

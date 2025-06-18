@@ -48,12 +48,16 @@ public class PhysicellBeanProvider implements BeanProvider
 
         if( propName.equals( "cycle" ) )
             return elem.getCycleProperties();
+        if( propName.equals( "division" ) )
+            return elem.getDivisionProperties();
         else if( propName.equals( "death" ) )
             return elem.getDeathProperties();
         else if( propName.equals( "volume" ) )
             return elem.getVolumeProperties();
         else if( propName.equals( "mechanics" ) )
             return elem.getMechanicsProperties();
+        else if( propName.equals( "integrity" ) )
+            return elem.getIntegrityProperties();
         else if( propName.equals( "motility" ) )
             return elem.getMotilityProperties();
         else if( propName.equals( "secretion" ) )
@@ -68,6 +72,8 @@ public class PhysicellBeanProvider implements BeanProvider
             return elem.getFunctionsProperties();
         else if( propName.equals( "intracellular" ) )
             return elem.getIntracellularProperties();
+        else if( propName.equals( "distribution" ) )
+            return elem.getInitialDistributionProperties();
         return null;
     }
 

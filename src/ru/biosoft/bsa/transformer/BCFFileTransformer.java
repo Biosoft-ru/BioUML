@@ -1,13 +1,16 @@
 package ru.biosoft.bsa.transformer;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.file.FileTypePriority;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.bsa.BCFFileTrack;
 import ru.biosoft.bsa.Track;
 

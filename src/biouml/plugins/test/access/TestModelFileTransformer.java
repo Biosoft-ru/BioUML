@@ -5,9 +5,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 
 import biouml.plugins.test.TestModel;
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.support.TagEntryTransformer;
 
 public class TestModelFileTransformer extends AbstractFileTransformer<TestModel>

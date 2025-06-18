@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import ru.biosoft.graphics.ComplexTextView;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.View;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
@@ -391,7 +391,7 @@ public class SBGNConverter extends DiagramTypeConverterSupport
         public static Map<String, NodeElements> getNodeInfo(String nodeTitle)
         {
             Map<String, NodeElements> result = new HashMap<>();
-            String[] subElements = TextUtil.split( nodeTitle, ':' );
+            String[] subElements = TextUtil2.split( nodeTitle, ':' );
             for( String subElement : subElements )
             {
                 NodeElements element = new NodeElements();

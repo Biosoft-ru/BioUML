@@ -9,7 +9,7 @@ import com.eclipsesource.json.JsonObject;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse.CookieTemplate;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class JupyterResponse extends JSONResponse
 {
@@ -68,7 +68,7 @@ public class JupyterResponse extends JSONResponse
         int maxAge = -1;
         boolean httpOnly = false;
 
-        String[] cookieParts = TextUtil.split( cookie, ';' );
+        String[] cookieParts = TextUtil2.split( cookie, ';' );
         for( String cookiePart : cookieParts )
         {
             cookiePart = cookiePart.trim();

@@ -14,7 +14,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.bsa.Nucleotide5LetterAlphabet;
 import ru.biosoft.util.ReadAheadIterator;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -83,7 +83,7 @@ public class SolidReadingIterator extends ReadAheadIterator<Task> implements Pro
                 sequence = decode(sequence);
             
             byte[] qualities = new byte[seqLength];
-            String[] qualValues = TextUtil.split( l4, ' ' );
+            String[] qualValues = TextUtil2.split( l4, ' ' );
             for(int i=0; i<seqLength; i++)
             {
                 qualities[i] = Byte.parseByte(qualValues[i]);

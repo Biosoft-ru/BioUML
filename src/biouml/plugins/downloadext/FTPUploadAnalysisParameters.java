@@ -16,7 +16,7 @@ import ru.biosoft.access.ImporterFormat;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class FTPUploadAnalysisParameters extends AbstractAnalysisParameters
 {
@@ -63,7 +63,7 @@ public class FTPUploadAnalysisParameters extends AbstractAnalysisParameters
                    String valueStr = properties.getProperty(prefix + "importer." + iproperty.getName());
                    try
                    {
-                       Object value = TextUtil.fromString(iproperty.getValueClass(), valueStr);
+                       Object value = TextUtil2.fromString(iproperty.getValueClass(), valueStr);
                        if(value != null)
                        {
                            iproperty.setValue(value);
@@ -81,7 +81,7 @@ public class FTPUploadAnalysisParameters extends AbstractAnalysisParameters
                String valueStr = properties.getProperty(prefix + property.getName());
                try
                {
-                   Object value = TextUtil.fromString(property.getValueClass(), valueStr);
+                   Object value = TextUtil2.fromString(property.getValueClass(), valueStr);
                    if(value != null)
                    {
                        property.setValue(value);

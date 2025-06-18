@@ -12,7 +12,7 @@ import ru.biosoft.access.biohub.TargetOptions.CollectionRecord;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.access.exception.ParameterNotAcceptableException;
 import ru.biosoft.util.ObjectExtensionRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class GraphDecoratorRegistry
 {
@@ -95,7 +95,7 @@ public class GraphDecoratorRegistry
         @Override
         public String getAsText()
         {
-            return new JsonObject().add("name", name).add( "parameters", TextUtil.toString( params ) ).toString();
+            return new JsonObject().add("name", name).add( "parameters", TextUtil2.toString( params ) ).toString();
         }
 
         public GraphDecoratorParameters getParameters()
@@ -112,7 +112,7 @@ public class GraphDecoratorRegistry
                 GraphDecorator<?> decorator = decorators.getExtension( name );
                 if(decorator == null)
                     throw new ParameterNotAcceptableException( "name", name );
-                GraphDecoratorRecord result = new GraphDecoratorRecord( name, (GraphDecoratorParameters)TextUtil.fromString(
+                GraphDecoratorRecord result = new GraphDecoratorRecord( name, (GraphDecoratorParameters)TextUtil2.fromString(
                         decorator.getParametersClass(), obj.get( "parameters" ).asString() ) );
                 return result;
             }

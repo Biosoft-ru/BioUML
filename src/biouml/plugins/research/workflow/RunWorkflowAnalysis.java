@@ -23,7 +23,7 @@ import ru.biosoft.exception.LoggedException;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControlException;
 import ru.biosoft.util.BeanUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class RunWorkflowAnalysis extends AnalysisMethodSupport<RunWorkflowAnalysis.RunWorkflowParameters> implements AnalysisMethod
@@ -208,8 +208,8 @@ public class RunWorkflowAnalysis extends AnalysisMethodSupport<RunWorkflowAnalys
         @Override
         public void write(Properties properties, String prefix)
         {
-            properties.put( prefix + "workflowPath", TextUtil.toString( workflowPath ) );
-            properties.put( prefix + "ignoreFail", TextUtil.toString( ignoreFail ) );
+            properties.put( prefix + "workflowPath", TextUtil2.toString( workflowPath ) );
+            properties.put( prefix + "ignoreFail", TextUtil2.toString( ignoreFail ) );
             if(workflowProperties != null)
                 BeanUtil.writeBeanToProperties( workflowProperties, properties, prefix + "workflow." );
         }
@@ -219,9 +219,9 @@ public class RunWorkflowAnalysis extends AnalysisMethodSupport<RunWorkflowAnalys
         {
             if(!properties.containsKey( prefix + "workflowPath" ))
                 return;
-            DataElementPath path = (DataElementPath)TextUtil.fromString( DataElementPath.class, properties.getProperty( prefix + "workflowPath" ) );
+            DataElementPath path = (DataElementPath)TextUtil2.fromString( DataElementPath.class, properties.getProperty( prefix + "workflowPath" ) );
             if( properties.containsKey( prefix + "ignoreFail" ) )
-                setIgnoreFail( (Boolean)TextUtil.fromString( Boolean.class, properties.getProperty( prefix + "ignoreFail" ) ) );
+                setIgnoreFail( (Boolean)TextUtil2.fromString( Boolean.class, properties.getProperty( prefix + "ignoreFail" ) ) );
             setWorkflowPath( path );
             if(workflowProperties != null)
                 BeanUtil.readBeanFromProperties( workflowProperties, properties, prefix + "workflow." );

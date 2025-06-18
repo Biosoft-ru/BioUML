@@ -17,7 +17,7 @@ import com.eclipsesource.json.JsonObject;
 
 import ru.biosoft.access.exception.BiosoftNetworkException;
 import ru.biosoft.util.NetworkConfigurator;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,16 +72,16 @@ public class BiostoreConnector
         try
         {
             StringBuilder urlParameters = new StringBuilder();
-            urlParameters.append( "action=" ).append( TextUtil.encodeURL( action ) );
+            urlParameters.append( "action=" ).append( TextUtil2.encodeURL( action ) );
             if( serverKey != null )
             {
-                urlParameters.append( "&serverName=" ).append( TextUtil.encodeURL( serverKey ) );
+                urlParameters.append( "&serverName=" ).append( TextUtil2.encodeURL( serverKey ) );
             }
             if( parameters != null )
             {
                 for( Map.Entry<String, String> entry : parameters.entrySet() )
                 {
-                    urlParameters.append( "&" ).append( entry.getKey() ).append( "=" ).append( TextUtil.encodeURL( entry.getValue() ) );
+                    urlParameters.append( "&" ).append( entry.getKey() ).append( "=" ).append( TextUtil2.encodeURL( entry.getValue() ) );
                 }
             }
 
@@ -114,7 +114,7 @@ public class BiostoreConnector
             List<String> cookies = urlc.getHeaderFields().get("Set-Cookie");
             if( cookies != null )
             {
-                String cookieHeader = StreamEx.of(cookies).map( cookie -> TextUtil.split( cookie, ';' )[0] ).joining( "; " );
+                String cookieHeader = StreamEx.of(cookies).map( cookie -> TextUtil2.split( cookie, ';' )[0] ).joining( "; " );
                 if(username != null)
                     sessionCookies.put(username, cookieHeader);
             }

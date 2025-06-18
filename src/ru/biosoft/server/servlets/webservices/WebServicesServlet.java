@@ -26,7 +26,7 @@ import biouml.plugins.download.FileDownloader;
 import biouml.plugins.download.FileDownloader.RemoteFileInfo;
 import biouml.plugins.server.access.AccessProtocol;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
 import ru.biosoft.access.security.SessionCacheManager;
@@ -42,7 +42,7 @@ import ru.biosoft.server.JSONUtils;
 import ru.biosoft.server.servlets.webservices.providers.WebProvider;
 import ru.biosoft.server.servlets.webservices.providers.WebProviderFactory;
 import ru.biosoft.util.FileItem;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Access to BioUML services via servlet
@@ -734,7 +734,7 @@ public class WebServicesServlet extends AbstractServlet
         if(fileID == null)
             return null;
         fileID = fileID.replaceAll("\\W", "");
-        String suffix = TextUtil.nullToEmpty( (String)WebSession.getCurrentSession().getValue("uploadedFileSuffix_" + fileID) );
+        String suffix = TextUtil2.nullToEmpty( (String)WebSession.getCurrentSession().getValue("uploadedFileSuffix_" + fileID) );
         String sessionID = WebSession.getCurrentSession().getSessionId();
         try
         {

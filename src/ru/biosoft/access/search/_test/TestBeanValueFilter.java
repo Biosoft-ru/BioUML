@@ -21,7 +21,7 @@ public class TestBeanValueFilter extends TestCase
     public void testComplexFiltering() throws Exception
     {
         BeanValueFilter filter = new BeanValueFilter( ComplexBean.class );
-        assertEquals( "BeanValue filter not filter all properties",5,filter.getFilter().length );
+        assertEquals( "BeanValue filter not filter all properties", 6, filter.getFilter().length );
 
         ComplexBean el_01 = new ComplexBean(null,"bean 01");
         assertTrue( "By default filter should accept any elements : "+el_01.getName(),filter.isAcceptable(el_01) );

@@ -8,7 +8,7 @@ import com.developmentontheedge.beans.DynamicPropertySetAsMap;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementSupport;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 public class VariationElement extends DataElementSupport implements WithSite
@@ -48,7 +48,7 @@ public class VariationElement extends DataElementSupport implements WithSite
     
     public static Site createVariationSite(Sequence sequence, String id, String name, int start, int length, int strand, String alleleStr)
     {
-        String[] allele = TextUtil.split( alleleStr, '/' );
+        String[] allele = TextUtil2.split( alleleStr, '/' );
         if(allele[0].equals("-")) allele[0] = "";
         if(allele[1].equals("-")) allele[1] = "";
         

@@ -25,7 +25,7 @@ import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class ApplyContextDecorator implements GraphDecorator<ApplyContextDecorator.ApplyContextDecoratorParameters>
@@ -300,7 +300,7 @@ public class ApplyContextDecorator implements GraphDecorator<ApplyContextDecorat
             add(ColumnNameSelector.registerNumericSelector( "tableColumn", beanClass, "tableName", true ));
             add("decayFactor");
             addHidden("direction");
-            findPropertyDescriptor( "direction" ).setValue( TextUtil.SERIALIZABLE_PROPERTY, true );
+            findPropertyDescriptor( "direction" ).setValue( TextUtil2.SERIALIZABLE_PROPERTY, true );
         }
     }
 

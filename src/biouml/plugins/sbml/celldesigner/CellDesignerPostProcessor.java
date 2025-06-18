@@ -38,7 +38,7 @@ import biouml.standard.type.SpecieReference;
 import biouml.standard.type.Stub;
 import ru.biosoft.graph.Path;
 import ru.biosoft.graphics.Pen;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class CellDesignerPostProcessor extends SbmlExtensionSupport implements CellDesignerConstants
 {
@@ -314,7 +314,7 @@ public class CellDesignerPostProcessor extends SbmlExtensionSupport implements C
                     if( pointsElement != null )
                     {
 
-                        String[] pointValues = TextUtil.split( getTextContent(pointsElement), ' ' );
+                        String[] pointValues = TextUtil2.split( getTextContent(pointsElement), ' ' );
                         if( reactants.size() == 1 && products.size() == 1 )
                         {
                             //calculation without central point
@@ -620,7 +620,7 @@ public class CellDesignerPostProcessor extends SbmlExtensionSupport implements C
                     String editPoints = element.getAttribute(EDIT_POINTS_ATTR);
                     if( editPoints != null && editPoints.length() > 0 )
                     {
-                        String[] pointValues = TextUtil.split( editPoints, ' ' );
+                        String[] pointValues = TextUtil2.split( editPoints, ' ' );
                         DoublePoint p1 = CellDesignerUtils.getNodePort(node, si.getPortX(), si.getPortY());
                         DoublePoint cp = CellDesignerUtils.getNodeCenter(reaction);
                         DoublePoint p3 = CellDesignerUtils.getOrthogonalPoint(p1, cp);
@@ -760,7 +760,7 @@ public class CellDesignerPostProcessor extends SbmlExtensionSupport implements C
             if( textContent != null && textContent.trim().length() > 0 )
             {
                 //old version: names separated by ','
-                String[] names = TextUtil.split( textContent, ',' );
+                String[] names = TextUtil2.split( textContent, ',' );
                 for( String name : names )
                 {
                     String specieName = name.trim();

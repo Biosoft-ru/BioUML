@@ -1,7 +1,7 @@
 package ru.biosoft.table;
 
 import ru.biosoft.table.datatype.DataType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  *
@@ -121,7 +121,7 @@ public class TableColumn extends ColumnEx
 
     public boolean isExpressionEmpty()
     {
-        return TextUtil.isEmpty(this.expression);
+        return TextUtil2.isEmpty(this.expression);
     }
 
     public boolean isHidden()

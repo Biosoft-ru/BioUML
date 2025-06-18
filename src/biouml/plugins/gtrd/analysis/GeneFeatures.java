@@ -33,7 +33,7 @@ import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.DataElementComboBoxSelector;
 import biouml.plugins.gtrd.ChIPseqExperiment;
@@ -55,7 +55,7 @@ public class GeneFeatures extends AnalysisMethodSupport<GeneFeatures.Parameters>
         columnModel.addColumn("Gene", String.class);
         columnModel.addColumn("Transcription factor", String.class);
         columnModel.addColumn("Distance", String.class);
-        for( String scoreProperty : TextUtil.split( parameters.getScoreProperty(), ',' ) )
+        for( String scoreProperty : TextUtil2.split( parameters.getScoreProperty(), ',' ) )
             columnModel.addColumn(scoreProperty, Double.class);
 
         Collection<ChIPseqExperiment> experiments = findChipSeqExperiments();
@@ -101,7 +101,7 @@ public class GeneFeatures extends AnalysisMethodSupport<GeneFeatures.Parameters>
     {
 
         Interval[] intervals = parameters.getIntervalArray();
-        String scoreProperty = TextUtil.split( parameters.getScoreProperty(), ',' )[0];
+        String scoreProperty = TextUtil2.split( parameters.getScoreProperty(), ',' )[0];
 
         Map<String, GeneInfo> genes = new HashMap<>();
         Set<String> factorNames = new HashSet<>();
@@ -182,7 +182,7 @@ public class GeneFeatures extends AnalysisMethodSupport<GeneFeatures.Parameters>
 
             if( Math.abs(distance) <= parameters.getMaxTSSDistance() )
             {
-                String[] scoreProperties = TextUtil.split( parameters.getScoreProperty(), ',' );
+                String[] scoreProperties = TextUtil2.split( parameters.getScoreProperty(), ',' );
 
                 Object[] values = new Object[3 + scoreProperties.length];
                 values[0] = gene;

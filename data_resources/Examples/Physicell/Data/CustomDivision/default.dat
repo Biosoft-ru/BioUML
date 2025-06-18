@@ -1,0 +1,220 @@
+ID	cells.csv
+createdDate	1745264279337
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.table
+name	cells.csv
+modifiedDate	1745264279337
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+class	ru.biosoft.table.FileTableDataCollection
+//
+ID	Model
+createdDate	1745264279391
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745264279391
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Model
+createdDate	1745264279391
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745264279391
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745264279391
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745264446375
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264488142
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264488142
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264558090
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264558090
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264828063
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264828063
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264872255
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264872255
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264915541
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Model
+createdDate	1745264279391
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745264446375
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745264279391
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745267880387
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745264915541
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745267931978
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745267931978
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745267982227
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745267982227
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745267989102
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//
+
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745267989102
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//deleted
+ID	Division
+createdDate	1745264488142
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.plugins.physicell
+modifiedDate	1745268369778
+de_transformer	biouml.plugins.physicell.javacode.JavaTransformer
+class	biouml.plugins.physicell.javacode.JavaElement
+//

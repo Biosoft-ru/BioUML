@@ -23,7 +23,7 @@ import com.developmentontheedge.beans.model.Property;
 
 import one.util.streamex.EntryStream;
 import ru.biosoft.exception.ExceptionRegistry;
-import ru.biosoft.util.TextUtil.ParseException;
+import ru.biosoft.util.TextUtil2.ParseException;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class BeanAsMapUtil
@@ -74,7 +74,7 @@ public class BeanAsMapUtil
         Object value = property.getValue();
         if( value == null )
             return null;
-        return TextUtil.toString( value );
+        return TextUtil2.toString( value );
     }
 
     private static final Class<?>[] TYPES_AS_IS = new Class<?>[] {
@@ -151,7 +151,7 @@ public class BeanAsMapUtil
         {
             try
             {
-                value = TextUtil.fromString( property.getValueClass(), TextUtil.toString( value ), true );
+                value = TextUtil2.fromString( property.getValueClass(), TextUtil2.toString( value ), true );
             }
             catch(ParseException e)
             {
@@ -291,7 +291,7 @@ public class BeanAsMapUtil
         for(Map.Entry<String, Object> e : fMap.entrySet())
         {
             Object curResult = result;
-            String[] parts = TextUtil.split( e.getKey(), '/' );
+            String[] parts = TextUtil2.split( e.getKey(), '/' );
             for(int i = 0; i < parts.length - 1; i++)
                 curResult = putIntoContainer( curResult, parts[i], createContainerForKey( parts[i+1] ) );
             curResult = putIntoContainer( curResult, parts[parts.length - 1], e.getValue() );

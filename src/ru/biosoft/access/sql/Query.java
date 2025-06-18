@@ -1,7 +1,7 @@
 package ru.biosoft.access.sql;
 
 import ru.biosoft.exception.InternalException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * This class helps to build SQL query using templates
@@ -22,7 +22,7 @@ public class Query
      */
     public Query(String template)
     {
-        this.lexemes = TextUtil.split(template, '$');
+        this.lexemes = TextUtil2.split(template, '$');
     }
 
     /**

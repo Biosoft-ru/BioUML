@@ -59,7 +59,7 @@ import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.EditorsTabbedPane;
 import ru.biosoft.gui.GUI;
 import ru.biosoft.gui.ViewPart;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 
 @SuppressWarnings ( "serial" )
@@ -846,7 +846,7 @@ public class AntimonyEditor extends EditorPartSupport implements ViewPaneListene
             {
                 try
                 {
-                    text = TextUtil.nullToEmpty(antimony.generateText());
+                    text = TextUtil2.nullToEmpty(antimony.generateText());
                 }
                 catch( Exception e )
                 {

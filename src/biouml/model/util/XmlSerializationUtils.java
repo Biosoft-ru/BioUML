@@ -33,7 +33,7 @@ import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.ColorUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlStream;
 import ru.biosoft.util.XmlUtil;
 
@@ -402,7 +402,7 @@ public class XmlSerializationUtils extends DiagramXmlConstants
     }
     public static Brush readBrush(String value)
     {
-        String[] tokens = TextUtil.split( value, ';' );
+        String[] tokens = TextUtil2.split( value, ';' );
         if( tokens.length == 1 )
             return new Brush( ColorUtils.parsePaint( value ) );
         else if( tokens.length == 3 )
@@ -504,7 +504,7 @@ public class XmlSerializationUtils extends DiagramXmlConstants
     {
         if( value.isEmpty() )
             return new Pen();
-        String[] tokens = TextUtil.split(value, ';');
+        String[] tokens = TextUtil2.split(value, ';');
         Pen pen = new Pen(Float.parseFloat(tokens[0]));
         if( tokens.length > 1 )
         {

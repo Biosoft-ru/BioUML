@@ -21,7 +21,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.util.BeanAsMapUtil;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.OptionEx;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Base implementation of {@link AnalysisParameters}
@@ -161,7 +161,7 @@ public class AbstractAnalysisParameters extends OptionEx implements AnalysisPara
             if(value instanceof Wrapper)
                 value = ((Wrapper)value).unwrap();
             if(!property.getValueClass().isInstance(value))
-                value = TextUtil.fromString(property.getValueClass(), TextUtil.toString(value));
+                value = TextUtil2.fromString(property.getValueClass(), TextUtil2.toString(value));
             property.setValue(value);
         }
     }

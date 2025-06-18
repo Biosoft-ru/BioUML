@@ -35,7 +35,7 @@ import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.table.exception.TableNoColumnException;
 import ru.biosoft.util.Pair;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class FindFeedForwardLoops extends AnalysisMethodSupport<FindFeedForwardLoops.Parameters>
@@ -104,7 +104,7 @@ public class FindFeedForwardLoops extends AnalysisMethodSupport<FindFeedForwardL
         for(RowDataElement rde : table)
         {
             String stemLoop = rde.getName();
-            String[] matureList = TextUtil.split( rde.getValues()[0].toString(), ',');
+            String[] matureList = TextUtil2.split( rde.getValues()[0].toString(), ',');
             for(String mature : matureList)
                 result.computeIfAbsent( mature, k->new ArrayList<>() ).add( stemLoop );
         }

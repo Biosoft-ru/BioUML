@@ -7,7 +7,7 @@ import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.filter.Filter;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
@@ -15,7 +15,7 @@ import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.table.RowFilter;
 import ru.biosoft.table.TableDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 
 /**
@@ -49,7 +49,7 @@ public class DocumentProvider extends WebJSONProviderSupport
         }
         else if( action.equals("savecontent") )
         {
-            saveContent(arguments.getDataElementPath(), arguments.getDataElementPath("newPath"), TextUtil.stripUnicodeMagic(arguments.getString("content")));
+            saveContent(arguments.getDataElementPath(), arguments.getDataElementPath("newPath"), TextUtil2.stripUnicodeMagic(arguments.getString("content")));
             response.sendString("ok");
             return;
         }

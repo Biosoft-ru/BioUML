@@ -19,7 +19,7 @@ import org.semanticweb.owl.model.OWLOntology;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.font.ColorFont;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import uk.ac.manchester.cs.owl.OWLDataPropertyImpl;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -904,7 +904,7 @@ public class BioPAXReader_level2 extends BioPAXReader
         {
             return join(param.stream().map( BioPAXReader::toString )
                     .map( str -> str.replaceAll( "[^a-zA-Z0-9!@#$%^&*()\\?;=+',-:_<>.\"/\\\\]", " " ) )
-                    .filter( TextUtil::nonEmpty )
+                    .filter( TextUtil2::nonEmpty )
                     .sorted().toArray( String[]::new )).trim();
         }
         return "";

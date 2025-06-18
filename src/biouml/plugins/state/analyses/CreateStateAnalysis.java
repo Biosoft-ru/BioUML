@@ -8,7 +8,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.util.BeanUtil;
 import com.developmentontheedge.beans.util.Beans.ObjectPropertyAccessor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.standard.state.State;
@@ -39,7 +39,7 @@ public class CreateStateAnalysis extends AnalysisMethodSupport<CreateStateAnalys
     {
         DiagramElement bean = diagram.getDiagramElement( stateChange.getElementId() );
         ObjectPropertyAccessor accessor = BeanUtil.getBeanPropertyAccessor( bean, stateChange.getElementProperty() );
-        Object newValue = TextUtil.fromString( accessor.getType(), stateChange.getPropertyValue() );
+        Object newValue = TextUtil2.fromString( accessor.getType(), stateChange.getPropertyValue() );
         Object oldValue = accessor.get();
         return new StatePropertyChangeUndo( bean, stateChange.getElementProperty(), oldValue, newValue );
     }

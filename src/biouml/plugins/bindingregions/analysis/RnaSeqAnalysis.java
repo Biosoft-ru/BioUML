@@ -26,7 +26,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.access.repository.DataElementPathEditor;
@@ -35,7 +35,7 @@ import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.BasicGenomeSelector;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.util.ConstantResourceBundle;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.GenericMultiSelectEditor;
 
@@ -118,7 +118,7 @@ public class RnaSeqAnalysis extends AnalysisMethodSupport<RnaSeqAnalysis.RnaSeqA
         // 3.
         ids = dm.getRowNames();
         for( int i = 0; i < ids.length; i++ )
-            ids[i] = TextUtil.split(ids[i], '.')[0];
+            ids[i] = TextUtil2.split(ids[i], '.')[0];
         dm.replaceRowNames(ids);
         log.info("3. O.K. : Simplify transcript or gene IDs");
         

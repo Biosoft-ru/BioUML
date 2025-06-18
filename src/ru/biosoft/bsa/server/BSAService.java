@@ -70,7 +70,7 @@ import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.templates.TemplateInfo;
 import ru.biosoft.templates.TemplateRegistry;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BSAService extends ServiceSupport
 {
@@ -272,7 +272,7 @@ public class BSAService extends ServiceSupport
                 descriptor.put("class", property.getType().getName());
                 descriptors.put(property.getName(), descriptor);
             }
-            properties.put(property.getName(), TextUtil.toString(property.getValue()));
+            properties.put(property.getName(), TextUtil2.toString(property.getValue()));
         }
         siteJSON.put(properties);
         return siteJSON;
@@ -468,7 +468,7 @@ public class BSAService extends ServiceSupport
             while(matcher.find(start))
             {
                 html = html.substring( 0, matcher.start() ) + "<img" + matcher.group( 1 ) + " src=\"../biouml/web/img?id="
-                        + TextUtil.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\""
+                        + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\""
                         + html.substring( matcher.end() );
                 start = matcher.end();
                 matcher = pattern.matcher(html);

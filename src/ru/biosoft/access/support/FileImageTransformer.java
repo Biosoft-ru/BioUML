@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.imageio.IIOImage;
@@ -17,12 +20,13 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileTypePriority;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.ImageDataElement;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.core.PriorityTransformer;
 
 /**
  * {@link ImageDataElement} to {@link FileDataElement} transformer

@@ -1,0 +1,7 @@
+chr1	1
+chr2	2
+chr3	3
+chr4	4
+chr5	5
+chrC	Pt
+chrM	Mt

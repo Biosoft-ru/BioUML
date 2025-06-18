@@ -347,9 +347,9 @@
         outputClass="ru.biosoft.bsa.SiteModel" transformerClass="ru.biosoft.bsa.transformer.SiteModelTransformer"/>
       <transformer name="Frequency matrix" inputClass="ru.biosoft.access.Entry" 
         outputClass="ru.biosoft.bsa.analysis.FrequencyMatrix" transformerClass="ru.biosoft.bsa.transformer.WeightMatrixTransformer"/>
-      <transformer name="Filtered track" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Filtered track" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.bsa.analysis.FilteredTrack" transformerClass="ru.biosoft.access.XMLTransformer"/> 
-      <transformer name="Combined track" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Combined track" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.bsa.track.combined.CombinedTrack" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer"/>
   </extension> 
   
@@ -975,20 +975,45 @@
 
   
   <extension point="ru.biosoft.access.transformer">
-    <transformer name="BedFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="BedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.BedTrack" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" />
-    <transformer name="GFFFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="GFFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.GFFTrack" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" />
-    <transformer name="FastaFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="FastaFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.transformer.FastaSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer"/>
+   <transformer name="FastaSimpleFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.transformer.FastaSimpleSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.FastaSimpleFileTransformer"/> 
-    <transformer name="BAMFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="BAMFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BAMTrack" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer"/> 
-    <transformer name="VCFFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
-    <transformer name="BCFFile" inputClass="ru.biosoft.access.FileDataElement" 
+    <transformer name="VCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.VCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer"/> 
+    <transformer name="BCFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.BCFFileTrack" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer"/> 
-    <transformer name="GenebankFile" inputClass="ru.biosoft.access.FileDataElement" 
-      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/> 
+    <transformer name="GenebankFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.GenbankSequenceCollection" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer"/>
+    <transformer name="ChrNameMapping" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.ChrNameMapping" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer"/>
+    <transformer name="WiggleFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.WiggleFileTrack" transformerClass="ru.biosoft.bsa.transformer.WiggleFileTransformer"/> 
+    <transformer name="BigBedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.big.BigBedTrack" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer"/>
+    <transformer name="BigWigFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="BED track" extensions="bed" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" priority="20" description="BED track file"/>
+    <fileType name="GFF track" extensions="gff" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" priority="20" description="GFF track file"/>
+    <fileType name="ChrNameMappingFile" extensions="txt" transformerClass="ru.biosoft.bsa.transformer.ChrNameMappingTransformer" priority="2" description="ChrNameMapping file"/>
+    <fileType name="BAM track" extensions="bam;sam" transformerClass="ru.biosoft.bsa.transformer.BAMFileTransformer" priority="20" description="BAM track file"/>
+    <fileType name="Fasta with index file" extensions="fa;fasta;fna" transformerClass="ru.biosoft.bsa.transformer.FastaFileTransformer" priority="10" description="FASTA sequence collection"/>
+    <fileType name="Fasta" extensions="fa;fasta;fna" transformerClass="ru.biosoft.bsa.transformer.FastaSimpleFileTransformer" priority="20" description="FASTA sequence collection without indexes"/>
+    <fileType name="Wiggle track" extensions="wig" transformerClass="ru.biosoft.bsa.transformer.WiggleFileTransformer" priority="20" description="Wiggle track file"/>
+    <fileType name="VCF track" extensions="vcf" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer" priority="20" description="VCF track file"/>
+    <fileType name="BigBed track" extensions="bb;bigBed" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer" priority="20" description="BigBed track file"/>
+    <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
+    <fileType name="BCF track" extensions="bcf" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer" priority="20" description="BCF track file"/>
+    <fileType name="GenBank track" extensions="gb" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer" priority="20" description="BCF track file"/>
   </extension>
 
 </plugin>

@@ -12,16 +12,16 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
-import org.ensembl.driver.CoreDriver;
-import org.ensembl.driver.CoreDriverFactory;
+import com.developmentontheedge.beans.DynamicProperty;
 
-import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElementPath;
+import biouml.model.Module;
+import biouml.plugins.ensembl.type.Gene;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.SqlDataCollection;
-import ru.biosoft.access.exception.BiosoftSQLException;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementReadException;
-import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.access.exception.BiosoftSQLException;
 import ru.biosoft.access.sql.Connectors;
 import ru.biosoft.access.sql.Connectors.ConnectionInfo;
 import ru.biosoft.access.sql.SqlUtil;
@@ -33,12 +33,9 @@ import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SiteType;
 import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.TrackUtils;
+import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.util.HashMapSoftValues;
 import ru.biosoft.util.bean.StaticDescriptor;
-import biouml.model.Module;
-import biouml.plugins.ensembl.type.Gene;
-
-import com.developmentontheedge.beans.DynamicProperty;
 
 public class EnsemblGeneDataCollection extends SqlDataCollection<Gene>
 {
@@ -46,7 +43,7 @@ public class EnsemblGeneDataCollection extends SqlDataCollection<Gene>
      * Ensembl core driver that provides adaptors for accessing to ensembl core
      * databases.
      */
-    protected CoreDriver driver;
+    //protected CoreDriver driver;
 
     protected int size = -1;
 
@@ -85,8 +82,8 @@ public class EnsemblGeneDataCollection extends SqlDataCollection<Gene>
         {
             Properties moduleProperties = Module.getModule(this).getInfo().getProperties();
             ConnectionInfo connectionInfo = Connectors.getConnectionInfo( moduleProperties );
-            driver = CoreDriverFactory.createCoreDriver( connectionInfo.getHost(), connectionInfo.getPort(), connectionInfo.getDb(),
-                    connectionInfo.getUser(), connectionInfo.getPassword() );
+            //            driver = CoreDriverFactory.createCoreDriver( connectionInfo.getHost(), connectionInfo.getPort(), connectionInfo.getDb(),
+            //                    connectionInfo.getUser(), connectionInfo.getPassword() );
         }
         catch( Exception e )
         {
@@ -203,7 +200,7 @@ public class EnsemblGeneDataCollection extends SqlDataCollection<Gene>
                     .getDataElement( AnnotatedSequence.class ).getSequence();
             Site site = new SiteImpl( null, name, SiteType.TYPE_GENE, Basis.BASIS_ANNOTATED, strand == StrandType.STRAND_PLUS ? from : to,
                     to - from + 1, strand, sequence );
-            Gene gene = new Gene(this, name, site, driver);
+            Gene gene = new Gene( this, name, site );
             gene.setTitle(rs.getString(2));
             String description = rs.getString(3);
             if( description != null )
@@ -234,7 +231,7 @@ public class EnsemblGeneDataCollection extends SqlDataCollection<Gene>
     @Override
     public void close() throws Exception
     {
-        driver.closeAllConnections();
+        //driver.closeAllConnections();
         super.close();
     }
 

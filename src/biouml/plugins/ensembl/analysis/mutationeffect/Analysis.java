@@ -40,7 +40,7 @@ import ru.biosoft.bsa.VCFSqlTrack;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.util.Pair;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @ClassIcon ( "resources/mutation-effect.gif" )
 public class Analysis extends AnalysisMethodSupport<Parameters>
@@ -102,7 +102,7 @@ public class Analysis extends AnalysisMethodSupport<Parameters>
                                 "RefAllele or AltAllele properties not found, please use VCF (variant call format) file as input" );
                         return false;
                     }
-                    String[] altAllels = TextUtil.split( altAllelStr, ',' );
+                    String[] altAllels = TextUtil2.split( altAllelStr, ',' );
 
                     int start = element.getStart();
                     Collection<Translation> translations1 = index.getIntervals(start);//index.getIntervals(start, start + refAllel.length() - 1);

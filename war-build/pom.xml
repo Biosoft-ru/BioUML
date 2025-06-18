@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.biouml</groupId>
         <artifactId>biouml</artifactId>
-        <version>0.9.10</version>
+        <version>2025.2</version>
         <relativePath>../pom.xml</relativePath> <!-- Adjust the path to the parent POM -->
     </parent>
 

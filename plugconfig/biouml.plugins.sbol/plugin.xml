@@ -14,8 +14,13 @@
 	</extension>
 	
 	<extension point="ru.biosoft.access.transformer">
-      <transformer name="SBOL diagram" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="SBOL diagram" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.sbol.SbolDiagramTransformer" />
+    </extension>
+    
+    <extension point="ru.biosoft.access.fileType">
+        <fileType name="SBOL diagram" extensions="rdf;ttl;nt;jsonld;rj" transformerClass="biouml.plugins.sbol.SbolDiagramTransformer" priority="20" description="SBOL diagram"/>
+        <fileType name="SBOL diagram (xml)" extensions="xml" transformerClass="biouml.plugins.sbol.SbolDiagramTransformer" priority="7" description="SBOL diagram"/>
     </extension>
 	
 </plugin>

@@ -140,7 +140,7 @@ function doUpload()
 					fud.parent().remove();
                 });
         	fud.find('#fileRepo').click(function() {
-                createOpenElementsDialog(resources.dlgImportSelectFromRepo, "ru.biosoft.access.FileDataElement", [createPath(inputPath, "")], function(filePaths)
+                createOpenElementsDialog(resources.dlgImportSelectFromRepo, "ru.biosoft.access.file.FileDataElement", [createPath(inputPath, "")], function(filePaths)
                 {
                 	uploadsNumber = filePaths.length;
                 	for( var i = 0; i<uploadsNumber; i++ )

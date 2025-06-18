@@ -9,7 +9,7 @@ import ru.biosoft.bigbed.BedEntry;
 import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public abstract class BedEntryToDNaseCluster<T extends DNaseCluster> implements BedEntryConverter<T>
 {
@@ -44,7 +44,7 @@ public abstract class BedEntryToDNaseCluster<T extends DNaseCluster> implements 
         c.setFrom( e.start+1 );
         c.setTo( e.end );
         
-        String[] parts = TextUtil.split( e.getRest(), '\t' );
+        String[] parts = TextUtil2.split( e.getRest(), '\t' );
         parseRestString(c, parts);
         
         return c;

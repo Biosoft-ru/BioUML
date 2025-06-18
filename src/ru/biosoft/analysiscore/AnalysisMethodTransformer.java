@@ -4,9 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import ru.biosoft.access.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.analysiscore.AnalysisMethodElement;
+import ru.biosoft.access.file.AbstractFileTransformer;
 
 public class AnalysisMethodTransformer extends AbstractFileTransformer<AnalysisMethodElement>
 {

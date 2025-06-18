@@ -42,7 +42,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.sql.Connectors;
 import ru.biosoft.util.Maps;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 
 public class PathwayToUniprot extends TestCase
@@ -383,7 +383,7 @@ public class PathwayToUniprot extends TestCase
     {
         try(BufferedReader br = ApplicationUtils.utfReader( repositoryPath + "/" + name) )
         {
-            Map<String, Set<String>> name2uniprot = StreamEx.ofLines( br ).map( s -> TextUtil.split( s, '\t' ) )
+            Map<String, Set<String>> name2uniprot = StreamEx.ofLines( br ).map( s -> TextUtil2.split( s, '\t' ) )
                     .groupingBy( v -> v[0], Collectors.mapping( v -> v[1], Collectors.toSet() ) );
             return Maps.filterValues( name2uniprot, v -> v.size() > 20 ); // remove too big groups
         }
@@ -393,7 +393,7 @@ public class PathwayToUniprot extends TestCase
     {
         try(BufferedReader br = ApplicationUtils.utfReader( repositoryPath + "/" + name) )
         {
-            return StreamEx.ofLines( br ).map( s -> TextUtil.split( s.trim(), '\t' ) )
+            return StreamEx.ofLines( br ).map( s -> TextUtil2.split( s.trim(), '\t' ) )
                     .groupingBy( v -> v[1], Collectors.mapping( v -> v[0], Collectors.toSet() ) );
         }
     }
@@ -402,7 +402,7 @@ public class PathwayToUniprot extends TestCase
     {
         try(BufferedReader br = ApplicationUtils.utfReader( repositoryPath + "/" + name) )
         {
-            return StreamEx.ofLines(br).map( s -> TextUtil.split( s.trim(), '\t' ) )
+            return StreamEx.ofLines(br).map( s -> TextUtil2.split( s.trim(), '\t' ) )
                     .toMap( v -> "path:hsa" + v[0], v -> v[1] );
         }
     }

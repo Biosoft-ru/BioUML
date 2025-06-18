@@ -16,7 +16,7 @@ import com.developmentontheedge.beans.DynamicPropertySetAsMap;
 import biouml.plugins.riboseq.ingolia.svmlight.SVMLightPredict;
 import biouml.plugins.riboseq.transcripts.Transcript;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.bsa.AminoAcidsAlphabet;

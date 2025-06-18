@@ -88,16 +88,6 @@ mvn -N install:install-file \
   -Dfile=plugconfig/biouml.plugins.chipmunk/chipmunk.jar \
   -DgeneratePom=true
 
-## ensj
-
-mvn -N install:install-file \
-  -DgroupId=org.ensembl \
-  -DartifactId=ensj \
-  -Dversion=39.2 \
-  -Dpackaging=jar \
-  -Dfile=plugins/org.ensembl.ensj_39.2/ensj-39.2.jar \
-  -DgeneratePom=true
-
 ## jdbm
 
 mvn -N install:install-file \
@@ -211,7 +201,7 @@ mvn -N install:install-file \
   -DartifactId=physicell \
   -Dversion=1.0-SNAPSHOT \
   -Dpackaging=jar \
-  -Dfile=plugins/ru.biosoft.physicell_0.9.10.jar \
+  -Dfile=plugins/ru.biosoft.physicell_2025.2.jar \
   -DgeneratePom=true
 
 ## BeakerX

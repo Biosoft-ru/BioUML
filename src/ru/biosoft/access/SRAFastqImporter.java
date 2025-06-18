@@ -29,6 +29,7 @@ import ru.biosoft.access.core.DataElementImporter;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.core.MessageBundle;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.util.OptionEx;

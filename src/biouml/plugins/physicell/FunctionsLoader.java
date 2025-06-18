@@ -21,7 +21,7 @@ import ru.biosoft.util.TempFiles;
 
 public class FunctionsLoader
 {
-    private static String LIBRARY_NAME = "ru.biosoft.physicell_0.9.10.jar";
+    private static String LIBRARY_NAME = "ru.biosoft.physicell_2025.2.jar";
 
     public static <T> T load(DataElementPath dep, Class<T> c, Logger log) throws Exception
     {

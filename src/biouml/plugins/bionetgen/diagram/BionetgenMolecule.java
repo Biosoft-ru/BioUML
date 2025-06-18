@@ -11,7 +11,7 @@ import one.util.streamex.StreamEx;
 
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.util.ObjectCache;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BionetgenMolecule implements Comparable<BionetgenMolecule>, Cloneable
 {
@@ -29,7 +29,7 @@ public class BionetgenMolecule implements Comparable<BionetgenMolecule>, Cloneab
     public BionetgenMolecule(BionetgenSpeciesGraph speciesGraph, String molecule)
     {
         this.speciesGraph = speciesGraph;
-        String[] specieParts = TextUtil.split(molecule, '(');
+        String[] specieParts = TextUtil2.split(molecule, '(');
         String tail = "";
 
         if( specieParts.length > 2 )
@@ -47,12 +47,12 @@ public class BionetgenMolecule implements Comparable<BionetgenMolecule>, Cloneab
             }
             else
             {
-                String[] speciePart = TextUtil.split(specieParts[1], ')');
+                String[] speciePart = TextUtil2.split(specieParts[1], ')');
                 if( speciePart.length > 2 )
                     throw new IllegalArgumentException("Invalid molecule format (too many left parentheses): '" + molecule + "'");
                 if( speciePart.length == 2 && !speciePart[1].isEmpty() )
                     tail = speciePart[1];
-                String components[] = TextUtil.split(speciePart[0], ',');
+                String components[] = TextUtil2.split(speciePart[0], ',');
                 for( String component : components )
                 {
                     try

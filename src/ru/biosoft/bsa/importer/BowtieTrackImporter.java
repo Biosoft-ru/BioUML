@@ -27,7 +27,7 @@ public class BowtieTrackImporter extends TrackImporter
         String readName = fields[0];
         int strand = fields[1].equals("+") ? StrandType.STRAND_PLUS : fields[1].equals("-") ? StrandType.STRAND_MINUS
                 : StrandType.STRAND_NOT_KNOWN;
-        String referenceSequenceName = normalizeChromosome(fields[2]);
+        String referenceSequenceName = normalizeChromosome( fields[2], true );
         int zeroBasedOffset;
         try
         {

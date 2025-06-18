@@ -1,0 +1,4 @@
+chrI	I
+chrII	II
+chrIII	III
+chrMt	MT

@@ -16,7 +16,7 @@ import biouml.model.Diagram;
 import biouml.model.xml.XmlDiagramType;
 import biouml.plugins.sbgn.SBGNXmlReader;
 import biouml.plugins.sbgn.SBGNXmlWriter;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.util.DPSUtils;

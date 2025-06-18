@@ -59,7 +59,7 @@ import ru.biosoft.graphics.PolygonView;
 import ru.biosoft.graphics.SimplePath;
 import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.View;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class WorkflowDiagramViewBuilder extends DefaultDiagramViewBuilder
 {
@@ -328,7 +328,7 @@ public class WorkflowDiagramViewBuilder extends DefaultDiagramViewBuilder
                 ComponentModel paramsModel = ComponentFactory.getModel( parameters );
                 Property property = paramsModel;
                 String propertyName = node.getName().replace( ':', '/' );
-                for( String propertyPart : TextUtil.split( propertyName, '/' ) )
+                for( String propertyPart : TextUtil2.split( propertyName, '/' ) )
                 {
                     property = property.findProperty( propertyPart );
                 }

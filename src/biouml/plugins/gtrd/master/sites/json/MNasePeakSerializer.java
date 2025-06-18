@@ -11,7 +11,7 @@ import biouml.plugins.gtrd.MNaseExperiment;
 import biouml.plugins.gtrd.master.sites.mnase.Danpos2MNasePeak;
 import biouml.plugins.gtrd.master.sites.mnase.MNasePeak;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class MNasePeakSerializer extends GenomeLocationSerializer<MNasePeak>
 {
@@ -69,7 +69,7 @@ public class MNasePeakSerializer extends GenomeLocationSerializer<MNasePeak>
 
     private void parseId(String idString, JsonParser parser) throws IOException
     {
-        String[] parts = TextUtil.split(idString, '.');
+        String[] parts = TextUtil2.split(idString, '.');
         
         String peakCaller = parts[2];
         if(!peakCaller.equals( Danpos2MNasePeak.PEAK_CALLER ))

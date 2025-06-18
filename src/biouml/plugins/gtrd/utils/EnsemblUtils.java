@@ -30,7 +30,7 @@ import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.SequenceRegion;
 import ru.biosoft.bsa.StrandType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author yura
@@ -95,11 +95,11 @@ public class EnsemblUtils
             String[] exonNames = new String[exons.length];
             for( String exon : exons )
             {
-                String[] array = TextUtil.split(exon, ';');
+                String[] array = TextUtil2.split(exon, ';');
                 int index = Integer.parseInt(array[1]) - 1;
-                array = TextUtil.split(array[0], ':');
+                array = TextUtil2.split(array[0], ':');
                 exonNames[index] = array[0];
-                array = TextUtil.split(array[1], '-');
+                array = TextUtil2.split(array[1], '-');
                 exonPositions[index] = new Interval(Integer.parseInt(array[0]), Integer.parseInt(array[1]));
             }
             
@@ -107,7 +107,7 @@ public class EnsemblUtils
             String cds = (String)transcript.getAttributes().getValue("cds");
             if( cds != null )
             {
-                String[] array = TextUtil.split(cds, ' '), subarray1 = TextUtil.split(array[0], ':'), subarray2 = TextUtil.split(array[1], ':');
+                String[] array = TextUtil2.split(cds, ' '), subarray1 = TextUtil2.split(array[0], ':'), subarray2 = TextUtil2.split(array[1], ':');
                 String name1 = subarray1[0], name2 = subarray2[0];
                 int pos1 = Integer.parseInt(subarray1[1]), pos2 = Integer.parseInt(subarray2[1]);
                 for( int i = 0; i < exonPositions.length; i++ )

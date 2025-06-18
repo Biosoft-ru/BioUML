@@ -1,7 +1,7 @@
 package ru.biosoft.access._test;
 
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.repository.IconFactory;
 

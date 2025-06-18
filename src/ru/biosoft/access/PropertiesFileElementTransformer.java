@@ -8,10 +8,11 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.exception.BiosoftCustomException;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.PropertyInfo;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentModel;
@@ -49,7 +50,7 @@ public class PropertiesFileElementTransformer extends AbstractFileTransformer<Da
         for(Entry<Object, Object> entry: properties.entrySet())
         {
             Property property = model.findProperty(entry.getKey().toString());
-            if(property != null) property.setValue(TextUtil.fromString(property.getValueClass(), entry.getValue().toString()));
+            if(property != null) property.setValue(TextUtil2.fromString(property.getValueClass(), entry.getValue().toString()));
         }
         return result;
     }
@@ -63,7 +64,7 @@ public class PropertiesFileElementTransformer extends AbstractFileTransformer<Da
         {
             Property property = model.findProperty(info.getName());
             if(property != null)
-                properties.setProperty(info.getName(), TextUtil.toString(property.getValue()));
+                properties.setProperty(info.getName(), TextUtil2.toString(property.getValue()));
         }
         properties.setProperty(DataCollectionConfigConstants.CLASS_PROPERTY, element.getClass().getName());
         ExProperties.store(properties, output);

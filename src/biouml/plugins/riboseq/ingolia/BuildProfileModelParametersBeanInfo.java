@@ -1,6 +1,6 @@
 package biouml.plugins.riboseq.ingolia;
 
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.repository.DataElementPathEditor;
 import ru.biosoft.table.TableDataCollection;
 

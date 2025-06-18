@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="Nextflow script" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Nextflow script" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.plugins.nextflow.NextflowScript" transformerClass="biouml.plugins.nextflow.NextflowScriptTransformer"/> 
-      <!--transformer name="WDL diagram" inputClass="ru.biosoft.access.FileDataElement"
+      <!--transformer name="WDL diagram" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.wdl.diagram.WDLDiagramTransformer"/--> 
   </extension>
 

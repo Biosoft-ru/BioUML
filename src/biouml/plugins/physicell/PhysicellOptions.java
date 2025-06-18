@@ -10,16 +10,21 @@ import ru.biosoft.physicell.core.CellContainerParallel;
 
 public class PhysicellOptions extends Options
 {
+    public static String DEFAULT_MODEL = "Default";
+    public static String COVID_MODEL = "Covid";
+    private String modelType = DEFAULT_MODEL;
+    
     private DataElementPath resultPath;
     private double finalTime = 100;
-    private boolean saveReport = true;
+    private boolean saveReport = false;
     private boolean saveDensity = true;
     private double reportInterval = 10;
+    private boolean savePlots = false;
     private boolean saveImage = false;
-    private boolean saveCellsText = false;
-    private boolean saveCellsTable = true;
+    private boolean saveCellsText = true;
+    private boolean saveCellsTable = false;
     private boolean saveGIF = false;
-    private boolean saveVideo = true;
+    private boolean saveVideo = false;
     private boolean parallelDiffusion = false;
 
     private String cellUpdateType = CellContainerParallel.PARALLEL_CONTAINER_NAME;
@@ -64,6 +69,17 @@ public class PhysicellOptions extends Options
         this.saveReport = saveReport;
     }
     
+    @PropertyName ( "Save plots" )
+    public boolean isSavePlots()
+    {
+        return savePlots;
+    }
+    public void setSavePlots(boolean savePlots)
+    {
+        this.savePlots = savePlots;
+    }
+    
+    
     @PropertyName ( "Save density" )
     public boolean isSaveDensity()
     {
@@ -102,6 +118,16 @@ public class PhysicellOptions extends Options
     public void setSaveCellsText(boolean saveCellsText)
     {
         this.saveCellsText = saveCellsText;
+    }
+    
+    @PropertyName ( "Model type" )
+    public String getModelType()
+    {
+        return modelType;
+    }
+    public void setModelType(String type)
+    {
+        this.modelType = type;
     }
     
     @PropertyName ( "Save cells data as table" )

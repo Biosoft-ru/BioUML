@@ -64,7 +64,7 @@ import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.BeanAsMapUtil;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Engine for workflow execution.
@@ -625,7 +625,7 @@ public class WorkflowEngine implements JobControlListener
         String serialized;
         try
         {
-            serialized = TextUtil.writeDPSToJSON(parameters);
+            serialized = TextUtil2.writeDPSToJSON(parameters);
         }
         catch( Exception e1 )
         {

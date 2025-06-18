@@ -5,14 +5,22 @@
   <extension-point name="%method" id="method"/>
 
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="Optimization document" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="Optimization document" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="biouml.plugins.optimization.Optimization" transformerClass="biouml.plugins.optimization.access.OptimizationTransformer"/> 
-      <transformer name="Simulation result" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Simulation result" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.standard.simulation.SimulationResult" transformerClass="biouml.standard.simulation.access.SimulationResultTransformer"/> 
-      <transformer name="Plot" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="Plot" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="biouml.standard.simulation.plot.Plot" transformerClass="biouml.standard.simulation.plot.access.PlotTransformer"/> 
-      <transformer name="Stochastic Simulation result" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Stochastic Simulation result" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.standard.simulation.StochasticSimulationResult" transformerClass="biouml.standard.simulation.access.stochastic.StochasticSimulationResultTransformer"/>  
+  </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Optimization document" extensions="opt" transformerClass="biouml.plugins.optimization.access.OptimizationTransformer" priority="20" description="Optimization document file"/>
+    <fileType name="Simulation result" extensions="sres" transformerClass="biouml.standard.simulation.access.SimulationResultTransformer" priority="20" description="Simulation result file"/>
+    <fileType name="Simulation plot" extensions="plot" transformerClass="biouml.standard.simulation.plot.access.PlotTransformer" priority="20" description="Simulation plot file"/>
+    <fileType name="Stochastic simulation result" extensions="ssres" transformerClass="biouml.standard.simulation.access.stochastic.StochasticSimulationResultTransformer" 
+        priority="20" description="Stochastic simulation result file"/>
   </extension>
   
   <extension id="Parameter fitting" point="ru.biosoft.analysiscore.method">

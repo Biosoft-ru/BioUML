@@ -33,7 +33,7 @@ import ru.biosoft.bsa.analysis.LogWeightMatrixModel;
 import ru.biosoft.bsa.analysis.MatchSiteModel;
 import ru.biosoft.bsa.analysis.WeightMatrixModel;
 import ru.biosoft.util.ExProperties;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class SiteModelTransformer extends AbstractTransformer<Entry, SiteModel>
 {
@@ -134,7 +134,7 @@ public class SiteModelTransformer extends AbstractTransformer<Entry, SiteModel>
             }
             else if( tag.equals(THRESHOLD_TEMPLATE) )
             {
-                String[] fields = TextUtil.split(value, ':');
+                String[] fields = TextUtil2.split(value, ':');
                 if( fields.length == 2 )
                 {
                     try

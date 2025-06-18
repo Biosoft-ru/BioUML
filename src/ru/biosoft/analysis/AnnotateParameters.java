@@ -20,7 +20,7 @@ import ru.biosoft.journal.ProjectUtils;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.PropertyInfo;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @SuppressWarnings ( "serial" )
 public class AnnotateParameters extends AbstractAnalysisParameters implements PropertyChangeListener
@@ -185,7 +185,7 @@ public class AnnotateParameters extends AbstractAnalysisParameters implements Pr
         String annotationColumnsStr = properties.getProperty(prefix + "annotationColumns");
         if( annotationColumnsStr != null )
         {
-            setAnnotationColumnKeys( TextUtil.split( annotationColumnsStr, ';' ) );
+            setAnnotationColumnKeys( TextUtil2.split( annotationColumnsStr, ';' ) );
         }
     }
 

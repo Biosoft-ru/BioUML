@@ -118,7 +118,10 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
         emodel.addPropertyChangeListener( this );
 
         engineTab = new EngineTab( model, document );
-        plotTab = emodel instanceof EModel ? new PlotTab( model ) : null;
+        
+        Object plot = DiagramUtility.getPreferredEngine( (Diagram)model ).getPlotsBean( (Diagram)model );
+        
+        plotTab = plot != null? new PlotTab( plot ) : null;
         initTabbedPane( model, document );
     }
 
@@ -128,6 +131,8 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
 
         tabbedPane.addTab( "Engine", engineTab.getView() );
 
+     
+        
         if( plotTab != null )
             tabbedPane.addTab( "Plots", plotTab.getView() );
 
@@ -171,29 +176,34 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
 
         public PlotTab(Object model)
         {
-            if( model instanceof Diagram )
-                this.emodel = ( (Diagram)model ).getRole( EModel.class );
-            {
-                try
-                {
-                    Object plotsObj = emodel.getParent().getAttributes().getValue( PLOTS );
-
-                    if( ! ( plotsObj instanceof PlotsInfo ) )
-                    {
-                        plot = new PlotsInfo( emodel );
-                        emodel.getParent().getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( PLOTS, PlotsInfo.class, plot ) );
-                    }
-                    else
-                        plot = (PlotsInfo)plotsObj;
-
-                    inspector.explore( plot );
-
-                }
-                catch( Exception e )
-                {
-                    Logger.getLogger( getClass().getName() ).log( Level.SEVERE, "Can not explore plots for diagram " + model, e );
-                }
-            }
+//            Object plot = null;
+//            if( model instanceof Diagram )
+//                plot = DiagramUtility.getPreferredEngine( (Diagram)model ).getPlotsBean( (Diagram)model );
+//
+//            if( plot != null )
+                inspector.explore( model );
+//                this.emodel = ( (Diagram)model ).getRole( EModel.class );
+//            {
+//                try
+//                {
+//                    Object plotsObj = emodel.getParent().getAttributes().getValue( PLOTS );
+//
+//                    if( ! ( plotsObj instanceof PlotsInfo ) )
+//                    {
+//                        plot = new PlotsInfo( emodel );
+//                        emodel.getParent().getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( PLOTS, PlotsInfo.class, plot ) );
+//                    }
+//                    else
+//                        plot = (PlotsInfo)plotsObj;
+////Object plot = 
+//                    inspector.explore( plot );
+//
+//                }
+//                catch( Exception e )
+//                {
+//                    Logger.getLogger( getClass().getName() ).log( Level.SEVERE, "Can not explore plots for diagram " + model, e );
+//                }
+//            }
         }
 
         @Override

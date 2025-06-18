@@ -32,7 +32,7 @@ import ru.biosoft.access.security.NetworkDataCollection;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.plugins.graph.GraphPlugin;
 import ru.biosoft.plugins.graph.LayouterDescriptor;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -638,7 +638,7 @@ public class Diagram extends Compartment
 
     public void setDescription(String description)
     {
-        ( (Referrer)getKernel() ).setDescription( TextUtil.nullToEmpty( description ) );
+        ( (Referrer)getKernel() ).setDescription( TextUtil2.nullToEmpty( description ) );
         try
         {
             getCompletePath().save( this );

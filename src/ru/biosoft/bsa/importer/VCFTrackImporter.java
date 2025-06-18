@@ -25,7 +25,7 @@ import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.VCFSqlTrack;
 import ru.biosoft.bsa.WritableTrack;
 import ru.biosoft.jobcontrol.FunctionJobControl;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -39,12 +39,12 @@ public class VCFTrackImporter extends TrackImporter
     protected static final Pattern NUCLEOTIDE_PATTERN = Pattern.compile("[actgn]+|\\.", Pattern.CASE_INSENSITIVE);
     public static final String VCF_FORMAT_PREFIX = "Format_";
 
-    protected void putParameter(Properties parameters, String id, String s)
+    protected static void putParameter(Properties parameters, String id, String s)
     {
         putParameter( parameters, id, s, false );
     }
 
-    protected void putParameter(Properties parameters, String id, String s, boolean putEmpty)
+    protected static void putParameter(Properties parameters, String id, String s, boolean putEmpty)
     {
         if(s != null && !s.isEmpty() && !s.equals("."))
             parameters.put(id, s);
@@ -54,7 +54,7 @@ public class VCFTrackImporter extends TrackImporter
 
     private final Map<String, String> formatTypeMap = new HashMap<>();
     private final Map<String, String> infoTypeMap = new HashMap<>();
-    private List<String> sampleIdsList;
+    private List<String> sampleIdsList = new ArrayList<>();
 
     //store current file for logging issues
     private String curFile = "";
@@ -71,9 +71,14 @@ public class VCFTrackImporter extends TrackImporter
     @Override
     protected Site parseLine(String line)
     {
-        String[] fields = TextUtil.split(line, '\t');
+        return parseLine( line, infoTypeMap, sampleIdsList, formatTypeMap, true );
+    }
+
+    public static Site parseLine(String line, Map<String, String> infoTypeMap, List<String> sampleIdsList, Map<String, String> formatTypeMap, boolean normalizeChromosome)
+    {
+        String[] fields = TextUtil2.split(line, '\t');
         if(fields.length < 8) return null;
-        String chr = normalizeChromosome(fields[0]);
+        String chr = normalizeChromosome( fields[0], normalizeChromosome );
         int start;
         try
         {
@@ -107,7 +112,7 @@ public class VCFTrackImporter extends TrackImporter
             return null;
         int length = refAllele.length();
         putParameter( parameters, "RefAllele", refAllele, true );
-        for(String info: TextUtil.split( fields[7], ';' ))
+        for(String info: TextUtil2.split( fields[7], ';' ))
         {
             int pos = info.indexOf("=");
             if(pos > 0)
@@ -132,12 +137,12 @@ public class VCFTrackImporter extends TrackImporter
         }
         if(fields.length > 9)
         {
-            String[] formatFields = TextUtil.split( fields[8], ':' );
+            String[] formatFields = TextUtil2.split( fields[8], ':' );
             for( int j = 0; j < fields.length - 9; j++ )
             {
 
-                String[] formatValues = TextUtil.split( fields[j + 9], ':' );
-                String sampleName = ( sampleIdsList.size() > j ) ? sampleIdsList.get( j ) : j + "";
+                String[] formatValues = TextUtil2.split( fields[j + 9], ':' );
+                String sampleName = (sampleIdsList.size() > j) ? sampleIdsList.get( j ) : j + "";
                 for( int i = 0; i < Math.min( formatFields.length, formatValues.length ); i++ )
                 {
                     String fieldType = formatTypeMap.getOrDefault( formatFields[i], null );
@@ -163,8 +168,14 @@ public class VCFTrackImporter extends TrackImporter
     @Override
     protected boolean isComment(String line)
     {
+        return isComment( line, importerProperties != null ? importerProperties.getTrackProperties() : null, infoTypeMap, sampleIdsList, formatTypeMap, curFile );
+    }
+
+    public static boolean isComment(String line, Properties properties, Map<String, String> infoTypeMap, List<String> sampleIdsList, Map<String, String> formatTypeMap,
+            String curFile)
+    {
         //##INFO=<ID=AD,Number=2,Type=Integer,Description="Allelic depth for the ref and alt alleles in the order listed">
-        if(line.startsWith("##INFO=<") && importerProperties != null)
+        if( line.startsWith( "##INFO=<" ) && properties != null )
         {
             try
             {
@@ -181,7 +192,7 @@ public class VCFTrackImporter extends TrackImporter
                             insideDescription = false;
                         continue;
                     }
-                    String[] fields = TextUtil.split( infoField, '=' );
+                    String[] fields = TextUtil2.split( infoField, '=' );
                     if( fields[0].equals( "ID" ) )
                         id = fields[1];
                     else if( fields[0].equals( "Type" ) )
@@ -199,8 +210,8 @@ public class VCFTrackImporter extends TrackImporter
                 if( id != null && type != null )
                 {
                     if( description != null && !description.isEmpty()
-                            && !importerProperties.getTrackProperties().containsKey( "Info_" + id ) )
-                        importerProperties.getTrackProperties().setProperty( "Info_" + id, type + ":" + description );
+                            && !properties.containsKey( "Info_" + id ) )
+                        properties.setProperty( "Info_" + id, type + ":" + description );
 
                     //TODO: do something with multiple numbers (e.g. comma-separated)
                     if( saveType( type ) && "1".equals( number ) )
@@ -212,7 +223,7 @@ public class VCFTrackImporter extends TrackImporter
             }
         }
         //##FILTER=<ID=noisy_intronic_variant,Description="Noisy Intronic Variant, by someone">
-        else if( line.startsWith( "##FILTER=<" ) && importerProperties != null )
+        else if( line.startsWith( "##FILTER=<" ) && properties != null )
         {
             try
             {
@@ -228,7 +239,7 @@ public class VCFTrackImporter extends TrackImporter
                             insideDescription = false;
                         continue;
                     }
-                    String[] fields = TextUtil.split( filterField, '=' );
+                    String[] fields = TextUtil2.split( filterField, '=' );
                     if( fields[0].equals( "ID" ) )
                         id = fields[1];
                     else if( fields[0].equals( "Description" ) )
@@ -238,10 +249,10 @@ public class VCFTrackImporter extends TrackImporter
                             insideDescription = true;
                     }
                 }
-                String description = removeQuotes( descriptionSB.toString(), "Invalid 'Description' format in FILTER" );
-                if( id != null && description != null && !importerProperties.getTrackProperties().containsKey( "Filter_" + id ) )
+                String description = removeQuotes( descriptionSB.toString(), "Invalid 'Description' format in FILTER", curFile );
+                if( id != null && description != null && !properties.containsKey( "Filter_" + id ) )
                 {
-                    importerProperties.getTrackProperties().setProperty( "Filter_" + id, description );
+                    properties.setProperty( "Filter_" + id, description );
                 }
             }
             catch( Exception e )
@@ -250,7 +261,7 @@ public class VCFTrackImporter extends TrackImporter
         }
         //##contig=<ID=chrY,length=59373566>
         //##contig=<ID=chr1_gl000191_random,length=106433>
-        else if( line.startsWith( "##contig=<" ) && importerProperties != null )
+        else if( line.startsWith( "##contig=<" ) && properties != null )
         {
             try
             {
@@ -258,15 +269,15 @@ public class VCFTrackImporter extends TrackImporter
                 String length = null;
                 for( String contigField : line.substring( "##contig=<".length(), line.length() - 1 ).split( "," ) )
                 {
-                    String[] fields = TextUtil.split( contigField, '=' );
+                    String[] fields = TextUtil2.split( contigField, '=' );
                     if( fields[0].equals( "ID" ) )
                         id = fields[1];
                     else if( fields[0].equals( "length" ) )
                         length = fields[1];
                 }
-                if( id != null && length != null && !importerProperties.getTrackProperties().containsKey( "contig_" + id ) )
+                if( id != null && length != null && !properties.containsKey( "contig_" + id ) )
                 {
-                    importerProperties.getTrackProperties().setProperty( "contig_" + id, length );
+                    properties.setProperty( "contig_" + id, length );
                 }
             }
             catch( Exception e )
@@ -275,7 +286,7 @@ public class VCFTrackImporter extends TrackImporter
         }
         //##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
         //##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
-        else if( line.startsWith( "##FORMAT=<" ) && importerProperties != null )
+        else if( line.startsWith( "##FORMAT=<" ) && properties != null )
         {
             try
             {
@@ -284,7 +295,7 @@ public class VCFTrackImporter extends TrackImporter
                 String number = null;
                 for( String contigField : line.substring( "##FORMAT=<".length(), line.length() - 1 ).split( "," ) )
                 {
-                    String[] fields = TextUtil.split( contigField, '=' );
+                    String[] fields = TextUtil2.split( contigField, '=' );
                     if( fields[0].equals( "ID" ) )
                         id = fields[1];
                     else if( fields[0].equals( "Type" ) )
@@ -297,8 +308,8 @@ public class VCFTrackImporter extends TrackImporter
                     if( "1".equals( number ) )
                         formatTypeMap.put( id, type );
 
-                    if( !importerProperties.getTrackProperties().containsKey( VCF_FORMAT_PREFIX + id ) )
-                        importerProperties.getTrackProperties().setProperty( VCF_FORMAT_PREFIX + id, type );
+                    if( !properties.containsKey( VCF_FORMAT_PREFIX + id ) )
+                        properties.setProperty( VCF_FORMAT_PREFIX + id, type );
                 }
             }
             catch( Exception e )
@@ -309,12 +320,11 @@ public class VCFTrackImporter extends TrackImporter
         //#CHROM POS ID REF ALT QUAL FILTER INFO
         else if( line.startsWith( "#CHROM" ) )
         {
-            String[] fields = TextUtil.split( line, '\t' );
+            String[] fields = TextUtil2.split( line, '\t' );
             if( fields.length > 8 )
             {
                 if( fields[8].equals( "FORMAT" ) )
                 {
-                    sampleIdsList = new ArrayList<>();
                     for( int i = 9; i < fields.length; i++ )
                     {
                         sampleIdsList.add( fields[i] );
@@ -326,7 +336,7 @@ public class VCFTrackImporter extends TrackImporter
         return line.startsWith("#");
     }
 
-    protected Object getValueWithRealType(String value, String type)
+    protected static Object getValueWithRealType(String value, String type)
     {
         try
         {
@@ -346,13 +356,13 @@ public class VCFTrackImporter extends TrackImporter
         return value;
     }
 
-    private boolean saveType(String type)
+    private static boolean saveType(String type)
     {
         return TYPE_INTEGER.equals( type ) || TYPE_FLOAT.equals( type );
     }
 
     //TODO: the better idea is to fail instead of logging
-    private String removeQuotes(String quotedValue, String msgPrefix)
+    private static String removeQuotes(String quotedValue, String msgPrefix, String curFile)
     {
         String result = quotedValue;
         if( result.isEmpty() )

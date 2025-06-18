@@ -1,0 +1,77 @@
+#####################################################################################
+#####################################CONSTANTS########################################
+#######################################################################################
+#set ($BR = "
+")
+#set ($INDENT = "  ")
+#set ($QUOTE = '"')
+#######################################################################################
+#####################################MACROS############################################
+#######################################################################################
+#macro(comma $list)
+#if($velocityCount < $list.size()),#end
+#end
+version $helper.getVersion()$BR
+#######################################################################################
+#######################################TASKS###########################################
+#######################################################################################
+#foreach( $task in $helper.getTasks())
+task $task.getName() {
+#set ($inputs = $helper.getInputs($task))
+#if ($inputs.size() > 0)
+  input {
+#foreach( $input in $inputs )
+    $helper.getDeclaration($input)
+#end
+  }$BR
+#end
+#set ($runtime = $helper.getRuntime($task))
+#if ($runtime.size() > 0)
+  runtime {
+#foreach($prop in $runtime.entrySet())
+    $prop.getKey():$QUOTE$prop.getValue()$QUOTE
+#end
+  }$BR
+#end
+  command {
+     $helper.getCommand($task).trim()
+  }$BR
+#set ($outputs = $helper.getOutputs($task))
+#if ($outputs.size() > 0)
+  output {
+#foreach( $output in $outputs )
+    $helper.getDeclaration($output)
+#end
+  }
+#end
+}$BR
+#end
+#######################################################################################
+###################################WORKFLOW############################################
+#######################################################################################
+workflow $helper.getName() {
+#set ($externalParameters = $helper.getExternalParameters())
+#if ($externalParameters.size() > 0)
+  input {
+#foreach( $externalParameter in $externalParameters )
+    $helper.getDeclaration($externalParameter)
+#end
+  }$BR
+#end
+#foreach( $call in $helper.getCalls())
+  call $helper.getTaskRef($call) {
+#set ($inputs = $helper.getInputs($call))
+#if ($inputs.size()> 0)
+     input: #foreach($input in $inputs) $helper.getName($input)#comma($inputs)#end
+#end
+  }$BR
+#end
+#set ($externalOutputs = $helper.getExternalOutputs())
+#if ($externalOutputs.size() > 0)
+  output {
+#foreach( $externalOutput in $externalOutputs )
+    $helper.getDeclaration($externalOutput)
+#end
+  }
+#end
+}

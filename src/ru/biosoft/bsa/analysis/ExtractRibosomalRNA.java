@@ -12,7 +12,7 @@ import java.util.List;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.sql.Query;
 import ru.biosoft.access.sql.SqlConnectionPool;
 import ru.biosoft.access.sql.SqlUtil;

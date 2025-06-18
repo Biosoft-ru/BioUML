@@ -15,7 +15,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.tasks.StubJobControl;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.util.LimitedTextBuffer;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
@@ -99,7 +99,7 @@ public class WebJob
     public static Object getJobData(String completePath)
     {
         if(!completePath.startsWith(JOB_DATA_PREFIX)) return null;
-        String[] components = TextUtil.split( completePath, '/' );
+        String[] components = TextUtil2.split( completePath, '/' );
         try
         {
             TaskInfo taskInfo = getWebJob(components[1]).getTask();

@@ -27,7 +27,7 @@ public class GTFTrackImporter extends TrackImporter
         if( fields.length < 5 )
             return null;
         
-        String sequence = normalizeChromosome(fields[0]);
+        String sequence = normalizeChromosome( fields[0], true );
         if(sequence.startsWith(" ")) return null;
         
         String strand = fields.length < 7 ? "" : fields[6];

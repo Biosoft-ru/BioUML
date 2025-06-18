@@ -7,7 +7,7 @@ import ru.biosoft.bigbed.BedEntry;
 import ru.biosoft.bigbed.ChromInfo;
 import ru.biosoft.bsa.track.big.BedEntryConverter;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BedEntryToPerCellCluster implements BedEntryConverter<PerCellCluster>
 {
@@ -26,7 +26,7 @@ public class BedEntryToPerCellCluster implements BedEntryConverter<PerCellCluste
         res.setChr( chrName );
         res.setFrom( e.start+1 );
         res.setTo( e.end );
-        String[] parts = TextUtil.split( e.getRest(), '\t' );
+        String[] parts = TextUtil2.split( e.getRest(), '\t' );
         res.setMasterSiteId( parts[0] );
         res.setSummit( Integer.parseInt( parts[1] ) );
         res.chipSeqExpCount = Integer.parseInt( parts[2] );

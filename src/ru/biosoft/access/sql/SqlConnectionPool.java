@@ -20,7 +20,7 @@ import ru.biosoft.exception.LoggedException;
 import ru.biosoft.access.exception.BiosoftSQLException;
 import ru.biosoft.access.security.SessionThread;
 import ru.biosoft.exception.InternalException;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 
 /**
@@ -168,7 +168,7 @@ public class SqlConnectionPool
         if( cat.isLoggable( Level.FINE ) )
             cat.log(Level.FINE, "Sql connection creating:" + info);
 
-        String[] urlParts = TextUtil.split( url, ':' );
+        String[] urlParts = TextUtil2.split( url, ':' );
         if( urlParts.length > 2 )
         {
             String driverName = defaultDrivers.get(urlParts[1]);

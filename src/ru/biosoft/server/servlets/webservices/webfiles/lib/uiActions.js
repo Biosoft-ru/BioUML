@@ -9,7 +9,7 @@ function createScript(path, type)
 {
     if(!path) return;
     createSaveElementDialog(resources.dlgCreateScriptTitle,
-            "ru.biosoft.access.TextDataElement", createPath(path, resources.dlgCreateScriptDefaultName+"."+type),
+            "ru.biosoft.access.core.TextDataElement", createPath(path, resources.dlgCreateScriptDefaultName+"."+type),
             function(completePath)
             {
                 queryBioUML("web/script/create",

@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.support.DividedLineTagCommand;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.standard.type.Base;
 import biouml.standard.type.Protein;
 
@@ -124,10 +124,10 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
             String genes[] = lineString.split("and");
             for( String gene : genes )
             {
-                String strings[] = TextUtil.split( gene, ';' );
+                String strings[] = TextUtil2.split( gene, ';' );
                 for( String string : strings )
                 {
-                    String keyAndValue[] = TextUtil.split( string, '=' );
+                    String keyAndValue[] = TextUtil2.split( string, '=' );
                     if( "name".equalsIgnoreCase(keyAndValue[0]) )
                     {
                         kernel.setGene(keyAndValue[1]);
@@ -152,10 +152,10 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
         }
         else if( "OX".equals(tag) )
         {
-            String strings[] = TextUtil.split(lineString, ';');
+            String strings[] = TextUtil2.split(lineString, ';');
             for( int i = 0; i < strings.length; i++ )
             {
-                String keyAndValue[] = TextUtil.split( strings[i], '=' );
+                String keyAndValue[] = TextUtil2.split( strings[i], '=' );
                 strings[i] = keyAndValue[1];
             }
             setValue(kernel, "OX", strings, String[].class);
@@ -163,11 +163,11 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
         else if( "OH".equals(tag) )
         {
             DynamicPropertySetAsMap list = new DynamicPropertySetAsMap();
-            String strings[] = TextUtil.split(lineString, '.');
+            String strings[] = TextUtil2.split(lineString, '.');
             for( String string : strings )
             {
-                String valueAndDescription[] = TextUtil.split( string, ';' );
-                String keyAndValue[] = TextUtil.split( valueAndDescription[0], '=' );
+                String valueAndDescription[] = TextUtil2.split( string, ';' );
+                String keyAndValue[] = TextUtil2.split( valueAndDescription[0], '=' );
                 setValue(list, keyAndValue[1], valueAndDescription[1], String.class);
             }
             setValue(kernel, "OH", list, DynamicPropertySet.class);
@@ -201,10 +201,10 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
         else if( "RC".equals(tag) )
         {
             DynamicPropertySetAsMap list = new DynamicPropertySetAsMap();
-            String strings[] = TextUtil.split( lineString, ';' );
+            String strings[] = TextUtil2.split( lineString, ';' );
             for( String string : strings )
             {
-                String keyAndValue[] = TextUtil.split( string, '=' );
+                String keyAndValue[] = TextUtil2.split( string, '=' );
                 setValue(list, keyAndValue[0], keyAndValue[1], String.class);
             }
             setReferenceValue(kernel, "RC", list, DynamicPropertySetAsMap.class);
@@ -212,10 +212,10 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
         else if( "RX".equals(tag) )
         {
             DynamicPropertySetAsMap list = new DynamicPropertySetAsMap();
-            String strings[] = TextUtil.split( lineString, ';' );
+            String strings[] = TextUtil2.split( lineString, ';' );
             for( String string : strings )
             {
-                String keyAndValue[] = TextUtil.split( string, '=' );
+                String keyAndValue[] = TextUtil2.split( string, '=' );
                 if( keyAndValue.length >= 2 )
                 {
                     setValue(list, keyAndValue[0], keyAndValue[1], String.class);
@@ -252,7 +252,7 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
         else if( "DR".equals(tag) )
         {
             DynamicPropertySet dps = new DynamicPropertySetAsMap();
-            String values[] = TextUtil.split( lineString, ';' );
+            String values[] = TextUtil2.split( lineString, ';' );
             setValue(dps, "DATABASE_IDENTIFIER", values[0], String.class);
             setValue(dps, "PRIMARY_IDENTIFIER", values[1], String.class);
             setValue(dps, "SECONDARY_IDENTIFIER", values[2], String.class);
@@ -314,7 +314,7 @@ public class UniProtTagCommand extends DividedLineTagCommand<Protein>
         else if( "SQ".equals(tag) )
         {
             DynamicPropertySet dps = new DynamicPropertySetAsMap();
-            String values[] = TextUtil.split( lineString, ';' );
+            String values[] = TextUtil2.split( lineString, ';' );
             String candidates[] = values[0].trim().split("\\s");
             for( int i = 1; i < candidates.length - 1; i++ )
             {

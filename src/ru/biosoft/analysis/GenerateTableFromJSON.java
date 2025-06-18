@@ -8,7 +8,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;

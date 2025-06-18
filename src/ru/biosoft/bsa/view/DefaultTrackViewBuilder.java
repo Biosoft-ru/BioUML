@@ -24,6 +24,7 @@ import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
@@ -36,7 +37,7 @@ public class DefaultTrackViewBuilder extends TrackViewBuilder
         if(exons != null)
         {
             List<Interval> result = new ArrayList<>();
-            for(String exon: TextUtil.split(exons, ';'))
+            for(String exon: TextUtil2.split(exons, ';'))
             {
                 try
                 {
@@ -52,8 +53,8 @@ public class DefaultTrackViewBuilder extends TrackViewBuilder
         String blockStarts = site.getProperties().getValueAsString("blockStarts");
         if(blockSizes != null && blockStarts != null)
         {
-            String[] starts = TextUtil.split(blockStarts, ',');
-            String[] sizes = TextUtil.split(blockSizes, ',');
+            String[] starts = TextUtil2.split(blockStarts, ',');
+            String[] sizes = TextUtil2.split(blockSizes, ',');
             int count = Math.min(starts.length, sizes.length);
             List<Interval> result = new ArrayList<>();
             for(int i=0; i<count; i++)
@@ -424,13 +425,13 @@ public class DefaultTrackViewBuilder extends TrackViewBuilder
             if( siteViewOptions.isShowPositions() )
             {
                 int shift = siteViewOptions.isShowBox() ? siteViewOptions.getBoxHeight() / 2 : 0;
-                String value = TextUtil.valueOf(start + startX - 1, 0);
+                String value = TextUtil.valueOf( start + startX - 1, 0 );
                 Point startStart = new Point(startPoint.x - fm.stringWidth(value) - siteViewOptions.getInterval(), startPoint.y
                         + fm.getHeight() / 2 + shift);
                 TextView text = new TextView(value, startStart, View.BOTTOM, font, graphics);
                 cv.add(text);
 
-                value = TextUtil.valueOf(start + endX - 1, 0);
+                value = TextUtil.valueOf( start + endX - 1, 0 );
                 startStart.x = endPoint.x + siteViewOptions.getInterval();
                 text = new TextView(value, startStart, View.BOTTOM, font, graphics);
                 cv.add(text);

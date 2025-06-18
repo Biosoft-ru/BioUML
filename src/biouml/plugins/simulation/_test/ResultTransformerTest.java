@@ -14,7 +14,7 @@ import junit.framework.TestSuite;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.FileCollection;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import biouml.model.dynamics.Variable;
 import biouml.standard.simulation.SimulationResult;
 import biouml.standard.simulation.access.SimulationResultTransformer;

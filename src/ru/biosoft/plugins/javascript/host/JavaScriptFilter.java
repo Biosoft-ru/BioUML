@@ -14,7 +14,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.filter.Filter;
 import ru.biosoft.access.core.filter.FilteredDataCollection;
 import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class JavaScriptFilter extends JavaScriptHostObjectBase
 {
@@ -104,7 +104,7 @@ public class JavaScriptFilter extends JavaScriptHostObjectBase
         {
             super();
             this.property = property;
-            isKey = TextUtil.isEmpty(property);
+            isKey = TextUtil2.isEmpty(property);
             this.valuesSet = valuesSet;
         }
 

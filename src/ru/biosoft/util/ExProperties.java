@@ -146,7 +146,7 @@ public class ExProperties extends Properties
     public static void addPlugins(Properties properties, String newPlugins)
     {
         String pluginsString = getPluginsString(properties, newPlugins);
-        if(TextUtil.isEmpty(pluginsString))
+        if(TextUtil2.isEmpty(pluginsString))
             properties.remove(DataCollectionConfigConstants.PLUGINS_PROPERTY);
         else
             properties.setProperty(DataCollectionConfigConstants.PLUGINS_PROPERTY, pluginsString);
@@ -172,7 +172,7 @@ public class ExProperties extends Properties
             .mapKeys( Object::toString )
             .filterKeys( key -> key.startsWith( prefix+"." ) )
             .mapKeys( key -> key.substring( prefix.length()+1 ) )
-            .mapValues( val -> Arrays.asList(TextUtil.split( val.toString(), ';' )) )
+            .mapValues( val -> Arrays.asList(TextUtil2.split( val.toString(), ';' )) )
             .<Map<String, String>>mapValues( list -> StreamEx.of(list).map( str -> str.split( "=" ) )
                     .toMap(arr -> arr.length == 1 ? "default" : arr[0].trim(), arr -> arr[arr.length-1].trim()) )
             .toMap();

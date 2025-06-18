@@ -36,7 +36,7 @@ import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @ClassIcon("resources/snp-to-track.gif")
 public class SNPListToTrack extends AnalysisMethodSupport<SNPListToTrackParameters>
@@ -154,7 +154,7 @@ public class SNPListToTrack extends AnalysisMethodSupport<SNPListToTrackParamete
                                         {
                                             curValues[2] = "Intron";
                                             curScore = 1;
-                                            for( String blockStr : TextUtil.split( exonsObj.toString(), ';' ) )
+                                            for( String blockStr : TextUtil2.split( exonsObj.toString(), ';' ) )
                                             {
                                                 Interval interval;
                                                 try

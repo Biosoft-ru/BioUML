@@ -9,7 +9,7 @@ import java.io.File;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 
 public class IPythonElement extends TextDataElement
 {

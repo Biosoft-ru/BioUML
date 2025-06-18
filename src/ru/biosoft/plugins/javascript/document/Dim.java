@@ -84,7 +84,7 @@ import ru.biosoft.plugins.javascript.JScriptContext;
 import ru.biosoft.plugins.javascript.JScriptVisiblePlugin;
 import ru.biosoft.plugins.javascript.PreprocessorRegistry;
 import ru.biosoft.tasks.TaskInfo;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Dim or Debugger Implementation for Rhino.
@@ -1837,7 +1837,7 @@ public class Dim
             this.functionSources = new FunctionSource[N];
             for( int i = 0; i != N; ++i )
             {
-                String name = TextUtil.nullToEmpty( functions[i].getFunctionName() );
+                String name = TextUtil2.nullToEmpty( functions[i].getFunctionName() );
                 this.functionSources[i] = new FunctionSource(this, firstLines[i], name);
             }
         }

@@ -18,7 +18,7 @@ import biouml.plugins.physicell.document.StateVisualizer2D;
 import biouml.plugins.physicell.document.StateVisualizer3D;
 import biouml.plugins.physicell.document.ViewOptions;
 import biouml.plugins.server.access.AccessProtocol;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.JSONUtils;

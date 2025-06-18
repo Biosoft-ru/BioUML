@@ -89,15 +89,6 @@ call mvn -N install:install-file ^
   -Dfile=plugconfig/biouml.plugins.chipmunk/chipmunk.jar ^
   -DgeneratePom=true
 
-echo Installing ensj...
-call mvn -N install:install-file ^
-  -DgroupId=org.ensembl ^
-  -DartifactId=ensj ^
-  -Dversion=39.2 ^
-  -Dpackaging=jar ^
-  -Dfile=plugins/org.ensembl.ensj_39.2/ensj-39.2.jar ^
-  -DgeneratePom=true
-
 echo Installing jdbm...
 call mvn -N install:install-file ^
   -DgroupId=jdbm ^

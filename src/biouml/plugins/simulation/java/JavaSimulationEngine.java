@@ -31,6 +31,7 @@ import biouml.model.Diagram;
 import biouml.model.Role;
 import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.VariableRole;
+import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.plugins.simulation.ArraySpan;
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.OdeSimulationEngine;
@@ -54,6 +55,7 @@ import one.util.streamex.EntryStream;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.math.model.Formatter;
 import ru.biosoft.math.model.JavaFormatter;
+import ru.biosoft.util.DPSUtils;
 
 /**
  *Ode Java Simulation Engine (generates JavaBaseModel and runs its simulation by java simulators)
@@ -697,5 +699,25 @@ public class JavaSimulationEngine extends OdeSimulationEngine
                 s = s.substring( 1 );
             return s;
         } ).toArray( String[]::new );
+    }
+    
+    public static final String PLOTS = "Plots";
+    
+    @Override
+    public Object getPlotsBean(Diagram diagram)
+    {
+        Role role = diagram.getRole();
+        if (!(role instanceof EModel))
+            return null;
+        Object plotsObj = diagram.getAttributes().getValue( PLOTS );
+        PlotsInfo result = null;
+        if( ! ( plotsObj instanceof PlotsInfo ) )
+        {
+            result = new PlotsInfo( (EModel)role );
+            diagram.getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( PLOTS, PlotsInfo.class, result ) );
+        }
+        else
+            result = (PlotsInfo)plotsObj;
+        return result;
     }
 }

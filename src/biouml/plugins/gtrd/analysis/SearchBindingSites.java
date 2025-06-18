@@ -18,7 +18,7 @@ import biouml.plugins.gtrd.ChIPseqExperiment;
 import biouml.standard.type.Gene;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.biohub.BioHubRegistry;
 import ru.biosoft.access.biohub.BioHubSupport;
 import ru.biosoft.access.biohub.DefaultReferenceType;

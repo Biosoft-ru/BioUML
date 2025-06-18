@@ -46,7 +46,7 @@ import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.gui.Document;
 import ru.biosoft.util.BeanAsMapUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class WorkflowUpdater
 {
@@ -430,7 +430,7 @@ public class WorkflowUpdater
             if( reference.isEmpty() )
                 return null;
         }
-        String[] path = TextUtil.split( reference, '/' );
+        String[] path = TextUtil2.split( reference, '/' );
         int i = 0;
         while( i < path.length )
         {

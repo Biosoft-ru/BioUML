@@ -11,8 +11,6 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
-import org.ensembl.driver.CoreDriverFactory;
-
 import biouml.model.Module;
 import biouml.plugins.ensembl.type.Gene;
 
@@ -112,7 +110,7 @@ public class EnsemblGeneDataCollection2 extends EnsemblGeneDataCollection
                     .getDataElement( AnnotatedSequence.class ).getSequence();
             Site site = new SiteImpl( null, name, SiteType.TYPE_GENE, Basis.BASIS_ANNOTATED, strand == StrandType.STRAND_PLUS ? from : to,
                     to - from + 1, strand, sequence );
-            Gene gene = new Gene(this, name, site, driver);
+            Gene gene = new Gene( this, name, site );
             gene.setTitle(rs.getString(2));
             String description = rs.getString(3);
             if( description != null )

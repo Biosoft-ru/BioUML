@@ -44,7 +44,7 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 
 import ru.biosoft.util.TempFileManager;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import ru.biosoft.workbench.Framework;
 
@@ -66,7 +66,7 @@ public class OASYSWebProvider extends WebJSONProviderSupport
             return null;  
         }
 
-        String basePath = TextUtil.subst( path, "data/", "" );
+        String basePath = TextUtil2.subst( path, "data/", "" );
         int ind = basePath.lastIndexOf( "/" );
         basePath = basePath.substring( 0, ind ) + "/file_collection.files" + basePath.substring( ind );
         String hostPath = "" + System.getProperty( "DOCKER_BIOUML_RESOURCES" ) + "/" + basePath;

@@ -21,10 +21,15 @@ public class BEDTrackImporter extends TrackImporter
     @Override
     protected Site parseLine(String line)
     {
+        return parseBEDLine( line, true );
+    }
+
+    public static Site parseBEDLine(String line, boolean normalizeChromosome)
+    {
         String[] fields = line.split("\\s");
         if( fields.length < 3 )
             return null;
-        String chrom = normalizeChromosome(fields[0]);
+        String chrom = normalizeChromosome( fields[0], normalizeChromosome );
         int start, length;
         try
         {

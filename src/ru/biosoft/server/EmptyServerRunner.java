@@ -22,7 +22,7 @@ import ru.biosoft.access.BiosoftIconManager;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionListenerRegistry;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.QuerySystemRegistry;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;

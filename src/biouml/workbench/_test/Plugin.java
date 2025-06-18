@@ -20,7 +20,7 @@ import java.util.jar.Manifest;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.OsgiManifestParser;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
@@ -48,15 +48,15 @@ public class Plugin
                 "META-INF/MANIFEST.MF"))) : new JarFile( pluginFile ).getManifest();
         Attributes attrs = manifest.getMainAttributes();
 
-        name = TextUtil.split( attrs.getValue("Bundle-SymbolicName"), ';' )[0];
+        name = TextUtil2.split( attrs.getValue("Bundle-SymbolicName"), ';' )[0];
 
         String value = attrs.getValue("Require-Bundle");
         if( value != null )
         {
             value = value.replaceAll("\"[^\"]*\"", "");
-            for( String dep : TextUtil.split( value, ',' ) )
+            for( String dep : TextUtil2.split( value, ',' ) )
             {
-                String[] tokens = TextUtil.split( dep, ';' );
+                String[] tokens = TextUtil2.split( dep, ';' );
                 dependencies.add(tokens[0]);
                 if( Arrays.asList(tokens).contains("resolution:=optional") )
                     optionalDependencies.add(tokens[0]);
@@ -79,7 +79,7 @@ public class Plugin
 
         value = attrs.getValue("Bundle-ClassPath");
         if( value != null )
-            for( String classPathEntry : TextUtil.split( value, ',' ) )
+            for( String classPathEntry : TextUtil2.split( value, ',' ) )
             {
                 classPathEntry = classPathEntry.trim();
                 File classPathFile;

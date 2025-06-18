@@ -14,7 +14,7 @@ import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import ru.biosoft.jobcontrol.SubFunctionJobControl;
 
@@ -35,7 +35,7 @@ public class FTPUploadAnalysis extends AnalysisMethodSupport<FTPUploadAnalysisPa
         ImporterInfo info = DataElementImporterRegistry.getImporterInfo(parameters.getImportFormat());
 
         StringBuilder convertMessages = new StringBuilder();
-        URL url = FileDownloader.convertURL( new URL( TextUtil.decodeURL( parameters.getFileURL() ) ), convertMessages );
+        URL url = FileDownloader.convertURL( new URL( TextUtil2.decodeURL( parameters.getFileURL() ) ), convertMessages );
         if( convertMessages.length() > 0 )
             log.info(convertMessages.toString());
         File destinationFile = TempFiles.file(".tmp");
@@ -84,7 +84,7 @@ public class FTPUploadAnalysis extends AnalysisMethodSupport<FTPUploadAnalysisPa
             throw new IllegalArgumentException("Specified output collection is unsupported by importer");
         try
         {
-            FileDownloader.convertURL( new URL( TextUtil.decodeURL( parameters.getFileURL() ) ), null );
+            FileDownloader.convertURL( new URL( TextUtil2.decodeURL( parameters.getFileURL() ) ), null );
         }
         catch( Exception e1 )
         {

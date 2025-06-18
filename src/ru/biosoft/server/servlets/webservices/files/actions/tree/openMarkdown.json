@@ -13,7 +13,7 @@
         if(!path || !name) return -1;
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
-        if( instanceOf(type,'ru.biosoft.access.TextDataElement') && name.match(/\\.md/i) )
+        if( instanceOf(type,'ru.biosoft.access.core.TextDataElement') && name.match(/\\.md/i) )
         {
             return true;
         }

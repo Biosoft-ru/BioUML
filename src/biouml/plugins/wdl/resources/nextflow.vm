@@ -1,0 +1,72 @@
+#####################################################################################
+#####################################CONSTANTS########################################
+#######################################################################################
+#set ($BR = "
+")
+#set ($INDENT = "  ")
+#set ($QUOTE = '"')
+#######################################################################################
+#####################################MACROS############################################
+#######################################################################################
+#macro(comma $list)
+#if($velocityCount < $list.size()),#end
+#end
+#set ($externalParameters = $helper.getExternalParameters())
+#if ($externalParameters.size() > 0)
+#foreach( $externalParameter in $externalParameters )
+  params.$helper.getName($externalParameter) = ""
+#end
+#end
+#######################################################################################
+#######################################TASKS###########################################
+#######################################################################################
+#foreach( $task in $helper.getTasks())
+process $task.getName() {
+#set ($inputs = $helper.getInputs($task))
+#if ($inputs.size() > 0)
+$BR  input :
+#foreach( $input in $inputs )
+  $helper.getDeclaration($input)
+#end
+#end
+$BR  script:
+  """
+  $helper.getCommand($task).trim()
+  """
+#set ($outputs = $helper.getOutputs($task))
+#if ($outputs.size() > 0)
+$BR  output:
+#foreach( $output in $outputs )
+  $helper.getDeclaration($output)
+#end
+#end
+}$BR
+#end
+#######################################################################################
+###################################WORKFLOW############################################
+#######################################################################################
+workflow {
+#set ($externalParameters = $helper.getExternalParameters())
+#if ($externalParameters.size() > 0)
+$BR  take: 
+#foreach( $externalParameter in $externalParameters )
+  $helper.getName($externalParameter)
+#end
+#end
+$BR  main:
+#foreach( $call in $helper.getCalls())
+#set ($inputs = $helper.getInputs($call))
+#if ($inputs.size()> 0)
+  $helper.getTaskRef($call)(#foreach($input in $inputs)params.$helper.getName($input)#comma($inputs)#end)
+#else
+  $helper.getTaskRef($call)()
+#end
+#end
+#set ($externalOutputs = $helper.getExternalOutputs())
+#if ($externalOutputs.size() > 0)
+$BR  emit:
+#foreach( $externalOutput in $externalOutputs )
+  $helper.getExpression($externalOutput)
+#end
+#end
+}

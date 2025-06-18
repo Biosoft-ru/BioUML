@@ -25,7 +25,7 @@ import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.util.Clazz;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Supporting class for TableConverter-like analyses
@@ -107,7 +107,7 @@ public abstract class TableConverterSupport<T extends AbstractTableConverterPara
         Object value = null;
         if( valueClass == String.class )
         {
-            value = valuesSupplier.get().select( String.class ).filter( TextUtil::nonEmpty )
+            value = valuesSupplier.get().select( String.class ).filter( TextUtil2::nonEmpty )
                     .flatMap( val -> StreamEx.split( val, ID_SEPARATOR_CHAR ) ).map( String::trim ).sorted().distinct()
                     .joining( ID_SEPARATOR );
         }

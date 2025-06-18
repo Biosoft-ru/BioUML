@@ -8,7 +8,7 @@ import biouml.model.InitialElementProperties;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AnalysisMethodRegistry;
 import ru.biosoft.graphics.editor.ViewEditorPane;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 public class AnalysisMethodRef implements InitialElementProperties
@@ -63,6 +63,6 @@ public class AnalysisMethodRef implements InitialElementProperties
                     semanticController.addAnalysis( parent, analysisElement.getName(), location, viewPane ) );
         
         return new DiagramElementGroup(
-                semanticController.addAnalysis( parent, TextUtil.split( getAnalysisMethod(), '/' )[1], location, viewPane ) );
+                semanticController.addAnalysis( parent, TextUtil2.split( getAnalysisMethod(), '/' )[1], location, viewPane ) );
     }
 }

@@ -31,9 +31,11 @@ public class PhysicellOptionsBeanInfo extends BeanInfoEx2<PhysicellOptions>
         add( "saveImage" );
         add( "saveGIF" );
         add( "saveVideo" );
+        add( "savePlots" );
         add( "useManualSeed" );
         add( "seed" );
         add("calculateGradient");
         add("trackInnerSubstrates");
+        property("modelType").tags( PhysicellOptions.DEFAULT_MODEL, PhysicellOptions.COVID_MODEL ).add();
     }
 }

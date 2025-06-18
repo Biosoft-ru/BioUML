@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.physicell.biofvm.Microenvironment;

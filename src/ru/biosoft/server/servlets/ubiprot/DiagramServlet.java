@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ru.biosoft.server.AbstractServlet;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
@@ -68,7 +68,7 @@ public class DiagramServlet extends AbstractServlet
         try
         {
             Diagram diagram = DiagramGenerator.getInstance().getDiagram(line, organism);
-            String imgPath = TextUtil.split( localAddress, '/' )[1] + "/" + line + "." + organism + "." + IMG_TYPE;
+            String imgPath = TextUtil2.split( localAddress, '/' )[1] + "/" + line + "." + organism + "." + IMG_TYPE;
 
             try( PrintWriter pw = new PrintWriter( out ) )
             {

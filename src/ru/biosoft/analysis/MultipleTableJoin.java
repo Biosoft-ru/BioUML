@@ -28,7 +28,7 @@ import ru.biosoft.table.StringSet;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Join several tables, take all columns into the result
@@ -287,7 +287,7 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
                         List<Object> values = (List<Object>)rowBuffer[ci];
                         if( column.getValueClass() == String.class )
                         {
-                            rowBuffer[ci] = StreamEx.of( values ).select( String.class ).filter( TextUtil::nonEmpty ).sorted().distinct()
+                            rowBuffer[ci] = StreamEx.of( values ).select( String.class ).filter( TextUtil2::nonEmpty ).sorted().distinct()
                                     .joining( "," );
                             continue;
                         }

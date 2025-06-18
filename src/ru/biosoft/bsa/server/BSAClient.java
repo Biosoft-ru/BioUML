@@ -18,7 +18,7 @@ import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.Slice;
 import ru.biosoft.server.Request;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -84,7 +84,7 @@ public class BSAClient extends BSAServiceProtocol
             while(keys.hasNext())
             {
                 String name = keys.next().toString();
-                properties.add(new DynamicProperty(descriptors.get(name), propertyClasses.get(name), TextUtil.fromString(
+                properties.add(new DynamicProperty(descriptors.get(name), propertyClasses.get(name), TextUtil2.fromString(
                         propertyClasses.get(name), propertiesJSON.getString(name))));
             }
             sites[i] = new SiteImpl(null, siteJSON.getString(0), siteJSON.getString(6), siteJSON.getInt(1), siteJSON.getInt(2), siteJSON.getInt(3), siteJSON.getInt(4), siteJSON.getInt(5), sequence,

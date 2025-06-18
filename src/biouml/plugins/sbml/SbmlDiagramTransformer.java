@@ -2,6 +2,8 @@ package biouml.plugins.sbml;
 
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
@@ -11,11 +13,12 @@ import biouml.plugins.sbgn.SBGNPropertyConstants;
 import biouml.plugins.sbgn.SbgnDiagramType;
 import biouml.plugins.sbml.converters.SBGNConverterNew;
 import biouml.standard.type.DiagramInfo;
-import ru.biosoft.access.AbstractFileTransformer;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.AbstractFileTransformer;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.generic.PriorityTransformer;
+import ru.biosoft.access.file.FileTypePriority;
+import ru.biosoft.access.core.PriorityTransformer;
 import ru.biosoft.graph.PathLayouterWrapper;
 import ru.biosoft.util.bean.StaticDescriptor;
 

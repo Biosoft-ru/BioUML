@@ -12,7 +12,7 @@ import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.LineView;
 import ru.biosoft.graphics.Pen;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -56,7 +56,7 @@ public class ViewSiteAggregator extends SiteAggregator
         if(exonsObj != null)
         {
             int lastPoint = 0;
-            for( String blockStr : TextUtil.split( exonsObj.toString(), ';' ) )
+            for( String blockStr : TextUtil2.split( exonsObj.toString(), ';' ) )
             {
                 Interval interval;
                 try

@@ -12,13 +12,13 @@ import org.jfree.util.Log;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.Entry;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.Transformer;
 import ru.biosoft.access.generic.TransformerRegistry;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;

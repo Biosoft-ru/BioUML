@@ -16,7 +16,7 @@ import biouml.plugins.gtrd.master.sites.dnase.MACS2DNaseCluster;
 import biouml.plugins.gtrd.master.sites.dnase.WellingtonHotspot2FootprintCluster;
 import biouml.plugins.gtrd.master.sites.dnase.WellingtonMACS2FootprintCluster;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class DNaseClusterSerializer extends GenomeLocationSerializer<DNaseCluster>
 {
@@ -69,7 +69,7 @@ public class DNaseClusterSerializer extends GenomeLocationSerializer<DNaseCluste
         if(!name.equals( FIELD_ID ))
             throw new JsonParseException(parser, "id should be the first field, but get " + name);
         String text = parser.getValueAsString(); //dc.CEL001234.macs2.3343
-        String[] parts = TextUtil.split(text, '.');
+        String[] parts = TextUtil2.split(text, '.');
         
         String peakCaller = parts[2].toLowerCase();
         switch(peakCaller)

@@ -58,7 +58,7 @@ import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.table.TableDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.workbench.editors.DataElementComboBoxSelector;
 import ru.biosoft.workbench.editors.GenericComboBoxEditor;
@@ -324,7 +324,7 @@ public class DiagramToDatabase extends AnalysisMethodSupport<DiagramToDatabase.D
 
     private void addSynonyms(Concept c, Stream<String> synonyms)
     {
-        c.setSynonyms( StreamEx.split( TextUtil.nullToEmpty( c.getSynonyms() ), ", " ).append( synonyms ).distinct().joining( ", " ) );
+        c.setSynonyms( StreamEx.split( TextUtil2.nullToEmpty( c.getSynonyms() ), ", " ).append( synonyms ).distinct().joining( ", " ) );
     }
 
     @Override

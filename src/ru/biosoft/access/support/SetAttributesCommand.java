@@ -18,7 +18,7 @@ import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.DynamicPropertySetSerializer;
 
 import ru.biosoft.access.ClassLoading;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class SetAttributesCommand implements TagCommand
 {
@@ -128,7 +128,7 @@ public class SetAttributesCommand implements TagCommand
             dpss.save(os, dps);
             String value = os.toString();
 
-            String tagStrWithIndent = tag + TextUtil.whiteSpace(indent - tag.length());
+            String tagStrWithIndent = tag + TextUtil2.whiteSpace(indent - tag.length());
 
             if( value != null && value.length() != 0 )
             {
@@ -154,7 +154,7 @@ public class SetAttributesCommand implements TagCommand
     @Override
     public String getTaggedValue(String value)
     {
-        String tagStrWithIndent = tag + TextUtil.whiteSpace(indent - tag.length());
+        String tagStrWithIndent = tag + TextUtil2.whiteSpace(indent - tag.length());
         StringBuilder taggedStr = new StringBuilder();
         try
         {

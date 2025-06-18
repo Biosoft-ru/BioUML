@@ -16,7 +16,7 @@ import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.access.sql.BulkInsert;
 import ru.biosoft.access.sql.FastBulkInsert;
 import ru.biosoft.access.sql.SqlUtil;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Allows you to import homology information from Compara.64.protein_trees.nh.emf into MySQL for consequent use
@@ -56,7 +56,7 @@ public class ImportProteinTree
                 {
                     treeInserter.insert(new Object[] {groupId, line});
                 }
-                String[] fields = TextUtil.split( line, ' ' );
+                String[] fields = TextUtil2.split( line, ' ' );
                 if(fields[0].equals("//")) groupId++;
                 if(!fields[0].equals("SEQ")) continue;
                 String species = fields[1];

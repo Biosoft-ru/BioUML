@@ -21,13 +21,10 @@ import org.eclipse.core.runtime.RegistryFactory;
 import org.eclipse.core.runtime.spi.RegistryContributor;
 
 import ru.biosoft.access.AccessCoreInit;
-import ru.biosoft.access.BiosoftIconManager;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionListenerRegistry;
 import ru.biosoft.access.QuerySystemRegistry;
 import ru.biosoft.access.core.CollectionFactory;
-import ru.biosoft.access.core.Environment;
-import ru.biosoft.access.security.BiosoftClassLoading;
 import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.access.DataElementModelResolver;
 import ru.biosoft.util.JULBeanLogger;
@@ -46,7 +43,7 @@ public abstract class AbstractBioUMLTest extends TestCase
 
     static
     {
-        AccessCoreInit.init();
+
         try
         {
             Object masterRegistryKey = new Object();
@@ -72,12 +69,14 @@ public abstract class AbstractBioUMLTest extends TestCase
                 }
             }
             Application.setExtensionRegistry(defaultRegistry);
+            //TransformerRegistry.initTransformers();
         }
         catch( Exception e )
         {
             System.out.println("Unable to initialize registry!");
             e.printStackTrace();
         }
+        AccessCoreInit.init();
         QuerySystemRegistry.initQuerySystems();
         DataCollectionListenerRegistry.initDataCollectionListeners();
         JULBeanLogger.install();

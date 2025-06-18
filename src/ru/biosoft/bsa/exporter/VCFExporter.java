@@ -31,7 +31,7 @@ import ru.biosoft.bsa.TrackRegion;
 import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * @author lan
@@ -329,7 +329,7 @@ public class VCFExporter extends TrackExporter
                         break;
                     Object value = site.getProperties().getValue( "Filter" );
                     String filter = ( value == null || value.equals( "" ) ) ? "PASS" : value.toString();
-                    String[] filterVals = TextUtil.split( filter, ';' );
+                    String[] filterVals = TextUtil2.split( filter, ';' );
                     for( String f : filterVals )
                         result.filterFields.put( f, f );
                 }

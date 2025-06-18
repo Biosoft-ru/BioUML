@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.dynamics.EModel;
 import biouml.plugins.sbml.SbmlModelFactory;
@@ -264,7 +264,7 @@ public class BiomodelsSimulatorTest extends SimulatorTest
                 }
                 else if( firstCharacter.equals("VARS") )
                 {
-                    String[] vars = TextUtil.split( st.nextToken(), ',' );
+                    String[] vars = TextUtil2.split( st.nextToken(), ',' );
                     for( String v : vars )
                     {
                         variables.add(v);

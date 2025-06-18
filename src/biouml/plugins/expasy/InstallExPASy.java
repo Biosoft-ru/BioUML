@@ -37,7 +37,7 @@ import ru.biosoft.bsa.classification.ClassificationUnitAsSQL;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.TempFile;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class InstallExPASy extends AnalysisMethodSupport<InstallExPASy.Parameters>
 {
@@ -210,7 +210,7 @@ public class InstallExPASy extends AnalysisMethodSupport<InstallExPASy.Parameter
                         SqlUtil.execute(con, "INSERT INTO classification VALUES (" + StringUtils.join(
                             new Object[] {SqlUtil.quoteString( id ), SqlUtil.quoteString( id.substring( 0, id.lastIndexOf( '.' ) ) ), SqlUtil.quoteString( description.toString() ),
                                                     SqlUtil.quoteString( description.toString() ), 5}, "," ) + ")" );
-                        for(String spEntry : TextUtil.split( swissProt.toString(), ';' ))
+                        for(String spEntry : TextUtil2.split( swissProt.toString(), ';' ))
                         {
                             spEntry = spEntry.trim();
                             if(spEntry.isEmpty()) continue;

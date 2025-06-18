@@ -27,7 +27,7 @@ import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.server.JSONUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ImportDAO
 {
@@ -336,7 +336,7 @@ public class ImportDAO
         List<String> formatList = new ArrayList<>();
         if(formatListStr != null)
         {
-            for( String f : TextUtil.split( formatListStr, ';' ) )
+            for( String f : TextUtil2.split( formatListStr, ';' ) )
                 formatList.add( f );
         }
         rec.setFormatList( formatList  );

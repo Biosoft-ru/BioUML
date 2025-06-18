@@ -16,7 +16,7 @@
         var type = dc.getChildClass(name);
         if (instanceOf(type,'ru.biosoft.table.TableDataCollection') 
         	|| instanceOf(type,'ru.biosoft.bsa.Track')
-        	|| instanceOf(type,'ru.biosoft.access.FileDataElement')
+        	|| instanceOf(type,'ru.biosoft.access.file.FileDataElement')
         	)
         {
             return true;

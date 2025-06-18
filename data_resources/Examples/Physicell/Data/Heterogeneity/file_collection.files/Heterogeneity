@@ -17,11 +17,14 @@
         <property name="parallelDiffusion" short-description="parallelDiffusion" type="boolean" value="false"/>
         <property name="phenotypeDt" short-description="phenotypeDt" type="double" value="6.0"/>
         <property name="reportInterval" short-description="reportInterval" type="double" value="60.0"/>
-        <property name="resultPath" short-description="resultPath" type="dataElementPath"/>
+        <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Collaboration/Ilya/Data/Diagrams/reshet"/>
+        <property name="saveCellsTable" short-description="saveCellsTable" type="boolean" value="false"/>
+        <property name="saveCellsText" short-description="saveCellsText" type="boolean" value="true"/>
+        <property name="saveDensity" short-description="saveDensity" type="boolean" value="true"/>
         <property name="saveGIF" short-description="saveGIF" type="boolean" value="false"/>
         <property name="saveImage" short-description="saveImage" type="boolean" value="false"/>
         <property name="saveReport" short-description="saveReport" type="boolean" value="true"/>
-        <property name="saveVideo" short-description="saveVideo" type="boolean" value="true"/>
+        <property name="saveVideo" short-description="saveVideo" type="boolean" value="false"/>
         <property name="seed" short-description="seed" type="double" value="0.0"/>
         <property name="trackInnerSubstrates" short-description="trackInnerSubstrates" type="boolean" value="true"/>
         <property name="useManualSeed" short-description="useManualSeed" type="boolean" value="false"/>
@@ -29,10 +32,10 @@
       <property name="solverName" short-description="solverName" type="String" value="Physicell default"/>
     </simulationOptions>
     <nodes>
-      <node height="75" isTitleHidden="false" kernel="stub/cancer cell" kernel_type="cell_definition" title="cancer cell" width="75" x="0" y="0">
+      <node height="75" isTitleHidden="false" kernel="stub/cancer cell" kernel_type="cell_definition" title="cancer cell" width="75" x="5" y="8">
         <property isHidden="true" isReadOnly="true" name="cellDefinition" short-description="cellDefinition" type="biouml.plugins.physicell.CellDefinitionProperties">
-          <property name="color" short-description="color" type="brush"/>
-          <property name="comment" short-description="comment" type="String"/>
+          <property name="color" short-description="color" type="brush" value="black"/>
+          <property name="comment" short-description="comment" type="String" value=""/>
           <property name="customDataProperties" short-description="customDataProperties" type="biouml.plugins.physicell.CustomDataProperties">
             <property elementType="biouml.plugins.physicell.VariableProperties" name="variables" short-description="variables" type="array">
               <item>
@@ -158,41 +161,65 @@
               </item>
             </property>
           </property>
+          <property name="divisionProperties" short-description="divisionProperties" type="biouml.plugins.physicell.DivisionProperties">
+            <property name="asymmetric" short-description="asymmetric" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.DivisionProperties$DivisionProbability" name="probabilities" short-description="probabilities" type="array"/>
+          </property>
           <property name="functionsProperties" short-description="functionsProperties" type="biouml.plugins.physicell.FunctionsProperties">
             <property name="contact" short-description="contact" type="String" value="-"/>
-            <property name="contactCustom" short-description="contactCustom" type="dataElementPath"/>
+            <property name="contactCustom" short-description="contactCustom" type="dataElementPath" value=""/>
             <property name="customRule" short-description="customRule" type="String" value="-"/>
-            <property name="customRuleCustom" short-description="customRuleCustom" type="dataElementPath"/>
+            <property name="customRuleCustom" short-description="customRuleCustom" type="dataElementPath" value=""/>
+            <property name="division" short-description="division" type="String" value="-"/>
+            <property name="divisionCustom" short-description="divisionCustom" type="dataElementPath" value=""/>
             <property name="instantiate" short-description="instantiate" type="String" value="-"/>
-            <property name="instantiateCustom" short-description="instantiateCustom" type="dataElementPath"/>
+            <property name="instantiateCustom" short-description="instantiateCustom" type="dataElementPath" value=""/>
             <property name="membraneDistance" short-description="membraneDistance" type="String" value="-"/>
-            <property name="membraneDistanceCustom" short-description="membraneDistanceCustom" type="dataElementPath"/>
+            <property name="membraneDistanceCustom" short-description="membraneDistanceCustom" type="dataElementPath" value=""/>
             <property name="membraneInteraction" short-description="membraneInteraction" type="String" value="Avoid domain edge"/>
-            <property name="membraneInteractionCustom" short-description="membraneInteractionCustom" type="dataElementPath"/>
+            <property name="membraneInteractionCustom" short-description="membraneInteractionCustom" type="dataElementPath" value=""/>
             <property name="migrationUpdate" short-description="migrationUpdate" type="String" value="-"/>
-            <property name="migrationUpdateCustom" short-description="migrationUpdateCustom" type="dataElementPath"/>
+            <property name="migrationUpdateCustom" short-description="migrationUpdateCustom" type="dataElementPath" value=""/>
             <property name="orientation" short-description="orientation" type="String" value="-"/>
-            <property name="orientationCustom" short-description="orientationCustom" type="dataElementPath"/>
+            <property name="orientationCustom" short-description="orientationCustom" type="dataElementPath" value=""/>
             <property name="phenotypeUpdate" short-description="phenotypeUpdate" type="String" value="Custom..."/>
             <property name="phenotypeUpdateCustom" short-description="phenotypeUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/Data/Heterogeneity/TumorPhenotype.java"/>
             <property name="velocityUpdate" short-description="velocityUpdate" type="String" value="Standard velocity"/>
-            <property name="velocityUpdateCustom" short-description="velocityUpdateCustom" type="dataElementPath"/>
+            <property name="velocityUpdateCustom" short-description="velocityUpdateCustom" type="dataElementPath" value=""/>
             <property name="volumeUpdate" short-description="volumeUpdate" type="String" value="Standard volume update."/>
-            <property name="volumeUpdateCustom" short-description="volumeUpdateCustom" type="dataElementPath"/>
+            <property name="volumeUpdateCustom" short-description="volumeUpdateCustom" type="dataElementPath" value=""/>
           </property>
           <property name="geometryProperties" short-description="geometryProperties" type="biouml.plugins.physicell.GeometryProperties">
-            <property name="nuclearRadius" short-description="nuclearRadius" type="double" value="5.051670902881888"/>
+            <property name="nuclearRadius" short-description="nuclearRadius" type="double" value="5.051670902881889"/>
             <property name="polarity" short-description="polarity" type="double" value="0.0"/>
             <property name="radius" short-description="radius" type="double" value="8.412710547954227"/>
           </property>
+          <property name="initialDistributionProperties" short-description="initialDistributionProperties" type="biouml.plugins.physicell.InitialDistributionProperties">
+            <property elementType="biouml.plugins.physicell.InitialDistributionProperties$ParameterDistribution" name="parameterDistributions" short-description="parameterDistributions" type="array">
+              <item>
+                <property name="distribution" short-description="distribution" type="String" value="Normal"/>
+                <property name="parameter" short-description="parameter" type="String" value="custom: oncoprotein"/>
+                <property name="properties" short-description="properties" type="biouml.plugins.physicell.InitialDistributionProperties$NormalProperties">
+                  <property name="max" short-description="max" type="double" value="2.0"/>
+                  <property name="min" short-description="min" type="double" value="0.0"/>
+                  <property name="mu" short-description="mu" type="double" value="0.25"/>
+                  <property name="sigma" short-description="sigma" type="double" value="1.0"/>
+                </property>
+              </item>
+            </property>
+          </property>
           <property name="initialNumber" short-description="initialNumber" type="int" value="0"/>
+          <property name="integrityProperties" short-description="integrityProperties" type="biouml.plugins.physicell.IntegrityProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="0.0"/>
+            <property name="damageRepairRate" short-description="damageRepairRate" type="double" value="0.0"/>
+          </property>
           <property name="interactionsProperties" short-description="interactionsProperties" type="biouml.plugins.physicell.InteractionsProperties">
             <property name="damageRate" short-description="damageRate" type="double" value="1.0"/>
             <property name="deadPhagocytosisRate" short-description="deadPhagocytosisRate" type="double" value="0.0"/>
             <property elementType="biouml.plugins.physicell.InteractionProperties" name="interactions" short-description="interactions" type="array"/>
           </property>
           <property name="intracellularProperties" short-description="intracellularProperties" type="biouml.plugins.physicell.ode.IntracellularProperties">
-            <property name="diagram" short-description="diagram" type="dataElementPath"/>
+            <property name="diagram" short-description="diagram" type="dataElementPath" value=""/>
             <property name="engine" short-description="engine" type="biouml.plugins.physicell.ode.SimulationEngineWrapper">
               <property name="engineName" short-description="engineName" type="String" value="ODE Simulation Engine"/>
               <property name="simulator" short-description="simulator" type="String" value="JVode"/>
@@ -280,7 +307,7 @@
       </node>
     </nodes>
     <edges>
-      <edge edgeID="cancer cell -&gt; oxygen" in="cancer cell" inPort="40;97" kernel="stub/cancer cell -&gt; oxygen" kernel_type="secretion" out="oxygen" outPort="40;172" title="cancer cell -&gt; oxygen">
+      <edge edgeID="cancer cell -&gt; oxygen" in="cancer cell" inPort="47;106" kernel="stub/cancer cell -&gt; oxygen" kernel_type="secretion" out="oxygen" outPort="47;169" title="cancer cell -&gt; oxygen">
         <property isHidden="true" isReadOnly="true" name="secretion" short-description="secretion" type="biouml.plugins.physicell.SecretionProperties">
           <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
           <property name="secretionRate" short-description="secretionRate" type="double" value="0.0"/>
@@ -304,7 +331,7 @@
       <userParameter name="oncoprotein_min" value="0.0"/>
       <userParameter name="number_of_cells" value="0"/>
     </userParameters>
-    <initialCondition customCode="data/Examples/Physicell/Data/Heterogeneity/Initial.java"/>
+    <initialCondition customCode="data/Examples/Physicell/Data/Heterogeneity/Initial.java" customTable=""/>
     <report customReport="data/Examples/Physicell/Data/Heterogeneity/Report.java" customVisualizer="data/Examples/Physicell/Data/Heterogeneity/Visualizer.java"/>
   </executableModel>
 </dml>

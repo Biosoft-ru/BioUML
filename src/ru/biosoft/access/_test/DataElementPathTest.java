@@ -3,7 +3,7 @@ package ru.biosoft.access._test;
 import java.util.Arrays;
 
 import junit.framework.TestCase;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.WildcardPathSet;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
@@ -13,7 +13,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
 import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.access.core.VectorDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class DataElementPathTest extends TestCase
 {
@@ -30,7 +30,7 @@ public class DataElementPathTest extends TestCase
         assertEquals(DataElementPath.create("test/test2/test3"), DataElementPath.create(de));
         DataElementPath path = DataElementPath.create(vdc, "new");
         assertEquals("test/new", path.toString());
-        assertEquals(path, TextUtil.fromString(DataElementPath.class, TextUtil.toString(path)));
+        assertEquals(path, TextUtil2.fromString(DataElementPath.class, TextUtil2.toString(path)));
         DataElement orphan = new TextDataElement("test4", null);
         assertEquals("test4", DataElementPath.create(orphan).toString());
         assertEquals("test/test2/test3", DataElementPath.create("test", "test2", "test3").toString());
@@ -197,7 +197,7 @@ public class DataElementPathTest extends TestCase
         assertEquals(3, set.size());
         assertEquals(DataElementPath.create("test"), set.getPath());
         assertEquals(DataElementPath.create("test/a"), set.first());
-        DataElementPathSet set2 = (DataElementPathSet)TextUtil.fromString(DataElementPathSet.class, TextUtil.toString(set));
+        DataElementPathSet set2 = (DataElementPathSet)TextUtil2.fromString(DataElementPathSet.class, TextUtil2.toString(set));
         assertEquals(set, set2);
         assertEquals("c", set2.getNames()[2]);
         
@@ -207,7 +207,7 @@ public class DataElementPathTest extends TestCase
         assertEquals(set, set4);
         
         DataElementPathSet emptyPath = new DataElementPathSet();
-        DataElementPathSet emptyPath2 = (DataElementPathSet)TextUtil.fromString(DataElementPathSet.class, TextUtil.toString(emptyPath));
+        DataElementPathSet emptyPath2 = (DataElementPathSet)TextUtil2.fromString(DataElementPathSet.class, TextUtil2.toString(emptyPath));
         assertNull(emptyPath.first());
         assertEquals(emptyPath, emptyPath2);
         
@@ -215,7 +215,7 @@ public class DataElementPathTest extends TestCase
         diffPaths.add(DataElementPath.create("test/a"));
         diffPaths.add(DataElementPath.create("test2/b"));
         diffPaths.add(DataElementPath.create("test3/c"));
-        DataElementPathSet diffPaths2 = (DataElementPathSet)TextUtil.fromString(DataElementPathSet.class, TextUtil.toString(diffPaths));
+        DataElementPathSet diffPaths2 = (DataElementPathSet)TextUtil2.fromString(DataElementPathSet.class, TextUtil2.toString(diffPaths));
         assertEquals(diffPaths, diffPaths2);
     }
     

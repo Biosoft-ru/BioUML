@@ -2,7 +2,7 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.antimony.astparser_v2;
 
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class AstSubSymbol extends AstSymbol
 {
@@ -23,7 +23,7 @@ public class AstSubSymbol extends AstSymbol
     public void setName(String name)
     {
         this.name = name;
-        chainNames = TextUtil.split(name, '.');
+        chainNames = TextUtil2.split(name, '.');
     }
 
     @Override

@@ -17,7 +17,7 @@ import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.util.ApplicationUtils;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.FileItem;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class ImportAnalysisParameters extends AbstractAnalysisParameters
 {
@@ -75,7 +75,7 @@ public class ImportAnalysisParameters extends AbstractAnalysisParameters
                 String valueStr = properties.getProperty(prefix + "importer." + property.getName());
                 try
                 {
-                    property.setValue(TextUtil.fromString(property.getValueClass(), valueStr));
+                    property.setValue(TextUtil2.fromString(property.getValueClass(), valueStr));
                 }
                 catch( NoSuchMethodException e )
                 {
@@ -93,7 +93,7 @@ public class ImportAnalysisParameters extends AbstractAnalysisParameters
         {
             ComponentModel model = ComponentFactory.getModel(getProperties());
             BeanUtil.properties( model ).mapToEntry( prop -> prefix + "importer." + prop.getName(), Property::getValue )
-                .nonNullValues().mapValues( TextUtil::toString ).forKeyValue( properties::put );
+                .nonNullValues().mapValues( TextUtil2::toString ).forKeyValue( properties::put );
         }
     }
 

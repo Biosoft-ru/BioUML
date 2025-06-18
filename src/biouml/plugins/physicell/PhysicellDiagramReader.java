@@ -4,7 +4,12 @@ import biouml.model.Diagram;
 import biouml.model.DiagramType;
 import biouml.model.util.DiagramXmlReader;
 import biouml.model.util.ModelXmlReader;
+import biouml.plugins.physicell.plot.PlotProperties;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.util.DPSUtils;
+
+import java.util.Map;
+
 import org.w3c.dom.Element;
 
 public class PhysicellDiagramReader extends DiagramXmlReader
@@ -25,5 +30,13 @@ public class PhysicellDiagramReader extends DiagramXmlReader
         } );
 
         return result;
+    }
+    
+    @Override
+    public void readPlotsInfo(Element element, Diagram diagram, Map<String, String> newPaths)
+    {
+        Object pbj = readElement( element, PlotProperties.class);
+        ((PlotProperties)pbj).setModel(diagram.getRole( MulticellEModel.class ));
+        diagram.getAttributes().add(DPSUtils.createHiddenReadOnlyTransient("Plots", PlotProperties.class,  pbj));
     }
 }

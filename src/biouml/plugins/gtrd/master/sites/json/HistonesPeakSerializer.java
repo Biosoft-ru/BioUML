@@ -11,7 +11,7 @@ import biouml.plugins.gtrd.HistonesExperiment;
 import biouml.plugins.gtrd.master.sites.histones.HistonesPeak;
 import biouml.plugins.gtrd.master.sites.histones.MACS2HistonesPeak;
 import ru.biosoft.bsa.track.big.BigBedTrack;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class HistonesPeakSerializer extends GenomeLocationSerializer<HistonesPeak>
 {
@@ -65,7 +65,7 @@ public class HistonesPeakSerializer extends GenomeLocationSerializer<HistonesPea
             throw new JsonParseException(parser, "id should be the first field");
 
         String idString = parser.getValueAsString();//p.EXP003098.macs2.10719
-        String[] parts = TextUtil.split(idString, '.');
+        String[] parts = TextUtil2.split(idString, '.');
         
         String peakCaller = parts[2];
         switch(peakCaller)

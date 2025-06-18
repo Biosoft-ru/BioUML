@@ -7,7 +7,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.biohub.BioHub;
 import ru.biosoft.access.biohub.TargetOptions.CollectionRecord;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 import ru.biosoft.util.bean.JSONBean;
 
@@ -315,7 +315,7 @@ public class KeyNodeAnalysisParameters extends BasicKeyNodeAnalysisParameters
             if(!this.decoratorName.equals( decoratorName ))
             {
                 Object oldValue = this.decoratorName;
-                this.decoratorName = TextUtil.nullToEmpty( decoratorName );
+                this.decoratorName = TextUtil2.nullToEmpty( decoratorName );
                 firePropertyChange( "decoratorName", oldValue, this.decoratorName );
                 setParameters( GraphDecoratorRegistry.createParameters( decoratorName ) );
             }

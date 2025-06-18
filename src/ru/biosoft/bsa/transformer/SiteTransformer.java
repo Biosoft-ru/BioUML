@@ -17,7 +17,7 @@ import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.StrandType;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 import biouml.standard.type.DatabaseReference;
 import biouml.standard.type.Publication;
@@ -90,13 +90,13 @@ public class SiteTransformer extends TransfacTransformerSupport<Site>
             String line;
             while( ( line = reader.readLine() ) != null )
             {
-                String[] fields = TextUtil.splitPos(line, 2);
+                String[] fields = TextUtil2.splitPos(line, 2);
 
                 if( fields[0].equals("//") )
                     break;
                 if( fields[0].equals("OS") )
                 {
-                    species = TextUtil.split(fields[1], '/')[0];
+                    species = TextUtil2.split(fields[1], '/')[0];
                     if( species.contains(", ") )
                         species = species.split(", ")[1];
                 }

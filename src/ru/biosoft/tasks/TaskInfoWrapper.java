@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import ru.biosoft.access.core.DataElementSupport;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.application.Application;
 import ru.biosoft.jobcontrol.JobControl;
@@ -46,8 +46,8 @@ public class TaskInfoWrapper extends DataElementSupport
             return null;
         if(Application.getApplicationFrame() == null)
         {   // web edition - return link
-            return "<a href=\"#de=" + TextUtil.encodeURL(taskInfo.getSource().toString()).replace("+", "%20") + "&taskID="
-                    + TextUtil.encodeURL(taskInfo.getName()).replace("+", "%20") + "\">" + taskInfo.getSource().getName() + "</a>";
+            return "<a href=\"#de=" + TextUtil2.encodeURL(taskInfo.getSource().toString()).replace("+", "%20") + "&taskID="
+                    + TextUtil2.encodeURL(taskInfo.getName()).replace("+", "%20") + "\">" + taskInfo.getSource().getName() + "</a>";
         }
         return taskInfo.getSource().getName();
     }

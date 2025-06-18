@@ -22,7 +22,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SecurityProvider;
 import ru.biosoft.access.security.UserPermissions;
 import ru.biosoft.util.JsonUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * Security provider to work with remote Biostore server
@@ -170,7 +170,7 @@ public class RemoteSecurityProvider implements SecurityProvider
                 {
                     if( path.startsWith( "analyses/Docker/" ) )
                     {
-                        path = TextUtil.subst( path, "analyses/Docker/", "analyses/Docker/store/" );
+                        path = TextUtil2.subst( path, "analyses/Docker/", "analyses/Docker/store/" );
                     } 
                     dbToPermission.put(
                         path,
@@ -184,7 +184,7 @@ public class RemoteSecurityProvider implements SecurityProvider
                 String path = obj.get( "path" ).asString(); 
                 if( path.startsWith( "analyses/Docker/" ) )
                 {
-                    path = TextUtil.subst( path, "analyses/Docker/", "analyses/Docker/store/" );
+                    path = TextUtil2.subst( path, "analyses/Docker/", "analyses/Docker/store/" );
                 } 
                 dbToPermission.put(
                     path,
@@ -475,7 +475,7 @@ public class RemoteSecurityProvider implements SecurityProvider
     public String getLoginURL(String addParams)
     {
         String link = biostoreLink.replaceFirst( "api$", "" );
-        return link + "#!serverLogin/"+TextUtil.encodeURL( serverName )+"/"+TextUtil.encodeURL( addParams );
+        return link + "#!serverLogin/"+TextUtil2.encodeURL( serverName )+"/"+TextUtil2.encodeURL( addParams );
     }
 
     @Override
@@ -488,7 +488,7 @@ public class RemoteSecurityProvider implements SecurityProvider
     public String getLogoutURL()
     {
         String link = biostoreLink.replaceFirst( "api$", "" );
-        return link + "#!serverLogin/"+TextUtil.encodeURL( serverName )+"//logout";
+        return link + "#!serverLogin/"+TextUtil2.encodeURL( serverName )+"//logout";
     }
 
     @Override

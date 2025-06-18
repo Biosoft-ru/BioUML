@@ -44,7 +44,7 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.math.model.UndeclaredFunction;
 import ru.biosoft.table.TableDataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlUtil;
 
 public class ModelXmlReader extends DiagramXmlSupport
@@ -196,7 +196,7 @@ public class ModelXmlReader extends DiagramXmlSupport
 
     protected VariableRole readVariable(Element element, String diagramElement)
     {
-        String[] diagramElements = TextUtil.split( diagramElement, ';' );
+        String[] diagramElements = TextUtil2.split( diagramElement, ';' );
         DiagramElement de = getDiagramElement( diagramElements[0] );
         if( de == null )
             return null;

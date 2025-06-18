@@ -1,0 +1,157 @@
+ID	cells.csv
+createdDate	1745265206140
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	ru.biosoft.table
+name	cells.csv
+modifiedDate	1745265206140
+de_transformer	ru.biosoft.table.access.TableDataFileTransformer
+class	ru.biosoft.table.FileTableDataCollection
+//
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745265206157
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745265206157
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745265235430
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745265235430
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745265957466
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745265957466
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745266394576
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745266394576
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745267688459
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//
+
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745267688459
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//deleted
+ID	Model
+createdDate	1745265206157
+driver	ru.biosoft.access.generic.DataElementFileTypeDriver
+plugins	biouml.workbench
+diagramRole	biouml.plugins.physicell.MulticellEModel
+name	Model
+modifiedDate	1745509122578
+compositeDiagram	false
+de_transformer	biouml.model.util.DiagramXmlTransformer
+cloneForEdit	true
+class	biouml.model.Diagram
+diagramType	biouml.plugins.physicell.PhysicellDiagramType
+//

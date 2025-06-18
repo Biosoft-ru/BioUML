@@ -3,7 +3,7 @@ package biouml.plugins.physicell.document;
 import java.util.TreeMap;
 
 import biouml.standard.type.BaseSupport;
-import ru.biosoft.access.TextDataElement;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.physicell.ui.DensityState;

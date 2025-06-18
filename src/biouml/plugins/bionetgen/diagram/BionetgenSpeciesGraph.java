@@ -21,7 +21,7 @@ import one.util.streamex.StreamEx;
 
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.util.ObjectCache;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class BionetgenSpeciesGraph implements Cloneable
 {
@@ -172,7 +172,7 @@ public class BionetgenSpeciesGraph implements Cloneable
         String header = "";
         boolean hadHeader = false;
 
-        String[] parts = TextUtil.split(specie, ':');
+        String[] parts = TextUtil2.split(specie, ':');
         int partsSize = parts.length;
         if( partsSize == 1 )
             sp = specie;
@@ -213,7 +213,7 @@ public class BionetgenSpeciesGraph implements Cloneable
             }
         }
 
-        String[] molecules = TextUtil.split(sp, '.');
+        String[] molecules = TextUtil2.split(sp, '.');
         for( String molecule : molecules )
         {
             try

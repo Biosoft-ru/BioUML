@@ -26,7 +26,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.ExtensionRegistrySupport;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.StaticDescriptor;
 
 /**
@@ -338,7 +338,7 @@ public class ReferenceTypeRegistry extends ExtensionRegistrySupport<ReferenceTyp
     public static @Nonnull ReferenceType detectReferenceType(String[] references, Class<? extends ReferenceType> baseType)
     {
         return types().filter( baseType::isInstance )
-                .maxBy( type -> StreamEx.of( references ).filter( TextUtil::nonEmpty ).mapToInt( type::getIdScore ).sum() )
+                .maxBy( type -> StreamEx.of( references ).filter( TextUtil2::nonEmpty ).mapToInt( type::getIdScore ).sum() )
                 .orElse( getDefaultReferenceType() );
     }
 

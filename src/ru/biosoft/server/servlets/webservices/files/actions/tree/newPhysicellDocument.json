@@ -10,16 +10,15 @@
 		var path = getElementPath(completePath);
 		var name = getElementName(completePath);
 		if(!path || !name) return -1;
-        var dc = getDataCollection(path);
-        var type = dc.getChildClass(name);
-        //if (instanceOf(type,'biouml.model.Diagram')) 
-        //{
-        //    if( getDataCollection(completePath).diagramHasModel() )
-        //    {
+        var dc = getDataCollection(completePath);
+        if (dc) 
+        {
+            var parentDc = getDataCollection(path);
+            var type = parentDc.getChildClass(name);
+            if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') && dc.getElementInfo('model.txt'))
                 return true;
-        //    }
-        //}s
-        //return -1;
+        }
+        return -1;
     }",
     action: "function(path)
     {

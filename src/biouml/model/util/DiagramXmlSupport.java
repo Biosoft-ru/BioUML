@@ -32,7 +32,7 @@ import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.XmlUtil;
 
 public class DiagramXmlSupport extends DiagramXmlConstants
@@ -294,7 +294,7 @@ public class DiagramXmlSupport extends DiagramXmlConstants
                 element.setAttribute(TYPE_ATTR, getPropertyType(propertyType));
 
             if( value != null )
-                element.setAttribute(VALUE_ATTR, TextUtil.toString(value));
+                element.setAttribute(VALUE_ATTR, TextUtil2.toString(value));
         }
         else if( Pen.class.equals( propertyType ) )
         {
@@ -358,7 +358,7 @@ public class DiagramXmlSupport extends DiagramXmlConstants
                         }
                         else if( isEligibleToTextUtil(propertyClass))
                         {
-                            itemElement.appendChild( doc.createTextNode( TextUtil.toString(arrayElement) ) );
+                            itemElement.appendChild( doc.createTextNode( TextUtil2.toString(arrayElement) ) );
                         }
                         else
                         {

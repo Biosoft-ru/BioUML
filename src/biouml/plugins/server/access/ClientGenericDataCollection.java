@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import ru.biosoft.access.AbstractFileTransformer;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.file.FileBasedCollection;

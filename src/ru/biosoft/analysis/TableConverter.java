@@ -30,7 +30,7 @@ import ru.biosoft.table.TableColumnMatchingHub;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 @ClassIcon("resources/convert-table.gif")
 public class TableConverter extends TableConverterSupport<TableConverterParameters>
@@ -200,7 +200,7 @@ public class TableConverter extends TableConverterSupport<TableConverterParamete
             bioHubs.add( sb.toString() );
         }
         Properties properties = result.getInfo().getProperties();
-        properties.put( MatchingPathWriter.MATCHING_PATH_PROP, TextUtil.toString( bioHubs.toArray( new String[0] ) ) );
+        properties.put( MatchingPathWriter.MATCHING_PATH_PROP, TextUtil2.toString( bioHubs.toArray( new String[0] ) ) );
         CollectionFactoryUtils.save( result );
     }
 

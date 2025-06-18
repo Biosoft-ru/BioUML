@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.biohub.Element;
 import ru.biosoft.access.support.SerializableAsText;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 import com.developmentontheedge.beans.Option;
 
@@ -268,6 +268,6 @@ public class DatabaseReference extends Option implements SerializableAsText
 
     public Element convertToElement()
     {
-        return new Element( STUB_PATH.getChildPath( getDatabaseName(), TextUtil.nullToEmpty( getId() ), TextUtil.nullToEmpty( getAc() ) ) );
+        return new Element( STUB_PATH.getChildPath( getDatabaseName(), TextUtil2.nullToEmpty( getId() ), TextUtil2.nullToEmpty( getAc() ) ) );
     }
 }

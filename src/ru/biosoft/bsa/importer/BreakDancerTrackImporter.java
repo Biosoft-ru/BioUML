@@ -20,8 +20,8 @@ public class BreakDancerTrackImporter extends TrackImporter
     {
         String[] fields = line.split("\t");
         if(fields.length < 11) return null;
-        String chr = normalizeChromosome(fields[0]);
-        String chr2 = normalizeChromosome(fields[3]);
+        String chr = normalizeChromosome( fields[0], true );
+        String chr2 = normalizeChromosome( fields[3], true );
         String type = fields[6];
         int start;
         int start2 = 0;

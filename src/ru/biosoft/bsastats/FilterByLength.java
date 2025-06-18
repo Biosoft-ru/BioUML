@@ -3,7 +3,7 @@ package ru.biosoft.bsastats;
 import java.io.File;
 
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.bsastats.ProcessTasks.FastqSiteWriter;
 
 import com.developmentontheedge.beans.annot.ExpertProperty;

@@ -34,7 +34,7 @@ import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.bsa.WritableTrack;
 import ru.biosoft.bsa.track.WholeSequenceTrack;
 import ru.biosoft.bsa.view.TrackViewBuilder;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import biouml.standard.type.Species;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -283,7 +283,7 @@ public class SiteSearchAnalysis extends AnalysisMethodSupport<SiteSearchAnalysis
         catch( JSONException e )
         {
             // Fallback: old format
-            return TextUtil.split( value, '/' );
+            return TextUtil2.split( value, '/' );
         }
     }
 }

@@ -7,7 +7,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.project.Project;
 import ru.biosoft.bsa.view.SiteViewOptions;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class SiteViewOptionsProvider implements CacheableBeanProvider
 {
@@ -16,7 +16,7 @@ public class SiteViewOptionsProvider implements CacheableBeanProvider
     @Override
     public Object getBean(String path)
     {
-        String[] params = TextUtil.split( path, ';' );
+        String[] params = TextUtil2.split( path, ';' );
         if(params.length == 1)
         {
             Track track = BSAService.getTrack(params[0]);

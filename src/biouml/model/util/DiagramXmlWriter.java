@@ -63,7 +63,7 @@ import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.Path;
 import ru.biosoft.util.ColorUtils;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 public class DiagramXmlWriter extends DiagramXmlSupport implements DiagramWriter
 {
@@ -845,7 +845,7 @@ public class DiagramXmlWriter extends DiagramXmlSupport implements DiagramWriter
         if( kernel != null && kernel.getOrigin() != null && ! ( kernel instanceof Stub ) )
         {
             String ref = DataElementPath.create( kernel ).toString();
-            if( !TextUtil.isFullPath( ref ) || !kernel.getOrigin().contains( kernel.getName() ) )
+            if( !TextUtil2.isFullPath( ref ) || !kernel.getOrigin().contains( kernel.getName() ) )
                 ref = STUB + ru.biosoft.access.core.DataElementPath.PATH_SEPARATOR + ref;
 
             if( ref != null && ref.length() > 0 )
@@ -940,7 +940,7 @@ public class DiagramXmlWriter extends DiagramXmlSupport implements DiagramWriter
         return element;
     }
 
-    public static Element writePlotsInfo(Document doc, String elementName, Diagram diagram, Map<String, String> newPaths)
+    public Element writePlotsInfo(Document doc, String elementName, Diagram diagram, Map<String, String> newPaths)
     {
         DynamicProperty dp = diagram.getAttributes().getProperty("Plots");
         if( dp == null || dp.getValue() == null )

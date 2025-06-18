@@ -19,11 +19,12 @@
   <extension-point name="beans" id="beans"/>
   <extension-point name="movedClass" id="movedClass"/>
   <extension-point id="scriptType" name="scriptType" schema="plugconfig/ru.biosoft.access/schemas/scriptType.exsd"/>
+  <extension-point name="fileType" id="fileType"/>
   
   <extension id="access.commonClasses" point="ru.biosoft.access.commonClass">
   	<class class="ru.biosoft.access.core.DataCollection"/>
-  	<class class="ru.biosoft.access.FileDataElement"/>
-  	<class class="ru.biosoft.access.TextDataElement"/>
+  	<class class="ru.biosoft.access.file.FileDataElement"/>
+  	<class class="ru.biosoft.access.core.TextDataElement"/>
   	<class class="ru.biosoft.access.HtmlDataElement"/>
   	<class class="ru.biosoft.access.ImageDataElement"/>
   	<class class="ru.biosoft.access.FileCollection"/>
@@ -180,15 +181,15 @@
   
   
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="Image" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="Image" inputClass="ru.biosoft.access.file.FileDataElement" 
       	outputClass="ru.biosoft.access.ImageDataElement" transformerClass="ru.biosoft.access.support.FileImageTransformer"/> 
-      <transformer name="HTML file" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="HTML file" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="ru.biosoft.access.HtmlDataElement" transformerClass="ru.biosoft.access.support.FileHtmlTransformer"/> 
-      <transformer name="Plain text" inputClass="ru.biosoft.access.FileDataElement" 
-        outputClass="ru.biosoft.access.TextDataElement" transformerClass="ru.biosoft.access.support.FileTextTransformer"/> 
-      <transformer name="ZIP-archive with HTML pages" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="Plain text" inputClass="ru.biosoft.access.file.FileDataElement" 
+        outputClass="ru.biosoft.access.core.TextDataElement" transformerClass="ru.biosoft.access.file.FileTextTransformer"/> 
+      <transformer name="ZIP-archive with HTML pages" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="ru.biosoft.access.html.ZipHtmlDataCollection" transformerClass="ru.biosoft.access.support.FileZipHtmlTransformer"/>
-      <transformer name="Video" inputClass="ru.biosoft.access.FileDataElement" 
+      <transformer name="Video" inputClass="ru.biosoft.access.file.FileDataElement" 
         outputClass="ru.biosoft.access.VideoDataElement" transformerClass="ru.biosoft.access.support.FileVideoTransformer"/> 
   </extension>
 		 
@@ -219,4 +220,11 @@
   <extension point="ru.biosoft.access.beans">
 	<provider class="ru.biosoft.access.FDCBeanProvider" prefix="properties/fdc"/>
   </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Image" extensions="png;gif;jpg;bmp;jpeg" transformerClass="ru.biosoft.access.support.FileImageTransformer" priority="20" description="Image file"/>
+    <fileType name="HTML" extensions="html;htm" transformerClass="ru.biosoft.access.support.FileHtmlTransformer" priority="20" description="HTML file"/>
+    <fileType name="Video" extensions="mp4;ogg;webm" transformerClass="ru.biosoft.access.support.FileVideoTransformer" priority="20" description="Video file"/>
+    <fileType name="ZIP archive" extensions="zip" transformerClass="ru.biosoft.access.support.FileZipHtmlTransformer" priority="20" description="ZIP file"/>
+  </extension>  
 </plugin>

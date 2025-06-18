@@ -7,7 +7,7 @@ import static ru.biosoft.util.j2html.TagCreator.li;
 import static ru.biosoft.util.j2html.TagCreator.ul;
 
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.j2html.tags.ContainerTag;
 
 //TODO: think about move to separate plugin
@@ -23,7 +23,7 @@ public class MatchingPathWriter
         if( matchingPath == null )
             return "";
 
-        String[] result = (String[])TextUtil.fromString( String[].class, matchingPath );
+        String[] result = (String[])TextUtil2.fromString( String[].class, matchingPath );
         if( result.length == 0 )
             return "";
 

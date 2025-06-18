@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
   <extension id="chart file transformer" point="ru.biosoft.access.transformer"> 
-      <transformer name="Chart" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="Chart" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.graphics.access.ChartDataElement" transformerClass="ru.biosoft.graphics.access.FileChartTransformer"/> 
-      <transformer name="BioUML drawing" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="BioUML drawing" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.graphics.access.ViewDataElement" transformerClass="ru.biosoft.graphics.access.FileViewElementTransformer"/> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="Chart" extensions="chart" transformerClass="ru.biosoft.graphics.access.FileChartTransformer" priority="20" description="Chart file"/>
+    <fileType name="BioUML drawing" extensions="view" transformerClass="ru.biosoft.graphics.access.FileViewElementTransformer" priority="20" description="BioUML view file"/>
   </extension>
 </plugin>

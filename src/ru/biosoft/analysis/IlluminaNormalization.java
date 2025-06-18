@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.biohub.ReferenceTypeRegistry;
 import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
