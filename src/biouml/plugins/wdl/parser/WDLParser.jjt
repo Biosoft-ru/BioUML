@@ -114,7 +114,7 @@ TOKEN : /* STATE SWITCHERS */
 	}
 }
 | < COMMAND_HEREDOC_END: ">>>" > : DEFAULT
-| < ANY : (~["{", "}"]) >
+| < ANY : (~["{", "}"])+ >
 }
 
  TOKEN : /* RESERVED WORDS */
