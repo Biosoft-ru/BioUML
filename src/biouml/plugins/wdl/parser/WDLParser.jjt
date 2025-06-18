@@ -15,7 +15,7 @@ options
                    PARSER BEGIN
 ***************************************************************/
 PARSER_BEGIN(WDLParser)
-package com.wdl.parser;
+package biouml.plugins.wdl.parser;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.logging.Level;
