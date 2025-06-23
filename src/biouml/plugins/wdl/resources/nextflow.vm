@@ -30,6 +30,7 @@ $BR  input :
   $helper.getDeclaration($input)
 #end
 #end
+$BR  publishDir "/data", mode: 'copy'
 $BR  script:
   """
   $helper.getCommand($task).trim()
@@ -38,7 +39,7 @@ $BR  script:
 #if ($outputs.size() > 0)
 $BR  output:
 #foreach( $output in $outputs )
-  $helper.getDeclaration($output)
+  $helper.getType($output) "$helper.getExpression($output)"
 #end
 #end
 }$BR
@@ -47,27 +48,13 @@ $BR  output:
 ###################################WORKFLOW############################################
 #######################################################################################
 workflow {
-#set ($externalParameters = $helper.getExternalParameters())
-#if ($externalParameters.size() > 0)
-$BR  take: 
-#foreach( $externalParameter in $externalParameters )
-  $helper.getName($externalParameter)
-#end
-#end
-$BR  main:
+  main:
 #foreach( $call in $helper.getCalls())
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
-  $helper.getTaskRef($call)(#foreach($input in $inputs)params.$helper.getName($input)#comma($inputs)#end)
+  result_$velocityCount = $helper.getTaskRef($call)(#foreach($input in $inputs)params.$helper.getName($input)#comma($inputs)#end)
 #else
-  $helper.getTaskRef($call)()
-#end
-#end
-#set ($externalOutputs = $helper.getExternalOutputs())
-#if ($externalOutputs.size() > 0)
-$BR  emit:
-#foreach( $externalOutput in $externalOutputs )
-  $helper.getExpression($externalOutput)
+  result_$velocityCount = $helper.getTaskRef($call)()
 #end
 #end
 }
