@@ -30,6 +30,11 @@ public class NextFlowVelocityHelper
     {
         return WDLUtil.getExternalOutputs( diagram );
     }
+    
+    public Node getCallByOutput(Node node)
+    {
+        return node.edges().map(e->e.getOtherEnd( node )).findAny( n->WDLUtil.isCall( n )).orElse( null );
+    }
 
     public List<Node> getTasks()
     {
@@ -39,6 +44,17 @@ public class NextFlowVelocityHelper
     public List<Node> getCalls()
     {
         return WDLUtil.getCalls( diagram );
+    }
+    
+    public int getCallIndex(String name)
+    {
+        List<Node> calls = getCalls();
+        for( int i = 0; i < calls.size(); i++ )
+        {
+            if( calls.get( i ).getName().equals( name ) )
+                return i;
+        }
+        return -1;
     }
 
     public List<Node> getInputs(Compartment c)
@@ -54,7 +70,7 @@ public class NextFlowVelocityHelper
     public String getCommand(Compartment c)
     {
         String command = WDLUtil.getCommand( c );
-        return command.replace( "~{", "$(" );
+        return command.replace( "~{", "${" );
     }
 
     public Map<String, String> getRequirements(Compartment c)
@@ -79,7 +95,7 @@ public class NextFlowVelocityHelper
 
     public String getType(Node n)
     {
-        return WDLUtil.getType( n );
+        return getNextFlowType(WDLUtil.getType( n ));
     }
 
     public String getName(Node n)
@@ -95,14 +111,30 @@ public class NextFlowVelocityHelper
             return getType( n ) + " " + getName( n ) + " = " + getExpression( n );
         return getType( n ) + " " + getName( n );
     }
+    
+    private static String getNextFlowType(String wdlType)
+    {
+        switch (wdlType)
+        {
+            case "File":
+                return "path";
+             default:
+                 return "val";
+        }
+    }
 
     public String getExternalInput(Node n)
     {
         if( n == null )
             return "??";
+        
+        StringBuilder result = new StringBuilder("params.");
+        result.append( getName(n) );
+                
         if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
-            return "params." + getName( n ) + " = " + getExpression( n );
-        return "params." + getName( n );
+            result.append( " = " + getExpression( n ));
+        
+        return result.toString();
     }
 
     public String getVersion()
