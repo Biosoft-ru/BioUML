@@ -7,6 +7,7 @@ public class Player extends Thread
 {
     private boolean playing;
     private int time;
+    private int delay;
     private PlayerListener listener; 
     private final PhysicellSimulationResult result;
 
@@ -14,6 +15,7 @@ public class Player extends Thread
     {
         this.result = result;
         this.time = result.getOptions().getTime();
+        this.delay = result.getOptions().getFps() ;
     }
     
     public void setListener(PlayerListener listener)
@@ -29,6 +31,15 @@ public class Player extends Thread
         while( playing )
         {
             doStep();
+            try
+            {
+                sleep(delay*1000);
+            }
+            catch( InterruptedException e )
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
         listener.stop();
     }
