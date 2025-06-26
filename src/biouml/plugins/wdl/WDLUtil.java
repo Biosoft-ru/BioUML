@@ -1,5 +1,6 @@
 package biouml.plugins.wdl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class WDLUtil
     {
         return WDLConstants.INPUT_TYPE.equals( node.getKernel().getType() );
     }
-    
+
     public static boolean isExternalParameter(Node node)
     {
         return WDLConstants.EXTERNAL_PARAMETER_TYPE.equals( node.getKernel().getType() );
@@ -36,7 +37,7 @@ public class WDLUtil
     {
         return WDLConstants.OUTPUT_TYPE.equals( node.getKernel().getType() );
     }
-    
+
     public static boolean isExternalOutput(Node node)
     {
         return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
@@ -51,7 +52,7 @@ public class WDLUtil
     {
         return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).toList();
     }
-    
+
     public static List<Node> getCalls(Compartment c)
     {
         return c.stream( Node.class ).filter( n -> isCall( n ) ).toList();
@@ -66,7 +67,7 @@ public class WDLUtil
     {
         return c.stream( Node.class ).filter( n -> isOutput( n ) ).toList();
     }
-    
+
     public static List<Node> getExternalOutputs(Diagram d)
     {
         return d.stream( Node.class ).filter( n -> isExternalOutput( n ) ).toList();
@@ -83,7 +84,7 @@ public class WDLUtil
     {
         c.getAttributes().add( new DynamicProperty( WDLConstants.REQUIREMENTS_ATTR, Map.class, requirements ) );
     }
-    
+
     public static Map<String, String> getHints(Compartment c)
     {
         Object val = c.getAttributes().getValue( WDLConstants.HINTS_ATTR );
@@ -99,13 +100,23 @@ public class WDLUtil
     public static Map<String, String> getRuntime(Compartment c)
     {
         Object val = c.getAttributes().getValue( WDLConstants.RUNTIME_ATTR );
-        if( val instanceof Map )
-            return (Map<String, String>)val;
+        if( val instanceof String[] )
+        {
+            String[] array = (String[])val;
+            Map<String, String> result = new HashMap<>();
+            for (String s: array)
+            {
+                String[] split = s.split( "#" );
+                result.put( split[0], split[1] );
+            }
+            return result;
+        }
         return null;
     }
     public static void setRuntime(Compartment c, Map<String, String> runtime)
     {
-        c.getAttributes().add( new DynamicProperty( WDLConstants.RUNTIME_ATTR, Map.class, runtime ) );
+        String[] vals = runtime.entrySet().stream().map( e -> (String) ( e.getKey() + "#" + e.getValue() ) ).toArray( String[]::new );
+        c.getAttributes().add( new DynamicProperty( WDLConstants.RUNTIME_ATTR, String[].class, vals ) );
     }
 
     public static String getDeclaration(Node n)
@@ -157,7 +168,7 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.COMMAND_ATTR );
     }
-    
+
     public static void setTaskRef(Compartment c, String ref)
     {
         c.getAttributes().add( new DynamicProperty( WDLConstants.TASK_REF_ATTR, String.class, ref ) );
