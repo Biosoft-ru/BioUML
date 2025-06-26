@@ -192,10 +192,7 @@ public class WDLImporter implements DataElementImporter
                                 inputName = ( (AstDeclaration)cc ).getName();
                                 Node parameterNode = createExternalParameterNode( result, inputName );
                                 Node port = c.findNode( inputName );
-                                WDLUtil.setName( parameterNode, ( (AstDeclaration)cc ).getName() );
-                                WDLUtil.setType( parameterNode, ( (AstDeclaration)cc ).getAstType().toString() );
-                                AstExpression expression = ( (AstDeclaration)cc ).getExpression();
-                                WDLUtil.setExpression( parameterNode, expression == null ? null : expression.toString() );
+                                setDeclaration(parameterNode, (AstDeclaration)cc);
                                 createLink( parameterNode, port, WDLConstants.LINK_TYPE );
                             }
                         }
@@ -210,10 +207,7 @@ public class WDLImporter implements DataElementImporter
                                 String outputName = ( (AstDeclaration)cc ).getName();
                                 Node parameterNode = createExpressionNode( result, outputName );
                                 Node port = c.findNode( outputName );
-                                WDLUtil.setName( parameterNode, ( (AstDeclaration)cc ).getName() );
-                                WDLUtil.setType( parameterNode, ( (AstDeclaration)cc ).getAstType().toString() );
-                                AstExpression expression = ( (AstDeclaration)cc ).getExpression();
-                                WDLUtil.setExpression( parameterNode, expression == null ? null : expression.toString() );
+                                setDeclaration(parameterNode, (AstDeclaration)cc);
                                 createLink( port, parameterNode, WDLConstants.LINK_TYPE );
                             }
                         }
@@ -279,10 +273,7 @@ public class WDLImporter implements DataElementImporter
             for( AstDeclaration declaration : input.getDeclarations() )
             {
                 Node portNode = addPort( declaration.getName(), WDLConstants.INPUT_TYPE, i++, c );
-                WDLUtil.setName( portNode, declaration.getName() );
-                WDLUtil.setType( portNode, declaration.getAstType().toString() );
-                AstExpression expression = declaration.getExpression();
-                WDLUtil.setExpression( portNode, expression == null ? null : expression.toString() );
+                setDeclaration(portNode, declaration);
             }
             maxPorts = input.getDeclarations().size();
         }
@@ -294,10 +285,7 @@ public class WDLImporter implements DataElementImporter
             for( AstDeclaration declaration : output.getDeclarations() )
             {
                 Node portNode = addPort( declaration.getName(), WDLConstants.OUTPUT_TYPE, i++, c );
-                WDLUtil.setName( portNode, declaration.getName() );
-                WDLUtil.setType( portNode, declaration.getAstType().toString() );
-                AstExpression expression = declaration.getExpression();
-                WDLUtil.setExpression( portNode, expression == null ? null : expression.toString() );
+                setDeclaration(portNode, declaration);
             }
             maxPorts = Math.max( maxPorts, output.getDeclarations().size() );
         }
@@ -309,6 +297,15 @@ public class WDLImporter implements DataElementImporter
         parent.put( c );
         return c;
     }
+    
+    private static void setDeclaration(Node node, AstDeclaration declaration)
+    {
+        WDLUtil.setName( node, declaration.getName() );
+        WDLUtil.setType( node, declaration.getAstType().toString() );
+        AstExpression expression = declaration.getExpression();
+        WDLUtil.setExpression( node, expression == null ? null : expression.toString() );
+    }
+    
 
     public Compartment createCallNode(Compartment parent, AstCall call)
     {
