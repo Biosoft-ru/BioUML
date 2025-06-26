@@ -52,7 +52,6 @@ import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.GUI;
-import ru.biosoft.util.TempFile;
 import ru.biosoft.util.TempFiles;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
