@@ -998,7 +998,9 @@
     <transformer name="BigBedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.big.BigBedTrack" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer"/>
     <transformer name="BigWigFile" inputClass="ru.biosoft.access.file.FileDataElement" 
-      outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/> 
+      outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/>
+    <transformer name="HICFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.hic.HICTrack" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer"/>
   </extension>
   
   <extension point="ru.biosoft.access.fileType">
@@ -1014,6 +1016,7 @@
     <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
     <fileType name="BCF track" extensions="bcf" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer" priority="20" description="BCF track file"/>
     <fileType name="GenBank track" extensions="gb" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer" priority="20" description="BCF track file"/>
+    <fileType name="HIC file" extensions="hic" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer" priority="20" description="HIC matrix file"/>
   </extension>
 
 </plugin>
