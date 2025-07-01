@@ -94,6 +94,10 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         {
             return createExpressionCoreView( container, node, diagramViewOptions, g );
         }
+        else if( WDLConstants.SCATTER_VARIABLE_TYPE.equals( type ) )
+        {
+            return createCycleVariableCoreView( container, node, diagramViewOptions, g );
+        }
         //        else if( NodeType.INPUT_PORT.name().equals( type ) )
         //        {
         //            return createInOutCoreView( container, node, diagramViewOptions, g, true );
@@ -119,6 +123,10 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         else if( WDLConstants.CALL_TYPE.equals( type ) )
         {
             return createCommandCallView( container, compartment, diagramViewOptions, g );
+        }
+        else if( WDLConstants.SCATTER_TYPE.equals( type ) )
+        {
+            return createScatterView( container, compartment, diagramViewOptions, g );
         }
         //        else if( NodeType.COMMAND_CALL.name().equals( type ) )
         //        {
@@ -500,4 +508,5 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
             return new InOutFinder( false, getNodeBounds( node ) );
         return super.getPortFinder( node );
     }
+    
 }

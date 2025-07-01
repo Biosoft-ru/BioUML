@@ -8,6 +8,7 @@ import com.developmentontheedge.beans.DynamicProperty;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
+import biouml.model.DiagramElement;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
 
@@ -23,6 +24,11 @@ public class WDLUtil
         return WDLConstants.CALL_TYPE.equals( node.getKernel().getType() );
     }
 
+    public static boolean isLink(DiagramElement de)
+    {
+        return WDLConstants.LINK_TYPE.equals( de.getKernel().getType() );
+    }
+
     public static boolean isInput(Node node)
     {
         return WDLConstants.INPUT_TYPE.equals( node.getKernel().getType() );
@@ -31,6 +37,21 @@ public class WDLUtil
     public static boolean isExternalParameter(Node node)
     {
         return WDLConstants.EXTERNAL_PARAMETER_TYPE.equals( node.getKernel().getType() );
+    }
+
+    public static boolean isExpression(Node node)
+    {
+        return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
+    }
+
+    public static boolean isCycleVariable(Node node)
+    {
+        return WDLConstants.SCATTER_VARIABLE_TYPE.equals( node.getKernel().getType() );
+    }
+
+    public static boolean isCycle(Node node)
+    {
+        return WDLConstants.SCATTER_TYPE.equals( node.getKernel().getType() );
     }
 
     public static boolean isOutput(Node node)
@@ -46,6 +67,11 @@ public class WDLUtil
     public static List<Node> getTasks(Compartment c)
     {
         return c.stream( Node.class ).filter( n -> isTask( n ) ).toList();
+    }
+
+    public static List<Node> getCycles(Compartment c)
+    {
+        return c.stream( Node.class ).filter( n -> isCycle( n ) ).toList();
     }
 
     public static List<Node> getExternalParameters(Diagram diagram)
@@ -104,7 +130,7 @@ public class WDLUtil
         {
             String[] array = (String[])val;
             Map<String, String> result = new HashMap<>();
-            for (String s: array)
+            for( String s : array )
             {
                 String[] split = s.split( "#" );
                 result.put( split[0], split[1] );
@@ -176,5 +202,49 @@ public class WDLUtil
     public static String getTaskRef(Compartment c)
     {
         return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
+    }
+
+    public static Node findExpressionNode(Diagram diagram, String name)
+    {
+        return diagram.recursiveStream().select( Node.class )
+                .filter( n -> ( isExternalParameter( n ) || isExpression( n ) || isCycleVariable( n ) ) )
+                .findAny( n -> name.equals( getName( n ) ) ).orElse( null );
+    }
+
+    public static <T> T findChild(biouml.plugins.wdl.parser.Node node, Class<T> c)
+    {
+        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+        {
+            biouml.plugins.wdl.parser.Node child = node.jjtGetChild( i );
+            if( c.isInstance( child ) )
+            {
+                return c.cast( child );
+            }
+        }
+        return null;
+    }
+    
+    public static String getCycleVariable(Compartment c)
+    {
+        for (Node node: c.getNodes())
+        {
+            if (isCycleVariable( node ))
+                return getName(node);
+        }
+        return null;
+    }
+    
+    public static String getCycleName(Compartment c)
+    {
+        for (Node node: c.getNodes())
+        {
+            if (isCycleVariable( node ))
+            {
+                Node arrayNode = node.edges().map( e->e.getOtherEnd( node ) ).findAny().orElse( null );
+                if (arrayNode != null)
+                    return getName(arrayNode);
+            }
+        }
+        return null;
     }
 }
