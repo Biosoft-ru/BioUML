@@ -1,5 +1,6 @@
 package biouml.plugins.wdl.parser;
 
+import ru.biosoft.math.model.AstVarNode;
 
 public class ExpressionFormatter
 {
@@ -23,14 +24,26 @@ public class ExpressionFormatter
 //        if( node instanceof AstConstant )
 //            processConstant((AstConstant)node);
 //
-//        else if( node instanceof AstVarNode )
-//            processVariable((AstVarNode)node);
-
-        if( node instanceof AstFunction )
+        
+        if (node instanceof AstArray)
+        {
+            for( Node child : ((AstArray)node).getChildren() )
+                processNode( child );
+        }
+        else if( node instanceof AstFunction )
             processFunction((AstFunction)node);
+        else if( node instanceof AstText )
+            processText((AstText)node);
         
         else 
             result.append( node.toString() );
+    }
+    
+    protected void processText(AstText node)
+    {
+        result.append( "\"");
+        result.append( node.toString());
+        result.append( "\"");
     }
     
     protected void processFunction(AstFunction node)
