@@ -365,8 +365,10 @@ public class WDLEditor extends EditorPartSupport
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
-                    "/data/" + f.getName()};
+            
+            String[] command  = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()}; 
+//            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
+//                    "/data/" + f.getName()};
 
             executeCommand( command );
         }
@@ -378,7 +380,7 @@ public class WDLEditor extends EditorPartSupport
 
     private void executeCommand(String[] command) throws Exception
     {
-        System.out.println( "Executing command " + command );
+        System.out.println( "Executing command " + StreamEx.of(command).joining( " " ) );
         Process process = Runtime.getRuntime().exec( command );
 
         new Thread( new Runnable()
@@ -452,7 +454,8 @@ public class WDLEditor extends EditorPartSupport
                             throw new Exception( "Failed to create directory '" + outputDir + "'." );
                         File exported = new File( dir, de.getName() );
                         ApplicationUtils.writeString( exported, str );
-                        lines[i] = "params." + paramName + " = file(\"data/" + exported.getName() + "\")";
+                        lines[i] = "params." + paramName + " = file(\"" + exported.getName() + "\")";
+//                        lines[i] = "params." + paramName + " = file(\"data/" + exported.getName() + "\")";
                     }
 
                 }
@@ -471,7 +474,9 @@ public class WDLEditor extends EditorPartSupport
         List<Node> externalOutputs = WDLUtil.getExternalOutputs( diagram );
         for( Node externalOutput : externalOutputs )
         {
-            String name = WDLUtil.getName( externalOutput );
+            Node output = externalOutput.edges().filter( e->WDLUtil.isLink(e) ).map( e->e.getOtherEnd( externalOutput ) ).findAny().orElse( null );
+            
+            String name = WDLUtil.getExpression( output ).replace( "\"", "" );
             File f = new File( outputDir, name );
             TextFileImporter importer = new TextFileImporter();
             importer.doImport( dc, f, name, null, log );
