@@ -98,7 +98,10 @@ public class NextFlowVelocityHelper
 
     public String getExpression(Node n)
     {
-        return WDLUtil.getExpression( n ).replace( "~{", "${" );
+        String expression =  WDLUtil.getExpression( n );
+        if (expression == null)
+            return null;
+        return expression.replace( "~{", "${" );
     }
 
     public String getType(Node n)

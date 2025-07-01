@@ -208,9 +208,23 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
     }
+    
+    public static Compartment findCall(String taskName, Diagram diagram)
+    {
+        return diagram.recursiveStream().select( Compartment.class ).filter( c->isCall( c ) && getTaskRef( c ).equals( taskName ) ).findAny().orElse( null );
+    }
 
     public static Node findExpressionNode(Diagram diagram, String name)
     {
+        if (name.contains( "." ))
+        {
+            String[] parts = name.split( "\\." );
+            String call = parts[0];
+            String varName = parts[1];
+            Compartment callNode = WDLUtil.findCall(call, diagram);
+            Node port = callNode.stream(Node.class).filter( n->varName.equals( getName( n )) ).findAny().orElse(null);
+            return port;
+        }
         return diagram.recursiveStream().select( Node.class )
                 .filter( n -> ( isExternalParameter( n ) || isExpression( n ) || isCycleVariable( n ) ) )
                 .findAny( n -> name.equals( getName( n ) ) ).orElse( null );

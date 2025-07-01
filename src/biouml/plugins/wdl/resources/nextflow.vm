@@ -11,6 +11,23 @@
 #macro(comma $list)
 #if($velocityCount < $list.size()),#end
 #end
+#######################################################################################
+#macro(callNF $call)
+#set ($inputs = $helper.getInputs($call))
+#if ($inputs.size()> 0)
+  result_$velocityCount = $helper.getTaskRef($call)(#foreach($input in $inputs)$helper.getName($helper.getSource($input))#comma($inputs)#end)
+#else
+  result_$velocityCount = $helper.getTaskRef($call)()
+#end
+#end
+#######################################################################################
+#macro(scatterNF $scatter)
+#set ($scatterVar = $helper.getCycleVariable($scatter))
+#set ($scatterName = $helper.getCycleName($scatter))
+  Channel.from($scatterName).set { $scatterVar }
+#foreach( $call in $helper.getCalls($scatter))#callNF($call)#end
+#end
+#######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
 #foreach( $externalParameter in $externalParameters )
@@ -30,7 +47,7 @@ $BR  input :
   $helper.getDeclaration($input)
 #end
 #end
-$BR  publishDir "/data", mode: 'copy'
+$BR  publishDir "$task.getName()_result", mode: 'copy'
 $BR  script:
   """
   $helper.getCommand($task).trim()
@@ -39,7 +56,7 @@ $BR  script:
 #if ($outputs.size() > 0)
 $BR  output:
 #foreach( $output in $outputs )
-  $helper.getType($output) "$helper.getExpression($output)"
+  $helper.getType($output) $helper.getExpression($output)
 #end
 #end
 }$BR
@@ -49,12 +66,6 @@ $BR  output:
 #######################################################################################
 workflow {
   main:
-#foreach( $call in $helper.getCalls())
-#set ($inputs = $helper.getInputs($call))
-#if ($inputs.size()> 0)
-  result_$velocityCount = $helper.getTaskRef($call)(#foreach($input in $inputs)params.$helper.getName($input)#comma($inputs)#end)
-#else
-  result_$velocityCount = $helper.getTaskRef($call)()
-#end
-#end
+#foreach( $call in $helper.getCalls($diagram))#callNF($call)#end
+#foreach( $scatter in $helper.getScatters($diagram))#scatterNF($scatter)#end
 }

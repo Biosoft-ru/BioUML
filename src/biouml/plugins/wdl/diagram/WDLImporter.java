@@ -203,7 +203,8 @@ public class WDLImporter implements DataElementImporter
                 }
             }
         }
-
+        
+        createLinks(result);
         return result;
     }
 
@@ -221,6 +222,16 @@ public class WDLImporter implements DataElementImporter
         return node;
     }
 
+    public void createLinks(Diagram diagram)
+    {
+        for (Node node: diagram.stream().select( Node.class ).filter( n->WDLUtil.getExpression( n ) != null ))
+        {
+            Node source = WDLUtil.findExpressionNode( diagram, WDLUtil.getExpression( node ) );
+            if (source != null)
+                createLink( source, node, WDLConstants.LINK_TYPE );
+        }
+    }
+    
     public Node createExpressionNode(Compartment parent, AstDeclaration declaration)
     {
         String name = declaration.getName();
