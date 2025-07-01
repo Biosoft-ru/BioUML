@@ -146,4 +146,19 @@ public class NextFlowVelocityHelper
     {
         return WDLUtil.getTaskRef( c );
     }
+    
+    public List<Node> getScatters(Compartment c)
+    {
+        return WDLUtil.getCycles( c );
+    }
+
+    public String getCycleVariable(Compartment c)
+    {
+        return WDLUtil.getCycleVariable( c );
+    }
+
+    public String getCycleName(Compartment c)
+    {
+        return WDLUtil.getCycleName( c );
+    }
 }

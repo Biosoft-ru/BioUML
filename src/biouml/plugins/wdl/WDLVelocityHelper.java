@@ -36,9 +36,14 @@ public class WDLVelocityHelper
         return WDLUtil.getTasks( diagram );
     }
 
-    public List<Node> getCalls()
+    public List<Node> getScatters(Compartment c)
     {
-        return WDLUtil.getCalls( diagram );
+        return WDLUtil.getCycles( c );
+    }
+
+    public List<Node> getCalls(Compartment c)
+    {
+        return WDLUtil.getCalls( c );
     }
 
     public List<Node> getInputs(Compartment c)
@@ -103,5 +108,24 @@ public class WDLVelocityHelper
     public String getTaskRef(Compartment c)
     {
         return WDLUtil.getTaskRef( c );
+    }
+
+    public String getCycleVariable(Compartment c)
+    {
+        return WDLUtil.getCycleVariable( c );
+    }
+
+    public String getCycleName(Compartment c)
+    {
+        return WDLUtil.getCycleName( c );
+    }
+    
+    public String getCallInput(Node inputNode)
+    {
+        String name = getName(inputNode);
+        String expression = getExpression(inputNode);
+        if (expression == null)
+            return name;
+        return name +" = "+ expression;
     }
 }
