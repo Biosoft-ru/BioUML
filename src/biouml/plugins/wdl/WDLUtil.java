@@ -64,14 +64,14 @@ public class WDLUtil
         return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
     }
 
-    public static List<Node> getTasks(Compartment c)
+    public static List<Compartment> getTasks(Compartment c)
     {
-        return c.stream( Node.class ).filter( n -> isTask( n ) ).toList();
+        return c.stream( Compartment.class ).filter( n -> isTask( n ) ).toList();
     }
 
-    public static List<Node> getCycles(Compartment c)
+    public static List<Compartment> getCycles(Compartment c)
     {
-        return c.stream( Node.class ).filter( n -> isCycle( n ) ).toList();
+        return c.stream( Compartment.class ).filter( n -> isCycle( n ) ).toList();
     }
 
     public static List<Node> getExternalParameters(Diagram diagram)
@@ -79,11 +79,16 @@ public class WDLUtil
         return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).toList();
     }
 
-    public static List<Node> getCalls(Compartment c)
+    public static List<Compartment> getCalls(Compartment c)
     {
-        return c.stream( Node.class ).filter( n -> isCall( n ) ).toList();
+        return c.stream( Compartment.class ).filter( n -> isCall( n ) ).toList();
     }
 
+    public static List<Compartment> getAllCalls(Compartment c)
+    {
+        return c.recursiveStream().select(Compartment.class).filter( n -> isCall( n ) ).toList();
+    }
+    
     public static List<Node> getInputs(Compartment c)
     {
         return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
@@ -230,6 +235,16 @@ public class WDLUtil
         {
             if (isCycleVariable( node ))
                 return getName(node);
+        }
+        return null;
+    }
+    
+    public static Node getCycleVariableNode(Compartment c)
+    {
+        for (Node node: c.getNodes())
+        {
+            if (isCycleVariable( node ))
+                return node;
         }
         return null;
     }

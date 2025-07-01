@@ -50,6 +50,7 @@ public class NextFlowGenerator
             String creationTime = format.format( date );
 
             context.put( "creationTime", creationTime );
+            context.put( "diagram", diagram );
 
             StringWriter sw = new StringWriter();
             velocityTemplate.merge( context, sw );

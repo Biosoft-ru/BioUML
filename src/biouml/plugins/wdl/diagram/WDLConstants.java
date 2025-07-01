@@ -22,4 +22,6 @@ public class WDLConstants
     public static final String EXPRESSION_ATTR = "EXPRESSION";
     public static final String VERSION_ATTR = "VERSION";
     public static final String TASK_REF_ATTR = "TASK_REFERENCE";
+    
+    public static final String SETTINGS_ATTR = "Settings";
 }

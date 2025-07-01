@@ -36,32 +36,40 @@ public class NextFlowVelocityHelper
         return node.edges().map(e->e.getOtherEnd( node )).findAny( n->WDLUtil.isCall( n )).orElse( null );
     }
 
-    public List<Node> getTasks()
+    public List<Compartment> getTasks()
     {
         return WDLUtil.getTasks( diagram );
     }
 
-    public List<Node> getCalls()
+    public List<Compartment> getCalls(Compartment compartment)
     {
-        return WDLUtil.getCalls( diagram );
+        return WDLUtil.getCalls( compartment );
     }
     
-    public int getCallIndex(String name)
-    {
-        List<Node> calls = getCalls();
-        for( int i = 0; i < calls.size(); i++ )
-        {
-            if( calls.get( i ).getName().equals( name ) )
-                return i;
-        }
-        return -1;
-    }
+//    public int getCallIndex(String name)
+//    {
+//        List<Node> calls = getCalls();
+//        for( int i = 0; i < calls.size(); i++ )
+//        {
+//            if( calls.get( i ).getName().equals( name ) )
+//                return i;
+//        }
+//        return -1;
+//    }
 
     public List<Node> getInputs(Compartment c)
     {
         return WDLUtil.getInputs( c );
     }
 
+    /**
+     * returns node which is connected with this input node of a call
+     */
+    public Node getSource(Node node)
+    {
+        return node.edges().map( e->e.getOtherEnd( node ) ).findAny().orElse(null);
+    }
+    
     public List<Node> getOutputs(Compartment c)
     {
         return WDLUtil.getOutputs( c );
@@ -90,7 +98,7 @@ public class NextFlowVelocityHelper
 
     public String getExpression(Node n)
     {
-        return WDLUtil.getExpression( n );
+        return WDLUtil.getExpression( n ).replace( "~{", "${" );
     }
 
     public String getType(Node n)
@@ -100,7 +108,10 @@ public class NextFlowVelocityHelper
 
     public String getName(Node n)
     {
-        return WDLUtil.getName( n );
+        String name = WDLUtil.getName( n );
+        if( WDLUtil.isExternalParameter( n ) )
+            return "params." + name;
+        return name;
     }
 
     public String getDeclaration(Node n)
@@ -128,7 +139,7 @@ public class NextFlowVelocityHelper
         if( n == null )
             return "??";
         
-        StringBuilder result = new StringBuilder("params.");
+        StringBuilder result = new StringBuilder();
         result.append( getName(n) );
                 
         if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
@@ -147,18 +158,29 @@ public class NextFlowVelocityHelper
         return WDLUtil.getTaskRef( c );
     }
     
-    public List<Node> getScatters(Compartment c)
+    public List<Compartment> getScatters(Compartment c)
     {
         return WDLUtil.getCycles( c );
     }
 
+    public String getCycleName(Compartment c)
+    {
+        Node cycleVarNode = WDLUtil.getCycleVariableNode( c );
+        if (cycleVarNode == null)
+            return null;
+        Node source = getSource(cycleVarNode);
+        if (source == null)
+            return null;
+        return getName(source);
+    }
+    
     public String getCycleVariable(Compartment c)
     {
         return WDLUtil.getCycleVariable( c );
     }
-
-    public String getCycleName(Compartment c)
+    
+    public String createChannelName(String input)
     {
-        return WDLUtil.getCycleName( c );
+        return input.replace( ".", "_" )+"_ch";
     }
 }

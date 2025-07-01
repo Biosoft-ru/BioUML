@@ -31,17 +31,17 @@ public class WDLVelocityHelper
         return WDLUtil.getExternalOutputs( diagram );
     }
 
-    public List<Node> getTasks()
+    public List<Compartment> getTasks()
     {
         return WDLUtil.getTasks( diagram );
     }
 
-    public List<Node> getScatters(Compartment c)
+    public List<Compartment> getScatters(Compartment c)
     {
         return WDLUtil.getCycles( c );
     }
 
-    public List<Node> getCalls(Compartment c)
+    public List<Compartment> getCalls(Compartment c)
     {
         return WDLUtil.getCalls( c );
     }
