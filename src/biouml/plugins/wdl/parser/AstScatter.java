@@ -2,22 +2,78 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.wdl.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AstScatter extends AstScope
 {
     public AstScatter(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstScatter(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
     }
 
     @Override
     public String toString()
     {
         return "scatter";
+    }
+
+    public String getVarible()
+    {
+        for( int i = 0; i < jjtGetNumChildren(); i++ )
+        {
+            Node child = jjtGetChild( i );
+            if( child instanceof AstIn )
+            {
+                Node varNode = jjtGetChild( i - 1 );
+                return varNode.toString();
+            }
+        }
+        return null;
+    }
+
+    public String getArray()
+    {
+        for( int i = 0; i < jjtGetNumChildren(); i++ )
+        {
+            Node child = jjtGetChild( i );
+            if( child instanceof AstIn )
+            {
+                Node varNode = jjtGetChild( i + 1 );
+                return varNode.toString();
+            }
+        }
+        return null;
+    }
+
+    public Iterable<Node> getBody()
+    {
+        boolean start = false;
+        List<Node> nodes = new ArrayList<Node>();
+        for( int i = 0; i < jjtGetNumChildren(); i++ )
+        {
+
+            Node child = jjtGetChild( i );
+
+            if( child instanceof AstRegularFormulaElement && ( (AstRegularFormulaElement)child ).toString().equals( "}" ) )
+            {
+                start = false;
+            }
+
+            if( start )
+                nodes.add( child );
+
+            if( child instanceof AstRegularFormulaElement && ( (AstRegularFormulaElement)child ).toString().equals( "{" ) )
+            {
+                start = true;
+            }
+        }
+        return nodes;
     }
 
 }
