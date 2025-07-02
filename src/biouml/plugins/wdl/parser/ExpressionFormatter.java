@@ -1,7 +1,5 @@
 package biouml.plugins.wdl.parser;
 
-import ru.biosoft.math.model.AstVarNode;
-
 public class ExpressionFormatter
 {
     protected StringBuilder result;
