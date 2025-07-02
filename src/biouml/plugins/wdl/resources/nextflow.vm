@@ -15,9 +15,9 @@
 #macro(callNF $call)
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
-  result_$velocityCount = $helper.getTaskRef($call)(#foreach($input in $inputs)$helper.getName($helper.getSource($input))#comma($inputs)#end)
+  $helper.getResultName($call) = $helper.getTaskRef($call)(#foreach($input in $inputs)$helper.getInputName($helper.getSource($input))#comma($inputs)#end)
 #else
-  result_$velocityCount = $helper.getTaskRef($call)()
+  $helper.getResultName($call) = $helper.getTaskRef($call)()
 #end
 #end
 #######################################################################################
@@ -47,7 +47,7 @@ $BR  input :
   $helper.getDeclaration($input)
 #end
 #end
-$BR  publishDir "$task.getName()_result", mode: 'copy'
+$BR  publishDir "$task.getName()", mode: 'copy'
 $BR  script:
   """
   $helper.getCommand($task).trim()
@@ -56,7 +56,7 @@ $BR  script:
 #if ($outputs.size() > 0)
 $BR  output:
 #foreach( $output in $outputs )
-  $helper.getType($output) $helper.getExpression($output)
+  $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output) 
 #end
 #end
 }$BR

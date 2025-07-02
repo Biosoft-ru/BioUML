@@ -1,8 +1,11 @@
 package biouml.plugins.wdl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
@@ -86,9 +89,9 @@ public class WDLUtil
 
     public static List<Compartment> getAllCalls(Compartment c)
     {
-        return c.recursiveStream().select(Compartment.class).filter( n -> isCall( n ) ).toList();
+        return c.recursiveStream().select( Compartment.class ).filter( n -> isCall( n ) ).toList();
     }
-    
+
     public static List<Node> getInputs(Compartment c)
     {
         return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
@@ -208,21 +211,22 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
     }
-    
+
     public static Compartment findCall(String taskName, Diagram diagram)
     {
-        return diagram.recursiveStream().select( Compartment.class ).filter( c->isCall( c ) && getTaskRef( c ).equals( taskName ) ).findAny().orElse( null );
+        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getTaskRef( c ).equals( taskName ) )
+                .findAny().orElse( null );
     }
 
     public static Node findExpressionNode(Diagram diagram, String name)
     {
-        if (name.contains( "." ))
+        if( name.contains( "." ) )
         {
             String[] parts = name.split( "\\." );
             String call = parts[0];
             String varName = parts[1];
-            Compartment callNode = WDLUtil.findCall(call, diagram);
-            Node port = callNode.stream(Node.class).filter( n->varName.equals( getName( n )) ).findAny().orElse(null);
+            Compartment callNode = WDLUtil.findCall( call, diagram );
+            Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
             return port;
         }
         return diagram.recursiveStream().select( Node.class )
@@ -242,38 +246,69 @@ public class WDLUtil
         }
         return null;
     }
-    
+
     public static String getCycleVariable(Compartment c)
     {
-        for (Node node: c.getNodes())
+        for( Node node : c.getNodes() )
         {
-            if (isCycleVariable( node ))
-                return getName(node);
+            if( isCycleVariable( node ) )
+                return getName( node );
         }
         return null;
     }
-    
+
     public static Node getCycleVariableNode(Compartment c)
     {
-        for (Node node: c.getNodes())
+        for( Node node : c.getNodes() )
         {
-            if (isCycleVariable( node ))
+            if( isCycleVariable( node ) )
                 return node;
         }
         return null;
     }
-    
+
     public static String getCycleName(Compartment c)
     {
-        for (Node node: c.getNodes())
+        for( Node node : c.getNodes() )
         {
-            if (isCycleVariable( node ))
+            if( isCycleVariable( node ) )
             {
-                Node arrayNode = node.edges().map( e->e.getOtherEnd( node ) ).findAny().orElse( null );
-                if (arrayNode != null)
-                    return getName(arrayNode);
+                Node arrayNode = node.edges().map( e -> e.getOtherEnd( node ) ).findAny().orElse( null );
+                if( arrayNode != null )
+                    return getName( arrayNode );
             }
         }
         return null;
+    }
+
+    public static List<Compartment> orderCalls(Diagram diagram)
+    {
+        List<Compartment> result = new ArrayList<>();
+        Map<Compartment, Set<Compartment>> previousSteps = new HashMap<>();
+        for( Compartment compartment : diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) ) )
+            previousSteps.put( compartment, getPreviousSteps( compartment ) );
+
+        Set<Compartment> added = new HashSet<>();
+        while( previousSteps.size() > 0 )
+        {
+            for( Compartment key : previousSteps.keySet() )
+            {
+                Set<Compartment> steps = previousSteps.get( key );
+                steps.removeAll( added );
+                if( steps.isEmpty() )
+                {
+                    result.add( key );
+                    added.add( key );
+                }
+            }
+            for( Compartment c : added )
+                previousSteps.remove( c );
+        }
+        return result;
+    }
+
+    public static Set<Compartment> getPreviousSteps(Compartment c)
+    {
+        return c.stream( Node.class ).flatMap( n -> n.edges() ).map( e -> e.getInput().getCompartment() ).filter( call->isCall(call) ).without( c ).toSet();
     }
 }

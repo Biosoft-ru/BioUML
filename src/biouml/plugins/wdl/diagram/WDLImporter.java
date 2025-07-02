@@ -442,7 +442,7 @@ public class WDLImporter implements DataElementImporter
         return inNode;
     }
 
-    private Edge createLink(Node input, Node output, String type)
+    public static Edge createLink(Node input, Node output, String type)
     {
         String name = input.getName() + "_to_" + output.getName();
         Diagram d = Diagram.getDiagram( input );
