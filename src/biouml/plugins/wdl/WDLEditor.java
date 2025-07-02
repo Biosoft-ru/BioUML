@@ -15,6 +15,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
@@ -64,6 +65,9 @@ public class WDLEditor extends EditorPartSupport
     private JTabbedPane tabbedPane;
     private JSplitPane splitPane;
     protected TextPaneAppender appender;
+    
+    JScrollPane scrollPane; 
+    
     protected String[] categoryList = {"biouml.plugins.wdl"};
 
     private WorkflowSettings settings;
@@ -93,14 +97,13 @@ public class WDLEditor extends EditorPartSupport
         wdlPane = new WDLEditorPane();
         nextFlowPane = new NextFlowEditorPane();
 
-        tabbedPane.addTab( "WDL", wdlPane );
-        tabbedPane.addTab( "NextFlow", nextFlowPane );
+        tabbedPane.addTab( "WDL",  new JScrollPane(wdlPane) );
+        tabbedPane.addTab( "NextFlow",  new JScrollPane(nextFlowPane) );
         tabbedPane.addTab( "Settings", inspector );
         appender = new TextPaneAppender( new PatternFormatter( "%4$s :  %5$s%n" ), "Application Log" );
         appender.setLevel( Level.SEVERE );
         appender.addToCategories( categoryList );
-
-        //        JScrollPane scroll = new JScrollPane(antimonyPane);
+                
         splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, false, tabbedPane, appender.getLogTextPanel() );
         splitPane.setResizeWeight( 0.4 );
 
@@ -483,7 +486,7 @@ public class WDLEditor extends EditorPartSupport
         for( Compartment n : WDLUtil.getAllCalls( diagram ) )
         {
             String taskRef = WDLUtil.getTaskRef( n );
-            String folderName = ( taskRef + "_result" );
+            String folderName = ( taskRef  );
             File folder = new File( outputDir, folderName );
             if( !folder.exists() || !folder.isDirectory() )
             {
