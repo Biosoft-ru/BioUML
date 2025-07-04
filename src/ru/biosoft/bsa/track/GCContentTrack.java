@@ -11,6 +11,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import ru.biosoft.access.core.AbstractDataCollection;
+import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.core.VectorDataCollection;
@@ -48,6 +49,7 @@ import com.developmentontheedge.application.ApplicationUtils;
  * @author lan
  *
  */
+@ClassIcon("resources/trackgc.png")
 public class GCContentTrack extends DataElementSupport implements Track
 {
     public static final String NAME = "GC content";
@@ -78,6 +80,11 @@ public class GCContentTrack extends DataElementSupport implements Track
     public GCContentTrack(DataCollection<?> origin)
     {
         super(NAME, origin);
+    }
+
+    public GCContentTrack(String name, DataCollection<?> origin)
+    {
+        super( name, origin );
     }
 
     @Override

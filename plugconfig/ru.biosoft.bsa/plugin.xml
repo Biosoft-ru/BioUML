@@ -1001,6 +1001,10 @@
       outputClass="ru.biosoft.bsa.track.big.BigWigTrack" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer"/>
     <transformer name="HICFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.hic.HICTrack" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer"/>
+    <transformer name="Combined track" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer" 
+      inputClass="ru.biosoft.access.file.FileDataElement" outputClass="ru.biosoft.bsa.track.combined.CombinedTrack"/>
+    <transformer name="GCContentFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.GCContentTrack" transformerClass="ru.biosoft.bsa.transformer.GCContentFileTransformer"/>
   </extension>
   
   <extension point="ru.biosoft.access.fileType">
@@ -1016,7 +1020,9 @@
     <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
     <fileType name="BCF track" extensions="bcf" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer" priority="20" description="BCF track file"/>
     <fileType name="GenBank track" extensions="gb" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer" priority="20" description="BCF track file"/>
-    <fileType name="HIC file" extensions="hic" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer" priority="20" description="HIC matrix file"/>
+    <fileType name="HIC file" extensions="hic" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer" priority="20" description="Combined track file"/>
+    <fileType name="CombinedTrack" extensions="comb" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer" priority="20" description="HIC matrix file"/>
+    <fileType name="GCContent" extensions="gc" transformerClass="ru.biosoft.bsa.transformer.GCContentFileTransformer" priority="20" description="GCContent file"/>
   </extension>
-
+  
 </plugin>

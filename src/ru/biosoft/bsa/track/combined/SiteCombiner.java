@@ -1,6 +1,7 @@
 package ru.biosoft.bsa.track.combined;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,9 +14,9 @@ public class SiteCombiner
     {
         //TODO: use formula to check site groups acceptance
         String type = track.getCondition().getConditionType();
-        if( type.equals( "union" ) )
+        if( type.equals( CombineCondition.CC_UNION ) )
             return true;
-        else if( type.equals( "intersection" ) )
+        else if( type.equals( CombineCondition.CC_INTERSECTION ) )
         {
             //fast draft of intersection
             Set<String> paths = StreamEx.of( track.getTrackColorItems() ).map( ci -> ci.getPath().toString() ).toSet();
@@ -27,6 +28,34 @@ public class SiteCombiner
                     return true;
             }
             return false;
+        }
+        else if( type.equals( CombineCondition.CC_DIFFERENCE ) )
+        {
+            CombinedItem[] items = track.getTrackColorItems();
+            if( items.length > 0 )
+            {
+                String first = items[0].getPath().toString();
+                for ( Site site : siteGroup.getSites() )
+                {
+                    String orig = site.getProperties().getValueAsString( "OriginalTrack" );
+                    if( !first.equals( orig ) )
+                        return false;
+                }
+            }
+            return true;
+        }
+        else if( type.equals( CombineCondition.CC_SYMMETRIC_DIFFERENCE ) )
+        {
+            CombinedItem[] items = track.getTrackColorItems();
+            if( items.length <= 1 )
+                return true;
+            Set<String> origs = new HashSet<>();
+            for ( Site site : siteGroup.getSites() )
+            {
+                origs.add( site.getProperties().getValueAsString( "OriginalTrack" ) );
+            }
+            if( origs.size() > 1 )
+                return false;
         }
         return true;
     }

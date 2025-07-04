@@ -51,5 +51,6 @@ public class BSAServiceProtocol
     public static final int DB_TRACK_SEARCH = 56;
     public static final int DB_TRACK_INDEX_LIST = 57;
     public static final int CREATE_COMBINED_TRACK = 58;
+    public static final int CREATE_GC_TRACK = 59;
 
 }

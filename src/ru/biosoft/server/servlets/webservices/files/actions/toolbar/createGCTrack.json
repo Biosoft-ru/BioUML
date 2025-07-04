@@ -1,0 +1,34 @@
+/*
+ * New folder action
+ */
+{
+    id: "new_gc_track",
+    label: resources.actToolbarGCTrack,
+    icon: "icons/trackgc.png",
+    visible: "function(doc)
+    {
+        if ((doc != null) && (doc instanceof SequenceDocument)) 
+        {    
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(event)
+    {
+        var activeDocument = getActiveDocument();
+        createSaveElementDialog('Create GC content track', 'ru.biosoft.bsa.Track', 'GC Content',
+            function(path)
+            {
+                queryService('bsa.service', 59, 
+                {
+                     targetPath: path
+                }, function(data)
+                {
+                    
+                    refreshTreeBranch(getElementPath(path));
+                    if(activeDocument!= null && (activeDocument instanceof SequenceDocument)) 
+                        activeDocument.addTrack(path);
+                });
+            });
+    }"
+}
