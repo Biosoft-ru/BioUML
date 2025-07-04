@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,6 +15,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
@@ -26,15 +26,17 @@ import com.developmentontheedge.application.Application;
 import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
+import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.annot.PropertyName;
 import com.developmentontheedge.beans.swing.PropertyInspector;
 import com.developmentontheedge.beans.swing.PropertyInspectorEx;
 import com.developmentontheedge.log.PatternFormatter;
 import com.developmentontheedge.log.TextPaneAppender;
 
+import biouml.model.Compartment;
 import biouml.model.Diagram;
-import biouml.model.Node;
 import biouml.plugins.wdl.colorer.WDLColorer;
+import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.parser.AstStart;
@@ -63,6 +65,9 @@ public class WDLEditor extends EditorPartSupport
     private JTabbedPane tabbedPane;
     private JSplitPane splitPane;
     protected TextPaneAppender appender;
+    
+    JScrollPane scrollPane; 
+    
     protected String[] categoryList = {"biouml.plugins.wdl"};
 
     private WorkflowSettings settings;
@@ -91,20 +96,14 @@ public class WDLEditor extends EditorPartSupport
         add( BorderLayout.CENTER, tabbedPane );
         wdlPane = new WDLEditorPane();
         nextFlowPane = new NextFlowEditorPane();
-        settings = new WorkflowSettings();
 
-
-        //        settingsPane = new SettingsPane( settings );
-        inspector.explore( settings );
-
-        tabbedPane.addTab( "WDL", wdlPane );
-        tabbedPane.addTab( "NextFlow", nextFlowPane );
+        tabbedPane.addTab( "WDL",  new JScrollPane(wdlPane) );
+        tabbedPane.addTab( "NextFlow",  new JScrollPane(nextFlowPane) );
         tabbedPane.addTab( "Settings", inspector );
         appender = new TextPaneAppender( new PatternFormatter( "%4$s :  %5$s%n" ), "Application Log" );
         appender.setLevel( Level.SEVERE );
         appender.addToCategories( categoryList );
-
-        //        JScrollPane scroll = new JScrollPane(antimonyPane);
+                
         splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, false, tabbedPane, appender.getLogTextPanel() );
         splitPane.setResizeWeight( 0.4 );
 
@@ -173,6 +172,16 @@ public class WDLEditor extends EditorPartSupport
     public void setDiagram(Diagram diagram)
     {
         this.diagram = diagram;
+
+        DynamicProperty settingsProperty = diagram.getAttributes().getProperty( WDLConstants.SETTINGS_ATTR );
+        if( settingsProperty == null )
+        {
+            settingsProperty = new DynamicProperty( WDLConstants.SETTINGS_ATTR, WorkflowSettings.class, new WorkflowSettings() );
+            diagram.getAttributes().add( settingsProperty );
+        }
+        settings = (WorkflowSettings)settingsProperty.getValue();
+        inspector.explore( settings );
+
     }
 
     @Override
@@ -365,10 +374,14 @@ public class WDLEditor extends EditorPartSupport
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
-                    "/data/" + f.getName()};
+
+            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
+            //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
+            //                    "/data/" + f.getName()};
 
             executeCommand( command );
+
+            importResults();
         }
         catch( Exception ex )
         {
@@ -378,7 +391,7 @@ public class WDLEditor extends EditorPartSupport
 
     private void executeCommand(String[] command) throws Exception
     {
-        System.out.println( "Executing command " + command );
+        System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
         Process process = Runtime.getRuntime().exec( command );
 
         new Thread( new Runnable()
@@ -416,7 +429,6 @@ public class WDLEditor extends EditorPartSupport
 
         process.waitFor();
 
-        importResults();
     }
 
     public class NextFlowPreprocessor
@@ -434,6 +446,7 @@ public class WDLEditor extends EditorPartSupport
 
         public String preprocess(String s) throws Exception
         {
+            s = s.replace( "~{", "${" );
             String[] lines = s.split( "\n" );
             for( int i = 0; i < lines.length; i++ )
             {
@@ -452,7 +465,8 @@ public class WDLEditor extends EditorPartSupport
                             throw new Exception( "Failed to create directory '" + outputDir + "'." );
                         File exported = new File( dir, de.getName() );
                         ApplicationUtils.writeString( exported, str );
-                        lines[i] = "params." + paramName + " = file(\"data/" + exported.getName() + "\")";
+                        lines[i] = "params." + paramName + " = file(\"" + exported.getName() + "\")";
+                        //                        lines[i] = "params." + paramName + " = file(\"data/" + exported.getName() + "\")";
                     }
 
                 }
@@ -468,13 +482,23 @@ public class WDLEditor extends EditorPartSupport
         if( settings.getOutputPath() == null )
             return;
         DataCollection dc = settings.getOutputPath().getDataCollection();
-        List<Node> externalOutputs = WDLUtil.getExternalOutputs( diagram );
-        for( Node externalOutput : externalOutputs )
+
+        for( Compartment n : WDLUtil.getAllCalls( diagram ) )
         {
-            String name = WDLUtil.getName( externalOutput );
-            File f = new File( outputDir, name );
-            TextFileImporter importer = new TextFileImporter();
-            importer.doImport( dc, f, name, null, log );
+            String taskRef = WDLUtil.getTaskRef( n );
+            String folderName = ( taskRef  );
+            File folder = new File( outputDir, folderName );
+            if( !folder.exists() || !folder.isDirectory() )
+            {
+                log.info( "No results for " + n.getName() );
+                continue;
+            }
+            DataCollection nested = DataCollectionUtils.createSubCollection( dc.getCompletePath().getChildPath( folderName ) );
+            for( File f : folder.listFiles() )
+            {
+                TextFileImporter importer = new TextFileImporter();
+                importer.doImport( nested, f, f.getName(), null, log );
+            }
         }
     }
 }

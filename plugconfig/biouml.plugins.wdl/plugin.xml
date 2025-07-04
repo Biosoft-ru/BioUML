@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
+
+  <extension point="biouml.workbench.diagramType">
+		<diagramType class="biouml.plugins.wdl.diagram.WDLDiagramType" />
+  </extension>
+  
   <extension point="ru.biosoft.access.transformer"> 
       <transformer name="WDL script" inputClass="ru.biosoft.access.FileDataElement"
         outputClass="biouml.plugins.wdl.WDLScript" transformerClass="biouml.plugins.wdl.WDLScriptTransformer"/> 

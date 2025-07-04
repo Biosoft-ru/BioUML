@@ -1,5 +1,5 @@
-#####################################################################################
-#####################################CONSTANTS########################################
+#######################################################################################
+#####################################CONSTANTS#########################################
 #######################################################################################
 #set ($BR = "
 ")
@@ -12,6 +12,22 @@
 #if($velocityCount < $list.size()),#end
 #end
 version $helper.getVersion()$BR
+#######################################################################################
+#macro(call $call)
+  call $helper.getTaskRef($call) {
+#set ($inputs = $helper.getInputs($call))
+#if ($inputs.size()> 0)
+     input: #foreach($input in $inputs) $helper.getCallInput($input)#comma($inputs)#end
+#end
+  }$BR
+#end
+#######################################################################################
+#macro(scatter $scatter)
+  scatter ( $helper.getCycleVariable($scatter) in $helper.getCycleName($scatter) ) {
+#foreach( $call in $helper.getCalls($scatter))#call($call)#end
+#foreach( $innerScatter in $helper.getScatters($scatter))#scatter($innerScatter)#end  
+  }$BR
+#end
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################
@@ -58,14 +74,16 @@ workflow $helper.getName() {
 #end
   }$BR
 #end
-#foreach( $call in $helper.getCalls())
-  call $helper.getTaskRef($call) {
-#set ($inputs = $helper.getInputs($call))
-#if ($inputs.size()> 0)
-     input: #foreach($input in $inputs) $helper.getName($input)#comma($inputs)#end
-#end
-  }$BR
-#end
+##foreach( $call in $helper.getCalls($diagram))
+##  call $helper.getTaskRef($call) {
+##set ($inputs = $helper.getInputs($call))
+##if ($inputs.size()> 0)
+##     input: #foreach($input in $inputs) $helper.getName($input)#comma($inputs)#end
+##end
+##  }$BR
+##end
+#foreach( $call in $helper.getCalls($diagram))#call($call)#end  
+#foreach( $scatter in $helper.getScatters($diagram))#scatter($scatter)#end
 #set ($externalOutputs = $helper.getExternalOutputs())
 #if ($externalOutputs.size() > 0)
   output {

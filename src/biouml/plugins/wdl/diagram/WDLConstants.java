@@ -2,6 +2,8 @@ package biouml.plugins.wdl.diagram;
 
 public class WDLConstants
 {
+    public static String SCATTER_VARIABLE_TYPE = "Scatter variable";
+    public static String SCATTER_TYPE = "Scatter";
     public static String TASK_TYPE = "Task";
     public static String CALL_TYPE = "Call";
     public static String INPUT_TYPE = "Input";
@@ -20,4 +22,6 @@ public class WDLConstants
     public static final String EXPRESSION_ATTR = "EXPRESSION";
     public static final String VERSION_ATTR = "VERSION";
     public static final String TASK_REF_ATTR = "TASK_REFERENCE";
+    
+    public static final String SETTINGS_ATTR = "Settings";
 }

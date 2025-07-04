@@ -120,13 +120,14 @@ public class WDLSemanticController extends DefaultSemanticController
 
     public static String uniqName(Compartment parent, String name)
     {
-        if( !parent.contains( name ) )
-            return name;
-        String base = name;
-        int i = 1;
-        while( parent.contains( name ) )
-            name = base + "_" + ( i++ );
-        return name;
+        return DefaultSemanticController.generateUniqueName( parent, name );
+//        if( !parent.contains( name ) )
+//            return name;
+//        String base = name;
+//        int i = 1;
+//        while( parent.contains( name ) )
+//            name = base + "_" + ( i++ );
+//        return name;
     }
     //
     //    public Compartment createCallNode(Compartment parent, CallNode wdlNode,  Map<Object, Node> wdlToBioUML)

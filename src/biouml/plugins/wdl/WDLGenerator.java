@@ -40,7 +40,8 @@ public class WDLGenerator
         VelocityContext context = new VelocityContext();
 
         context.put( "helper", new WDLVelocityHelper( diagram ) );
-
+        context.put( "diagram",  diagram );
+        
         //Creation time
         String pattern = "yyyy.MM.dd HH:mm:ss";
         Calendar calendar = Calendar.getInstance();

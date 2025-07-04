@@ -2,6 +2,8 @@ package biouml.plugins.wdl.diagram;
 
 import javax.annotation.Nonnull;
 
+import com.developmentontheedge.beans.annot.PropertyName;
+
 import ru.biosoft.access.core.DataCollection;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -13,6 +15,7 @@ import biouml.standard.type.Base;
 /**
  * Workflow diagram type
  */
+@PropertyName("Workflow diagram")
 public class WDLDiagramType extends DiagramTypeSupport
 {
     @Override
