@@ -46,11 +46,13 @@ import biouml.workbench.diagram.CompositeDiagramDocument;
 import biouml.workbench.diagram.DiagramDocument;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
+import ru.biosoft.access.FileExporter;
 import ru.biosoft.access.TextFileImporter;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.TextDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.GUI;
@@ -65,9 +67,9 @@ public class WDLEditor extends EditorPartSupport
     private JTabbedPane tabbedPane;
     private JSplitPane splitPane;
     protected TextPaneAppender appender;
-    
-    JScrollPane scrollPane; 
-    
+
+    JScrollPane scrollPane;
+
     protected String[] categoryList = {"biouml.plugins.wdl"};
 
     private WorkflowSettings settings;
@@ -97,13 +99,13 @@ public class WDLEditor extends EditorPartSupport
         wdlPane = new WDLEditorPane();
         nextFlowPane = new NextFlowEditorPane();
 
-        tabbedPane.addTab( "WDL",  new JScrollPane(wdlPane) );
-        tabbedPane.addTab( "NextFlow",  new JScrollPane(nextFlowPane) );
+        tabbedPane.addTab( "WDL", new JScrollPane( wdlPane ) );
+        tabbedPane.addTab( "NextFlow", new JScrollPane( nextFlowPane ) );
         tabbedPane.addTab( "Settings", inspector );
         appender = new TextPaneAppender( new PatternFormatter( "%4$s :  %5$s%n" ), "Application Log" );
         appender.setLevel( Level.SEVERE );
         appender.addToCategories( categoryList );
-                
+
         splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, false, tabbedPane, appender.getLogTextPanel() );
         splitPane.setResizeWeight( 0.4 );
 
@@ -369,13 +371,16 @@ public class WDLEditor extends EditorPartSupport
             new File( outputDir ).mkdirs();
             DataCollectionUtils.createSubCollection( settings.getOutputPath() );
 
+            File config = new File( outputDir, "nextflow.config" );
+            ApplicationUtils.writeString( config, "docker.enabled = true" );
+
             NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
             script = preprocessor.preprocess( script );
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
 
-            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
+            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", config.getName()};
             //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
             //                    "/data/" + f.getName()};
 
@@ -457,24 +462,37 @@ public class WDLEditor extends EditorPartSupport
                     String paramName = line.substring( line.indexOf( "." ) + 1, line.indexOf( "=" ) ).trim();
                     String path = line.substring( line.indexOf( "(" ) + 1, line.lastIndexOf( ")" ) ).trim();
                     DataElement de = DataElementPath.create( path ).getDataElement();
-                    if( de instanceof TextDataElement )
-                    {
-                        String str = ( (TextDataElement)de ).getContent();
-                        File dir = new File( outputDir );
-                        if( !dir.exists() && !dir.mkdirs() )
-                            throw new Exception( "Failed to create directory '" + outputDir + "'." );
-                        File exported = new File( dir, de.getName() );
-                        ApplicationUtils.writeString( exported, str );
-                        lines[i] = "params." + paramName + " = file(\"" + exported.getName() + "\")";
-                        //                        lines[i] = "params." + paramName + " = file(\"data/" + exported.getName() + "\")";
-                    }
-
+                    export(de, new File( outputDir ));
+                    lines[i] = "params." + paramName + " = file(\"" + de.getName() + "\")";
                 }
             }
             return StreamEx.of( lines ).joining( "\n" );
         }
-
-
+        
+        public void export(DataElement de, File dir) throws Exception
+        {
+            if( !dir.exists() && !dir.mkdirs() )
+                throw new Exception( "Failed to create directory '" + outputDir + "'." );
+            if( de instanceof TextDataElement )
+            {
+                String str = ( (TextDataElement)de ).getContent();
+                File exported = new File( dir, de.getName() );
+                ApplicationUtils.writeString( exported, str );
+            }
+            else if( de instanceof FileDataElement )
+            {
+                File exported = new File( dir, de.getName() );
+                FileExporter exporter = new FileExporter();
+                exporter.doExport( de, exported );
+            }
+            else if( de instanceof DataCollection )
+            {
+                File exportedDir = new File( outputDir, de.getName() );
+                exportedDir.mkdirs();
+                for (Object innerDe: ((DataCollection<?>)de))
+                        export( (DataElement)innerDe, new File(dir, de.getName()));
+            }
+        }
     }
 
     public void importResults() throws Exception
@@ -486,7 +504,7 @@ public class WDLEditor extends EditorPartSupport
         for( Compartment n : WDLUtil.getAllCalls( diagram ) )
         {
             String taskRef = WDLUtil.getTaskRef( n );
-            String folderName = ( taskRef  );
+            String folderName = ( taskRef );
             File folder = new File( outputDir, folderName );
             if( !folder.exists() || !folder.isDirectory() )
             {
