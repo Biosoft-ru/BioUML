@@ -15,16 +15,14 @@
 #macro(callNF $call)
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
-  $helper.getResultName($call) = $helper.getTaskRef($call)(#foreach($input in $inputs)$helper.getInputName($helper.getSource($input))#comma($inputs)#end)
+  $helper.getResultName($call) = $helper.getTaskRef($call)(#foreach($input in $inputs)$helper.getInputName($input)#comma($inputs)#end)
 #else
   $helper.getResultName($call) = $helper.getTaskRef($call)()
 #end
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
-#set ($scatterVar = $helper.getCycleVariable($scatter))
-#set ($scatterName = $helper.getCycleName($scatter))
-  Channel.from($scatterName).set { $scatterVar }
+  $helper.createChannelFromArrray($scatter)
 #foreach( $call in $helper.getCalls($scatter))#callNF($call)#end
 #end
 #######################################################################################
@@ -47,6 +45,8 @@ $BR  input :
   $helper.getDeclaration($input)
 #end
 #end
+#set ($container = $helper.getContainer($task))
+#if($container)  container '$container'#end
 $BR  publishDir "$task.getName()", mode: 'copy'
 $BR  script:
   """

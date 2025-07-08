@@ -226,6 +226,8 @@ public class WDLUtil
             String call = parts[0];
             String varName = parts[1];
             Compartment callNode = WDLUtil.findCall( call, diagram );
+            if (callNode == null)
+                return null;
             Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
             return port;
         }
@@ -267,18 +269,29 @@ public class WDLUtil
         return null;
     }
 
-    public static String getCycleName(Compartment c)
+    public static Node getCycleNode(Compartment c)
     {
         for( Node node : c.getNodes() )
         {
             if( isCycleVariable( node ) )
             {
-                Node arrayNode = node.edges().map( e -> e.getOtherEnd( node ) ).findAny().orElse( null );
+                Node arrayNode = getSource(node);
                 if( arrayNode != null )
-                    return getName( arrayNode );
+                    return  arrayNode;
             }
         }
         return null;
+    }
+    
+    public static Node getSource(Node node)
+    {
+        return node.edges().filter(e->e.getOutput().equals( node )).map( e -> e.getInput() ).findAny().orElse( null );
+    }
+    
+    public static String getCycleName(Compartment c)
+    {
+        Node cycleNode = getCycleNode(c); 
+        return cycleNode == null? null: getName(cycleNode);
     }
 
     public static List<Compartment> orderCalls(Diagram diagram)

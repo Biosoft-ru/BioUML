@@ -45,7 +45,7 @@ task $task.getName() {
 #if ($runtime.size() > 0)
   runtime {
 #foreach($prop in $runtime.entrySet())
-    $prop.getKey():$QUOTE$prop.getValue()$QUOTE
+    $prop.getKey(): $prop.getValue()
 #end
   }$BR
 #end

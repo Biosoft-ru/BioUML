@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.developmentontheedge.beans.DynamicProperty;
+
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class NextFlowVelocityHelper
 {
@@ -54,10 +57,10 @@ public class NextFlowVelocityHelper
     /**
      * returns node which is connected with this input node of a call
      */
-    public Node getSource(Node node)
-    {
-        return node.edges().map( e -> e.getOtherEnd( node ) ).findAny().orElse( null );
-    }
+//    public Node getSource(Node node)
+//    {
+//        return node.edges().filter(e->e.getOutput().equals( node )).map( e -> e.getInput() ).findAny().orElse( null );
+//    }
 
     public List<Node> getOutputs(Compartment c)
     {
@@ -90,7 +93,8 @@ public class NextFlowVelocityHelper
         String expression = WDLUtil.getExpression( n );
         if( expression == null )
             return null;
-        return expression.replace( "~{", "${" );
+        expression = expression.replace( "~{", "${" );
+        return expression;
     }
 
     public String getType(Node n)
@@ -120,6 +124,7 @@ public class NextFlowVelocityHelper
         switch( wdlType )
         {
             case "File":
+            case "Array[File]":
                 return "path";
             default:
                 return "val";
@@ -133,10 +138,14 @@ public class NextFlowVelocityHelper
 
         StringBuilder result = new StringBuilder();
         result.append( getName( n ) );
-
-        if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
-            result.append( " = " + getExpression( n ) );
-
+        String expression = getExpression( n );
+        if( expression != null && !expression.isEmpty() )
+        {
+            String type = getType( n );
+            if( type.equals( "path" ) )
+                expression = "file(" + expression + ")";
+            result.append( " = " + expression );
+        }
         return result.toString();
     }
 
@@ -160,7 +169,7 @@ public class NextFlowVelocityHelper
         Node cycleVarNode = WDLUtil.getCycleVariableNode( c );
         if( cycleVarNode == null )
             return null;
-        Node source = getSource( cycleVarNode );
+        Node source = WDLUtil.getSource( cycleVarNode );
         if( source == null )
             return null;
         return getName( source );
@@ -189,6 +198,9 @@ public class NextFlowVelocityHelper
 
     public String getInputName(Node n)
     {
+        Node source = WDLUtil.getSource(n);
+        if (source  != null)
+            n = source;
         String name = WDLUtil.getName( n );
         if( WDLUtil.isExternalParameter( n ) )
             return "params." + name;
@@ -200,5 +212,38 @@ public class NextFlowVelocityHelper
     public String getResultName(Compartment c)
     {
         return "result_" + WDLUtil.getTaskRef( c );
+    }
+
+    public String createChannelFromArrray(Compartment cycle)
+    {
+        String cycleVar = getCycleVariable( cycle );
+        Node arrayNode = WDLUtil.getCycleNode( cycle );
+        String cycleName = getCycleName( cycle );
+        String type = WDLUtil.getType( arrayNode );
+//        if( type.equals( "Array[File]" ) || type.equals( "Directory" ) )
+//        {
+//            return "Channel.fromPath(" + cycleName + ").set{" + cycleVar + " }";
+//        }
+        return "Channel.from(" + cycleName + ").set{" + cycleVar + " }";
+    }
+
+    public String getContainer(Compartment process)
+    {
+        DynamicProperty dp = process.getAttributes().getProperty( WDLConstants.RUNTIME_ATTR );
+        if( dp == null || ! ( dp.getValue() instanceof String[] ) )
+            return null;
+        String[] options = (String[])dp.getValue();
+        for( String option : options )
+        {
+            String[] parts = option.split( "#" );
+            if( parts[0].equals( "docker" ) )
+                return parts[1];
+        }
+        return null;
+    }
+
+    public boolean shouldCollect(Compartment producer, Compartment consumer)
+    {
+        return true;
     }
 }
