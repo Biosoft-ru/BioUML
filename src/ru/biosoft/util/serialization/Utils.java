@@ -3,7 +3,7 @@ package ru.biosoft.util.serialization;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
@@ -19,18 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import one.util.streamex.StreamEx;
-
 import ru.biosoft.util.serialization.xml.Constants;
-
 
 public class Utils
 {
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
-
     private static final Map<Class<?>, String> primitiveWrapperXmlElements = new HashMap<>();
-
+    
     static
     {
         primitiveWrapperXmlElements.put(Integer.class, Constants.INTEGER_WRAPPER_PRIMITIVE_ELEMENT);
@@ -42,92 +38,89 @@ public class Utils
         primitiveWrapperXmlElements.put(Character.class, Constants.CHARACTER_WRAPPER_PRIMITIVE_ELEMENT);
         primitiveWrapperXmlElements.put(Byte.class, Constants.BYTE_WRAPPER_PRIMITIVE_ELEMENT);
     }
-
+    
     private Utils()
     {
-
     }
-
+    
     // To avoid BE dependencies
     public static boolean isEmpty(Object o)
     {
         return o == null || "".equals(o);
     }
-
+    
     public static void setFieldValue(Object o, String fieldName, String fieldValue)
     {
-        Field field = getField(o.getClass(), fieldName);
-        if( field != null )
+        Method setter = getSetter(o.getClass(), fieldName);
+        if( setter != null )
         {
-            field.setAccessible(true);
-            Class<?> fieldType = field.getType();
+            Class<?> paramType = setter.getParameterTypes()[0];
             try
             {
-                if( fieldType.equals(String.class) )
+                if( paramType.equals(String.class) )
                 {
-                    field.set(o, fieldValue);
+                    setter.invoke(o, fieldValue);
                 }
                 else if( fieldValue == null )
                 {
-                    field.set(o, null);
+                    setter.invoke(o, (Object)null);
                 }
-                else if( fieldType.equals(int.class) || fieldType.equals(Integer.class) )
+                else if( paramType.equals(int.class) || paramType.equals(Integer.class) )
                 {
-                    field.set(o, Integer.valueOf(fieldValue));
+                    setter.invoke(o, Integer.valueOf(fieldValue));
                 }
-                else if( fieldType.equals(double.class) || fieldType.equals(Double.class) )
+                else if( paramType.equals(double.class) || paramType.equals(Double.class) )
                 {
-                    field.set(o, Double.valueOf(fieldValue));
+                    setter.invoke(o, Double.valueOf(fieldValue));
                 }
-                else if( fieldType.equals(boolean.class) || fieldType.equals(Boolean.class) )
+                else if( paramType.equals(boolean.class) || paramType.equals(Boolean.class) )
                 {
-                    field.set(o, Boolean.valueOf(fieldValue));
+                    setter.invoke(o, Boolean.valueOf(fieldValue));
                 }
-                else if( fieldType.equals(Date.class) )
+                else if( paramType.equals(Date.class) )
                 {
-                    setDateValue(o, field, fieldValue);
+                    setDateValue(o, setter, fieldValue);
                 }
-                else if( fieldType.equals(java.sql.Time.class) )
+                else if( paramType.equals(java.sql.Time.class) )
                 {
-                    setTimeValue(o, field, fieldValue);
+                    setTimeValue(o, setter, fieldValue);
                 }
-                else if( fieldType.equals(long.class) || fieldType.equals(Long.class) )
+                else if( paramType.equals(long.class) || paramType.equals(Long.class) )
                 {
-                    field.set(o, Long.valueOf(fieldValue));
+                    setter.invoke(o, Long.valueOf(fieldValue));
                 }
-                else if( fieldType.equals(short.class) || fieldType.equals(Short.class) )
+                else if( paramType.equals(short.class) || paramType.equals(Short.class) )
                 {
-                    field.set(o, Short.valueOf(fieldValue));
+                    setter.invoke(o, Short.valueOf(fieldValue));
                 }
-                else if( fieldType.equals(float.class) || fieldType.equals(Float.class) )
+                else if( paramType.equals(float.class) || paramType.equals(Float.class) )
                 {
-                    field.set(o, Float.valueOf(fieldValue));
+                    setter.invoke(o, Float.valueOf(fieldValue));
                 }
             }
-            catch( IllegalAccessException e )
+            catch( Exception e )
             {
                 e.printStackTrace();
             }
         }
     }
-
+    
     public static void setFieldValue(Object o, String fieldName, Object value)
     {
-        Field field = getField(o.getClass(), fieldName);
-        if( field != null )
+        Method setter = getSetter(o.getClass(), fieldName);
+        if( setter != null )
         {
-            field.setAccessible(true);
             try
             {
-                field.set(o, value);
+                setter.invoke(o, value);
             }
-            catch( IllegalAccessException e )
+            catch( Exception e )
             {
                 e.printStackTrace();
             }
         }
     }
-
+    
     public static void setArrayValue(Object array, Class<?> clazz, Collection<?> c)
     {
         if( clazz.isPrimitive() )
@@ -178,27 +171,23 @@ public class Utils
             }
         }
     }
-
+    
     private static boolean areEqualInner(Set<?> visitedSet, Object o1, Object o2, Set<AnnotatedElement> excludedFields)
     {
         if( o1 == o2 )
         {
             return true;
         }
-
         if( o1 == null || o2 == null )
         {
             return false;
         }
-
         Class<?> type1 = o1.getClass();
         Class<?> type2 = o2.getClass();
-
         if( !type1.equals(type2) )
         {
             return false;
         }
-
         if( o1 instanceof Collection )
         {
             Collection<?> c1 = (Collection<?>)o1;
@@ -207,14 +196,12 @@ public class Utils
             {
                 return false;
             }
-
             Iterator<?> iter2 = c2.iterator();
             for( Object aC1 : c1 )
             {
                 if( !isVisitedContains(visitedSet, aC1) )
                 {
                     appendToVisited(visitedSet, aC1);
-
                     if( !areEqualInner(visitedSet, aC1, iter2.next(), excludedFields) )
                     {
                         return false;
@@ -226,19 +213,15 @@ public class Utils
         {
             Map<?,?> m1 = (Map<?,?>)o1;
             Map<?,?> m2 = (Map<?,?>)o2;
-
             if( m1.size() != m2.size() )
             {
                 return false;
             }
-
             for( Entry<?,?> e : m1.entrySet() )
             {
-
                 if( !isVisitedContains(visitedSet, e.getValue()) )
                 {
                     appendToVisited(visitedSet, e.getValue());
-
                     if( !areEqualInner(visitedSet, e.getValue(), m2.get(e.getKey()), excludedFields) )
                     {
                         return false;
@@ -252,13 +235,11 @@ public class Utils
             {
                 return false;
             }
-
             for( int i = 0; i < Array.getLength(o1); i++ )
             {
                 if( !isVisitedContains(visitedSet, Array.get(o1, i)) )
                 {
                     appendToVisited(visitedSet, Array.get(o1, i));
-
                     if( !areEqualInner(visitedSet, Array.get(o1, i), Array.get(o2, i), excludedFields) )
                     {
                         return false;
@@ -273,69 +254,56 @@ public class Utils
         }
         else
         {
-            Field[] fields1 = getFields(type1);
-            Field[] fields2 = getFields(type2);
-            if( fields1 == fields2 )
+            List<Method> getters1 = getGetters(type1);
+            List<Method> getters2 = getGetters(type2);
+            if( getters1.size() != getters2.size() )
             {
                 return false;
             }
-
-            for( Field field : fields1 )
+            for( Method getter : getters1 )
             {
-                if( excludedFields.contains(field) )
+                if( excludedFields.contains(getter) )
                 {
                     continue;
                 }
-
-                // do not take into account transient fields
-                if( Modifier.isTransient(field.getModifiers()) )
+                // Skip static methods
+                if( Modifier.isStatic(getter.getModifiers()) )
                 {
                     continue;
                 }
-
-                // do not take into account static fields
-                if( Modifier.isStatic(field.getModifiers()) )
-                {
-                    continue;
-                }
-
-                field.setAccessible(true);
                 try
                 {
-                    Object fO1 = field.get(o1);
-                    Object fO2 = field.get(o2);
-
+                    Object fO1 = getter.invoke(o1);
+                    Object fO2 = getter.invoke(o2);
                     if( !isVisitedContains(visitedSet, fO1) )
                     {
                         appendToVisited(visitedSet, fO1);
-
                         if( !areEqualInner(visitedSet, fO1, fO2, excludedFields) )
                         {
-                            System.out.println("Not equal.Type:" + field + ";Name:" + field.getName() + ";Val1=" + fO1 + ";Val2=" + fO2);
+                            System.out.println("Not equal.Method:" + getter.getName() + ";Val1=" + fO1 + ";Val2=" + fO2);
                             return false;
                         }
                     }
                 }
-                catch( IllegalAccessException e )
+                catch( Exception e )
                 {
                     return false;
                 }
             }
         }
-
         return true;
     }
-
+    
     public static boolean isVisitedContains(Set<?> visitedSet, Object o)
     {
         if( o == null )
         {
             return false;
         }
-
         return visitedSet.contains(o);
     }
-
+    
+    @SuppressWarnings("unchecked")
     public static void appendToVisited(Set visitedSet, Object o)
     {
         if( o != null )
@@ -343,168 +311,190 @@ public class Utils
             visitedSet.add(o);
         }
     }
-
+    
     public static boolean areEqual(Object o1, Object o2)
     {
         return areEqual(o1, o2, new HashSet<AnnotatedElement>());
     }
-
+    
     public static boolean areEqual(Object o1, Object o2, Set<AnnotatedElement> excludedFields)
     {
         Set<Object> visitedSet = new HashSet<>();
-
         return areEqualInner(visitedSet, o1, o2, excludedFields);
     }
-
+    
     public static String escapeXMLAttribute(String s)
     {
         return s.replaceAll("\"", "&quot;").replaceAll("&", "&amp;");
     }
-
+    
     public static Object instantiate(Class<?> clazz)
     {
         try
         {
             Constructor<?>[] constructors = clazz.getConstructors();
             Arrays.sort( constructors, Comparator.comparingInt( c -> c.getParameterTypes().length ) );
-
             for( Constructor<?> constructor : constructors )
             {
                 Object[] params = new Object[constructor.getParameterTypes().length];
-
                 for( int j = 0; j < constructor.getParameterTypes().length; j++ )
                 {
                     params[j] = null;
                 }
-
-                constructor.setAccessible(true);
                 return constructor.newInstance(params);
             }
-
-            // force instantiation
-            //            Constructor<?> constructor = clazz.getDeclaredConstructor( new Class[0] );
-            //            constructor.setAccessible( true );
-            //            return constructor.newInstance( new Object[0] );
         }
         catch( Exception e )
         {
-        }
-        return null;
-    }
-
-    public static Field getField(Class<?> clazz, String superClassName, String fieldName) throws SecurityException, NoSuchFieldException
-    {
-        String clazzName = clazz.getName();
-
-        if( clazzName.equals(superClassName) )
-            return clazz.getDeclaredField(fieldName);
-
-        Class<?> superClass = clazz;
-
-        do
-        {
-            superClass = superClass.getSuperclass();
-            if( superClass == null )
-                throw new NoSuchFieldException();
-
-            clazzName = superClass.getName();
-        }
-        while( !clazzName.equals(superClassName) );
-
-        return superClass.getDeclaredField(fieldName);
-    }
-
-    public static Field[] getFields(Class<?> clazz)
-    {
-        List<Field> fields = getClassFields(clazz);
-        return fields.toArray(new Field[fields.size()]);
-    }
-
-    private static List<Field> getClassFields(Class<?> clazz)
-    {
-        if( !clazz.isArray() && !clazz.isPrimitive() )
-        {
-            List<Field> fieldsList = new ArrayList<>();
-            Field[] fields = clazz.getDeclaredFields();
-            for( Field field : fields )
+            // If public constructors fail, try to find a no-arg constructor
+            try
             {
-                fieldsList.add(field);
+                Constructor<?> constructor = clazz.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                return constructor.newInstance();
             }
-
-            Class<?> superClass = clazz.getSuperclass();
-            if( superClass != null )
+            catch( Exception ex )
             {
-                fieldsList.addAll(getClassFields(superClass));
-            }
-            return fieldsList;
-        }
-        return new ArrayList<>();
-    }
-
-    private static Field getField(Class<?> clazz, String name)
-    {
-        List<Field> fields = getClassFields(clazz);
-        for( Field field : fields )
-        {
-            if( name.equals(field.getName()) )
-            {
-                return field;
+                // Fall back to trying all declared constructors
+                try
+                {
+                    Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+                    Arrays.sort( constructors, Comparator.comparingInt( c -> c.getParameterTypes().length ) );
+                    for( Constructor<?> constructor : constructors )
+                    {
+                        Object[] params = new Object[constructor.getParameterTypes().length];
+                        for( int j = 0; j < constructor.getParameterTypes().length; j++ )
+                        {
+                            params[j] = null;
+                        }
+                        constructor.setAccessible(true);
+                        return constructor.newInstance(params);
+                    }
+                }
+                catch( Exception finalEx )
+                {
+                    // All attempts failed
+                }
             }
         }
         return null;
     }
-
+    
+    private static Method getSetter(Class<?> clazz, String fieldName)
+    {
+        String setterName = "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        Method[] methods = clazz.getMethods();
+        for( Method method : methods )
+        {
+            if( method.getName().equals(setterName) && method.getParameterCount() == 1 )
+            {
+                return method;
+            }
+        }
+        return null;
+    }
+    
+    private static Method getGetter(Class<?> clazz, String fieldName)
+    {
+        String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        String booleanGetterName = "is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        
+        Method[] methods = clazz.getMethods();
+        for( Method method : methods )
+        {
+            if( (method.getName().equals(getterName) || method.getName().equals(booleanGetterName)) 
+                && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class) )
+            {
+                return method;
+            }
+        }
+        return null;
+    }
+    
+    private static List<Method> getGetters(Class<?> clazz)
+    {
+        List<Method> getters = new ArrayList<>();
+        Method[] methods = clazz.getMethods();
+        for( Method method : methods )
+        {
+            if( isGetter(method) )
+            {
+                getters.add(method);
+            }
+        }
+        return getters;
+    }
+    
+    private static boolean isGetter(Method method)
+    {
+        if( method.getParameterCount() != 0 )
+        {
+            return false;
+        }
+        if( method.getReturnType().equals(void.class) )
+        {
+            return false;
+        }
+        if( Modifier.isStatic(method.getModifiers()) )
+        {
+            return false;
+        }
+        String name = method.getName();
+        return (name.startsWith("get") && name.length() > 3) || 
+               (name.startsWith("is") && name.length() > 2 && 
+                (method.getReturnType().equals(boolean.class) || method.getReturnType().equals(Boolean.class)));
+    }
+    
     public static String getDateValue(Object o)
     {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
         return Utils.escapeXMLAttribute(sdf.format((Date)o));
     }
-
-    private static void setDateValue(Object o, Field field, String value)
+    
+    private static void setDateValue(Object o, Method setter, String value)
     {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
         try
         {
-            field.set(o, sdf.parse(value, new ParsePosition(0)));
+            setter.invoke(o, sdf.parse(value, new ParsePosition(0)));
         }
-        catch( IllegalAccessException | IllegalArgumentException e )
+        catch( Exception e )
         {
+            e.printStackTrace();
         }
     }
-
-    private static void setTimeValue(Object o, Field field, String value)
+    
+    private static void setTimeValue(Object o, Method setter, String value)
     {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
         try
         {
-            field.set(o, new java.sql.Time(sdf.parse(value, new ParsePosition(0)).getTime()));
+            setter.invoke(o, new java.sql.Time(sdf.parse(value, new ParsePosition(0)).getTime()));
         }
-        catch( IllegalAccessException e )
+        catch( Exception e )
         {
-        }
-        catch( IllegalArgumentException e )
-        {
+            e.printStackTrace();
         }
     }
-
+    
     public static String getPrimitiveWrapperElementName(Class<?> type)
     {
         return primitiveWrapperXmlElements.get(type);
     }
-
+    
     public static boolean isPrimiteWrapperElementName(String name)
     {
         return primitiveWrapperXmlElements.containsValue(name);
     }
-
+    
     public static Class<?> getPrimitiveWrapperType(String name)
     {
         return StreamEx.ofKeys(primitiveWrapperXmlElements, name::equals).findAny().orElse(null);
     }
-
+    
     public static Object getPrimitiveWrapperValue(Class<?> type, String s)
     {
-        // order is improtant for perfomance, the most propable value first
+        // order is important for performance, the most probable value first
         if( Integer.class.equals(type) )
         {
             return Integer.valueOf(s);
