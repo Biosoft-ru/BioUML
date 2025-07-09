@@ -411,6 +411,22 @@ public class Utils
         return null;
     }
     
+    private static Method getFieldGetter(Class<?> clazz, String name)
+    {
+        List<Method> methods = getClassGetters(clazz);
+        String getterName = "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        String booleanGetterName = "is" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        
+        for( Method method : methods )
+        {
+            if( method.getName().equals(getterName) || method.getName().equals(booleanGetterName) )
+            {
+                return method;
+            }
+        }
+        return null;
+    }
+    
     private static List<Method> getGetters(Class<?> clazz)
     {
         List<Method> getters = new ArrayList<>();
@@ -475,6 +491,77 @@ public class Utils
         {
             e.printStackTrace();
         }
+    }
+    
+    public static Method getField(Class<?> clazz, String superClassName, String fieldName) throws SecurityException, NoSuchFieldException
+    {
+        String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        String booleanGetterName = "is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        
+        String clazzName = clazz.getName();
+        if( clazzName.equals(superClassName) )
+        {
+            Method[] methods = clazz.getDeclaredMethods();
+            for( Method method : methods )
+            {
+                if( (method.getName().equals(getterName) || method.getName().equals(booleanGetterName)) 
+                    && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class) )
+                {
+                    return method;
+                }
+            }
+            throw new NoSuchFieldException("No getter found for field: " + fieldName);
+        }
+        
+        Class<?> superClass = clazz;
+        do
+        {
+            superClass = superClass.getSuperclass();
+            if( superClass == null )
+                throw new NoSuchFieldException("No getter found for field: " + fieldName);
+            clazzName = superClass.getName();
+        }
+        while( !clazzName.equals(superClassName) );
+        
+        Method[] methods = superClass.getDeclaredMethods();
+        for( Method method : methods )
+        {
+            if( (method.getName().equals(getterName) || method.getName().equals(booleanGetterName)) 
+                && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class) )
+            {
+                return method;
+            }
+        }
+        throw new NoSuchFieldException("No getter found for field: " + fieldName);
+    }
+    
+    public static Method[] getFields(Class<?> clazz)
+    {
+        List<Method> methods = getClassGetters(clazz);
+        return methods.toArray(new Method[methods.size()]);
+    }
+    
+    private static List<Method> getClassGetters(Class<?> clazz)
+    {
+        if( !clazz.isArray() && !clazz.isPrimitive() )
+        {
+            List<Method> methodsList = new ArrayList<>();
+            Method[] methods = clazz.getDeclaredMethods();
+            for( Method method : methods )
+            {
+                if( isGetter(method) )
+                {
+                    methodsList.add(method);
+                }
+            }
+            Class<?> superClass = clazz.getSuperclass();
+            if( superClass != null )
+            {
+                methodsList.addAll(getClassGetters(superClass));
+            }
+            return methodsList;
+        }
+        return new ArrayList<>();
     }
     
     public static String getPrimitiveWrapperElementName(Class<?> type)
