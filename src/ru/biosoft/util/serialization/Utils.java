@@ -51,6 +51,7 @@ public class Utils
     
     public static void setFieldValue(Object o, String fieldName, String fieldValue)
     {
+        // Try using setter first (preferred approach)
         Method setter = getSetter(o.getClass(), fieldName);
         if( setter != null )
         {
@@ -79,11 +80,11 @@ public class Utils
                 }
                 else if( paramType.equals(Date.class) )
                 {
-                    setDateValue(o, setter, fieldValue);
+                    setDateValueViaSetter(o, setter, fieldValue);
                 }
                 else if( paramType.equals(java.sql.Time.class) )
                 {
-                    setTimeValue(o, setter, fieldValue);
+                    setTimeValueViaSetter(o, setter, fieldValue);
                 }
                 else if( paramType.equals(long.class) || paramType.equals(Long.class) )
                 {
@@ -97,8 +98,64 @@ public class Utils
                 {
                     setter.invoke(o, Float.valueOf(fieldValue));
                 }
+                return; // Successfully set via setter
             }
             catch( Exception e )
+            {
+                // Fall through to field access
+            }
+        }
+        
+        // Fallback to field access if setter approach fails
+        java.lang.reflect.Field field = getFieldByName(o.getClass(), fieldName);
+        if( field != null )
+        {
+            field.setAccessible(true);
+            Class<?> fieldType = field.getType();
+            try
+            {
+                if( fieldType.equals(String.class) )
+                {
+                    field.set(o, fieldValue);
+                }
+                else if( fieldValue == null )
+                {
+                    field.set(o, null);
+                }
+                else if( fieldType.equals(int.class) || fieldType.equals(Integer.class) )
+                {
+                    field.set(o, Integer.valueOf(fieldValue));
+                }
+                else if( fieldType.equals(double.class) || fieldType.equals(Double.class) )
+                {
+                    field.set(o, Double.valueOf(fieldValue));
+                }
+                else if( fieldType.equals(boolean.class) || fieldType.equals(Boolean.class) )
+                {
+                    field.set(o, Boolean.valueOf(fieldValue));
+                }
+                else if( fieldType.equals(Date.class) )
+                {
+                    setDateValueViaField(o, field, fieldValue);
+                }
+                else if( fieldType.equals(java.sql.Time.class) )
+                {
+                    setTimeValueViaField(o, field, fieldValue);
+                }
+                else if( fieldType.equals(long.class) || fieldType.equals(Long.class) )
+                {
+                    field.set(o, Long.valueOf(fieldValue));
+                }
+                else if( fieldType.equals(short.class) || fieldType.equals(Short.class) )
+                {
+                    field.set(o, Short.valueOf(fieldValue));
+                }
+                else if( fieldType.equals(float.class) || fieldType.equals(Float.class) )
+                {
+                    field.set(o, Float.valueOf(fieldValue));
+                }
+            }
+            catch( IllegalAccessException e )
             {
                 e.printStackTrace();
             }
@@ -107,14 +164,31 @@ public class Utils
     
     public static void setFieldValue(Object o, String fieldName, Object value)
     {
+        // Try using setter first (preferred approach)
         Method setter = getSetter(o.getClass(), fieldName);
         if( setter != null )
         {
             try
             {
                 setter.invoke(o, value);
+                return; // Successfully set via setter
             }
             catch( Exception e )
+            {
+                // Fall through to field access
+            }
+        }
+        
+        // Fallback to field access if setter approach fails
+        java.lang.reflect.Field field = getFieldByName(o.getClass(), fieldName);
+        if( field != null )
+        {
+            field.setAccessible(true);
+            try
+            {
+                field.set(o, value);
+            }
+            catch( IllegalAccessException e )
             {
                 e.printStackTrace();
             }
@@ -254,33 +328,39 @@ public class Utils
         }
         else
         {
-            List<Method> getters1 = getGetters(type1);
-            List<Method> getters2 = getGetters(type2);
-            if( getters1.size() != getters2.size() )
+            java.lang.reflect.Field[] fields1 = getFields(type1);
+            java.lang.reflect.Field[] fields2 = getFields(type2);
+            if( fields1.length != fields2.length )
             {
                 return false;
             }
-            for( Method getter : getters1 )
+            for( java.lang.reflect.Field field : fields1 )
             {
-                if( excludedFields.contains(getter) )
+                if( excludedFields.contains(field) )
                 {
                     continue;
                 }
-                // Skip static methods
-                if( Modifier.isStatic(getter.getModifiers()) )
+                // do not take into account transient fields
+                if( Modifier.isTransient(field.getModifiers()) )
                 {
                     continue;
                 }
+                // do not take into account static fields
+                if( Modifier.isStatic(field.getModifiers()) )
+                {
+                    continue;
+                }
+                
                 try
                 {
-                    Object fO1 = getter.invoke(o1);
-                    Object fO2 = getter.invoke(o2);
+                    Object fO1 = getFieldValue(o1, field);
+                    Object fO2 = getFieldValue(o2, field);
                     if( !isVisitedContains(visitedSet, fO1) )
                     {
                         appendToVisited(visitedSet, fO1);
                         if( !areEqualInner(visitedSet, fO1, fO2, excludedFields) )
                         {
-                            System.out.println("Not equal.Method:" + getter.getName() + ";Val1=" + fO1 + ";Val2=" + fO2);
+                            System.out.println("Not equal.Field:" + field.getName() + ";Val1=" + fO1 + ";Val2=" + fO2);
                             return false;
                         }
                     }
@@ -394,6 +474,27 @@ public class Utils
         return null;
     }
     
+    private static Object getFieldValue(Object o, java.lang.reflect.Field field) throws Exception
+    {
+        // Try using getter first (preferred approach)
+        Method getter = getGetter(o.getClass(), field.getName());
+        if( getter != null )
+        {
+            try
+            {
+                return getter.invoke(o);
+            }
+            catch( Exception e )
+            {
+                // Fall through to field access
+            }
+        }
+        
+        // Fallback to field access
+        field.setAccessible(true);
+        return field.get(o);
+    }
+    
     private static Method getGetter(Class<?> clazz, String fieldName)
     {
         String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
@@ -467,7 +568,7 @@ public class Utils
         return Utils.escapeXMLAttribute(sdf.format((Date)o));
     }
     
-    private static void setDateValue(Object o, Method setter, String value)
+    private static void setDateValueViaSetter(Object o, Method setter, String value)
     {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
         try
@@ -480,7 +581,7 @@ public class Utils
         }
     }
     
-    private static void setTimeValue(Object o, Method setter, String value)
+    private static void setTimeValueViaSetter(Object o, Method setter, String value)
     {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
         try
@@ -493,75 +594,87 @@ public class Utils
         }
     }
     
-    public static Method getField(Class<?> clazz, String superClassName, String fieldName) throws SecurityException, NoSuchFieldException
+    private static void setDateValueViaField(Object o, java.lang.reflect.Field field, String value)
     {
-        String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-        String booleanGetterName = "is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-        
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+        try
+        {
+            field.set(o, sdf.parse(value, new ParsePosition(0)));
+        }
+        catch( IllegalAccessException | IllegalArgumentException e )
+        {
+        }
+    }
+    
+    private static void setTimeValueViaField(Object o, java.lang.reflect.Field field, String value)
+    {
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+        try
+        {
+            field.set(o, new java.sql.Time(sdf.parse(value, new ParsePosition(0)).getTime()));
+        }
+        catch( IllegalAccessException e )
+        {
+        }
+        catch( IllegalArgumentException e )
+        {
+        }
+    }
+    
+    public static java.lang.reflect.Field getField(Class<?> clazz, String superClassName, String fieldName) throws SecurityException, NoSuchFieldException
+    {
         String clazzName = clazz.getName();
         if( clazzName.equals(superClassName) )
-        {
-            Method[] methods = clazz.getDeclaredMethods();
-            for( Method method : methods )
-            {
-                if( (method.getName().equals(getterName) || method.getName().equals(booleanGetterName)) 
-                    && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class) )
-                {
-                    return method;
-                }
-            }
-            throw new NoSuchFieldException("No getter found for field: " + fieldName);
-        }
-        
+            return clazz.getDeclaredField(fieldName);
         Class<?> superClass = clazz;
         do
         {
             superClass = superClass.getSuperclass();
             if( superClass == null )
-                throw new NoSuchFieldException("No getter found for field: " + fieldName);
+                throw new NoSuchFieldException();
             clazzName = superClass.getName();
         }
         while( !clazzName.equals(superClassName) );
-        
-        Method[] methods = superClass.getDeclaredMethods();
-        for( Method method : methods )
-        {
-            if( (method.getName().equals(getterName) || method.getName().equals(booleanGetterName)) 
-                && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class) )
-            {
-                return method;
-            }
-        }
-        throw new NoSuchFieldException("No getter found for field: " + fieldName);
+        return superClass.getDeclaredField(fieldName);
     }
     
-    public static Method[] getFields(Class<?> clazz)
+    public static java.lang.reflect.Field[] getFields(Class<?> clazz)
     {
-        List<Method> methods = getClassGetters(clazz);
-        return methods.toArray(new Method[methods.size()]);
+        List<java.lang.reflect.Field> fields = getClassFields(clazz);
+        return fields.toArray(new java.lang.reflect.Field[fields.size()]);
     }
     
-    private static List<Method> getClassGetters(Class<?> clazz)
+    private static List<java.lang.reflect.Field> getClassFields(Class<?> clazz)
     {
         if( !clazz.isArray() && !clazz.isPrimitive() )
         {
-            List<Method> methodsList = new ArrayList<>();
-            Method[] methods = clazz.getDeclaredMethods();
-            for( Method method : methods )
+            List<java.lang.reflect.Field> fieldsList = new ArrayList<>();
+            java.lang.reflect.Field[] fields = clazz.getDeclaredFields();
+            for( java.lang.reflect.Field field : fields )
             {
-                if( isGetter(method) )
-                {
-                    methodsList.add(method);
-                }
+                fieldsList.add(field);
             }
             Class<?> superClass = clazz.getSuperclass();
             if( superClass != null )
             {
-                methodsList.addAll(getClassGetters(superClass));
+                fieldsList.addAll(getClassFields(superClass));
             }
-            return methodsList;
+            return fieldsList;
         }
         return new ArrayList<>();
+    }
+    
+    private static java.lang.reflect.Field getFieldByName(Class<?> clazz, String name)
+    {
+        List<java.lang.reflect.Field> fields = getClassFields(clazz);
+        for( java.lang.reflect.Field field : fields )
+        {
+            if( name.equals(field.getName()) )
+            {
+                return field;
+            }
+        }
+        return null;
     }
     
     public static String getPrimitiveWrapperElementName(Class<?> type)
