@@ -80,6 +80,8 @@
                 <version>3.0.0-M7</version>
                 <configuration>
                     <argLine>--add-opens java.desktop/sun.java2d=ALL-UNNAMED</argLine> 
+                    <argLine>--add-opens java.sql/java.sql=ALL-UNNAMED</argLine> 
+                    <argLine>--add-opens java.util/java.util=ALL-UNNAMED</argLine> 
                     <systemPropertyVariables>
                       <java.awt.headless>true</java.awt.headless>
                     </systemPropertyVariables>
