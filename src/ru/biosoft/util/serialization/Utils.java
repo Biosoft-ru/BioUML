@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import one.util.streamex.StreamEx;
 import ru.biosoft.util.serialization.xml.Constants;
-
 public class Utils
 {
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
@@ -514,7 +513,7 @@ public class Utils
     
     private static Method getFieldGetter(Class<?> clazz, String name)
     {
-        List<Method> methods = getClassGetters(clazz);
+        List<Method> methods = getGetters(clazz);  // Fixed: changed from getClassGetters to getGetters
         String getterName = "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
         String booleanGetterName = "is" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
         
