@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dml appVersion="0.7.7" version="0.7.7">
   <diagram diagramType="biouml.standard.diagram.PathwaySimulationDiagramType" title="reaction.orig">
-    <diagramInfo title="reaction.orig">
+    <diagramInfo title="reaction.orig">[]
     </diagramInfo>
     <viewOptions>
       <propertyRef name="mathTitleFont" value="Arial;0;12;black"/>
