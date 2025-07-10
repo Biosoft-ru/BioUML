@@ -4,10 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +30,8 @@ import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
 import com.developmentontheedge.beans.DynamicProperty;
+import com.developmentontheedge.beans.DynamicPropertySet;
+import com.developmentontheedge.beans.DynamicPropertySetSupport;
 import com.developmentontheedge.beans.annot.PropertyName;
 import com.developmentontheedge.beans.swing.PropertyInspector;
 import com.developmentontheedge.beans.swing.PropertyInspectorEx;
@@ -35,6 +40,7 @@ import com.developmentontheedge.log.TextPaneAppender;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
+import biouml.model.Node;
 import biouml.plugins.wdl.colorer.WDLColorer;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
@@ -182,8 +188,8 @@ public class WDLEditor extends EditorPartSupport
             diagram.getAttributes().add( settingsProperty );
         }
         settings = (WorkflowSettings)settingsProperty.getValue();
+        settings.initParameters( diagram );
         inspector.explore( settings );
-
     }
 
     @Override
@@ -246,6 +252,55 @@ public class WDLEditor extends EditorPartSupport
     public static class WorkflowSettings
     {
         private DataElementPath outputPath;
+        private DynamicPropertySet parameters = new DynamicPropertySetSupport();
+
+        public void initParameters(Diagram diagram)
+        {
+            List<Node> externalParameters = WDLUtil.getExternalParameters( diagram );
+            for( Node externalParameter : externalParameters )
+            {
+                String type = WDLUtil.getType( externalParameter );
+                String name = WDLUtil.getName( externalParameter );
+                Object value = WDLUtil.getExpression( externalParameter );
+                Class clazz = String.class;
+                if( type.equals( "File" ) || type.equals( "Array[File]" ) )
+                {
+                    value = DataElementPath.create( value.toString() );
+                    clazz = DataElementPath.class;
+                }
+                DynamicProperty dp = new DynamicProperty( name, clazz, value );
+                parameters.add( dp );
+            }
+        }
+
+        public File generateJSON(String outputDir) throws IOException
+        {
+            File json = new File(outputDir, "parameters.json");
+            try (BufferedWriter bw = new BufferedWriter( new FileWriter( json ) ))
+            {
+                for( DynamicProperty dp : parameters )
+                {
+                    Object value = dp.getValue();
+                    if (value instanceof DataElementPath dep)
+                    {
+                        value = dep.getName();
+                    }
+                    bw.write( "\"" +dp.getName() + "\"" +" : " + value.toString() );
+                }
+            }
+            return json;
+        }
+
+        @PropertyName ( "Parameters" )
+        public DynamicPropertySet getParameters()
+        {
+            return parameters;
+        }
+
+        public void setParameters(DynamicPropertySet parameters)
+        {
+            this.parameters = parameters;
+        }
 
         @PropertyName ( "Output path" )
         public DataElementPath getOutputPath()
@@ -269,6 +324,7 @@ public class WDLEditor extends EditorPartSupport
         @Override
         public void initProperties()
         {
+            add( "parameters" );
             add( "outputPath" );
         }
     }
@@ -374,13 +430,15 @@ public class WDLEditor extends EditorPartSupport
             File config = new File( outputDir, "nextflow.config" );
             ApplicationUtils.writeString( config, "docker.enabled = true" );
 
+            File json = settings.generateJSON( outputDir );
+            
             NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
             script = preprocessor.preprocess( script );
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
 
-            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", config.getName()};
+            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file", json.getName()};
             //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
             //                    "/data/" + f.getName()};
 
@@ -462,13 +520,13 @@ public class WDLEditor extends EditorPartSupport
                     String paramName = line.substring( line.indexOf( "." ) + 1, line.indexOf( "=" ) ).trim();
                     String path = line.substring( line.indexOf( "(" ) + 1, line.lastIndexOf( ")" ) ).trim();
                     DataElement de = DataElementPath.create( path ).getDataElement();
-                    export(de, new File( outputDir ));
+                    export( de, new File( outputDir ) );
                     lines[i] = "params." + paramName + " = file(\"" + de.getName() + "\")";
                 }
             }
             return StreamEx.of( lines ).joining( "\n" );
         }
-        
+
         public void export(DataElement de, File dir) throws Exception
         {
             if( !dir.exists() && !dir.mkdirs() )
@@ -489,8 +547,8 @@ public class WDLEditor extends EditorPartSupport
             {
                 File exportedDir = new File( outputDir, de.getName() );
                 exportedDir.mkdirs();
-                for (Object innerDe: ((DataCollection<?>)de))
-                        export( (DataElement)innerDe, new File(dir, de.getName()));
+                for( Object innerDe : ( (DataCollection<?>)de ) )
+                    export( (DataElement)innerDe, new File( dir, de.getName() ) );
             }
         }
     }

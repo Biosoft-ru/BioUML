@@ -23,7 +23,12 @@
 #######################################################################################
 #macro(scatterNF $scatter)
   $helper.createChannelFromArrray($scatter)
-#foreach( $call in $helper.getCalls($scatter))#callNF($call)#end
+#foreach( $n in $helper.orderCalls($scatter))
+#if ($helper.isCycle($n))#callNF($n)
+#elseif ($helper.isCall($n))#scatterNF($n)
+#end 
+#end
+##foreach( $call in $helper.orderCalls($scatter))#callNF($call)#end
 #end
 #######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
@@ -66,6 +71,11 @@ $BR  output:
 #######################################################################################
 workflow {
   main:
-#foreach( $call in $helper.getCalls($diagram))#callNF($call)#end
-#foreach( $scatter in $helper.getScatters($diagram))#scatterNF($scatter)#end
+#foreach( $n in $helper.orderCalls($diagram))
+#if ($helper.isCycle($n))#callNF($n)
+#elseif ($helper.isCall($n))#scatterNF($n)
+#end 
+#end
+##foreach( $call in $helper.getCallsScatters($diagram))#callNF($call)#end
+##foreach( $scatter in $helper.getScatters($diagram))#scatterNF($scatter)#end
 }

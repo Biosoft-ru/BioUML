@@ -19,7 +19,12 @@ public class NextFlowVelocityHelper
     public NextFlowVelocityHelper(Diagram diagram)
     {
         this.diagram = diagram;
-        orderedCalls = WDLUtil.orderCalls( diagram );
+        orderedCalls = WDLUtil.orderCallsScatters( diagram );
+    }
+    
+    public List<Compartment> orderCalls(Compartment compartment)
+    {
+        return WDLUtil.orderCallsScatters( compartment );
     }
 
     public String getName()
@@ -105,8 +110,6 @@ public class NextFlowVelocityHelper
     public String getName(Node n)
     {
         String name = WDLUtil.getName( n );
-        if( WDLUtil.isExternalParameter( n ) )
-            return "params." + name;
         return name;
     }
 
@@ -116,6 +119,13 @@ public class NextFlowVelocityHelper
             return "??";
         if( getExpression( n ) != null && !getExpression( n ).isEmpty() )
             return getType( n ) + " " + getName( n ) + " = " + getExpression( n );
+        return getType( n ) + " " + getName( n );
+    }
+    
+    public String getShortDeclaration(Node n)
+    {
+        if( n == null )
+            return "??";
         return getType( n ) + " " + getName( n );
     }
 
@@ -137,15 +147,17 @@ public class NextFlowVelocityHelper
             return "??";
 
         StringBuilder result = new StringBuilder();
-        result.append( getName( n ) );
-        String expression = getExpression( n );
-        if( expression != null && !expression.isEmpty() )
-        {
-            String type = getType( n );
-            if( type.equals( "path" ) )
-                expression = "file(" + expression + ")";
-            result.append( " = " + expression );
-        }
+        
+        result.append( "params." );
+        result.append( getName(n) );
+//        String expression = getExpression( n );
+//        if( expression != null && !expression.isEmpty() )
+//        {
+//            String type = getType( n );
+//            if( type.equals( "path" ) )
+//                expression = "file(" + expression + ")";
+//            result.append( " = " + expression );
+//        }
         return result.toString();
     }
 
@@ -185,7 +197,7 @@ public class NextFlowVelocityHelper
         return input.replace( ".", "_" ) + "_ch";
     }
 
-    public List<Compartment> getCalls(Compartment compartment)
+    public List<Compartment> getCallsScatters(Compartment compartment)
     {
         List<Compartment> result = new ArrayList<>();
         for( Compartment c : orderedCalls )
@@ -246,4 +258,15 @@ public class NextFlowVelocityHelper
     {
         return true;
     }
+
+    public boolean isCall(Node node)
+    {
+        return WDLUtil.isCall( node );
+    }
+
+    public boolean isCycle(Node node)
+    {
+        return WDLUtil.isCycleVariable( node );
+    }
+    
 }

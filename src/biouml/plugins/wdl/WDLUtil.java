@@ -3,63 +3,72 @@ package biouml.plugins.wdl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
+import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class WDLUtil
 {
+
+    public static boolean isOfType(String type, DiagramElement de)
+    {
+        return type.equals( de.getKernel().getType() );
+
+    }
     public static boolean isTask(Node node)
     {
-        return WDLConstants.TASK_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.TASK_TYPE, node );
     }
 
     public static boolean isCall(Node node)
     {
-        return WDLConstants.CALL_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.CALL_TYPE, node );
     }
 
     public static boolean isLink(DiagramElement de)
     {
-        return WDLConstants.LINK_TYPE.equals( de.getKernel().getType() );
+        return isOfType( WDLConstants.LINK_TYPE, de );
     }
 
     public static boolean isInput(Node node)
     {
-        return WDLConstants.INPUT_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.INPUT_TYPE, node );
     }
 
     public static boolean isExternalParameter(Node node)
     {
-        return WDLConstants.EXTERNAL_PARAMETER_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.EXTERNAL_PARAMETER_TYPE, node );
     }
 
     public static boolean isExpression(Node node)
     {
-        return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.EXPRESSION_TYPE, node );
     }
 
     public static boolean isCycleVariable(Node node)
     {
-        return WDLConstants.SCATTER_VARIABLE_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.SCATTER_VARIABLE_TYPE, node );
     }
 
     public static boolean isCycle(Node node)
     {
-        return WDLConstants.SCATTER_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.SCATTER_TYPE, node );
     }
 
     public static boolean isOutput(Node node)
     {
-        return WDLConstants.OUTPUT_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.OUTPUT_TYPE, node );
     }
 
     public static boolean isExternalOutput(Node node)
@@ -153,6 +162,10 @@ public class WDLUtil
         c.getAttributes().add( new DynamicProperty( WDLConstants.RUNTIME_ATTR, String[].class, vals ) );
     }
 
+    public static String getShortDeclaration(Node n)
+    {
+        return getType( n ) + " " + getName( n );
+    }
     public static String getDeclaration(Node n)
     {
         return getType( n ) + " " + getName( n ) + " = " + getExpression( n );
@@ -226,7 +239,7 @@ public class WDLUtil
             String call = parts[0];
             String varName = parts[1];
             Compartment callNode = WDLUtil.findCall( call, diagram );
-            if (callNode == null)
+            if( callNode == null )
                 return null;
             Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
             return port;
@@ -275,31 +288,31 @@ public class WDLUtil
         {
             if( isCycleVariable( node ) )
             {
-                Node arrayNode = getSource(node);
+                Node arrayNode = getSource( node );
                 if( arrayNode != null )
-                    return  arrayNode;
+                    return arrayNode;
             }
         }
         return null;
     }
-    
+
     public static Node getSource(Node node)
     {
-        return node.edges().filter(e->e.getOutput().equals( node )).map( e -> e.getInput() ).findAny().orElse( null );
-    }
-    
-    public static String getCycleName(Compartment c)
-    {
-        Node cycleNode = getCycleNode(c); 
-        return cycleNode == null? null: getName(cycleNode);
+        return node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ).findAny().orElse( null );
     }
 
-    public static List<Compartment> orderCalls(Diagram diagram)
+    public static String getCycleName(Compartment c)
+    {
+        Node cycleNode = getCycleNode( c );
+        return cycleNode == null ? null : getName( cycleNode );
+    }
+
+    public static List<Compartment> orderCallsScatters(Compartment compartment)
     {
         List<Compartment> result = new ArrayList<>();
         Map<Compartment, Set<Compartment>> previousSteps = new HashMap<>();
-        for( Compartment compartment : diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) ) )
-            previousSteps.put( compartment, getPreviousSteps( compartment ) );
+        for( Compartment c : compartment.stream( Compartment.class ).filter( c -> isCall( c ) || isCycle( c ) ) )
+            previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
         Set<Compartment> added = new HashSet<>();
         while( previousSteps.size() > 0 )
@@ -320,8 +333,56 @@ public class WDLUtil
         return result;
     }
 
-    public static Set<Compartment> getPreviousSteps(Compartment c)
+    public static Set<Compartment> getPreviousSteps(Compartment c, Compartment threshold)
     {
-        return c.stream( Node.class ).flatMap( n -> n.edges() ).map( e -> e.getInput().getCompartment() ).filter( call->isCall(call) ).without( c ).toSet();
+        return c.stream( Node.class ).flatMap( n -> getEdges( n ) ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).nonNull()
+                .without( c ).toSet();
+    }
+
+    private static Stream<Edge> getEdges(Node node)
+    {
+        Set<Edge> result = node.edges().toSet();
+        if( node instanceof Compartment )
+        {
+            Compartment c = (Compartment)node;
+            result.addAll( c.recursiveStream().select( Node.class ).flatMap( n -> n.edges() )
+                    .filter( e -> !isInside( e.getInput(), c ) && isInside( e.getOutput(), c ) ).toSet() );
+
+        }
+        return result.stream();
+    }
+
+    private static Compartment getCallOrCycle(Node node, Compartment threshold)
+    {
+        if (!isInside(node, threshold))
+            return null;
+        
+        Compartment c = node.getCompartment();
+        LinkedList<Compartment> parents = new LinkedList<>();
+        while( !threshold.equals( c ) )
+        {
+            parents.add( c );
+            c = c.getCompartment();
+        }
+
+        while( !parents.isEmpty() )
+        {
+            Compartment lastParent = parents.pollLast();
+            if( isCycle( lastParent ) || isCall( lastParent ) )
+                return lastParent;
+        }
+        return null;
+    }
+
+    private static boolean isInside(Node node, Compartment c)
+    {
+        Compartment parent = node.getCompartment();
+        while( ! ( parent instanceof Diagram ) )
+        {
+            if( parent.equals( c ) )
+                return true;
+            parent = parent.getCompartment();
+        }
+        return false;
     }
 }

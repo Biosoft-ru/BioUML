@@ -100,6 +100,13 @@ public class WDLVelocityHelper
         return getType( n ) + " " + getName( n );
     }
 
+    public String getShortDeclaration(Node n)
+    {
+        if( n == null )
+            return "??";
+        return getType( n ) + " " + getName( n );
+    }
+
     public String getVersion()
     {
         return WDLUtil.getVersion( diagram );
@@ -119,13 +126,13 @@ public class WDLVelocityHelper
     {
         return WDLUtil.getCycleName( c );
     }
-    
+
     public String getCallInput(Node inputNode)
     {
-        String name = getName(inputNode);
-        String expression = getExpression(inputNode);
-        if (expression == null)
+        String name = getName( inputNode );
+        String expression = getExpression( inputNode );
+        if( expression == null )
             return name;
-        return name +" = "+ expression;
+        return name + " = " + expression;
     }
 }
