@@ -2,7 +2,7 @@
 
 # To Build
 
-Ensure that you have at least Java 11
+Ensure that you have at least Java 21
 
 Manually install JARs missing in Maven Central
 
@@ -55,7 +55,7 @@ On Linux install required packages
 sudo apt install r-base r-base-dev
 ```
 
-Ensure that you have at least Java 11
+Ensure that you have at least Java 21
 
 ```sh
 mvn -pl src test 

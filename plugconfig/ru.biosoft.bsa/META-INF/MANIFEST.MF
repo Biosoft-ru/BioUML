@@ -28,7 +28,7 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.workbench,
  ru.biosoft.workbench.editors,
  htsjdk,
- javastraw
+ ru.biosoft.javastraw
 Export-Package: ru.biosoft.bsa,
  ru.biosoft.bsa.access,
  ru.biosoft.bsa.align,

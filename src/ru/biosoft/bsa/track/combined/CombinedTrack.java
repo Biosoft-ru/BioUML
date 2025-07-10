@@ -297,7 +297,23 @@ public class CombinedTrack extends DataElementSupport implements Track
         if( trackColorItems == null || trackColorItems.length == 0 )
             return null;
         String type = getCondition().getConditionType();
-        String joiner = type.equals( "union" ) ? " or " : " and ";
+        String joiner = "";
+        switch (type)
+        {
+        case CombineCondition.CC_UNION:
+            joiner = "or";
+            break;
+        case CombineCondition.CC_INTERSECTION:
+            joiner = "and";
+            break;
+        case CombineCondition.CC_DIFFERENCE:
+            joiner = "not";
+            break;
+        case CombineCondition.CC_SYMMETRIC_DIFFERENCE:
+            joiner = "or not and";
+            break;
+        }
+        joiner = " " + joiner + " ";
         String formula = "1";
 
         for( int i = 2; i <= trackColorItems.length; i++ )

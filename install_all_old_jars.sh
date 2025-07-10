@@ -154,16 +154,6 @@ mvn -N install:install-file \
   -Dfile=plugins/org.jlibsedml_2.2.1/jlibsedml.jar \
   -DgeneratePom=true
 
-## jetbrains big
-
-mvn -N install:install-file \
-  -DgroupId=org.jetbrains.bio \
-  -DartifactId=big \
-  -Dversion=0.9.1p6-patched \
-  -Dpackaging=jar \
-  -Dfile=plugins/org.jetbrains.bio.big_0.9.1/big-0.9.1p6.jar \
-  -DgeneratePom=true
-
 ## htsjdk
 
 mvn -N install:install-file \

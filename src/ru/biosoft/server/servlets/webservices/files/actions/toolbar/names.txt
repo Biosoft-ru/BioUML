@@ -48,6 +48,7 @@ shift_forward.json
 
 openastrack.json
 combinetracks.json
+createGCTrack.json
 
 pf_highlight.json
 

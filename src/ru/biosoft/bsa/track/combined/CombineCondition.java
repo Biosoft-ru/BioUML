@@ -9,9 +9,14 @@ import ru.biosoft.util.bean.JSONBean;
 @SuppressWarnings ( "serial" )
 public class CombineCondition extends Option implements JSONBean
 {
-    public static final String[] CONDITION_TYPES = {"union", "intersection"};
+    public static final String CC_INTERSECTION = "intersection";
+    public static final String CC_UNION = "union";
+    public static final String CC_DIFFERENCE = "difference";
+    public static final String CC_SYMMETRIC_DIFFERENCE = "symmetric difference";
 
-    private String conditionType = "union";
+    public static final String[] CONDITION_TYPES = { CC_UNION, CC_INTERSECTION, CC_DIFFERENCE, CC_SYMMETRIC_DIFFERENCE };
+
+    private String conditionType = CC_UNION;
     private String formula = null;
     private int distance = 0;
 
