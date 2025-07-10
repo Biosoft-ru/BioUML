@@ -45,7 +45,7 @@ public class RuleProperties
     
     public Stream<String> getAvailableBehaviors()
     {
-        return getAvailableBehaviors( model, cellDefinition ).stream();
+        return getAvailableBehaviors( model, cellDefinition ).stream().sorted();
     }
     
     public static Stream<String> getAvailableSignals(MulticellEModel model,  CellDefinitionProperties cellDefinition)

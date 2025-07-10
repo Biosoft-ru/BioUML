@@ -15,7 +15,7 @@ public class Player extends Thread
     {
         this.result = result;
         this.time = result.getOptions().getTime();
-        this.delay = result.getOptions().getFps() ;
+        this.delay = 1 / result.getOptions().getFps() ;
     }
     
     public void setListener(PlayerListener listener)
@@ -33,7 +33,7 @@ public class Player extends Thread
             doStep();
             try
             {
-                sleep(delay*1000);
+                sleep(400);
             }
             catch( InterruptedException e )
             {

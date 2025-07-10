@@ -403,7 +403,9 @@ public class PhysicellSimulationEngine extends SimulationEngine
             if( f == null )
                 throw new Exception( "Could not find function " + standardFunction );
             else if( c.isInstance( f ) )
+            {
                 return c.cast( f );
+            }
             else
                 throw new Exception( "Trying to load function" + standardFunction + " expected class: " + c + " but was: " + f.getClass() );
         }
