@@ -39,8 +39,8 @@
         <property name="OUTDIR" value="${TOPDIR}/out" />
         <property name="JAVADOC_OUTDIR" value="${TOPDIR}/javadoc" />
 
-        <property name="VERSION" value="2025.3"/>
-        <property name="PUBLIC_VERSION" value="2025.3" />
+        <property name="VERSION" value="2025.2"/>
+        <property name="PUBLIC_VERSION" value="2025.2" />
         
         <property name="PLUGIN_DIR" value="${TOPDIR}/plugins" />
         <property name="PLUGIN_CONFIG_DIR" value="${TOPDIR}/plugconfig" />
