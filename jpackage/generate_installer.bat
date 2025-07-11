@@ -27,6 +27,7 @@ ROBOCOPY %temp_dir%\BioUML\app\configuration %img_dir%\BioUML\app\configuration 
 ROBOCOPY %temp_dir%\BioUML\app\data %img_dir%/BioUML\app\data default.config  >>log.txt
 ROBOCOPY %temp_dir%\BioUML\app\data_resources %img_dir%\BioUML\app\data_resources default.config >>log.txt
 ROBOCOPY %temp_dir%\BioUML\app\data_resources\Collaboration %img_dir%\BioUML\app\data_resources\Collaboration default.config >>log.txt
+ROBOCOPY %temp_dir%\BioUML\app\data_resources\Examples %img_dir%\BioUML\app\data_resources\Examples /E >>log.txt
 
 REM 3: Some files need to be copied to top level of created image (near EXE file). Preferences and lcf files are neccessary for BioUML run, ico is needed for application icon
 ROBOCOPY %temp_dir%\BioUML\app %img_dir%\BioUML preferences.xml >>log.txt
