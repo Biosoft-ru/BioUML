@@ -16,7 +16,7 @@
         var isMutable = permission & 0x04 == 0x04;
         
         var type = dc.getChildClass(name);
-        if ( isMutable && ((instanceOf(type,'ru.biosoft.access.core.FolderCollection') && dc.isJournal()) || instanceOf(getDataCollection(completePath).getChildClass(), 'biouml.model.Diagram'))) 
+        if ( isMutable && ((instanceOf(type,'ru.biosoft.access.core.FolderCollection') ) || instanceOf(getDataCollection(completePath).getChildClass(), 'biouml.model.Diagram'))) 
         {
             return true;
         }
