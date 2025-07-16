@@ -189,6 +189,17 @@ public class WDLUtil
         return n.getAttributes().getValueAsString( WDLConstants.TYPE_ATTR );
     }
 
+    public static String getCallName(Node n)
+    {
+        return n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
+    }
+
+    public static void setCallName(Node n, String name)
+    {
+        n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
+    }
+
+
     public static String getName(Node n)
     {
         return n.getAttributes().getValueAsString( WDLConstants.NAME_ATTR );
@@ -227,8 +238,8 @@ public class WDLUtil
 
     public static Compartment findCall(String taskName, Diagram diagram)
     {
-        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getTaskRef( c ).equals( taskName ) )
-                .findAny().orElse( null );
+        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getCallName(c).equals( taskName ) ).findAny()
+                .orElse( null );
     }
 
     public static Node findExpressionNode(Diagram diagram, String name)
@@ -354,9 +365,9 @@ public class WDLUtil
 
     private static Compartment getCallOrCycle(Node node, Compartment threshold)
     {
-        if (!isInside(node, threshold))
+        if( !isInside( node, threshold ) )
             return null;
-        
+
         Compartment c = node.getCompartment();
         LinkedList<Compartment> parents = new LinkedList<>();
         while( !threshold.equals( c ) )

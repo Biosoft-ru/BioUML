@@ -21,7 +21,7 @@ public class NextFlowVelocityHelper
         this.diagram = diagram;
         orderedCalls = WDLUtil.orderCallsScatters( diagram );
     }
-    
+
     public List<Compartment> orderCalls(Compartment compartment)
     {
         return WDLUtil.orderCallsScatters( compartment );
@@ -62,10 +62,10 @@ public class NextFlowVelocityHelper
     /**
      * returns node which is connected with this input node of a call
      */
-//    public Node getSource(Node node)
-//    {
-//        return node.edges().filter(e->e.getOutput().equals( node )).map( e -> e.getInput() ).findAny().orElse( null );
-//    }
+    //    public Node getSource(Node node)
+    //    {
+    //        return node.edges().filter(e->e.getOutput().equals( node )).map( e -> e.getInput() ).findAny().orElse( null );
+    //    }
 
     public List<Node> getOutputs(Compartment c)
     {
@@ -121,7 +121,7 @@ public class NextFlowVelocityHelper
             return getType( n ) + " " + getName( n ) + " = " + getExpression( n );
         return getType( n ) + " " + getName( n );
     }
-    
+
     public String getShortDeclaration(Node n)
     {
         if( n == null )
@@ -147,17 +147,17 @@ public class NextFlowVelocityHelper
             return "??";
 
         StringBuilder result = new StringBuilder();
-        
+
         result.append( "params." );
-        result.append( getName(n) );
-//        String expression = getExpression( n );
-//        if( expression != null && !expression.isEmpty() )
-//        {
-//            String type = getType( n );
-//            if( type.equals( "path" ) )
-//                expression = "file(" + expression + ")";
-//            result.append( " = " + expression );
-//        }
+        result.append( getName( n ) );
+        //        String expression = getExpression( n );
+        //        if( expression != null && !expression.isEmpty() )
+        //        {
+        //            String type = getType( n );
+        //            if( type.equals( "path" ) )
+        //                expression = "file(" + expression + ")";
+        //            result.append( " = " + expression );
+        //        }
         return result.toString();
     }
 
@@ -210,12 +210,18 @@ public class NextFlowVelocityHelper
 
     public String getInputName(Node n)
     {
-        Node source = WDLUtil.getSource(n);
-        if (source  != null)
+        Node source = WDLUtil.getSource( n );
+        if( source != null )
             n = source;
         String name = WDLUtil.getName( n );
+        String type = WDLUtil.getType( n );
         if( WDLUtil.isExternalParameter( n ) )
-            return "params." + name;
+        {
+            String result = "params." + name;
+            if( "File".equals( type ) )
+                result = "channel.fromPath(" + result + ")";
+            return result;
+        }
         if( WDLUtil.isCall( n.getCompartment() ) )
             return getResultName( n.getCompartment() ) + "." + name;
         return name;
@@ -223,7 +229,7 @@ public class NextFlowVelocityHelper
 
     public String getResultName(Compartment c)
     {
-        return "result_" + WDLUtil.getTaskRef( c );
+        return "result_" + WDLUtil.getCallName( c );
     }
 
     public String createChannelFromArrray(Compartment cycle)
@@ -232,10 +238,10 @@ public class NextFlowVelocityHelper
         Node arrayNode = WDLUtil.getCycleNode( cycle );
         String cycleName = getCycleName( cycle );
         String type = WDLUtil.getType( arrayNode );
-//        if( type.equals( "Array[File]" ) || type.equals( "Directory" ) )
-//        {
-//            return "Channel.fromPath(" + cycleName + ").set{" + cycleVar + " }";
-//        }
+        //        if( type.equals( "Array[File]" ) || type.equals( "Directory" ) )
+        //        {
+        //            return "Channel.fromPath(" + cycleName + ").set{" + cycleVar + " }";
+        //        }
         return "Channel.from(" + cycleName + ").set{" + cycleVar + " }";
     }
 
@@ -268,5 +274,9 @@ public class NextFlowVelocityHelper
     {
         return WDLUtil.isCycleVariable( node );
     }
-    
+
+    public String getFunctions()
+    {
+        return "basename";
+    }
 }

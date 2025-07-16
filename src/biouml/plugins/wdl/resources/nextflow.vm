@@ -1,5 +1,5 @@
-#####################################################################################
-#####################################CONSTANTS########################################
+#######################################################################################
+#####################################CONSTANTS#########################################
 #######################################################################################
 #set ($BR = "
 ")
@@ -29,6 +29,11 @@
 #end 
 #end
 ##foreach( $call in $helper.orderCalls($scatter))#callNF($call)#end
+#end
+#######################################################################################
+#set($functions = $helper.getFunctions())
+#if (!$functions.isEmpty())
+include { $functions } from './biouml_function.nf'
 #end
 #######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
@@ -72,8 +77,8 @@ $BR  output:
 workflow {
   main:
 #foreach( $n in $helper.orderCalls($diagram))
-#if ($helper.isCycle($n))#callNF($n)
-#elseif ($helper.isCall($n))#scatterNF($n)
+#if ($helper.isCycle($n))#scatterNF($n)
+#elseif ($helper.isCall($n))#callNF($n)
 #end 
 #end
 ##foreach( $call in $helper.getCallsScatters($diagram))#callNF($call)#end

@@ -203,8 +203,8 @@ public class WDLImporter implements DataElementImporter
                 }
             }
         }
-        
-        createLinks(result);
+
+        createLinks( result );
         return result;
     }
 
@@ -224,14 +224,14 @@ public class WDLImporter implements DataElementImporter
 
     public void createLinks(Diagram diagram)
     {
-        for (Node node: diagram.stream().select( Node.class ).filter( n->WDLUtil.getExpression( n ) != null ))
+        for( Node node : diagram.stream().select( Node.class ).filter( n -> WDLUtil.getExpression( n ) != null ) )
         {
             Node source = WDLUtil.findExpressionNode( diagram, WDLUtil.getExpression( node ) );
-            if (source != null)
+            if( source != null )
                 createLink( source, node, WDLConstants.LINK_TYPE );
         }
     }
-    
+
     public Node createExpressionNode(Compartment parent, AstDeclaration declaration)
     {
         String name = declaration.getName();
@@ -308,9 +308,9 @@ public class WDLImporter implements DataElementImporter
         c.put( variableNode );
 
         createLink( arrayNode, variableNode, WDLConstants.LINK_TYPE );
-        
+
         parent.put( c );
-        
+
         Iterable<biouml.plugins.wdl.parser.Node> body = scatter.getBody();
         for( biouml.plugins.wdl.parser.Node n : body )
         {
@@ -351,12 +351,21 @@ public class WDLImporter implements DataElementImporter
         Diagram diagram = Diagram.getDiagram( parent );
         String name = call.getName();
         Compartment taskСompartment = tasks.get( name );
-        name = "Call_" + name;
+        String title = name;
+        String alias = call.getAlias();
+        if( alias != null )
+        {
+            name = alias;
+            title = alias;
+        }
+        else
+            name = "Call_" + name;
         Stub kernel = new Stub( null, name, WDLConstants.CALL_TYPE );
 
         Compartment c = new Compartment( parent, name, kernel );
+        c.setTitle( title );
         WDLUtil.setTaskRef( c, taskСompartment.getName() );
-        c.setTitle( name );
+        WDLUtil.setCallName( c, title );
         c.setNotificationEnabled( false );
         c.setShapeSize( taskСompartment.getShapeSize() );
         int inputs = 0;
@@ -375,22 +384,22 @@ public class WDLImporter implements DataElementImporter
                 if( expr != null )
                     expression = expr.toString();
             }
-            
+
             Node portNode = addPort( inputName, WDLConstants.INPUT_TYPE, inputs++, c );
-            
+
             for( Node node : taskСompartment.getNodes() )
             {
                 String varName = WDLUtil.getName( node );
-                if (varName.equals( inputName ))
+                if( varName.equals( inputName ) )
                 {
                     WDLUtil.setName( portNode, WDLUtil.getName( node ) );
                     WDLUtil.setType( portNode, WDLUtil.getType( node ) );
                     WDLUtil.setExpression( portNode, expression );
                 }
             }
-            
+
             Node expressionNode = WDLUtil.findExpressionNode( diagram, expression );
-            if (expressionNode != null)
+            if( expressionNode != null )
             {
                 createLink( expressionNode, portNode, WDLConstants.LINK_TYPE );
             }
@@ -400,24 +409,24 @@ public class WDLImporter implements DataElementImporter
         {
             String varName = WDLUtil.getName( node );
             Node portNode = null;
-//            if( WDLConstants.INPUT_TYPE.equals( node.getKernel().getType() ) )
-//            {
-//                portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
-//                Node input = WDLUtil.findExpressionNode( diagram, varName );
-//                if( input != null )
-//                    createLink( input, portNode, WDLConstants.LINK_TYPE );
-//            }
+            //            if( WDLConstants.INPUT_TYPE.equals( node.getKernel().getType() ) )
+            //            {
+            //                portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
+            //                Node input = WDLUtil.findExpressionNode( diagram, varName );
+            //                if( input != null )
+            //                    createLink( input, portNode, WDLConstants.LINK_TYPE );
+            //            }
             if( WDLConstants.OUTPUT_TYPE.equals( node.getKernel().getType() ) )
             {
                 portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, outputs++, c );
-                Node output = WDLUtil.findExpressionNode( diagram, varName ); //diagram.findNode( node.getName() );
-                if( output != null )
-                    createLink( portNode, output, WDLConstants.LINK_TYPE );
+                //                Node output = WDLUtil.findExpressionNode( diagram, varName ); //diagram.findNode( node.getName() );
+                //                if( output != null )
+                //                    createLink( portNode, output, WDLConstants.LINK_TYPE );
                 WDLUtil.setName( portNode, WDLUtil.getName( node ) );
                 WDLUtil.setType( portNode, WDLUtil.getType( node ) );
                 WDLUtil.setExpression( portNode, WDLUtil.getExpression( node ) );
             }
-         
+
         }
 
         c.getAttributes().add( new DynamicProperty( "innerNodesPortFinder", Boolean.class, true ) );

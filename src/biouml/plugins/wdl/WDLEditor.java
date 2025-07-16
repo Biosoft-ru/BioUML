@@ -265,7 +265,8 @@ public class WDLEditor extends EditorPartSupport
                 Class clazz = String.class;
                 if( type.equals( "File" ) || type.equals( "Array[File]" ) )
                 {
-                    value = DataElementPath.create( value.toString() );
+                    if( value != null )
+                        value = DataElementPath.create( value.toString() );
                     clazz = DataElementPath.class;
                 }
                 DynamicProperty dp = new DynamicProperty( name, clazz, value );
@@ -273,20 +274,38 @@ public class WDLEditor extends EditorPartSupport
             }
         }
 
-        public File generateJSON(String outputDir) throws IOException
+        public void exportCollections(String outputDir) throws Exception
         {
-            File json = new File(outputDir, "parameters.json");
+            for( DynamicProperty dp : parameters )
+            {
+                if( dp.getValue() instanceof DataElementPath )
+                {
+                    DataElement de = ( (DataElementPath)dp.getValue() ).getDataElement();
+                    export( de, new File( outputDir ) );
+                }
+            }
+        }
+
+
+
+        public File generateParametersJSON(String outputDir) throws IOException
+        {
+            File json = new File( outputDir, "parameters.json" );
             try (BufferedWriter bw = new BufferedWriter( new FileWriter( json ) ))
             {
+                bw.write( "{\n" );
                 for( DynamicProperty dp : parameters )
                 {
                     Object value = dp.getValue();
-                    if (value instanceof DataElementPath dep)
+                    if( value instanceof DataElementPath dep )
                     {
-                        value = dep.getName();
+                        value = "\"" + dep.getName() + "\"";
                     }
-                    bw.write( "\"" +dp.getName() + "\"" +" : " + value.toString() );
+                    else
+                        value = "\"" + value.toString() + "\"";
+                    bw.write( "\"" + dp.getName() + "\"" + " : " + value + "\n" );
                 }
+                bw.write( "}\n" );
             }
             return json;
         }
@@ -407,6 +426,7 @@ public class WDLEditor extends EditorPartSupport
                 diagram = wdlImporter.generateDiagram( start, diagram.getOrigin(), diagram.getName() );
                 wdlImporter.layout( diagram );
                 replaceDiagram( diagram );
+                setDiagram( diagram );
                 diagram.save();
             }
             catch( Exception ex )
@@ -430,15 +450,20 @@ public class WDLEditor extends EditorPartSupport
             File config = new File( outputDir, "nextflow.config" );
             ApplicationUtils.writeString( config, "docker.enabled = true" );
 
-            File json = settings.generateJSON( outputDir );
-            
+            File json = settings.generateParametersJSON( outputDir );
+
+            settings.exportCollections( outputDir );
+
+            File functions = generateFunctions( outputDir );
+
             NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
             script = preprocessor.preprocess( script );
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
 
-            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file", json.getName()};
+            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
+                    json.getName()};
             //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
             //                    "/data/" + f.getName()};
 
@@ -509,48 +534,25 @@ public class WDLEditor extends EditorPartSupport
 
         public String preprocess(String s) throws Exception
         {
-            s = s.replace( "~{", "${" );
-            String[] lines = s.split( "\n" );
-            for( int i = 0; i < lines.length; i++ )
-            {
-                String line = lines[i];
-                if( line.contains( "biouml.get(" ) )
-                {
-                    line = line.replace( "\"", "" );
-                    String paramName = line.substring( line.indexOf( "." ) + 1, line.indexOf( "=" ) ).trim();
-                    String path = line.substring( line.indexOf( "(" ) + 1, line.lastIndexOf( ")" ) ).trim();
-                    DataElement de = DataElementPath.create( path ).getDataElement();
-                    export( de, new File( outputDir ) );
-                    lines[i] = "params." + paramName + " = file(\"" + de.getName() + "\")";
-                }
-            }
-            return StreamEx.of( lines ).joining( "\n" );
+            return s.replace( "~{", "${" );
+            //            String[] lines = s.split( "\n" );
+            //            for( int i = 0; i < lines.length; i++ )
+            //            {
+            //                String line = lines[i];
+            //                if( line.contains( "biouml.get(" ) )
+            //                {
+            //                    line = line.replace( "\"", "" );
+            //                    String paramName = line.substring( line.indexOf( "." ) + 1, line.indexOf( "=" ) ).trim();
+            //                    String path = line.substring( line.indexOf( "(" ) + 1, line.lastIndexOf( ")" ) ).trim();
+            //                    DataElement de = DataElementPath.create( path ).getDataElement();
+            //                    export( de, new File( outputDir ) );
+            //                    lines[i] = "params." + paramName + " = file(\"" + de.getName() + "\")";
+            //                }
+            //            }
+            //            return StreamEx.of( lines ).joining( "\n" );
         }
 
-        public void export(DataElement de, File dir) throws Exception
-        {
-            if( !dir.exists() && !dir.mkdirs() )
-                throw new Exception( "Failed to create directory '" + outputDir + "'." );
-            if( de instanceof TextDataElement )
-            {
-                String str = ( (TextDataElement)de ).getContent();
-                File exported = new File( dir, de.getName() );
-                ApplicationUtils.writeString( exported, str );
-            }
-            else if( de instanceof FileDataElement )
-            {
-                File exported = new File( dir, de.getName() );
-                FileExporter exporter = new FileExporter();
-                exporter.doExport( de, exported );
-            }
-            else if( de instanceof DataCollection )
-            {
-                File exportedDir = new File( outputDir, de.getName() );
-                exportedDir.mkdirs();
-                for( Object innerDe : ( (DataCollection<?>)de ) )
-                    export( (DataElement)innerDe, new File( dir, de.getName() ) );
-            }
-        }
+
     }
 
     public void importResults() throws Exception
@@ -576,5 +578,46 @@ public class WDLEditor extends EditorPartSupport
                 importer.doImport( nested, f, f.getName(), null, log );
             }
         }
+    }
+
+    public static void export(DataElement de, File dir) throws Exception
+    {
+        if( !dir.exists() && !dir.mkdirs() )
+            throw new Exception( "Failed to create directory '" + dir.getName() + "'." );
+        if( de instanceof TextDataElement )
+        {
+            String str = ( (TextDataElement)de ).getContent();
+            File exported = new File( dir, de.getName() );
+            ApplicationUtils.writeString( exported, str );
+        }
+        else if( de instanceof FileDataElement )
+        {
+            File exported = new File( dir, de.getName() );
+            FileExporter exporter = new FileExporter();
+            exporter.doExport( de, exported );
+        }
+        else if( de instanceof DataCollection )
+        {
+            File exportedDir = new File( dir, de.getName() );
+            exportedDir.mkdirs();
+            for( Object innerDe : ( (DataCollection<?>)de ) )
+                export( (DataElement)innerDe, new File( dir, de.getName() ) );
+        }
+    }
+
+    public static File generateFunctions(String outputDir) throws IOException
+    {
+        File result = new File( outputDir, "biouml_function.nf" );
+        try (BufferedWriter bw = new BufferedWriter( new FileWriter( result ) ))
+        {
+            String baseName = """
+                    def basename(filePath) {
+                        def fname = filePath instanceof Path ? filePath.getFileName().toString() : filePath.toString()
+                        return fname.replaceFirst(/\\.[^\\.]+$/, '')
+                    }""";
+            bw.write( baseName );
+        }
+        return result;
+
     }
 }
