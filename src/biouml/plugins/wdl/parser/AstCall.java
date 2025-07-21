@@ -27,7 +27,17 @@ public class AstCall extends SimpleNode
 
     public String getName()
     {
-        return  name;
+        if( name != null )
+            return name;
+
+        for( Node node : children )
+        {
+            if( node instanceof AstSubSymbol )
+            {
+                return ( (AstSubSymbol)node ).firstToken + "." + ( (AstSubSymbol)node ).lastToken;
+            }
+        }
+        return null;
     }
 
     public void setName(String name)

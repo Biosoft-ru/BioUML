@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
+import com.developmentontheedge.beans.Option;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -17,10 +19,10 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import ru.biosoft.access.core.DataElementPath;
 
 public class WDLUtil
 {
-
     public static boolean isOfType(String type, DiagramElement de)
     {
         return type.equals( de.getKernel().getType() );
@@ -199,6 +201,13 @@ public class WDLUtil
         n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
     }
 
+    public static ImportProperties[] getImports(Diagram diagram)
+    {
+        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
+            return new ImportProperties[0];
+        return (ImportProperties[])dp.getValue();
+    }
 
     public static String getName(Node n)
     {
@@ -235,11 +244,20 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
     }
+    
+    public static void setDiagramRef(Compartment c, String ref)
+    {
+        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, String.class, ref ) );
+    }
+    public static String getDiagramRef(Compartment c)
+    {
+        return c.getAttributes().getValueAsString( WDLConstants.EXTERNAL_DIAGRAM );
+    }
 
     public static Compartment findCall(String taskName, Diagram diagram)
     {
-        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getCallName(c).equals( taskName ) ).findAny()
-                .orElse( null );
+        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getCallName( c ).equals( taskName ) )
+                .findAny().orElse( null );
     }
 
     public static Node findExpressionNode(Diagram diagram, String name)
@@ -388,12 +406,93 @@ public class WDLUtil
     private static boolean isInside(Node node, Compartment c)
     {
         Compartment parent = node.getCompartment();
-        while( ! ( parent instanceof Diagram ) )
+        while( true )
         {
             if( parent.equals( c ) )
                 return true;
+            else if( parent instanceof Diagram )
+                return false;
             parent = parent.getCompartment();
         }
-        return false;
+    }
+
+    public static class ImportProperties extends Option
+    {
+        private DataElementPath source;
+        private String alias;
+
+        public ImportProperties()
+        {
+
+        }
+
+        public ImportProperties(DataElementPath source, String alias)
+        {
+            this.alias = alias;
+            this.source = source;
+        }
+        public DataElementPath getSource()
+        {
+            return source;
+        }
+        public String getSourceName()
+        {
+            return source.getName();
+        }
+        public void setSource(DataElementPath source)
+        {
+            this.source = source;
+        }
+        public String getAlias()
+        {
+            return alias;
+        }
+        public void setAlias(String alias)
+        {
+            this.alias = alias;
+        }
+    }
+
+    public static class ImportPropertiesBeanInfo extends BeanInfoEx
+    {
+        public ImportPropertiesBeanInfo()
+        {
+            super( ImportProperties.class );
+        }
+
+        @Override
+        protected void initProperties() throws Exception
+        {
+            add( "source" );
+            add( "alias" );
+        }
+    }
+
+    public static void addImport(Diagram diagram, Diagram source, String alias)
+    {
+        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+        if( dp == null )
+        {
+            dp = new DynamicProperty( WDLConstants.IMPORTS_ATTR, ImportProperties[].class, new ImportProperties[0] );
+            diagram.getAttributes().add( dp );
+        }
+        ImportProperties[] value = (ImportProperties[])dp.getValue();
+        ImportProperties[] newValue = new ImportProperties[value.length + 1];
+        System.arraycopy( value, 0, newValue, 0, value.length );
+        newValue[value.length] = new ImportProperties( source.getCompletePath(), alias );
+        dp.setValue( newValue );
+    }
+    
+    public static String getAlias(Compartment call)
+    {
+        DynamicProperty dp = call.getAttributes().getProperty( WDLConstants.CALL_NAME_ATTR );
+        if (dp == null)
+            return null;
+        return dp.getValue().toString();
+    }
+    
+    public static Object getSetting()
+    {
+        return null;
     }
 }

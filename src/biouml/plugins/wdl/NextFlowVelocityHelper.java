@@ -9,6 +9,7 @@ import com.developmentontheedge.beans.DynamicProperty;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.WDLUtil.ImportProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class NextFlowVelocityHelper
@@ -272,11 +273,42 @@ public class NextFlowVelocityHelper
 
     public boolean isCycle(Node node)
     {
-        return WDLUtil.isCycleVariable( node );
+        return WDLUtil.isCycle( node );
     }
 
     public String getFunctions()
     {
-        return "basename";
+        return "basename, sub";
+    }
+
+    public ImportProperties[] getImports()
+    {
+        return WDLUtil.getImports( diagram );
+    }
+
+    public Compartment[] getImportedCalls()
+    {
+        return WDLUtil.getCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
+    }
+
+    public String getImportedTask(Compartment call)
+    {
+        String taskRef = WDLUtil.getTaskRef( call );
+        return taskRef.substring( taskRef.lastIndexOf( "." ) + 1 );
+    }
+
+    public String getImportedDiagram(Compartment call)
+    {
+        return WDLUtil.getDiagramRef( call );
+    }
+
+    public String getImportedAlias(Compartment call)
+    {
+        return WDLUtil.getCallName( call );
+    }
+
+    public String getCallName(Compartment call)
+    {
+        return WDLUtil.getCallName( call );
     }
 }

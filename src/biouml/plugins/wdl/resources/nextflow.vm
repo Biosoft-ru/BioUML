@@ -15,26 +15,27 @@
 #macro(callNF $call)
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
-  $helper.getResultName($call) = $helper.getTaskRef($call)(#foreach($input in $inputs)$helper.getInputName($input)#comma($inputs)#end)
+  $helper.getResultName($call) = $helper.getCallName($call)(#foreach($input in $inputs)$helper.getInputName($input)#comma($inputs)#end)
 #else
-  $helper.getResultName($call) = $helper.getTaskRef($call)()
+  $helper.getResultName($call) = $helper.getCallName($call)()
 #end
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
   $helper.createChannelFromArrray($scatter)
 #foreach( $n in $helper.orderCalls($scatter))
-#if ($helper.isCycle($n))#callNF($n)
-#elseif ($helper.isCall($n))#scatterNF($n)
+#if ($helper.isCycle($n))#scatterNF($n)
+#elseif ($helper.isCall($n))#callNF($n)
 #end 
 #end
-##foreach( $call in $helper.orderCalls($scatter))#callNF($call)#end
 #end
 #######################################################################################
 #set($functions = $helper.getFunctions())
 #if (!$functions.isEmpty())
 include { $functions } from './biouml_function.nf'
 #end
+#######################################################################################
+#foreach ($c in $helper.getImportedCalls())include { $helper.getImportedTask($c) } from './$helper.getImportedDiagram($c)' as $helper.getImportedAlias($c)$BR#end$BR
 #######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
@@ -81,6 +82,4 @@ workflow {
 #elseif ($helper.isCall($n))#callNF($n)
 #end 
 #end
-##foreach( $call in $helper.getCallsScatters($diagram))#callNF($call)#end
-##foreach( $scatter in $helper.getScatters($diagram))#scatterNF($scatter)#end
 }

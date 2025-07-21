@@ -6,6 +6,7 @@ import java.util.Map;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.WDLUtil.ImportProperties;
 
 public class WDLVelocityHelper
 {
@@ -135,4 +136,30 @@ public class WDLVelocityHelper
             return name;
         return name + " = " + expression;
     }
+    
+    public ImportProperties[] getImports()
+    {
+        return WDLUtil.getImports( diagram );
+    }
+    
+    public boolean isCall(Node node)
+    {
+        return WDLUtil.isCall( node );
+    }
+
+    public boolean isCycle(Node node)
+    {
+        return WDLUtil.isCycle( node );
+    }
+    
+    public List<Compartment> orderCalls(Compartment compartment)
+    {
+        return WDLUtil.orderCallsScatters( compartment );
+    }
+    
+    public String getAlias(Compartment call)
+    {
+        return WDLUtil.getAlias(call);
+    }
+
 }

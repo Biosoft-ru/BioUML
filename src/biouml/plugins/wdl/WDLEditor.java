@@ -254,6 +254,11 @@ public class WDLEditor extends EditorPartSupport
         private DataElementPath outputPath;
         private DynamicPropertySet parameters = new DynamicPropertySetSupport();
 
+        public WorkflowSettings()
+        {
+            System.out.println( "Load" );
+        }
+
         public void initParameters(Diagram diagram)
         {
             List<Node> externalParameters = WDLUtil.getExternalParameters( diagram );
@@ -286,23 +291,23 @@ public class WDLEditor extends EditorPartSupport
             }
         }
 
-
-
         public File generateParametersJSON(String outputDir) throws IOException
         {
             File json = new File( outputDir, "parameters.json" );
             try (BufferedWriter bw = new BufferedWriter( new FileWriter( json ) ))
             {
                 bw.write( "{\n" );
+                boolean first = true;
                 for( DynamicProperty dp : parameters )
                 {
                     Object value = dp.getValue();
                     if( value instanceof DataElementPath dep )
-                    {
                         value = "\"" + dep.getName() + "\"";
-                    }
                     else
                         value = "\"" + value.toString() + "\"";
+                    if( !first )
+                        bw.write( "," );
+                    first = false;
                     bw.write( "\"" + dp.getName() + "\"" + " : " + value + "\n" );
                 }
                 bw.write( "}\n" );
@@ -333,7 +338,7 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-    public class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
+    public static class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
     {
         public WorkflowSettingsBeanInfo(WorkflowSettings settings)
         {
@@ -422,7 +427,9 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                AstStart start = new WDLParser().parse( new StringReader( getWDL() ) );
+                String text = getWDL();
+                text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
+                AstStart start = new WDLParser().parse( new StringReader( text ) );
                 diagram = wdlImporter.generateDiagram( start, diagram.getOrigin(), diagram.getName() );
                 wdlImporter.layout( diagram );
                 replaceDiagram( diagram );
@@ -454,7 +461,10 @@ public class WDLEditor extends EditorPartSupport
 
             settings.exportCollections( outputDir );
 
-            File functions = generateFunctions( outputDir );
+            generateFunctions( outputDir );
+
+            for( DataElement de : StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() ) )
+                export( de, new File( outputDir ) );
 
             NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
             script = preprocessor.preprocess( script );
@@ -563,7 +573,7 @@ public class WDLEditor extends EditorPartSupport
 
         for( Compartment n : WDLUtil.getAllCalls( diagram ) )
         {
-            String taskRef = WDLUtil.getTaskRef( n );
+            String taskRef = WDLUtil.getCallName( n );
             String folderName = ( taskRef );
             File folder = new File( outputDir, folderName );
             if( !folder.exists() || !folder.isDirectory() )
@@ -595,6 +605,13 @@ public class WDLEditor extends EditorPartSupport
             File exported = new File( dir, de.getName() );
             FileExporter exporter = new FileExporter();
             exporter.doExport( de, exported );
+        }
+        else if( de instanceof Diagram )
+        {
+            NextFlowGenerator generator = new NextFlowGenerator();
+            String nextFlow = generator.generateNextFlow( (Diagram)de );
+            File exported = new File( dir, de.getName() );
+            ApplicationUtils.writeString( exported, nextFlow );
         }
         else if( de instanceof DataCollection )
         {
