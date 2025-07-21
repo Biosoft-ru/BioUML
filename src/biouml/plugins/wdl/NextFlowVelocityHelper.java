@@ -278,7 +278,7 @@ public class NextFlowVelocityHelper
 
     public String getFunctions()
     {
-        return "basename, sub";
+        return "basename; sub";
     }
 
     public ImportProperties[] getImports()
@@ -291,11 +291,11 @@ public class NextFlowVelocityHelper
         return WDLUtil.getCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
     }
 
-    public String getImportedTask(Compartment call)
-    {
-        String taskRef = WDLUtil.getTaskRef( call );
-        return taskRef.substring( taskRef.lastIndexOf( "." ) + 1 );
-    }
+//    public String getImportedTask(Compartment call)
+//    {
+//        String taskRef = WDLUtil.getTaskRef( call );
+//        return taskRef.substring( taskRef.lastIndexOf( "." ) + 1 );
+//    }
 
     public String getImportedDiagram(Compartment call)
     {

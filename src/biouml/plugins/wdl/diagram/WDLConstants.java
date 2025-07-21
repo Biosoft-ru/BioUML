@@ -23,6 +23,7 @@ public class WDLConstants
     public static final String EXPRESSION_ATTR = "EXPRESSION";
     public static final String VERSION_ATTR = "VERSION";
     public static final String TASK_REF_ATTR = "TASK_REFERENCE";
+    public static final String EXTERNAL_DIAGRAM_ALIAS_ATTR = "EXTERNAL_DIARAM_ALIAS";
     public static final String EXTERNAL_DIAGRAM = "EXTERNAL_DIAGRAM";
 
     public static final String IMPORTS_ATTR = "IMPORTS_ATTR";

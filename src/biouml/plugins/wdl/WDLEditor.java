@@ -8,8 +8,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,6 +62,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.GUI;
@@ -68,6 +72,8 @@ import ru.biosoft.util.bean.BeanInfoEx2;
 @SuppressWarnings ( "serial" )
 public class WDLEditor extends EditorPartSupport
 {
+    private static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
+
     private Logger log = Logger.getLogger( WDLEditor.class.getName() );
 
     private JTabbedPane tabbedPane;
@@ -573,7 +579,7 @@ public class WDLEditor extends EditorPartSupport
 
         for( Compartment n : WDLUtil.getAllCalls( diagram ) )
         {
-            String taskRef = WDLUtil.getCallName( n );
+            String taskRef = WDLUtil.getTaskRef( n );
             String folderName = ( taskRef );
             File folder = new File( outputDir, folderName );
             if( !folder.exists() || !folder.isDirectory() )
@@ -599,13 +605,7 @@ public class WDLEditor extends EditorPartSupport
             String str = ( (TextDataElement)de ).getContent();
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, str );
-        }
-        else if( de instanceof FileDataElement )
-        {
-            File exported = new File( dir, de.getName() );
-            FileExporter exporter = new FileExporter();
-            exporter.doExport( de, exported );
-        }
+        } 
         else if( de instanceof Diagram )
         {
             NextFlowGenerator generator = new NextFlowGenerator();
@@ -613,28 +613,37 @@ public class WDLEditor extends EditorPartSupport
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, nextFlow );
         }
-        else if( de instanceof DataCollection )
+        else if( de instanceof GenericDataCollection )
         {
             File exportedDir = new File( dir, de.getName() );
             exportedDir.mkdirs();
             for( Object innerDe : ( (DataCollection<?>)de ) )
                 export( (DataElement)innerDe, new File( dir, de.getName() ) );
         }
+        else
+        {
+            File exported = new File( dir, de.getName() );
+            FileExporter exporter = new FileExporter();
+            exporter.doExport( de, exported );
+        }
     }
 
-    public static File generateFunctions(String outputDir) throws IOException
-    {
+    public File generateFunctions(String outputDir) throws IOException
+    {  
+        InputStream inputStream = getClass().getResourceAsStream( BIOUML_FUNCTIONS_NF );
         File result = new File( outputDir, "biouml_function.nf" );
-        try (BufferedWriter bw = new BufferedWriter( new FileWriter( result ) ))
-        {
-            String baseName = """
-                    def basename(filePath) {
-                        def fname = filePath instanceof Path ? filePath.getFileName().toString() : filePath.toString()
-                        return fname.replaceFirst(/\\.[^\\.]+$/, '')
-                    }""";
-            bw.write( baseName );
-        }
+        Files.copy(inputStream, result.toPath(), StandardCopyOption.REPLACE_EXISTING);
         return result;
+//        try (BufferedWriter bw = new BufferedWriter( new FileWriter( result ) ))
+//        {
+//            String baseName = """
+//                    def basename(filePath) {
+//                        def fname = filePath instanceof Path ? filePath.getFileName().toString() : filePath.toString()
+//                        return fname.replaceFirst(/\\.[^\\.]+$/, '')
+//                    }""";
+//            bw.write( baseName );
+//        }
+//        return result;
 
     }
 }

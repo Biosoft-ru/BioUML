@@ -13,7 +13,8 @@
 #end
 #######################################################################################
 #macro(call $call)
-  call $helper.getTaskRef($call) #if($helper.getAlias($call)) as $helper.getAlias($call)#end {
+#set ($diagramAlias = $helper.getExternalDiagramAlias($call) ) 
+  call #if($diagramAlias)$diagramAlias.#end$helper.getTaskRef($call) #if($helper.getAlias($call)) as $helper.getAlias($call)#end {
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
      input: #foreach($input in $inputs) $helper.getCallInput($input)#comma($inputs)#end

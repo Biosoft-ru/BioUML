@@ -118,6 +118,11 @@ public class WDLVelocityHelper
         return WDLUtil.getTaskRef( c );
     }
 
+    public String getImportedDiagram(Compartment call)
+    {
+        return WDLUtil.getDiagramRef( call );
+    }
+
     public String getCycleVariable(Compartment c)
     {
         return WDLUtil.getCycleVariable( c );
@@ -136,12 +141,12 @@ public class WDLVelocityHelper
             return name;
         return name + " = " + expression;
     }
-    
+
     public ImportProperties[] getImports()
     {
         return WDLUtil.getImports( diagram );
     }
-    
+
     public boolean isCall(Node node)
     {
         return WDLUtil.isCall( node );
@@ -151,15 +156,19 @@ public class WDLVelocityHelper
     {
         return WDLUtil.isCycle( node );
     }
-    
+
     public List<Compartment> orderCalls(Compartment compartment)
     {
         return WDLUtil.orderCallsScatters( compartment );
     }
-    
+
     public String getAlias(Compartment call)
     {
-        return WDLUtil.getAlias(call);
+        return WDLUtil.getAlias( call );
     }
 
+    public String getExternalDiagramAlias(Compartment call)
+    {
+        return WDLUtil.getExternalDiagramAlias( call );
+    }
 }

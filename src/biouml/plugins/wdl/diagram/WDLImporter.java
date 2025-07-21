@@ -375,20 +375,21 @@ public class WDLImporter implements DataElementImporter
         Compartment taskСompartment = tasks.get( name );
         String taskRef = name;
         String diagramRef = null;
+        String diagramAlias = null;
         if( taskСompartment == null )
         {
             taskRef = name;
             if( name.contains( "." ) )
             {
                 String[] parts = name.split( "\\." );
-                String diagramAlias = parts[0];
-                String taskName = parts[1];
+                diagramAlias = parts[0];
+                taskRef = parts[1];
                 Diagram importedDiagram = imports.get( diagramAlias );
                 diagramRef = importedDiagram.getName();
-                DiagramElement de = importedDiagram.get( taskName );
+                DiagramElement de = importedDiagram.get( taskRef );
                 if( ! ( de instanceof Compartment ) )
                     throw new Exception( "Can not resolve call " + call.getName() );
-                taskСompartment = (Compartment)importedDiagram.get( taskName );
+                taskСompartment = (Compartment)importedDiagram.get( taskRef );
             }
         }
         else
@@ -411,6 +412,8 @@ public class WDLImporter implements DataElementImporter
         WDLUtil.setCallName( c, title );
         if (diagramRef != null)
             WDLUtil.setDiagramRef( c, diagramRef );
+        if (diagramAlias != null)
+            WDLUtil.setExternalDiagramAlias( c, diagramAlias );
         c.setNotificationEnabled( false );
 
         int inputs = 0;

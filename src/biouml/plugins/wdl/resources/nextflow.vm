@@ -30,12 +30,16 @@
 #end
 #end
 #######################################################################################
+#######################################START###########################################
+#######################################################################################
+nextflow.enable.dsl=2
+#######################################################################################
 #set($functions = $helper.getFunctions())
 #if (!$functions.isEmpty())
 include { $functions } from './biouml_function.nf'
 #end
 #######################################################################################
-#foreach ($c in $helper.getImportedCalls())include { $helper.getImportedTask($c) } from './$helper.getImportedDiagram($c)' as $helper.getImportedAlias($c)$BR#end$BR
+#foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end$BR
 #######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)

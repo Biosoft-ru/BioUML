@@ -253,6 +253,15 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.EXTERNAL_DIAGRAM );
     }
+    
+    public static void setExternalDiagramAlias(Compartment c, String ref)
+    {
+        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM_ALIAS_ATTR, String.class, ref ) );
+    }
+    public static String getExternalDiagramAlias(Compartment c)
+    {
+        return c.getAttributes().getValueAsString( WDLConstants.EXTERNAL_DIAGRAM_ALIAS_ATTR );
+    }
 
     public static Compartment findCall(String taskName, Diagram diagram)
     {
