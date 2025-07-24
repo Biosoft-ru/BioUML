@@ -1,3 +1,4 @@
+
 #######################################################################################
 #####################################CONSTANTS#########################################
 #######################################################################################
@@ -31,6 +32,9 @@
 #end
   }$BR
 #end
+#macro(expression $expression)
+  $helper.getType($expression) $helper.getName($expression) = $helper.getExpression($expression)
+#end 
 #######################################################################################
 version $helper.getVersion()$BR
 #######################################################################################
@@ -48,13 +52,8 @@ task $task.getName() {
 #end
   }$BR
 #end
-#set ($runtime = $helper.getRuntime($task))
-#if ($runtime.size() > 0)
-  runtime {
-#foreach($prop in $runtime.entrySet())
-    $prop.getKey(): $prop.getValue()
-#end
-  }$BR
+#foreach($declaration in $helper.getBeforeCommand($task))
+  $declaration.toString()
 #end
   command {
      $helper.getCommand($task).trim()
@@ -64,6 +63,14 @@ task $task.getName() {
   output {
 #foreach( $output in $outputs )
     $helper.getDeclaration($output)
+#end
+#set ($runtime = $helper.getRuntime($task))
+#if ($runtime.size() > 0)
+  runtime {
+#foreach($prop in $runtime.entrySet())
+    $prop.getKey(): $prop.getValue()
+#end
+  }$BR
 #end
   }
 #end
@@ -84,6 +91,7 @@ workflow $helper.getName() {
 #foreach( $n in $helper.orderCalls($diagram))
 #if ($helper.isCycle($n))#scatter($n)
 #elseif ($helper.isCall($n))#call($n)
+#elseif ($helper.isExpression($n))#expression($n)
 #end 
 #end
 #set ($externalOutputs = $helper.getExternalOutputs())

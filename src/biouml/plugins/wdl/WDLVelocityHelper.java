@@ -7,6 +7,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.WDLUtil.ImportProperties;
+import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class WDLVelocityHelper
 {
@@ -157,7 +158,12 @@ public class WDLVelocityHelper
         return WDLUtil.isCycle( node );
     }
 
-    public List<Compartment> orderCalls(Compartment compartment)
+    public static boolean isExpression(Node node)
+    {
+        return WDLUtil.isExpression( node ) && !WDLUtil.isExternalOutput(node);
+    }
+
+    public List<Node> orderCalls(Compartment compartment)
     {
         return WDLUtil.orderCallsScatters( compartment );
     }
@@ -170,5 +176,10 @@ public class WDLVelocityHelper
     public String getExternalDiagramAlias(Compartment call)
     {
         return WDLUtil.getExternalDiagramAlias( call );
+    }
+
+    public Object getBeforeCommand(Compartment task)
+    {
+        return WDLUtil.getBeforeCommand( task );
     }
 }

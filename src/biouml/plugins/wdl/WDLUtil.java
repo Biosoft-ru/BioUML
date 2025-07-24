@@ -19,6 +19,8 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.parser.AstExpression;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataElementPath;
 
 public class WDLUtil
@@ -75,6 +77,11 @@ public class WDLUtil
 
     public static boolean isExternalOutput(Node node)
     {
+        for( Edge e : node.getEdges() )
+        {
+            if( e.getInput().equals( node ) )
+                return false;
+        }
         return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
     }
 
@@ -236,6 +243,15 @@ public class WDLUtil
         return c.getAttributes().getValueAsString( WDLConstants.COMMAND_ATTR );
     }
 
+    public static void setBeforeCommand(Compartment compartment, Declaration[] beforeCommand)
+    {
+        compartment.getAttributes().add( new DynamicProperty( WDLConstants.BEFORE_COMMAND_ATTR, Declaration[].class, beforeCommand ) );
+    }
+    public static Object getBeforeCommand(Compartment c)
+    {
+        return c.getAttributes().getValue( WDLConstants.BEFORE_COMMAND_ATTR );
+    }
+
     public static void setTaskRef(Compartment c, String ref)
     {
         c.getAttributes().add( new DynamicProperty( WDLConstants.TASK_REF_ATTR, String.class, ref ) );
@@ -244,7 +260,7 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
     }
-    
+
     public static void setDiagramRef(Compartment c, String ref)
     {
         c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, String.class, ref ) );
@@ -253,7 +269,7 @@ public class WDLUtil
     {
         return c.getAttributes().getValueAsString( WDLConstants.EXTERNAL_DIAGRAM );
     }
-    
+
     public static void setExternalDiagramAlias(Compartment c, String ref)
     {
         c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM_ALIAS_ATTR, String.class, ref ) );
@@ -345,19 +361,19 @@ public class WDLUtil
         return cycleNode == null ? null : getName( cycleNode );
     }
 
-    public static List<Compartment> orderCallsScatters(Compartment compartment)
+    public static List<Node> orderCallsScatters(Compartment compartment)
     {
-        List<Compartment> result = new ArrayList<>();
-        Map<Compartment, Set<Compartment>> previousSteps = new HashMap<>();
-        for( Compartment c : compartment.stream( Compartment.class ).filter( c -> isCall( c ) || isCycle( c ) ) )
+        List<Node> result = new ArrayList<>();
+        Map<Node, Set<Node>> previousSteps = new HashMap<>();
+        for( Node c : compartment.stream( Node.class ).filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) ) )
             previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
-        Set<Compartment> added = new HashSet<>();
+        Set<Node> added = new HashSet<>();
         while( previousSteps.size() > 0 )
         {
-            for( Compartment key : previousSteps.keySet() )
+            for( Node key : previousSteps.keySet() )
             {
-                Set<Compartment> steps = previousSteps.get( key );
+                Set<Node> steps = previousSteps.get( key );
                 steps.removeAll( added );
                 if( steps.isEmpty() )
                 {
@@ -365,19 +381,18 @@ public class WDLUtil
                     added.add( key );
                 }
             }
-            for( Compartment c : added )
+            for( Node c : added )
                 previousSteps.remove( c );
         }
         return result;
     }
 
-    public static Set<Compartment> getPreviousSteps(Compartment c, Compartment threshold)
+    public static Set<Node> getPreviousSteps(Node n, Compartment threshold)
     {
-        return c.stream( Node.class ).flatMap( n -> getEdges( n ) ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).nonNull()
-                .without( c ).toSet();
+        return getEdges( n ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).without( n ).nonNull().toSet();
     }
 
-    private static Stream<Edge> getEdges(Node node)
+    private static StreamEx<Edge> getEdges(Node node)
     {
         Set<Edge> result = node.edges().toSet();
         if( node instanceof Compartment )
@@ -387,13 +402,16 @@ public class WDLUtil
                     .filter( e -> !isInside( e.getInput(), c ) && isInside( e.getOutput(), c ) ).toSet() );
 
         }
-        return result.stream();
+        return StreamEx.of( result );
     }
 
-    private static Compartment getCallOrCycle(Node node, Compartment threshold)
+    private static Node getCallOrCycle(Node node, Compartment threshold)
     {
         if( !isInside( node, threshold ) )
             return null;
+
+        if( isExpression( node ) )
+            return node;//todo: expression inside workflows!
 
         Compartment c = node.getCompartment();
         LinkedList<Compartment> parents = new LinkedList<>();
@@ -491,17 +509,12 @@ public class WDLUtil
         newValue[value.length] = new ImportProperties( source.getCompletePath(), alias );
         dp.setValue( newValue );
     }
-    
+
     public static String getAlias(Compartment call)
     {
         DynamicProperty dp = call.getAttributes().getProperty( WDLConstants.CALL_NAME_ATTR );
-        if (dp == null)
+        if( dp == null )
             return null;
         return dp.getValue().toString();
-    }
-    
-    public static Object getSetting()
-    {
-        return null;
     }
 }

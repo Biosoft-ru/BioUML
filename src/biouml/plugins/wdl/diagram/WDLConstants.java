@@ -13,6 +13,7 @@ public class WDLConstants
     
     public static String LINK_TYPE = "Link";
     
+    public static final String BEFORE_COMMAND_ATTR = "BEFORE_COMMAND";
     public static final String COMMAND_ATTR = "COMMAND";
     public static final String REQUIREMENTS_ATTR = "REQUIREMENTS";
     public static final String HINTS_ATTR = "HINTS";

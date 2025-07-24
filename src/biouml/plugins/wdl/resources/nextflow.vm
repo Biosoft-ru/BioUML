@@ -30,6 +30,10 @@
 #end
 #end
 #######################################################################################
+#macro(expressionNF $expression)
+  $helper.getType($expression) $helper.getName($expression) = $helper.getExpression($expression)
+#end 
+#######################################################################################
 #######################################START###########################################
 #######################################################################################
 nextflow.enable.dsl=2
@@ -64,6 +68,9 @@ $BR  input :
 #if($container)  container '$container'#end
 $BR  publishDir "$task.getName()", mode: 'copy'
 $BR  script:
+#foreach($declaration in $helper.getBeforeCommand($task))
+  $helper.writeDeclaration($declaration)
+#end
   """
   $helper.getCommand($task).trim()
   """
@@ -84,6 +91,7 @@ workflow {
 #foreach( $n in $helper.orderCalls($diagram))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
+#elseif ($helper.isExpression($n))#expressionNF($n)
 #end 
 #end
 }
