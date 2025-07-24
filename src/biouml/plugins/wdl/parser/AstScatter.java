@@ -37,6 +37,20 @@ public class AstScatter extends AstScope
         return null;
     }
 
+    public AstExpression getArrayExpression()
+    {
+        for( int i = 0; i < jjtGetNumChildren(); i++ )
+        {
+            Node child = jjtGetChild( i );
+            if( child instanceof AstIn )
+            {
+                Node varNode = jjtGetChild( i + 1 );
+                return (AstExpression)varNode;
+            }
+        }
+        return null;
+    }
+    
     public String getArray()
     {
         for( int i = 0; i < jjtGetNumChildren(); i++ )
