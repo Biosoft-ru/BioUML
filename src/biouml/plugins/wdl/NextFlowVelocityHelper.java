@@ -11,11 +11,12 @@ import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.WDLUtil.ImportProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import one.util.streamex.StreamEx;
 
 public class NextFlowVelocityHelper
 {
     private Diagram diagram;
-    private List<Compartment> orderedCalls;
+    private List<Node> orderedCalls;
 
     public NextFlowVelocityHelper(Diagram diagram)
     {
@@ -23,7 +24,7 @@ public class NextFlowVelocityHelper
         orderedCalls = WDLUtil.orderCallsScatters( diagram );
     }
 
-    public List<Compartment> orderCalls(Compartment compartment)
+    public List<Node> orderCalls(Compartment compartment)
     {
         return WDLUtil.orderCallsScatters( compartment );
     }
@@ -198,10 +199,10 @@ public class NextFlowVelocityHelper
         return input.replace( ".", "_" ) + "_ch";
     }
 
-    public List<Compartment> getCallsScatters(Compartment compartment)
+    public List<Node> getCallsScatters(Compartment compartment)
     {
-        List<Compartment> result = new ArrayList<>();
-        for( Compartment c : orderedCalls )
+        List<Node> result = new ArrayList<>();
+        for( Node c : orderedCalls )
         {
             if( c.getParent().equals( compartment ) )
                 result.add( c );
@@ -235,15 +236,30 @@ public class NextFlowVelocityHelper
 
     public String createChannelFromArrray(Compartment cycle)
     {
+        Compartment firstCall =null;
+        for (Node node: WDLUtil.orderCallsScatters( cycle ))
+            if (node instanceof Compartment)
+                firstCall = (Compartment)node;
         String cycleVar = getCycleVariable( cycle );
         Node arrayNode = WDLUtil.getCycleNode( cycle );
         String cycleName = getCycleName( cycle );
         String type = WDLUtil.getType( arrayNode );
+
+        List<String> arrayInputs = getArrayDepenedantInputs( cycleVar, firstCall );
+
         //        if( type.equals( "Array[File]" ) || type.equals( "Directory" ) )
         //        {
         //            return "Channel.fromPath(" + cycleName + ").set{" + cycleVar + " }";
         //        }
-        return "Channel.from(" + cycleName + ").set{" + cycleVar + " }";
+        String channel = "Channel.from(" + cycleName + ")";
+
+        if( arrayInputs.size() > 1 )
+        {
+            //            .map { idx -> tuple(x[idx], y[idx], idx) }
+            channel += ".map { " + cycleName + " -> tuple(" +StreamEx.of(arrayInputs).joining( "," )+ ") }";
+        }
+        channel += ".set{" + cycleVar + " }";
+        return channel;
     }
 
     public String getContainer(Compartment process)
@@ -271,6 +287,11 @@ public class NextFlowVelocityHelper
         return WDLUtil.isCall( node );
     }
 
+    public static boolean isExpression(Node node)
+    {
+        return WDLUtil.isExpression( node ) && !WDLUtil.isExternalOutput( node );
+    }
+
     public boolean isCycle(Node node)
     {
         return WDLUtil.isCycle( node );
@@ -278,7 +299,7 @@ public class NextFlowVelocityHelper
 
     public String getFunctions()
     {
-        return "basename; sub";
+        return "basename; sub; length; range";
     }
 
     public ImportProperties[] getImports()
@@ -291,11 +312,11 @@ public class NextFlowVelocityHelper
         return WDLUtil.getCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
     }
 
-//    public String getImportedTask(Compartment call)
-//    {
-//        String taskRef = WDLUtil.getTaskRef( call );
-//        return taskRef.substring( taskRef.lastIndexOf( "." ) + 1 );
-//    }
+    //    public String getImportedTask(Compartment call)
+    //    {
+    //        String taskRef = WDLUtil.getTaskRef( call );
+    //        return taskRef.substring( taskRef.lastIndexOf( "." ) + 1 );
+    //    }
 
     public String getImportedDiagram(Compartment call)
     {
@@ -310,5 +331,32 @@ public class NextFlowVelocityHelper
     public String getCallName(Compartment call)
     {
         return WDLUtil.getCallName( call );
+    }
+
+    public String writeDeclaration(Declaration declaration)
+    {
+        return getNextFlowType( declaration.getType() ) + " " + declaration.getName() + " = " + declaration.getExpression();
+    }
+
+    public Object getBeforeCommand(Compartment task)
+    {
+        return WDLUtil.getBeforeCommand( task );
+    }
+
+    /**
+     * @return names of all inputs for call which depends on scatter array
+     */
+    public List<String> getArrayDepenedantInputs(String cycleVar, Compartment call)
+    {
+        List<String> result = new ArrayList<>();
+        List<Node> inputs = WDLUtil.getInputs( call );
+//        String cycleVar = this.getCycleVariable( call );
+        for( Node input : inputs )
+        {
+            String expression = WDLUtil.getExpression( input );
+            if( expression.contains( cycleVar ) )
+                result.add( expression );
+        }
+        return result;
     }
 }
