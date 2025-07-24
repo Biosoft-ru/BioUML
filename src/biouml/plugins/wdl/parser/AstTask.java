@@ -7,18 +7,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import one.util.streamex.StreamEx;
+
 public class AstTask extends AstScope
 {
     private String name;
 
     public AstTask(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstTask(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
     }
 
     @Override
@@ -36,49 +38,65 @@ public class AstTask extends AstScope
     {
         this.name = name;
     }
-    
+
+    public List<AstDeclaration> getBeforeCommand()
+    {
+        List<AstDeclaration> result = new ArrayList<>();
+        for( Node node : children )
+        {
+            if( node instanceof AstCommand )
+               break;
+
+            if( node instanceof AstDeclaration )
+                result.add( (AstDeclaration)node );
+
+        }
+        return result;
+    }
+
     public String getCommand()
     {
-        for (Node node: children)
-        {
-            if (node instanceof AstCommand)
-            {
-                return ((AstCommand)node).getBashString().getCommand();
-            }
-        }
-        return null;
+        return StreamEx.of( children ).select( AstCommand.class ).map( n -> n.getBashString().getCommand() ).findAny().orElse( null );
+        //        for (Node node: children)
+        //        {
+        //            if (node instanceof AstCommand)
+        //            {
+        //                return ((AstCommand)node).getBashString().getCommand();
+        //            }
+        //        }
+        //        return null;
     }
-    
+
     public Map<String, String> getRuntime()
     {
-        for (Node node: children)
+        for( Node node : children )
         {
-            if (node instanceof AstRuntime)
+            if( node instanceof AstRuntime )
             {
-                return ((AstRuntime)node).getValues();
+                return ( (AstRuntime)node ).getValues();
             }
         }
         return new HashMap<String, String>();
     }
-    
+
     public AstInput getInput()
     {
-        for (Node node: children)
+        for( Node node : children )
         {
-            if (node instanceof AstInput)
-                return (AstInput)node; 
+            if( node instanceof AstInput )
+                return (AstInput)node;
         }
         return null;
     }
-    
+
     public AstOutput getOutput()
     {
-        for (Node node: children)
+        for( Node node : children )
         {
-            if (node instanceof AstOutput)
-                return (AstOutput)node; 
+            if( node instanceof AstOutput )
+                return (AstOutput)node;
         }
-        return null; 
+        return null;
     }
 
 }
