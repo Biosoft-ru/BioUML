@@ -1,8 +1,10 @@
 package biouml.plugins.wdl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
@@ -77,7 +79,9 @@ public class NextFlowVelocityHelper
     public String getCommand(Compartment c)
     {
         String command = WDLUtil.getCommand( c );
-        return command.replace( "~{", "${" );
+        command = command.replace( "${", "\\${" );
+        command  = command.replace( "~{", "${" );
+        return command;
     }
 
     public Map<String, String> getRequirements(Compartment c)
@@ -219,7 +223,7 @@ public class NextFlowVelocityHelper
         String type = WDLUtil.getType( n );
         if( WDLUtil.isExternalParameter( n ) )
         {
-            String result = "params." + name;
+            String result =  name;
             if( "File".equals( type ) )
                 result = "channel.fromPath(" + result + ")";
             return result;
@@ -236,9 +240,9 @@ public class NextFlowVelocityHelper
 
     public String createChannelFromArrray(Compartment cycle)
     {
-        Compartment firstCall =null;
-        for (Node node: WDLUtil.orderCallsScatters( cycle ))
-            if (node instanceof Compartment)
+        Compartment firstCall = null;
+        for( Node node : WDLUtil.orderCallsScatters( cycle ) )
+            if( node instanceof Compartment )
                 firstCall = (Compartment)node;
         String cycleVar = getCycleVariable( cycle );
         Node arrayNode = WDLUtil.getCycleNode( cycle );
@@ -247,6 +251,7 @@ public class NextFlowVelocityHelper
 
         List<String> arrayInputs = getArrayDepenedantInputs( cycleVar, firstCall );
 
+//        if (arrayInputs.size() == 1)
         //        if( type.equals( "Array[File]" ) || type.equals( "Directory" ) )
         //        {
         //            return "Channel.fromPath(" + cycleName + ").set{" + cycleVar + " }";
@@ -256,13 +261,13 @@ public class NextFlowVelocityHelper
         if( arrayInputs.size() > 1 )
         {
             //            .map { idx -> tuple(x[idx], y[idx], idx) }
-            channel += ".map { " + cycleName + " -> tuple(" +StreamEx.of(arrayInputs).joining( "," )+ ") }";
+            channel += ".map { " + cycleName + " -> tuple(" + StreamEx.of( arrayInputs ).joining( "," ) + ") }";
         }
         channel += ".set{" + cycleVar + " }";
         return channel;
     }
 
-    public String getContainer(Compartment process)
+    public String getRuntimeProperty(Compartment process, String name)
     {
         DynamicProperty dp = process.getAttributes().getProperty( WDLConstants.RUNTIME_ATTR );
         if( dp == null || ! ( dp.getValue() instanceof String[] ) )
@@ -271,10 +276,51 @@ public class NextFlowVelocityHelper
         for( String option : options )
         {
             String[] parts = option.split( "#" );
-            if( parts[0].equals( "docker" ) )
-                return parts[1];
+            if( parts[0].equals( name ) )
+            {
+                return substituteVariables(parts[1], process);
+            }
         }
         return null;
+    }
+
+    private String substituteVariables(String expression, Compartment process)
+    {
+        Map<String, String> replacements = new HashMap<>();
+        List<String> variables = WDLUtil.findVariables( expression );
+        for( String variable : variables )
+        {
+            String variableExpression = WDLUtil.findExpression( variable,  process);
+            if( variableExpression != null )
+            {
+                replacements.put( "~{"+variable+"}", variableExpression );
+            }
+        }
+        for (Entry<String, String> e: replacements.entrySet())
+        {
+            expression = expression.replace(e.getKey(), e.getValue());
+        }
+        return expression;
+    }
+
+    public String getContainer(Compartment process)
+    {
+        return getRuntimeProperty( process, "docker" );
+    }
+
+    public String getCPUs(Compartment process)
+    {
+        return getRuntimeProperty( process, "cpu" );
+    }
+
+    public String getMemory(Compartment process)
+    {
+        return getRuntimeProperty( process, "memory" );
+    }
+
+    public String getMaxRetries(Compartment process)
+    {
+        return getRuntimeProperty( process, "maxRetries" );
     }
 
     public boolean shouldCollect(Compartment producer, Compartment consumer)
@@ -350,7 +396,7 @@ public class NextFlowVelocityHelper
     {
         List<String> result = new ArrayList<>();
         List<Node> inputs = WDLUtil.getInputs( call );
-//        String cycleVar = this.getCycleVariable( call );
+        //        String cycleVar = this.getCycleVariable( call );
         for( Node input : inputs )
         {
             String expression = WDLUtil.getExpression( input );

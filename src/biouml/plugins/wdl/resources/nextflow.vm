@@ -31,7 +31,7 @@
 #end
 #######################################################################################
 #macro(expressionNF $expression)
-  $helper.getType($expression) $helper.getName($expression) = $helper.getExpression($expression)
+  $helper.getName($expression) = $helper.getExpression($expression)
 #end 
 #######################################################################################
 #######################################START###########################################
@@ -43,7 +43,7 @@ nextflow.enable.dsl=2
 include { $functions } from './biouml_function.nf'
 #end
 #######################################################################################
-#foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end$BR
+#foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
 #######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
@@ -60,12 +60,12 @@ process $task.getName() {
 #set ($inputs = $helper.getInputs($task))
 #if ($inputs.size() > 0)
 $BR  input :
-#foreach( $input in $inputs )
-  $helper.getDeclaration($input)
-#end
-#end
-#set ($container = $helper.getContainer($task))
-#if($container)  container '$container'#end
+#foreach( $input in $inputs )  $helper.getDeclaration($input)$BR#end
+$BR#end
+#set ($container = $helper.getContainer($task))#if($container)  container '$container'$BR#end
+#set ($cpus = $helper.getCPUs($task))#if($cpus)  cpus $cpus$BR#end
+#set ($memory = $helper.getMemory($task))#if($memory)  memory $memory$BR#end
+#set ($maxRetries = $helper.getMaxRetries($task))#if($maxRetries)  maxRetries $maxRetries$BR#end
 $BR  publishDir "$task.getName()", mode: 'copy'
 $BR  script:
 #foreach($declaration in $helper.getBeforeCommand($task))
@@ -86,12 +86,30 @@ $BR  output:
 #######################################################################################
 ###################################WORKFLOW############################################
 #######################################################################################
-workflow {
-  main:
+workflow $helper.getName() {
+#set ($externalParameters = $helper.getExternalParameters())
+#if ($externalParameters.size() > 0)
+  take:
+#foreach( $externalParameter in $externalParameters )
+  $helper.getName($externalParameter)
+#end
+#end
+$BR  main:
 #foreach( $n in $helper.orderCalls($diagram))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 #elseif ($helper.isExpression($n))#expressionNF($n)
 #end 
 #end
+#set ($externalOutputs = $helper.getExternalOutputs())
+#if ($externalOutputs.size() > 0)
+  emit: 
+#foreach( $externalOutput in $externalOutputs )
+  $helper.getName($externalOutput) = result_$helper.getExpression($externalOutput)
+#end
+#end
+}$BR
+################################ENTRY WORKFLOW#########################################
+workflow {
+$helper.getName()(#foreach($ep in $externalParameters)params.$helper.getName($ep)#comma($externalParameters)#end)
 }

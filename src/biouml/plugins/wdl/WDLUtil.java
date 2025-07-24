@@ -7,7 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
@@ -19,7 +20,6 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
-import biouml.plugins.wdl.parser.AstExpression;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataElementPath;
 
@@ -516,5 +516,30 @@ public class WDLUtil
         if( dp == null )
             return null;
         return dp.getValue().toString();
+    }
+
+    public static String findExpression(String variable, Compartment process)
+    {
+        Object beforeCommand = getBeforeCommand( process );
+        if( beforeCommand instanceof Declaration[] )
+        {
+            for( Declaration declaration : (Declaration[])beforeCommand )
+            {
+                if( declaration.getName().equals( variable ) )
+                    return declaration.getExpression();
+            }
+        }
+        return null;
+    }
+
+    public static List<String> findVariables(String input)
+    {
+        List<String> matches = new ArrayList<>();
+        // Regex to match ~{...} including braces, non-greedy inside
+        Pattern pattern = Pattern.compile( "~\\{([^}]+)\\}" );
+        Matcher matcher = pattern.matcher( input );
+        while( matcher.find() )
+            matches.add( matcher.group( 1 ) );
+        return matches;
     }
 }
