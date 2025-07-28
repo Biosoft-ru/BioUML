@@ -2,22 +2,58 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.wdl.parser;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class AstExpression extends SimpleNode
 {
     public AstExpression(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstExpression(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
     }
 
     @Override
     public String toString()
     {
         return new ExpressionFormatter().format( this );
+    }
+
+    private static Set<String> getArguments(Node node)
+    {
+        Set<String> result = new HashSet<>();
+        if (node instanceof AstSymbol)
+        {
+            result.add( node.toString() );
+        }
+        else if (node instanceof AstRegularFormulaElement)
+        {
+            result.add( node.toString() );
+        }
+        if( node instanceof AstSymbol )
+        {
+            result.add( node.toString() );
+        }
+        else if( node instanceof AstContainerElement )
+        {
+            result.add( node.toString() );
+        }
+        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+        {
+            Node child = node.jjtGetChild( i );
+            result.addAll(getArguments(child));     
+        }
+
+        return result;
+    }
+
+    public Set<String> getArguments()
+    {
+        return getArguments( this );
     }
 
 }

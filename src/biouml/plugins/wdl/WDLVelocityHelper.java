@@ -6,6 +6,8 @@ import java.util.Map;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.WDLUtil.ImportProperties;
+import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class WDLVelocityHelper
 {
@@ -117,6 +119,11 @@ public class WDLVelocityHelper
         return WDLUtil.getTaskRef( c );
     }
 
+    public String getImportedDiagram(Compartment call)
+    {
+        return WDLUtil.getDiagramRef( call );
+    }
+
     public String getCycleVariable(Compartment c)
     {
         return WDLUtil.getCycleVariable( c );
@@ -134,5 +141,45 @@ public class WDLVelocityHelper
         if( expression == null )
             return name;
         return name + " = " + expression;
+    }
+
+    public ImportProperties[] getImports()
+    {
+        return WDLUtil.getImports( diagram );
+    }
+
+    public boolean isCall(Node node)
+    {
+        return WDLUtil.isCall( node );
+    }
+
+    public boolean isCycle(Node node)
+    {
+        return WDLUtil.isCycle( node );
+    }
+
+    public static boolean isExpression(Node node)
+    {
+        return WDLUtil.isExpression( node ) && !WDLUtil.isExternalOutput(node);
+    }
+
+    public List<Node> orderCalls(Compartment compartment)
+    {
+        return WDLUtil.orderCallsScatters( compartment );
+    }
+
+    public String getAlias(Compartment call)
+    {
+        return WDLUtil.getAlias( call );
+    }
+
+    public String getExternalDiagramAlias(Compartment call)
+    {
+        return WDLUtil.getExternalDiagramAlias( call );
+    }
+
+    public Object getBeforeCommand(Compartment task)
+    {
+        return WDLUtil.getBeforeCommand( task );
     }
 }

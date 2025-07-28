@@ -1,3 +1,4 @@
+
 #######################################################################################
 #####################################CONSTANTS#########################################
 #######################################################################################
@@ -11,10 +12,10 @@
 #macro(comma $list)
 #if($velocityCount < $list.size()),#end
 #end
-version $helper.getVersion()$BR
 #######################################################################################
 #macro(call $call)
-  call $helper.getTaskRef($call) {
+#set ($diagramAlias = $helper.getExternalDiagramAlias($call) ) 
+  call #if($diagramAlias)$diagramAlias.#end$helper.getTaskRef($call) #if($helper.getAlias($call)) as $helper.getAlias($call)#end {
 #set ($inputs = $helper.getInputs($call))
 #if ($inputs.size()> 0)
      input: #foreach($input in $inputs) $helper.getCallInput($input)#comma($inputs)#end
@@ -24,10 +25,20 @@ version $helper.getVersion()$BR
 #######################################################################################
 #macro(scatter $scatter)
   scatter ( $helper.getCycleVariable($scatter) in $helper.getCycleName($scatter) ) {
-#foreach( $call in $helper.getCalls($scatter))#call($call)#end
-#foreach( $innerScatter in $helper.getScatters($scatter))#scatter($innerScatter)#end  
+#foreach( $n in $helper.orderCalls($scatter))
+#if ($helper.isCycle($n))#scatter($n)
+#elseif ($helper.isCall($n))#call($n)
+#end 
+#end
   }$BR
 #end
+#macro(expression $expression)
+  $helper.getType($expression) $helper.getName($expression) = $helper.getExpression($expression)
+#end 
+#######################################################################################
+version $helper.getVersion()$BR
+#######################################################################################
+#foreach ($import in $helper.getImports())import "$import.getSourceName()" as $import.getAlias()#end$BR
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################
@@ -41,13 +52,8 @@ task $task.getName() {
 #end
   }$BR
 #end
-#set ($runtime = $helper.getRuntime($task))
-#if ($runtime.size() > 0)
-  runtime {
-#foreach($prop in $runtime.entrySet())
-    $prop.getKey(): $prop.getValue()
-#end
-  }$BR
+#foreach($declaration in $helper.getBeforeCommand($task))
+  $declaration.toString()
 #end
   command {
      $helper.getCommand($task).trim()
@@ -57,6 +63,14 @@ task $task.getName() {
   output {
 #foreach( $output in $outputs )
     $helper.getDeclaration($output)
+#end
+#set ($runtime = $helper.getRuntime($task))
+#if ($runtime.size() > 0)
+  runtime {
+#foreach($prop in $runtime.entrySet())
+    $prop.getKey(): $prop.getValue()
+#end
+  }$BR
 #end
   }
 #end
@@ -74,16 +88,12 @@ workflow $helper.getName() {
 #end
   }$BR
 #end
-##foreach( $call in $helper.getCalls($diagram))
-##  call $helper.getTaskRef($call) {
-##set ($inputs = $helper.getInputs($call))
-##if ($inputs.size()> 0)
-##     input: #foreach($input in $inputs) $helper.getName($input)#comma($inputs)#end
-##end
-##  }$BR
-##end
-#foreach( $call in $helper.getCalls($diagram))#call($call)#end  
-#foreach( $scatter in $helper.getScatters($diagram))#scatter($scatter)#end
+#foreach( $n in $helper.orderCalls($diagram))
+#if ($helper.isCycle($n))#scatter($n)
+#elseif ($helper.isCall($n))#call($n)
+#elseif ($helper.isExpression($n))#expression($n)
+#end 
+#end
 #set ($externalOutputs = $helper.getExternalOutputs())
 #if ($externalOutputs.size() > 0)
   output {

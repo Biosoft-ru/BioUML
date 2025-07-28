@@ -7,9 +7,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
+import com.developmentontheedge.beans.Option;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -17,10 +20,11 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import one.util.streamex.StreamEx;
+import ru.biosoft.access.core.DataElementPath;
 
 public class WDLUtil
 {
-
     public static boolean isOfType(String type, DiagramElement de)
     {
         return type.equals( de.getKernel().getType() );
@@ -73,6 +77,11 @@ public class WDLUtil
 
     public static boolean isExternalOutput(Node node)
     {
+        for( Edge e : node.getEdges() )
+        {
+            if( e.getInput().equals( node ) )
+                return false;
+        }
         return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
     }
 
@@ -189,6 +198,24 @@ public class WDLUtil
         return n.getAttributes().getValueAsString( WDLConstants.TYPE_ATTR );
     }
 
+    public static String getCallName(Node n)
+    {
+        return n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
+    }
+
+    public static void setCallName(Node n, String name)
+    {
+        n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
+    }
+
+    public static ImportProperties[] getImports(Diagram diagram)
+    {
+        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
+            return new ImportProperties[0];
+        return (ImportProperties[])dp.getValue();
+    }
+
     public static String getName(Node n)
     {
         return n.getAttributes().getValueAsString( WDLConstants.NAME_ATTR );
@@ -216,6 +243,15 @@ public class WDLUtil
         return c.getAttributes().getValueAsString( WDLConstants.COMMAND_ATTR );
     }
 
+    public static void setBeforeCommand(Compartment compartment, Declaration[] beforeCommand)
+    {
+        compartment.getAttributes().add( new DynamicProperty( WDLConstants.BEFORE_COMMAND_ATTR, Declaration[].class, beforeCommand ) );
+    }
+    public static Object getBeforeCommand(Compartment c)
+    {
+        return c.getAttributes().getValue( WDLConstants.BEFORE_COMMAND_ATTR );
+    }
+
     public static void setTaskRef(Compartment c, String ref)
     {
         c.getAttributes().add( new DynamicProperty( WDLConstants.TASK_REF_ATTR, String.class, ref ) );
@@ -225,9 +261,27 @@ public class WDLUtil
         return c.getAttributes().getValueAsString( WDLConstants.TASK_REF_ATTR );
     }
 
+    public static void setDiagramRef(Compartment c, String ref)
+    {
+        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, String.class, ref ) );
+    }
+    public static String getDiagramRef(Compartment c)
+    {
+        return c.getAttributes().getValueAsString( WDLConstants.EXTERNAL_DIAGRAM );
+    }
+
+    public static void setExternalDiagramAlias(Compartment c, String ref)
+    {
+        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM_ALIAS_ATTR, String.class, ref ) );
+    }
+    public static String getExternalDiagramAlias(Compartment c)
+    {
+        return c.getAttributes().getValueAsString( WDLConstants.EXTERNAL_DIAGRAM_ALIAS_ATTR );
+    }
+
     public static Compartment findCall(String taskName, Diagram diagram)
     {
-        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getTaskRef( c ).equals( taskName ) )
+        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getCallName( c ).equals( taskName ) )
                 .findAny().orElse( null );
     }
 
@@ -307,19 +361,19 @@ public class WDLUtil
         return cycleNode == null ? null : getName( cycleNode );
     }
 
-    public static List<Compartment> orderCallsScatters(Compartment compartment)
+    public static List<Node> orderCallsScatters(Compartment compartment)
     {
-        List<Compartment> result = new ArrayList<>();
-        Map<Compartment, Set<Compartment>> previousSteps = new HashMap<>();
-        for( Compartment c : compartment.stream( Compartment.class ).filter( c -> isCall( c ) || isCycle( c ) ) )
+        List<Node> result = new ArrayList<>();
+        Map<Node, Set<Node>> previousSteps = new HashMap<>();
+        for( Node c : compartment.stream( Node.class ).filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) ) )
             previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
-        Set<Compartment> added = new HashSet<>();
+        Set<Node> added = new HashSet<>();
         while( previousSteps.size() > 0 )
         {
-            for( Compartment key : previousSteps.keySet() )
+            for( Node key : previousSteps.keySet() )
             {
-                Set<Compartment> steps = previousSteps.get( key );
+                Set<Node> steps = previousSteps.get( key );
                 steps.removeAll( added );
                 if( steps.isEmpty() )
                 {
@@ -327,19 +381,18 @@ public class WDLUtil
                     added.add( key );
                 }
             }
-            for( Compartment c : added )
+            for( Node c : added )
                 previousSteps.remove( c );
         }
         return result;
     }
 
-    public static Set<Compartment> getPreviousSteps(Compartment c, Compartment threshold)
+    public static Set<Node> getPreviousSteps(Node n, Compartment threshold)
     {
-        return c.stream( Node.class ).flatMap( n -> getEdges( n ) ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).nonNull()
-                .without( c ).toSet();
+        return getEdges( n ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).without( n ).nonNull().toSet();
     }
 
-    private static Stream<Edge> getEdges(Node node)
+    private static StreamEx<Edge> getEdges(Node node)
     {
         Set<Edge> result = node.edges().toSet();
         if( node instanceof Compartment )
@@ -349,14 +402,17 @@ public class WDLUtil
                     .filter( e -> !isInside( e.getInput(), c ) && isInside( e.getOutput(), c ) ).toSet() );
 
         }
-        return result.stream();
+        return StreamEx.of( result );
     }
 
-    private static Compartment getCallOrCycle(Node node, Compartment threshold)
+    private static Node getCallOrCycle(Node node, Compartment threshold)
     {
-        if (!isInside(node, threshold))
+        if( !isInside( node, threshold ) )
             return null;
-        
+
+        if( isExpression( node ) )
+            return node;//todo: expression inside workflows!
+
         Compartment c = node.getCompartment();
         LinkedList<Compartment> parents = new LinkedList<>();
         while( !threshold.equals( c ) )
@@ -377,12 +433,113 @@ public class WDLUtil
     private static boolean isInside(Node node, Compartment c)
     {
         Compartment parent = node.getCompartment();
-        while( ! ( parent instanceof Diagram ) )
+        while( true )
         {
             if( parent.equals( c ) )
                 return true;
+            else if( parent instanceof Diagram )
+                return false;
             parent = parent.getCompartment();
         }
-        return false;
+    }
+
+    public static class ImportProperties extends Option
+    {
+        private DataElementPath source;
+        private String alias;
+
+        public ImportProperties()
+        {
+
+        }
+
+        public ImportProperties(DataElementPath source, String alias)
+        {
+            this.alias = alias;
+            this.source = source;
+        }
+        public DataElementPath getSource()
+        {
+            return source;
+        }
+        public String getSourceName()
+        {
+            return source.getName();
+        }
+        public void setSource(DataElementPath source)
+        {
+            this.source = source;
+        }
+        public String getAlias()
+        {
+            return alias;
+        }
+        public void setAlias(String alias)
+        {
+            this.alias = alias;
+        }
+    }
+
+    public static class ImportPropertiesBeanInfo extends BeanInfoEx
+    {
+        public ImportPropertiesBeanInfo()
+        {
+            super( ImportProperties.class );
+        }
+
+        @Override
+        protected void initProperties() throws Exception
+        {
+            add( "source" );
+            add( "alias" );
+        }
+    }
+
+    public static void addImport(Diagram diagram, Diagram source, String alias)
+    {
+        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+        if( dp == null )
+        {
+            dp = new DynamicProperty( WDLConstants.IMPORTS_ATTR, ImportProperties[].class, new ImportProperties[0] );
+            diagram.getAttributes().add( dp );
+        }
+        ImportProperties[] value = (ImportProperties[])dp.getValue();
+        ImportProperties[] newValue = new ImportProperties[value.length + 1];
+        System.arraycopy( value, 0, newValue, 0, value.length );
+        newValue[value.length] = new ImportProperties( source.getCompletePath(), alias );
+        dp.setValue( newValue );
+    }
+
+    public static String getAlias(Compartment call)
+    {
+        DynamicProperty dp = call.getAttributes().getProperty( WDLConstants.CALL_NAME_ATTR );
+        if( dp == null )
+            return null;
+        return dp.getValue().toString();
+    }
+
+    public static String findExpression(String variable, Compartment process)
+    {
+        Object beforeCommand = getBeforeCommand( process );
+        if( beforeCommand instanceof Declaration[] )
+        {
+            for( Declaration declaration : (Declaration[])beforeCommand )
+            {
+                if( declaration.getName().equals( variable ) )
+                    return declaration.getExpression();
+            }
+        }
+        return null;
+    }
+
+    public static List<String> findVariables(String input)
+    {
+        List<String> matches = new ArrayList<>();
+        // Regex to match ~{...} including braces, non-greedy inside
+        Pattern pattern = Pattern.compile( "~\\{([^}]+)\\}" );
+        Matcher matcher = pattern.matcher( input );
+        while( matcher.find() )
+            matches.add( matcher.group( 1 ) );
+        return matches;
     }
 }
