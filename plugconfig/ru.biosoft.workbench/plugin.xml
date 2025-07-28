@@ -13,9 +13,9 @@
   	<provider class="ru.biosoft.journal.ProjectPropertiesBeanProvider" prefix="properties/project"/>
   </extension>
 
-  <extension point="ru.biosoft.access.beans">
+  <!--extension point="ru.biosoft.access.beans">
   	<provider class="ru.biosoft.tasks.TaskBeanProvider" prefix="task/userTasks"/>
-  </extension>
+  </extension-->
 
   <extension id="workbench" point="org.eclipse.core.runtime.applications"> 
     <application> 
@@ -73,5 +73,6 @@
       	position="0" 
       	page="ru.biosoft.gui.setupwizard.ProxySettingsWizardPage"
       /> 
-    </extension> 
+    </extension>
+    
 </plugin>

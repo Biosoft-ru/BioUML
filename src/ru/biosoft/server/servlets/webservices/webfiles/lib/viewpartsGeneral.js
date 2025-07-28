@@ -1900,7 +1900,8 @@ function TasksViewPart()
         queryBioUML("web/table/sceleton",
         {
             "add_row_id": 1,
-            "de": "task/userTasks"
+            "de": "task/userTasks",
+            "type": "userTasks"
         }, 
         function(data)
         {
@@ -1918,7 +1919,7 @@ function TasksViewPart()
                 "pageLength": 50,
                 "sDom": "pfrlti",
                 "aaSorting": [[ 2, "desc" ]],
-                "sAjaxSource": appInfo.serverPath+"web/table/datatables?de=task/userTasks&add_row_id=1" 
+                "sAjaxSource": appInfo.serverPath+"web/table/datatables?type=userTasks&de=task/userTasks&add_row_id=1" 
                 + "&rnd=" + rnd(),
                 "fnDrawCallback": function(oSettings)
                 {

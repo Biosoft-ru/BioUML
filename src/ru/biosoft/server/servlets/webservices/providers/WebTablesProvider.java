@@ -1249,7 +1249,7 @@ public class WebTablesProvider extends WebProviderSupport
     public static DataCollection<?> getTable(String completeName, TableResolver resolver) throws Exception
     {
         Object de = null;
-        if( resolver instanceof SqlQueryTableResolver )
+        if( resolver instanceof CommonTableResolver )
         {
             de = resolver.getTable( null );
         }
@@ -1473,7 +1473,12 @@ public class WebTablesProvider extends WebProviderSupport
         }
     }
 
-    public static class SqlQueryTableResolver extends TableResolver
+    public interface CommonTableResolver
+    {
+
+    }
+
+    public static class SqlQueryTableResolver extends TableResolver implements CommonTableResolver
     {
         protected String sqlQuery;
         protected int start;
