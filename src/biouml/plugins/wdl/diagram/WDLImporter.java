@@ -200,6 +200,10 @@ public class WDLImporter implements DataElementImporter
                         for( AstDeclaration astD : StreamEx.of( ( (AstOutput)child ).getChildren() ).select( AstDeclaration.class ) )
                             createExpressionNode( result, astD );
                     }
+                    else if( child instanceof AstDeclaration )
+                    {
+                        createExpressionNode( result, (AstDeclaration)child );
+                    }
                 }
 
                 for( biouml.plugins.wdl.parser.Node child : workflow.getChildren() )
@@ -372,7 +376,7 @@ public class WDLImporter implements DataElementImporter
     private Node createExpression(AstExpression expression, String type, Compartment parent)
     {
         String name = DefaultSemanticController.generateUniqueName( parent, "expression" );
-        Node resultNode = new Node(parent, name,  new Stub( null, name, WDLConstants.EXPRESSION_TYPE ));
+        Node resultNode = new Node( parent, name, new Stub( null, name, WDLConstants.EXPRESSION_TYPE ) );
         WDLUtil.setExpression( resultNode, expression.toString() );
         WDLUtil.setName( resultNode, name );
         WDLUtil.setType( resultNode, type );
@@ -449,7 +453,7 @@ public class WDLImporter implements DataElementImporter
             AstExpression expr = null;
             if( symbol.getChildren() != null )
             {
-                 expr = WDLUtil.findChild( symbol, AstExpression.class );
+                expr = WDLUtil.findChild( symbol, AstExpression.class );
                 if( expr != null )
                     expression = expr.toString();
             }
@@ -467,11 +471,14 @@ public class WDLImporter implements DataElementImporter
                 }
             }
 
-            for( String argument : expr.getArguments() )
+            if( expr != null )
             {
-                Node expressionNode = WDLUtil.findExpressionNode( diagram, argument );
-                if( expressionNode != null )
-                    createLink( expressionNode, portNode, WDLConstants.LINK_TYPE );
+                for( String argument : expr.getArguments() )
+                {
+                    Node expressionNode = WDLUtil.findExpressionNode( diagram, argument );
+                    if( expressionNode != null )
+                        createLink( expressionNode, portNode, WDLConstants.LINK_TYPE );
+                }
             }
         }
 
