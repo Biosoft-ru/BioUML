@@ -6,16 +6,16 @@ task hello_task {
     String pattern
   }
 
-  command <<<
-    grep -E '~{pattern}' '~{infile}'
-  >>>
+  command {
+    grep -E '~{pattern}' '~{infile}' > result.txt
+  }
 
   runtime {
     container: "ubuntu:latest"
   }
 
   output {
-    Array[String] matches = read_lines(stdout())
+    File result = "result.txt"
   }
 }
 
@@ -30,6 +30,6 @@ workflow hello {
   }
 
   output {
-    Array[String] matches = hello_task.matches
+    File result = hello_task.result
   }
 }
