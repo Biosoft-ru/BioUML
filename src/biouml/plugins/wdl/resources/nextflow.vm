@@ -13,16 +13,12 @@
 #end
 #######################################################################################
 #macro(callNF $call)
+#if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
 #set ($inputs = $helper.getInputs($call))
-#if ($inputs.size()> 0)
-  $helper.getResultName($call) = $helper.getCallName($call)(#foreach($input in $inputs)$helper.getInputName($input)#comma($inputs)#end)
-#else
-  $helper.getResultName($call) = $helper.getCallName($call)()
-#end
+  $helper.getResultName($call) = $helper.getTaskRef($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
-  $helper.createChannelFromArrray($scatter)
 #foreach( $n in $helper.orderCalls($scatter))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
@@ -105,11 +101,11 @@ $BR  main:
 #if ($externalOutputs.size() > 0)
   emit: 
 #foreach( $externalOutput in $externalOutputs )
-  $helper.getName($externalOutput) = result_$helper.getExpression($externalOutput)
+  $helper.getName($externalOutput) = $helper.getCallEmit($externalOutput)
 #end
 #end
 }$BR
 ################################ENTRY WORKFLOW#########################################
 workflow {
-$helper.getName()(#foreach($ep in $externalParameters)params.$helper.getName($ep)#comma($externalParameters)#end)
+$helper.getName()( #foreach($ep in $externalParameters)params.$helper.getName($ep)#comma($externalParameters) #end )
 }
