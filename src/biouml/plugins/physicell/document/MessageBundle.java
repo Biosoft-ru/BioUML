@@ -30,7 +30,7 @@ public class MessageBundle extends ListResourceBundle
         //--- Actions ---------------------------------------------------/
         { PlayAction.KEY    + Action.SMALL_ICON           , "play.gif"},
         { PlayAction.KEY    + Action.NAME                 , "Play"},
-        { PlayAction.KEY    + Action.SHORT_DESCRIPTION    , "Plqy."},
+        { PlayAction.KEY    + Action.SHORT_DESCRIPTION    , "Play."},
         { PlayAction.KEY    + Action.ACTION_COMMAND_KEY   , "cmd-plqy"},
 
         { PauseAction.KEY   + Action.SMALL_ICON           , "pause.gif"},
