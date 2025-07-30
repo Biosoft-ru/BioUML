@@ -144,7 +144,7 @@ public class InitialDistributionProperties extends Option
             return availableParameters;
         }
 
-        @PropertyName ( "Mopdel parameter" )
+        @PropertyName ( "Model parameter" )
         public String getParameter()
         {
             return parameter;
