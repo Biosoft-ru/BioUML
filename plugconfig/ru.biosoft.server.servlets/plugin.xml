@@ -97,4 +97,8 @@
         <exporter prefix="Regular" class="ru.biosoft.server.servlets.webservices.providers.RegularTableExporter"/>
     </extension>
     
+    <extension point="ru.biosoft.server.servlets.webTableResolver">
+        <tableResolver type="userTasks" class="ru.biosoft.server.servlets.webservices.providers.TaskTableResolver"/>
+    </extension>
+    
 </plugin>
