@@ -16,7 +16,7 @@ public class View2DOptionsBeanInfo extends BeanInfoEx2<View2DOptions>
     {
         property( "slice" ).editor( SliderEditor.class ).value( "max", getMethod( "getMaxSlice")).value( "min", getMethod( "getMinSlice")).add();
         addWithTags( "sectionString", View2DOptions.SECTION_VALUES );
-        add( "drawGrid" );
+//        add( "drawGrid" );
     }
     
     private Method getMethod(String name) throws NoSuchMethodException
