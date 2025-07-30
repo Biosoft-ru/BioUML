@@ -16,7 +16,6 @@ public class EventPropertiesBeanInfo extends BeanInfoEx2<EventProperties>
     {
         add("name");
         add("executionTime");
-        add("useCustomExecutionCode");
         add("executionCodePath");
         add("comment");
         add("showCode");
