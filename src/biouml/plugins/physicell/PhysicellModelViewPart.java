@@ -39,11 +39,11 @@ public class PhysicellModelViewPart extends ViewPartSupport implements PropertyC
     private Action addColorSchemeAction;
     private Action removeColorSchemeAction;
 
-    private PropertyInspector domainInspector = new PropertyInspector();
-    private PropertyInspector parametersInspector = new PropertyInspector();
-    private PropertyInspector initialConditionInspector = new PropertyInspector();
+    private PropertyInspector domainInspector = new PropertyInspectorEx();
+    private PropertyInspector parametersInspector = new PropertyInspectorEx();
+    private PropertyInspector initialConditionInspector = new PropertyInspectorEx();
     private PropertyInspector reportInspector = new PropertyInspectorEx();
-    private PropertyInspector optionsInspector = new PropertyInspector();
+    private PropertyInspector optionsInspector = new PropertyInspectorEx();
     private VisualizerTab visualizerTab = new VisualizerTab();
     private ColorSchemesTab colorSchemeTab = new ColorSchemesTab();
 
