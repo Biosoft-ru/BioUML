@@ -16,6 +16,7 @@ import javax.swing.event.ChangeListener;
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
+import com.developmentontheedge.beans.swing.PropertyInspector;
 import com.developmentontheedge.beans.swing.PropertyInspectorEx;
 
 import biouml.model.Diagram;
@@ -43,14 +44,14 @@ public class CellDefinitionViewPart extends ViewPartSupport implements ViewPaneL
     private PropertyInspectorEx cycleInspector = new PropertyInspectorEx();
     private PropertyInspectorEx divisionInspector = new PropertyInspectorEx();
     private PropertyInspectorEx deathInspector = new PropertyInspectorEx();
-    private PropertyInspectorEx motilityInspector = new PropertyInspectorEx();
+    private PropertyInspector motilityInspector = new PropertyInspector();
     private PropertyInspectorEx mechanicsInspector = new PropertyInspectorEx();
     private PropertyInspectorEx volumeInspector = new PropertyInspectorEx();
     private PropertyInspectorEx geometryInspector = new PropertyInspectorEx();
-    private PropertyInspectorEx secretionInspector = new PropertyInspectorEx();
+    private PropertyInspector secretionInspector = new PropertyInspector();
     private PropertyInspectorEx functionsInspector = new PropertyInspectorEx();
-    private PropertyInspectorEx interactionsInspector = new PropertyInspectorEx();
-    private PropertyInspectorEx transformationsInspector = new PropertyInspectorEx();
+    private PropertyInspector interactionsInspector = new PropertyInspector();
+    private PropertyInspector transformationsInspector = new PropertyInspector();
     private PropertyInspectorEx customDataInspector = new PropertyInspectorEx();
     private PropertyInspectorEx intracellularInspector = new PropertyInspectorEx();
     private PropertyInspectorEx integrityInspector = new PropertyInspectorEx();
