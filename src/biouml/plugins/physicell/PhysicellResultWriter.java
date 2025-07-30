@@ -167,13 +167,19 @@ public class PhysicellResultWriter
         }
         if( this.options.isSaveReport() )
         {
+            int agentsCount = model.getMicroenvironment().getAgentsCount();
+            int formatLength = String.valueOf( agentsCount ).length();
+            String format = "%0" + formatLength + "d";
             DataCollection<DataElement> subDC = (DataCollection)resultFolder.get( "Reports" );
             TableDataCollection result = TableDataCollectionUtils.createTableDataCollection( subDC, "Report_" + suffix );
             Microenvironment m = model.getMicroenvironment();
             for( String s : model.getReportHeader() )
                 result.getColumnModel().addColumn( s, DataType.Text );
             for( Cell cell : m.getAgents( Cell.class ) )
-                TableDataCollectionUtils.addRow( result, String.valueOf( cell.ID ), model.getReport( cell ), true );
+            {
+                String id = suffix = String.format( format, cell.ID );
+                TableDataCollectionUtils.addRow( result, id, model.getReport( cell ), true );
+            }
             subDC.put( result );
         }
     }
