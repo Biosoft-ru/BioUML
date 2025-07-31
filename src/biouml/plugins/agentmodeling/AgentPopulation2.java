@@ -1,7 +1,9 @@
 package biouml.plugins.agentmodeling;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import biouml.model.Diagram;
 import biouml.plugins.agentmodeling.AgentBasedModel;
@@ -75,8 +77,16 @@ public class AgentPopulation2
         varToIndex = engine.getVarIndexMapping();
         
         int deathIndex = varToIndex.get("Death");
+        int divisionIndex = -1;
+        if( varToIndex.containsKey( "Division" ) )
+            divisionIndex = varToIndex.get( "Division" );
         for( int i = 0; i < size; i++ )
-            agentmodel.addAgent(new MortalAgent( model.getClass().newInstance(), deathIndex, simulator.getClass().newInstance(), new UniformSpan(0, completionTime, timeIncrement), diagram.getName() + "_" + i , new ResultListener[0]));
+        {
+            MortalAgent agent = new MortalAgent( model.getClass().newInstance(), deathIndex, simulator.getClass().newInstance(),
+                    new UniformSpan( 0, completionTime, timeIncrement ), diagram.getName() + "_" + i, new ResultListener[0] );
+            agent.setDivideIndex( divisionIndex );
+            agentmodel.addAgent( agent );
+        }
     }
 
     public void simulate() throws Exception
