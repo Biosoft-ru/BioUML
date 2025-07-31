@@ -106,6 +106,7 @@ public class MortalAgent extends ModelAgent
 
             MortalAgent result = new MortalAgent( newModel, newSimulator, newSpan, newName,
                     this.listeners.toArray( new ResultListener[listeners.size()] ) );
+            result.deathIndex = deathIndex;
             result.setDivideIndex( divideIndex );
             result.variableToIndex = new HashMap<>(variableToIndex);
             return result;
