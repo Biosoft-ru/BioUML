@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import ru.biosoft.util.bean.BeanInfoEx2;
@@ -18,6 +19,8 @@ import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.Options;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.plugins.simulation.SimulationEngineRegistry;
+import biouml.plugins.simulation.Simulator;
+import biouml.plugins.simulation.SimulatorRegistry;
 import biouml.plugins.simulation.Span;
 import biouml.plugins.simulation.java.JavaSimulationEngine;
 import biouml.standard.diagram.DiagramUtility;
@@ -151,7 +154,8 @@ public class FbcSimulationEngine extends SimulationEngine
     @Override
     public Object getSolver()
     {
-        // TODO Auto-generated method stub
+        if (simulator instanceof FbcSolver)
+            return ((FbcSolver)simulator).simulator;
         return simulator;
     }
 
@@ -160,6 +164,18 @@ public class FbcSimulationEngine extends SimulationEngine
     {
         if (solver instanceof FbcSolver)
         simulator = (FbcSolver)solver;
+    }
+
+    @Override
+    public String getSolverName()
+    {
+        return engine.getSolverName();
+    }
+
+    @Override
+    public void setSolverName(String solverName)
+    {
+        engine.setSolverName( solverName );
     }
 
     @Override
