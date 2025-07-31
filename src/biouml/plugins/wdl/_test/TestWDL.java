@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -29,6 +30,7 @@ import biouml.plugins.wdl.parser.WDLParser;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import junit.framework.TestCase;
 import one.util.streamex.StreamEx;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.graph.HierarchicLayouter;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.util.TempFiles;
@@ -36,26 +38,26 @@ import ru.biosoft.util.TempFiles;
 public class TestWDL extends TestCase
 {
 
-    private static String[] list = new String[] {"hello", "scatter_range_2_steps", "scatter_simple", "scatter_range", "scatter_range2", "two_steps",
-            "four_steps"};
-    
+    private static String[] list = new String[] {"hello", "scatter_range_2_steps", "scatter_simple", "scatter_range", "scatter_range2",
+            "two_steps", "four_steps"};
+
     public static void main(String ... args) throws Exception
     {
-        for (String name: list)
-            test(name);
-        
-//        test( "hello" );
-//        test( "scatter_range_2_steps" );
-//        test( "scatter_simple" );
-//        test( "scatter_range" );
-//        test( "scatter_range2" );
-//        test( "two_steps" );
-//        test( "four_steps" );
+        //        for (String name: list)
+        //            test(name);
 
-
+        //                test( "scatter_range_2_extra" );
+        //                test( "scatter_range_2_steps" );
+        //        test( "scatter_simple" );
+        //        test( "scatter_range" );
+        //        test( "scatter_range2" );
+        //        test( "two_steps" );
+        //        test( "four_steps" );
+//        test( "private_declaration_task" );
+                test( "pbmm2" );
 
         //        test( "lima" );
-        //        test("faidx2");
+        //                test("faidx2");
         //        test("faidx_import");
         //        test( "fastqc1" );
         //        test( "test_scatter" );
@@ -81,13 +83,13 @@ public class TestWDL extends TestCase
 
         String nextFlow = nextFlowGenerator.generateNextFlow( diagram );
 
-        //        runNextFlow( name, s );
-        //        printNextflow( nextFlow );
+//        runNextFlow( name, nextFlow );
+        printNextflow( nextFlow );
         //        printWDL( wdl );
 
         //        saveResult( name, nextFlow );
 
-        checkScript( name, nextFlow );
+        //        checkScript( name, nextFlow );
     }
 
     private static void printWDL(String wdl) throws Exception
@@ -182,13 +184,26 @@ public class TestWDL extends TestCase
         }
     }
 
-    private static void runNextFlow(String name, String script)
+    private static void runNextFlow(String name, String script, List<String> imports)
     {
         try
         {
             String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
             new File( outputDir ).mkdirs();
             generateFunctions( outputDir );
+            
+            
+            for( String imported: imports )
+            {
+                URL url = TestWDL.class.getResource( "../test_examples/nextflow/" + imported + ".nf" );
+                if( url == null )
+                    throw new IllegalArgumentException( "No input file exists: " + name );
+
+                File file = new File( url.getFile() );
+                File copy = new File(outputDir, file.getName());
+                ApplicationUtils.copyFile( copy, file );
+            }
+            
             //            NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
             //            script = preprocessor.preprocess( script );
             File f = new File( outputDir, name + ".nf" );
