@@ -12,7 +12,6 @@ import biouml.model.Role;
 public class ChemotaxisProperties implements Role
 {
     private DiagramElement de;
-    private int direction = 1;
     private double sensitivity = 1;
     private String title;
 
@@ -48,7 +47,6 @@ public class ChemotaxisProperties implements Role
     {
         ChemotaxisProperties result = new ChemotaxisProperties( de );
         result.sensitivity = sensitivity;
-        result.direction = direction;
         result.title = title;
         return result;
     }
@@ -56,13 +54,9 @@ public class ChemotaxisProperties implements Role
     @PropertyName ( "Direction" )
     public int getDirection()
     {
-        return direction;
+        return sensitivity > 0? 1: -1;
     }
-    public void setDirection(int direction)
-    {
-        this.direction = direction;
-    }
-
+    
     @PropertyName ( "Sensitivity" )
     public double getSensitivity()
     {
