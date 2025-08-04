@@ -14,8 +14,10 @@ import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.Edge;
 import biouml.model.InitialElementProperties;
-import biouml.plugins.sbgn.Type;
+import biouml.model.Node;
 import biouml.standard.diagram.CreateEdgeAction;
+import biouml.standard.diagram.NoteLinkEdgeCreator;
+import biouml.standard.type.Stub;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.PropertiesDialog;
 
@@ -48,9 +50,17 @@ public class PhysicellDiagramSemanticController extends DefaultSemanticControlle
             new CreateEdgeAction().createEdge( pt, viewEditor, new TransformationCreator() );
             return null;
         }
-        else if( Type.TYPE_NOTE.equals( type ) )
-            return super.createInstance( parent, type, pt, viewEditor );
-
+        else if( PhysicellConstants.TYPE_NOTE.equals( type ) )
+        {
+            String id = generateUniqueNodeName(parent, PhysicellConstants.TYPE_NOTE);
+            return new DiagramElementGroup( new Node( parent, new Stub.Note( null, id ) ) );
+        }
+        else if( PhysicellConstants.TYPE_NOTE_LINK.equals( type ) )
+        {
+            new CreateEdgeAction().createEdge(pt, viewEditor, new NoteLinkEdgeCreator());
+            return DiagramElementGroup.EMPTY_EG;
+        }
+        
         try
         {
             Object properties = getPropertiesByType( parent, type, pt );
