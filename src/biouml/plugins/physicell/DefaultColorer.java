@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import ru.biosoft.graphics.Brush;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.ui.AgentColorer;
 
@@ -15,7 +16,8 @@ public class DefaultColorer implements AgentColorer
 {
     private Map<String, List<CellDefinitionVisualizerProperties>> properties;
     private Color[] defaultColors = new Color[] {Color.white, Color.black};
-
+    private Map<String, Brush> defaultColorMap = new HashMap<>();
+    
     public DefaultColorer(VisualizerProperties visualizerProperties)
     {
         properties = new HashMap<>();
@@ -25,16 +27,31 @@ public class DefaultColorer implements AgentColorer
         for( List<CellDefinitionVisualizerProperties> list : properties.values() )
             list.sort( new VisualizerPropertiesComparator() );
     }
+    
+    public void addDefaultColor(String name, Brush color)
+    {
+        defaultColorMap.put( name, color );
+    }
 
     @Override
     public Color[] findColors(Cell cell)
     {
-        List<CellDefinitionVisualizerProperties> colors = properties.get( cell.typeName );
-        if( colors.size() == 0 )
+        List<CellDefinitionVisualizerProperties> visualizerProperties = properties.get( cell.typeName );
+        if( visualizerProperties.size() == 0 )
             return defaultColors;
 
-        ColorScheme scheme = colors.get( 0 ).calculate( cell );
-        return new Color[] {scheme.getColor(), scheme.getBorderColor(), scheme.getCoreColor(), scheme.getCoreBorderColor()};
+        for( CellDefinitionVisualizerProperties properties : visualizerProperties )
+        {
+            ColorScheme scheme = properties.calculate( cell );
+            if( scheme == null )
+                continue;
+            return new Color[] {scheme.getColor(), scheme.getBorderColor(), scheme.getCoreColor(), scheme.getCoreBorderColor()};
+        }
+        
+        Brush color = defaultColorMap.get( cell.typeName );
+        if (color != null)
+            return new Color[] {color.getColor(), Color.black};
+        return defaultColors;
     }
 
     public class VisualizerPropertiesComparator implements Comparator<CellDefinitionVisualizerProperties>
