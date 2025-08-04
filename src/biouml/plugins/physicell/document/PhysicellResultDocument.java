@@ -12,9 +12,12 @@ import ru.biosoft.gui.Document;
 //@ClassIcon ( "resources/simulationDocument.gif" )
 public class PhysicellResultDocument extends Document
 {
+    private String name;
+    
     public PhysicellResultDocument(PhysicellSimulationResult result) throws Exception
     {
         super( result );
+        name = result.getName();
         viewPane = new ViewPane();
         RenderPanel renderPanel = new RenderPanel( 1500, 1500, result );
         JScrollPane scrollPane = new JScrollPane( renderPanel );
@@ -32,6 +35,6 @@ public class PhysicellResultDocument extends Document
     @Override
     public String getDisplayName()
     {
-        return "Simulation result";
+        return name;
     }
 }
