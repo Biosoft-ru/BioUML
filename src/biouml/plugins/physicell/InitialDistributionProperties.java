@@ -19,9 +19,6 @@ public class InitialDistributionProperties extends Option
 {
     public static String[] distributions = new String[] {"Uniform", "LogUniform", "Normal", "LogNormal", "Log10Normal"};
     private Node node;
-    private CellDefinitionProperties cellDefinition;
-    private MulticellEModel model = null;
-    private String[] availableParameters = new String[0];
 
     private ParameterDistribution[] parameterDistributions = new ParameterDistribution[0];
 
@@ -45,7 +42,7 @@ public class InitialDistributionProperties extends Option
         for( ParameterDistribution pDistribution : parameterDistributions )
         {
             pDistribution.setParent( this );
-            pDistribution.setAvailableParameters( availableParameters );
+            pDistribution.setDiagramElement( node );
         }
     }
 
@@ -54,11 +51,8 @@ public class InitialDistributionProperties extends Option
         this.node = node;
         if( node != null )
         {
-            cellDefinition = node.getRole( CellDefinitionProperties.class );
-            model = Diagram.getDiagram( node ).getRole( MulticellEModel.class );
-            availableParameters = RuleProperties.getAvailableDistributed( model, cellDefinition ).toArray( String[]::new );
             for( ParameterDistribution pDistribution : parameterDistributions )
-                pDistribution.setAvailableParameters( availableParameters );
+                pDistribution.setDiagramElement( node );
         }
     }
 
@@ -126,22 +120,30 @@ public class InitialDistributionProperties extends Option
         private String parameter = "volume";
         private String distribution = "Uniform";
         private DistributionProperties properties;
-        private String[] availableParameters = new String[0];
+        private CellDefinitionProperties cellDefinition;
+        private MulticellEModel model = null;
 
         public ParameterDistribution()
         {
             properties = new UniformProperties();
             properties.setParent( this );
         }
-        
-        public void setAvailableParameters(String[] availableParameters)
+
+        public void setDiagramElement(Node node)
         {
-            this.availableParameters = availableParameters;
+            if( node != null )
+            {
+                cellDefinition = node.getRole( CellDefinitionProperties.class );
+                model = Diagram.getDiagram( node ).getRole( MulticellEModel.class );
+            }
         }
+
 
         public String[] getAvailableParameters()
         {
-            return availableParameters;
+            if (model == null || cellDefinition == null)
+                return new String[0];
+            return RuleProperties.getAvailableDistributed( model, cellDefinition ).toArray( String[]::new );
         }
 
         @PropertyName ( "Model parameter" )
@@ -168,7 +170,7 @@ public class InitialDistributionProperties extends Option
             else
                 setProperties( new NormalProperties() );
             firePropertyChange( "distribution", oldValue, distribution );
-//            firePropertyChange( "*", null, null );
+            //            firePropertyChange( "*", null, null );
         }
 
         @PropertyName ( "Distribution properties" )
@@ -190,7 +192,7 @@ public class InitialDistributionProperties extends Option
         {
             ParameterDistribution result = new ParameterDistribution();
             result.setParameter( parameter );
-            result.setAvailableParameters( availableParameters );
+            //            result.setAvailableParameters( availableParameters );
             result.setDistribution( distribution );
             result.setProperties( properties.clone() );
             return result;
