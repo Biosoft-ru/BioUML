@@ -6,10 +6,8 @@
   </extension>
   
   <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="WDL script" inputClass="ru.biosoft.access.FileDataElement"
+      <transformer name="WDL script" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="biouml.plugins.wdl.WDLScript" transformerClass="biouml.plugins.wdl.WDLScriptTransformer"/> 
-      <transformer name="WDL diagram" inputClass="ru.biosoft.access.FileDataElement"
-        outputClass="biouml.model.Diagram" transformerClass="biouml.plugins.wdl.diagram.WDLDiagramTransformer"/> 
   </extension>
 
   <extension point="ru.biosoft.access.scriptType">
@@ -32,7 +30,7 @@
   </extension>
 
   <extension point="ru.biosoft.server.servlets.webProvider">
-    <provider prefix="wdl" class="biouml.plugins.wdl.WDLWebProvider"/>
+    <provider prefix="wdl" class="biouml.plugins.wdl.web.WDLWebProvider"/>
   </extension>
 
    <extension id="WDLImporter" point="ru.biosoft.access.import">
@@ -54,5 +52,9 @@
 	      ignoreInIDE="true"
 	  />
    </extension>
+   
+   <extension point="ru.biosoft.access.beans">
+    <provider class="biouml.plugins.wdl.web.WDLSettingsBeanProvider" prefix="wdlsettings"/>
+  </extension>
 </plugin>
 

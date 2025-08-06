@@ -72,9 +72,9 @@ import ru.biosoft.util.bean.BeanInfoEx2;
 @SuppressWarnings ( "serial" )
 public class WDLEditor extends EditorPartSupport
 {
-    private static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
+    public static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
 
-    private Logger log = Logger.getLogger( WDLEditor.class.getName() );
+    private static final Logger log = Logger.getLogger( WDLEditor.class.getName() );
 
     private JTabbedPane tabbedPane;
     private JSplitPane splitPane;
@@ -262,7 +262,7 @@ public class WDLEditor extends EditorPartSupport
 
         public WorkflowSettings()
         {
-            System.out.println( "Load" );
+            //System.out.println( "Load" );
         }
 
         public void initParameters(Diagram diagram)
@@ -493,7 +493,7 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-    private void executeCommand(String[] command) throws Exception
+    public static void executeCommand(String[] command) throws Exception
     {
         System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
         Process process = Runtime.getRuntime().exec( command );
@@ -535,7 +535,7 @@ public class WDLEditor extends EditorPartSupport
 
     }
 
-    public class NextFlowPreprocessor
+    public static class NextFlowPreprocessor
     {
         private WorkflowSettings settings;
         public void NextFlowPreprocessor()
@@ -628,9 +628,9 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-    public File generateFunctions(String outputDir) throws IOException
+    public static File generateFunctions(String outputDir) throws IOException
     {  
-        InputStream inputStream = getClass().getResourceAsStream( BIOUML_FUNCTIONS_NF );
+        InputStream inputStream = WDLEditor.class.getResourceAsStream( BIOUML_FUNCTIONS_NF );
         File result = new File( outputDir, "biouml_function.nf" );
         Files.copy(inputStream, result.toPath(), StandardCopyOption.REPLACE_EXISTING);
         return result;
