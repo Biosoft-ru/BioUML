@@ -26,6 +26,9 @@ function initDiagramViewParts()
     viewParts.push(new JournalViewPart());
     viewParts.push(new VersionHistoryViewPart());
     viewParts.push(new HemodynamicsViewPart());
+    var wdlVP = new WDLViewPart();
+    wdlVP.init();
+    viewParts.push(wdlVP);
     viewPartsInitialized['diagram'] = true;
 }
 
@@ -6435,6 +6438,264 @@ function CellTypesViewPart()
         {
             _this.diagram.setChanged(true);
             _this.loadTable("rules", _this.selectedNode);
+        },
+        function(data)
+        {
+            logger.error(data.message);
+        });
+    };
+    
+}
+
+function WDLViewPart()
+{
+    this.tabId = "diagram.wdl";
+    this.tabName = "WDL";
+    this.diagram = null;
+    this.shown = "wdl_wdl";
+    this.shownIndex = 0;
+    this.type="wdl";
+    this.needUpdate = {};
+    this.scriptEditor = {};
+
+    var _this = this;
+    
+    this.init = function()
+    {
+        createViewPart(this, this.tabId, this.tabName);
+        this.containerDiv.css({"margin-left":"-15px", "margin-top":"-10px", "min-width":"1000px"});
+        
+        var tabDiv = $('<div id="wdllinkedTabs">'+
+                '<ul>'+
+                '<li><a href="#wdl_wdl"><span>WDL</span></a></li>'+
+                '<li><a href="#wdl_nextflow"><span>NextFlow</span></a></li>'+
+                '<li><a href="#wdl_settings"><span>Settings</span></a></li>'+
+                '</ul>'+
+                '<div id="wdl_wdl" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+                '</div>'+
+                '<div id="wdl_nextflow" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+                '</div>'+
+                '<div id="wdl_settings" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+                '</div>'+
+                '</div>');
+        this.containerDiv.append(tabDiv);
+        
+        tabDiv.addClass( "ui-tabs-vertical ui-helper-clearfix" );
+        tabDiv.css("width","auto");
+        tabDiv.find("ul").css({"position":"absolute","border-right":0, "min-height":"300px", "width":"97px"});
+        
+        tabDiv.find(".complex_vp_container").css({"padding-left":"105px", "padding-right":"5px"});
+        tabDiv.find( "li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" ).css({"width":"95px"});
+        
+        this.wdlDiv = tabDiv.find("#wdl_wdl");
+        this.scriptEditor["wdl"] = this.initScriptEditor(this.wdlDiv, "shell");
+        
+        this.nextflowDiv = tabDiv.find("#wdl_nextflow");
+        this.scriptEditor["nextflow"] = this.initScriptEditor(this.nextflowDiv, "shell");
+        
+        this.settingsDiv = tabDiv.find("#wdl_settings");
+        this.settingsPI = $('<div id="' + this.tabId + '_pi"></div>').css({"width":"500px", "float":"left", "margin-right": "15px"});
+        this.settingsDiv.append(this.settingsPI);
+        
+        _.bindAll(this, _.functions(this));
+    };
+    
+    this.initScriptEditor = function(parentDiv, mode)
+    {
+        var scriptEditor = {};
+        var div = $("<div/>").css({border: "1px solid black", "min-height":"150px"});
+        var textArea = $('<textarea style="width: 100%; height: 100%;"/>');
+        div.append(textArea);
+        parentDiv.append(div);
+        scriptEditor.tab = div;
+        scriptEditor.commandStack = [];
+        scriptEditor.stackPos = 0;
+        scriptEditor.editor = CodeMirror.fromTextArea(textArea.get(0), {
+            mode: mode,
+            lineNumbers: false,
+            lineWrapping: true,
+            styleActiveLine: false,
+            styleSelectedText: false,
+            extraKeys: {
+                "Ctrl-Space": mode+"_autocomplete",
+                "Tab": mode+"_autocomplete",
+                "Ctrl-H": "replace", 
+                "Ctrl-Enter": "newlineAndIndent",
+                "Ctrl-Up": "goLineUp",
+                "Ctrl-Down": "goLineDown",
+                "Up": "goLineUp",
+                "Down": "goLineDown"
+               }
+        });            
+        return scriptEditor;
+    };
+    
+    this.isVisible = function(documentObject, callback)
+    {
+        if ((documentObject != null) && documentObject instanceof Diagram ) 
+        {
+            documentObject.getDiagramType(function(type)
+            {
+                callback(type.match(/WDLDiagramType$/));
+            });
+        }
+        else 
+        {
+            callback(false);
+        }
+    };
+    
+    this.explore = function(documentObject)
+    {
+        if ((documentObject != null) && (documentObject instanceof Diagram )) 
+        {
+            if(this.diagram != documentObject.getDiagram())
+            {
+                this.diagram = documentObject.getDiagram();
+                
+                this.diagramPath = this.diagram.completeName;
+                this.diagram.addChangeListener(this);
+                this.needUpdate.wdl = true;
+                this.needUpdate.nextflow = true;
+                //this.diagram2wdlActionClick();
+            }
+        }
+    };
+    
+    this.show = function()
+    {
+        this.containerDiv.find("#wdllinkedTabs").tabs({
+            beforeActivate: function(event, ui)
+            {
+                 _this.show_mode = ui.newPanel.attr("id");
+                 _this.shownIndex = ui.newTab.index(); 
+                 _this.type = _this.show_mode.substring(1+_this.show_mode.indexOf("_"));
+            },
+            activate: function(event, ui)
+            {
+                if(_this.needUpdate[_this.type])
+                {
+                    var val = _this.scriptEditor[_this.type].editor.getValue();
+                    _this.scriptEditor[_this.type].editor.setValue(val);
+                    _this.needUpdate[_this.type] = false;
+                }
+            }
+            
+        });
+        this.containerDiv.find("#wdllinkedTabs").tabs("option", "active", _this.shownIndex);
+        this.loadSettings();
+        this.diagram2wdlActionClick();
+        //this.language.editor.focus();
+    };
+    
+    this.loadSettings = function()
+    {
+        queryBean("wdlsettings/" + _this.diagram.completeName, {}, 
+        function(data)
+        {
+            _this.data = data;
+            _this.initSettingsFromJson(data);
+        }, function(data)
+        {
+            _this.tabDiv.html(resources.commonErrorViewpartUnavailable);
+        });
+    };
+    
+    this.initSettingsFromJson = function(data)
+    {
+        _this.settingsPI.empty();
+        var beanDPS = convertJSONToDPS(data.values);
+        _this.settingsPane = new JSPropertyInspector();
+        _this.settingsPane.setParentNodeId(_this.settingsPI.attr('id'));
+        _this.settingsPane.setModel(beanDPS);
+        _this.settingsPane.generate();
+        _this.settingsPane.addChangeListener(function(ctl,oldval,newval) {
+            _this.settingsPane.updateModel();
+            var json = convertDPSToJSON(_this.settingsPane.getModel(), ctl.getModel().getName());
+            _this.setSettingsFromJson(json);
+        });
+    };
+    
+    this.setSettingsFromJson = function(json)
+    {
+        queryBioUML("web/bean/set",
+        {
+            de: "wdlsettings/" +_this.diagram.completeName,
+            json: json
+        }, function(data)
+        {
+            _this.initSettingsFromJson(data);
+        });
+    };
+
+    
+    this.save = function()
+    {
+        this.containerDiv.find("#wdllinkedTabs").tabs("destroy");
+    };
+    
+    //TODO: message bundle
+    this.initActions = function(toolbarBlock)
+    {
+        this.diagram2wdlAction = createToolbarButton("Update WDL from Diagram.", "triag_down.gif", this.diagram2wdlActionClick);
+        toolbarBlock.append(this.diagram2wdlAction);
+        
+        this.wdl2diagramAction = createToolbarButton("Update Diagram from WDL.", "triag_up.gif", this.wdl2diagramActionClick);
+        toolbarBlock.append(this.wdl2diagramAction);
+        
+        this.runAction = createToolbarButton("Run workflow", "simulate.gif", this.runActionClick);
+        toolbarBlock.append(this.runAction);
+    };
+    
+    this.diagramChanged = function()
+    {
+    };
+    
+    this.diagram2wdlActionClick = function()
+    {
+        queryBioUML("web/wdl/diagram2wdl",
+        {
+            de: _this.diagram.completeName
+        }, function(data)
+        {
+            _this.scriptEditor.wdl.editor.setValue(data.values.wdl);
+            _this.scriptEditor.nextflow.editor.setValue(data.values.nextflow);
+            _this.needUpdate["wdl"] = true;
+            _this.needUpdate["nextflow"] = true;
+        },
+        function(data)
+        {
+            logger.error(data.message);
+        });
+    };
+    
+    this.wdl2diagramActionClick = function()
+    {
+        queryBioUML("web/wdl/wdl2diagram",
+        {
+            de: _this.diagram.completeName,
+            wdl: _this.scriptEditor.wdl.editor.getValue()
+        }, function(data)
+        {
+            _this.diagram.setChanged(true);
+            _this.diagram.updateDocumentView();
+        },
+        function(data)
+        {
+            logger.error(data.message);
+        });
+    };
+    
+    this.runActionClick = function()
+    {
+        var settings = convertDPSToJSON(_this.settingsPane.getModel());
+        queryBioUML("web/wdl/run",
+        {
+            de: _this.diagram.completeName,
+            settings: settings
+        }, function(data)
+        {
+            openBranch(data.values);
         },
         function(data)
         {
