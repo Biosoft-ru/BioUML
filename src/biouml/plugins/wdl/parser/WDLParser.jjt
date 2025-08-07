@@ -545,6 +545,8 @@ void call() #Call:
 		        equationSymbol()
 	        )*
 	    	(sepEol())*
+	    	(< COMMA > #Comma)?
+	        (sepEol())*
 	    )?
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     )?
