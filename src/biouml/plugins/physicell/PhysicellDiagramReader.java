@@ -35,8 +35,13 @@ public class PhysicellDiagramReader extends DiagramXmlReader
     @Override
     public void readPlotsInfo(Element element, Diagram diagram, Map<String, String> newPaths)
     {
-        Object pbj = readElement( element, PlotProperties.class);
-        ((PlotProperties)pbj).setModel(diagram.getRole( MulticellEModel.class ));
-        diagram.getAttributes().add(DPSUtils.createHiddenReadOnlyTransient("Plots", PlotProperties.class,  pbj));
+        PlotProperties properties;
+        Object pbj = readElement( element, PlotProperties.class );
+        if( pbj != null )
+            properties = (PlotProperties)pbj;
+        else
+            properties = new PlotProperties();
+        properties.setModel( diagram.getRole( MulticellEModel.class ) );
+        diagram.getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( "Plots", PlotProperties.class, properties ) );
     }
 }
