@@ -9,9 +9,9 @@ import org.json.JSONObject;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
-import biouml.plugins.wdl.WDLEditor.WorkflowSettings;
 import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl.WDLRunner;
+import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;

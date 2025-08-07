@@ -13,8 +13,6 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
-import biouml.plugins.wdl.WDLEditor.NextFlowPreprocessor;
-import biouml.plugins.wdl.WDLEditor.WorkflowSettings;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.TextFileImporter;

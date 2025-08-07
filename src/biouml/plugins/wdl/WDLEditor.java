@@ -266,7 +266,7 @@ public class WDLEditor extends EditorPartSupport
         public void initParameters(Diagram diagram)
         {
             List<Node> externalParameters = WDLUtil.getExternalParameters( diagram );
-            for( Node externalParameter : externalParameters )
+            for ( Node externalParameter : externalParameters )
             {
                 String type = WDLUtil.getType( externalParameter );
                 String name = WDLUtil.getName( externalParameter );
@@ -285,11 +285,11 @@ public class WDLEditor extends EditorPartSupport
 
         public void exportCollections(String outputDir) throws Exception
         {
-            for( DynamicProperty dp : parameters )
+            for ( DynamicProperty dp : parameters )
             {
                 if( dp.getValue() instanceof DataElementPath )
                 {
-                    DataElement de = ( (DataElementPath)dp.getValue() ).getDataElement();
+                    DataElement de = ((DataElementPath) dp.getValue()).getDataElement();
                     WDLUtil.export( de, new File( outputDir ) );
                 }
             }
@@ -302,7 +302,7 @@ public class WDLEditor extends EditorPartSupport
             {
                 bw.write( "{\n" );
                 boolean first = true;
-                for( DynamicProperty dp : parameters )
+                for ( DynamicProperty dp : parameters )
                 {
                     Object value = dp.getValue();
                     if( value instanceof DataElementPath dep )
@@ -319,7 +319,7 @@ public class WDLEditor extends EditorPartSupport
             return json;
         }
 
-        @PropertyName ( "Parameters" )
+        @PropertyName("Parameters")
         public DynamicPropertySet getParameters()
         {
             return parameters;
@@ -330,7 +330,7 @@ public class WDLEditor extends EditorPartSupport
             this.parameters = parameters;
         }
 
-        @PropertyName ( "Output path" )
+        @PropertyName("Output path")
         public DataElementPath getOutputPath()
         {
             return outputPath;
@@ -540,41 +540,6 @@ public class WDLEditor extends EditorPartSupport
     //
     //    }
 
-    public static class NextFlowPreprocessor
-    {
-        private WorkflowSettings settings;
-        public void NextFlowPreprocessor()
-        {
-
-        }
-
-        public void setExportPath(WorkflowSettings settings)
-        {
-            this.settings = settings;
-        }
-
-        public String preprocess(String s) throws Exception
-        {
-            return s.replace( "~{", "${" );
-            //            String[] lines = s.split( "\n" );
-            //            for( int i = 0; i < lines.length; i++ )
-            //            {
-            //                String line = lines[i];
-            //                if( line.contains( "biouml.get(" ) )
-            //                {
-            //                    line = line.replace( "\"", "" );
-            //                    String paramName = line.substring( line.indexOf( "." ) + 1, line.indexOf( "=" ) ).trim();
-            //                    String path = line.substring( line.indexOf( "(" ) + 1, line.lastIndexOf( ")" ) ).trim();
-            //                    DataElement de = DataElementPath.create( path ).getDataElement();
-            //                    export( de, new File( outputDir ) );
-            //                    lines[i] = "params." + paramName + " = file(\"" + de.getName() + "\")";
-            //                }
-            //            }
-            //            return StreamEx.of( lines ).joining( "\n" );
-        }
-
-
-    }
 
     //    public void importResults() throws Exception
     //    {
