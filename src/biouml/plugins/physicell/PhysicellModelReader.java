@@ -159,6 +159,7 @@ public class PhysicellModelReader extends ModelXmlReader
         {
             CellDefinitionVisualizerProperties visualizer = new CellDefinitionVisualizerProperties();
             visualizer.setType( visualizerElement.getAttribute( "type" ) );
+            visualizer.setSignal( visualizerElement.getAttribute( "signal" ) );
             visualizer.setCellType( visualizerElement.getAttribute( "cellType" ) );
             visualizer.setPriority( Double.parseDouble( visualizerElement.getAttribute( "priority" ) ) );
             visualizer.setColor1( visualizerElement.getAttribute( "color1" ) );
