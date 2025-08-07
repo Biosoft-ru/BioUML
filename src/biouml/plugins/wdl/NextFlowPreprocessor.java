@@ -1,7 +1,5 @@
 package biouml.plugins.wdl;
 
-import biouml.plugins.wdl.WDLEditor.WorkflowSettings;
-
 public class NextFlowPreprocessor
 {
     private WorkflowSettings settings;
