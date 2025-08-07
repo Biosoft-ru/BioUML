@@ -80,7 +80,7 @@ task $task.getName() {
 #######################################################################################
 ###################################WORKFLOW############################################
 #######################################################################################
-workflow $helper.getName() {
+workflow mainWorkflow {
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
   input {
