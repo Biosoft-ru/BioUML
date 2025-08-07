@@ -61,7 +61,6 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.TextDataElement;
-import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
@@ -393,7 +392,7 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                String wdl = wdlGenerator.generateWDL( (Diagram)model );
+                String wdl = wdlGenerator.generateWDL( diagram );
                 setWDL( wdl );
             }
             catch( Exception ex )
@@ -436,9 +435,8 @@ public class WDLEditor extends EditorPartSupport
                 String text = getWDL();
                 text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
                 AstStart start = new WDLParser().parse( new StringReader( text ) );
-                diagram = wdlImporter.generateDiagram( start, diagram.getOrigin(), diagram.getName() );
+                diagram = wdlImporter.generateDiagram( start, diagram);
                 wdlImporter.layout( diagram );
-                replaceDiagram( diagram );
                 setDiagram( diagram );
                 diagram.save();
             }
