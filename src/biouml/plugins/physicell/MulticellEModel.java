@@ -22,7 +22,6 @@ public class MulticellEModel extends EModelRoleSupport
 
     public MulticellEModel()
     {
-        reportProperties.setModel( this );
         visualizerProperties.setEModel( this );
     }
 
@@ -104,7 +103,6 @@ public class MulticellEModel extends EModelRoleSupport
     public MulticellEModel(DiagramElement diagramElement)
     {
         super( diagramElement );
-        reportProperties.setModel( this );
         visualizerProperties.setEModel( this );
     }
 
@@ -165,7 +163,6 @@ public class MulticellEModel extends EModelRoleSupport
         emodel.domain = domain.clone();
         emodel.initialCondition = initialCondition.clone();
         emodel.reportProperties = reportProperties.clone();
-        reportProperties.setModel( emodel );
         emodel.userParmeters = userParmeters.clone();
         emodel.options = options.clone();
         

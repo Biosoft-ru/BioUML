@@ -26,7 +26,13 @@ public class AstExpression extends SimpleNode
     private static Set<String> getArguments(Node node)
     {
         Set<String> result = new HashSet<>();
-        if (node instanceof AstSymbol)
+        
+        if (node instanceof AstSubSymbol)
+        {
+            result.add( node.toString() );
+            return result;
+        }
+        else if (node instanceof AstSymbol)
         {
             result.add( node.toString() );
         }
@@ -34,14 +40,11 @@ public class AstExpression extends SimpleNode
         {
             result.add( node.toString() );
         }
-        if( node instanceof AstSymbol )
-        {
-            result.add( node.toString() );
-        }
         else if( node instanceof AstContainerElement )
         {
             result.add( node.toString() );
         }
+        
         for( int i = 0; i < node.jjtGetNumChildren(); i++ )
         {
             Node child = node.jjtGetChild( i );

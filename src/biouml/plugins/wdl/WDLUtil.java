@@ -32,6 +32,7 @@ import ru.biosoft.access.generic.GenericDataCollection;
 
 public class WDLUtil
 {
+
     public static boolean isOfType(String type, DiagramElement de)
     {
         return type.equals( de.getKernel().getType() );
@@ -119,7 +120,15 @@ public class WDLUtil
 
     public static List<Node> getInputs(Compartment c)
     {
-        return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
+        List<Node> preliminary = c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
+        Node[] result = new Node[preliminary.size()];
+        for (Node node: preliminary)
+        {
+            Object posObj = node.getAttributes().getValue( WDLConstants.POSITION_ATTR );
+            if (posObj instanceof Integer)
+                result[(Integer)posObj] = node; 
+        }
+        return StreamEx.of(result).toList();
     }
 
     public static List<Node> getOutputs(Compartment c)
@@ -511,6 +520,12 @@ public class WDLUtil
             diagram.getAttributes().add( dp );
         }
         ImportProperties[] value = (ImportProperties[])dp.getValue();
+        
+        for( ImportProperties ip : value )
+        {
+            if( ip.alias.equals( alias ) && ip.source.toString().equals( source.getCompletePath().toString() ) )
+                return;
+        }
         ImportProperties[] newValue = new ImportProperties[value.length + 1];
         System.arraycopy( value, 0, newValue, 0, value.length );
         newValue[value.length] = new ImportProperties( source.getCompletePath(), alias );

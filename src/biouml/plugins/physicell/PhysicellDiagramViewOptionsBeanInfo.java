@@ -27,7 +27,9 @@ public class PhysicellDiagramViewOptionsBeanInfo extends BeanInfoEx2<PhysicellDi
         addWithoutChildren( "secretionPen", PenEditor.class );
         addWithoutChildren( "chemotaxisPen", PenEditor.class );
         addWithoutChildren( "interactionPen", PenEditor.class );
+        addWithoutChildren( "transformationPen", PenEditor.class );
         addWithoutChildren( "nodePen", PenEditor.class );
+        addWithoutChildren( "noteLinkPen", PenEditor.class );
         add( "styles" );
     }
 }

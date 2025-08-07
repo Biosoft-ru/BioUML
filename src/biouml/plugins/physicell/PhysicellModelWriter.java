@@ -74,6 +74,7 @@ public class PhysicellModelWriter extends ModelXmlWriter
             Element visualizerElement = doc.createElement( "visualizer" );
             visualizerElement.setAttribute( "cellType", visualizer.getCellType() );
             visualizerElement.setAttribute( "priority", String.valueOf( visualizer.getPriority() ) );
+            visualizerElement.setAttribute( "signal", String.valueOf( visualizer.getSignal()) );
             visualizerElement.setAttribute( "type", String.valueOf( visualizer.getType() ) );
             visualizerElement.setAttribute( "color1", String.valueOf( visualizer.getColor1() ) );
             visualizerElement.setAttribute( "color2", String.valueOf( visualizer.getColor2() ) );

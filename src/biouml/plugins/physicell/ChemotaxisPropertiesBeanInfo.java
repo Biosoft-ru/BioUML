@@ -14,6 +14,5 @@ public class ChemotaxisPropertiesBeanInfo extends BeanInfoEx2<ChemotaxisProperti
     {
         addReadOnly( "title" );
         add( "sensitivity" );
-        add("direction");
     }
 }

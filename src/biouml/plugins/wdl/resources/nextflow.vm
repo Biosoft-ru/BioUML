@@ -15,7 +15,7 @@
 #macro(callNF $call)
 #if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
 #set ($inputs = $helper.getInputs($call))
-  $helper.getResultName($call) = $helper.getTaskRef($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
+  $helper.getResultName($call) = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
@@ -64,8 +64,8 @@ $BR#end
 #set ($maxRetries = $helper.getMaxRetries($task))#if($maxRetries)  maxRetries $maxRetries$BR#end
 $BR  publishDir "$task.getName()", mode: 'copy'
 $BR  script:
-#foreach($declaration in $helper.getBeforeCommand($task))
-  $helper.writeDeclaration($declaration)
+#foreach($declaration in $helper.getPrivateDecarations($task))
+  $helper.writePrivateDeclaration($declaration)
 #end
   """
   $helper.getCommand($task).trim()
@@ -82,7 +82,7 @@ $BR  output:
 #######################################################################################
 ###################################WORKFLOW############################################
 #######################################################################################
-workflow $helper.getName() {
+workflow mainWorkflow {
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
   take:

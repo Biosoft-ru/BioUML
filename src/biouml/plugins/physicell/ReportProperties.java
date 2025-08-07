@@ -14,33 +14,6 @@ public class ReportProperties extends Option
     private boolean customVisualizer = false;
     private DataElementPath visualizerPath = null;
 
-    private MulticellEModel model;
-    private CellDefinitionVisualizerProperties[] properties = new CellDefinitionVisualizerProperties[0];
-
-    @PropertyName ( "Cell Type Properties" )
-    public CellDefinitionVisualizerProperties[] getProperties()
-    {
-        return properties;
-    }
-
-    public void setProperties(CellDefinitionVisualizerProperties[] properties)
-    {
-        this.properties = properties;
-
-        if( model != null )
-        {
-            for( CellDefinitionVisualizerProperties property : properties )
-                property.setModel( model );
-        }
-    }
-    
-    public void setModel(MulticellEModel model)
-    {
-        this.model = model;
-        for( CellDefinitionVisualizerProperties property : properties )
-            property.setModel( model );
-    }
-
     @PropertyName ( "Report" )
     public DataElementPath getReportPath()
     {

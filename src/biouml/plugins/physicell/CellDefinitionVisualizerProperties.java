@@ -13,12 +13,14 @@ import ru.biosoft.physicell.core.SignalBehavior;
 public class CellDefinitionVisualizerProperties extends Option
 {
     private static final String SMALLER_THAN_MIN = "Smaller than min";
+    private static final String SMALLER_OR_EQUAL_MIN = "Smaller or equal to min";
+    private static final String LARGER_OR_EQUAL_MAX = "Larger or equal to max";
     private static final String LARGER_THAN_MAX = "Larger than max";
     private static final String GRADIENT = "Gradient";
     private static final String FIXED_COLOR = "Fixed color";
 
     private MulticellEModel model;
-    private String[] types = new String[] {FIXED_COLOR, GRADIENT, LARGER_THAN_MAX, SMALLER_THAN_MIN};
+    private String[] types = new String[] {FIXED_COLOR, GRADIENT, LARGER_OR_EQUAL_MAX, LARGER_THAN_MAX, SMALLER_THAN_MIN, SMALLER_OR_EQUAL_MIN};
     private String[] cellTypes = new String[0];
     private String[] signals = new String[] {"No signal"};
 
@@ -171,11 +173,25 @@ public class CellDefinitionVisualizerProperties extends Option
         else if( type.equals( LARGER_THAN_MAX ) )
         {
             double signal = getSignal( cell );
+            if( signal > max )
+                return getScheme( color1 );
+            return null;
+        }
+        else if( type.equals( LARGER_OR_EQUAL_MAX ) )
+        {
+            double signal = getSignal( cell );
             if( signal >= max )
                 return getScheme( color1 );
             return null;
         }
         else if( type.equals( SMALLER_THAN_MIN ) )
+        {
+            double signal = getSignal( cell );
+            if( signal < min )
+                return getScheme( color1 );
+            return null;
+        }
+        else if( type.equals( SMALLER_OR_EQUAL_MIN ) )
         {
             double signal = getSignal( cell );
             if( signal <= min )

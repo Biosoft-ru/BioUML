@@ -48,6 +48,10 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         {
             return createEventView( container, node, (PhysicellDiagramViewOptions)options, g );
         }
+        else if( PhysicellConstants.TYPE_NOTE.equals( node.getKernel().getType() ) )
+        {
+            return super.createNoteView( container, node, options );
+        }
         return super.createNodeCoreView( container, node, options, g );
     }
 
@@ -179,14 +183,17 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         if( PhysicellConstants.TYPE_SECRETION.equals( edge.getKernel().getType() ) )
             view = createSecretionEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
 
-        if( PhysicellConstants.TYPE_CHEMOTAXIS.equals( edge.getKernel().getType() ) )
+        else if( PhysicellConstants.TYPE_CHEMOTAXIS.equals( edge.getKernel().getType() ) )
             view = createChemotaxisEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
 
-        if( PhysicellConstants.TYPE_INTERACTION.equals( edge.getKernel().getType() ) )
+        else if( PhysicellConstants.TYPE_INTERACTION.equals( edge.getKernel().getType() ) )
             view = createInteractionEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
 
-        if( PhysicellConstants.TYPE_TRANSFORMATION.equals( edge.getKernel().getType() ) )
+        else if( PhysicellConstants.TYPE_TRANSFORMATION.equals( edge.getKernel().getType() ) )
             view = createTransformationEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
+        
+        else if( PhysicellConstants.TYPE_NOTE_LINK.equals( edge.getKernel().getType() ) )
+            view = createNoteEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
 
         if( view != null )
         {
@@ -198,6 +205,13 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         return super.createEdgeView( edge, options, g );
     }
 
+    public CompositeView createNoteEdgeView(Edge edge, PhysicellDiagramViewOptions options, Graphics g)
+    {
+        SimplePath path = edge.getSimplePath();
+        Pen pen = getBorderPen( edge, options.getNoteLinkPen() );
+        return new ArrowView( pen, null, path, null, null );
+    }
+    
     public CompositeView createInteractionEdgeView(Edge edge, PhysicellDiagramViewOptions options, Graphics g)
     {
         Brush brush = getBrush( edge, new Brush( options.getInteractionPen().getColor() ) );

@@ -19,6 +19,5 @@ public class ReportPropertiesBeanInfo extends BeanInfoEx2<ReportProperties>
         property( "globalReportPath" ).hidden( "isDefaultGlobalReport" ).inputElement( ScriptDataElement.class ).add();
         add("customVisualizer");
         property( "visualizerPath" ).hidden( "isDefaultVisualizer" ).inputElement( ScriptDataElement.class ).add();
-        add("properties");
     }
 }

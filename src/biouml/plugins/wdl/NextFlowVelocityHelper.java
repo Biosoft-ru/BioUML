@@ -58,8 +58,6 @@ public class NextFlowVelocityHelper
         return WDLUtil.getTasks( diagram );
     }
 
-
-
     public List<Node> getInputs(Compartment c)
     {
         return WDLUtil.getInputs( c );
@@ -459,12 +457,15 @@ public class NextFlowVelocityHelper
         return WDLUtil.getCallName( call );
     }
 
-    public String writeDeclaration(Declaration declaration)
+    public String writePrivateDeclaration(Declaration declaration)
     {
-        return getNextFlowType( declaration.getType() ) + " " + declaration.getName() + " = " + declaration.getExpression();
+        String expression = declaration.getExpression();
+        expression = expression.replace( "~{", "${" );
+        return "def " + declaration.getName() + " = " + expression;
+        //getNextFlowType( declaration.getType() )
     }
 
-    public Object getBeforeCommand(Compartment task)
+    public Object getPrivateDecarations(Compartment task)
     {
         return WDLUtil.getBeforeCommand( task );
     }

@@ -12,7 +12,6 @@ import biouml.model.SemanticController;
 import biouml.model.util.DiagramXmlReader;
 import biouml.model.util.DiagramXmlWriter;
 import biouml.standard.type.Base;
-import biouml.standard.type.Type;
 import ru.biosoft.access.core.DataCollection;
 
 @PropertyName ( "Physicell models" )
@@ -30,14 +29,15 @@ public class PhysicellDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getNodeTypes()
     {
-        return new Object[] {PhysicellConstants.TYPE_CELL_DEFINITION, PhysicellConstants.TYPE_SUBSTRATE, PhysicellConstants.TYPE_EVENT, Type.TYPE_NOTE};
+        return new Object[] {PhysicellConstants.TYPE_CELL_DEFINITION, PhysicellConstants.TYPE_SUBSTRATE, PhysicellConstants.TYPE_EVENT,
+                PhysicellConstants.TYPE_NOTE};
     }
 
     @Override
     public Object[] getEdgeTypes()
     {
         return new Object[] {PhysicellConstants.TYPE_SECRETION, PhysicellConstants.TYPE_CHEMOTAXIS, PhysicellConstants.TYPE_INTERACTION,
-                PhysicellConstants.TYPE_TRANSFORMATION};
+                PhysicellConstants.TYPE_TRANSFORMATION, PhysicellConstants.TYPE_NOTE_LINK};
     }
 
     @Override

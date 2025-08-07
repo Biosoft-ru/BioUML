@@ -1719,26 +1719,43 @@ void call()      :
 		        equationSymbol()
 	        )*
 	    	(sepEol())*
+	    	(/*@bgen(jjtree) Comma */
+                 {
+                   AstComma jjtn006 = new AstComma(JJTCOMMA);
+                   boolean jjtc006 = true;
+                   jjtree.openNodeScope(jjtn006);
+                   jjtn006.jjtSetFirstToken(getToken(1));
+                 }
+                 try {
+/*@egen*/< COMMA >/*@bgen(jjtree)*/
+                 } finally {
+                   if (jjtc006) {
+                     jjtree.closeNodeScope(jjtn006, true);
+                     jjtn006.jjtSetLastToken(getToken(0));
+                   }
+                 }
+/*@egen*/       )?
+	        (sepEol())*
 	    )?
     (/*@bgen(jjtree) RegularFormulaElement */
      {
-       AstRegularFormulaElement jjtn006 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
-       boolean jjtc006 = true;
-       jjtree.openNodeScope(jjtn006);
-       jjtn006.jjtSetFirstToken(getToken(1));
+       AstRegularFormulaElement jjtn007 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+       boolean jjtc007 = true;
+       jjtree.openNodeScope(jjtn007);
+       jjtn007.jjtSetFirstToken(getToken(1));
      }
      try {
 /*@egen*/(< BRACE_R >/*@bgen(jjtree)*/
                   {
-                    jjtree.closeNodeScope(jjtn006, true);
-                    jjtc006 = false;
-                    jjtn006.jjtSetLastToken(getToken(0));
+                    jjtree.closeNodeScope(jjtn007, true);
+                    jjtc007 = false;
+                    jjtn007.jjtSetLastToken(getToken(0));
                   }
-/*@egen*/ {jjtn006.setElement(token.image);})/*@bgen(jjtree)*/
+/*@egen*/ {jjtn007.setElement(token.image);})/*@bgen(jjtree)*/
      } finally {
-       if (jjtc006) {
-         jjtree.closeNodeScope(jjtn006, true);
-         jjtn006.jjtSetLastToken(getToken(0));
+       if (jjtc007) {
+         jjtree.closeNodeScope(jjtn007, true);
+         jjtn007.jjtSetLastToken(getToken(0));
        }
      }
 /*@egen*/                       )
