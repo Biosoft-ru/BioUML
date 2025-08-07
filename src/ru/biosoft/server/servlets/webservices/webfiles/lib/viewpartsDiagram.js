@@ -6695,6 +6695,7 @@ function WDLViewPart()
             settings: settings
         }, function(data)
         {
+            refreshTreeBranch(data.values);
             openBranch(data.values);
         },
         function(data)

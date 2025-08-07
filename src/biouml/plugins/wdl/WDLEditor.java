@@ -72,8 +72,6 @@ import ru.biosoft.util.bean.BeanInfoEx2;
 @SuppressWarnings ( "serial" )
 public class WDLEditor extends EditorPartSupport
 {
-    public static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
-
     private static final Logger log = Logger.getLogger( WDLEditor.class.getName() );
 
     private JTabbedPane tabbedPane;
@@ -292,7 +290,7 @@ public class WDLEditor extends EditorPartSupport
                 if( dp.getValue() instanceof DataElementPath )
                 {
                     DataElement de = ( (DataElementPath)dp.getValue() ).getDataElement();
-                    export( de, new File( outputDir ) );
+                    WDLUtil.export( de, new File( outputDir ) );
                 }
             }
         }
@@ -415,7 +413,14 @@ public class WDLEditor extends EditorPartSupport
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            runNextFlow( diagram.getName(), getNextFlow() );
+            try
+            {
+                WDLRunner.runNextFlow( diagram, settings, outputDir, System.getProperty("os.name").startsWith("Windows") );
+            }
+            catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -449,91 +454,91 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-    private void runNextFlow(String name, String script)
-    {
-        try
-        {
-            if( settings.getOutputPath() == null )
-                log.info( "Output path not specified" );
+    //    private void runNextFlow(String name, String script)
+    //    {
+    //        try
+    //        {
+    //            if( settings.getOutputPath() == null )
+    //                log.info( "Output path not specified" );
+    //
+    //
+    //            new File( outputDir ).mkdirs();
+    //            DataCollectionUtils.createSubCollection( settings.getOutputPath() );
+    //
+    //            File config = new File( outputDir, "nextflow.config" );
+    //            ApplicationUtils.writeString( config, "docker.enabled = true" );
+    //
+    //            File json = settings.generateParametersJSON( outputDir );
+    //
+    //            settings.exportCollections( outputDir );
+    //
+    //            WDLUtil.generateFunctions( outputDir );
+    //
+    //            for( DataElement de : StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() ) )
+    //                WDLUtil.export( de, new File( outputDir ) );
+    //
+    //            NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
+    //            script = preprocessor.preprocess( script );
+    //            File f = new File( outputDir, name + ".nf" );
+    //            ApplicationUtils.writeString( f, script );
+    //            String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
+    //
+    //            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
+    //                    json.getName()};
+    //            //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
+    //            //                    "/data/" + f.getName()};
+    //
+    //            executeCommand( command );
+    //
+    //            importResults();
+    //        }
+    //        catch( Exception ex )
+    //        {
+    //            ex.printStackTrace();
+    //        }
+    //    }
 
-
-            new File( outputDir ).mkdirs();
-            DataCollectionUtils.createSubCollection( settings.getOutputPath() );
-
-            File config = new File( outputDir, "nextflow.config" );
-            ApplicationUtils.writeString( config, "docker.enabled = true" );
-
-            File json = settings.generateParametersJSON( outputDir );
-
-            settings.exportCollections( outputDir );
-
-            generateFunctions( outputDir );
-
-            for( DataElement de : StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() ) )
-                export( de, new File( outputDir ) );
-
-            NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
-            script = preprocessor.preprocess( script );
-            File f = new File( outputDir, name + ".nf" );
-            ApplicationUtils.writeString( f, script );
-            String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-
-            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
-                    json.getName()};
-            //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
-            //                    "/data/" + f.getName()};
-
-            executeCommand( command );
-
-            importResults();
-        }
-        catch( Exception ex )
-        {
-            ex.printStackTrace();
-        }
-    }
-
-    public static void executeCommand(String[] command) throws Exception
-    {
-        System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
-        Process process = Runtime.getRuntime().exec( command );
-
-        new Thread( new Runnable()
-        {
-            public void run()
-            {
-                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-                String line = null;
-
-                try
-                {
-                    while( ( line = input.readLine() ) != null )
-                        log.info( line );
-                }
-                catch( IOException e )
-                {
-                    e.printStackTrace();
-                }
-                //                
-                //for some reason cwl-runner outputs everything into error stream
-                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-                line = null;
-
-                try
-                {
-                    while( ( line = err.readLine() ) != null )
-                        log.info( line );
-                }
-                catch( IOException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-        } ).start();
-
-        process.waitFor();
-
-    }
+    //    private void executeCommand(String[] command) throws Exception
+    //    {
+    //        System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
+    //        Process process = Runtime.getRuntime().exec( command );
+    //
+    //        new Thread( new Runnable()
+    //        {
+    //            public void run()
+    //            {
+    //                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+    //                String line = null;
+    //
+    //                try
+    //                {
+    //                    while( ( line = input.readLine() ) != null )
+    //                        log.info( line );
+    //                }
+    //                catch( IOException e )
+    //                {
+    //                    e.printStackTrace();
+    //                }
+    //                //                
+    //                //for some reason cwl-runner outputs everything into error stream
+    //                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
+    //                line = null;
+    //
+    //                try
+    //                {
+    //                    while( ( line = err.readLine() ) != null )
+    //                        log.info( line );
+    //                }
+    //                catch( IOException e )
+    //                {
+    //                    e.printStackTrace();
+    //                }
+    //            }
+    //        } ).start();
+    //
+    //        process.waitFor();
+    //
+    //    }
 
     public static class NextFlowPreprocessor
     {
@@ -571,79 +576,28 @@ public class WDLEditor extends EditorPartSupport
 
     }
 
-    public void importResults() throws Exception
-    {
-        if( settings.getOutputPath() == null )
-            return;
-        DataCollection dc = settings.getOutputPath().getDataCollection();
-
-        for( Compartment n : WDLUtil.getAllCalls( diagram ) )
-        {
-            String taskRef = WDLUtil.getTaskRef( n );
-            String folderName = ( taskRef );
-            File folder = new File( outputDir, folderName );
-            if( !folder.exists() || !folder.isDirectory() )
-            {
-                log.info( "No results for " + n.getName() );
-                continue;
-            }
-            DataCollection nested = DataCollectionUtils.createSubCollection( dc.getCompletePath().getChildPath( folderName ) );
-            for( File f : folder.listFiles() )
-            {
-                TextFileImporter importer = new TextFileImporter();
-                importer.doImport( nested, f, f.getName(), null, log );
-            }
-        }
-    }
-
-    public static void export(DataElement de, File dir) throws Exception
-    {
-        if( !dir.exists() && !dir.mkdirs() )
-            throw new Exception( "Failed to create directory '" + dir.getName() + "'." );
-        if( de instanceof TextDataElement )
-        {
-            String str = ( (TextDataElement)de ).getContent();
-            File exported = new File( dir, de.getName() );
-            ApplicationUtils.writeString( exported, str );
-        } 
-        else if( de instanceof Diagram )
-        {
-            NextFlowGenerator generator = new NextFlowGenerator();
-            String nextFlow = generator.generateNextFlow( (Diagram)de );
-            File exported = new File( dir, de.getName() );
-            ApplicationUtils.writeString( exported, nextFlow );
-        }
-        else if( de instanceof GenericDataCollection )
-        {
-            File exportedDir = new File( dir, de.getName() );
-            exportedDir.mkdirs();
-            for( Object innerDe : ( (DataCollection<?>)de ) )
-                export( (DataElement)innerDe, new File( dir, de.getName() ) );
-        }
-        else
-        {
-            File exported = new File( dir, de.getName() );
-            FileExporter exporter = new FileExporter();
-            exporter.doExport( de, exported );
-        }
-    }
-
-    public static File generateFunctions(String outputDir) throws IOException
-    {  
-        InputStream inputStream = WDLEditor.class.getResourceAsStream( BIOUML_FUNCTIONS_NF );
-        File result = new File( outputDir, "biouml_function.nf" );
-        Files.copy(inputStream, result.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        return result;
-//        try (BufferedWriter bw = new BufferedWriter( new FileWriter( result ) ))
-//        {
-//            String baseName = """
-//                    def basename(filePath) {
-//                        def fname = filePath instanceof Path ? filePath.getFileName().toString() : filePath.toString()
-//                        return fname.replaceFirst(/\\.[^\\.]+$/, '')
-//                    }""";
-//            bw.write( baseName );
-//        }
-//        return result;
-
-    }
+    //    public void importResults() throws Exception
+    //    {
+    //        if( settings.getOutputPath() == null )
+    //            return;
+    //        DataCollection dc = settings.getOutputPath().getDataCollection();
+    //
+    //        for( Compartment n : WDLUtil.getAllCalls( diagram ) )
+    //        {
+    //            String taskRef = WDLUtil.getTaskRef( n );
+    //            String folderName = ( taskRef );
+    //            File folder = new File( outputDir, folderName );
+    //            if( !folder.exists() || !folder.isDirectory() )
+    //            {
+    //                log.info( "No results for " + n.getName() );
+    //                continue;
+    //            }
+    //            DataCollection nested = DataCollectionUtils.createSubCollection( dc.getCompletePath().getChildPath( folderName ) );
+    //            for( File f : folder.listFiles() )
+    //            {
+    //                TextFileImporter importer = new TextFileImporter();
+    //                importer.doImport( nested, f, f.getName(), null, log );
+    //            }
+    //        }
+    //    }
 }
