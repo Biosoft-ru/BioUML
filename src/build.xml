@@ -220,7 +220,7 @@
             <exclude name="**/_test/*.java" />
         </javac>
         <copy todir="${OUTDIR}">
-            <fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml">
+            <fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml,**/*.nf">
                 <exclude name="**/large/"/>
             </fileset>
         </copy>
@@ -967,9 +967,9 @@
 	
 	<target name="plugin.wdl" depends="compile">
         <create.plugin plugin="biouml.plugins.wdl" source="biouml/plugins/wdl">
-		  <files>
-		    <include name="biouml/plugins/wdl/resources/*.nf"/>
-		  </files>
+        	<files>
+                <include name="biouml/plugins/wdl/**/*.nf"/>
+            </files>
         </create.plugin>
     </target>
 	

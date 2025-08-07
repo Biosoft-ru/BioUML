@@ -349,8 +349,6 @@
         outputClass="ru.biosoft.bsa.analysis.FrequencyMatrix" transformerClass="ru.biosoft.bsa.transformer.WeightMatrixTransformer"/>
       <transformer name="Filtered track" inputClass="ru.biosoft.access.file.FileDataElement"
         outputClass="ru.biosoft.bsa.analysis.FilteredTrack" transformerClass="ru.biosoft.access.XMLTransformer"/> 
-      <transformer name="Combined track" inputClass="ru.biosoft.access.file.FileDataElement"
-        outputClass="ru.biosoft.bsa.track.combined.CombinedTrack" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer"/>
   </extension> 
   
   <extension id="Site search analysis" point="ru.biosoft.analysiscore.method"> 
@@ -1020,8 +1018,8 @@
     <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
     <fileType name="BCF track" extensions="bcf" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer" priority="20" description="BCF track file"/>
     <fileType name="GenBank track" extensions="gb" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer" priority="20" description="BCF track file"/>
-    <fileType name="HIC file" extensions="hic" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer" priority="20" description="Combined track file"/>
-    <fileType name="CombinedTrack" extensions="comb" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer" priority="20" description="HIC matrix file"/>
+    <fileType name="HIC file" extensions="hic" transformerClass="ru.biosoft.bsa.transformer.HICFileTransformer" priority="20" description="HIC matrix file"/>
+    <fileType name="CombinedTrack" extensions="comb" transformerClass="ru.biosoft.bsa.transformer.CombinedTrackTransformer" priority="20" description="Combined track file"/>
     <fileType name="GCContent" extensions="gc" transformerClass="ru.biosoft.bsa.transformer.GCContentFileTransformer" priority="20" description="GCContent file"/>
   </extension>
   

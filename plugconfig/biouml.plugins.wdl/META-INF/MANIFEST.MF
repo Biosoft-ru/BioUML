@@ -4,24 +4,24 @@ Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-SymbolicName: biouml.plugins.wdl;singleton:=true
 Bundle-Vendor: %providerName
-Require-Bundle: org.eclipse.osgi,
- org.apache.http,
+Require-Bundle: ru.biosoft.graphics,
+ org.eclipse.osgi,
  org.apache.commons.lang,
  org.apache.velocity,
  one.util.streamex,
- json,
- com.developmentontheedge.util,
- com.developmentontheedge.beans,
- ru.biosoft.access,
- ru.biosoft.graph,
- ru.biosoft.graphics,
- ru.biosoft.exception,
- ru.biosoft.jobcontrol,
- ru.biosoft.analysiscore,
- ru.biosoft.server.servlets,
- ru.biosoft.workbench,
  biouml.workbench,
  biouml.workbench.graph,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ ru.biosoft.jobcontrol,
+ json,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.graph,
+ ru.biosoft.server,
+ ru.biosoft.server.servlets,
+ ru.biosoft.workbench,
  com.Ostermiller.syntax
 Export-Package: biouml.plugins.wdl,
-  biouml.plugins.wdl.diagram
+  biouml.plugins.wdl.diagram,
+  biouml.plugins.wdl.web

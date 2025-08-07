@@ -1,5 +1,6 @@
 package biouml.plugins.wdl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.Option;
@@ -21,7 +23,12 @@ import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import one.util.streamex.StreamEx;
+import ru.biosoft.access.FileExporter;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.core.TextDataElement;
+import ru.biosoft.access.generic.GenericDataCollection;
 
 public class WDLUtil
 {
@@ -557,4 +564,37 @@ public class WDLUtil
             matches.add( matcher.group( 1 ) );
         return matches;
     }
+
+    public static void export(DataElement de, File dir) throws Exception
+    {
+        if( !dir.exists() && !dir.mkdirs() )
+            throw new Exception( "Failed to create directory '" + dir.getName() + "'." );
+        if( de instanceof TextDataElement )
+        {
+            String str = ((TextDataElement) de).getContent();
+            File exported = new File( dir, de.getName() );
+            ApplicationUtils.writeString( exported, str );
+        }
+        else if( de instanceof Diagram )
+        {
+            NextFlowGenerator generator = new NextFlowGenerator();
+            String nextFlow = generator.generateNextFlow( (Diagram) de );
+            File exported = new File( dir, de.getName() );
+            ApplicationUtils.writeString( exported, nextFlow );
+        }
+        else if( de instanceof GenericDataCollection )
+        {
+            File exportedDir = new File( dir, de.getName() );
+            exportedDir.mkdirs();
+            for ( Object innerDe : ((DataCollection<?>) de) )
+                export( (DataElement) innerDe, new File( dir, de.getName() ) );
+        }
+        else
+        {
+            File exported = new File( dir, de.getName() );
+            FileExporter exporter = new FileExporter();
+            exporter.doExport( de, exported );
+        }
+    }
+
 }

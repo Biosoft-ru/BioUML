@@ -93,7 +93,7 @@ import biouml.standard.type.Type;
 import biouml.workbench.diagram.DiagramEditorHelper;
 import biouml.workbench.diagram.SetInitialValuesAction;
 import biouml.workbench.diagram.ViewEditorPaneStub;
-//import biouml.workbench.diagram.viewpart.HighlightFilter;
+import biouml.workbench.diagram.viewpart.HighlightFilter;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import biouml.workbench.graphsearch.SearchElement;
 import one.util.streamex.StreamEx;
@@ -115,6 +115,7 @@ import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.support.IdGenerator;
 import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.exception.InternalException;
 import ru.biosoft.exception.LoggedClassNotFoundException;
 import ru.biosoft.graph.ForceDirectedLayouter;
 import ru.biosoft.graph.Graph;
@@ -605,6 +606,11 @@ public class WebDiagramsProvider extends WebProviderSupport
             sendDiagramImage(diagram, out);
             return;
         }
+    }
+
+    public static void correctBeanOptions(Object bean, JSONArray jsonParams) throws JSONException, InternalException
+    {
+        JSONUtils.correctBeanOptions( bean, jsonParams );
     }
 
     private void setInitial(Diagram diagram, BiosoftWebRequest arguments, OutputStream out) throws Exception
@@ -3161,10 +3167,11 @@ public class WebDiagramsProvider extends WebProviderSupport
             StreamEx.of( elements ).map( el -> diagram.findDiagramElement( el ) ).nonNull().forEach( e -> des.add( e ) );
         }
         DiagramUtility.highlight( des );
-        //        highlightFilter.setEnabled( true );
+        HighlightFilter highlightFilter = new HighlightFilter( Color.yellow );
+        highlightFilter.setEnabled( true );
         Diagram d = Diagram.getDiagram( diagram );
-        //        if( !DiagramUtility.hasFilter( d, highlightFilter ) )
-        //            DiagramUtility.addFilter( d, highlightFilter );
+        if( !DiagramUtility.hasFilter( d, highlightFilter ) )
+            DiagramUtility.addFilter( d, highlightFilter );
     }
 
     private void removeVariables(Compartment diagram, Set<String> elements) throws Exception
