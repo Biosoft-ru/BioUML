@@ -423,7 +423,7 @@ public class WDLImporter implements DataElementImporter
                 Diagram importedDiagram = imports.get( diagramAlias );
                 diagramRef = importedDiagram.getName();
 
-                if( taskRef.equals( importedDiagram.getName() ) )
+                if( taskRef.equals( WDLConstants.MAIN_WORKFLOW) )
                 {
                     taskСompartment = importedDiagram;
                     externalDiagram = true;
