@@ -966,7 +966,11 @@
     </target>
 	
 	<target name="plugin.wdl" depends="compile">
-        <create.plugin plugin="biouml.plugins.wdl" source="biouml/plugins/wdl"/>
+        <create.plugin plugin="biouml.plugins.wdl" source="biouml/plugins/wdl">
+		  <files>
+		    <include name="biouml/plugins/wdl/resources/*.nf"/>
+		  </files>
+        </create.plugin>
     </target>
 	
     <!-- =================================================================== -->
