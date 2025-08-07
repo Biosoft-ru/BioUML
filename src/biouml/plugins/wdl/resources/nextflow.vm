@@ -82,7 +82,7 @@ $BR  output:
 #######################################################################################
 ###################################WORKFLOW############################################
 #######################################################################################
-workflow mainWorkflow {
+workflow $helper.getMainWorkflowName() {
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
   take:

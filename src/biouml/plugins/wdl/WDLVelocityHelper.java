@@ -7,20 +7,12 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.WDLUtil.ImportProperties;
-import biouml.plugins.wdl.diagram.WDLConstants;
 
-public class WDLVelocityHelper
+public class WDLVelocityHelper extends WorkflowVelocityHelper
 {
-    private Diagram diagram;
-
     public WDLVelocityHelper(Diagram diagram)
     {
-        this.diagram = diagram;
-    }
-
-    public String getName()
-    {
-        return diagram.getName();
+        super(diagram);
     }
 
     public List<Node> getExternalParameters()

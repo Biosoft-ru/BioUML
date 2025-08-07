@@ -17,15 +17,11 @@ import biouml.plugins.wdl.WDLUtil.ImportProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import one.util.streamex.StreamEx;
 
-public class NextFlowVelocityHelper
+public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 {
-    private Diagram diagram;
-    private List<Node> orderedCalls;
-
     public NextFlowVelocityHelper(Diagram diagram)
     {
-        this.diagram = diagram;
-        orderedCalls = WDLUtil.orderCallsScatters( diagram );
+       super( diagram );
     }
 
     public List<Node> orderCalls(Compartment compartment)
@@ -62,14 +58,6 @@ public class NextFlowVelocityHelper
     {
         return WDLUtil.getInputs( c );
     }
-
-    /**
-     * returns node which is connected with this input node of a call
-     */
-    //    public Node getSource(Node node)
-    //    {
-    //        return node.edges().filter(e->e.getOutput().equals( node )).map( e -> e.getInput() ).findAny().orElse( null );
-    //    }
 
     public List<Node> getOutputs(Compartment c)
     {
@@ -261,28 +249,6 @@ public class NextFlowVelocityHelper
         return getName( node );
     }
 
-    //    public String createChannelFromArrray(Compartment cycle, Compartment call)
-    //    {
-    //        String cycleVar = getCycleVariable( cycle );
-    //        Node arrayNode = WDLUtil.getCycleNode( cycle );
-    //        String cycleName = getCycleName( cycle );
-    //        String type = WDLUtil.getType( arrayNode );
-    //
-    //        Set<String> arrayInputs = getArrayDepenedantInputs( cycleVar, call );
-    //        List<String> allInputs = getInputNames( call );
-    //
-    //        Map<String, String> inputsFromTasks;
-    //
-    //        String channel = "Channel.from(" + cycleName + ")";
-    //
-    //        if( arrayInputs.size() > 1 || allInputs.size() > arrayInputs.size() )
-    //        {
-    //            channel += ".map { " + cycleVar + " -> tuple(" + StreamEx.of( allInputs ).joining( "," ) + ") }";
-    //        }
-    //        channel += ".set{ " + getInputName( call ) + " }";
-    //        return channel;
-    //    }
-
     public boolean isInsideCycle(Compartment call)
     {
         return WDLUtil.isCycle( call.getCompartment() );
@@ -436,12 +402,6 @@ public class NextFlowVelocityHelper
         return WDLUtil.getCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
     }
 
-    //    public String getImportedTask(Compartment call)
-    //    {
-    //        String taskRef = WDLUtil.getTaskRef( call );
-    //        return taskRef.substring( taskRef.lastIndexOf( "." ) + 1 );
-    //    }
-
     public String getImportedDiagram(Compartment call)
     {
         return WDLUtil.getDiagramRef( call );
@@ -462,7 +422,6 @@ public class NextFlowVelocityHelper
         String expression = declaration.getExpression();
         expression = expression.replace( "~{", "${" );
         return "def " + declaration.getName() + " = " + expression;
-        //getNextFlowType( declaration.getType() )
     }
 
     public Object getPrivateDecarations(Compartment task)
