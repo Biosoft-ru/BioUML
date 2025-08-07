@@ -30,7 +30,7 @@ public class PhysicellOptions extends Options
     private String cellUpdateType = CellContainerParallel.PARALLEL_CONTAINER_NAME;
 
     private double imageInterval = 10;
-    private double seed;
+    private long seed;
     private boolean useManualSeed = false;
     private double diffusionDt = 0.01;
     private double mechanicsDt = 0.1;
@@ -38,6 +38,7 @@ public class PhysicellOptions extends Options
 
     private boolean calculateGradient = true;
     private boolean trackInnerSubstrates = true;
+    private boolean strictAgentsOrder = true;
     
     @PropertyName ( "Use manual seed" )
     public boolean isUseManualSeed()
@@ -50,11 +51,11 @@ public class PhysicellOptions extends Options
     }
 
     @PropertyName ( "Manual seed" )
-    public double getSeed()
+    public long getSeed()
     {
         return seed;
     }
-    public void setSeed(double seed)
+    public void setSeed(long seed)
     {
         this.seed = seed;
     }
@@ -265,5 +266,15 @@ public class PhysicellOptions extends Options
     public void setCalculateGradient(boolean calculateGradient)
     {
         this.calculateGradient = calculateGradient;
+    }
+    
+    @PropertyName("Fixed agents order")
+    public boolean isStrictAgentsOrder()
+    {
+        return strictAgentsOrder;
+    }
+    public void setStrictAgentsOrder(boolean strictAgentsOrder)
+    {
+        this.strictAgentsOrder = strictAgentsOrder;
     }
 }

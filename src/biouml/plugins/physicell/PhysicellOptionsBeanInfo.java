@@ -34,6 +34,7 @@ public class PhysicellOptionsBeanInfo extends BeanInfoEx2<PhysicellOptions>
         add( "savePlots" );
         add( "useManualSeed" );
         add( "seed" );
+        add("strictAgentsOrder");
         add("calculateGradient");
         add("trackInnerSubstrates");
         property("modelType").tags( PhysicellOptions.DEFAULT_MODEL, PhysicellOptions.COVID_MODEL ).add();
