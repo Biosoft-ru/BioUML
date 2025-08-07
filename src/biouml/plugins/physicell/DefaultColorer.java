@@ -37,17 +37,16 @@ public class DefaultColorer implements AgentColorer
     public Color[] findColors(Cell cell)
     {
         List<CellDefinitionVisualizerProperties> visualizerProperties = properties.get( cell.typeName );
-        if( visualizerProperties.size() == 0 )
-            return defaultColors;
-
-        for( CellDefinitionVisualizerProperties properties : visualizerProperties )
+        if( visualizerProperties != null )
         {
-            ColorScheme scheme = properties.calculate( cell );
-            if( scheme == null )
-                continue;
-            return new Color[] {scheme.getColor(), scheme.getBorderColor(), scheme.getCoreColor(), scheme.getCoreBorderColor()};
+            for( CellDefinitionVisualizerProperties properties : visualizerProperties )
+            {
+                ColorScheme scheme = properties.calculate( cell );
+                if( scheme == null )
+                    continue;
+                return new Color[] {scheme.getColor(), scheme.getBorderColor(), scheme.getCoreColor(), scheme.getCoreBorderColor()};
+            }
         }
-        
         Brush color = defaultColorMap.get( cell.typeName );
         if (color != null)
             return new Color[] {color.getColor(), Color.black};
