@@ -2,6 +2,8 @@ package biouml.plugins.wdl.diagram;
 
 public class WDLConstants
 {
+    public static final String MAIN_WORKFLOW = "mainWorkflow";
+    
     public static String SCATTER_VARIABLE_TYPE = "Scatter variable";
     public static String SCATTER_TYPE = "Scatter";
     public static String TASK_TYPE = "Task";
@@ -30,4 +32,5 @@ public class WDLConstants
     public static final String IMPORTS_ATTR = "IMPORTS_ATTR";
     public static final String POSITION_ATTR = "position";
     public static final String SETTINGS_ATTR = "Settings";
+
 }
