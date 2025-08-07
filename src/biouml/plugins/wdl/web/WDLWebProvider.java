@@ -9,9 +9,9 @@ import org.json.JSONObject;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
-import biouml.plugins.wdl.WDLEditor.WorkflowSettings;
 import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl.WDLRunner;
+import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
@@ -68,7 +68,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
             AstStart start = new WDLParser().parse( new StringReader( text ) );
             WDLImporter wdlImporter = new WDLImporter();
-            diagram = wdlImporter.generateDiagram( start, diagram.getOrigin(), diagram.getName() );
+            diagram = wdlImporter.generateDiagram( start, diagram );
             wdlImporter.layout( diagram );
             diagramPath.save( diagram );
             OutputStream out = response.getOutputStream();

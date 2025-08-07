@@ -1,7 +1,7 @@
 package biouml.plugins.wdl.web;
 
 import biouml.model.Diagram;
-import biouml.plugins.wdl.WDLEditor.WorkflowSettings;
+import biouml.plugins.wdl.WorkflowSettings;
 import ru.biosoft.access.BeanProvider;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
 
