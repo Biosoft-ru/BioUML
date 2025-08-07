@@ -3,17 +3,7 @@ package biouml.plugins.wdl;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,21 +19,15 @@ import javax.swing.text.StyledEditorKit;
 
 import com.Ostermiller.Syntax.HighlightedDocument;
 import com.developmentontheedge.application.Application;
-import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
 import com.developmentontheedge.beans.DynamicProperty;
-import com.developmentontheedge.beans.DynamicPropertySet;
-import com.developmentontheedge.beans.DynamicPropertySetSupport;
-import com.developmentontheedge.beans.annot.PropertyName;
 import com.developmentontheedge.beans.swing.PropertyInspector;
 import com.developmentontheedge.beans.swing.PropertyInspectorEx;
 import com.developmentontheedge.log.PatternFormatter;
 import com.developmentontheedge.log.TextPaneAppender;
 
-import biouml.model.Compartment;
 import biouml.model.Diagram;
-import biouml.model.Node;
 import biouml.plugins.wdl.colorer.WDLColorer;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
@@ -53,15 +37,6 @@ import biouml.plugins.wdl.parser.WDLParser;
 import biouml.standard.diagram.DiagramUtility;
 import biouml.workbench.diagram.CompositeDiagramDocument;
 import biouml.workbench.diagram.DiagramDocument;
-import one.util.streamex.StreamEx;
-import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.FileExporter;
-import ru.biosoft.access.TextFileImporter;
-import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.core.TextDataElement;
-import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.GUI;
@@ -252,94 +227,7 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-    public static class WorkflowSettings
-    {
-        private DataElementPath outputPath;
-        private DynamicPropertySet parameters = new DynamicPropertySetSupport();
 
-        public WorkflowSettings()
-        {
-            //System.out.println( "Load" );
-        }
-
-        public void initParameters(Diagram diagram)
-        {
-            List<Node> externalParameters = WDLUtil.getExternalParameters( diagram );
-            for ( Node externalParameter : externalParameters )
-            {
-                String type = WDLUtil.getType( externalParameter );
-                String name = WDLUtil.getName( externalParameter );
-                Object value = WDLUtil.getExpression( externalParameter );
-                Class clazz = String.class;
-                if( type.equals( "File" ) || type.equals( "Array[File]" ) )
-                {
-                    if( value != null )
-                        value = DataElementPath.create( value.toString() );
-                    clazz = DataElementPath.class;
-                }
-                DynamicProperty dp = new DynamicProperty( name, clazz, value );
-                parameters.add( dp );
-            }
-        }
-
-        public void exportCollections(String outputDir) throws Exception
-        {
-            for ( DynamicProperty dp : parameters )
-            {
-                if( dp.getValue() instanceof DataElementPath )
-                {
-                    DataElement de = ((DataElementPath) dp.getValue()).getDataElement();
-                    WDLUtil.export( de, new File( outputDir ) );
-                }
-            }
-        }
-
-        public File generateParametersJSON(String outputDir) throws IOException
-        {
-            File json = new File( outputDir, "parameters.json" );
-            try (BufferedWriter bw = new BufferedWriter( new FileWriter( json ) ))
-            {
-                bw.write( "{\n" );
-                boolean first = true;
-                for ( DynamicProperty dp : parameters )
-                {
-                    Object value = dp.getValue();
-                    if( value instanceof DataElementPath dep )
-                        value = "\"" + dep.getName() + "\"";
-                    else
-                        value = "\"" + value.toString() + "\"";
-                    if( !first )
-                        bw.write( "," );
-                    first = false;
-                    bw.write( "\"" + dp.getName() + "\"" + " : " + value + "\n" );
-                }
-                bw.write( "}\n" );
-            }
-            return json;
-        }
-
-        @PropertyName("Parameters")
-        public DynamicPropertySet getParameters()
-        {
-            return parameters;
-        }
-
-        public void setParameters(DynamicPropertySet parameters)
-        {
-            this.parameters = parameters;
-        }
-
-        @PropertyName("Output path")
-        public DataElementPath getOutputPath()
-        {
-            return outputPath;
-        }
-
-        public void setOutputPath(DataElementPath outputPath)
-        {
-            this.outputPath = outputPath;
-        }
-    }
 
     public static class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
     {
