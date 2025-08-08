@@ -21,7 +21,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 {
     public NextFlowVelocityHelper(Diagram diagram)
     {
-       super( diagram );
+        super( diagram );
     }
 
     public List<Node> orderCalls(Compartment compartment)
@@ -277,10 +277,13 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         Compartment call = input.getCompartment();
         if( !isInsideCycle( call ) )
         {
+            Node source = getSource( input );
             String result = getCallEmit( input );
-            if( result != null )
-                return result;
-            return WDLUtil.getExpression( input );
+            if( result == null )
+                result = WDLUtil.getExpression( input );
+            if( source != null && isInsideCycle( source.getCompartment() ) )
+                result += ".collect()";
+            return result;
         }
         else
         {
@@ -305,7 +308,9 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         {
             String result = getResultName( source.getCompartment() );
             String expression = getExpression( node );
-            expression =  expression.substring( expression.lastIndexOf( "." )+1 );
+            if( expression.startsWith( "[" ) && expression.endsWith( "]" ) )
+                expression = expression.substring( 1, expression.length() - 1 );
+            expression = expression.substring( expression.lastIndexOf( "." ) + 1 );
             return result + "." + expression;
         }
         return null;
@@ -446,7 +451,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public boolean isArray(String cycleVar, Node input)
     {
-        return input.edges().map( e->e.getInput() ).anyMatch( n->WDLUtil.isCycleVariable( n ) );
+        return input.edges().map( e -> e.getInput() ).anyMatch( n -> WDLUtil.isCycleVariable( n ) );
     }
 
     public List<String> getInputNames(Compartment call)
