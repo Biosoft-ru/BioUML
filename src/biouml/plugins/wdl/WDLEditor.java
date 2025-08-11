@@ -41,7 +41,6 @@ import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.gui.GUI;
 import ru.biosoft.util.TempFiles;
-import ru.biosoft.util.bean.BeanInfoEx2;
 
 @SuppressWarnings ( "serial" )
 public class WDLEditor extends EditorPartSupport
@@ -115,7 +114,7 @@ public class WDLEditor extends EditorPartSupport
         }
         catch( Exception ex )
         {
-            //            setText( "" );
+            ex.printStackTrace();
         }
     }
 
@@ -227,22 +226,6 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-
-
-    public static class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
-    {
-        public WorkflowSettingsBeanInfo(WorkflowSettings settings)
-        {
-            super( WorkflowSettings.class );
-        }
-
-        @Override
-        public void initProperties()
-        {
-            add( "parameters" );
-            add( "outputPath" );
-        }
-    }
 
 
     public void replaceDiagram(Diagram newDiagram)

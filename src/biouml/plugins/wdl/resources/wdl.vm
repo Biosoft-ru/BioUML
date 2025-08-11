@@ -53,6 +53,22 @@ task $task.getName() {
 #end
   }$BR
 #end
+#set ($meta = $helper.getMeta($task))
+#if ($meta.size() > 0)
+  meta {
+#foreach($prop in $meta.entrySet())
+    $prop.getKey(): $prop.getValue()
+#end
+  }$BR
+#end
+#set ($parmetersmeta = $helper.getParametersMeta($task))
+#if ($parmetersmeta.size() > 0)
+  parameters_meta {
+#foreach($prop in $parmetersmeta.entrySet())
+    $prop.getKey(): $prop.getValue()
+#end
+  }$BR
+#end
 #foreach($declaration in $helper.getBeforeCommand($task))
   $declaration.toString()
 #end
@@ -86,6 +102,22 @@ workflow $helper.getMainWorkflowName() {
   input {
 #foreach( $externalParameter in $externalParameters )
     $helper.getShortDeclaration($externalParameter)
+#end
+  }$BR
+#end
+#set ($meta = $helper.getMeta($diagram))
+#if ($meta.size() > 0)
+  meta {
+#foreach($prop in $meta.entrySet())
+    $prop.getKey(): $prop.getValue()
+#end
+  }$BR
+#end
+#set ($parmeters_meta = $helper.getParametersMeta($diagram))
+#if ($parmeters_meta.size() > 0)
+  parameters_meta {
+#foreach($prop in $parmeters_meta.entrySet())
+    $prop.getKey(): $prop.getValue()
 #end
   }$BR
 #end

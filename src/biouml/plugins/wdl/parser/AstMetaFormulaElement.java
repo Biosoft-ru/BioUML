@@ -13,6 +13,11 @@ public class AstMetaFormulaElement extends AstFormulaElement
     {
         super(p, id);
     }
+    
+    public String getValue()
+    {
+        return this.firstToken.image;
+    }
 
 }
 /* JavaCC - OriginalChecksum=072896322f1902f4b4d301689fc6cebd (do not edit this line) */

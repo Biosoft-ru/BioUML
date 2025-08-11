@@ -2,6 +2,9 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.wdl.parser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class AstMap extends SimpleNode
 {
     public AstMap(int id)
@@ -19,6 +22,33 @@ public class AstMap extends SimpleNode
     {
         return "";
     }
-
+    
+    public Map<String, Object> toMap()
+    {
+        Map<String, Object> result = new HashMap<>();
+        for (Node child: this.getChildren())
+        {
+            if (child instanceof AstKeyValue)
+            {
+                String key = ((AstKeyValue)child).getKey();
+                Object value = null;
+                for (Node gchild: ((AstKeyValue)child).getChildren())
+                {
+                    if (gchild instanceof AstMetaFormulaElement)
+                    {
+                        value = ((AstMetaFormulaElement)gchild).getValue();
+                    }
+                    else if (gchild instanceof AstMap)
+                    {
+                        value = ((AstMap)gchild).toMap();
+                    }
+                }
+                if (value != null)
+                    result.put( key, value );
+            }
+        }
+        return result;
+    }
+  
 }
 /* JavaCC - OriginalChecksum=ff62e9afce6e0aebf8c9ec3ae2014302 (do not edit this line) */

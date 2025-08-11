@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +23,7 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.parser.AstMeta;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.FileExporter;
 import ru.biosoft.access.core.DataCollection;
@@ -183,10 +185,55 @@ public class WDLUtil
     }
     public static void setRuntime(Compartment c, Map<String, String> runtime)
     {
-        String[] vals = runtime.entrySet().stream().map( e -> (String) ( e.getKey() + "#" + e.getValue() ) ).toArray( String[]::new );
-        c.getAttributes().add( new DynamicProperty( WDLConstants.RUNTIME_ATTR, String[].class, vals ) );
+        setMapAttribute(c, WDLConstants.RUNTIME_ATTR, runtime);
     }
-
+    
+    public static Map<String, String> getMeta(Compartment c)
+    {
+        Object val = c.getAttributes().getValue( WDLConstants.META_ATTR );
+        if( val instanceof String[] )
+        {
+            String[] array = (String[])val;
+            Map<String, String> result = new HashMap<>();
+            for( String s : array )
+            {
+                String[] split = s.split( "#" );
+                result.put( split[0], split[1] );
+            }
+            return result;
+        }
+        return null;
+    }
+    public static void setMeta(Compartment c, AstMeta meta)
+    {
+        String name = meta.getName();
+        String attr = name.equals( "meta" )?  WDLConstants.META_ATTR:  WDLConstants.PARAMETER_META_ATTR;
+        setMapAttribute(c, attr, meta.getMetaValues());
+    }
+    
+    public static void setMapAttribute(Compartment c, String attributeName, Map<String, String> values)
+    {
+        String[] vals = values.entrySet().stream().map( e -> (String) ( e.getKey() + "#" + toWDL(e.getValue() )) ).toArray( String[]::new );
+        c.getAttributes().add( new DynamicProperty( attributeName, String[].class, vals ) );
+    }
+    
+    public static Map<String, String> getParameterMeta(Compartment c)
+    {
+        Object val = c.getAttributes().getValue( WDLConstants.PARAMETER_META_ATTR );
+        if( val instanceof String[] )
+        {
+            String[] array = (String[])val;
+            Map<String, String> result = new HashMap<>();
+            for( String s : array )
+            {
+                String[] split = s.split( "#" );
+                result.put( split[0], split[1] );
+            }
+            return result;
+        }
+        return null;
+    }
+    
     public static String getShortDeclaration(Node n)
     {
         return getType( n ) + " " + getName( n );
@@ -319,14 +366,15 @@ public class WDLUtil
                 .findAny( n -> name.equals( getName( n ) ) ).orElse( null );
     }
 
-    public static <T> T findChild(biouml.plugins.wdl.parser.Node node, Class<T> c)
+    public static <T> List<T> findChild(biouml.plugins.wdl.parser.Node node, Class<T> c)
     {
+        List<T> result = new ArrayList<>();
         for( int i = 0; i < node.jjtGetNumChildren(); i++ )
         {
             biouml.plugins.wdl.parser.Node child = node.jjtGetChild( i );
             if( c.isInstance( child ) )
             {
-                return c.cast( child );
+                result.add( c.cast( child ));
             }
         }
         return null;
@@ -596,5 +644,38 @@ public class WDLUtil
             exporter.doExport( de, exported );
         }
     }
+    
+    public static String toWDL(Object obj)
+    {
+        if( obj instanceof Map )
+        {
+            Map<String, Object> map = (Map<String, Object>)obj;
+            StringBuilder builder = new StringBuilder();
+            builder.append( " { " );
+            boolean isCommaNeeded = false;
+            for( Entry<String, Object> e : map.entrySet() )
+            {
+                String key = e.getKey();
+                if( isCommaNeeded )
+                    builder.append( ", " );
+                isCommaNeeded = true;
+                builder.append( key );
+                builder.append( ": " );
+                Object value = e.getValue();
+                if( value instanceof String )
+                {
+                    builder.append( value );
+                }
+                else if( value instanceof Map )
+                {
+                    builder.append( toWDL( (Map<String, Object>)value ) );
+                }
+            }
+            builder.append( " } " );
+            return builder.toString();
+        }
+        return obj.toString();
+    }
+
 
 }

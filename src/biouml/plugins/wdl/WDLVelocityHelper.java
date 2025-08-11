@@ -69,7 +69,17 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     {
         return WDLUtil.getRuntime( c );
     }
-
+    
+    public Map<String, String> getMeta(Compartment c)
+    {
+        return WDLUtil.getMeta( c );
+    }
+    
+    public Map<String, String> getParametersMeta(Compartment c)
+    {
+        return WDLUtil.getParameterMeta( c );
+    }
+    
     public String getExpression(Node n)
     {
         return WDLUtil.getExpression( n );
