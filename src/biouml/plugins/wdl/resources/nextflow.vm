@@ -107,5 +107,5 @@ $BR  main:
 }$BR
 ################################ENTRY WORKFLOW#########################################
 workflow {
-$helper.getName()( #foreach($ep in $externalParameters)params.$helper.getName($ep)#comma($externalParameters) #end )
+$helper.getMainWorkflowName()( #foreach($ep in $externalParameters)params.$helper.getName($ep)#comma($externalParameters) #end )
 }
