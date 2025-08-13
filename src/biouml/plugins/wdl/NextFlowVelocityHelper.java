@@ -251,7 +251,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public boolean isInsideCycle(Compartment call)
     {
-        return WDLUtil.isCycle( call.getCompartment() );
+        return !(call instanceof Diagram) && WDLUtil.isCycle( call.getCompartment() );
     }
 
     public String prepareInputs(Compartment call)
@@ -465,5 +465,12 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             result[index] = expression;
         }
         return StreamEx.of( result ).toList();
+    }
+    
+    public String getExternalParamaterName(Node input)
+    {
+        if ( "File".equals( WDLUtil.getType( input )))
+                return "file(params."+getName(input)+")";
+        return "params."+getName(input);
     }
 }
