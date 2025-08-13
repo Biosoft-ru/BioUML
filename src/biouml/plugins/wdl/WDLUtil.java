@@ -190,19 +190,18 @@ public class WDLUtil
     
     public static Map<String, String> getMeta(Compartment c)
     {
+        Map<String, String> result = new HashMap<>();
         Object val = c.getAttributes().getValue( WDLConstants.META_ATTR );
         if( val instanceof String[] )
         {
             String[] array = (String[])val;
-            Map<String, String> result = new HashMap<>();
             for( String s : array )
             {
                 String[] split = s.split( "#" );
                 result.put( split[0], split[1] );
             }
-            return result;
         }
-        return null;
+        return result;
     }
     public static void setMeta(Compartment c, AstMeta meta)
     {
@@ -219,19 +218,18 @@ public class WDLUtil
     
     public static Map<String, String> getParameterMeta(Compartment c)
     {
+        Map<String, String> result = new HashMap<>();
         Object val = c.getAttributes().getValue( WDLConstants.PARAMETER_META_ATTR );
         if( val instanceof String[] )
         {
             String[] array = (String[])val;
-            Map<String, String> result = new HashMap<>();
             for( String s : array )
             {
                 String[] split = s.split( "#" );
                 result.put( split[0], split[1] );
             }
-            return result;
         }
-        return null;
+        return result;
     }
     
     public static String getShortDeclaration(Node n)
@@ -377,7 +375,7 @@ public class WDLUtil
                 result.add( c.cast( child ));
             }
         }
-        return null;
+        return result;
     }
 
     public static String getCycleVariable(Compartment c)
