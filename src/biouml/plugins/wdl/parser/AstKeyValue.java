@@ -26,6 +26,11 @@ public class AstKeyValue extends SimpleNode
     {
         this.keyName = key;
     }
+    
+    public String getKey()
+    {
+        return keyName;
+    }
 
 }
 /* JavaCC - OriginalChecksum=c2845a5d77a393f42d3459c79b73bc44 (do not edit this line) */

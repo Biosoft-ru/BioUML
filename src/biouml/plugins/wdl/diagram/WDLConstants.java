@@ -20,6 +20,8 @@ public class WDLConstants
     public static final String REQUIREMENTS_ATTR = "REQUIREMENTS";
     public static final String HINTS_ATTR = "HINTS";
     public static final String RUNTIME_ATTR = "RUNTIME";
+    public static final String META_ATTR = "META";
+    public static final String PARAMETER_META_ATTR = "PARAMETER_META";
     public static final String NAME_ATTR = "NAME";
     public static final String TYPE_ATTR = "TYPE";
     public static final String CALL_NAME_ATTR = "CALL_NAME";

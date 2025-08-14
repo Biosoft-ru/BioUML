@@ -2,22 +2,57 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.wdl.parser;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import biouml.plugins.wdl.WDLUtil;
+
 public class AstMeta extends SimpleNode
 {
     public AstMeta(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstMeta(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
     }
 
     @Override
     public String toString()
     {
-        return "meta";
+        return getName();
+    }
+
+    public String getName()
+    {
+        return this.firstToken.toString();
+    }
+    
+    public Map<String, String> getMetaValues()
+    {
+        Map<String, String> result = new HashMap<>();
+        for( int i = 0; i < jjtGetNumChildren(); i++ )
+        {
+            Node child = jjtGetChild( i );
+            if( child instanceof AstRegularFormulaElement && ( (AstRegularFormulaElement)child ).firstToken.toString().equals( ":" ) )
+            {
+                String key = jjtGetChild( i - 1 ).toString();
+                String value = null;
+                Node valueNode = jjtGetChild( i + 1 );
+                if (valueNode instanceof AstMetaFormulaElement)
+                    value = ((AstMetaFormulaElement)valueNode).getValue();
+                else if( valueNode instanceof AstMap )
+                {
+                    value = WDLUtil.toWDL( ((AstMap)valueNode ).toMap() );
+                }
+                if( value != null )
+                    result.put( key, value );
+            }
+        }
+
+        return result;
     }
 
 }

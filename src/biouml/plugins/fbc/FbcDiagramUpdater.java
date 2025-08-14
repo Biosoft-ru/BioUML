@@ -1,7 +1,9 @@
 package biouml.plugins.fbc;
 
 import java.beans.PropertyChangeEvent;
+import java.util.HashMap;
 
+import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
 
 import biouml.model.Diagram;
@@ -56,8 +58,20 @@ public class FbcDiagramUpdater implements FbcConstant
         FluxObjFunc fluxObjective = SbmlModelFBCReader.getFluxObjFunc(reaction);
         DynamicPropertySet dps = diagram.getAttributes();
         String activObj = dps.getValueAsString(FBC_ACTIVE_OBJECTIVE);
+        Object listObj = dps.getValue(FBC_LIST_OBJECTIVES);
+        
+        if (!(listObj instanceof HashMap))
+        {
+            HashMap<String, String> map = new HashMap<>();
+            map.put("OBJF", "maximize");
+            dps.add( new DynamicProperty(FBC_LIST_OBJECTIVES, HashMap.class, map) );
+        }
         if(activObj == null)
-            throw new Exception("Active object function isn't defined");
+        {
+            HashMap<String, String> objs = (HashMap<String, String>)dps.getValue(FBC_LIST_OBJECTIVES);
+            dps.add( new DynamicProperty(FBC_ACTIVE_OBJECTIVE, String.class, objs.keySet().iterator().next() ));
+        }
+//            throw new Exception("Active object function isn't defined");
 
         int index = fluxObjective.idObj.indexOf(activObj);
         if(index != -1)

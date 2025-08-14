@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -30,6 +31,7 @@ import biouml.plugins.wdl.parser.AstDeclaration;
 import biouml.plugins.wdl.parser.AstExpression;
 import biouml.plugins.wdl.parser.AstImport;
 import biouml.plugins.wdl.parser.AstInput;
+import biouml.plugins.wdl.parser.AstMeta;
 import biouml.plugins.wdl.parser.AstOutput;
 import biouml.plugins.wdl.parser.AstRegularFormulaElement;
 import biouml.plugins.wdl.parser.AstScatter;
@@ -174,10 +176,10 @@ public class WDLImporter implements DataElementImporter
     public Diagram generateDiagram(AstStart start, Diagram diagram) throws Exception
     {
         diagram.clear();
-        diagram.getAttributes().remove(  WDLConstants.IMPORTS_ATTR );
+        diagram.getAttributes().remove( WDLConstants.IMPORTS_ATTR );
         diagram.getAttributes().remove( WDLConstants.SETTINGS_ATTR );
         diagram.getAttributes().remove( WDLConstants.VERSION_ATTR );
-        
+
         for( int i = 0; i < start.jjtGetNumChildren(); i++ )
         {
             biouml.plugins.wdl.parser.Node n = start.jjtGetChild( i );
@@ -218,6 +220,10 @@ public class WDLImporter implements DataElementImporter
                     {
                         createExpressionNode( diagram, (AstDeclaration)child );
                     }
+                    else if( child instanceof AstMeta )
+                    {
+                        WDLUtil.setMeta( diagram, (AstMeta)child );
+                    }
                 }
 
                 for( biouml.plugins.wdl.parser.Node child : workflow.getChildren() )
@@ -246,6 +252,15 @@ public class WDLImporter implements DataElementImporter
             throw new Exception( "Imported diagram " + astImport.getSource() + " not found!" );
         WDLUtil.addImport( diagram, imported, astImport.getAlias() );
     }
+
+    //    public void createMeta(Diagram diagram, AstMeta astMeta) throws Exception
+    //    {
+    //        Diagram imported = (Diagram)diagram.getOrigin().get( astImport.getSource() );
+    //        imports.put( astImport.getAlias(), imported );
+    //        if( imported == null )
+    //            throw new Exception( "Imported diagram " + astImport.getSource() + " not found!" );
+    //        WDLUtil.addImport( diagram, imported, astImport.getAlias() );
+    //    }
 
     public Node createExternalParameterNode(Compartment parent, AstDeclaration declaration)
     {
@@ -423,7 +438,7 @@ public class WDLImporter implements DataElementImporter
                 Diagram importedDiagram = imports.get( diagramAlias );
                 diagramRef = importedDiagram.getName();
 
-                if( taskRef.equals( WDLConstants.MAIN_WORKFLOW) )
+                if( taskRef.equals( WDLConstants.MAIN_WORKFLOW ) )
                 {
                     taskСompartment = importedDiagram;
                     externalDiagram = true;
@@ -455,6 +470,10 @@ public class WDLImporter implements DataElementImporter
         c.setTitle( title );
         WDLUtil.setTaskRef( c, taskRef );
         WDLUtil.setCallName( c, title );
+
+        for( AstMeta meta : WDLUtil.findChild( call, AstMeta.class ) )
+            WDLUtil.setMeta( diagram, meta );
+
         if( diagramRef != null )
             WDLUtil.setDiagramRef( c, diagramRef );
         if( diagramAlias != null )
@@ -473,9 +492,12 @@ public class WDLImporter implements DataElementImporter
             AstExpression expr = null;
             if( symbol.getChildren() != null )
             {
-                expr = WDLUtil.findChild( symbol, AstExpression.class );
-                if( expr != null )
+                List<AstExpression> exprs = WDLUtil.findChild( symbol, AstExpression.class );
+                if( !exprs.isEmpty() )
+                {
+                    expr = exprs.get( 0 );
                     expression = expr.toString();
+                }
             }
 
             Node portNode = addPort( inputName, WDLConstants.INPUT_TYPE, inputs++, c );
