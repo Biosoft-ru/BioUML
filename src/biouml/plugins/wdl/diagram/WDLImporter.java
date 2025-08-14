@@ -62,7 +62,8 @@ public class WDLImporter implements DataElementImporter
     private boolean doImportDiagram = false;
     private Map<String, Diagram> imports = new HashMap<>();
     private Map<String, Compartment> tasks = new HashMap<>();
-
+    private int externalPosition = 0;
+    
     @Override
     public int accept(DataCollection<?> parent, File file)
     {
@@ -85,6 +86,7 @@ public class WDLImporter implements DataElementImporter
         if( jobControl != null )
             jobControl.functionStarted();
         doImportDiagram = true;
+
         try (FileInputStream in = new FileInputStream( file );
                 InputStreamReader reader = new InputStreamReader( in, StandardCharsets.UTF_8 ))
         {
@@ -179,7 +181,13 @@ public class WDLImporter implements DataElementImporter
         diagram.getAttributes().remove( WDLConstants.IMPORTS_ATTR );
         diagram.getAttributes().remove( WDLConstants.SETTINGS_ATTR );
         diagram.getAttributes().remove( WDLConstants.VERSION_ATTR );
-
+        diagram.getAttributes().remove( WDLConstants.META_ATTR );
+        diagram.getAttributes().remove( WDLConstants.PARAMETER_META_ATTR );
+        
+        externalPosition = 0;
+        imports.clear();
+        this.tasks.clear();
+        
         for( int i = 0; i < start.jjtGetNumChildren(); i++ )
         {
             biouml.plugins.wdl.parser.Node n = start.jjtGetChild( i );
@@ -267,6 +275,7 @@ public class WDLImporter implements DataElementImporter
         String name = declaration.getName();
         Stub kernel = new Stub( null, name, WDLConstants.EXTERNAL_PARAMETER_TYPE );
         Node node = new Node( parent, name, kernel );
+        WDLUtil.setPosition( node, externalPosition++ );
         setDeclaration( node, declaration );
         node.setTitle( name );
         node.setShapeSize( new Dimension( 80, 60 ) );
@@ -433,8 +442,8 @@ public class WDLImporter implements DataElementImporter
             {
                 String[] parts = name.split( "\\." );
                 diagramAlias = parts[0];
-                name = parts[1];
-                taskRef = name;
+                name = name.replace( ".", "_" );
+                taskRef = parts[1];
                 Diagram importedDiagram = imports.get( diagramAlias );
                 diagramRef = importedDiagram.getName();
 
@@ -458,11 +467,11 @@ public class WDLImporter implements DataElementImporter
         String alias = call.getAlias();
         if( alias != null )
         {
-            name = alias;
+//            name = alias;
             title = alias;
         }
-        else
-            name = "Call_" + name;
+
+        name = DefaultSemanticController.generateUniqueName( diagram, "Call_" + name);
         Stub kernel = new Stub( null, name, WDLConstants.CALL_TYPE );
 
         Compartment c = new Compartment( parent, name, kernel );
@@ -504,13 +513,19 @@ public class WDLImporter implements DataElementImporter
 
             if( taskСompartment instanceof Diagram )
             {
+
                 for( Node node : WDLUtil.getExternalParameters( (Diagram)taskСompartment ) )
                 {
                     String varName = WDLUtil.getName( node );
                     if( varName.equals( inputName ) )
                     {
+                        WDLUtil.setPosition( portNode, WDLUtil.getPosition( node ) );
+                        Node inputNode = WDLUtil.getTarget( node );
+                        if( inputNode != null )                          
+                            node = inputNode;
                         WDLUtil.setName( portNode, WDLUtil.getName( node ) );
                         WDLUtil.setType( portNode, WDLUtil.getType( node ) );
+
                         WDLUtil.setExpression( portNode, expression );
                     }
                 }
@@ -525,6 +540,7 @@ public class WDLImporter implements DataElementImporter
                         WDLUtil.setName( portNode, WDLUtil.getName( node ) );
                         WDLUtil.setType( portNode, WDLUtil.getType( node ) );
                         WDLUtil.setExpression( portNode, expression );
+                        WDLUtil.setPosition( portNode, WDLUtil.getPosition( node ) );
                     }
                 }
             }
@@ -578,7 +594,7 @@ public class WDLImporter implements DataElementImporter
     private Node addPort(String name, String nodeType, int position, Compartment parent) throws DataElementPutException
     {
         Node inNode = new Node( parent, new Stub( parent, name, nodeType ) );
-        inNode.getAttributes().add( new DynamicProperty( "position", Integer.class, position ) );
+        WDLUtil.setPosition( inNode, position );
         inNode.setFixed( true );
         Point parentLoc = parent.getLocation();
         Dimension parentDim = parent.getShapeSize();
