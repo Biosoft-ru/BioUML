@@ -33,6 +33,7 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.file.GenericFileDataCollection;
 
 @SuppressWarnings ( "serial" )
 public class NewDiagramDialog extends OkCancelDialog
@@ -176,6 +177,11 @@ public class NewDiagramDialog extends OkCancelDialog
 
     protected void checkIfOkButtonShouldBeEnabled()
     {
+        if (parent instanceof GenericFileDataCollection)// quick fix, TODO: refactor module
+        {
+            okButton.setEnabled( true );
+            return;
+        }
         okButton.setEnabled(false);
         try
         {
@@ -221,7 +227,22 @@ public class NewDiagramDialog extends OkCancelDialog
     {
         diagramType.removeAllItems();
         if(modulePath == null)
+        {
+            for( Class cls : biouml.standard.StandardModuleType.getGeneralPurposeTypes() )
+            {
+                try
+                {
+                    DiagramType object = (DiagramType)cls.getConstructors()[0].newInstance();
+                    diagramType.addItem( object );
+                }
+                catch( Exception e )
+                {
+                    log.log( Level.SEVERE, "Can not instantiate diagram type " + cls, e );
+                }
+            }
             return;
+        }
+
         try
         {
             modulePath.getDataElement( Module.class ).getType().getDiagramTypeObjects().forEach( diagramType::addItem );

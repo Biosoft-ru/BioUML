@@ -54,16 +54,18 @@ public class NewDiagramAction extends AbstractAction
             else
             {
                 databases = new ArrayList<>();
-                databases.add( Module.getModulePath( parent ) );
+                DataElementPath modulePath = Module.optModulePath( parent );
+                if( modulePath != null )
+                    databases.add( modulePath );
             }
     
-            if( databases.size() == 0 )
-            {
-                JOptionPane.showMessageDialog(frame, BioUMLApplication.getMessageBundle().getResourceString("NEW_DIAGRAM_NO_DATABASES"),
-                        dialogTilte, JOptionPane.OK_OPTION);
-            }
-            else
-            {
+//            if( databases.size() == 0 )
+//            {
+//                JOptionPane.showMessageDialog(frame, BioUMLApplication.getMessageBundle().getResourceString("NEW_DIAGRAM_NO_DATABASES"),
+//                        dialogTilte, JOptionPane.OK_OPTION);
+//            }
+//            else
+//            {
                 NewDiagramDialog dialog = new NewDiagramDialog(frame, dialogTilte, databases, parent);
                 if( dialog.doModal() )
                 {
@@ -71,7 +73,7 @@ public class NewDiagramAction extends AbstractAction
                     DocumentManager.getDocumentManager().openDocument(dialog.getDiagram());
                     GUI.getManager().getRepositoryTabs().selectElement( dialog.getDiagram().getCompletePath() );
                 }
-            }
+//            }
         }
         catch( Exception e )
         {
