@@ -123,7 +123,7 @@ public class RepositoryActionsProvider implements ActionsProvider
             actions.add(removeDataElementAction);
         }
         
-        if( DataCollectionUtils.isAcceptable( DataElementPath.create(de), Diagram.class, null ) && Module.optModule(de) != null )
+        if( DataCollectionUtils.isAcceptable( DataElementPath.create(de), Diagram.class, null ) )
         {
             if( de instanceof DataCollection && ( (DataCollection<?>)de ).isMutable() )
             {
