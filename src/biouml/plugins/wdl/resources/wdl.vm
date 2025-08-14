@@ -81,6 +81,8 @@ task $task.getName() {
 #foreach( $output in $outputs )
     $helper.getDeclaration($output)
 #end
+  }$BR
+#end
 #set ($runtime = $helper.getRuntime($task))
 #if ($runtime.size() > 0)
   runtime {
@@ -89,9 +91,7 @@ task $task.getName() {
 #end
   }$BR
 #end
-  }
-#end
-}$BR
+}
 #end
 #######################################################################################
 ###################################WORKFLOW############################################
