@@ -1,8 +1,10 @@
 package biouml.plugins.wdl;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
@@ -34,7 +36,7 @@ public class WDLRunner
     }
 
 
-    public static void runNextFlow(Diagram diagram, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
+    public static void runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
     {
         if( settings.getOutputPath() == null )
             throw new InvalidParameterException( "Output path not specified" );
@@ -54,7 +56,8 @@ public class WDLRunner
         for ( DataElement de : StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() ) )
             WDLUtil.export( de, new File( outputDir ) );
 
-        String nextFlowScript = new NextFlowGenerator().generateNextFlow( diagram );
+        if( nextFlowScript == null )
+            nextFlowScript = new NextFlowGenerator().generateNextFlow( diagram );
         NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
         nextFlowScript = preprocessor.preprocess( nextFlowScript );
 
@@ -75,21 +78,58 @@ public class WDLRunner
         }
 
         Process process = builder.start();
-        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
-        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
-        process.waitFor();
+        
+        new Thread( new Runnable()
+                        {
+                            public void run()
+                            {
+                                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+                                String line = null;
+                
+                                try
+                                {
+                                    while( ( line = input.readLine() ) != null )
+                                        log.info( line );
+                                }
+                                catch( IOException e )
+                                {
+                                    e.printStackTrace();
+                                }
+                                //                
+                                //for some reason cwl-runner outputs everything into error stream
+                                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
+                                line = null;
+                
+                                try
+                                {
+                                    while( ( line = err.readLine() ) != null )
+                                        log.info( line );
+                                }
+                                catch( IOException e )
+                                {
+                                    e.printStackTrace();
+                                }
+                            }
+                        } ).start();
+                
+                        process.waitFor();
+                
+                        importResults( diagram, settings, outputDir );
+//        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
+//        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
+//        process.waitFor();
 
-        if( process.exitValue() == 0 )
-        {
-            log.log( Level.INFO, inputReader.getData() );
-            importResults( diagram, settings, outputDir );
-
-        }
-        else
-        {
-            String errorStr = errorReader.getData();
-            throw new Exception( "Nextflow executed with error: " + errorStr );
-        }
+//        if( process.exitValue() == 0 )
+//        {
+//            log.log( Level.INFO, inputReader.getData() );
+//            importResults( diagram, settings, outputDir );
+//
+//        }
+//        else
+//        {
+//            String errorStr = errorReader.getData();
+//            throw new Exception( "Nextflow executed with error: " + errorStr );
+//        }
 
     }
 

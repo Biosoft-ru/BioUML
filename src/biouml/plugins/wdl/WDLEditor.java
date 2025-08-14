@@ -285,7 +285,7 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                WDLRunner.runNextFlow( diagram, settings, outputDir, System.getProperty("os.name").startsWith("Windows") );
+                WDLRunner.runNextFlow( diagram, WDLEditor.this.getNextFlow(),  settings, outputDir, System.getProperty("os.name").startsWith("Windows") );
             }
             catch (Exception ex)
             {
