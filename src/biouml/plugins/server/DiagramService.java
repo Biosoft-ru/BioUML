@@ -16,9 +16,11 @@ import biouml.model.Module;
 import biouml.model.ModuleType;
 import biouml.model.util.DiagramXmlReader;
 import biouml.model.util.DiagramXmlWriter;
+import biouml.standard.StandardModuleType;
 import biouml.standard.type.DiagramInfo;
 import biouml.workbench.diagram.DiagramTypeConverterRegistry;
 import biouml.workbench.diagram.DiagramTypeConverterRegistry.Conversion;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
@@ -29,6 +31,7 @@ import ru.biosoft.server.Connection;
 import ru.biosoft.server.Response;
 import ru.biosoft.server.Service;
 import ru.biosoft.server.SynchronizedServiceSupport;
+import ru.biosoft.util.Clazz;
 import ru.biosoft.util.JsonUtils;
 
 /**
@@ -273,11 +276,26 @@ public class DiagramService extends DiagramProtocol implements Service
         }
 
         DataCollection dc = DataElementPath.create(dcName.toString()).getDataCollection();
+        Module module = null;
+        try
+        {
+            module = Module.getModule(dc);
+        }
+        catch (Exception e)
+        {
+        }
+        StreamEx<DiagramType> types;
+        if( module == null )
+        {
+            types = StandardModuleType.getGeneralPurposeTypes().map( Clazz.of( DiagramType.class )::createOrLog );
+        }
+        else
+        {
+            ModuleType moduleType = module.getType();
+            types = moduleType.getDiagramTypeObjects();
+        }
 
-        Module module = Module.getModule(dc);
-        ModuleType moduleType = module.getType();
-
-        JsonArray diagramTypes = moduleType.getDiagramTypeObjects()
+        JsonArray diagramTypes = types
                 .map( dt -> new JsonObject()
                     .add( "name", dt.getTitle() )
                     .add( "title", dt.getTitle() )
@@ -297,25 +315,43 @@ public class DiagramService extends DiagramProtocol implements Service
 
         DataCollection dc = DataElementPath.create(dcName.toString()).getDataCollection();
 
-        Module module = Module.getModule(dc);
-        Object diagramType = arguments.get(DiagramProtocol.KEY_TYPE);
-        ModuleType moduleType = module.getType();
-
-        DataCollection origin = null;
+        Module module = null;
         try
         {
-            origin = module.getDiagrams();
+            module = Module.getModule( dc );
         }
-        catch( Exception e )
+        catch (Exception e)
         {
-            connection.error("Can not get Diagram collection in database: " + module.getCompletePath());
         }
-        if( origin == null )
-            origin = dc;
+        Object diagramType = arguments.get( DiagramProtocol.KEY_TYPE );
+
+        DataCollection origin = null;
+
         String diagramName = arguments.get(DiagramProtocol.KEY_DIAGRAM).toString();
         try
         {
-            DiagramType type = moduleType.getDiagramTypeObjects().findAny( dt -> dt.getTitle().equals( diagramType ) ).orElse( null );
+            DiagramType type = null;
+            if( module != null )
+            {
+                ModuleType moduleType = module.getType();
+                type = moduleType.getDiagramTypeObjects().findAny( dt -> dt.getTitle().equals( diagramType ) ).orElse( null );
+                try
+                {
+                    origin = module.getDiagrams();
+                }
+                catch (Exception e)
+                {
+                    connection.error( "Can not get Diagram collection in database: " + module.getCompletePath() );
+                }
+                if( origin == null )
+                    origin = dc;
+            }
+            else
+            {
+                origin = dc;
+                type = StandardModuleType.getGeneralPurposeTypes().map( Clazz.of( DiagramType.class )::createOrLog ).findAny( dt -> dt.getTitle().equals( diagramType ) )
+                        .orElse( null );
+            }
 
             if( type != null )
             {
