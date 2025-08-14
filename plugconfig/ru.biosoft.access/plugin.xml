@@ -67,6 +67,13 @@
         <property name="SmallIcon" value="newFolder.gif"/>
         <property name="ActionCommandKey" value="cmd-generic-newfolder"/>
      </dynamicAction>
+     <dynamicAction name="Change element type" class="ru.biosoft.access.repository.ChangeFDCElementTypeAction" priority="85">
+        <property name="Name" value="Change type"/>
+        <property name="ShortDescription" value="Change type"/>
+        <property name="LongDescription" value="Change type"/>
+        <property name="SmallIcon" value="edit.gif"/>
+        <property name="ActionCommandKey" value="cmd-fdc-change-type"/>
+     </dynamicAction>
   </extension>
 
   <extension id="Remove selection" point="ru.biosoft.access.dynamicAction"> 
