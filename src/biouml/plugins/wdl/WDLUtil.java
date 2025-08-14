@@ -2,6 +2,7 @@ package biouml.plugins.wdl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -107,7 +108,23 @@ public class WDLUtil
 
     public static List<Node> getExternalParameters(Diagram diagram)
     {
-        return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).toList();
+        return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).sorted( new PositionComparator() ).toList();
+    }
+    
+    public static class PositionComparator implements Comparator<Node>
+    {
+        @Override
+        public int compare(Node o1, Node o2)
+        {
+            int p1 = getPosition( o1 );
+            int p2 = getPosition( o2 );
+            return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+        }
+    }
+    
+    public static Node getTarget(Node input)
+    {
+        return input.edges().map( e->e.getOutput() ).findAny().orElse( null );
     }
 
     public static List<Compartment> getCalls(Compartment c)
@@ -247,6 +264,17 @@ public class WDLUtil
     public static void setExpression(Node n, String expression)
     {
         n.getAttributes().add( new DynamicProperty( WDLConstants.EXPRESSION_ATTR, String.class, expression ) );
+    }
+    public static Integer getPosition(Node n)
+    {
+        Object val = n.getAttributes().getValue( WDLConstants.POSITION_ATTR );
+       if (val instanceof Integer)
+           return (Integer)val;
+       return -1;
+    }
+    public static void setPosition(Node n, int expression)
+    {
+        n.getAttributes().add( new DynamicProperty( WDLConstants.POSITION_ATTR, Integer.class, expression ) );
     }
 
     public static void setType(Node n, String type)
