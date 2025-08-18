@@ -106,4 +106,9 @@ public interface DiagramType extends Cloneable
     {
         return true;
     }
+
+    default public boolean isCompartment(Base kernel)
+    {
+        return kernel instanceof biouml.standard.type.Compartment;
+    }
 }
