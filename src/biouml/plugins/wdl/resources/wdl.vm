@@ -101,7 +101,7 @@ workflow $helper.getMainWorkflowName() {
 #if ($externalParameters.size() > 0)
   input {
 #foreach( $externalParameter in $externalParameters )
-    $helper.getShortDeclaration($externalParameter)
+    $helper.getDeclaration($externalParameter)
 #end
   }$BR
 #end
