@@ -54,7 +54,6 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.core.QuerySystem;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;
 import ru.biosoft.exception.LoggedClassNotFoundException;
 import ru.biosoft.util.ObjectExtensionRegistry;
@@ -321,12 +320,7 @@ public class StandardModuleType extends DataElementSupport implements ModuleType
         createDataCollection(UNIT, metadataDC, Unit.class);
 
         // create file collections
-        String diagramHistoryPath = Application.getGlobalValue("HistoryDiagrams", null);
         Properties additional = new Properties();
-        if( diagramHistoryPath != null )
-        {
-            additional.setProperty(HistoryFacade.HISTORY_COLLECTION, diagramHistoryPath);
-        }
         CollectionFactoryUtils.createTransformedFileCollection(moduleLR, Module.DIAGRAM, "", DiagramXmlTransformer.class, additional);
 
         return module;

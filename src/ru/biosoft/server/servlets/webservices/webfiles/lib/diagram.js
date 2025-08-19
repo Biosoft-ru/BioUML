@@ -10,7 +10,6 @@ function Diagram(completeName)
     
     this.loaded = false;
     this.dimension = new Dimension(0,0);
-    this.history = undefined;
     this.edgeCreation = undefined;
     this.selectedParameters = {};
     this.changeListeners = new Array();
@@ -71,7 +70,7 @@ function Diagram(completeName)
     	if(!this.panelButtons || this.hidePanel) return;
     	var buttons = this.panelButtons.children();
     	buttons.removeClass("ui-state-active");
-    	_.each(["users", "history"], function(tabName, i)
+    	_.each(["users"], function(tabName, i)
     	{
     		if(this.sharedPane.currentTabName == tabName)
     			buttons.eq(i).addClass("ui-state-active");
@@ -260,35 +259,17 @@ function Diagram(completeName)
     	}
     	if(!this.hidePanel)
     	{
-			if(data.values.transactions)
-	    	{
-	    		this.sharedPane.updateChanges(data.values.transactions);
-	    	}
 			if(data.values.users)
 	    	{
 	    		this.sharedPane.updateUsers(data.values.users);
 	    		this.updateCollaborativeSelectors(data.values.users);
 	    	}
     	}
-		this.setHistory(data.values.history);
     	this.autoUpdate();
     	if(fireChanged)
             this.fireChanged();
     }, this);
     
-    this.setHistory = function(history)
-    {
-    	if(!_.isEqual(this.history, history))
-    	{
-        	this.history = history;
-        	updateViewParts();
-    	}
-    };
-    
-    this.getHistory = function()
-    {
-    	return this.history;
-    };
     
     this.setDimensions = function()
     {
@@ -376,7 +357,7 @@ function Diagram(completeName)
         if(this.showToolbar && !this.hidePanel)
         {
 	        this.panelButtons = $('<div class="fg-rightcomponent ui-helper-clearfix"></div>');
-	        _.each([[resources.dgrButtonUsers, "users"],[resources.dgrButtonHistory, "history"]], function(v)
+	        _.each([[resources.dgrButtonUsers, "users"]], function(v)
 	        {
 	        	this.panelButtons.append(createToolbarButton(v[0], v[1]+".gif", function()
 	            {
@@ -660,12 +641,7 @@ function Diagram(completeName)
     	        		_this.sharedPane.updateUsers(data.values.users);
     	        		_this.updateCollaborativeSelectors(data.values.users);
     	        	}
-    	    		if(data.values.transactions)
-    	        	{
-    	        		_this.sharedPane.updateChanges(data.values.transactions);
-    	        	}
                 }
-        		_this.setHistory(data.values.history);
             });
         });
     };
@@ -1157,33 +1133,6 @@ function AdditionalPanel(parent)
 		this.tabs['users'] = userTab;
 		this.mainDiv.append(userTab);
 		
-		var historyTab = $('<div/>');
-		var historyTabTitle = $("<div class=\"fg-toolbar ui-widget-header ui-corner-all ui-helper-clearfix\"/>");
-		var block2 = $('<div class="fg-rightcomponent ui-helper-clearfix"></div>');
-		this.historyOkButton = createDisabledToolbarButton(resources.dgrHistoryPanelApply, "ok.gif", function()
-		{
-			_this.parent.undo(_this.position);
-			_this.lastChanges = null;
-			_this.parent.cancelChangesMode(false);
-			setToolbarButtonEnabled(_this.historyCancelButton, _this.historyOkButton, false);
-		});
-		block2.append(this.historyOkButton);
-		this.historyCancelButton = createDisabledToolbarButton(resources.dgrHistoryPanelRestore, "cancel.gif", function()
-		{
-			_this.parent.cancelChangesMode(true);
-			var changes = _this.lastChanges;
-			_this.lastChanges = null;
-			_this.updateChanges(changes);
-			setToolbarButtonEnabled(_this.historyCancelButton, _this.historyOkButton, false);
-		});
-		block2.append(this.historyCancelButton);
-		historyTabTitle.append($("<div style=\"float: left; padding: 3pt 1pt 1pt 2pt;\"/>").text(resources.dgrHistoryPanelTitle)).append(block2);
-		historyTab.append(historyTabTitle);
-		this.changesPane = $('<div class="additionalTabPane"/>').addClass("separatedList");
-		historyTab.append(this.changesPane);
-		this.tabs['history'] = historyTab;
-		this.mainDiv.append(historyTab);
-
 		this.mainDiv.children().hide();
 		if(this.currentTabName === '') 
 		{
@@ -1228,78 +1177,6 @@ function AdditionalPanel(parent)
 		_this.resize();
 	};
 	
-	this.updateChanges = function(changes)
-	{
-		// TODO: gracefully update changes
-		if(_.isEqual(changes, _this.lastChanges) || _this.parent.changesMode) return;
-		_this.lastChanges = changes;
-		_this.changesPane.empty();
-		var userCache = [];
-		var separator = '<div class="listSeparatorBlock"><div class="listSeparatorLeft">&#x25BA;</div><div class="listSeparator"></div><div class="listSeparatorRight">&#x25C4;</div></div>';
-		_this.changesPane.append(separator);
-		_this.changesPane.mousedown(function(event) {event.preventDefault();});
-		var nextChange = changes.length;
-		var separators;
-		for(var i=0;i<changes.length; i++)
-		{
-			var userSpan = $("<span/>").text(changes[i].user).css('color', this.getUserColor(changes[i].user)).css('font-weight', 'bold');
-			var nameSpan = $("<span/>").text(changes[i].name).css('padding-left', 10);
-			if(changes[i].next) nextChange = i;
-			var userDiv = $("<div/>").addClass("content").append(userSpan).append(nameSpan);
-			$(userDiv).data("changeNum", i);
-			$(userDiv).data("changeNum", i).click(function(event)
-			{
-				var e = $(this);
-				_this.changesPane.children(".content").removeClass("historySelected");
-				var changeNum = e.data("changeNum");
-				if(event.pageY-e.offset().top < e.height()/2) changeNum++;
-				setToolbarButtonEnabled(_this.historyOkButton, changeNum != nextChange);
-				setToolbarButtonEnabled(_this.historyCancelButton, true);
-				separators.children().removeClass("active");
-				separators.eq(separators.length-changeNum-1).children().addClass("active");
-				_this.parent.showChanges(changeNum, changeNum);
-				_this.position = changeNum;
-			});
-			_this.changesPane.prepend(userDiv).prepend(separator);
-		}
-		var updateChangesSelection = function()
-		{
-			var leftList = _this.changesPane.find(".listSeparatorLeft");
-			var leftIndex = leftList.index(leftList.filter(".active"));
-			var rightList = _this.changesPane.find(".listSeparatorRight");
-			var rightIndex = rightList.index(rightList.filter(".active"));
-			if(leftIndex > rightIndex)
-			{
-				var tmp = leftIndex;
-				leftIndex = rightIndex;
-				rightIndex = tmp;
-			}
-			_this.changesPane.children(".content").removeClass("historySelected")
-				.slice(leftIndex, rightIndex).addClass("historySelected");
-			var separatorList = _this.changesPane.find(".listSeparator");
-			setToolbarButtonEnabled(_this.historyOkButton, leftIndex === rightIndex && leftList.length-rightIndex-1 != nextChange);
-			setToolbarButtonEnabled(_this.historyCancelButton, true);
-			separatorList.removeClass("active");
-			separatorList.eq(leftIndex).addClass("active");
-			separatorList.eq(rightIndex).addClass("active");
-			_this.position = leftList.length-rightIndex-1;
-			_this.parent.showChanges(leftList.length-rightIndex-1, leftList.length-leftIndex-1);
-		};
-		_this.changesPane.find(".listSeparatorLeft").click(function()
-		{
-			_this.changesPane.find(".listSeparatorLeft").removeClass("active");
-			$(this).addClass("active");
-			updateChangesSelection();
-		});
-		_this.changesPane.find(".listSeparatorRight").click(function()
-		{
-			_this.changesPane.find(".listSeparatorRight").removeClass("active");
-			$(this).addClass("active");
-			updateChangesSelection();
-		});
-		separators = _this.changesPane.children(".listSeparatorBlock");
-		separators.eq(separators.length-nextChange-1).children().addClass("active");
-	};
 	
 	this.show = function(tabName)
 	{
@@ -1328,7 +1205,7 @@ function AdditionalPanel(parent)
 		var height = this.mainDiv.height();
 		if(width > 2 && !this.currentTabName)
 		{
-			this.currentTabName = _.find(["users", "history"], function(t)
+			this.currentTabName = _.find(["users"], function(t)
 			{
 				return this.tabs[t].is(":visible");
 			}, this);
@@ -1343,7 +1220,6 @@ function AdditionalPanel(parent)
 		this.mainDiv.find(".additionalTabPane").width(Math.max(0, width-10));
 		
 		this.chatPane.css('height', Math.max(0, height-this.chatPane.position().top - 45));
-		this.changesPane.css('height', Math.max(0, height-this.changesPane.position().top - 20));
 	};
 	
 	this.getUserColor = function(userID)

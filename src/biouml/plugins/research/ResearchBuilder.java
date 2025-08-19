@@ -17,7 +17,6 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.QuerySystem;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.generic.SessionCollection;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.ProtectedDataCollection;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;
@@ -92,9 +91,6 @@ public class ResearchBuilder
             derived.setProperty(SqlDataCollection.JDBC_PASSWORD_PROPERTY, properties.getProperty(SqlDataCollection.JDBC_PASSWORD_PROPERTY));
             derived.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, properties
                     .getProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY));
-            String historyCollection = properties.getProperty(HistoryFacade.HISTORY_COLLECTION);
-            if(historyCollection != null)
-                derived.setProperty(HistoryFacade.HISTORY_COLLECTION, historyCollection);
         }
 
         CollectionFactoryUtils.createDerivedCollection(researchLR, Module.DATA, primary, derived, Module.DATA);

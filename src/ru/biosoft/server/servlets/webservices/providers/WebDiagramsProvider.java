@@ -111,9 +111,6 @@ import ru.biosoft.access.core.DataElementDescriptor;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.undo.DataCollectionUndoListener;
 import ru.biosoft.access.exception.BiosoftCustomException;
-import ru.biosoft.access.history.HistoryDataCollection;
-import ru.biosoft.access.history.HistoryElement;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.SecurityManager;
 //import ru.biosoft.access.support.IdGenerator;
 import ru.biosoft.exception.ExceptionRegistry;
@@ -185,9 +182,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             int editTo = arguments.optInt( "editTo", -1 );
             diagram = getDiagramWithState( diagram, editFrom, editTo );
         }
-        //        int version = arguments.optInt("version", -2);
-        //        int version2 = arguments.optInt("version2", -2);
-        //        diagram = getDiagramVersion(diagram, version, version2);
 
         if( arguments.get("get_dimension") != null )
         {
@@ -374,12 +368,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             else if( diagramAction.equals("redo") )
             {
                 redoDiagram(diagram);
-                sendDiagramChanges(diagram, out, type);
-                return;
-            }
-            else if( diagramAction.equals( "revert" ) ) //History related
-            {
-                revertDiagram(diagram, arguments.optInt("revertVersion", -1));
                 sendDiagramChanges(diagram, out, type);
                 return;
             }
@@ -918,40 +906,6 @@ public class WebDiagramsProvider extends WebProviderSupport
     }
 
     /**
-     * @param diagram
-     * @param version
-     * @throws Exception
-     */
-    private void revertDiagram(final Diagram diagram, int version) throws WebException
-    {
-        if( version < 0 )
-            throw new WebException("EX_QUERY_INVALID_VERSION", diagram.getCompletePath(), version);
-        DataElement diagramVersion = HistoryFacade.getVersion(diagram, version);
-        if( ! ( diagramVersion instanceof Diagram ) )
-            throw new WebException("EX_QUERY_INVALID_VERSION", diagram.getCompletePath(), version);
-        State state;
-        try
-        {
-            state = DiagramStateUtility.createState(diagram, (Diagram)diagramVersion, "");
-        }
-        catch( Exception e )
-        {
-            throw new WebException(e, "EX_INTERNAL_STATE_CREATION", diagram.getCompletePath());
-        }
-        final State finalState = state;
-        performTransaction(diagram, "Revert to version " + version, () -> {
-            try
-            {
-                DiagramStateUtility.redoEdits(diagram, finalState.getStateUndoManager().getEdits());
-            }
-            catch( Exception e )
-            {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    /**
      * Get diagram, convert to PNG image and put to output stream
      * @throws Exception
      */
@@ -1169,9 +1123,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             result.put("view", view);
             result.put("users", getUsers(diagram));
             result.put("transactions", getTransactions(diagram));
-            JSONArray history = getHistory(diagram);
-            if ( history != null )
-                result.put("history", history);
             new JSONResponse(out).sendJSON(result);
             out.close();
         }
@@ -2141,7 +2092,6 @@ public class WebDiagramsProvider extends WebProviderSupport
                 storeView(diagram, newView);
             }
         }
-        JSONArray history = getHistory(diagram);
         if( newView == oldView )
         {
             JSONObject result = new JSONObject();
@@ -2149,8 +2099,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             result.getJSONObject("view").put("repaintRect", emptyRect);
             result.put("users", getUsers(diagram));
             result.put("transactions", getTransactions(diagram));
-            if( history != null )
-                result.put("history", history);
             return result;
         }
         Rectangle intersect = oldView == null ? newView.getBounds() : intersectView((CompositeView)oldView, (CompositeView)newView);
@@ -2162,8 +2110,6 @@ public class WebDiagramsProvider extends WebProviderSupport
         JSONObject result = new JSONObject();
         result.put("view", jsonView);
         result.put("users", getUsers(diagram));
-        if( history != null )
-            result.put("history", history);
         result.put("transactions", getTransactions(diagram));
         return result;
     }
@@ -3053,47 +2999,6 @@ public class WebDiagramsProvider extends WebProviderSupport
     protected static JSONArray getTransactions(Diagram diagram)
     {
         return initUndoManager(diagram).toJSON();
-    }
-
-    /**
-     * Returns JSONArray representing information about history revisions. Result looks like transactions
-     * Will work for various elements in future, though now implemented for Diagrams only
-     * @param element element (diagram) to get versions of
-     * @return null if no history supported for the element
-     * @throws Exception
-     */
-    protected static JSONArray getHistory(DataElement element)
-    {
-        try
-        {
-            HistoryDataCollection historyCollection = HistoryFacade.getHistoryCollection(element);
-            if( historyCollection == null )
-                return null;
-            List<String> elementNames = historyCollection.getHistoryElementNames(DataElementPath.create(element), 0);
-            if( elementNames == null )
-                return null;
-            JSONArray result = new JSONArray();
-            for( String name : elementNames )
-            {
-                HistoryElement he = (HistoryElement)historyCollection.get(name);
-                JSONObject entry = new JSONObject();
-                entry.put("user", he.getAuthor() == null ? "?" : he.getAuthor());
-                entry.put("comment", he.getComment());
-                entry.put("version", he.getVersion());
-                String title = he.getVersion() + ": " + he.getComment();
-                if( title.length() > 30 )
-                    title = title.substring(0, 29) + "...";
-                entry.put("name", title);
-                entry.put("time", he.getTimestamp().getTime());
-                result.put(entry);
-            }
-            return result;
-        }
-        catch( Exception e )
-        {
-            log.log(Level.SEVERE, "While getting history for " + element + ": ", e);
-            return null;
-        }
     }
 
     //    /**

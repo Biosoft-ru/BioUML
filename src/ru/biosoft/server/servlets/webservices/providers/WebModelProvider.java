@@ -71,7 +71,6 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementDescriptor;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.LoggedClassNotFoundException;
 import ru.biosoft.graphics.editor.ViewEditorPane;
@@ -114,10 +113,6 @@ public class WebModelProvider extends WebDiagramsProvider
             int editTo = arguments.optInt( "editTo", -1 );
             diagram = getDiagramWithState( diagram, editFrom, editTo );
         }
-
-        int version = arguments.optInt( "version", -2 );
-        int version2 = arguments.optInt( "version2", -2 );
-        diagram = getDiagramVersion( diagram, version, version2 );
 
         String type = arguments.get( TYPE );
         if( diagramAction.equals( "check_diagram_element" ) )
@@ -285,38 +280,6 @@ public class WebModelProvider extends WebDiagramsProvider
 
     }
 
-    /**
-     * Returns older saved version of diagram or diff between two versions
-     * 
-     * @param diagram - current version of diagram
-     * @param version - older version (-1 = current)
-     * @param version2 - older version (-1 = current, -2 = no diff requested)
-     * @return requested version of diagram
-     * @throws Exception
-     */
-    protected Diagram getDiagramVersion(Diagram diagram, int version, int version2) throws WebException
-    {
-        if( version >= -1 || version2 >= -1 )
-        {
-            Diagram diagram1 = version == -1 ? diagram : (Diagram) HistoryFacade.getVersion( diagram, version );
-            if( diagram1 == null )
-                throw new WebException( "EX_QUERY_INVALID_VERSION", diagram.getCompletePath(), version );
-            if( version2 >= -1 )
-            {
-                Diagram diagram2 = version2 == -1 ? diagram : (Diagram) HistoryFacade.getVersion( diagram, version2 );
-                if( diagram2 == null )
-                    throw new WebException( "EX_QUERY_INVALID_VERSION", diagram.getCompletePath(), version2 );
-
-                diagram = (Diagram) HistoryFacade.getDiffElement( diagram1, diagram2 );
-            }
-            else
-                diagram = diagram1;
-            createView( diagram );
-        }
-        return diagram;
-    }
-
-    
     /**
      * Send type of diagram (like sendType), but without diagram instantiation if possible
      * @param path

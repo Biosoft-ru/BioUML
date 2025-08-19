@@ -16,7 +16,6 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.Repository;
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
@@ -48,10 +47,6 @@ public class CustomProjectAnalysis extends AnalysisMethodSupport<CustomProjectAn
         props.setProperty(SqlDataCollection.JDBC_PASSWORD_PROPERTY, dbPassword);
         props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, "SQL");
         
-        String historyCollection = Application.getGlobalValue("DefaultHistoryCollection", null);
-        if(historyCollection != null)
-            props.setProperty(HistoryFacade.HISTORY_COLLECTION, historyCollection);
-
         SqlUtil.createDatabase(rootConnection, dbProjectName, dbUser, dbPassword);
 
         ResearchBuilder researchBuilder = new ResearchBuilder(props);

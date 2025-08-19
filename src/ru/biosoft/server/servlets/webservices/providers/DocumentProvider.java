@@ -8,7 +8,6 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.filter.Filter;
 import ru.biosoft.access.core.TextDataElement;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
@@ -124,14 +123,6 @@ public class DocumentProvider extends WebJSONProviderSupport
                 throw new WebException("EX_QUERY_COPY_NOT_SUPPORTED", oldPath);
             if(de == null)
                 throw new WebException("EX_ACCESS_CANNOT_COPY", oldPath, newPath, "no result");
-        }
-        if( HistoryFacade.needComment(de) )
-        {
-            if( comment == null )
-            {
-                return false;
-            }
-            HistoryFacade.addComment(de, comment);
         }
         try
         {

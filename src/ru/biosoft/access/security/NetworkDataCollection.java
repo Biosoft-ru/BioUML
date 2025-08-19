@@ -16,7 +16,6 @@ import ru.biosoft.access.Repository;
 import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.exception.ParameterNotAcceptableException;
 import ru.biosoft.access.generic.GenericDataCollection;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.MissingParameterException;
 
@@ -258,9 +257,6 @@ public class NetworkDataCollection extends ProtectedDataCollection implements Fo
         {
             DataCollection folder = GenericDataCollection.createGenericCollection(this, (Repository)repository, name, null);//,//
                     //(Class<? extends GenericDataCollection>)clazz);
-            String historyCollection = getInfo().getProperty(HistoryFacade.HISTORY_COLLECTION);
-            if( historyCollection != null )
-                folder.getInfo().getProperties().setProperty(HistoryFacade.HISTORY_COLLECTION, historyCollection);
             put(folder);
             return folder;
         }
