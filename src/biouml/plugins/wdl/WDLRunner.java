@@ -8,7 +8,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
-import java.util.logging.Level;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -19,8 +20,6 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.TextFileImporter;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElement;
-import ru.biosoft.util.StreamGobbler;
 
 public class WDLRunner
 {
@@ -53,11 +52,10 @@ public class WDLRunner
 
         generateFunctions( outputDir );
 
-        for ( DataElement de : StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() ) )
-            WDLUtil.export( de, new File( outputDir ) );
+        exportIncludes( diagram, outputDir );
 
         if( nextFlowScript == null )
-            nextFlowScript = new NextFlowGenerator().generateNextFlow( diagram );
+            nextFlowScript = new NextFlowGenerator().generateNextFlow( diagram, true );
         NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
         nextFlowScript = preprocessor.preprocess( nextFlowScript );
 
@@ -141,6 +139,13 @@ public class WDLRunner
 
         for ( Compartment n : WDLUtil.getAllCalls( diagram ) )
         {
+            if (WDLUtil.getDiagramRef( n ) != null)
+            {
+                String ref = WDLUtil.getDiagramRef( n );
+                Diagram externalDiagram = (Diagram)diagram.getOrigin().get( ref );
+                importResults( externalDiagram, settings, outputDir );
+                continue;
+            }
             String taskRef = WDLUtil.getTaskRef( n );
             String folderName = (taskRef);
             File folder = new File( outputDir, folderName );
@@ -158,4 +163,20 @@ public class WDLRunner
         }
     }
 
+    public static void exportIncludes(Diagram diagram, String outputDir) throws Exception
+    {
+        for ( Diagram d : getIncludes( diagram))
+            WDLUtil.export( d, new File( outputDir ) );
+    }
+    
+    public static Set<Diagram> getIncludes(Diagram diagram)
+    {
+        Set<Diagram> result = StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() )
+                .select( Diagram.class ).toSet();
+        Set<Diagram> additionals = new HashSet<Diagram>();
+        for( Diagram d : result )
+            additionals.addAll( getIncludes( d ) );
+        result.addAll( additionals );
+        return result;
+    }
 }
