@@ -28,6 +28,7 @@ import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.access.core.ClassIcon;
+import ru.biosoft.access.core.CloneableDataElement;
 import ru.biosoft.access.security.NetworkDataCollection;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.plugins.graph.GraphPlugin;
@@ -52,7 +53,7 @@ import com.developmentontheedge.beans.util.Beans;
 
 @ClassIcon ( "resources/diagram.gif" )
 @PropertyName ( "Diagram" )
-public class Diagram extends Compartment
+public class Diagram extends Compartment implements CloneableDataElement
 {
     protected static final Logger log = Logger.getLogger( Diagram.class.getName() );
 
@@ -520,12 +521,20 @@ public class Diagram extends Compartment
     // clone issues
     //
 
-    public @Nonnull Diagram clone(DataCollection<?> origin, String newName) throws Exception
+    public @Nonnull Diagram clone(DataCollection<?> origin, String newName) throws CloneNotSupportedException
     {
         boolean notif = this.isNotificationEnabled();
         this.setNotificationEnabled( false );
-        Diagram diagram = getType().clone().createDiagram( origin, newName, null );
-        doClone( diagram );
+        Diagram diagram;
+        try
+        {
+            diagram = getType().clone().createDiagram( origin, newName, null );
+            doClone( diagram );
+        }
+        catch (Exception e)
+        {
+            throw ExceptionRegistry.translateException( e );
+        }
         diagram.getType().postProcessClone( this, diagram );
         this.setNotificationEnabled( notif );
         return diagram;

@@ -109,17 +109,8 @@ public class DocumentProvider extends WebJSONProviderSupport
                 {
                     throw new WebException(e, "EX_ACCESS_CANNOT_COPY", oldPath, newPath, e.getMessage());
                 }
-            } else if(de instanceof Diagram)    // TODO: make Diagram implement CloneableDataElement to remove this branch
-            {
-                try
-                {
-                    de = ((Diagram)de).clone(parent, newPath.getName());
-                }
-                catch( Exception e )
-                {
-                    throw new WebException(e, "EX_ACCESS_CANNOT_COPY", oldPath, newPath, e.getMessage());
-                }
-            } else
+            }
+            else
                 throw new WebException("EX_QUERY_COPY_NOT_SUPPORTED", oldPath);
             if(de == null)
                 throw new WebException("EX_ACCESS_CANNOT_COPY", oldPath, newPath, "no result");
