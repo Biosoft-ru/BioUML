@@ -63,6 +63,7 @@
         <module>plugconfig/biouml.plugins.svg</module>
         <module>plugconfig/biouml.plugins.test</module>
         <module>plugconfig/biouml.plugins.uniprot</module>
+        <module>plugconfig/biouml.plugins.wdl</module>
 
         <module>plugconfig/biouml.splash</module>
         <module>plugconfig/biouml.workbench</module>
@@ -806,7 +807,7 @@
       </dependency>
 
       <dependency>
-          <groupId>javastraw</groupId>
+          <groupId>ru.biosoft</groupId>
           <artifactId>javastraw</artifactId>
           <version>1.0.0</version>
       </dependency>
@@ -947,6 +948,7 @@
                                            <include name="${biouml.plugin.path}/**/*.R" />
                                            <include name="${biouml.plugin.path}/**/*.RData" />
                                            <include name="${biouml.plugin.path}/**/*.properties" />
+                                           <include name="${biouml.plugin.path}/**/*.nf" />
                                            <exclude name="${biouml.plugin.path}/**/_test/**" />
                                            <exclude name="${biouml.plugin.path}/**/large/*" />
 

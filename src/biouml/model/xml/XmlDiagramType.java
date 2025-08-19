@@ -567,4 +567,11 @@ public class XmlDiagramType extends DiagramTypeSupport implements Base
             return new VectorDataCollection<>( "" );
         }
     }
+
+    @Override
+    public boolean isCompartment(Base kernel)
+    {
+        String typeStr = getKernelTypeName( kernel.getClass() );
+        return super.isCompartment( kernel ) || checkCompartment( typeStr );
+    }
 }

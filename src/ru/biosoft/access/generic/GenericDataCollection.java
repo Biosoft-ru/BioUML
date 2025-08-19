@@ -47,7 +47,6 @@ import ru.biosoft.access.core.RepositoryAccessDeniedException;
 import ru.biosoft.access.exception.BiosoftSQLException;
 import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.exception.ParameterNotAcceptableException;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.CodePrivilege;
 import ru.biosoft.access.security.CodePrivilegeType;
 import ru.biosoft.access.security.NetworkRepository;
@@ -803,9 +802,6 @@ public class GenericDataCollection extends DerivedDataCollection<ru.biosoft.acce
             {
                 DataCollection folder = createGenericCollection( this, (Repository)repository, name, null,
                         (Class<? extends GenericDataCollection>)clazz );
-                String historyCollection = getInfo().getProperty( HistoryFacade.HISTORY_COLLECTION );
-                if( historyCollection != null )
-                    folder.getInfo().getProperties().setProperty( HistoryFacade.HISTORY_COLLECTION, historyCollection );
                 put( folder );
                 return folder;
             }

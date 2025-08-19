@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.lang.reflect.Array;
+import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import com.developmentontheedge.beans.editors.StringTagEditor;
 import com.developmentontheedge.application.Application;
 
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.support.IdGenerator;
 import ru.biosoft.access.biohub.RelationType;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.editor.ViewEditorPane;
@@ -35,6 +37,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.Edge;
+import biouml.model.InitialElementProperties;
 import biouml.model.Module;
 import biouml.model.Node;
 import biouml.model.SemanticController;
@@ -474,7 +477,22 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
     public Object getPropertiesByType(Compartment compartment, Object type, Point point)
     {
         Object bean = xmlDiagramType.getPropertiesBean(type.toString());
-        if(bean != null) return bean;
+        if( bean != null)
+        {
+            if(bean instanceof InitialElementProperties)
+                return  bean;
+            else
+            {
+                XmlBeanInitialProperties properties = new XmlBeanInitialProperties();
+                String idFormat = xmlDiagramType.getIdFormat( type.toString() );
+                if( idFormat != null )
+                {
+                    properties.setName( IdGenerator.generateUniqueName( compartment, new DecimalFormat( idFormat ) ) );
+                }
+                properties.setAttributes( createAttributes(type.toString()) );
+                return properties;
+            }
+        }
         return prototype.getPropertiesByType( compartment, type, point );
     }
 

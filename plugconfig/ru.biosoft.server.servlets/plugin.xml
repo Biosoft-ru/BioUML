@@ -8,7 +8,7 @@
 
     <extension point="ru.biosoft.server.servlets.webProvider">
         <provider prefix="data" class="ru.biosoft.server.servlets.webservices.providers.ServiceProvider"/>
-        <provider prefix="diagram" class="ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider"/>
+        <provider prefix="diagram" class="ru.biosoft.server.servlets.webservices.providers.WebModelProvider"/>
         <provider prefix="action" class="ru.biosoft.server.servlets.webservices.providers.WebActionsProvider"/>
         <provider prefix="content" class="ru.biosoft.server.servlets.webservices.providers.ContentProvider"/>
         <provider prefix="html" class="ru.biosoft.server.servlets.webservices.providers.HtmlTemplateProvider"/>

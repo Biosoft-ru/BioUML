@@ -1036,7 +1036,7 @@ function NewEdgeDialog(diagram, dcName, type)
         {
             params['additional'] = additionalParams;
         }
-        queryBioUML("web/diagram/add", params, function(data)
+        queryBioUML("web/diagram/add_edge", params, function(data)
         {
             if (data.type == 0)
             {
@@ -1561,7 +1561,7 @@ function NewReactionDialog(diagram, posX, posY)
             params['formula'] = formula;
         }
         
-        queryBioUML("web/diagram/add", params, function(data)
+        queryBioUML("web/diagram/add_reaction", params, function(data)
         {
             _thisDialog.diagram.update(data, true);
         });

@@ -47,7 +47,6 @@ import ru.biosoft.access.core.filter.FilteredDataCollection;
 import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.PrivilegedAction;
@@ -983,10 +982,6 @@ public class SupportServlet extends AbstractJSONServlet
         props.setProperty(SqlDataCollection.JDBC_USER_PROPERTY, dbUser);
         props.setProperty(SqlDataCollection.JDBC_PASSWORD_PROPERTY, dbPassword);
         props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, "SQL");
-
-        String historyCollection = Application.getGlobalValue("DefaultHistoryCollection", null);
-        if(historyCollection != null)
-            props.setProperty(HistoryFacade.HISTORY_COLLECTION, historyCollection);
 
         try
         { 

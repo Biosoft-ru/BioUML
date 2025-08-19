@@ -76,7 +76,6 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.Environment;
 import ru.biosoft.access.exception.BiosoftExceptionTranslator;
-import ru.biosoft.access.history.HistoryFacade;
 import ru.biosoft.access.repository.PluginActions;
 import ru.biosoft.access.repository.RepositoryListener;
 import ru.biosoft.access.repository.RepositoryTabs;
@@ -816,16 +815,6 @@ public class BioUMLApplication extends ApplicationFrame implements ChangeListene
 
     public static void saveDocument(Document document)
     {
-        //history comments support
-        if( ( document.getModel() instanceof DataElement ) && HistoryFacade.needComment( (DataElement)document.getModel() ) )
-        {
-            String message = messageBundle.getString("COMMENT_INPUT");
-            String comment = JOptionPane.showInputDialog(Application.getApplicationFrame(), message);
-            if( comment != null )
-            {
-                HistoryFacade.addComment((DataElement)document.getModel(), comment);
-            }
-        }
         document.save();
         document.update();
     }
