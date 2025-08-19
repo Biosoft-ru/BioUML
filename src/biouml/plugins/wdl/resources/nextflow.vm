@@ -41,6 +41,7 @@ include { $functions } from './biouml_function.nf'
 #######################################################################################
 #foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
 #######################################################################################
+#if ($helper.isEntryScript())
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
 #foreach( $externalParameter in $externalParameters )
@@ -48,6 +49,7 @@ $helper.getExternalInput($externalParameter)
 #end
 #end
 #if($externalParameters.size() > 0)$BR#end
+#end
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################
@@ -89,8 +91,10 @@ workflow $helper.getMainWorkflowName() {
 #foreach( $externalParameter in $externalParameters )
   $helper.getName($externalParameter)
 #end
-#end
+#end$BR
+#if ($helper.isNotEmpty())
 $BR  main:
+#end
 #foreach( $n in $helper.orderCalls($diagram))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
@@ -106,6 +110,8 @@ $BR  main:
 #end
 }$BR
 ################################ENTRY WORKFLOW#########################################
+#if ($helper.isEntryScript())
 workflow {
 $helper.getMainWorkflowName()( #foreach($ep in $externalParameters)$helper.getExternalParamaterName($ep)#comma($externalParameters) #end )
 }
+#end

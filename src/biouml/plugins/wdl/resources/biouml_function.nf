@@ -1,5 +1,5 @@
 def basename(path) {
-    return path.tokenize('/').last()
+    return path.getName()
 }
 
 def sub(input, pattern, replacement) {

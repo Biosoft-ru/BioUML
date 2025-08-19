@@ -29,7 +29,6 @@ import biouml.plugins.wdl.parser.WDLParser;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 //import junit.framework.TestCase;
 import one.util.streamex.StreamEx;
-import ru.biosoft.access.core.DataElement;
 import ru.biosoft.graph.HierarchicLayouter;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.util.TempFiles;
@@ -47,14 +46,16 @@ public class TestWDL //extends //TestCase
 
         //                test( "scatter_range_2_extra" );
         //                test( "scatter_range_2_steps" );
-        //        test( "scatter_simple" );
+//                test( "scatter_simple" );
         //        test( "scatter_range" );
-        //        test( "scatter_range2" );
+//                test( "scatter_range2" );
         //        test( "two_steps" );
         //        test( "four_steps" );
 //        test( "private_declaration_task" );
-                test( "pbmm2" );
-
+//                test( "pbmm2" );
+//        test( "pbsv_1" );
+        test( "array_input" );
+//        test( "array_on_the_fly" );
         //        test( "lima" );
         //                test("faidx2");
         //        test("faidx_import");
@@ -79,7 +80,7 @@ public class TestWDL //extends //TestCase
         NextFlowGenerator nextFlowGenerator = new NextFlowGenerator();
         String wdl = wdlGenerator.generateWDL( diagram );
 
-        String nextFlow = nextFlowGenerator.generateNextFlow( diagram );
+        String nextFlow = nextFlowGenerator.generateNextFlow( diagram, true );
 
 //        runNextFlow( name, nextFlow );
         printNextflow( nextFlow );
