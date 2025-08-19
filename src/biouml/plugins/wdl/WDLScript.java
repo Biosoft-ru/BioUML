@@ -11,7 +11,6 @@ import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
-import biouml.model.util.ImageGenerator;
 import biouml.plugins.wdl.diagram.WDLDiagramTransformer;
 //import ru.biosoft.access.FileDataElement;
 import ru.biosoft.access.ImageElement;
@@ -23,6 +22,7 @@ import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
 import ru.biosoft.graphics.View;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
+import ru.biosoft.util.ImageGenerator;
 
 @ClassIcon ( "resources/wdl-script.gif" )
 @PropertyName ( "WDL-script" )

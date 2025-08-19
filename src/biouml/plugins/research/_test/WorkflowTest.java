@@ -24,7 +24,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.plugins.research.workflow.WorkflowDiagramType;
 import biouml.plugins.research.workflow.WorkflowSemanticController;
 import biouml.plugins.research.workflow.engine.WorkflowEngine;
@@ -488,7 +488,7 @@ public class WorkflowTest extends AbstractBioUMLTest
         Compartment analysis = (Compartment)workflowController.addAnalysis(workflow, analysisName, new Point(10,20), viewEditor);
 
         workflow.setView(null);
-        ImageGenerator.generateDiagramView(workflow, ApplicationUtils.getGraphics());
+        DiagramImageGenerator.generateDiagramView( workflow, ApplicationUtils.getGraphics() );
         assertTrue(workflow.getView() instanceof CompositeView);
         assertTrue(analysis.getView() instanceof CompositeView);
         CompositeView analysisView = (CompositeView)analysis.getView();
@@ -520,7 +520,7 @@ public class WorkflowTest extends AbstractBioUMLTest
         workflowController = (WorkflowSemanticController)workflow.getType().getSemanticController();
         DiagramEditorHelper helper = new DiagramEditorHelper(workflow);
         viewEditor = new ViewEditorPaneStub(helper, workflow);
-        ImageGenerator.generateDiagramView(workflow, ApplicationUtils.getGraphics());
+        DiagramImageGenerator.generateDiagramView( workflow, ApplicationUtils.getGraphics() );
     }
 
     private WorkflowParameter connectInput(Node analysisInput, String inputName)

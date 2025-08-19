@@ -15,13 +15,14 @@ import java.util.logging.Logger;
 
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.SqlTransformerSupport;
+import ru.biosoft.util.ImageGenerator;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramType;
 import biouml.model.Module;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.model.util.DiagramXmlReader;
 import biouml.model.util.DiagramXmlWriter;
-import biouml.model.util.ImageGenerator;
 import biouml.standard.type.DiagramInfo;
 
 public class DiagramSqlTransformer extends SqlTransformerSupport<Diagram>
@@ -153,7 +154,7 @@ public class DiagramSqlTransformer extends SqlTransformerSupport<Diagram>
 
                 // write png
                 out = new ByteArrayOutputStream();
-                BufferedImage image = ImageGenerator.generateDiagramImage( diagram );
+                BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
                 ImageGenerator.encodeImage( image, "PNG", out );
 
                 byte[] imageBytes = out.toByteArray();

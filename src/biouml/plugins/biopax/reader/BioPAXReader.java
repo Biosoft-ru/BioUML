@@ -35,7 +35,7 @@ import biouml.model.DiagramElement;
 import biouml.model.DiagramType;
 import biouml.model.Module;
 import biouml.model.Node;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.plugins.biopax.BioPAXQuerySystem;
 import biouml.plugins.biopax.BioPAXSupport;
 import biouml.plugins.biopax.access.BioPaxOwlDataCollection.BioPAXCollectionJobControl;
@@ -332,7 +332,7 @@ public abstract class BioPAXReader extends BioPAXSupport
         diagram.getType().getDiagramViewBuilder().createDiagramView(diagram, g);
 
         diagram.setView(null);
-        ImageGenerator.generateDiagramView(diagram, g);
+        DiagramImageGenerator.generateDiagramView( diagram, g );
         diagram.setView(null);
         HierarchicLayouter layouter = new HierarchicLayouter();
         layouter.setVerticalOrientation(true);

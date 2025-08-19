@@ -42,7 +42,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.standard.type.Base;
 import biouml.standard.type.DiagramInfo;
 import biouml.standard.type.Stub;
@@ -591,7 +591,7 @@ public class SbolDiagramReader
     private static void layoutDiagram(Diagram diagram, Layouter layouter)
     {
         // Generate diagram view as it may update sizes and visibility
-        ImageGenerator.generateDiagramView(diagram, ApplicationUtils.getGraphics());
+        DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
         PathwayLayouter pathwayLayouter = new PathwayLayouter(layouter);
         Graph graph = DiagramToGraphTransformer.generateGraph(diagram, null);
         pathwayLayouter.doLayout(graph, null);

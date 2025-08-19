@@ -7,7 +7,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import biouml.model.util.ImageGenerator;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -20,6 +19,7 @@ import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.WebException;
+import ru.biosoft.util.ImageGenerator;
 
 /**
  * Provides the content of applicable elements.

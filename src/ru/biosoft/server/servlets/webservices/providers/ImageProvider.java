@@ -43,7 +43,7 @@ import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.util.ApplicationUtils;
-import biouml.model.util.ImageGenerator;
+import ru.biosoft.util.ImageGenerator;
 import biouml.plugins.server.access.AccessProtocol;
 
 /**

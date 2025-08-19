@@ -16,7 +16,6 @@ import javax.imageio.ImageIO;
 import org.apache.commons.lang.StringEscapeUtils;
 import com.developmentontheedge.application.ApplicationUtils;
 
-import biouml.model.util.ImageGenerator;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.Site;
@@ -37,6 +36,7 @@ import ru.biosoft.bsa.view.sitelayout.SiteLayoutAlgorithm;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.View;
 import ru.biosoft.table.export.HTMLExportTransformer;
+import ru.biosoft.util.ImageGenerator;
 
 public class ZHTMLExportTransformer extends HTMLExportTransformer
 {

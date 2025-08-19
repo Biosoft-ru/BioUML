@@ -19,9 +19,9 @@ import ru.biosoft.util.TextUtil2;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.dynamics.plot.PlotsInfo;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.model.dynamics.plot.Curve;
 import biouml.model.dynamics.plot.PlotInfo;
-import biouml.model.util.ImageGenerator;
 import biouml.plugins.bionetgen.diagram.BionetgenConstants;
 import biouml.plugins.bionetgen.diagram.BionetgenUtils;
 import biouml.plugins.bionetgen.diagram.BionetgenDiagramDeployer;
@@ -166,11 +166,11 @@ public class BionetgenSimulationTest extends BionetgenDiagramGeneratorTest
         BufferedImage bi;
         File image = new File(fileName + ".png");
         if( diagram.getSize() < 1000 )
-            bi = ImageGenerator.generateDiagramImage(diagram, 1.0, true);
+            bi = DiagramImageGenerator.generateDiagramImage( diagram, 1.0, true );
         else if( diagram.getSize() < 4000 )
-            bi = ImageGenerator.generateDiagramImage(diagram, 0.3, true);
+            bi = DiagramImageGenerator.generateDiagramImage( diagram, 0.3, true );
         else
-            bi = ImageGenerator.generateDiagramImage(diagram, 0.1, true);
+            bi = DiagramImageGenerator.generateDiagramImage( diagram, 0.1, true );
         ImageIO.write(bi, "PNG", image);
         bi.flush();
     }

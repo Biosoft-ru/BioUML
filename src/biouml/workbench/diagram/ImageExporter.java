@@ -21,7 +21,7 @@ import com.developmentontheedge.beans.DynamicProperty;
 
 import biouml.model.Diagram;
 import biouml.model.ScalableElementExporter;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.DataElementExporter;
 import ru.biosoft.access.DataElementExporterRegistry;
@@ -104,7 +104,7 @@ public class ImageExporter extends ScalableElementExporter
     {
         if(de instanceof Diagram)
         {
-            return ImageGenerator.generateDiagramImage((Diagram)de, getScale(), isAntialiased());
+            return DiagramImageGenerator.generateDiagramImage( (Diagram) de, getScale(), isAntialiased() );
         } else if(de instanceof ImageElement)
         {
             Dimension size = ((ImageElement)de).getImageSize();

@@ -8,11 +8,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ru.biosoft.server.AbstractServlet;
+import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.standard.type.Protein;
 import biouml.standard.type.Stub;
 
@@ -72,7 +73,7 @@ public class DiagramServlet extends AbstractServlet
 
             try( PrintWriter pw = new PrintWriter( out ) )
             {
-                ImageGenerator.generateDiagramImage( diagram );
+                DiagramImageGenerator.generateDiagramImage( diagram );
                 String map = ImageGenerator.generateImageMap( diagram.getView(), new UbiprotReferenceGenerator() );
 
                 pw.write( "<html><head>" );
@@ -108,7 +109,7 @@ public class DiagramServlet extends AbstractServlet
             String organism = params.substring(pointPos + 1, params.length());
             Diagram diagram = DiagramGenerator.getInstance().getDiagram(line, organism);
 
-            BufferedImage image = ImageGenerator.generateDiagramImage(diagram);
+            BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
             ImageGenerator.encodeImage(image, "PNG", out);
 
             out.close();
@@ -132,7 +133,7 @@ public class DiagramServlet extends AbstractServlet
 
             try( PrintWriter pw = new PrintWriter( out ) )
             {
-                ImageGenerator.generateDiagramImage( diagram );
+                DiagramImageGenerator.generateDiagramImage( diagram );
                 String map = ImageGenerator.generateImageMap( diagram.getView(), new UbiprotReferenceGenerator() );
 
                 pw.write( map );

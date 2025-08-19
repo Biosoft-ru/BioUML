@@ -33,8 +33,8 @@ import com.developmentontheedge.application.dialog.OkCancelDialog;
 
 import biouml.model.Diagram;
 import biouml.model.Module;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.model.util.DiagramXmlWriter;
-import biouml.model.util.ImageGenerator;
 import biouml.workbench.BioUMLApplication;
 import biouml.workbench.diagram.DiagramDocument;
 import biouml.workbench.module.StatusInfoDialog;
@@ -45,6 +45,7 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.gui.Document;
 import ru.biosoft.jobcontrol.FunctionJobControl;
+import ru.biosoft.util.ImageGenerator;
 
 @SuppressWarnings ( "serial" )
 public class GenerateHTMLDialog extends OkCancelDialog
@@ -386,7 +387,7 @@ public class GenerateHTMLDialog extends OkCancelDialog
                 new Object[]{digramName});
         cat.info(message);
 
-        BufferedImage image = ImageGenerator.generateDiagramImage(diagram);
+        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
         try (FileOutputStream out = new FileOutputStream( outputDiagramImageFile ))
         {
             ImageGenerator.encodeImage( image, "PNG", out );

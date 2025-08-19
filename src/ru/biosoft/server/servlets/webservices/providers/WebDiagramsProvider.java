@@ -74,7 +74,7 @@ import biouml.model.SemanticController;
 //import biouml.model.dynamics.Variable;
 //import biouml.model.dynamics.VariableRole;
 import biouml.model.util.AddElementsUtils;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 //import biouml.model.xml.XmlDiagramSemanticController;
 //import biouml.model.xml.XmlDiagramType;
 import biouml.standard.diagram.ConnectionEdgePane;
@@ -149,6 +149,7 @@ import ru.biosoft.server.servlets.webservices.WebTransactionUndoManager;
 //import ru.biosoft.table.TableDataCollection;
 //import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.DPSUtils;
+import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil2;
 
@@ -1069,7 +1070,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                 view = diagram.getView();
                 if( view == null )
                 {
-                    view = ImageGenerator.generateDiagramView(diagram, ApplicationUtils.getGraphics());
+                    view = DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
                     storeView( diagram, view );
                 }
                 diagram.notifyAll();
@@ -1215,7 +1216,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     de = (DiagramElement)view.getModel();
                     newElements.add( de );
                     diagram.setView( null );
-                    ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+                    DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
                 }
                 else if( newBounds.x != bounds.x || newBounds.y != bounds.y )
                 {
@@ -1225,7 +1226,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     de = (DiagramElement)view.getModel();
                     newElements.add( de );
                     diagram.setView( null );
-                    ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+                    DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
                 }
             }
         });
@@ -1242,7 +1243,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         {
             Diagram diagram = Diagram.getDiagram(de);
             diagram.setView(null);
-            ImageGenerator.generateDiagramView(diagram, ApplicationUtils.getGraphics());
+            DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
         }
     }
 
@@ -1456,7 +1457,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     {
                         DiagramElementGroup elements = ( (InitialElementProperties)bean ).createElements( parent, location, viewEditor );
                         //TODO: remove check after all InitialElementProperties will separately add/create elements
-                        if( bean instanceof ReactionInitialProperties )
+                        //if( bean instanceof ReactionInitialProperties )
                             elements.putToCompartment( );
                         result.addAll( elements.getElements() );
                     }
