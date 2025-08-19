@@ -19,9 +19,17 @@ import one.util.streamex.StreamEx;
 
 public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 {
+    private boolean isEntryScript = true;
+    
     public NextFlowVelocityHelper(Diagram diagram)
     {
         super( diagram );
+    }
+    
+    public NextFlowVelocityHelper(Diagram diagram, boolean isEntryScript)
+    {
+        super( diagram );
+        this.isEntryScript = isEntryScript;
     }
 
     public List<Node> orderCalls(Compartment compartment)
@@ -404,7 +412,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public Compartment[] getImportedCalls()
     {
-        return WDLUtil.getCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
+        return WDLUtil.getAllCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
     }
 
     public String getImportedDiagram(Compartment call)
@@ -426,10 +434,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     {
         String expression = declaration.getExpression();
         expression = expression.replace( "~{", "${" );
-        return "def " + declaration.getName() + " = " + expression;
+        return declaration.getName() + " = " + expression;
     }
 
-    public Object getPrivateDecarations(Compartment task)
+    public Object getPrivateDeclarations(Compartment task)
     {
         return WDLUtil.getBeforeCommand( task );
     }
@@ -473,4 +481,15 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 return "file(params."+getName(input)+")";
         return "params."+getName(input);
     }
+    
+    public boolean isNotEmpty()
+    {
+        return !WDLUtil.getAllCalls( diagram ).isEmpty();
+    }
+    
+    public boolean isEntryScript()
+    {
+        return isEntryScript;
+    }
+    
 }

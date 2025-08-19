@@ -4,15 +4,17 @@ import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
 {
-    public WorkflowSettingsBeanInfo(WorkflowSettings settings)
+    public WorkflowSettingsBeanInfo()
     {
         super( WorkflowSettings.class );
     }
 
     @Override
-    public void initProperties()
+    public void initProperties() throws Exception
     {
-        add( "parameters" );
         add( "outputPath" );
+        property( "useJson" ).structureChanging().add();
+        property( "json" ).hidden( "isNotJson" ).add();
+        property( "parameters" ).hidden( "isUseJson" ).add();
     }
 }

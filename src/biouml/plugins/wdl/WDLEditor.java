@@ -110,7 +110,7 @@ public class WDLEditor extends EditorPartSupport
         {
             setDiagram( (Diagram)model );
             setWDL( wdlGenerator.generateWDL( getDiagram() ) );
-            setNextFlow( nextFlowGenerator.generateNextFlow( getDiagram() ) );
+            setNextFlow( nextFlowGenerator.generateNextFlow( getDiagram(), true) );
         }
         catch( Exception ex )
         {

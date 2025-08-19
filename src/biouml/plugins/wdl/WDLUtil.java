@@ -651,8 +651,8 @@ public class WDLUtil
         }
         else if( de instanceof Diagram )
         {
-            NextFlowGenerator generator = new NextFlowGenerator();
-            String nextFlow = generator.generateNextFlow( (Diagram) de );
+            NextFlowGenerator generator = new NextFlowGenerator();  
+            String nextFlow = generator.generateNextFlow( (Diagram) de , false);
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, nextFlow );
         }
