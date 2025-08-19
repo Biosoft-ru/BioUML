@@ -24,11 +24,6 @@
      </action>
   </extension>
 
-  <extension id="RunWDL" point="ru.biosoft.analysiscore.method"> 
-      <analysisClass class="biouml.plugins.wdl.RunWDLAnalysis" group="Unclassified" name="Run WDL"
-         shortDescription="Run WDL script" description="Run WDL script" /> 
-  </extension>
-
   <extension point="ru.biosoft.server.servlets.webProvider">
     <provider prefix="wdl" class="biouml.plugins.wdl.web.WDLWebProvider"/>
   </extension>
