@@ -147,7 +147,7 @@ public class TestWebResearchProvider extends AbstractProviderTest
         arguments.put("dc", "n/a");
         arguments.put("input", in);
         arguments.put("output", out);
-        assertOk(getResponseJSON("diagram/add", arguments));
+        assertOk( getResponseJSON( "diagram/add_edge", arguments ) );
     }
 
     private void createWorkflowElement(Diagram diagram, String type, JsonArray json) throws JSONException, Exception
