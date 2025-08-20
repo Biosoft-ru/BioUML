@@ -123,7 +123,7 @@ public class WDLRunner
         {
             String outStr = inputReader.getData();
             if( !outStr.isEmpty() )
-                log.info( inputReader.getData() );
+                log.info( outStr );
             //for some reason cwl-runner outputs everything into error stream
             String errorStr = errorReader.getData();
             if( !errorStr.isEmpty() )

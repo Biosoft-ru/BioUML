@@ -1730,44 +1730,6 @@ public class WebDiagramsProvider extends WebProviderSupport
         return result;
     }
 
-    public static List<DiagramElement> addElementWithConverter(final Diagram diagram, final DataElementPath path, final Point location)
-            throws Exception
-    {
-        List<DiagramElement> result = new ArrayList<>();
-        DataElement de = path.optDataElement();
-
-        if( de != null && de instanceof Base )
-        {
-            DiagramTypeConverter[] converters = AddElementsUtils.getAvailableConverters( diagram );
-            if( converters.length == 0 )
-                return result;
-
-            final DiagramEditorHelper helper = new DiagramEditorHelper( diagram );
-            Compartment origin = (Compartment)helper.getOrigin( location );
-            final Compartment parent = origin == null ? diagram : origin;
-
-            DiagramElement[] nodes = AddElementsUtils.createDiagramElements( parent, (Base)de, converters );
-
-            if( Util.hasNodeWithKernel( parent, nodes[0].getKernel() ) )
-                throw new WebException( "EX_QUERY_ELEMENT_EXIST", de.getName(), parent.getName() );
-
-            performTransaction( diagram, "Add " + path.getName(), () -> {
-                try
-                {
-                    AddElementsUtils.addDiagramElements( parent, nodes, true, location );
-                    //TODO: move elements to specified location
-                    result.addAll( Arrays.asList( nodes ) );
-                }
-                catch( Exception e )
-                {
-                    throw ExceptionRegistry.translateException( e );
-                }
-            } );
-
-        }
-        return result;
-    }
-
     /**
      * Add diagram element (edge)
      * @return
@@ -2531,10 +2493,10 @@ public class WebDiagramsProvider extends WebProviderSupport
         String composite = descriptor.getValue( Diagram.COMPOSITE_DIAGRAM_PROPERTY );
         if(type != null && composite != null)
         {
-            JsonObject diagramInfo = new JsonObject();
-            diagramInfo.add("type", type);
-            diagramInfo.add( "composite", Boolean.valueOf(composite) );
-            diagramInfo.add( "model", "false" );
+            JSONObject diagramInfo = new JSONObject();
+            diagramInfo.put( "type", type );
+            diagramInfo.put( "composite", Boolean.valueOf( composite ) );
+            diagramInfo.put( "model", "false" );
             new JSONResponse(out).sendJSON(diagramInfo);
             return true;
         }
@@ -2548,9 +2510,9 @@ public class WebDiagramsProvider extends WebProviderSupport
     public void sendType(Diagram diagram, OutputStream out) throws IOException
     {
         String typeClass = diagram.getType().getClass().getName();
-        JsonObject diagramInfo = new JsonObject();
-        diagramInfo.add("type", typeClass);
-        diagramInfo.add( "composite", DiagramUtility.isComposite( diagram ) );
+        JSONObject diagramInfo = new JSONObject();
+        diagramInfo.put( "type", typeClass );
+        diagramInfo.put( "composite", DiagramUtility.isComposite( diagram ) );
         //        Role model = diagram.getRole();
         //        if( model != null && ( model instanceof EModelRoleSupport ) )
         //        {
@@ -2559,7 +2521,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         //        }
         //        else
         //        {
-            diagramInfo.add("model", "false");
+        diagramInfo.put( "model", "false" );
         //        }
         new JSONResponse(out).sendJSON(diagramInfo);
     }
