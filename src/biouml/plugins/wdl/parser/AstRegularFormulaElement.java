@@ -36,7 +36,7 @@ public class AstRegularFormulaElement extends SimpleNode
     @Override
     public String toString()
     {
-        return element;
+        return element != null ? element : lastToken.image;
     }
 
 }
