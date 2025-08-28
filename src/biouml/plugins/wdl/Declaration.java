@@ -10,6 +10,13 @@ public class Declaration
     private String name;
     private String expression;
 
+    public Declaration(String type, String name, String expression)
+    {
+        this.type = type;
+        this.name = name;
+        this.expression = expression;
+    }
+    
     public Declaration()
     {
     }
