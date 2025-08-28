@@ -8,9 +8,11 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -442,7 +444,7 @@ public class WDLImporter implements DataElementImporter
             {
                 String[] parts = name.split( "\\." );
                 diagramAlias = parts[0];
-                name = name.replace( ".", "_" );
+                name = parts[1];//name.replace( ".", "_" );
                 taskRef = parts[1];
                 Diagram importedDiagram = imports.get( diagramAlias );
                 diagramRef = importedDiagram.getName();
@@ -493,10 +495,11 @@ public class WDLImporter implements DataElementImporter
         int outputs = 0;
 
         AstSymbol[] inputSymbols = call.getInputs();
-
+        Set<String> addedInputs = new HashSet<>();//TODO: refactor this
         for( AstSymbol symbol : inputSymbols )
         {
             String inputName = symbol.getName();
+            addedInputs.add( inputName );
             String expression = inputName;
             AstExpression expr = null;
             if( symbol.getChildren() != null )
@@ -570,11 +573,17 @@ public class WDLImporter implements DataElementImporter
         {
             for( Node node : taskСompartment.getNodes() )
             {
-                //            String varName = WDLUtil.getName( node );
                 Node portNode = null;
                 if( WDLConstants.OUTPUT_TYPE.equals( node.getKernel().getType() ) )
                 {
                     portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, outputs++, c );
+                    WDLUtil.setName( portNode, WDLUtil.getName( node ) );
+                    WDLUtil.setType( portNode, WDLUtil.getType( node ) );
+                    WDLUtil.setExpression( portNode, WDLUtil.getExpression( node ) );
+                }
+                else if (!addedInputs.contains(  WDLUtil.getName( node ) ))
+                {
+                    portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
                     WDLUtil.setName( portNode, WDLUtil.getName( node ) );
                     WDLUtil.setType( portNode, WDLUtil.getType( node ) );
                     WDLUtil.setExpression( portNode, WDLUtil.getExpression( node ) );
@@ -612,7 +621,7 @@ public class WDLImporter implements DataElementImporter
         Diagram d = Diagram.getDiagram( input );
         name = DefaultSemanticController.generateUniqueName( d, name );
         Edge e = new Edge( new Stub( null, name, type ), input, output );
-        d.put( e );
+        e.getCompartment().put( e );
         return e;
     }
 
