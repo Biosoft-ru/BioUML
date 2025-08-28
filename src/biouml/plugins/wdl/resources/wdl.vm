@@ -15,7 +15,7 @@
 #macro(call $call)
 #set ($diagramAlias = $helper.getExternalDiagramAlias($call) ) 
   call #if($diagramAlias)$diagramAlias.#end$helper.getTaskRef($call) #if($helper.getAlias($call)) as $helper.getAlias($call)#end {
-#set ($inputs = $helper.getInputs($call))
+#set ($inputs = $helper.getOrderedInputs($call))
 #if ($inputs.size()> 0)
      input: #foreach($input in $inputs) $helper.getCallInput($input)#comma($inputs)#end
 #end
@@ -45,7 +45,7 @@ import "$import.getSourceName()" as $import.getAlias()
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 task $task.getName() {
-#set ($inputs = $helper.getInputs($task))
+#set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
   input {
 #foreach( $input in $inputs )
