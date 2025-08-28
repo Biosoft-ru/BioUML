@@ -1,5 +1,14 @@
 package biouml.plugins.wdl;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import biouml.model.Compartment;
+import biouml.model.Diagram;
+import biouml.model.Node;
+
 public class NextFlowPreprocessor
 {
     private WorkflowSettings settings;
@@ -13,25 +22,105 @@ public class NextFlowPreprocessor
         this.settings = settings;
     }
 
-    public String preprocess(String s) throws Exception
+    public Diagram preprocess(Diagram diagram) throws Exception
     {
-        return s.replace( "~{", "${" );
-        //            String[] lines = s.split( "\n" );
-        //            for( int i = 0; i < lines.length; i++ )
-        //            {
-        //                String line = lines[i];
-        //                if( line.contains( "biouml.get(" ) )
-        //                {
-        //                    line = line.replace( "\"", "" );
-        //                    String paramName = line.substring( line.indexOf( "." ) + 1, line.indexOf( "=" ) ).trim();
-        //                    String path = line.substring( line.indexOf( "(" ) + 1, line.lastIndexOf( ")" ) ).trim();
-        //                    DataElement de = DataElementPath.create( path ).getDataElement();
-        //                    export( de, new File( outputDir ) );
-        //                    lines[i] = "params." + paramName + " = file(\"" + de.getName() + "\")";
-        //                }
-        //            }
-        //            return StreamEx.of( lines ).joining( "\n" );
+        Diagram result = diagram.clone( diagram.getOrigin(), diagram.getName() );
+
+        for( Compartment task : WDLUtil.getTasks( result ) )
+        {
+            Set<String> toRemove = new HashSet<>();
+            for( Node input : WDLUtil.getInputs( task ) )
+            {
+                String expression = WDLUtil.getExpression( input );
+                if( expression != null && !expression.isEmpty() )
+                {
+                    String name = WDLUtil.getName( input );
+                    WDLUtil.removeInput( name, task );
+                    WDLUtil.addBeforeCommand( task, new Declaration( WDLUtil.getType( input ), name, expression ) );
+                    toRemove.add( name );
+                }
+            }
+            Compartment call = WDLUtil.findCall( task.getName(), result );
+            if( call != null )
+            {
+
+                for( String name : toRemove )
+                    WDLUtil.removeInput( name, call );
+            }
+
+            String command = WDLUtil.getCommand( task );
+            Set<String> seps = findSeps( command );
+            for( String sep : seps )
+            {
+                String name = getSepName( sep );
+                Declaration dec = new Declaration( "String", name + "_str", name + ".join()" );
+                WDLUtil.addBeforeCommand( task, dec );
+                command = command.replace( sep, "~{" + name + "_str}" );
+            }
+            WDLUtil.setCommand( task, command );
+        }
+
+        for( Node node : result.recursiveStream().select( Node.class ) )
+        {
+            String expression = WDLUtil.getExpression( node );
+            if( expression != null && !expression.isEmpty() )
+            {
+                expression = processArrayElements( result, expression );
+                expression = removeGlobs( expression );
+//                expression = processOneElementArray( expression );
+                WDLUtil.setExpression( node, expression );
+            }
+        }
+        return result;
     }
 
+    public String preprocess(String s) throws Exception
+    {
+        return s;//s.replace( "~{", "${" );
+    }
 
+    public static String getSepName(String sep)
+    {
+        return sep.substring( 9, sep.length() - 1 ).trim();
+    }
+
+    public static Set<String> findSeps(String input)
+    {
+        Set<String> result = new HashSet<>();
+        String regex = "~\\{sep=\" \" ([a-zA-Z_][a-zA-Z0-9_]*)}";
+        Pattern pattern = Pattern.compile( regex );
+        Matcher matcher = pattern.matcher( input );
+        while( matcher.find() )
+        {
+            result.add( matcher.group() );
+        }
+        return result;
+    }
+
+    public static String processArrayElements(Diagram diagram, String input)
+    {
+        String regex = "^([a-zA-Z_][a-zA-Z0-9_\\.]*)\\[\\s*([a-zA-Z0-9_\\.]+)\\s*\\]$";
+        Pattern pattern = Pattern.compile( regex );
+        Matcher matcher = pattern.matcher( input );
+        if( matcher.matches() )
+        {
+            String arrayName = matcher.group( 1 );
+            String index = matcher.group( 2 );
+
+            Node arrayIndex = diagram.recursiveStream().select( Node.class ).filter(n->WDLUtil.isCycleVariable( n ) && WDLUtil.getName( n ).equals( index )).findAny().orElse( null );
+            if (arrayIndex != null)
+                return input;
+            String nextFlowStyle = arrayName + ".map{v->v[" + index + "]}";
+            input = input.replace( matcher.group(), nextFlowStyle );
+        }
+        return input;
+    }
+
+   
+
+    public static String removeGlobs(String input)
+    {
+        String regex = "glob\\((['\"])([a-zA-Z0-9./*_]+)\\1\\)";
+        return input.replaceAll( regex, "\"$2\"" );
+    }
 }

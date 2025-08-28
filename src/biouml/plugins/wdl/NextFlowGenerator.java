@@ -25,6 +25,8 @@ public class NextFlowGenerator
     {
         try
         {
+            diagram =  new NextFlowPreprocessor().preprocess( diagram );
+            
             InputStream inputStream = getClass().getResourceAsStream( TEMPLATE_PATH );
 
             if( velocityTemplate == null )
@@ -57,8 +59,8 @@ public class NextFlowGenerator
             
             String result = sw.toString();
 
-            result = result.replace( "$(", "\\$(" );
-            result = result.replace( "~{", "${" );
+//            result = result.replace( "$(", "\\$(" );
+//            result = result.replace( "~{", "${" );
 
             return result;
         }
