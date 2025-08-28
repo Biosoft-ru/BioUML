@@ -12,7 +12,6 @@ import javax.imageio.ImageIO;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import biouml.model.util.ImageGenerator;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
@@ -40,6 +39,7 @@ import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.View;
+import ru.biosoft.util.ImageGenerator;
 
 public class CombinedTrackTest extends AbstractTrackTest
 {

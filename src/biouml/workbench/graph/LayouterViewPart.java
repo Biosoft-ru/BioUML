@@ -11,7 +11,7 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 
 import biouml.model.Diagram;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.workbench.diagram.DiagramDocument;
 
 import com.developmentontheedge.application.Application;
@@ -248,7 +248,7 @@ public class LayouterViewPart extends ViewPartSupport implements LayouterOptions
         {
             DiagramToGraphTransformer.applyLayout(currentGraph);
 
-            View view = ImageGenerator.generateDiagramView(currentDiagram, ApplicationUtils.getGraphics());
+            View view = DiagramImageGenerator.generateDiagramView( currentDiagram, ApplicationUtils.getGraphics() );
             Rectangle bounds = view.getBounds();
 
             int width = bounds.width + 30;

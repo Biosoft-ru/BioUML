@@ -9,7 +9,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.SemanticController;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 
 public class AlignDownAction extends ProcessNodesAction
 {
@@ -17,7 +17,7 @@ public class AlignDownAction extends ProcessNodesAction
     void processNodes(Diagram diagram, List<Node> nodes)
     {
         diagram.setView( null );
-        ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+        DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
         double maxPos = nodes.get( 0 ).getView().getBounds().getMaxY();
         for(Node node : nodes)
             maxPos = Math.max( maxPos, node.getView().getBounds().getMaxY() );
@@ -25,7 +25,7 @@ public class AlignDownAction extends ProcessNodesAction
         for(Node node : nodes)
         {
             diagram.setView( null );
-            ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+            DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
             int offset = (int) ( maxPos - node.getView().getBounds().getMaxY() );
             if(offset != 0)
                 try

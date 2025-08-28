@@ -74,7 +74,7 @@ import biouml.model.SemanticController;
 //import biouml.model.dynamics.Variable;
 //import biouml.model.dynamics.VariableRole;
 import biouml.model.util.AddElementsUtils;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 //import biouml.model.xml.XmlDiagramSemanticController;
 //import biouml.model.xml.XmlDiagramType;
 import biouml.standard.diagram.ConnectionEdgePane;
@@ -149,6 +149,7 @@ import ru.biosoft.server.servlets.webservices.WebTransactionUndoManager;
 //import ru.biosoft.table.TableDataCollection;
 //import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.DPSUtils;
+import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil2;
 
@@ -1069,7 +1070,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                 view = diagram.getView();
                 if( view == null )
                 {
-                    view = ImageGenerator.generateDiagramView(diagram, ApplicationUtils.getGraphics());
+                    view = DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
                     storeView( diagram, view );
                 }
                 diagram.notifyAll();
@@ -1215,7 +1216,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     de = (DiagramElement)view.getModel();
                     newElements.add( de );
                     diagram.setView( null );
-                    ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+                    DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
                 }
                 else if( newBounds.x != bounds.x || newBounds.y != bounds.y )
                 {
@@ -1225,7 +1226,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     de = (DiagramElement)view.getModel();
                     newElements.add( de );
                     diagram.setView( null );
-                    ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+                    DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
                 }
             }
         });
@@ -1242,7 +1243,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         {
             Diagram diagram = Diagram.getDiagram(de);
             diagram.setView(null);
-            ImageGenerator.generateDiagramView(diagram, ApplicationUtils.getGraphics());
+            DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
         }
     }
 
@@ -1456,7 +1457,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     {
                         DiagramElementGroup elements = ( (InitialElementProperties)bean ).createElements( parent, location, viewEditor );
                         //TODO: remove check after all InitialElementProperties will separately add/create elements
-                        if( bean instanceof ReactionInitialProperties )
+                        //if( bean instanceof ReactionInitialProperties )
                             elements.putToCompartment( );
                         result.addAll( elements.getElements() );
                     }
@@ -1725,44 +1726,6 @@ public class WebDiagramsProvider extends WebProviderSupport
         catch( Exception e )
         {
             throw new Exception( "Can't add element on diagram " + diagram.getName() + ": " + e.getMessage(), e );
-        }
-        return result;
-    }
-
-    public static List<DiagramElement> addElementWithConverter(final Diagram diagram, final DataElementPath path, final Point location)
-            throws Exception
-    {
-        List<DiagramElement> result = new ArrayList<>();
-        DataElement de = path.optDataElement();
-
-        if( de != null && de instanceof Base )
-        {
-            DiagramTypeConverter[] converters = AddElementsUtils.getAvailableConverters( diagram );
-            if( converters.length == 0 )
-                return result;
-
-            final DiagramEditorHelper helper = new DiagramEditorHelper( diagram );
-            Compartment origin = (Compartment)helper.getOrigin( location );
-            final Compartment parent = origin == null ? diagram : origin;
-
-            DiagramElement[] nodes = AddElementsUtils.createDiagramElements( parent, (Base)de, converters );
-
-            if( Util.hasNodeWithKernel( parent, nodes[0].getKernel() ) )
-                throw new WebException( "EX_QUERY_ELEMENT_EXIST", de.getName(), parent.getName() );
-
-            performTransaction( diagram, "Add " + path.getName(), () -> {
-                try
-                {
-                    AddElementsUtils.addDiagramElements( parent, nodes, true, location );
-                    //TODO: move elements to specified location
-                    result.addAll( Arrays.asList( nodes ) );
-                }
-                catch( Exception e )
-                {
-                    throw ExceptionRegistry.translateException( e );
-                }
-            } );
-
         }
         return result;
     }
@@ -2530,10 +2493,10 @@ public class WebDiagramsProvider extends WebProviderSupport
         String composite = descriptor.getValue( Diagram.COMPOSITE_DIAGRAM_PROPERTY );
         if(type != null && composite != null)
         {
-            JsonObject diagramInfo = new JsonObject();
-            diagramInfo.add("type", type);
-            diagramInfo.add( "composite", Boolean.valueOf(composite) );
-            diagramInfo.add( "model", "false" );
+            JSONObject diagramInfo = new JSONObject();
+            diagramInfo.put( "type", type );
+            diagramInfo.put( "composite", Boolean.valueOf( composite ) );
+            diagramInfo.put( "model", "false" );
             new JSONResponse(out).sendJSON(diagramInfo);
             return true;
         }
@@ -2547,9 +2510,9 @@ public class WebDiagramsProvider extends WebProviderSupport
     public void sendType(Diagram diagram, OutputStream out) throws IOException
     {
         String typeClass = diagram.getType().getClass().getName();
-        JsonObject diagramInfo = new JsonObject();
-        diagramInfo.add("type", typeClass);
-        diagramInfo.add( "composite", DiagramUtility.isComposite( diagram ) );
+        JSONObject diagramInfo = new JSONObject();
+        diagramInfo.put( "type", typeClass );
+        diagramInfo.put( "composite", DiagramUtility.isComposite( diagram ) );
         //        Role model = diagram.getRole();
         //        if( model != null && ( model instanceof EModelRoleSupport ) )
         //        {
@@ -2558,7 +2521,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         //        }
         //        else
         //        {
-            diagramInfo.add("model", "false");
+        diagramInfo.put( "model", "false" );
         //        }
         new JSONResponse(out).sendJSON(diagramInfo);
     }

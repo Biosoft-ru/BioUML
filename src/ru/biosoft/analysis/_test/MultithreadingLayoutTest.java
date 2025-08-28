@@ -20,7 +20,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.model.DiagramViewBuilder;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -38,6 +38,7 @@ import ru.biosoft.graph.LayoutQualityMetrics;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.Node;
 import ru.biosoft.graph.PathwayLayouter;
+import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.workbench.Framework;
 
 //import junit.framework.TestSuite;
@@ -309,7 +310,7 @@ public class MultithreadingLayoutTest extends TestCase
 
         diagram.setView(null);
         DiagramToGraphTransformer.applyLayout(graph, diagram);
-        BufferedImage image = ImageGenerator.generateDiagramImage(diagram);
+        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
 
         String imageName = databaseName + "_" + diagramName + "_HierarchicLayouter.png";
         saveImage(image, imagePath + "/" + imageName);
@@ -394,7 +395,7 @@ public class MultithreadingLayoutTest extends TestCase
         diagram.setView(null);
         DiagramToGraphTransformer.applyLayout(graph, diagram);
 
-        BufferedImage image = ImageGenerator.generateDiagramImage(diagram);
+        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
 
         String imageName = databaseName + "_" + diagramName + "_CompartmentCrossCostGridLayouter.png";
         saveImage(image, imagePath + "/" + imageName);
@@ -473,7 +474,7 @@ public class MultithreadingLayoutTest extends TestCase
         diagram.setView(null);
         DiagramToGraphTransformer.applyLayout(graph, diagram);
 
-        BufferedImage image = ImageGenerator.generateDiagramImage(diagram);
+        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
 
         String imageName = databaseName + "_" + diagramName + "_ForceDirectedLayouter.png";
         saveImage(image, imagePath + "/" + imageName);
@@ -552,7 +553,7 @@ public class MultithreadingLayoutTest extends TestCase
 
         diagram.setView(null);
         DiagramToGraphTransformer.applyLayout(graph, diagram);
-        BufferedImage image = ImageGenerator.generateDiagramImage(diagram);
+        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
 
         String imageName = databaseName + "_" + diagramName + "_FastGridLayouter.png";
         saveImage(image, imagePath + "/" + imageName);

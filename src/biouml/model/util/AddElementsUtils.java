@@ -57,6 +57,7 @@ import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.PathwayLayouter;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.Clazz;
+import ru.biosoft.util.ImageGenerator;
 
 /**
  * Utility class for adding elements to diagram operations.
@@ -716,7 +717,7 @@ public class AddElementsUtils
     private static void layoutDiagram(Diagram diagram, Layouter layouter)
     {
         // Generate diagram view as it may update sizes and visibility
-        ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+        DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
         PathwayLayouter pathwayLayouter = new PathwayLayouter( layouter );
         Graph graph = DiagramToGraphTransformer.generateGraph( diagram, null );
         pathwayLayouter.doLayout( graph, null );
@@ -800,7 +801,7 @@ public class AddElementsUtils
         Diagram diagram = Diagram.getDiagram( compartment );
         SemanticController sc = diagram.getType().getSemanticController();
 
-        ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+        DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
         Rectangle rect = diagram.getView().getBounds();
         List<DiagramElement> previouslyFixed = fixCurrentNodes( diagram, true );
         DiagramTypeConverter[] converters = getAvailableConverters( diagram );

@@ -12,7 +12,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.model.SemanticController;
-import biouml.model.util.ImageGenerator;
+import biouml.model.util.DiagramImageGenerator;
 
 public class DistributeVerticalAction extends ProcessNodesAction
 {
@@ -22,7 +22,7 @@ public class DistributeVerticalAction extends ProcessNodesAction
         if(nodes.size() <= 2)
             return;
         diagram.setView( null );
-        ImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
+        DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
 
         Collections.sort( nodes, Comparator.comparingDouble( node -> node.getView().getBounds().getCenterY() ) );
         double totalLength = 0;
@@ -41,7 +41,7 @@ public class DistributeVerticalAction extends ProcessNodesAction
         for(int i=1; i<nodes.size()-1; i++)
         {
             diagram.setView(null);
-            ImageGenerator.generateDiagramView(diagram, ApplicationUtils.getGraphics());
+            DiagramImageGenerator.generateDiagramView( diagram, ApplicationUtils.getGraphics() );
             pos+=delta;
             Node node = nodes.get( i );
             int offset = (int) ( pos - node.getView().getBounds().getMinY() );

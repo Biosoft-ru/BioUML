@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -20,6 +21,7 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.TextFileImporter;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.util.StreamGobbler;
 
 public class WDLRunner
 {
@@ -77,57 +79,63 @@ public class WDLRunner
 
         Process process = builder.start();
         
-        new Thread( new Runnable()
-                        {
-                            public void run()
-                            {
-                                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-                                String line = null;
-                
-                                try
-                                {
-                                    while( ( line = input.readLine() ) != null )
-                                        log.info( line );
-                                }
-                                catch( IOException e )
-                                {
-                                    e.printStackTrace();
-                                }
-                                //                
-                                //for some reason cwl-runner outputs everything into error stream
-                                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-                                line = null;
-                
-                                try
-                                {
-                                    while( ( line = err.readLine() ) != null )
-                                        log.info( line );
-                                }
-                                catch( IOException e )
-                                {
-                                    e.printStackTrace();
-                                }
-                            }
-                        } ).start();
-                
-                        process.waitFor();
-                
-                        importResults( diagram, settings, outputDir );
-//        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
-//        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
-//        process.waitFor();
+        //        new Thread( new Runnable()
+        //                        {
+        //                            public void run()
+        //                            {
+        //                                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+        //                                String line = null;
+        //                
+        //                                try
+        //                                {
+        //                                    while( ( line = input.readLine() ) != null )
+        //                                        log.info( line );
+        //                                }
+        //                                catch( IOException e )
+        //                                {
+        //                                    e.printStackTrace();
+        //                                }
+        //                                //                
+        //                                //for some reason cwl-runner outputs everything into error stream
+        //                                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
+        //                                line = null;
+        //                
+        //                                try
+        //                                {
+        //                                    while( ( line = err.readLine() ) != null )
+        //                                        log.info( line );
+        //                                }
+        //                                catch( IOException e )
+        //                                {
+        //                                    e.printStackTrace();
+        //                                }
+        //                            }
+        //                        } ).start();
+        //                
+        //process.waitFor();
+        //importResults( diagram, settings, outputDir );
 
-//        if( process.exitValue() == 0 )
-//        {
-//            log.log( Level.INFO, inputReader.getData() );
-//            importResults( diagram, settings, outputDir );
-//
-//        }
-//        else
-//        {
-//            String errorStr = errorReader.getData();
-//            throw new Exception( "Nextflow executed with error: " + errorStr );
-//        }
+        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
+        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
+        process.waitFor();
+
+        if( process.exitValue() == 0 )
+        {
+            String outStr = inputReader.getData();
+            if( !outStr.isEmpty() )
+                log.info( outStr );
+            //for some reason cwl-runner outputs everything into error stream
+            String errorStr = errorReader.getData();
+            if( !errorStr.isEmpty() )
+                log.info( errorStr );
+            importResults( diagram, settings, outputDir );
+        }
+        else
+        {
+            String errorStr = errorReader.getData();
+            log.info( errorStr );
+            throw new Exception( "Nextflow executed with error: " + errorStr );
+        }
 
     }
 

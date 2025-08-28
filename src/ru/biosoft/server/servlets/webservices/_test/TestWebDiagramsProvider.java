@@ -99,7 +99,7 @@ public class TestWebDiagramsProvider extends AbstractProviderTest
     {
         Map<String,String> params = new HashMap<>();
         params.put( "de", "test/diagram" );
-        params.put( "action", "add" );
+        params.put( "action", "add_edge" );
         params.put( "resptype", "json" );
         params.put( "type", Stub.NoteLink.class.getName() );
         params.put( "dc", "" );

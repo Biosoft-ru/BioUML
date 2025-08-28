@@ -34,8 +34,8 @@ import ru.biosoft.table.SqlTableDataCollection;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
+import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.TempFiles;
-import biouml.model.util.ImageGenerator;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
