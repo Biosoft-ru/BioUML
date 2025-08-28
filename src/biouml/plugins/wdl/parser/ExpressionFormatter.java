@@ -27,9 +27,12 @@ public class ExpressionFormatter
             processText( (AstText)node );
         else if( node instanceof AstContainerElement )
             processContainer( (AstContainerElement)node );
-
+        else if (node instanceof AstSubSymbol)
+            processSubSymbol((AstSubSymbol)node);
         else
+        {
             result.append( node.toString() );
+        }
     }
 
     private void processArray(AstArray array)
@@ -38,6 +41,17 @@ public class ExpressionFormatter
             processNode( child );
     }
 
+    protected void processSubSymbol(AstSubSymbol node)
+    {
+        for (int i=0; i< node.jjtGetNumChildren(); i++)
+        {
+            if (i > 0)
+                result.append( "." );
+            processNode(node.jjtGetChild( i ));
+            
+        }
+    }
+    
     protected void processText(AstText node)
     {
         result.append( "\"" );
