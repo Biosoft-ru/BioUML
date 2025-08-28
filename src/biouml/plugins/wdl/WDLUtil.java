@@ -110,7 +110,7 @@ public class WDLUtil
     {
         return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).sorted( new PositionComparator() ).toList();
     }
-    
+
     public static class PositionComparator implements Comparator<Node>
     {
         @Override
@@ -121,10 +121,10 @@ public class WDLUtil
             return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
         }
     }
-    
+
     public static Node getTarget(Node input)
     {
-        return input.edges().map( e->e.getOutput() ).findAny().orElse( null );
+        return input.edges().map( e -> e.getOutput() ).findAny().orElse( null );
     }
 
     public static List<Compartment> getCalls(Compartment c)
@@ -139,15 +139,20 @@ public class WDLUtil
 
     public static List<Node> getInputs(Compartment c)
     {
-        List<Node> preliminary = c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
+        return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
+    }
+    
+    public static List<Node> getOrderedInputs(Compartment c)
+    {
+        List<Node> preliminary = getInputs(c);
         Node[] result = new Node[preliminary.size()];
-        for (Node node: preliminary)
+        for( Node node : preliminary )
         {
             Object posObj = node.getAttributes().getValue( WDLConstants.POSITION_ATTR );
-            if (posObj instanceof Integer)
-                result[(Integer)posObj] = node; 
+            if( posObj instanceof Integer )
+                result[(Integer)posObj] = node;
         }
-        return StreamEx.of(result).toList();
+        return StreamEx.of( result ).toList();
     }
 
     public static List<Node> getOutputs(Compartment c)
@@ -202,9 +207,9 @@ public class WDLUtil
     }
     public static void setRuntime(Compartment c, Map<String, String> runtime)
     {
-        setMapAttribute(c, WDLConstants.RUNTIME_ATTR, runtime);
+        setMapAttribute( c, WDLConstants.RUNTIME_ATTR, runtime );
     }
-    
+
     public static Map<String, String> getMeta(Compartment c)
     {
         Map<String, String> result = new HashMap<>();
@@ -223,16 +228,17 @@ public class WDLUtil
     public static void setMeta(Compartment c, AstMeta meta)
     {
         String name = meta.getName();
-        String attr = name.equals( "meta" )?  WDLConstants.META_ATTR:  WDLConstants.PARAMETER_META_ATTR;
-        setMapAttribute(c, attr, meta.getMetaValues());
+        String attr = name.equals( "meta" ) ? WDLConstants.META_ATTR : WDLConstants.PARAMETER_META_ATTR;
+        setMapAttribute( c, attr, meta.getMetaValues() );
     }
-    
+
     public static void setMapAttribute(Compartment c, String attributeName, Map<String, String> values)
     {
-        String[] vals = values.entrySet().stream().map( e -> (String) ( e.getKey() + "#" + toWDL(e.getValue() )) ).toArray( String[]::new );
+        String[] vals = values.entrySet().stream().map( e -> (String) ( e.getKey() + "#" + toWDL( e.getValue() ) ) )
+                .toArray( String[]::new );
         c.getAttributes().add( new DynamicProperty( attributeName, String[].class, vals ) );
     }
-    
+
     public static Map<String, String> getParameterMeta(Compartment c)
     {
         Map<String, String> result = new HashMap<>();
@@ -248,7 +254,7 @@ public class WDLUtil
         }
         return result;
     }
-    
+
     public static String getShortDeclaration(Node n)
     {
         return getType( n ) + " " + getName( n );
@@ -268,9 +274,9 @@ public class WDLUtil
     public static Integer getPosition(Node n)
     {
         Object val = n.getAttributes().getValue( WDLConstants.POSITION_ATTR );
-       if (val instanceof Integer)
-           return (Integer)val;
-       return -1;
+        if( val instanceof Integer )
+            return (Integer)val;
+        return -1;
     }
     public static void setPosition(Node n, int expression)
     {
@@ -332,6 +338,24 @@ public class WDLUtil
         return c.getAttributes().getValueAsString( WDLConstants.COMMAND_ATTR );
     }
 
+    public static void addBeforeCommand(Compartment compartment, Declaration dec)
+    {
+        Declaration[] newValue = null;
+        Object before = getBeforeCommand( compartment );
+        if( before instanceof Declaration[] )
+        {
+            Declaration[] oldValue = (Declaration[])before;
+            newValue = new Declaration[oldValue.length + 1];
+            System.arraycopy( oldValue, 0, newValue, 0, oldValue.length );
+            newValue[oldValue.length] = dec;
+        }
+        else
+        {
+            newValue = new Declaration[] {dec};
+        }
+        setBeforeCommand( compartment, newValue );
+    }
+
     public static void setBeforeCommand(Compartment compartment, Declaration[] beforeCommand)
     {
         compartment.getAttributes().add( new DynamicProperty( WDLConstants.BEFORE_COMMAND_ATTR, Declaration[].class, beforeCommand ) );
@@ -374,6 +398,14 @@ public class WDLUtil
                 .findAny().orElse( null );
     }
 
+    /** 
+     * Finds input node inside this task or call by its variable name
+     */
+    public static Node findInput(String name, Compartment parent)
+    {
+        return parent.stream( Node.class ).filter( n -> isInput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
+    }
+
     public static Node findExpressionNode(Diagram diagram, String name)
     {
         if( name.contains( "." ) )
@@ -400,7 +432,7 @@ public class WDLUtil
             biouml.plugins.wdl.parser.Node child = node.jjtGetChild( i );
             if( c.isInstance( child ) )
             {
-                result.add( c.cast( child ));
+                result.add( c.cast( child ) );
             }
         }
         return result;
@@ -594,7 +626,7 @@ public class WDLUtil
             diagram.getAttributes().add( dp );
         }
         ImportProperties[] value = (ImportProperties[])dp.getValue();
-        
+
         for( ImportProperties ip : value )
         {
             if( ip.alias.equals( alias ) && ip.source.toString().equals( source.getCompletePath().toString() ) )
@@ -645,14 +677,14 @@ public class WDLUtil
             throw new Exception( "Failed to create directory '" + dir.getName() + "'." );
         if( de instanceof TextDataElement )
         {
-            String str = ((TextDataElement) de).getContent();
+            String str = ( (TextDataElement)de ).getContent();
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, str );
         }
         else if( de instanceof Diagram )
         {
-            NextFlowGenerator generator = new NextFlowGenerator();  
-            String nextFlow = generator.generateNextFlow( (Diagram) de , false);
+            NextFlowGenerator generator = new NextFlowGenerator();
+            String nextFlow = generator.generateNextFlow( (Diagram)de, false );
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, nextFlow );
         }
@@ -660,8 +692,8 @@ public class WDLUtil
         {
             File exportedDir = new File( dir, de.getName() );
             exportedDir.mkdirs();
-            for ( Object innerDe : ((DataCollection<?>) de) )
-                export( (DataElement) innerDe, new File( dir, de.getName() ) );
+            for( Object innerDe : ( (DataCollection<?>)de ) )
+                export( (DataElement)innerDe, new File( dir, de.getName() ) );
         }
         else
         {
@@ -670,7 +702,7 @@ public class WDLUtil
             exporter.doExport( de, exported );
         }
     }
-    
+
     public static String toWDL(Object obj)
     {
         if( obj instanceof Map )
@@ -703,5 +735,23 @@ public class WDLUtil
         return obj.toString();
     }
 
+    /**
+     * Removes input from task or call reordering remaining inputs
+     */
+    public static void removeInput(String name, Compartment c) throws Exception
+    {
+        Node node = findInput( name, c );
+        if( node == null )
+            throw new Exception( "Can not fint input " + name + " in " + c.getName() );
 
+        c.remove( node.getName() );
+        int position = getPosition( node );
+        List<Node> inputs = c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
+        for( Node otherInput : inputs )
+        {
+            int otherPos = getPosition( otherInput );
+            if( otherPos > position )
+                setPosition( otherInput, otherPos - 1 );
+        }
+    }
 }
