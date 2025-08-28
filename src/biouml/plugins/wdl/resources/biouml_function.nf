@@ -10,10 +10,36 @@ def ceil(val) {
 	return Math.ceil(val)
 }
 
+
 def length(arr) {
-    return arr.size()
+    if (arr instanceof java.util.List)
+        return arr.size()
+    else 
+        return arr.count()
 }
 
 def range(n) {
-    return (0..<n).toList()
+    if (n instanceof Integer)
+    {
+        return Channel.of(0..<n)
+    } 
+    else
+    {
+        return n.map { count -> 0..<count }.flatMap { it }
+    }
+}
+
+def getElementAt(arr, idx)
+{
+	 if (arr instanceof java.util.List)
+	    return arr[idx]
+	 else 
+}
+
+def createChannelIfNeeded(arr)
+{
+    if (arr instanceof java.util.List)
+        return Channel.of(arr).flatten()
+     else 
+        return arr
 }
