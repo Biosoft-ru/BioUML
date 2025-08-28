@@ -318,6 +318,7 @@ public class WDLEditor extends EditorPartSupport
             }
             catch( Exception ex )
             {
+                log.info( "Error during WDL applying:"+ex.getMessage() );
                 ex.printStackTrace();
             }
         }
