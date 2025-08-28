@@ -38,7 +38,8 @@ public class AstExpression extends SimpleNode
         }
         else if (node instanceof AstRegularFormulaElement)
         {
-            result.add( node.toString() );
+            if( node.toString() != null )
+                result.add( node.toString() );
         }
         else if( node instanceof AstContainerElement )
         {
