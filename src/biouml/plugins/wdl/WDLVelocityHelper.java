@@ -40,9 +40,9 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
         return WDLUtil.getCalls( c );
     }
 
-    public List<Node> getInputs(Compartment c)
+    public List<Node> getOrderedInputs(Compartment c)
     {
-        return WDLUtil.getInputs( c );
+        return WDLUtil.getOrderedInputs( c );
     }
 
     public List<Node> getOutputs(Compartment c)
