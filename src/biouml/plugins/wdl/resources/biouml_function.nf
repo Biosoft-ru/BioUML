@@ -29,11 +29,13 @@ def range(n) {
     }
 }
 
-def getElementAt(arr, idx)
-{
-	 if (arr instanceof java.util.List)
-	    return arr[idx]
-	 else 
+def getDefault(x, y) {
+    if( x == "NO_VALUE" ) {
+        return y
+    }
+    else {
+        return x
+    }
 }
 
 def createChannelIfNeeded(arr)
