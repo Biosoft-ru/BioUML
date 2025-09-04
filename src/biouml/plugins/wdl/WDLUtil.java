@@ -88,12 +88,7 @@ public class WDLUtil
 
     public static boolean isExternalOutput(Node node)
     {
-        for( Edge e : node.getEdges() )
-        {
-            if( e.getInput().equals( node ) )
-                return false;
-        }
-        return WDLConstants.EXPRESSION_TYPE.equals( node.getKernel().getType() );
+        return isOfType( WDLConstants.WORKFLOW_OUTPUT_TYPE, node );
     }
 
     public static List<Compartment> getTasks(Compartment c)
@@ -151,6 +146,11 @@ public class WDLUtil
             Object posObj = node.getAttributes().getValue( WDLConstants.POSITION_ATTR );
             if( posObj instanceof Integer )
                 result[(Integer)posObj] = node;
+        }
+        for (Node n: result)
+        {
+            if (n == null)
+                System.out.println("");
         }
         return StreamEx.of( result ).toList();
     }
@@ -376,7 +376,7 @@ public class WDLUtil
 
     public static void setDiagramRef(Compartment c, String ref)
     {
-        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, String.class, ref ) );
+        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, DataElementPath.class, ref ) );
     }
     public static String getDiagramRef(Compartment c)
     {
@@ -472,6 +472,12 @@ public class WDLUtil
         return null;
     }
 
+    /**
+     * Returns node which is a source for current node expression
+     * TODO: maybe in some cases there will be several sources i.e. x = y + z
+     * @param node
+     * @return
+     */
     public static Node getSource(Node node)
     {
         return node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ).findAny().orElse( null );
