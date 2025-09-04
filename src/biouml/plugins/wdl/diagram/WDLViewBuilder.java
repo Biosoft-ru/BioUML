@@ -71,24 +71,23 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         return super.createDiagramView( diagram, g );
     }
 
-
     @Override
     public boolean createNodeCoreView(CompositeView container, Node node, DiagramViewOptions viewOptions, Graphics g)
     {
         WDLViewOptions diagramViewOptions = (WDLViewOptions)viewOptions;
         String type = node.getKernel().getType();
 
-        if( WDLConstants.INPUT_TYPE.equals( type ) )
-        {
-            return createInOutCoreView( container, node, diagramViewOptions, g, true );
-        }
-        else if( WDLConstants.OUTPUT_TYPE.equals( type ) )
+        if( WDLConstants.INPUT_TYPE.equals( type ) || WDLConstants.OUTPUT_TYPE.equals( type ) )
         {
             return createInOutCoreView( container, node, diagramViewOptions, g, true );
         }
         else if( WDLConstants.EXTERNAL_PARAMETER_TYPE.equals( type ) )
         {
             return createExternalParameter( container, node, diagramViewOptions, g );
+        }
+        else if( WDLConstants.WORKFLOW_OUTPUT_TYPE.equals( type ) )
+        {
+            return createWorkflowOutput( container, node, diagramViewOptions, g );
         }
         else if( WDLConstants.EXPRESSION_TYPE.equals( type ) )
         {
@@ -98,14 +97,6 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         {
             return createCycleVariableCoreView( container, node, diagramViewOptions, g );
         }
-        //        else if( NodeType.INPUT_PORT.name().equals( type ) )
-        //        {
-        //            return createInOutCoreView( container, node, diagramViewOptions, g, true );
-        //        }
-        //        else if( NodeType.OUTPUT_PORT.name().equals( type ) )
-        //        {
-        //            return createInOutCoreView( container, node, diagramViewOptions, g, false );
-        //        }
         return super.createNodeCoreView( container, node, viewOptions, g );
     }
 
@@ -128,18 +119,6 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         {
             return createScatterView( container, compartment, diagramViewOptions, g );
         }
-        //        else if( NodeType.COMMAND_CALL.name().equals( type ) )
-        //        {
-        //            return createCommandCallView( container, compartment, diagramViewOptions, g );
-        //        }
-        //        else if( NodeType.WORKFLOW_CALL.name().equals( type ) )
-        //        {
-        //            return createWorkflowCallView( container, compartment, diagramViewOptions, g );
-        //        }
-        //        else if( NodeType.CONDITIONAL.name().equals( type ) )
-        //        {
-        //            return createConditionalView( container, compartment, diagramViewOptions, g );
-        //        }
         else if( Type.ANALYSIS_CYCLE.equals( type ) )
         {
             return createScatterView( container, compartment, diagramViewOptions, g );
@@ -246,68 +225,6 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         return false;
     }
 
-    //    protected boolean createWorkflowCallView(CompositeView container, Compartment compartment, WDLViewOptions diagramOptions,
-    //            Graphics g)
-    //    {
-    ////        String path = (String)compartment.getAttributes().getValue( ScriptElement.SCRIPT_PATH );
-    ////        String source = (String)compartment.getAttributes().getValue( ScriptElement.SCRIPT_SOURCE );
-    ////        String textStr = path == null ? source : "[" + ( DataElementPath.create( path ) ).getName() + "]";
-    //        ComplexTextView text = new ComplexTextView( StringEscapeUtils.escapeHtml( textStr ), diagramOptions.getSmallFont(),
-    //                diagramOptions.getFontRegistry(),
-    //                ComplexTextView.TEXT_ALIGN_LEFT, 40, g );
-    //
-    //        //try cut text so it will be not bigger than 300 px or resized script container height
-    //        Dimension size = compartment.getShapeSize();
-    //        int cutSize = Math.max( size.height, 300 );
-    //        int delta = 30;
-    //        if( text.getBounds().height > cutSize + delta )
-    //        {
-    //            String newStr = textStr.substring( 0, textStr.length() * cutSize / text.getBounds().height ) + " ...";
-    //            text = new ComplexTextView( StringEscapeUtils.escapeHtml( newStr ), diagramOptions.getSmallFont(),
-    //                    diagramOptions.getFontRegistry(),
-    //                    ComplexTextView.TEXT_ALIGN_LEFT, 40, g );
-    //        }
-    //
-    //        if( text.getBounds().height > size.height )
-    //        {
-    //            size.height = text.getBounds().height + 5;
-    //        }
-    //        Brush nodeBrush = fillNodeBrush( compartment, diagramOptions.getAnalysisBrush());
-    //        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
-    //        BoxView view = new BoxView( diagramOptions.getAnalysisPen(), nodeBrush, roundRect );
-    //        view.setLocation( compartment.getLocation() );
-    //        view.setModel( compartment );
-    //        view.setActive( true );
-    //        container.add( view );
-    //        container.add( text, CompositeView.X_CC | CompositeView.Y_TT );
-    //
-    //        return false;
-    //    }
-
-    //    protected boolean createConditionalView(CompositeView container, Compartment compartment, WDLViewOptions diagramOptions,
-    //            Graphics g)
-    //    {
-    //        String source = (String)compartment.getAttributes().getValue( SQLElement.SQL_SOURCE );
-    //        ComplexTextView text = new ComplexTextView( StringEscapeUtils.escapeHtml( source ), diagramOptions.getSmallFont(),
-    //                diagramOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_LEFT, 30, g );
-    //
-    //        Dimension size = compartment.getShapeSize();
-    //        if( text.getBounds().height > size.height )
-    //        {
-    //            size.height = text.getBounds().height + 5;
-    //        }
-    //        Brush nodeBrush = fillNodeBrush( compartment, diagramOptions.getAnalysisBrush() );
-    //        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
-    //        BoxView view = new BoxView( diagramOptions.getAnalysisPen(), nodeBrush, roundRect );
-    //        view.setLocation( compartment.getLocation() );
-    //        view.setModel( compartment );
-    //        view.setActive( true );
-    //        container.add( view );
-    //        container.add( text, CompositeView.X_CC | CompositeView.Y_TT );
-    //
-    //        return false;
-    //    }
-
     protected boolean createInOutCoreView(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g, boolean isIn)
     {
         Rectangle r = new Rectangle( 0, 0, 16, 16 );
@@ -326,6 +243,25 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
         if( iconId == null || iconId.isEmpty() )
             iconId = ClassLoading.getResourceLocation( getClass(), "resources/default-connector.gif" );
+        
+//        String iconName = null;
+//        switch( WDLUtil.getType( node ) )
+//        {
+//            case "String":
+//                iconName = "string.gif";
+//                break;
+//            case "File":
+//                iconName = "file.gif";
+//                break;
+//            case "Array[File]":
+//                iconName = "files.gif";
+//                break;
+//            case "Int":
+//                iconName = "integer.gif";
+//                break;
+//        }
+//        if( iconName != null )
+//            iconId = ClassLoading.getResourceLocation( getClass(), "resources/" + iconName );
         ImageView img = new ImageView( IconFactory.getIconById( iconId ).getImage(), 0, 0 );
         img.setPath( iconId );
         container.add( img, CompositeView.X_LL | CompositeView.Y_TT );
@@ -360,6 +296,23 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         PolygonView view = new PolygonView( diagramOptions.getParameterPen(), nodeBrush,
                 new int[] { -d, -d, r.width + d * 2, r.width + d * 2 + d * 3, r.width + d * 2},
                 new int[] {r.height + d, -d, -d, r.height / 2, r.height + d} );
+        view.setModel( node );
+        view.setActive( true );
+        container.add( view );
+        container.add( text, CompositeView.X_CC | CompositeView.Y_CC );
+        return false;
+    }
+    
+    protected boolean createWorkflowOutput(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g)
+    {
+        View text = new TextView( node.getName(), diagramOptions.getNodeTitleFont(), g );
+        int d = 2;
+        Rectangle r = text.getBounds();
+
+        Brush nodeBrush = fillNodeBrush( node, diagramOptions.getOutputBrush() );
+        PolygonView view = new PolygonView( diagramOptions.getOutputPen(), nodeBrush,
+                new int[] {r.width + d * 2, r.width + d * 2, -d, -4 * d, -d},
+                new int[] { -d, r.height + d, r.height + d, r.height / 2, -d} );
         view.setModel( node );
         view.setActive( true );
         container.add( view );
