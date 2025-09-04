@@ -27,7 +27,7 @@
 #end
 #######################################################################################
 #macro(expressionNF $expression)
-  $helper.getName($expression) = $helper.getExpression($expression)
+  $helper.getName($expression) = $helper.getCallEmit($expression)$BR
 #end 
 #######################################################################################
 #######################################START###########################################
