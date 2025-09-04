@@ -22,6 +22,8 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
         add("expressionPen");
         add("parameterBrush");
         add("parameterPen");
+        add("outputBrush");
+        add("outputPen");
         add("defaultPen");
         add( "defaultFont", FontEditor.class );
         add( "nodeTitleFont", FontEditor.class );

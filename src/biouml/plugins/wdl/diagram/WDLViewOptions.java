@@ -18,12 +18,17 @@ import ru.biosoft.graphics.font.ColorFont;
 @PropertyName("View options")
 public class WDLViewOptions extends DiagramViewOptions
 {
+    private Brush outputBrush;
+    private Pen outputPen;
+    
     public WDLViewOptions(Option parent)
     {
         super(parent);
         diagramTitleVisible = false;
         autoLayout = true;
         setNotificationEnabled( false );
+        setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
+        setOutputPen( new Pen(1, new Color(160, 60, 6)) );
         setSmallFont( new ColorFont("Arial", Font.PLAIN, 9, Color.black) );
         setDeBrush( new Brush(new Color(176, 196, 222)) );
         setTaskBrush( new Brush(new Color(96, 96, 96), new Color(186, 186, 186)) );
@@ -196,5 +201,31 @@ public class WDLViewOptions extends DiagramViewOptions
     public void setExpressionFont(ColorFont font)
     {
         this.nodeTitleFont = font;
+    }
+    
+    @PropertyName("Output brush")
+    @PropertyDescription("Brush to fill output boxes")
+    public Brush getOutputBrush()
+    {
+        return outputBrush;
+    }
+    public void setOutputBrush(Brush outputBrush)
+    {
+        Brush oldValue = this.outputBrush;
+        this.outputBrush = outputBrush;
+        firePropertyChange("outputBrush", oldValue, outputBrush);
+    }
+    
+    @PropertyName("Output pen")
+    @PropertyDescription("Outline of output boxes")
+    public Pen getOutputPen()
+    {
+        return outputPen;
+    }
+    public void setOutputPen(Pen outputPen)
+    {
+        Pen oldValue = this.outputPen;
+        this.outputPen = outputPen;
+        firePropertyChange("outputPen", oldValue, outputPen);
     }
 }
