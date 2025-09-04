@@ -28,24 +28,14 @@ public class NextFlowPreprocessor
 
         for( Compartment task : WDLUtil.getTasks( result ) )
         {
-            Set<String> toRemove = new HashSet<>();
             for( Node input : WDLUtil.getInputs( task ) )
             {
                 String expression = WDLUtil.getExpression( input );
                 if( expression != null && !expression.isEmpty() )
                 {
                     String name = WDLUtil.getName( input );
-                    WDLUtil.removeInput( name, task );
-                    WDLUtil.addBeforeCommand( task, new Declaration( WDLUtil.getType( input ), name, expression ) );
-                    toRemove.add( name );
+                    WDLUtil.addBeforeCommand( task, new Declaration( WDLUtil.getType( input ), name, "getDefault("+name+", "+expression+")"));
                 }
-            }
-            Compartment call = WDLUtil.findCall( task.getName(), result );
-            if( call != null )
-            {
-
-                for( String name : toRemove )
-                    WDLUtil.removeInput( name, call );
             }
 
             String command = WDLUtil.getCommand( task );
@@ -67,7 +57,6 @@ public class NextFlowPreprocessor
             {
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
-//                expression = processOneElementArray( expression );
                 WDLUtil.setExpression( node, expression );
             }
         }
@@ -76,7 +65,7 @@ public class NextFlowPreprocessor
 
     public String preprocess(String s) throws Exception
     {
-        return s;//s.replace( "~{", "${" );
+        return s;
     }
 
     public static String getSepName(String sep)
@@ -115,8 +104,6 @@ public class NextFlowPreprocessor
         }
         return input;
     }
-
-   
 
     public static String removeGlobs(String input)
     {
