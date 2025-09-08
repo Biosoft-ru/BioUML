@@ -1,4 +1,4 @@
-package ru.biosoft.util;
+package ru.biosoft.graphics;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -14,6 +14,8 @@ import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -21,12 +23,6 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageOutputStream;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import ru.biosoft.graphics.CompositeView;
-import ru.biosoft.graphics.View;
 
 /**
  * Utility class to generate images.

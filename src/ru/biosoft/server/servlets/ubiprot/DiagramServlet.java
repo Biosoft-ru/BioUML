@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.server.AbstractServlet;
-import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.TextUtil2;
 import biouml.model.Compartment;
 import biouml.model.Diagram;

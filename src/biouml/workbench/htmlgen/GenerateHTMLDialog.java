@@ -43,9 +43,9 @@ import ru.biosoft.access.LocalRepository;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.gui.Document;
 import ru.biosoft.jobcontrol.FunctionJobControl;
-import ru.biosoft.util.ImageGenerator;
 
 @SuppressWarnings ( "serial" )
 public class GenerateHTMLDialog extends OkCancelDialog

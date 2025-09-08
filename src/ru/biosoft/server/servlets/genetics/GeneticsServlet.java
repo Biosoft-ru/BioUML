@@ -29,12 +29,12 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.server.AbstractJSONServlet;
 import ru.biosoft.table.SqlTableDataCollection;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
-import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.TempFiles;
 
 import com.developmentontheedge.application.ApplicationUtils;

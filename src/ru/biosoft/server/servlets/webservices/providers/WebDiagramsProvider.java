@@ -125,6 +125,7 @@ import ru.biosoft.graph.PathwayLayouter;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.DummyView;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.graphics.PathUtils;
 import ru.biosoft.graphics.SimplePath;
 import ru.biosoft.graphics.TextView;
@@ -149,7 +150,6 @@ import ru.biosoft.server.servlets.webservices.WebTransactionUndoManager;
 //import ru.biosoft.table.TableDataCollection;
 //import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.DPSUtils;
-import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil2;
 

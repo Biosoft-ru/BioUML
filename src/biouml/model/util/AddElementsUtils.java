@@ -57,7 +57,6 @@ import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.PathwayLayouter;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.Clazz;
-import ru.biosoft.util.ImageGenerator;
 
 /**
  * Utility class for adding elements to diagram operations.

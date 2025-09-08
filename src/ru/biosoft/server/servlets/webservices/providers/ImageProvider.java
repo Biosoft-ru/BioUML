@@ -35,6 +35,7 @@ import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.ImageElement;
 import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.graphics.HtmlView;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.graphics.access.ChartDataElement;
 import ru.biosoft.graphics.chart.Chart;
 import ru.biosoft.graphics.font.ColorFont;
@@ -43,7 +44,6 @@ import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.util.ApplicationUtils;
-import ru.biosoft.util.ImageGenerator;
 import biouml.plugins.server.access.AccessProtocol;
 
 /**

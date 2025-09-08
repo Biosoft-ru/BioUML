@@ -15,11 +15,11 @@ import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.ImageElement;
 import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.WebException;
-import ru.biosoft.util.ImageGenerator;
 
 /**
  * Provides the content of applicable elements.

@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.SqlTransformerSupport;
-import ru.biosoft.util.ImageGenerator;
+import ru.biosoft.graphics.ImageGenerator;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramType;

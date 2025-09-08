@@ -34,9 +34,9 @@ import ru.biosoft.bsa.view.ViewOptions;
 import ru.biosoft.bsa.view.colorscheme.AbstractSiteColorScheme;
 import ru.biosoft.bsa.view.sitelayout.SiteLayoutAlgorithm;
 import ru.biosoft.graphics.CompositeView;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.graphics.View;
 import ru.biosoft.table.export.HTMLExportTransformer;
-import ru.biosoft.util.ImageGenerator;
 
 public class ZHTMLExportTransformer extends HTMLExportTransformer
 {

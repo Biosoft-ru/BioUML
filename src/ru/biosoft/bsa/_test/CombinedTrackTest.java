@@ -37,9 +37,9 @@ import ru.biosoft.bsa.view.sitelayout.SiteLayoutAlgorithm;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.CompositeView;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.graphics.View;
-import ru.biosoft.util.ImageGenerator;
 
 public class CombinedTrackTest extends AbstractTrackTest
 {

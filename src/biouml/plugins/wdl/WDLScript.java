@@ -20,9 +20,9 @@ import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.script.ScriptDataElement;
 import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
+import ru.biosoft.graphics.ImageGenerator;
 import ru.biosoft.graphics.View;
 import ru.biosoft.server.servlets.webservices.providers.WebDiagramsProvider;
-import ru.biosoft.util.ImageGenerator;
 
 @ClassIcon ( "resources/wdl-script.gif" )
 @PropertyName ( "WDL-script" )

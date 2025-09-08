@@ -38,7 +38,6 @@ import ru.biosoft.graph.LayoutQualityMetrics;
 import ru.biosoft.graph.Layouter;
 import ru.biosoft.graph.Node;
 import ru.biosoft.graph.PathwayLayouter;
-import ru.biosoft.util.ImageGenerator;
 import ru.biosoft.workbench.Framework;
 
 //import junit.framework.TestSuite;
