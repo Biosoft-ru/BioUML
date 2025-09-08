@@ -9,14 +9,9 @@ import javax.annotation.Nonnull;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.TransformedDataCollection;
-import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.access.file.FileDataElement;
-import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
-import ru.biosoft.access.security.Permission;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 
 /**
@@ -30,7 +25,7 @@ public class FileExporter implements DataElementExporter
         try
         {
             //TODO: try to avoid de type check
-            if( ! ( de instanceof ZipHtmlDataCollection ) && getElementFile( de ) != null )
+            if( !(de instanceof ZipHtmlDataCollection) && DataCollectionUtils.getElementFile( de ) != null )
                 return ACCEPT_MEDIUM_PRIORITY;
         }
         catch( Exception e )
@@ -54,7 +49,7 @@ public class FileExporter implements DataElementExporter
         }
         try
         {
-            File sourceFile = getElementFile(de);
+            File sourceFile = DataCollectionUtils.getElementFile( de );
             ApplicationUtils.linkOrCopyFile(file, sourceFile, jobControl);
         }
         catch( Exception e )
@@ -75,33 +70,6 @@ public class FileExporter implements DataElementExporter
         }
     }
     
-    protected File getElementFile(DataElement de) throws Exception
-    {
-        if( de instanceof FileDataElement )
-            return ( (FileDataElement)de ).getFile();
-        DataCollection parent = DataCollectionUtils.fetchPrimaryCollection(de.getOrigin(), Permission.READ);
-        if( parent != null )
-        {
-            DataCollection primaryDC = parent;
-            if( parent instanceof GenericDataCollection )
-            {
-                primaryDC = ( (GenericDataCollection)parent ).getTypeSpecificCollection(de.getClass());
-            }
-            else if( parent instanceof TransformedDataCollection )
-            {
-                primaryDC = ( (TransformedDataCollection)parent ).getPrimaryCollection();
-            }
-            
-            if( primaryDC instanceof FileBasedCollection )
-            {
-                File file = ((FileBasedCollection)primaryDC).getChildFile(de.getName());
-                if(file.exists())
-                    return file;
-            }
-        }
-        return null;
-    }
-
     @Override
     public boolean init(Properties properties)
     {

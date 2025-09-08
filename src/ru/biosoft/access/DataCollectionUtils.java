@@ -638,4 +638,34 @@ public class DataCollectionUtils
         return "Admin";
     }
 
+    /**
+     * Returns file by DataElement
+     */
+    public static File getElementFile(DataElement de) throws Exception
+    {
+        if( de instanceof FileDataElement )
+            return ((FileDataElement) de).getFile();
+        DataCollection parent = fetchPrimaryCollection( de.getOrigin(), Permission.READ );
+        if( parent != null )
+        {
+            DataCollection primaryDC = parent;
+            if( parent instanceof GenericDataCollection )
+            {
+                primaryDC = ((GenericDataCollection) parent).getTypeSpecificCollection( de.getClass() );
+            }
+            else if( parent instanceof TransformedDataCollection )
+            {
+                primaryDC = ((TransformedDataCollection) parent).getPrimaryCollection();
+            }
+
+            if( primaryDC instanceof FileBasedCollection )
+            {
+                File file = ((FileBasedCollection) primaryDC).getChildFile( de.getName() );
+                if( file.exists() )
+                    return file;
+            }
+        }
+        return null;
+    }
+
 }
