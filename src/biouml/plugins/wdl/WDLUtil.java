@@ -26,7 +26,7 @@ import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.parser.AstMeta;
 import one.util.streamex.StreamEx;
-import ru.biosoft.access.FileExporter;
+import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -704,8 +704,10 @@ public class WDLUtil
         else
         {
             File exported = new File( dir, de.getName() );
-            FileExporter exporter = new FileExporter();
-            exporter.doExport( de, exported );
+            File sourceFile = DataCollectionUtils.getElementFile( de );
+            ApplicationUtils.linkOrCopyFile( exported, sourceFile, null );
+            //            FileExporter exporter = new FileExporter();
+            //            exporter.doExport( de, exported );
         }
     }
 
