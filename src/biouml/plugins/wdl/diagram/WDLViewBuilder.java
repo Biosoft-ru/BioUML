@@ -13,7 +13,7 @@ import java.awt.geom.RoundRectangle2D;
 import javax.annotation.Nonnull;
 import javax.swing.ImageIcon;
 
-import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import biouml.model.Compartment;
 import biouml.model.DefaultDiagramViewBuilder;
@@ -195,7 +195,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     {
         Dimension size = compartment.getShapeSize();
 
-        View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), viewOptions.getDefaultFont(),
+        View text = new ComplexTextView( StringEscapeUtils.escapeHtml( compartment.getTitle() ), viewOptions.getDefaultFont(),
                 viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
         RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
         Brush nodeBrush = fillNodeBrush( compartment, viewOptions.getTaskBrush() );
@@ -212,7 +212,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     {
         Dimension size = compartment.getShapeSize();
 
-        View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), viewOptions.getDefaultFont(),
+        View text = new ComplexTextView( StringEscapeUtils.escapeHtml( compartment.getTitle() ), viewOptions.getDefaultFont(),
                 viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
         RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
         Brush nodeBrush = fillNodeBrush( compartment, viewOptions.getAnalysisBrush() );
