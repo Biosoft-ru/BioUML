@@ -4,7 +4,7 @@ import java.util.Date;
 
 import one.util.streamex.StreamEx;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -75,7 +75,7 @@ public class Formatter
 
     public String escapeHtml(String str)
     {
-        return StringEscapeUtils.escapeHtml(str);
+        return StringEscapeUtils.escapeHtml4(str);
     }
 
     public String getPath(DataElement de)

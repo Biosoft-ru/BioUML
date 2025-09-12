@@ -13,7 +13,7 @@ import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import ru.biosoft.access.core.DataCollection;
@@ -97,8 +97,8 @@ public class ZHTMLExportTransformer extends HTMLExportTransformer
                     CompositeView view = entry.getValue().getLegend( ApplicationUtils.getGraphics() );
                     fileName = saveImageFile( fileName, imagesPath, ImageGenerator.generateImage( view, 1, true ) );
                     StringBuilder sb = new StringBuilder();
-                    sb.append( "<img src=\"" ).append( fileName ).append( "\" alt=\"" ).append( StringEscapeUtils.escapeHtml( title ) )
-                            .append( "\" title=\"" ).append( StringEscapeUtils.escapeHtml( title ) )
+                    sb.append( "<img src=\"" ).append( fileName ).append( "\" alt=\"" ).append( StringEscapeUtils.escapeHtml4( title ) )
+                            .append( "\" title=\"" ).append( StringEscapeUtils.escapeHtml4( title ) )
                             .append( "\" style=\"max-width:250px;\" width=\"auto\" height=\"auto\"/>" );
                     pw.print( sb.toString() );
                     pw.print( "\n" );
@@ -127,8 +127,8 @@ public class ZHTMLExportTransformer extends HTMLExportTransformer
         View view = createProjectView( project, siteColorSchemeMap, fullTrackMode, addRuler );
         BufferedImage image = createProjectImage( view, 1 );
         fileName = saveImageFile( fileName, imagesPath, image );
-        sb.append( "<img src=\"" ).append( fileName ).append( "\" alt=\"" ).append( StringEscapeUtils.escapeHtml( title ) )
-                .append( "\" title=\"" ).append( StringEscapeUtils.escapeHtml( title ) )
+        sb.append( "<img src=\"" ).append( fileName ).append( "\" alt=\"" ).append( StringEscapeUtils.escapeHtml4( title ) )
+                .append( "\" title=\"" ).append( StringEscapeUtils.escapeHtml4( title ) )
                 .append( "\" style=\"max-width:1200px;\" width=\"auto\" height=\"auto\"/>" );
         String description = project.getDescription();
         if( description != null && !description.isEmpty() )
@@ -217,8 +217,8 @@ public class ZHTMLExportTransformer extends HTMLExportTransformer
         String fileName = "innerImage.png";
         fileName = saveImageFile( fileName, imagesPath, ImageGenerator.generateImage( view, 1, true ) );
         StringBuilder sb = new StringBuilder();
-        sb.append( "<img src=\"" ).append( fileName ).append( "\" alt=\"" ).append( StringEscapeUtils.escapeHtml( title ) )
-                .append( "\" title=\"" ).append( StringEscapeUtils.escapeHtml( title ) )
+        sb.append( "<img src=\"" ).append( fileName ).append( "\" alt=\"" ).append( StringEscapeUtils.escapeHtml4( title ) )
+                .append( "\" title=\"" ).append( StringEscapeUtils.escapeHtml4( title ) )
                 .append( "\" style=\"max-width:200px;max-height:200px;\" width=\"auto\" height=\"auto\"/>" );
         return sb.toString();
     }

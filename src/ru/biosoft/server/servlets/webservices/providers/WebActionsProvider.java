@@ -26,7 +26,7 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -275,12 +275,12 @@ public class WebActionsProvider extends WebProviderSupport
                 }
                 if( isNode )
                 {
-                    callbackFunction = "function(event){this.createNewNode(event, '" + StringEscapeUtils.escapeJavaScript(dcCompleteName)
+                    callbackFunction = "function(event){this.createNewNode(event, '" + StringEscapeUtils.escapeEcmaScript(dcCompleteName)
                             + "', '" + typeName + "');return false;}";
                 }
                 else
                 {
-                    callbackFunction = "function(event){this.createNewEdge(event, '" + StringEscapeUtils.escapeJavaScript(dcCompleteName)
+                    callbackFunction = "function(event){this.createNewEdge(event, '" + StringEscapeUtils.escapeEcmaScript(dcCompleteName)
                             + "', '" + typeName + "'" + compositeParameter + ");return false;}";
                     instantAction = true;
                 }

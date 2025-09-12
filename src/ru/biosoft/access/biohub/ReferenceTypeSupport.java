@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataElement;
@@ -40,7 +40,7 @@ public abstract class ReferenceTypeSupport implements ReferenceType
                     if( info.getDescription() != null && !info.getDescription().isEmpty() )
                     {
                         description = "From <a href=\"http://www.ebi.ac.uk/miriam/\">MIRIAM</a>: "
-                                + StringEscapeUtils.escapeHtml( info.getDescription() );
+                                + StringEscapeUtils.escapeHtml4( info.getDescription() );
                     }
                     sampleId = ( (DynamicPropertySet[])info.getAttributes().getValue( "resources" ) )[0]
                             .getValueAsString( "dataEntityExample" );

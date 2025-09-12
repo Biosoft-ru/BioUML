@@ -1,6 +1,6 @@
 package biouml.plugins.node;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.mozilla.javascript.NativeObject;
 
 import ru.biosoft.access.core.DataElementPath;
@@ -77,7 +77,7 @@ public class JavaScriptNode extends JavaScriptHostObjectBase
     
     public ProcessMonitor analyze(String analysisName, NativeObject parameters, boolean background, MachineResources resources) throws Exception
     {
-        String script = "microarray.getAnalysis('" + StringEscapeUtils.escapeJavaScript(analysisName) + "')\n("
+        String script = "microarray.getAnalysis('" + StringEscapeUtils.escapeEcmaScript(analysisName) + "')\n("
                 + ( parameters == null ? "{}" : RhinoUtils.toJSONObject(parameters).toString(2) ) + ", true)";
         ScriptEnvironment environment = Global.getEnvironment();
         if(environment == null)

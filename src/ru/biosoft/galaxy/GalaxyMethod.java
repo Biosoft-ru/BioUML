@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.DynamicProperty;
@@ -390,10 +390,10 @@ public class GalaxyMethod extends AnalysisMethodSupport
                 if( simpleName.lastIndexOf(GalaxyAnalysisParameters.NESTED_PARAMETER_DELIMETER) >= 0 )
                     simpleName = simpleName.substring(simpleName.lastIndexOf(GalaxyAnalysisParameters.NESTED_PARAMETER_DELIMETER) + 1);
                 if( ( (GalaxyParameter)property ).getParameter() instanceof ArrayParameter )
-                    parametersStr.append("'" + StringEscapeUtils.escapeJavaScript(simpleName) + "': " + propertyValue);
+                    parametersStr.append("'" + StringEscapeUtils.escapeEcmaScript(simpleName) + "': " + propertyValue);
                 else
-                    parametersStr.append("'" + StringEscapeUtils.escapeJavaScript(simpleName) + "': '"
-                            + StringEscapeUtils.escapeJavaScript(propertyValue) + "'");
+                    parametersStr.append("'" + StringEscapeUtils.escapeEcmaScript(simpleName) + "': '"
+                            + StringEscapeUtils.escapeEcmaScript(propertyValue) + "'");
             }
         }
         StringBuilder result = new StringBuilder("galaxy.");

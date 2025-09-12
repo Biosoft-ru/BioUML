@@ -1,6 +1,6 @@
 package ru.biosoft.analysis;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.StreamEx;
@@ -65,7 +65,7 @@ public class FoldChange extends UpDownIdentification
             if( parameters.getExperiment() != null )
             {
                 getSourceScript.append("var experiment = data.get('"
-                        + StringEscapeUtils.escapeJavaScript(parameters.getExperiment().getCompletePath().toString()) + "')\n");
+                        + StringEscapeUtils.escapeEcmaScript(parameters.getExperiment().getCompletePath().toString()) + "')\n");
                 params[0] = "experiment";
             }
             if( parameters.getControl() != null )
@@ -75,27 +75,27 @@ public class FoldChange extends UpDownIdentification
                 else
                 {
                     getSourceScript.append("var control = data.get('"
-                            + StringEscapeUtils.escapeJavaScript(parameters.getControl().getCompletePath().toString()) + "');\n");
+                            + StringEscapeUtils.escapeEcmaScript(parameters.getControl().getCompletePath().toString()) + "');\n");
                     params[1] = "control";
                 }
             }
 
             if( parameters.getExperimentData().getColumns() != null )
-                params[2] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getExperimentData().getNamesDescription()) + "'";
+                params[2] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getExperimentData().getNamesDescription()) + "'";
             if( parameters.getControlData().getColumns() != null )
-                params[3] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getControlData().getNamesDescription()) + "'";
+                params[3] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getControlData().getNamesDescription()) + "'";
             if( parameters.getType() != null )
-                params[4] = "'" + StringEscapeUtils.escapeJavaScript( parameters.getType() ) + "'";
+                params[4] = "'" + StringEscapeUtils.escapeEcmaScript( parameters.getType() ) + "'";
             if( parameters.getInputLogarithmBase() != null )
-                params[5] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getInputLogarithmBase()) + "'";
+                params[5] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getInputLogarithmBase()) + "'";
             if( parameters.getOutputLogarithmBase() != null )
-                params[6] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputLogarithmBase()) + "'";
+                params[6] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputLogarithmBase()) + "'";
             if( parameters.getThresholdDown() != null )
                 params[7] = parameters.getThresholdDown().toString();
             if( parameters.getThresholdUp() != null )
                 params[8] = parameters.getThresholdUp().toString();
             if( parameters.getOutputTablePath() != null )
-                params[9] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputTablePath().toString()) + "'";
+                params[9] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputTablePath().toString()) + "'";
 
             String putTableScript = "data.save(result,'" + parameters.getOutputCollection().getCompletePath().toString() + "/');";
 

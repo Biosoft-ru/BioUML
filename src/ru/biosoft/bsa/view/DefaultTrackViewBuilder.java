@@ -7,7 +7,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.bsa.Interval;
@@ -376,7 +376,7 @@ public class DefaultTrackViewBuilder extends TrackViewBuilder
         }
         if(siteTitle != null && !siteTitle.isEmpty())
         {
-            siteTitle = StringEscapeUtils.unescapeHtml( siteTitle );
+            siteTitle = StringEscapeUtils.unescapeHtml4( siteTitle );
 
             ColorFont font = siteViewOptions.getFont();
             //float fontSize = (float) ( font.getFont().getSize()*Math.pow(density/10, 0.3));

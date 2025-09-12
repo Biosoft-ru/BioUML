@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -111,7 +111,7 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
         ScriptVariable variableInfo = new ScriptVariable(name, idx, result, skipPoints);
         results.get(result).add(variableInfo);
         buck.put(name, buck, Context.toObject(variableInfo, buck));
-        if(script == null) setScript("$['"+StringEscapeUtils.escapeJavaScript(name)+"'][point]");
+        if(script == null) setScript("$['"+StringEscapeUtils.escapeEcmaScript(name)+"'][point]");
         int count = result.getCount();
         for(int i=skipPoints; i<count; i++)
         {

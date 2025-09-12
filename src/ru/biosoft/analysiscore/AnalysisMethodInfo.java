@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -244,7 +244,7 @@ public class AnalysisMethodInfo extends DataElementSupport implements HtmlDescri
             if(htmlDescription != null)
                 sb.append(htmlDescription.toString().replace("\n", "<br>"));
             else
-                sb.append(StringEscapeUtils.escapeHtml(property.getShortDescription()).replace("\n", "<br>"));
+                sb.append(StringEscapeUtils.escapeHtml4(property.getShortDescription()).replace("\n", "<br>"));
             if(property instanceof CompositeProperty && !property.isHideChildren() && !property.getValueClass().getPackage().getName().startsWith("java."))
             {
                 String subProperty = getRecursivePropertyDescription(property);

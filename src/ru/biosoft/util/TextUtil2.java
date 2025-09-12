@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
@@ -953,7 +953,7 @@ public class TextUtil2
         {
             html = html.substring( 0, matcher.start() ) + "<img" + matcher.group( 1 ) + " src=\"../biouml/web/img?id="
                     + ( matcher.group( 2 ).contains( "://" ) ? "" : baseId )
-                    + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\"" + html.substring( matcher.end() );
+                    + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml4( matcher.group( 2 ) ) ) + "\"" + html.substring( matcher.end() );
             start = matcher.end();
             matcher = pattern.matcher( html );
         }

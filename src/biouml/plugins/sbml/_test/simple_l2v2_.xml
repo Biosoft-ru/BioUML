@@ -49,7 +49,7 @@
       <compartment id="cytosol" name="cytosol" size="1.0E-14" spatialDimensions="3">
         <annotation>
           <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
-            <biouml:compartmentInfo completeName="cytosol" height="267" isTitleHidden="false" shape="0" title="cytosol" width="366" x="630" y="0"/>
+            <biouml:compartmentInfo completeName="cytosol" height="272" isTitleHidden="false" shape="0" title="cytosol" width="364" x="630" y="0"/>
           </biouml:BIOUML>
         </annotation>
       </compartment>
@@ -70,9 +70,10 @@
       <species compartment="cytosol" hasOnlySubstanceUnits="false" id="ES" initialAmount="0.0" speciesType="Glucose">
         <annotation>
           <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
-            <biouml:nodeInfo completeName="cytosol.ES" height="0" isTitleHidden="false" title="ES" width="0" x="749" y="1">
+            <biouml:nodeInfo completeName="cytosol.ES" height="0" isTitleHidden="false" title="ES" width="0" x="748" y="1">
               <property name="speciesType" short-description="speciesType" type="biouml.standard.type.BaseSupport">
                 <property name="attributes" short-description="attributes" type="composite"/>
+                <property name="completePath" short-description="completePath" type="dataElementPath" value="Glucose"/>
                 <property name="name" short-description="name" type="String" value="Glucose"/>
                 <property name="nameInParent" short-description="nameInParent" type="String"/>
                 <property name="notificationEnabled" short-description="notificationEnabled" type="boolean" value="true"/>
@@ -90,9 +91,10 @@
       <species compartment="cytosol" hasOnlySubstanceUnits="false" id="P" initialAmount="0.0" speciesType="Glucose">
         <annotation>
           <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
-            <biouml:nodeInfo completeName="cytosol.P" height="0" isTitleHidden="false" title="P" width="0" x="862" y="1">
+            <biouml:nodeInfo completeName="cytosol.P" height="0" isTitleHidden="false" title="P" width="0" x="860" y="1">
               <property name="speciesType" short-description="speciesType" type="biouml.standard.type.BaseSupport">
                 <property name="attributes" short-description="attributes" type="composite"/>
+                <property name="completePath" short-description="completePath" type="dataElementPath" value="Glucose"/>
                 <property name="name" short-description="name" type="String" value="Glucose"/>
                 <property name="nameInParent" short-description="nameInParent" type="String"/>
                 <property name="notificationEnabled" short-description="notificationEnabled" type="boolean" value="true"/>
@@ -110,9 +112,10 @@
       <species compartment="cytosol" hasOnlySubstanceUnits="false" id="S" initialAmount="1.0E-20" speciesType="Glucose_6_P">
         <annotation>
           <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
-            <biouml:nodeInfo completeName="cytosol.S" height="0" isTitleHidden="false" title="S" width="0" x="630" y="128">
+            <biouml:nodeInfo completeName="cytosol.S" height="0" isTitleHidden="false" title="S" width="0" x="630" y="133">
               <property name="speciesType" short-description="speciesType" type="biouml.standard.type.BaseSupport">
                 <property name="attributes" short-description="attributes" type="composite"/>
+                <property name="completePath" short-description="completePath" type="dataElementPath" value="Glucose_6_P"/>
                 <property name="name" short-description="name" type="String" value="Glucose_6_P"/>
                 <property name="nameInParent" short-description="nameInParent" type="String"/>
                 <property name="notificationEnabled" short-description="notificationEnabled" type="boolean" value="true"/>
@@ -142,7 +145,7 @@
         <annotation>
           <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
             <biouml:reactionInfo/>
-            <biouml:nodeInfo completeName="cytosol.vcat" height="0" isTitleHidden="false" title="" width="0" x="761" y="26"/>
+            <biouml:nodeInfo completeName="cytosol.vcat" height="0" isTitleHidden="false" title="" width="0" x="760" y="29"/>
           </biouml:BIOUML>
         </annotation>
         <listOfReactants>
@@ -188,7 +191,7 @@
         <annotation>
           <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
             <biouml:reactionInfo/>
-            <biouml:nodeInfo completeName="cytosol.veq" height="0" isTitleHidden="false" title="" width="0" x="685" y="68"/>
+            <biouml:nodeInfo completeName="cytosol.veq" height="0" isTitleHidden="false" title="" width="0" x="685" y="73"/>
           </biouml:BIOUML>
         </annotation>
         <listOfReactants>

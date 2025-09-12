@@ -1,6 +1,6 @@
 package ru.biosoft.util.j2html.attributes;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class Attribute {
     private final String name;
@@ -8,7 +8,7 @@ public class Attribute {
 
     public Attribute(String name, String value) {
         this.name = name;
-        this.value = StringEscapeUtils.escapeHtml( value);
+        this.value = StringEscapeUtils.escapeHtml4( value);
     }
 
     public Attribute(String name) {

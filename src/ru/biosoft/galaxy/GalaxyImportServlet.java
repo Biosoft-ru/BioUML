@@ -11,7 +11,7 @@ import java.security.InvalidParameterException;
 import java.util.Map;
 import java.util.logging.Level;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.developmentontheedge.application.Application;
 
@@ -129,7 +129,7 @@ public class GalaxyImportServlet extends AbstractServlet
                         "var opened = false;\n"+
                         "while(true) {\n"+
                         "  try {\n"+
-                        "    wnd.top.importFinished('"+StringEscapeUtils.escapeJavaScript(path.toString())+"','"+StringEscapeUtils.escapeJavaScript(tool.getDisplayName())+"');\n"+
+                        "    wnd.top.importFinished('"+StringEscapeUtils.escapeEcmaScript(path.toString())+"','"+StringEscapeUtils.escapeEcmaScript(tool.getDisplayName())+"');\n"+
                         "    opened = true;\n"+
                         "    break;\n"+
                         "  }\n"+

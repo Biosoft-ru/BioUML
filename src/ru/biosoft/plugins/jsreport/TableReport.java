@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -64,7 +64,7 @@ public class TableReport
             for( int col = 0; col < colHeaders.getLength(); col++ )
             {
                 String value = stringValue( colHeaders.get( col, null ), false );
-                pw.println("\t\t<th>" + (escape?StringEscapeUtils.escapeHtml(value):value));
+                pw.println("\t\t<th>" + (escape?StringEscapeUtils.escapeHtml4(value):value));
             }
         }
         boolean cutLongString = !className.startsWith( "parameters" );
@@ -79,7 +79,7 @@ public class TableReport
                 continue;
             pw.println("\t<tr class=\""+( id % 2 == 0 ? "even-row" : "odd-row" )+"\">");
             String value = stringValue( row.get( 0, null ), cutLongString );
-            String reportValue = escape?StringEscapeUtils.escapeHtml(value):value;
+            String reportValue = escape?StringEscapeUtils.escapeHtml4(value):value;
             if(isExtendable && cutLongString)
             {
                 String fullValue = stringValue( row.get( 0, null ), false );
@@ -93,7 +93,7 @@ public class TableReport
             for( int col = 1; col < row.getLength(); col++ )
             {
                 value = stringValue( row.get( col, null ), cutLongString );
-                reportValue = escape ? StringEscapeUtils.escapeHtml( value ) : value;
+                reportValue = escape ? StringEscapeUtils.escapeHtml4( value ) : value;
                 if( isExtendable && cutLongString )
                 {
                     String fullValue = stringValue( row.get( col, null ), false );
@@ -224,11 +224,11 @@ public class TableReport
         public String toString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.append( "<a href=\"" ).append( StringEscapeUtils.escapeHtml( url ) ).append( "\" target=\"" ).append( target )
+            sb.append( "<a href=\"" ).append( StringEscapeUtils.escapeHtml4( url ) ).append( "\" target=\"" ).append( target )
                     .append( "\"" );
             if( onclick != null )
                 sb.append( " onclick=\"" ).append( onclick ).append( "\"" );
-            sb.append( ">" ).append( StringEscapeUtils.escapeHtml( text ) ).append( "</a>" );
+            sb.append( ">" ).append( StringEscapeUtils.escapeHtml4( text ) ).append( "</a>" );
             return sb.toString();
         }
 

@@ -1,6 +1,6 @@
 package ru.biosoft.analysis;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import one.util.streamex.IntStreamEx;
 import ru.biosoft.access.core.DataCollection;
@@ -114,7 +114,7 @@ public class UpDownIdentification extends MicroarrayAnalysis<UpDownIdentificatio
             if( parameters.getExperiment() != null )
             {
                 getSourceScript.append("var experiment = data.get('"
-                        + StringEscapeUtils.escapeJavaScript(parameters.getExperiment().getCompletePath().toString()) + "')\n");
+                        + StringEscapeUtils.escapeEcmaScript(parameters.getExperiment().getCompletePath().toString()) + "')\n");
                 params[0] = "experiment";
             }
             if( parameters.getControl() != null )
@@ -124,21 +124,21 @@ public class UpDownIdentification extends MicroarrayAnalysis<UpDownIdentificatio
                 else
                 {
                     getSourceScript.append("var control = data.get('"
-                            + StringEscapeUtils.escapeJavaScript(parameters.getControl().getCompletePath().toString()) + "');\n");
+                            + StringEscapeUtils.escapeEcmaScript(parameters.getControl().getCompletePath().toString()) + "');\n");
                     params[1] = "control";
                 }
             }
 
             if( parameters.getExperimentData().getColumns() != null )
-                params[2] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getExperimentData().getNamesDescription()) + "'";
+                params[2] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getExperimentData().getNamesDescription()) + "'";
             if( parameters.getControlData().getColumns() != null )
-                params[3] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getControlData().getNamesDescription()) + "'";
+                params[3] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getControlData().getNamesDescription()) + "'";
             if( parameters.getMethod() != null )
-                params[4] = "'" + StringEscapeUtils.escapeJavaScript( parameters.getMethod() ) + "'";
+                params[4] = "'" + StringEscapeUtils.escapeEcmaScript( parameters.getMethod() ) + "'";
             if( parameters.getInputLogarithmBase() != null )
-                params[5] = "'" + StringEscapeUtils.escapeJavaScript( parameters.getInputLogarithmBase() ) + "'";
+                params[5] = "'" + StringEscapeUtils.escapeEcmaScript( parameters.getInputLogarithmBase() ) + "'";
             if( parameters.getOutputType() != null )
-                params[6] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputType()) + "'";
+                params[6] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputType()) + "'";
             if( parameters.getPvalue() != null )
                 params[7] = parameters.getPvalue().toString();
             if( parameters.getThresholdDown() != null )
@@ -148,7 +148,7 @@ public class UpDownIdentification extends MicroarrayAnalysis<UpDownIdentificatio
             if( parameters.isFdr() != null )
                 params[10] = parameters.isFdr().toString();
             if( parameters.getOutputTablePath() != null )
-                params[11] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputTablePath().toString()) + "'";
+                params[11] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputTablePath().toString()) + "'";
 
             String putTableScript = "data.save(result,'" + parameters.getOutputCollection().getCompletePath().toString() + "/');";
 
