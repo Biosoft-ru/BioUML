@@ -84,8 +84,11 @@ public class WDLWebProvider extends WebJSONProviderSupport
             JSONUtils.correctBeanOptions( settings, jsonSettings );
             try
             {
-                WDLRunner.runNextFlow( diagram, null, settings, outputDir, false );
-                response.sendString( settings.getOutputPath().toString() );
+                String log = WDLRunner.runNextFlow( diagram, null, settings, outputDir, false );
+                JSONObject res = new JSONObject();
+                res.put( "result", settings.getOutputPath().toString() );
+                res.put( "log", log );
+                response.sendJSON( res );
             }
             catch (Exception e)
             {

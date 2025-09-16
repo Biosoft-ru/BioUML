@@ -1002,3 +1002,12 @@ a.ui-button:active,
 	background-image: url('../icons/expand.gif');
 }
 
+.same-height-parent{
+    display:flex;
+}
+
+.same-height-child{
+    flex: 1;
+    padding: 1em;
+}
+

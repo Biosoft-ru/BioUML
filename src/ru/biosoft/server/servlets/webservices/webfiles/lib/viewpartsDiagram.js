@@ -6326,8 +6326,18 @@ function WDLViewPart()
         this.wdlDiv = tabDiv.find("#wdl_wdl");
         this.scriptEditor["wdl"] = this.initScriptEditor(this.wdlDiv, "shell");
         
+        
+        var nextflowParent = $('<div class="same-height-parent">');
+        
+        var nfScript = $('<div id="wdl_nextflow_script" class="same-height-child ui-widget-content">');
+        nextflowParent.append(nfScript);
+        this.scriptEditor["nextflow"] = this.initScriptEditor(nfScript, "shell");
+        
+        this.mainLogDiv = $('<div id="' + this.tabId + '_log" class="same-height-child ui-widget-content"><div style="text-align:center;">Nextflow log</div></div>').css({"min-width":"320px"});
+        nextflowParent.append(this.mainLogDiv);
+        
         this.nextflowDiv = tabDiv.find("#wdl_nextflow");
-        this.scriptEditor["nextflow"] = this.initScriptEditor(this.nextflowDiv, "shell");
+        this.nextflowDiv.append(nextflowParent);
         
         this.settingsDiv = tabDiv.find("#wdl_settings");
         this.settingsPI = $('<div id="' + this.tabId + '_pi"></div>').css({"width":"500px", "float":"left", "margin-right": "15px"});
@@ -6339,11 +6349,11 @@ function WDLViewPart()
     this.initScriptEditor = function(parentDiv, mode)
     {
         var scriptEditor = {};
-        var div = $("<div/>").css({border: "1px solid black", "min-height":"150px"});
+        //var div = $("<div/>").css({border: "1px solid black", "min-height":"150px"});
         var textArea = $('<textarea style="width: 100%; height: 100%;"/>');
-        div.append(textArea);
-        parentDiv.append(div);
-        scriptEditor.tab = div;
+        parentDiv.append(textArea);
+        //parentDiv.append(div);
+        scriptEditor.tab = parentDiv;
         scriptEditor.commandStack = [];
         scriptEditor.stackPos = 0;
         scriptEditor.editor = CodeMirror.fromTextArea(textArea.get(0), {
@@ -6531,8 +6541,10 @@ function WDLViewPart()
             settings: settings
         }, function(data)
         {
-            refreshTreeBranch(data.values);
-            openBranch(data.values);
+            refreshTreeBranch(data.values.result);
+            openBranch(data.values.result);
+            _this.mainLogDiv.show();
+            updateLog(_this.mainLogDiv,data.values.log);
         },
         function(data)
         {
