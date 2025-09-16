@@ -6324,7 +6324,9 @@ function WDLViewPart()
         tabDiv.find( "li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" ).css({"width":"95px"});
         
         this.wdlDiv = tabDiv.find("#wdl_wdl");
-        this.scriptEditor["wdl"] = this.initScriptEditor(this.wdlDiv, "shell");
+        var div = $('<div class="ui-widget-content"/>').css({"min-height":"150px"});
+        this.wdlDiv.append(div);
+        this.scriptEditor["wdl"] = this.initScriptEditor(div, "shell");
         
         
         var nextflowParent = $('<div class="same-height-parent">');
