@@ -232,8 +232,8 @@ ${BR}$singleLine
 ${BR}Rules: #if ( $rules.getRules().size() == 0 ) Not defined. #end
 ${BR}$singleLine
 #foreach ($rule in $rules.getRules())
-    $rule.getSignal() $rule.getDirection() $rule.getBehavior()
-    base: $rule.getBaseValue(), power: $rule.getHillPower(), target value: $rule.getSaturationValue(), half max: $rule.getHalfMax()
+    ${velocityCount}. $rule.getSignal() $rule.getDirection() $rule.getBehavior()
+       base: $rule.getBaseValue(), target value: $rule.getSaturationValue(), half max: $rule.getHalfMax(), power: $rule.getHillPower()
 #end
 #################################################
 ${BR}Initial distribution: #if ( $initialDistributions.getParameterDistributions().size() == 0 ) Not defined. #end
