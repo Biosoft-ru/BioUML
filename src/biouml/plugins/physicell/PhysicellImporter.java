@@ -420,7 +420,7 @@ public class PhysicellImporter implements DataElementImporter
     }
 
     @Override
-    public Object getProperties(DataCollection parent, File file, String elementName)
+    public PhysicellImportProperties getProperties(DataCollection parent, File file, String elementName)
     {
         properties = new PhysicellImportProperties();
         return properties;
