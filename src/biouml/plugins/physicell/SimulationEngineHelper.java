@@ -134,15 +134,15 @@ public class SimulationEngineHelper
             String type = pv.getType();
             if( type.equals( PhenotypeVariable.INPUT_TYPE ) )
             {
-                return "ODE [" + varName + "] <-- [" + phenotypeVar + "]";
+                return "[" + varName + "] <-- [" + phenotypeVar + "]";
             }
             else if( type.equals( PhenotypeVariable.OUTPUT_TYPE ) )
             {
-                return "ODE [" + varName + "] --> [" + phenotypeVar + "]";
+                return "[" + varName + "] --> [" + phenotypeVar + "]";
             }
             else
             {
-                return "ODE [" + varName + "] <--> [" + phenotypeVar + "]";
+                return "[" + varName + "] <--> [" + phenotypeVar + "]";
             }
     }
 
