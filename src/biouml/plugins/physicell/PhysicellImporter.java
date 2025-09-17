@@ -356,7 +356,7 @@ public class PhysicellImporter implements DataElementImporter
                 }
                 else if( type.equals( "NONE" ) )
                 {
-                    cdp.getFunctionsProperties().setNotSelected( "-" );
+                    cdp.getFunctionsProperties().setNotSelected( name );
                 }
                 else
                 {
