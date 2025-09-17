@@ -83,6 +83,7 @@ public class SubstrateProperties extends InitialElementPropertiesSupport impleme
         result.setShapeSize( new Dimension( 75, 75 ) );
         result.setLocation( location );
         this.isCompleted = true;
+        this.setDiagramElement( result );
         result.setRole( this );
         result.getAttributes().add( DPSUtils.createHiddenReadOnly( "substrate", SubstrateProperties.class, this ) );
         return new DiagramElementGroup( result );
