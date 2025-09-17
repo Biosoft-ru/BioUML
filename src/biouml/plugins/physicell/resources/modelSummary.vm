@@ -245,7 +245,7 @@ ${BR}$singleLine
 ${BR}Intracellular: #if ( $intracellular.getVariables().size() == 0 ) Not defined. #else $intracellular.getDiagram().getName() #end
 ${BR}$singleLine
 #foreach ( $variable in $intracellular.getVariables() )
-    $physicellEngine.display( $variable )
+    $velocityCount. $physicellEngine.display( $variable )
 #end
 #################################################
 ${BR}Mechanics:
@@ -324,7 +324,7 @@ $doubleLine
 #displayCellDefinition( $de )
 #elseif ($physicellEngine.isSecretion($de) )
 #displaySecretion( $de )
-#elseif ($physicellEngine.ischemotaxis($de) )
+#elseif ($physicellEngine.isChemotaxis($de) )
 #displayChemotaxis( $de )
 #elseif ($physicellEngine.isInteraction($de) )
 #displayInteraction( $de )
