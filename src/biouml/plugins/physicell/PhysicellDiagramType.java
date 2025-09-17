@@ -14,7 +14,7 @@ import biouml.model.util.DiagramXmlWriter;
 import biouml.standard.type.Base;
 import ru.biosoft.access.core.DataCollection;
 
-@PropertyName ( "Physicell models" )
+@PropertyName ( "Physicell model" )
 @PropertyDescription ( "Multicellular agent models." )
 public class PhysicellDiagramType extends DiagramTypeSupport
 {
@@ -72,5 +72,17 @@ public class PhysicellDiagramType extends DiagramTypeSupport
     public DiagramXmlReader getDiagramReader()
     {
         return new PhysicellDiagramReader();
+    }
+    
+    @Override
+    public String getTitle()
+    {
+        return "Physicell model";
+    }
+
+    @Override //TODO" for some reason description is not read correctly from annotation
+    public String getDescription()
+    {
+         return "Multicellular agent-based spatial model using Physicell formalism.";
     }
 }
