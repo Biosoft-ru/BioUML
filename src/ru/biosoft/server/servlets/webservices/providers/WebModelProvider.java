@@ -216,14 +216,14 @@ public class WebModelProvider extends WebDiagramsProvider
             new JSONResponse( out ).sendString( "ok" );
             return;
         }
-        else if( diagramAction.equals( "fix" ) )
-        {
-            boolean fixed = arguments.getBoolean( "fixed" );
-            List<DiagramElement> elements = getDiagramElements( diagram, arguments, "e" );
-            elements.stream().forEach( de -> de.setFixed( fixed ) );
-            sendDiagramChanges( diagram, out, type );
-            return;
-        }
+        //        else if( diagramAction.equals( "fix" ) )
+        //        {
+        //            boolean fixed = arguments.getBoolean( "fixed" );
+        //            List<DiagramElement> elements = getDiagramElements( diagram, arguments, "e" );
+        //            elements.stream().forEach( de -> de.setFixed( fixed ) );
+        //            sendDiagramChanges( diagram, out, type );
+        //            return;
+        //        }
         else if( diagramAction.equals( "new_reaction_name" ) )
         {
             JSONObject result = new JSONObject();
@@ -543,6 +543,11 @@ public class WebModelProvider extends WebDiagramsProvider
     protected List<DiagramElement> addDiagramElement(final Diagram diagram, String elementName, final Point location, @Nonnull String typeStr, DataElementPath dcPath,
             JSONArray elementProperties) throws Exception
     {
+        Role model = diagram.getRole();
+        if( model == null || !(model instanceof EModelRoleSupport) )
+        {
+            return super.addDiagramElement( diagram, elementName, location, typeStr, dcPath, elementProperties );
+        }
         final List<DiagramElement> result = new ArrayList<>();
         try
         {
