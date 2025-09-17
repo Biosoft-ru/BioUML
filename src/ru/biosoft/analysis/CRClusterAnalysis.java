@@ -10,7 +10,7 @@ import java.util.Vector;
 import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.StreamEx;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
@@ -70,11 +70,11 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             if( parameters.getExperiment() != null )
             {
                 getSourceScript.append("var experiment = data.get('"
-                        + StringEscapeUtils.escapeJavaScript(parameters.getExperiment().getCompletePath().toString()) + "');\n");
+                        + StringEscapeUtils.escapeEcmaScript(parameters.getExperiment().getCompletePath().toString()) + "');\n");
                 params[0] = "experiment";
             }
             if( parameters.getExperimentData().getColumns() != null )
-                params[1] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getExperimentData().getNamesDescription()) + "'";
+                params[1] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getExperimentData().getNamesDescription()) + "'";
 
             if( parameters.getCutoff() != null )
                 params[2] = parameters.getCutoff().toString();
@@ -89,7 +89,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             if( parameters.getThresholdUp() != null )
                 params[7] = parameters.getThresholdUp().toString();
             if( parameters.getOutputTablePath() != null )
-                params[8] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputTablePath().toString()) + "'";
+                params[8] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputTablePath().toString()) + "'";
 
             String putTableScript = "data.save(result,'" + parameters.getOutputCollection().getCompletePath().toString() + "/');";
 

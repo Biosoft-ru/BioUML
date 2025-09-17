@@ -3,7 +3,7 @@ package ru.biosoft.util.j2html.tags;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class Text extends DomContent {
 
@@ -16,11 +16,12 @@ public class Text extends DomContent {
     @Override
     public void renderTo(Writer writer) throws IOException
     {
-        StringEscapeUtils.escapeHtml( writer, text );
+        String escaped = StringEscapeUtils.escapeHtml4( text );
+        writer.write( escaped );
     }
 
     @Override
     public String render() {
-        return StringEscapeUtils.escapeHtml( text );
+        return StringEscapeUtils.escapeHtml4( text );
     }
 }

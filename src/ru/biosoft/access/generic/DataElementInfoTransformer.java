@@ -3,7 +3,7 @@ package ru.biosoft.access.generic;
 import java.io.BufferedReader;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.access.core.AbstractTransformer;
 import ru.biosoft.access.core.DataCollection;

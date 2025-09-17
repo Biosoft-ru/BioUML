@@ -8,14 +8,12 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
-//import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -23,12 +21,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
-//import javax.imageio.ImageIO;
-//import javax.swing.Icon;
-//import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.UndoableEdit;
 
 import org.json.JSONArray;
@@ -37,13 +31,11 @@ import org.json.JSONObject;
 
 import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.DynamicProperty;
-import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentFactory.Policy;
 import com.developmentontheedge.beans.model.ComponentModel;
 import com.developmentontheedge.beans.undo.TransactionEvent;
 import com.developmentontheedge.beans.undo.TransactionUndoManager;
-import com.eclipsesource.json.JsonObject;
 
 import biouml.model.Compartment;
 import biouml.model.DefaultSemanticController;
@@ -51,37 +43,17 @@ import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.DiagramFilter;
-import biouml.model.DiagramTypeConverter;
 import biouml.model.DiagramViewBuilder;
 import biouml.model.Edge;
 import biouml.model.InitialElementProperties;
-//import biouml.model.ModelDefinition;
 import biouml.model.Module;
 import biouml.model.Node;
-//import biouml.model.Role;
 import biouml.model.SemanticController;
-//import biouml.model.SubDiagram;
-//import biouml.model.SubDiagram.PortOrientation;
-//import biouml.model.dynamics.Assignment;
-//import biouml.model.dynamics.Constraint;
-//import biouml.model.dynamics.DAEModelUtilities;
-//import biouml.model.dynamics.EModel;
-//import biouml.model.dynamics.EModelRoleSupport;
-//import biouml.model.dynamics.Equation;
-//import biouml.model.dynamics.Event;
-//import biouml.model.dynamics.Function;
-//import biouml.model.dynamics.State;
-//import biouml.model.dynamics.Variable;
-//import biouml.model.dynamics.VariableRole;
 import biouml.model.util.AddElementsUtils;
 import biouml.model.util.DiagramImageGenerator;
-//import biouml.model.xml.XmlDiagramSemanticController;
-//import biouml.model.xml.XmlDiagramType;
 import biouml.standard.diagram.ConnectionEdgePane;
 import biouml.standard.diagram.DiagramUtility;
-//import biouml.standard.diagram.PathwaySimulationSemanticController;
 import biouml.standard.diagram.PortProperties;
-import biouml.standard.diagram.ReactionInitialProperties;
 import biouml.standard.diagram.Util;
 import biouml.standard.state.DiagramStateUtility;
 import biouml.standard.state.State;
@@ -90,15 +62,11 @@ import biouml.standard.type.Reaction;
 import biouml.standard.type.SemanticRelation;
 import biouml.standard.type.SpecieReference;
 import biouml.standard.type.Stub;
-//import biouml.standard.type.Stub.ConnectionPort;
 import biouml.standard.type.Type;
 import biouml.workbench.diagram.DiagramEditorHelper;
-//import biouml.workbench.diagram.SetInitialValuesAction;
 import biouml.workbench.diagram.ViewEditorPaneStub;
-//import biouml.workbench.diagram.viewpart.HighlightFilter;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import biouml.workbench.graphsearch.SearchElement;
-//import one.util.streamex.StreamEx;
 import ru.biosoft.access.BeanRegistry;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.biohub.Element;
@@ -112,7 +80,6 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.undo.DataCollectionUndoListener;
 import ru.biosoft.access.exception.BiosoftCustomException;
 import ru.biosoft.access.security.SecurityManager;
-//import ru.biosoft.access.support.IdGenerator;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.InternalException;
 import ru.biosoft.exception.LoggedClassNotFoundException;
@@ -147,8 +114,6 @@ import ru.biosoft.server.servlets.webservices.WebJob;
 import ru.biosoft.server.servlets.webservices.WebServicesServlet;
 import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.server.servlets.webservices.WebTransactionUndoManager;
-//import ru.biosoft.table.TableDataCollection;
-//import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil2;
@@ -304,41 +269,11 @@ public class WebDiagramsProvider extends WebProviderSupport
                     return;
                 }
             }
-            //            //Add reaction
-            //            else if( diagramAction.equals( "add_reaction" ) )
-            //            {
-            //                JSONArray components = arguments.optJSONArray("components");
-            //                String responseType = arguments.get( "resptype" );
-            //                if( components != null )
-            //                {
-            //                    try
-            //                    {
-            //                        String name = arguments.get( "name" );
-            //                        String formula = arguments.get("formula");
-            //                        String title = arguments.get( "title" );
-            //                        List<DiagramElement> elements = addReactionElement( diagram, name, components, formula, title, arguments.getPoint() );
-            //                        sendDiagramChanges(diagram, out, responseType, elements);
-            //                        return;
-            //                    }
-            //                    catch( Exception e )
-            //                    {
-            //                        log.log(Level.SEVERE, "Can not add reaction element");
-            //                    }
-            //                }
-            //            }
             else if( diagramAction.equals("layout_info") )
             {
                 sendDiagramLayouterInfo( out, diagram );
                 return;
             }
-            //TODO: Not used anywhere
-            //            else if( diagramAction.equals("toolbar_icon") )
-            //            {
-            //                resp.setContentType("image/gif");
-            //                if( type != null )
-            //                    sendToolbarIcon(diagram, type, out);
-            //                return;
-            //            }
             else if( diagramAction.equals("layout") )
             {
                 String layouter = arguments.getString("layouter");
@@ -419,34 +354,12 @@ public class WebDiagramsProvider extends WebProviderSupport
                 (new JSONResponse(out)).sendJSON(result);
                 return;
             }
-            //            else if( diagramAction.equals("get_port_parameters") )
-            //            {
-            //                sendPortParameters(diagram, out);
-            //                return;
-            //            }
             else if( diagramAction.equals("refresh") )
             {
                 storeView( diagram, null );
                 sendDiagramChanges(diagram, out, type);
                 return;
             }
-            //            else if( diagramAction.equals("check_diagram_element") )
-            //            {
-            //                String nodeName = arguments.getString("node");
-            //                DiagramElement de = diagram.findDiagramElement( DiagramUtility.toDiagramPath( nodeName ) );
-            //                // not only subdiagrams are presented on the composite diagram
-            //                // there are also equations, events, plots, etc.
-            //                if( Util.isSubDiagram( de ) )
-            //                {
-            //                    SubDiagram subDiagram = castDataElement( de, SubDiagram.class );
-            //                    new JSONResponse( out ).sendString( subDiagram.getDiagramPath() );
-            //                }
-            //                else if (de instanceof ModelDefinition)
-            //                {
-            //                    new JSONResponse( out ).sendString( ((ModelDefinition)de).getDiagramPath() );
-            //                }
-            //                return;
-            //            }
             else if( diagramAction.equals("vertex") )
             {
                 String edge = arguments.getString("edge");
@@ -485,120 +398,19 @@ public class WebDiagramsProvider extends WebProviderSupport
                 response.sendJSON(getUsers(diagram));
                 return;
             }
-            //            else if( diagramAction.equals( "accept_for_reaction" ) )
-            //            {
-            //                SemanticController semanticController = diagram.getType().getSemanticController();
-            //                String nodeName = arguments.getString( "node" );
-            //                DiagramElement de = diagram.findDiagramElement( DiagramUtility.toDiagramPath( nodeName ) );
-            //                if( de instanceof Node )
-            //                {
-            //                    Object prop = semanticController.getPropertiesByType( diagram, Reaction.class, new Point( 0, 0 ) );
-            //                    if( prop instanceof ReactionInitialProperties )
-            //                        if( ( (ReactionInitialProperties)prop ).acceptForReaction( (Node)de ) )
-            //                        {
-            //                            new JSONResponse( out ).send( new byte[0], 0 );
-            //                            return;
-            //                        }
-            //                }
-            //                new JSONResponse( out ).error( "Component " + de.getName() + " can not be added to reaction" );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "highlight_on" ) )
-            //            {
-            //                DiagramUtility.clearHighlight( diagram );
-            //                Set<String> elements = new HashSet<>( Arrays.asList( arguments.getStrings( "jsonrows" ) ) );
-            //                highlightVariables( diagram, elements, arguments.getString( "what" ) );
-            //                sendDiagramChanges( diagram, out, type );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "highlight_off" ) )
-            //            {
-            //                DiagramUtility.clearHighlight( diagram );
-            //                sendDiagramChanges( diagram, out, type );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "remove_variables" ) )
-            //            {
-            //                DiagramUtility.clearHighlight( diagram );
-            //                Set<String> elements = new HashSet<>( Arrays.asList( arguments.getStrings( "jsonrows" ) ) );
-            //                removeVariables( diagram, elements );
-            //                sendDiagramChanges( diagram, out, type );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "add_variable" ) )
-            //            {
-            //                DiagramUtility.clearHighlight( diagram );
-            //                addVariable( diagram );
-            //                new JSONResponse( out ).sendString( "ok" );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "detect_variable_types" ) )
-            //            {
-            //                Role model = diagram.getRole();
-            //                if( model != null && ( model instanceof EModel ) )
-            //                {
-            //                    ( (EModel)model ).detectVariableTypes();
-            //                }
-            //                new JSONResponse( out ).sendString( "ok" );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "fix" ) )
-            //            {
-            //                boolean fixed = arguments.getBoolean( "fixed" );
-            //                List<DiagramElement> elements = getDiagramElements( diagram, arguments, "e" );
-            //                elements.stream().forEach( de -> de.setFixed( fixed ) );
-            //                sendDiagramChanges( diagram, out, type );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "new_reaction_name" ) )
-            //            {
-            //                JSONObject result = new JSONObject();
-            //                String newName = ReactionInitialProperties.generateReactionName( diagram );
-            //                result.put( "name", newName );
-            //                DataCollection<Reaction> module = ReactionInitialProperties.getReactionOrigin( diagram );
-            //                if( module != null )
-            //                {
-            //                    result.put( "readOnly", true );
-            //                }
-            //                new JSONResponse( out ).sendJSON( result );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "validate_reaction_name" ) )
-            //            {
-            //                String newName = diagram.getType().getSemanticController().validateName( arguments.get( "name" ) );
-            //                new JSONResponse( out ).sendString( newName );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "subdiagrams" ) )
-            //            {
-            //                JSONObject result = new JSONObject();
-            //                JSONArray subdiagrams = new JSONArray();
-            //                if( DiagramUtility.isComposite( diagram ) )
-            //                {
-            //                    List<SubDiagram> subDiagrams = Util.getSubDiagrams( diagram );
-            //                    subDiagrams.stream().forEach( sub -> {
-            //                        JSONObject subObj = new JSONObject().put( "path", Util.getPath( sub ) ).put( "title", sub.getTitle() );
-            //                        subdiagrams.put( subObj );
-            //                    } );
-            //                }
-            //                result.put( "subdiagrams", subdiagrams );
-            //                new JSONResponse( out ).sendJSON( result );
-            //            }
-            //            else if( diagramAction.equals( "get_kernels" ) )
-            //            {
-            //                sendKernels( diagram, out );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "get_all_variables" ) )
-            //            {
-            //                sendAllVariables( diagram, out );
-            //                return;
-            //            }
-            //            else if( diagramAction.equals( "set_initial" ))
-            //            {
-            //                setInitial(diagram, arguments, out);
-            //                return;
-            //            }
+            else if( diagramAction.equals( "fix" ) )
+            {
+                boolean fixed = arguments.getBoolean( "fixed" );
+                List<DiagramElement> elements = getDiagramElements( diagram, arguments, "e" );
+                elements.stream().forEach( de -> de.setFixed( fixed ) );
+                sendDiagramChanges( diagram, out, type );
+                return;
+            }
+            else
+            {
+                new JSONResponse( out ).error( "Unknown diagram action: " + diagramAction );
+                return;
+            }
         }
         else if( type != null && type.equals("json") )
         {
@@ -649,58 +461,6 @@ public class WebDiagramsProvider extends WebProviderSupport
         return result;
     }
 
-    //    private void setInitial(Diagram diagram, BiosoftWebRequest arguments, OutputStream out) throws Exception
-    //    {
-    //        JSONResponse response = new JSONResponse( out );
-    //       
-    //        DataElementPath tablePath = arguments.getDataElementPath( "table" );
-    //        TableDataCollection table = tablePath.optDataElement( TableDataCollection.class );
-    //        if( table == null )
-    //        {
-    //            response.error( "The table '" + tablePath.toString() + "' is not found" );
-    //            return;
-    //        }
-    //        
-    //        int ind = table.getColumnModel().optColumnIndex( SetInitialValuesAction.VALUE_COLUMN );
-    //        if( ind == -1 )
-    //        {
-    //            response.error( "The table '" + table.getName() + "' must contain the column '" + SetInitialValuesAction.VALUE_COLUMN
-    //                    + "' including new initial values to be set." );
-    //            return;
-    //        }
-    //
-    //        if( !table.getColumnModel().getColumn( ind ).getType().equals( DataType.Float ) )
-    //        {
-    //            response.error( "The column '" + SetInitialValuesAction.VALUE_COLUMN + "' in the table '" + table.getName()
-    //                    + "' must be of the type 'Float'." );
-    //            return;
-    //        }
-    //
-    //        EModel emodel = diagram.getRole(EModel.class);
-    //        
-    //        Set<String> errors = new HashSet<>();
-    //        for(Variable p : emodel.getVariables()) {
-    //            if( table.contains( p.getName() ) )
-    //            {
-    //                try
-    //                {
-    //                    double value = (double)table.get( p.getName() ).getValues()[ind];
-    //                    p.setInitialValue( value );
-    //                }
-    //                catch( Exception e )
-    //                {
-    //                    errors.add( p.getName() );
-    //                }
-    //            }
-    //        }
-    //        if( errors.isEmpty() )
-    //            response.sendString( "ok" );
-    //        else
-    //            response.sendString( "Some parameters were not set from table: '" + table.getName() + "' due to errors, the values remain the same for: "
-    //                    + errors.stream().collect( Collectors.joining( ", " ) ) );
-    //    }
-
-    //TODO: rename
     private void sendElementsResizable(Diagram diagram, List<DiagramElement> diagramElements, OutputStream out) throws IOException
     {
         JSONArray resizable = new JSONArray();
@@ -1061,7 +821,6 @@ public class WebDiagramsProvider extends WebProviderSupport
      */
     public static View createView(Diagram diagram)
     {
-        //log.log( Level.INFO, "createView: user = '" + WebSession.getCurrentSession().getUserName() + "', name = '" + diagram.getName() + "', path = '" + diagram.getCompletePath() + "'" );
         View view = diagram.getView();
         if( view == null )
         {   
@@ -1430,8 +1189,6 @@ public class WebDiagramsProvider extends WebProviderSupport
         }
     }
 
-
-    // TODO: rewrite completely!
     protected List<DiagramElement> addDiagramElement(final Diagram diagram, String elementName, final Point location, @Nonnull String typeStr,
             DataElementPath dcPath, JSONArray elementProperties) throws Exception
     {
@@ -1451,14 +1208,10 @@ public class WebDiagramsProvider extends WebProviderSupport
                 if( elementName != null && parent.contains( elementName ) )
                     throw new WebException( "EX_QUERY_ELEMENT_EXIST", elementName, parent.getName() );
                 JSONUtils.correctBeanOptions(bean, elementProperties);
-                //init stub for view editor pane
                 performTransaction(diagram, "Add items (" + typeStr + ")", () -> {
                     try
                     {
                         DiagramElementGroup elements = ( (InitialElementProperties)bean ).createElements( parent, location, viewEditor );
-                        //TODO: remove check after all InitialElementProperties will separately add/create elements
-                        //if( bean instanceof ReactionInitialProperties )
-                            elements.putToCompartment( );
                         result.addAll( elements.getElements() );
                     }
                     catch( Exception e )
@@ -1479,108 +1232,17 @@ public class WebDiagramsProvider extends WebProviderSupport
             }
             final DataElement kernel = defineKernel( parent, dcPath, elementName, typeStr );
             DiagramElement diagramElement = createDiagramElement(parent, typeStr, kernel);
-            //
-            //            //set roles
-            //            if( typeClass != null )
-            //            {
-            //                if( typeClass == Event.class )
-            //                {
-            //                    Event event = new Event(diagramElement);
-            //                    diagramElement.setRole(event);
-            //                }
-            //                else if( typeClass == Equation.class )
-            //                {
-            //                    diagramElement.setRole(new Equation(diagramElement, Equation.TYPE_SCALAR, "unknown", "0"));
-            //                }
-            //                else if( typeClass == Function.class )
-            //                {
-            //                    diagramElement.setRole(new Function(diagramElement));
-            //                }
-            //                else if( typeClass == Constraint.class )
-            //                {
-            //                    diagramElement.setRole(new Constraint(diagramElement));
-            //                }
-            //                else if( typeClass == State.class )
-            //                {
-            //                    State event = new State(diagramElement);
-            //                    event.addOnEntryAssignment(new Assignment("unknown", "0"), false);
-            //                    event.addOnExitAssignment(new Assignment("unknown", "0"), false);
-            //                    diagramElement.setRole(event);
-            //                }
-            //                else if( semanticController instanceof PathwaySimulationSemanticController && typeClass != Stub.Note.class  )
-            //                {
-            //                    VariableRole var = new VariableRole(diagramElement, 0);
-            //                    diagramElement.setRole(var);
-            //                }
-            //            }
 
             if( !semanticController.canAccept(parent, diagramElement) )
                 throw new Exception("Can't accept node '" + diagramElement.getName() + "' to compartment '" + parent.getName() + "'");
-            //TODO: commented XmlDiagramSemanticController 
-            //            if( semanticController instanceof XmlDiagramSemanticController )
-            //            {
-            //                DynamicPropertySet dps = ( (XmlDiagramSemanticController)semanticController ).createAttributes(typeStr);
-            //                JSONArray attr = null;
-            //                if(elementProperties == null)
-            //                    throw new Exception("No properties were supplied");
-            //                for( int j = 0; j < elementProperties.length(); j++ )
-            //                {
-            //                    JSONObject jsonObject = elementProperties.getJSONObject(j);
-            //                    String name = jsonObject.getString("name");
-            //
-            //                    if( name != null && name.equals("Attributes") )
-            //                    {
-            //                        attr = jsonObject.getJSONArray("value");
-            //                        break;
-            //                    }
-            //                }
-            //                if( attr != null )
-            //                {
-            //                    JSONUtils.correctBeanOptions(dps, attr);
-            //                    Iterator<String> iter = dps.nameIterator();
-            //                    while( iter.hasNext() )
-            //                    {
-            //                        diagramElement.getAttributes().add(dps.getProperty(iter.next()));
-            //                    }
-            //                }
-            //                diagramElement = ( (XmlDiagramSemanticController)semanticController ).getPrototype().validate(parent, diagramElement);
-            //            }
 
             final DiagramElement finalDiagramElement = diagramElement;
-            //final Class<?> finalTypeClass = typeClass;
-            //final String finalElementName = kernel.getName();
 
             performTransaction(diagram, "Add " + getPresentationName(finalDiagramElement), () -> {
                 try
                 {
-                    //TODO: rewrite code to have unique name of the diagramElement, since helper can change element, and the original one is used below
                     helper.add(finalDiagramElement, location);
                     result.add( finalDiagramElement );
-
-                    //                    if( finalTypeClass != null && Stub.ConnectionPort.class.isAssignableFrom(finalTypeClass) )
-                    //                    {
-                    //                        String varName = finalElementName.substring(0, finalElementName.indexOf(Stub.ConnectionPort.SUFFIX));
-                    //                        finalDiagramElement.getAttributes().add(
-                    //                                new DynamicProperty(PortOrientation.ORIENTATION_ATTR, PortOrientation.class,
-                    //                                        finalTypeClass == Stub.InputConnectionPort.class ? PortOrientation.LEFT
-                    //                                                : PortOrientation.RIGHT));
-                    //                        finalDiagramElement.getAttributes().add(
-                    //                                new DynamicProperty(Stub.ConnectionPort.VARIABLE_NAME_ATTR, String.class, varName));
-                    //
-                    //                        EModel emodel = diagram.getRole(EModel.class);
-                    //                        Object nodeObj = emodel.getVariable(varName).getParent();
-                    //                        if( nodeObj instanceof Node )
-                    //                            ( (ConnectionPort)kernel ).setTitle( ( (Node)nodeObj ).getTitle());
-                    //                        else
-                    //                            ( (ConnectionPort)kernel ).setTitle(varName);
-                    //                        if( nodeObj instanceof Node )
-                    //                        {
-                    //                            String name = DefaultSemanticController.generateUniqueNodeName(parent, varName + "_connection");
-                    //                            Stub.DirectedConnection sd = new Stub.DirectedConnection(diagram, name);
-                    //                            Edge edge = new Edge(diagram, sd, (Node)nodeObj, (Node)finalDiagramElement);
-                    //                            helper.add(edge, new Point(0, 0));
-                    //                        }
-                    //                    }
                 }
                 catch( Exception e )
                 {
@@ -1600,25 +1262,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         Diagram diagram = Diagram.getDiagram(parent);
         String elementName = kernel.getName();
 
-        //        boolean isCompartment = diagram.getType()instanceof XmlDiagramType
-        //                && ( (XmlDiagramType)diagram.getType() ).checkCompartment(typeStr);
         DiagramElement diagramElement = null;
-        //        if( kernel instanceof Diagram && DiagramUtility.isComposite( diagram ))
-        //        {
-        //            if( ( (Diagram)kernel ).getRole() == null )
-        //            {
-        //                throw new Exception("Can't add diagram with empty model. Select another diagram.");
-        //            }
-        //            else if( diagram == kernel )
-        //            {
-        //                throw new Exception("Can't add element to itself. Select another element.");
-        //            }
-        //            else
-        //            {
-        //                diagramElement = new SubDiagram(diagram, ( (Diagram)kernel ).clone((DataCollection<?>)parent, elementName), elementName);
-        //            }
-        //        }
-        //        else 
         if( diagram.getType().isCompartment( (Base) kernel ) )
         {
             diagramElement = new Compartment(parent, elementName, (Base)kernel);
@@ -1657,22 +1301,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             {
                 return (DataElement)typeClass.getConstructor(DataCollection.class, String.class).newInstance(null, elementName);
             }
-            //            if( typeClass == Event.class )
-            //            {
-            //                return new Stub(null, elementName, Type.MATH_EVENT);
-            //            }
-            //            if( typeClass == Equation.class )
-            //            {
-            //                return new Stub(null, elementName, Type.MATH_EQUATION);
-            //            }
-            //            if( typeClass == Function.class )
-            //            {
-            //                return new Stub(null, elementName, Type.MATH_FUNCTION);
-            //            }
-            //            if( typeClass == Constraint.class )
-            //            {
-            //                return new Stub(null, elementName, Type.MATH_CONSTRAINT);
-            //            }
             if( Stub.ConnectionPort.class.isAssignableFrom(typeClass) )
             {
                 String newElementName = DefaultSemanticController.generateUniqueNodeName(parent, elementName + Stub.ConnectionPort.SUFFIX);
@@ -1689,10 +1317,6 @@ public class WebDiagramsProvider extends WebProviderSupport
                     return new Stub.ContactConnectionPort(null, newElementName);
                 }
             }
-            //            if( typeClass == State.class )
-            //            {
-            //                return new Stub(null, elementName, Type.MATH_STATE);
-            //            }
         }
         else //default
         {
@@ -1738,7 +1362,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             Object additional) throws Exception
     {
         final DiagramEditorHelper helper = new DiagramEditorHelper(diagram);
-        //init stub for view editor pane
         ViewEditorPaneStub viewEditorStub = new ViewEditorPaneStub(helper, diagram);
 
         Properties properties = diagram.getOrigin().getInfo().getProperties();
@@ -1916,7 +1539,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     reactionPrototype.setSpecieReferences(componentSpecies.toArray(new SpecieReference[componentSpecies.size()]));
                     DiagramElementGroup reactionElements = diagram.getType().getSemanticController().createInstance( parent, Reaction.class,
                             location, reactionPrototype );
-                    reactionElements.putToCompartment( );
+                    //reactionElements.putToCompartment( );
                     result.addAll( reactionElements.getElements() );
                 }
                 catch( Exception e )
@@ -2159,41 +1782,6 @@ public class WebDiagramsProvider extends WebProviderSupport
             throw new RuntimeException(e);
         }
     }
-
-    //    /**
-    //     * Returns icon for XmlDiagramType
-    //     */
-    //    public static void sendToolbarIcon(Diagram diagram, String type, OutputStream out)
-    //    {
-    //        try
-    //        {
-    //            if( diagram != null && diagram.getType() instanceof XmlDiagramType )
-    //            {
-    //                XmlDiagramType xmlDiagramType = (XmlDiagramType)diagram.getType();
-    //                Icon icon = xmlDiagramType.getDiagramViewBuilder().getIcon(xmlDiagramType.getKernelType(type));
-    //                int width = icon.getIconWidth();
-    //                if( width < 0 )
-    //                    width = 0;
-    //                int height = icon.getIconHeight();
-    //                if( height < 0 )
-    //                    height = 0;
-    //                if( width > 0 && height > 0 )
-    //                {
-    //                    BufferedImage b = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    //                    Graphics2D graphics = b.createGraphics();
-    //                    icon.paintIcon(null, graphics, 0, 0);
-    //                    graphics.dispose();
-    //                    ImageIO.write(b, "PNG", out);
-    //                }
-    //            }
-    //
-    //            out.close();
-    //        }
-    //        catch( Exception e )
-    //        {
-    //            log.log(Level.SEVERE, "Can not generate diagram image", e);
-    //        }
-    //    }
 
     /**
      * Layout diagram
@@ -2513,16 +2101,7 @@ public class WebDiagramsProvider extends WebProviderSupport
         JSONObject diagramInfo = new JSONObject();
         diagramInfo.put( "type", typeClass );
         diagramInfo.put( "composite", DiagramUtility.isComposite( diagram ) );
-        //        Role model = diagram.getRole();
-        //        if( model != null && ( model instanceof EModelRoleSupport ) )
-        //        {
-        //            diagramInfo.add("model", "true");
-        //            diagramInfo.add("modelClass", model.getClass().getName());
-        //        }
-        //        else
-        //        {
         diagramInfo.put( "model", "false" );
-        //        }
         new JSONResponse(out).sendJSON(diagramInfo);
     }
 
@@ -2572,7 +2151,6 @@ public class WebDiagramsProvider extends WebProviderSupport
                 builder.createDiagramView(diagram, ApplicationUtils.getGraphics());
                 diagram.getView().setLocation(10, 10);
 
-                // ??
                 DiagramFilter[] filterList = diagram.getFilterList();
                 for( DiagramFilter filter : filterList )
                 {
@@ -2928,142 +2506,9 @@ public class WebDiagramsProvider extends WebProviderSupport
         }
     }
 
-    //    private static Diagram getDiagramWithState(Diagram diagram, int editFrom, int editTo) throws Exception
-    //    {
-    //        WebTransactionUndoManager undoManager = getUndoManager(diagram);
-    //        List<UndoableEdit> edits = undoManager.getEdits();
-    //        int curEdit = -1;
-    //        UndoableEdit editToBeRedone = undoManager.editToBeRedone();
-    //        if( editToBeRedone != null )
-    //            curEdit = edits.indexOf(editToBeRedone);
-    //        if( curEdit == -1 )
-    //            curEdit = edits.size();
-    //        if( editTo == -1 )
-    //            editTo = curEdit;
-    //        if( editFrom > editTo )
-    //        {
-    //            int tmp = editFrom;
-    //            editFrom = editTo;
-    //            editTo = tmp;
-    //        }
-    //        Diagram result = curEdit > editFrom ? DiagramStateUtility.getDiagramCloneWithUndo(diagram, edits.subList(editFrom, curEdit))
-    //                : curEdit < editFrom ? DiagramStateUtility.getDiagramCloneWithRedo(diagram, edits.subList(curEdit, editFrom))
-    //                        : diagram.clone(diagram.getOrigin(), diagram.getName());
-    //        if( editTo > editFrom )
-    //        {
-    //            biouml.standard.state.State state = new biouml.standard.state.State(null, result, "", edits.subList(editFrom, editTo));
-    //            result.addState(state);
-    //            result.setStateEditingMode(state);
-    //        }
-    //        createView(result);
-    //        return result;
-    //    }
-
     protected static JSONArray getTransactions(Diagram diagram)
     {
         return initUndoManager(diagram).toJSON();
     }
-
-    //    /**
-    //     * Highlight variables/parameters on diagram
-    //     * @param diagram to process
-    //     * @param elemens - array ov variable names
-    //     * @param varType - "variables" or "parameters"
-    //     */
-    //    private void highlightVariables(Compartment diagram, Set<String> elements, String varType)
-    //    {
-    //        List<DiagramElement> des = new ArrayList<DiagramElement>();
-    //        if( varType.equals( "compartments" ) || varType.equals( "entities" ) || varType.equals( "variables" ) )
-    //        {
-    //            diagram.recursiveStream().filter( de -> DAEModelUtilities.hasVariables( de, elements ) ).forEach( n -> des.add( n ) );
-    //        }
-    //        else if( varType.equals( "functions" ) )
-    //        {
-    //            diagram.recursiveStream().filter( de -> DAEModelUtilities.hasFunction( de, elements ) ).forEach( n -> des.add( n ) );
-    //        }
-    //        else if( varType.equals( "equations" ) || varType.equals( "events" ) || varType.equals( "constraints" )
-    //                || varType.equals( "subdiagrams" ) )
-    //        {
-    //            StreamEx.of( elements ).map( element -> diagram.findNode( element ) ).nonNull().forEach( n -> des.add( n ) );
-    //        }
-    //        else if( varType.equals( "ports" ) || varType.equals( "buses" ) )
-    //        {
-    //            StreamEx.of( elements ).map( element -> diagram.findNode( element ) ).nonNull().forEach( n -> {
-    //                des.add( n );
-    //                des.addAll( Arrays.asList( n.getEdges() ) );
-    //            } );
-    //        }
-    //        else if( varType.equals( "connections" ) )
-    //        {
-    //            StreamEx.of( elements ).map( el -> diagram.findDiagramElement( el ) ).nonNull().forEach( e -> des.add( e ) );
-    //        }
-    //        DiagramUtility.highlight( des );
-    //        HighlightFilter highlightFilter = new HighlightFilter( Color.yellow );
-    //        highlightFilter.setEnabled( true );
-    //        Diagram d = Diagram.getDiagram( diagram );
-    //        if( !DiagramUtility.hasFilter( d, highlightFilter ) )
-    //            DiagramUtility.addFilter( d, highlightFilter );
-    //    }
-    //
-    //    private void removeVariables(Compartment diagram, Set<String> elements) throws Exception
-    //    {
-    //        if( diagram.getRole() instanceof EModel )
-    //        {
-    //            EModel model = diagram.getRole(EModel.class);
-    //            List<DiagramElement> toRemove = new ArrayList<>();
-    //            elements.stream().forEach(
-    //                    name -> {
-    //                        try
-    //                        {
-    //                            Variable var = model.getVariable( name );
-    //                            if( var instanceof VariableRole )
-    //                            {
-    //                                DiagramElement[] nodes = ( (VariableRole)var ).getAssociatedElements();
-    //                                toRemove.addAll( Arrays.asList( nodes ) );
-    //                            }
-    //                            else
-    //                                model.getVariables().remove( name );
-    //                        }
-    //                        catch( Exception e )
-    //                        {
-    //                        }
-    //                    } );
-    //            if( !toRemove.isEmpty() )
-    //                removeDiagramElement( Diagram.getDiagram( diagram ), toRemove );
-    //        }
-    //    }
-    //
-    //    private void addVariable(Compartment diagram) throws Exception
-    //    {
-    //        if( diagram.getRole() instanceof EModel )
-    //        {
-    //            EModel emodel = diagram.getRole( EModel.class );
-    //            String baseName = "parameter";
-    //            int i = 2;
-    //            String name = baseName + "_1";
-    //            while( emodel.containsVariable( name ) )
-    //                name = baseName + "_" + i++;
-    //            emodel.declareVariable( name, Double.valueOf( 0 ) );
-    //        }
-    //    }
-    //
-    //    /**
-    //     * Send all variables from Role
-    //     */
-    //    private void sendAllVariables(Diagram diagram, OutputStream out) throws IOException
-    //    {
-    //        JSONArray roleVariables = new JSONArray();
-    //        if (diagram.getRole() instanceof EModel)
-    //        {
-    //            EModel model = diagram.getRole(EModel.class);
-    //            model.getVariables().forEach(variable -> {
-    //                JSONObject variableObj = new JSONObject();
-    //                variableObj.put("name", variable.getName());
-    //                variableObj.put("value", variable.getInitialValue());
-    //                roleVariables.put(variableObj);
-    //            });
-    //        }
-    //        new JSONResponse( out ).sendJSON( roleVariables );
-    //    }
 
 }

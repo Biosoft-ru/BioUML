@@ -6,7 +6,7 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
@@ -83,7 +83,7 @@ public class FileViewTransformer extends AbstractFileTransformer<TreeTableElemen
         {
             if(script.length() > 0)
                 throw new Exception("Both TablePath and [Script] section appear");
-            treeTable.setTableScript("data.get(\'"+StringEscapeUtils.escapeJavaScript(tablePath.toString())+"\');");
+            treeTable.setTableScript("data.get(\'"+StringEscapeUtils.escapeEcmaScript(tablePath.toString())+"\');");
         } else
         {
             if(script.length() == 0)

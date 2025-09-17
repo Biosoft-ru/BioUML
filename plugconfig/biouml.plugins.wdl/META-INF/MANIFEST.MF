@@ -6,7 +6,7 @@ Bundle-SymbolicName: biouml.plugins.wdl;singleton:=true
 Bundle-Vendor: %providerName
 Require-Bundle: ru.biosoft.graphics,
  org.eclipse.osgi,
- org.apache.commons.lang,
+ org.apache.commons.text,
  org.apache.velocity,
  one.util.streamex,
  biouml.workbench,

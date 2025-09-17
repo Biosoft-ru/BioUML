@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -156,7 +156,7 @@ public class TestWebTablesProvider extends AbstractProviderTest
         assertEquals("<span title=\"2.0\">2</span>", unwrap(data.get(3).asString(), 3));
         // View
         assertEquals( "<div width=\"200px\" id=\"viewer\"><span class=\"table_script_node\">" + "showViewPane('viewer', '"
-                + StringEscapeUtils.escapeHtml( view.toJSON().toString() ) + "')</span></div>",
+                + StringEscapeUtils.escapeHtml4( view.toJSON().toString() ) + "')</span></div>",
                 data.get( 4 ).asString().replaceAll( "viewer_\\d+", "viewer" ) );
         // Set
         assertEquals( "<span>set, of, strings</span>", data.get( 5 ).asString() );

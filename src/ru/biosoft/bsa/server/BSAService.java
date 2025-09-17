@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -472,7 +472,7 @@ public class BSAService extends ServiceSupport
             while(matcher.find(start))
             {
                 html = html.substring( 0, matcher.start() ) + "<img" + matcher.group( 1 ) + " src=\"../biouml/web/img?id="
-                        + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml( matcher.group( 2 ) ) ) + "\""
+                        + TextUtil2.encodeURL( StringEscapeUtils.unescapeHtml4( matcher.group( 2 ) ) ) + "\""
                         + html.substring( matcher.end() );
                 start = matcher.end();
                 matcher = pattern.matcher(html);

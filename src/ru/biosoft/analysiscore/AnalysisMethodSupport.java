@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONWriter;

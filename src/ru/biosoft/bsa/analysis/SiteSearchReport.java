@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.developmentontheedge.beans.DynamicProperty;
 
@@ -241,7 +241,7 @@ public class SiteSearchReport extends AbstractJobControl
                                     DataElementPath.create( resultTrack ) );
 
             String tracksArray =
-                    tracks.map( path -> StringEscapeUtils.escapeJavaScript( path.toString() ) )
+                    tracks.map( path -> StringEscapeUtils.escapeEcmaScript( path.toString() ) )
                     .map( str -> "data.get('"+str+"', '"+Track.class.getName()+"')" )
                     .joining( ", ", "[", "]" );
 
@@ -258,7 +258,7 @@ public class SiteSearchReport extends AbstractJobControl
 
             String siteName = isPromoterNameEsembl ? "ID" : "Sequence_name";
             geneColumn.setExpression("bsa.createProject(data.get(\""
-                    + StringEscapeUtils.escapeJavaScript(DataElementPath.create(promotersTrack).toString())
+                    + StringEscapeUtils.escapeEcmaScript(DataElementPath.create(promotersTrack).toString())
                     + "/\"+" + siteName + "), " + tracksArray + ")" );
 
             TableDataCollection clone = result.clone(outputPath.getParentCollection(), result.getName());

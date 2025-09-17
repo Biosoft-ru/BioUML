@@ -10,7 +10,7 @@ import java.awt.Graphics;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import ru.biosoft.graphics.BoxView;
 import ru.biosoft.graphics.Brush;
 import ru.biosoft.graphics.ComplexTextView;
@@ -70,7 +70,7 @@ public class AgentModelDiagramViewBuilder extends CompositeDiagramViewBuilder
     public boolean createScriptAgentCoreView(CompositeView container, Compartment compartment, AgentModelDiagramViewOptions options, Graphics g)
     {
         String script = compartment.getAttributes().getValueAsString("Script");
-        ComplexTextView text = new ComplexTextView(StringEscapeUtils.escapeHtml( script), getTitleFont(compartment, options.getScriptFont()), options.getFontRegistry(),
+        ComplexTextView text = new ComplexTextView(StringEscapeUtils.escapeHtml4( script), getTitleFont(compartment, options.getScriptFont()), options.getFontRegistry(),
                 ComplexTextView.TEXT_ALIGN_LEFT, 40, g);
 
         Dimension size = compartment.getShapeSize();

@@ -3,7 +3,7 @@ package ru.biosoft.server.servlets.webservices.providers;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
@@ -77,7 +77,7 @@ public class ContentProvider extends WebProviderSupport
             {
                 pw.println( "<html><body><h1>Error</h1><p>"
                         + ( e instanceof WebException ? e.getMessage()
-                                : StringEscapeUtils.escapeHtml( ExceptionRegistry.log( e ) ).replaceAll( "\n", "<br>" ) )
+                                : StringEscapeUtils.escapeHtml4( ExceptionRegistry.log( e ) ).replaceAll( "\n", "<br>" ) )
                         + "</p></body></html>" );
             }
         }

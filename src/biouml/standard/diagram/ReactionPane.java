@@ -353,7 +353,7 @@ public class ReactionPane extends JPanel
             properties.setReactionTitle(getReactionTitle());
             properties.setSpecieReferences(componentsList);
             DiagramElementGroup group = properties.createElements(compartment, point, viewEditor);
-            properties.putResults(group);
+            //properties.putResults(group);
         }
         else
         {

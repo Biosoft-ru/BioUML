@@ -5,7 +5,7 @@ import java.util.logging.Level;
 
 import one.util.streamex.StreamEx;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.ClassIcon;
@@ -66,7 +66,7 @@ public class CorrelationAnalysis extends MicroarrayAnalysis<CorrelationAnalysisP
             if( parameters.getExperiment() != null )
             {
                 getSourceScript.append("var experiment = data.get('"
-                        + StringEscapeUtils.escapeJavaScript(parameters.getExperiment().getCompletePath().toString()) + "')\n");
+                        + StringEscapeUtils.escapeEcmaScript(parameters.getExperiment().getCompletePath().toString()) + "')\n");
                 params[0] = "experiment";
             }
 
@@ -77,22 +77,22 @@ public class CorrelationAnalysis extends MicroarrayAnalysis<CorrelationAnalysisP
                 else
                 {
                     getSourceScript.append("var control = data.get('"
-                            + StringEscapeUtils.escapeJavaScript(parameters.getControl().getCompletePath().toString()) + "')\n");
+                            + StringEscapeUtils.escapeEcmaScript(parameters.getControl().getCompletePath().toString()) + "')\n");
                     params[1] = "control";
                 }
             }
 
             if( parameters.getExperimentData().getColumns() != null )
-                params[2] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getExperimentData().getNamesDescription()) + "'";
+                params[2] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getExperimentData().getNamesDescription()) + "'";
             if( parameters.getControlData().getColumns() != null )
-                params[3] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getControlData().getNamesDescription()) + "'";
+                params[3] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getControlData().getNamesDescription()) + "'";
 
             if( parameters.getDataSource() != null )
-                params[4] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getDataSource().getValue().toString()) + "'";
+                params[4] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getDataSource().getValue().toString()) + "'";
             if( parameters.getResultType() != null )
-                params[5] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getResultType().getValue().toString()) + "'";
+                params[5] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getResultType().getValue().toString()) + "'";
             if( parameters.getCorrelationType() != null )
-                params[6] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getCorrelationType().getValue().toString()) + "'";
+                params[6] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getCorrelationType().getValue().toString()) + "'";
             if( parameters.getPvalue() != null )
                 params[7] = parameters.getPvalue().toString();
             if( parameters.getThresholdDown() != null )
@@ -102,7 +102,7 @@ public class CorrelationAnalysis extends MicroarrayAnalysis<CorrelationAnalysisP
             if( parameters.isFdr() != null )
                 params[10] = parameters.isFdr().toString();
             if( parameters.getOutputTablePath() != null )
-                params[11] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputTablePath().toString()) + "'";
+                params[11] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputTablePath().toString()) + "'";
 
             String putTableScript = "data.save(result,'" + parameters.getOutputCollection().getCompletePath().toString() + "/');";
 

@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,13 +63,13 @@ public class SiteSearchAnalysis extends AnalysisMethodSupport<SiteSearchAnalysis
         SiteSearchAnalysisParameters parameters = (SiteSearchAnalysisParameters)params;
         String[] paramList = new String[4];
         DataElementPath sourceDC = parameters.getSeqCollectionPath();
-        paramList[0] = sourceDC == null ? "null" : "data.get('" + StringEscapeUtils.escapeJavaScript(sourceDC.toString()) + "')";
+        paramList[0] = sourceDC == null ? "null" : "data.get('" + StringEscapeUtils.escapeEcmaScript(sourceDC.toString()) + "')";
         DataElementPath profile = parameters.getProfilePath();
-        paramList[1] = profile == null ? "null" : "data.get('" + StringEscapeUtils.escapeJavaScript(profile.toString()) + "')";
+        paramList[1] = profile == null ? "null" : "data.get('" + StringEscapeUtils.escapeEcmaScript(profile.toString()) + "')";
         DataElementPath track = parameters.getTrackPath();
-        paramList[2] = track == null ? "null" : "data.get('" + StringEscapeUtils.escapeJavaScript(track.toString()) + "')";
+        paramList[2] = track == null ? "null" : "data.get('" + StringEscapeUtils.escapeEcmaScript(track.toString()) + "')";
         DataElementPath output = parameters.getOutput();
-        paramList[3] = output == null ? "null" : "'" + StringEscapeUtils.escapeJavaScript(output.toString()) + "'";
+        paramList[3] = output == null ? "null" : "'" + StringEscapeUtils.escapeEcmaScript(output.toString()) + "'";
         return "bsa.siteSearch(" + StringUtils.join(paramList, ", ") + ");";
     }
 

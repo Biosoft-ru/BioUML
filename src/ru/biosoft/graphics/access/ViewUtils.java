@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.Brush;
@@ -27,7 +27,7 @@ public class ViewUtils
 
     public static BufferedImage paintException(Throwable t)
     {
-        String message = "Error rendering image:<br>"+StringEscapeUtils.escapeHtml( ExceptionRegistry.log( t ) ).replace( "\n", "<br>" );
+        String message = "Error rendering image:<br>"+StringEscapeUtils.escapeHtml4( ExceptionRegistry.log( t ) ).replace( "\n", "<br>" );
         CompositeView view = new CompositeView();
         view.add( errorSymbol );
         ComplexTextView textView = new ComplexTextView( message, new ColorFont( new Font(Font.SANS_SERIF, 0, 12), Color.BLACK ), null, ComplexTextView.TEXT_ALIGN_LEFT, ApplicationUtils.getGraphics(), 500 );

@@ -75,7 +75,7 @@ public class ReactionInitialProperties implements InitialElementProperties
     }
 
     /**
-     * Creates reaction node, components nodes (SpecieReferences) and edges. Does not put them to diagram!
+     * Creates reaction node, components nodes (SpecieReferences) and edges. Put them to diagram.
      */
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
@@ -108,6 +108,8 @@ public class ReactionInitialProperties implements InitialElementProperties
 
         reactionNode.setNotificationEnabled(true);
         diagram.setNotificationEnabled(notificationEnabled);
+
+        putResults( result );
         return result;
     }
 

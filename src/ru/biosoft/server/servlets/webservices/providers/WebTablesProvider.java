@@ -32,7 +32,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -836,7 +836,7 @@ public class WebTablesProvider extends WebProviderSupport
          */
         private static String decorateColumnName(String name)
         {
-            return StringEscapeUtils.escapeHtml( name ).replaceFirst( "^-", "&#x2011;" );
+            return StringEscapeUtils.escapeHtml4( name ).replaceFirst( "^-", "&#x2011;" );
         }
 
         protected String[] getColumnNames(BiosoftWebRequest arguments) throws WebException
@@ -957,7 +957,7 @@ public class WebTablesProvider extends WebProviderSupport
             if( ( (Chart)value ).isEmpty() )
                 return getEmptyControlCode();
             return input().withType( "button" ).withClass( "ui-state-default" ).withValue( "View" ).attr( "onclick",
-                    "showImage('" + StringEscapeUtils.escapeJavaScript( path ) + "')" );
+                    "showImage('" + StringEscapeUtils.escapeEcmaScript( path ) + "')" );
         }
         else if( value instanceof CompositeView )
         {
@@ -1017,9 +1017,9 @@ public class WebTablesProvider extends WebProviderSupport
             {
                 String iconId = IconFactory.getIconId( dep );
                 String title = getTitle( dep, dep.getName() );
-                sb.append( "showDataElementLink('viewer_" + uid + "', '" + StringEscapeUtils.escapeJavaScript( dep.toString() ) + "','"
-                        + ( iconId == null ? "" : StringEscapeUtils.escapeJavaScript( iconId ) ) + "','"
-                        + StringEscapeUtils.escapeJavaScript( title ) + "', " + dep.exists() + ");" );
+                sb.append( "showDataElementLink('viewer_" + uid + "', '" + StringEscapeUtils.escapeEcmaScript( dep.toString() ) + "','"
+                        + ( iconId == null ? "" : StringEscapeUtils.escapeEcmaScript( iconId ) ) + "','"
+                        + StringEscapeUtils.escapeEcmaScript( title ) + "', " + dep.exists() + ");" );
             }
             return div().withId( "viewer_" + uid ).with( span().withClass( "table_script_node" ).withText( sb.toString() ) );
         }
@@ -1137,7 +1137,7 @@ public class WebTablesProvider extends WebProviderSupport
             return span(value).attr( "style", "white-space: nowrap" );
         if( url.startsWith( "de:" ) )
             return a().withHref( "#" )
-                    .attr( "onclick", "openDocument('" + StringEscapeUtils.escapeJavaScript( url.substring( 3 ) ) + "');return false;" )
+                    .attr( "onclick", "openDocument('" + StringEscapeUtils.escapeEcmaScript( url.substring( 3 ) ) + "');return false;" )
                     .attr( "style", "white-space: nowrap" )
                     .withText( value );
 

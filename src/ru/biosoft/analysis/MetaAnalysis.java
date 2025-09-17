@@ -1,6 +1,6 @@
 package ru.biosoft.analysis;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
@@ -80,19 +80,19 @@ public class MetaAnalysis extends HypergeometricAnalysis
                     tables[i] = new StringBuffer("table_").append(i);
                     getTableScript[i] = new StringBuffer("var ").append(tables[i]);
                     getTableScript[i].append(" = data.get('");
-                    getTableScript[i].append(StringEscapeUtils.escapeJavaScript(tablePaths[i].toString()));
+                    getTableScript[i].append(StringEscapeUtils.escapeEcmaScript(tablePaths[i].toString()));
                     getTableScript[i].append("');\n");
                 }
             }
 
             if( parameters.getOutputType() != null )
-                params[0] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputType()) + "'";
+                params[0] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputType()) + "'";
             if( parameters.getPvalue() != null )
                 params[1] = parameters.getPvalue().toString();
             if( parameters.isFdr() != null )
                 params[2] = parameters.isFdr().toString();
             if( parameters.getOutputTablePath() != null )
-                params[3] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputTablePath().toString()) + "'";
+                params[3] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputTablePath().toString()) + "'";
             if( tables.length != 0 )
                 params[4] = String.join(", ", tables);
 

@@ -13,7 +13,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import java.util.logging.Logger;
 import org.json.JSONException;
 import org.mozilla.javascript.NativeArray;
@@ -147,8 +147,8 @@ public class JavaScriptReport extends JavaScriptHostObjectBase
                 throw new IllegalArgumentException("Invalid fileName");
             fileName = fileName + ".png";
             saveImageFile( fileName, image );
-            pw.println( "<img src=\"" + fileName + "\" alt=\"" + StringEscapeUtils.escapeHtml( title ) + "\" title=\""
-                    + StringEscapeUtils.escapeHtml( title ) + "\"" + ( floatPos != null ? " align=\"" + floatPos + "\"" : "" ) + ">" );
+            pw.println( "<img src=\"" + fileName + "\" alt=\"" + StringEscapeUtils.escapeHtml4( title ) + "\" title=\""
+                    + StringEscapeUtils.escapeHtml4( title ) + "\"" + ( floatPos != null ? " align=\"" + floatPos + "\"" : "" ) + ">" );
             if( description != null && !description.isEmpty() )
                 pw.println("<div class=\"image-description\">" + description + "</div>");
         }

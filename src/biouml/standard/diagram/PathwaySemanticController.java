@@ -187,7 +187,7 @@ public class PathwaySemanticController extends DefaultSemanticController
             try
             {
                 elements = reactionProperties.createElements( compartment, point, null );
-                reactionProperties.putReaction();
+                //reactionProperties.putReaction();
                 return elements;
             }
             catch( Exception e )

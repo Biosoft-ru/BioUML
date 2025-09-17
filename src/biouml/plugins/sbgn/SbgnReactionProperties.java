@@ -33,7 +33,7 @@ public class SbgnReactionProperties extends ReactionInitialProperties
     }
 
     /**
-     * Creates reaction node, components nodes and edges. Does not put them to diagram! 
+     * Creates reaction node, components nodes and edges. Put them to diagram.
      */
     @Override
     public DiagramElementGroup createElements(Compartment compartment, Point location, ViewEditorPane viewPane) throws Exception
@@ -43,6 +43,7 @@ public class SbgnReactionProperties extends ReactionInitialProperties
         List<DiagramElement> additional = StreamEx.of(results.getElements()).select(Node.class).filter(Util::isReaction)
                 .flatCollection(n -> SbgnUtil.generateSourceSink(n, false)).toList();
         results.addAll(additional);
+        putResults( additional );
         return results;
     }
 

@@ -37,7 +37,7 @@ public class WDLRunner
     }
 
 
-    public static void runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
+    public static String runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
     {
         if( settings.getOutputPath() == null )
             throw new InvalidParameterException( "Output path not specified" );
@@ -121,14 +121,22 @@ public class WDLRunner
 
         if( process.exitValue() == 0 )
         {
+            String logString = "";
             String outStr = inputReader.getData();
             if( !outStr.isEmpty() )
+            {
+                logString += outStr;
                 log.info( outStr );
+            }
             //for some reason cwl-runner outputs everything into error stream
             String errorStr = errorReader.getData();
             if( !errorStr.isEmpty() )
+            {
+                logString += errorStr;
                 log.info( errorStr );
+            }
             importResults( diagram, settings, outputDir );
+            return logString;
         }
         else
         {

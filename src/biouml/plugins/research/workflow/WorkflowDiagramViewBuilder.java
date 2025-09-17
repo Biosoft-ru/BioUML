@@ -16,7 +16,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import java.util.logging.Level;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.model.ComponentFactory;
@@ -231,7 +231,7 @@ public class WorkflowDiagramViewBuilder extends DefaultDiagramViewBuilder
     {
         Dimension size = compartment.getShapeSize();
 
-        View text = new ComplexTextView( StringEscapeUtils.escapeHtml( compartment.getTitle() ), diagramOptions.getDefaultFont(),
+        View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), diagramOptions.getDefaultFont(),
                 diagramOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
         RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
         Brush nodeBrush = fillNodeBrush( compartment, diagramOptions.getAnalysisBrush() );
@@ -253,7 +253,7 @@ public class WorkflowDiagramViewBuilder extends DefaultDiagramViewBuilder
         String path = (String)compartment.getAttributes().getValue( ScriptElement.SCRIPT_PATH );
         String source = (String)compartment.getAttributes().getValue( ScriptElement.SCRIPT_SOURCE );
         String textStr = path == null ? source : "[" + ( DataElementPath.create( path ) ).getName() + "]";
-        ComplexTextView text = new ComplexTextView( StringEscapeUtils.escapeHtml( textStr ), diagramOptions.getSmallFont(),
+        ComplexTextView text = new ComplexTextView( StringEscapeUtils.escapeHtml4( textStr ), diagramOptions.getSmallFont(),
                 diagramOptions.getFontRegistry(),
                 ComplexTextView.TEXT_ALIGN_LEFT, 40, g );
 
@@ -264,7 +264,7 @@ public class WorkflowDiagramViewBuilder extends DefaultDiagramViewBuilder
         if( text.getBounds().height > cutSize + delta )
         {
             String newStr = textStr.substring( 0, textStr.length() * cutSize / text.getBounds().height ) + " ...";
-            text = new ComplexTextView( StringEscapeUtils.escapeHtml( newStr ), diagramOptions.getSmallFont(),
+            text = new ComplexTextView( StringEscapeUtils.escapeHtml4( newStr ), diagramOptions.getSmallFont(),
                     diagramOptions.getFontRegistry(),
                     ComplexTextView.TEXT_ALIGN_LEFT, 40, g );
         }
@@ -289,7 +289,7 @@ public class WorkflowDiagramViewBuilder extends DefaultDiagramViewBuilder
             Graphics g)
     {
         String source = (String)compartment.getAttributes().getValue( SQLElement.SQL_SOURCE );
-        ComplexTextView text = new ComplexTextView( StringEscapeUtils.escapeHtml( source ), diagramOptions.getSmallFont(),
+        ComplexTextView text = new ComplexTextView( StringEscapeUtils.escapeHtml4( source ), diagramOptions.getSmallFont(),
                 diagramOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_LEFT, 30, g );
 
         Dimension size = compartment.getShapeSize();

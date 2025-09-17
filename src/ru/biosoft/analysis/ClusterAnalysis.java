@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
@@ -49,18 +49,18 @@ public class ClusterAnalysis extends MicroarrayAnalysis<ClusterAnalysisParameter
             if( parameters.getExperiment() != null )
             {
                 getSourceScript.append("var experiment = data.get('"
-                        + StringEscapeUtils.escapeJavaScript(parameters.getExperiment().getCompletePath().toString()) + "');\n");
+                        + StringEscapeUtils.escapeEcmaScript(parameters.getExperiment().getCompletePath().toString()) + "');\n");
                 params[0] = "experiment";
             }
 
             if( parameters.getExperimentData().getColumns() != null )
-                params[1] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getExperimentData().getNamesDescription()) + "'";
+                params[1] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getExperimentData().getNamesDescription()) + "'";
             if( parameters.getMethod() != null )
-                params[2] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getMethod()) + "'";
+                params[2] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getMethod()) + "'";
             if( parameters.getClusterCount() != null )
                 params[3] = parameters.getClusterCount().toString();
             if( parameters.getOutputTablePath() != null )
-                params[4] = "'" + StringEscapeUtils.escapeJavaScript(parameters.getOutputTablePath().toString()) + "'";
+                params[4] = "'" + StringEscapeUtils.escapeEcmaScript(parameters.getOutputTablePath().toString()) + "'";
 
             String putTableScript = "data.save(result,'" + parameters.getOutputCollection().getCompletePath().toString() + "/');";
 

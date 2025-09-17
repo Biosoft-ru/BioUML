@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import ru.biosoft.access.core.DataCollection;
@@ -68,12 +68,12 @@ public class MACSAnalysis extends AnalysisMethodSupport<MACSAnalysisParameters>
         MACSAnalysisParameters parameters = (MACSAnalysisParameters)params;
         String[] paramList = new String[13];
         DataElementPath track = parameters.getTrackPath();
-        paramList[0] = track == null ? "null" : "data.get('" + StringEscapeUtils.escapeJavaScript(track.toString()) + "')";
+        paramList[0] = track == null ? "null" : "data.get('" + StringEscapeUtils.escapeEcmaScript(track.toString()) + "')";
         DataElementPath controlTrack = parameters.getControlPath();
-        paramList[1] = controlTrack == null ? "null" : "data.get('" + StringEscapeUtils.escapeJavaScript(controlTrack.toString()) + "')";
+        paramList[1] = controlTrack == null ? "null" : "data.get('" + StringEscapeUtils.escapeEcmaScript(controlTrack.toString()) + "')";
 
         DataElementPath path = parameters.getOutputPath();
-        paramList[2] = path == null ? "null" : "'" + StringEscapeUtils.escapeJavaScript(path.toString()) + "'";
+        paramList[2] = path == null ? "null" : "'" + StringEscapeUtils.escapeEcmaScript(path.toString()) + "'";
 
         paramList[3] = parameters.getNolambda().toString();
         int[] lambdaSet = parameters.getLambdaSetArray();

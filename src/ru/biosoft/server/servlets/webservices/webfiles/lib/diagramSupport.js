@@ -1292,6 +1292,7 @@ function NewReactionDialog(diagram, posX, posY)
         
         this.tableComponents = $('<table class="clipboard selectable_table"></table>');
         
+        
         this.tableComponents.append($('<tr id="headerRow"/>')
             .append($('<th>Identifier</th>'))
             .append($('<th>Variable</th>'))
@@ -1301,6 +1302,9 @@ function NewReactionDialog(diagram, posX, posY)
             .append($('<th>Participation</th>'))
             .append($('<th>Title</th>'))
             .append($('<th>Comment</th>')));
+            
+        this.tableBody =$('<tbody/>'); 
+        this.tableComponents.append(this.tableBody);
         
         this.dialogDiv.append('<br/><br/>');
         this.dialogDiv.append($('<input type="button" value="Add"/>').click(function()
@@ -1354,7 +1358,7 @@ function NewReactionDialog(diagram, posX, posY)
                         	}
                         	else
                     		{
-                        		delete _thisDialog.added[name + prev];
+                        		delete _thisDialog.added[name + prevRole];
                         		_thisDialog.added[name+this.value] = 1;
                         	}
                         	titleCtrl.val(_thisDialog.getSpecieReferenceName(name, this.value));
@@ -1389,7 +1393,7 @@ function NewReactionDialog(diagram, posX, posY)
                             .append($('<td/>').append($('<input type="text" class="component_title"/>').val(title).attr("hidden-title", _thisDialog.hiddenTitle.val())))
                             .append($('<td/>').append($('<input type="text" class="component_comment"/>').val("")));
                         
-                        _thisDialog.tableComponents.append(tr);
+                        _thisDialog.tableBody.append(tr);
                         _thisDialog.reactionTitle.val(_thisDialog.getReactionTitle());
                     }
                 },
