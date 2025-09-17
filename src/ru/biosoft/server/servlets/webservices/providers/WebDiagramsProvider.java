@@ -1539,7 +1539,7 @@ public class WebDiagramsProvider extends WebProviderSupport
                     reactionPrototype.setSpecieReferences(componentSpecies.toArray(new SpecieReference[componentSpecies.size()]));
                     DiagramElementGroup reactionElements = diagram.getType().getSemanticController().createInstance( parent, Reaction.class,
                             location, reactionPrototype );
-                    reactionElements.putToCompartment( );
+                    //reactionElements.putToCompartment( );
                     result.addAll( reactionElements.getElements() );
                 }
                 catch( Exception e )

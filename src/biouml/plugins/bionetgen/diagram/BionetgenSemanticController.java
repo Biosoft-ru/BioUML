@@ -517,7 +517,9 @@ public class BionetgenSemanticController extends PathwaySimulationSemanticContro
         @Override
         public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
         {
-            return new DiagramElementGroup( createReactionElements( parent, "", formula, components, location ) );
+            List<DiagramElement> result = createReactionElements( parent, "", formula, components, location );
+            putResults( result );
+            return new DiagramElementGroup( result );
         }
     }
 

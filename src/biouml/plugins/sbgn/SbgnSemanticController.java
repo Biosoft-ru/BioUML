@@ -183,7 +183,7 @@ public class SbgnSemanticController extends CompositeSemanticController implemen
                     SbgnReactionProperties reactionProperties = new SbgnReactionProperties(name, oldReaction.getKineticLaw(), components);
                     reactionProperties.setReactionTitle(oldReaction.getTitle());
                     DiagramElementGroup elements = reactionProperties.createElements(compartment, point, null);
-                    reactionProperties.putReaction();
+                    //reactionProperties.putReaction();
                     return elements;
                     //TODO: put results outside this method
                     //reactionProperties.putResults(elements);
@@ -193,7 +193,7 @@ public class SbgnSemanticController extends CompositeSemanticController implemen
                 {
                     SbgnReactionProperties reactionProperties = (SbgnReactionProperties)properties;
                     DiagramElementGroup elements = reactionProperties.createElements(compartment, point, null);
-                    reactionProperties.putReaction();
+                    //reactionProperties.putReaction();
                     return elements;
                 }
             }
