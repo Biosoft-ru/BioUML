@@ -3,12 +3,33 @@
 #set ( $three = "3" )
 #set ( $singleLine = "-------------------------------------" )
 #set ( $doubleLine = "=====================================" )
+#################################################
+#################################################
 #macro( displayModel $diagram )
 #set ( $model = $diagram.getRole() )
 #set ( $options = $physicellEngine.getOptions($diagram) )
 #set ( $domain = $model.getDomain() )
 Model $de.getName()
 $doubleLine
+#################################################
+${BR}Cell types ( $model.getCellDefinitions().size()  total)     
+$singleLine
+#foreach ( $cellType in $model.getCellDefinitions() )
+    $velocityCount. $cellType.getName() # $cellType.getInitialNumber()
+#end
+#################################################
+${BR}Substrates ( $model.getSubstrates().size()  total)     
+$singleLine
+#foreach ( $substrate in $model.getSubstrates() )
+    $velocityCount. $substrate.getName(), initial: $substrate.getInitialCondition(), decay: $substrate.getDecayRate(), diffusion: $substrate.getDiffusionCoefficient()
+#end
+#################################################
+${BR}Events ($model.getEvents().size() total)
+$singleLine
+#foreach ( $event in $model.getEvents() )
+    $velocityCount. At time $event.getExecutionTime() do: $event.getComment()
+#end
+#################################################
 ${BR}Simulation Options        
 $singleLine
     Maximum Time: $options.getFinalTime(), Save interval: $options.getReportInterval(), Image interval: $options.getImageInterval()
@@ -17,31 +38,23 @@ $singleLine
     Diffusion: #if( $options.isParallelDiffusion)Parallel$BR#elseif(!$options.isParallelDiffusion)Sequential$BR#end
 ${BR}Uniform Cartesian Mesh     
 $singleLine
+#################################################
     Dimensions: #if($domain.isUse2D)2$BR#else$three$BR#end
     Bounds:     [$domain.getXFrom(), $domain.getXTo()] x [$domain.getYFrom(), $domain.getYTo()]#if(!$domain.isUse2D) x [$domain.getZFrom(), $domain.getZTo()]#end
 ${BR}    Resolution: dx = $domain.getXStep(), dy = $domain.getYStep()#if(!$domain.isUse2D), dz = $domain.getZStep()#end
-${BR}${BR}Substrates ( $model.getSubstrates().size()  total)     
-$singleLine
-#foreach ( $substrate in $model.getSubstrates() )
-    $velocityCount. $substrate.getName(). Initial:    $substrate.getInitialCondition(), decay: $substrate.getDecayRate(), diffusion:  $substrate.getDiffusionCoefficient()
-#end
-${BR}Cell types ( $model.getCellDefinitions().size()  total)     
-$singleLine
-#foreach ( $cellType in $model.getCellDefinitions() )
-    $velocityCount. $cellType.getName() # $cellType.getInitialNumber()
-#end
-${BR}User parameters
+#################################################
+${BR}${BR}User parameters
 $singleLine
 #foreach ( $userParameter in $model.getUserParmeters().getParameters() )
-     $userParameter.getName() = $userParameter.getValue() $userParameter.getDescription()
+    $velocityCount. $userParameter.getName() = $userParameter.getValue()
 #end
 #end
 #################################################
+#################################################
 #macro(displaySubstrate $de)
 #set ( $substrate = $de.getRole() )
-Substrate              
-$singleLine
-Name:                  $substrate.getName()
+Substrate $substrate.getName()             
+$doubleLine               
 Initial:               $substrate.getInitialCondition()
 Decay rate:            $substrate.getDecayRate()
 Diffusion coefficient: $substrate.getDiffusionCoefficient()
@@ -86,8 +99,8 @@ Boundary conditions:   Not defined.
 #set ( $rules = $type.getRulesProperties() )
 #set ( $initialDistributions = $type.getInitialDistributionProperties() )
 #set ( $intracellular = $type.getIntracellularProperties() )
-Cell Type
-    $type.getName() # $type.getInitialNumber()
+Cell Type $type.getName() # $type.getInitialNumber()
+$doubleLine 
 #################################################
 ${BR}Cycle model:  $cycle.getCycleName()
 $singleLine
@@ -180,7 +193,7 @@ $singleLine
    Phenotype:            $functions.getPhenotypeUpdate()
 #end
 #if ( $functions.getVelocityUpdate() != '-')
-   Velocity:             $functions.gteVelocityUpdate()
+   Velocity:             $functions.getVelocityUpdate()
 #end
 #if ( $functions.getVolumeUpdate() != '-')
    Volume:               $functions.getVolumeUpdate()
@@ -213,10 +226,10 @@ $singleLine
 ${BR}Custom data: #if ( $customData.getVariables().size() == 0 ) Not defined. #end
 ${BR}$singleLine
 #foreach ($variable in $customData.getVariables() )
-    $variable.getName() = $variable.getValue() $variable.getUnits()
+    ${velocityCount}. $variable.getName() = $variable.getValue() $variable.getUnits()
 #end
 #################################################
-${BR}${BR}Rules: #if ( $rules.getRules().size() == 0 ) Not defined. #end
+${BR}Rules: #if ( $rules.getRules().size() == 0 ) Not defined. #end
 ${BR}$singleLine
 #foreach ($rule in $rules.getRules())
     $rule.getSignal() $rule.getDirection() $rule.getBehavior()
@@ -258,9 +271,10 @@ $singleLine
     Relative rupture volume: $volume.getRelative_rupture_volume()
 #end
 #################################################
+#################################################
 #macro(displaySecretion $de)
-Secretion \ Uptake
-$singleLine
+Secretion \ Uptake of $de.getInput().getRole().getName()
+$doubleLine
 #set ( $secretion = $de.getRole() )
     $de.getInput().getRole().getName() Secretes $secretion.getTitle(), rate: $secretion.getSecretionRate(), saturation: $secretion.getSecretionTarget()
     $de.getInput().getRole().getName() Uptakes $secretion.getTitle(), rate: $secretion.getUptakeRate()
@@ -268,27 +282,39 @@ $singleLine
 #end
 #################################################
 #macro(displayChemotaxis $de)
-Chemotaxis
-$singleLine
+Chemotaxis of $de.getInput().getRole().getName()
+$doubleLine
 #set ( $chemotaxis = $de.getRole() )
     $de.getInput().getRole().getName() Moves #if ($chemotaxis.getDirection() >= 0 )to #else from #end$chemotaxis.getTitle(), sensitivity: $chemotaxis.getSensitivity()
 #end
 #################################################
+#################################################
 #macro(displayInteraction $de)
-Interaction
-$singleLine
+Interaction of $de.getInput().getRole().getName()
+$doubleLine
 #set ( $interaction = $de.getRole() )
     $de.getInput().getRole().getName() Attacks $interaction.getCellType(), rate: $interaction.getAttackRate()
     $de.getInput().getRole().getName() Fuses  $interaction.getCellType(), rate: $interaction.getFuseRate()
     $de.getInput().getRole().getName() Ingests $interaction.getCellType(), rate: $interaction.getPhagocytosisRate()
 #end
 #################################################
+#################################################
 #macro(displayTransformation $de)
-Transformation
-$singleLine
+Transformation of $de.getInput().getRole().getName()
+$doubleLine
 #set ( $transformation = $de.getRole() )
     $de.getInput().getRole().getName() Transforms to $transformation.getCellType(), rate: $transformation.getRate()
 #end
+#################################################
+#################################################
+#macro(displayEvent $de)
+Event $de.getRole().getName()
+$doubleLine
+#set ( $event = $de.getRole() )
+    At time $event.getExecutionTime() do: $event.getComment()
+#end
+#################################################
+###################Start#########################
 #################################################
 #if( $physicellEngine.isDiagram($de) )
 #displayModel( $de )
@@ -304,4 +330,6 @@ $singleLine
 #displayInteraction( $de )
 #elseif ($physicellEngine.isTransformation($de) )
 #displayTransformation( $de )
+#elseif ($physicellEngine.isEvent($de) )
+#displayEvent( $de )
 #end

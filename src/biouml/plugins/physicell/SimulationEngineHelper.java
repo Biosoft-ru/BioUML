@@ -88,6 +88,11 @@ public class SimulationEngineHelper
     {
         return de.getRole() instanceof TransformationProperties;
     }
+    
+    public boolean isEvent(DiagramElement de)
+    {
+        return de.getRole() instanceof EventProperties;
+    }
 
     public boolean isDivisionPhase(DiagramElement de, String name)
     {
