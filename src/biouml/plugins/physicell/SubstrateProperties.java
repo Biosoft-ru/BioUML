@@ -10,13 +10,12 @@ import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementPropertiesSupport;
 import biouml.model.Node;
-import biouml.model.Role;
 import biouml.standard.type.Stub;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.DPSUtils;
 
 @PropertyName ( "Substrate" )
-public class SubstrateProperties extends InitialElementPropertiesSupport implements Role
+public class SubstrateProperties extends InitialElementPropertiesSupport implements PhysicellRole
 {
     private DiagramElement diagramElement;
     private boolean isCompleted = true;
