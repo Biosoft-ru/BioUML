@@ -129,6 +129,30 @@ public class InitialDistributionProperties extends Option
             properties.setParent( this );
         }
 
+        public String toString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.append( distribution );
+            sb.append( "( " );
+            if( properties instanceof UniformProperties )
+            {
+                sb.append( ( (UniformProperties)properties ).getMin() );
+                sb.append( ", " );
+                sb.append( ( (UniformProperties)properties ).getMax() );
+                sb.append( " )" );
+            }
+            else if( properties instanceof NormalProperties )
+            {
+                sb.append( ( (NormalProperties)properties ).getMu() );
+                sb.append( ", " );
+                sb.append( ( (NormalProperties)properties ).getSigma() );
+                sb.append( " )" );
+                sb.append( " Restricted to: [" + properties.getMin()+", "+properties.getMax()+"]");
+            }
+            return sb.toString();
+        }
+
         public void setDiagramElement(Node node)
         {
             if( node != null )
@@ -141,7 +165,7 @@ public class InitialDistributionProperties extends Option
 
         public String[] getAvailableParameters()
         {
-            if (model == null || cellDefinition == null)
+            if( model == null || cellDefinition == null )
                 return new String[0];
             return RuleProperties.getAvailableDistributed( model, cellDefinition ).toArray( String[]::new );
         }

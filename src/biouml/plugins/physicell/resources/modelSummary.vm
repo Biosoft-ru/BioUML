@@ -1,1 +1,335 @@
-$physicellEngine.generateReport($de)
+#set ( $BR = "
+" )
+#set ( $three = "3" )
+#set ( $singleLine = "-------------------------------------" )
+#set ( $doubleLine = "=====================================" )
+#################################################
+#################################################
+#macro( displayModel $diagram )
+#set ( $model = $diagram.getRole() )
+#set ( $options = $physicellEngine.getOptions($diagram) )
+#set ( $domain = $model.getDomain() )
+Model $de.getName()
+$doubleLine
+#################################################
+${BR}Cell types ( $model.getCellDefinitions().size()  total)     
+$singleLine
+#foreach ( $cellType in $model.getCellDefinitions() )
+    $velocityCount. $cellType.getName() # $cellType.getInitialNumber()
+#end
+#################################################
+${BR}Substrates ( $model.getSubstrates().size()  total)     
+$singleLine
+#foreach ( $substrate in $model.getSubstrates() )
+    $velocityCount. $substrate.getName(), initial: $substrate.getInitialCondition(), decay: $substrate.getDecayRate(), diffusion: $substrate.getDiffusionCoefficient()
+#end
+#################################################
+${BR}Events ($model.getEvents().size() total)
+$singleLine
+#foreach ( $event in $model.getEvents() )
+    $velocityCount. At time $event.getExecutionTime() do: $event.getComment()
+#end
+#################################################
+${BR}Simulation Options        
+$singleLine
+    Maximum Time: $options.getFinalTime(), Save interval: $options.getReportInterval(), Image interval: $options.getImageInterval()
+#if ( $options.isManualSeed() )Manual seed: $options.getSeed()#end 
+    Cell update: $options.getCellUpdateType()
+    Diffusion: #if( $options.isParallelDiffusion)Parallel$BR#elseif(!$options.isParallelDiffusion)Sequential$BR#end
+${BR}Uniform Cartesian Mesh     
+$singleLine
+#################################################
+    Dimensions: #if($domain.isUse2D)2$BR#else$three$BR#end
+    Bounds:     [$domain.getXFrom(), $domain.getXTo()] x [$domain.getYFrom(), $domain.getYTo()]#if(!$domain.isUse2D) x [$domain.getZFrom(), $domain.getZTo()]#end
+${BR}    Resolution: dx = $domain.getXStep(), dy = $domain.getYStep()#if(!$domain.isUse2D), dz = $domain.getZStep()#end
+#################################################
+${BR}${BR}User parameters
+$singleLine
+#foreach ( $userParameter in $model.getUserParmeters().getParameters() )
+    $velocityCount. $userParameter.getName() = $userParameter.getValue()
+#end
+#end
+#################################################
+#################################################
+#macro(displaySubstrate $de)
+#set ( $substrate = $de.getRole() )
+Substrate $substrate.getName()             
+$doubleLine               
+Initial:               $substrate.getInitialCondition()
+Decay rate:            $substrate.getDecayRate()
+Diffusion coefficient: $substrate.getDiffusionCoefficient()
+#if ( $substrate.getXMin() != -1 || $substrate.getXMax() != -1 || $substrate.getYMin() != -1 || $substrate.getYMax() != -1 || $substrate.getZMin() != -1 || $substrate.getZMax() != -1)
+Boundary conditions:
+#if( $substrate.getXMin() != -1)
+   X min: $substrate.getXMin()
+#end
+#if( $substrate.getXMax() != -1)
+   X max: $substrate.getXMax()
+#end
+#if( $substrate.getYMin() != -1)
+   Y min: $substrate.getYMin()
+#end
+#if( $substrate.getYMax() != -1)
+   Y max: $substrate.getYMax()
+#end
+#if( $substrate.getZMin() != -1)
+   Z min: $substrate.getZMin()
+#end
+#if( $substrate.getZMax() != -1)
+   Z max: $substrate.getZMax()
+#end
+#else
+Boundary conditions:   Not defined.
+#end
+#end
+#################################################
+#################################################
+#macro(displayCellDefinition $de)
+#set ( $type = $de.getRole() )
+#set ( $cycle = $type.getCycleProperties() )
+#set ( $death = $type.getDeathProperties() )
+#set ( $volume = $type.getVolumeProperties() )
+#set ( $mechanics = $type.getMechanicsProperties() )
+#set ( $secretions = $type.getSecretionsProperties() )
+#set ( $motility = $type.getMotilityProperties() )
+#set ( $interactions = $type.getInteractionsProperties() )
+#set ( $transformations = $type.getTransformationsProperties() )
+#set ( $functions = $type.getFunctionsProperties() )
+#set ( $customData = $type.getCustomDataProperties() )
+#set ( $rules = $type.getRulesProperties() )
+#set ( $initialDistributions = $type.getInitialDistributionProperties() )
+#set ( $intracellular = $type.getIntracellularProperties() )
+Cell Type $type.getName() # $type.getInitialNumber()
+$doubleLine 
+#################################################
+${BR}Cycle model:  $cycle.getCycleName()
+$singleLine
+#if ( $cycle.getTransitions().size() == 0 )
+#foreach ( $phase in  $cycle.getPhases() )
+    $phase.getName()#if($phase.isDivisionAtExit())*#end
+#end
+#else
+#foreach ( $transition in $cycle.getTransitions() )
+#set ( $from = $transition.getFrom() )
+#if ( $physicellEngine.isDivisionPhase( $de, $from ) )
+#set ( $from = $from + "*" )
+#end
+#set ( $to = $transition.getTo() )
+#if ( $physicellEngine.isDivisionPhase( $de, $to ) )
+#set ( $to = $to + "*" )
+#end
+    $from -> $to, duration: $transition.getDuration()
+#end
+#end
+#################################################
+${BR}Death models:
+$singleLine
+#foreach ( $deathModel in $death.getDeathModels() )
+#set ($cycle = $deathModel.getCycleProperties() )
+$cycle.getCycleName(), rate = $deathModel.getRate()
+#foreach ( $transition in $cycle.getTransitions() )
+#set ( $from = $transition.getFrom() )
+#if ( $physicellEngine.isRemovePhase( $de, $cycle.getCycleName(), $from ) )
+#set ( $from = $from + "*" )
+#end
+#set ( $to = $transition.getTo() )
+#if ( $physicellEngine.isRemovePhase( $de, $cycle.getCycleName(), $to ) )
+#set ( $to = $to + "*" )
+#end
+    $from -> $to, duration: $transition.getDuration()
+#end
+#end
+#################################################
+${BR}Motility:#if(!$motility.isMotile())  Not defined.#else #if ( $motility.isRestrictTo2D() ) In 2D#else In 3D#end, speed $motility.getMigrationSpeed(), bias $motility.getMigrationBias(), persistence $motility.getPersistenceTime()#end
+${BR}$singleLine
+#if ( $motility.getChemotaxis().size() == 1 )
+#set ( $chemotaxis = $motility.getChemotaxis().get(0) )
+    Chemotaxis#if ($chemotaxis.getDirection() >= 0 ) to #else from #end$chemotaxis.getTitle()
+#elseif ( $motility.getChemotaxis().size() > 1 )
+#foreach ($chemotaxis in $motility.getChemotaxis() )
+    Chemotaxis#if ($chemotaxis.getDirection() >= 0 )to #else from #end$chemotaxis.getTitle(), sensitivity: $chemotaxis.getSensitivity()
+#end
+#end
+#################################################
+${BR}Secretion\Uptake:#if( $secretions.getSecretion().size() == 0 ) Not defined. #end
+${BR}$singleLine
+#foreach ( $secretion in $secretions.getSecretion() )
+#if ( $secretion.getSecretionRate() > 0 )
+    Secretes $secretion.getTitle(), rate: $secretion.getSecretionRate(), saturation: $secretion.getSecretionTarget()
+#end
+#if ( $secretion.getUptakeRate() > 0 )
+    Uptakes $secretion.getTitle(), rate: $secretion.getUptakeRate()
+#end
+#if ( $secretion.getNetExportRate() > 0 )
+    Exports $secretion.getTitle(), rate: $secretion.getNetExportRate()
+#end
+#end
+#################################################
+${BR}Interactions:#if( $interactions.getInteractions().size() == 0 ) Not defined. #end
+${BR}$singleLine
+#foreach ( $interaction in  $interactions.getInteractions())
+#if ( $interaction.getAttackRate() > 0 )
+    Attacks $interaction.getCellType(), rate: $interaction.getAttackRate()
+#end
+#if ( $interaction.getFuseRate() > 0 )
+    Fuses  $interaction.getCellType(), rate: $interaction.getFuseRate()
+#end
+#if ( $interaction.getPhagocytosisRate() > 0 )
+    Ingests $interaction.getCellType(), rate: $interaction.getPhagocytosisRate()
+#end
+#end
+#################################################
+${BR}Transformations:#if( $transformations.getTransformations().size() == 0 ) Not defined. #end
+${BR}$singleLine
+#foreach ( $transformation in  $transformations.getTransformations() )
+#if ( $transformation.getRate() > 0 )
+    Transforms to $transformation.getCellType(), rate: $transformation.getRate()
+#end
+#end
+#################################################
+${BR}Key functions:
+$singleLine
+#if ( $functions.getPhenotypeUpdate() != '-')
+   Phenotype:            $functions.getPhenotypeUpdate()
+#end
+#if ( $functions.getVelocityUpdate() != '-')
+   Velocity:             $functions.getVelocityUpdate()
+#end
+#if ( $functions.getVolumeUpdate() != '-')
+   Volume:               $functions.getVolumeUpdate()
+#end
+#if ( $functions.getMigrationUpdate() != '-')
+   Migration:            $functions.getMigrationUpdate()
+#end
+#if ( $functions.getOrientation() != '-')
+   Orientation:          $functions.getOrientation()
+#end
+#if ( $functions.getDivision() != '-')
+   Division:             $functions.getDivision()
+#end
+#if ( $functions.getContact() != '-')
+   Contact:              $functions.getContact()
+#end
+#if ( $functions.getInstantiate() != '-')
+   Instantiation:        $functions.getInstantiate()
+#end
+#if ( $functions.getCustomRule() != '-')
+   Custom Rule:          $functions.getCustomRule()
+#end
+#if ( $functions.getMembraneInteraction() != '-')
+   Membrane Interaction: $functions.getMembraneInteraction()
+#end
+#if ( $functions.getMembraneDistance() != '-')
+   Membrane Distance:    $functions.getMembraneDistance()
+#end
+#################################################
+${BR}Custom data: #if ( $customData.getVariables().size() == 0 ) Not defined. #end
+${BR}$singleLine
+#foreach ($variable in $customData.getVariables() )
+    ${velocityCount}. $variable.getName() = $variable.getValue() $variable.getUnits()
+#end
+#################################################
+${BR}Rules: #if ( $rules.getRules().size() == 0 ) Not defined. #end
+${BR}$singleLine
+#foreach ($rule in $rules.getRules())
+    ${velocityCount}. $rule.getSignal() $rule.getDirection() $rule.getBehavior()
+       base: $rule.getBaseValue(), target value: $rule.getSaturationValue(), half max: $rule.getHalfMax(), power: $rule.getHillPower()
+#end
+#################################################
+${BR}Initial distribution: #if ( $initialDistributions.getParameterDistributions().size() == 0 ) Not defined. #end
+${BR}$singleLine
+#foreach ($distribution in $initialDistributions.getParameterDistributions() )
+    $distribution.getParameter() distributed as $distribution.toString()
+#end
+#################################################
+${BR}Intracellular: #if ( $intracellular.getVariables().size() == 0 ) Not defined. #else $intracellular.getDiagram().getName() #end
+${BR}$singleLine
+#foreach ( $variable in $intracellular.getVariables() )
+    $velocityCount. $physicellEngine.display( $variable )
+#end
+#################################################
+${BR}Mechanics:
+$singleLine
+    Cell-cell adhesion strength: $mechanics.getCellCellAdhesionStrength()
+    Cell-cell repulsion strength: $mechanics.getCellCellRepulsionStrength()
+    Rel. max adhesion dist.: $mechanics.getRelMaxAdhesionDistance()
+    Cell-BM adhesion strength: $mechanics.getCellBMAdhesionStrength()
+    Cell-BM repulsion strength: $mechanics.getCellBMRepulsionStrength()
+    Attachment elastic_constant: $mechanics.getAttachmentElasticConstant()
+    Attachment rate: $mechanics.getAttachmentRate()
+    Detachment rate: $mechanics.getDetachmentRate()
+#################################################
+${BR}Volume:
+$singleLine
+    Total volume: $volume.getTotal()
+    Nuclear: $volume.getNuclear()
+    Fluid fraction: $volume.getFluid_fraction()
+    Fluid change rate: $volume.getFluid_change_rate()
+    Cytoplasmic biomass change rate: $volume.getCytoplasmic_biomass_change_rate()
+    Nuclear biomass change rate $volume.getNuclear_biomass_change_rate()
+    Calcification rate: $volume.getCalcified_fraction()
+    Relative rupture volume: $volume.getRelative_rupture_volume()
+#end
+#################################################
+#################################################
+#macro(displaySecretion $de)
+Secretion \ Uptake of $de.getInput().getRole().getName()
+$doubleLine
+#set ( $secretion = $de.getRole() )
+    $de.getInput().getRole().getName() Secretes $secretion.getTitle(), rate: $secretion.getSecretionRate(), saturation: $secretion.getSecretionTarget()
+    $de.getInput().getRole().getName() Uptakes $secretion.getTitle(), rate: $secretion.getUptakeRate()
+    $de.getInput().getRole().getName() Exports $secretion.getTitle(), rate: $secretion.getNetExportRate()
+#end
+#################################################
+#macro(displayChemotaxis $de)
+Chemotaxis of $de.getInput().getRole().getName()
+$doubleLine
+#set ( $chemotaxis = $de.getRole() )
+    $de.getInput().getRole().getName() Moves #if ($chemotaxis.getDirection() >= 0 )to #else from #end$chemotaxis.getTitle(), sensitivity: $chemotaxis.getSensitivity()
+#end
+#################################################
+#################################################
+#macro(displayInteraction $de)
+Interaction of $de.getInput().getRole().getName()
+$doubleLine
+#set ( $interaction = $de.getRole() )
+    $de.getInput().getRole().getName() Attacks $interaction.getCellType(), rate: $interaction.getAttackRate()
+    $de.getInput().getRole().getName() Fuses  $interaction.getCellType(), rate: $interaction.getFuseRate()
+    $de.getInput().getRole().getName() Ingests $interaction.getCellType(), rate: $interaction.getPhagocytosisRate()
+#end
+#################################################
+#################################################
+#macro(displayTransformation $de)
+Transformation of $de.getInput().getRole().getName()
+$doubleLine
+#set ( $transformation = $de.getRole() )
+    $de.getInput().getRole().getName() Transforms to $transformation.getCellType(), rate: $transformation.getRate()
+#end
+#################################################
+#################################################
+#macro(displayEvent $de)
+Event $de.getRole().getName()
+$doubleLine
+#set ( $event = $de.getRole() )
+    At time $event.getExecutionTime() do: $event.getComment()
+#end
+#################################################
+###################Start#########################
+#################################################
+#if( $physicellEngine.isDiagram($de) )
+#displayModel( $de )
+#elseif ( $physicellEngine.isSubstrate($de) )
+#displaySubstrate( $de )
+#elseif ($physicellEngine.isCellDefinition($de) )
+#displayCellDefinition( $de )
+#elseif ($physicellEngine.isSecretion($de) )
+#displaySecretion( $de )
+#elseif ($physicellEngine.isChemotaxis($de) )
+#displayChemotaxis( $de )
+#elseif ($physicellEngine.isInteraction($de) )
+#displayInteraction( $de )
+#elseif ($physicellEngine.isTransformation($de) )
+#displayTransformation( $de )
+#elseif ($physicellEngine.isEvent($de) )
+#displayEvent( $de )
+#end

@@ -16,7 +16,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.DPSUtils;
 
-public class EventProperties extends InitialElementPropertiesSupport implements Role
+public class EventProperties extends InitialElementPropertiesSupport implements PhysicellRole
 {
     private DiagramElement diagramElement;
     private double executionTime;

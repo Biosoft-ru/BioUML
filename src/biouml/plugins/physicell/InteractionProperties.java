@@ -9,7 +9,7 @@ import biouml.model.Role;
 
 @PropertyName ( "Interactions" )
 @PropertyDescription ( "Interactions." )
-public class InteractionProperties implements Role
+public class InteractionProperties implements PhysicellRole
 {
     private DiagramElement de;
     private String cellType;

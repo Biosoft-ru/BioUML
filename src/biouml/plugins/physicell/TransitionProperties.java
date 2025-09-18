@@ -63,6 +63,11 @@ public class TransitionProperties implements Role
         this.rate = rate;
     }
 
+    public double getDuration()
+    {
+        return 1/rate;
+    }
+    
     @PropertyName ( "Title" )
     public String getTitle()
     {

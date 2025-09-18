@@ -8,7 +8,7 @@ import biouml.model.DiagramElement;
 import biouml.model.dynamics.EModelRoleSupport;
 import ru.biosoft.graphics.Brush;
 
-public class MulticellEModel extends EModelRoleSupport
+public class MulticellEModel extends EModelRoleSupport implements PhysicellRole
 {
     public static final String MULTICELLULAR_EMODEL_TYPE = "Multicellular Model";
 

@@ -76,8 +76,8 @@
   
   <extension id="Diagram events list template" point="ru.biosoft.templates.template">
       <template name="Summary" file="biouml/plugins/physicell/resources/modelSummary.vm" description="Model summary." isBrief="no" order="2">
-          <filter class="biouml.model.Diagram" subclasses="yes">
-              <property name="role" class="biouml.plugins.physicell.MulticellEModel"/>
+          <filter class="biouml.model.DiagramElement" subclasses="yes">
+              <property name="role" class="biouml.plugins.physicell.PhysicellRole"/>
           </filter>
       </template>
   </extension>
@@ -123,7 +123,7 @@
       /> 
   </extension>
 	
-  <extension id="Simualtion result options" point="biouml.workbench.diagramViewPart"> 
+  <extension id="Simulation result options" point="biouml.workbench.diagramViewPart"> 
       <diagramViewPart editor="true" 
         class="biouml.plugins.physicell.document.PhysicellResultViewPart"
         id="physicell.result.options" 

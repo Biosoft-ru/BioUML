@@ -356,7 +356,7 @@ public class PhysicellImporter implements DataElementImporter
                 }
                 else if( type.equals( "NONE" ) )
                 {
-                    cdp.getFunctionsProperties().setNotSelected( "-" );
+                    cdp.getFunctionsProperties().setNotSelected( name );
                 }
                 else
                 {
@@ -420,7 +420,7 @@ public class PhysicellImporter implements DataElementImporter
     }
 
     @Override
-    public Object getProperties(DataCollection parent, File file, String elementName)
+    public PhysicellImportProperties getProperties(DataCollection parent, File file, String elementName)
     {
         properties = new PhysicellImportProperties();
         return properties;

@@ -464,6 +464,12 @@ public class FunctionsProperties extends Option
                 setMembraneDistanceCustom( dep );
                 break;
             }
+            case "cell_division":
+            {
+                setDivision( PhysicellConstants.CUSTOM );
+                setDivisionCustom( dep );
+                break;
+            }
         }
     }
 
@@ -516,6 +522,11 @@ public class FunctionsProperties extends Option
                 setMembraneDistance( PhysicellConstants.NOT_SELECTED );
                 break;
             }
+            case "cell_division":
+            {
+                setDivision( PhysicellConstants.NOT_SELECTED );
+                break;
+            }
         }
     }
     
@@ -566,6 +577,11 @@ public class FunctionsProperties extends Option
             case "calculate_distance_to_membrane":
             {
                 setMembraneDistance( val );
+                break;
+            }
+            case "cell_division":
+            {
+                setDivision( val );
                 break;
             }
         }

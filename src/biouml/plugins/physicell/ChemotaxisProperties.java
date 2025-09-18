@@ -9,7 +9,7 @@ import biouml.model.Role;
 
 @PropertyName ( "Chemotaxis" )
 @PropertyDescription ( "Chemotaxis." )
-public class ChemotaxisProperties implements Role
+public class ChemotaxisProperties implements PhysicellRole
 {
     private DiagramElement de;
     private double sensitivity = 1;

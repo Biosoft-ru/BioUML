@@ -5,11 +5,10 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
-import biouml.model.Role;
 
 @PropertyName ( "Secretion" )
 @PropertyDescription ( "Secretion." )
-public class SecretionProperties implements Role
+public class SecretionProperties implements PhysicellRole
 {
     private DiagramElement de;
     private String substrate = PhysicellConstants.NOT_SELECTED;

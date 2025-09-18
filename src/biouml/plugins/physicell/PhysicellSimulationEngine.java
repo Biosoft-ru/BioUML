@@ -40,7 +40,6 @@ import ru.biosoft.physicell.core.PhysiCellUtilities;
 import ru.biosoft.physicell.core.ReportGenerator;
 import ru.biosoft.physicell.core.Rules;
 import ru.biosoft.physicell.core.standard.FunctionRegistry;
-import ru.biosoft.physicell.core.standard.O2based;
 import ru.biosoft.physicell.core.standard.StandardModels;
 import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.GIFGenerator;
@@ -108,8 +107,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
     }
 
 
-    @Override
-    public PhysicellModel createModel() throws Exception
+    public ru.biosoft.physicell.core.Model createCoreModel()  throws Exception
     {
         PhysicellOptions opts = (PhysicellOptions)getSimulatorOptions();
 
@@ -359,38 +357,59 @@ public class PhysicellSimulationEngine extends SimulationEngine
         }
 
         model.init( false );
-        return new PhysicellModel( model );
+        return model;
+    }
+    
+    @Override
+    public PhysicellModel createModel() throws Exception
+    {
+        return new PhysicellModel( createCoreModel() );
     }
 
     private void loadCellsTable(DataElementPath dep, ru.biosoft.physicell.core.Model model) throws Exception
     {
         TableDataCollection tdc = dep.getDataElement( TableDataCollection.class );
+        String[] selectedColumns = new String[] {"x","y","z", "type"};
         for( String name : tdc.getNameList() )
         {
-            Object[] row = TableDataCollectionUtils.getRowValues( tdc, name );
-            double x = Double.parseDouble( row[0].toString() );
-            double y = Double.parseDouble( row[1].toString() );
-            double z = Double.parseDouble( row[2].toString() );
-            String value = row[3].toString();
+            Object[] essentialRoW = TableDataCollectionUtils.getRowValues( tdc, name, selectedColumns);
+            double x = Double.parseDouble( essentialRoW[0].toString() );
+            double y = Double.parseDouble( essentialRoW[1].toString() );
+            double z = Double.parseDouble( essentialRoW[2].toString() );
+            String value = essentialRoW[3].toString();
             CellDefinition cd = model.getCellDefinition( value );
             if( cd == null )
             {
-                int code = (int)Double.parseDouble( row[3].toString() );
+                int code = (int)Double.parseDouble( essentialRoW[3].toString() );
                 cd = model.getCellDefinition( code );
             }
             Cell cell = Cell.createCell( cd, model, new double[] {x, y, z} );
 
             //additional properties
+            Object[] row = TableDataCollectionUtils.getRowValues( tdc, name);
             for( int i = 4; i < row.length; i++ )
             {
+                String colName = tdc.getColumnModel().getColumn( i ).getName();
+
+                if( colName.equals( "x" ) || colName.equals( "y" ) || colName.equals( "z" ) || colName.equals( "type" ) )
+                    continue;
                 String val = row[i].toString();
                 if( val.equals( "skip" ) )
                     continue;
-                String colName = tdc.getColumnModel().getColumn( i ).getName();
+                
                 if( colName.equals( "volume" ) )
                     cell.setTotalVolume( Double.parseDouble( row[i].toString() ) );
                 else
-                    cell.getModel().signals.setSingleBehavior( cell, colName, Double.parseDouble( row[i].toString() ) );
+                {
+                    try
+                    {
+                        cell.getModel().signals.setSingleBehavior( cell, colName, Double.parseDouble( row[i].toString() ) );
+                    }
+                    catch( Exception ex )
+                    {
+
+                    }
+                }
             }
         }
     }

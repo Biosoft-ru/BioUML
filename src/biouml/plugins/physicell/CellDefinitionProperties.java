@@ -30,7 +30,7 @@ import ru.biosoft.util.DPSUtils;
 
 @PropertyName ( "Cell Definition" )
 @PropertyDescription ( "Cell Definition." )
-public class CellDefinitionProperties extends InitialElementPropertiesSupport implements Role, DataCollectionListener
+public class CellDefinitionProperties extends InitialElementPropertiesSupport implements PhysicellRole, DataCollectionListener
 {
     private String name;
     private int initialNumber = 0;

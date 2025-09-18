@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
+import biouml.plugins.physicell.DivisionProperties.DivisionProbability;
 import biouml.plugins.physicell.javacode.JavaElement;
 import biouml.plugins.sbml.SbmlExporter;
 import biouml.plugins.sbml.SbmlExporter.SbmlExportProperties;
@@ -464,7 +465,7 @@ public class PhysicellExporter implements DataElementExporter
         cellDefinitionElement.setAttribute( "ID", String.valueOf( id ) );
         Element phenotypeElement = createSimpleElement( cellDefinitionElement, "phenotype" );
 
-        writeCycle( phenotypeElement, cdp.getCycleProperties() );
+        writeCycle( phenotypeElement, cdp.getCycleProperties(), cdp.getDivisionProperties() );
         writeDeath( phenotypeElement, cdp.getDeathProperties() );
         writeVolume( phenotypeElement, cdp.getVolumeProperties() );
         writeMechanics( phenotypeElement, cdp.getMechanicsProperties() );
@@ -487,7 +488,12 @@ public class PhysicellExporter implements DataElementExporter
         el.setAttribute( name, String.valueOf( val ) );
     }
 
-    protected void writeCycle(Element parent, CycleProperties cycleProperties) throws Exception
+    private void setAttr(Element el, String name, String val)
+    {
+        el.setAttribute( name, val );
+    }
+    
+    protected void writeCycle(Element parent, CycleProperties cycleProperties, DivisionProperties divisionProperties) throws Exception
     {
         Element cycleElement = createSimpleElement( parent, "cycle" );
         CycleModel cycle = cycleProperties.createCycle();
@@ -503,6 +509,19 @@ public class PhysicellExporter implements DataElementExporter
                 setAttr( rateElement, "start_index", link.getStartPhase().index );
                 setAttr( rateElement, "end_index", link.getEndPhase().index );
                 setAttr( rateElement, "fixed_duration", link.fixedDuration );
+            }
+        }
+        
+        if( divisionProperties.isAsymmetric() )
+        {
+            Element asymmetric = createSimpleElement( cycleElement, "standard_asymmetric_division" );
+            setAttr(asymmetric, "enabled", true);
+            for( DivisionProbability divisionProbability : divisionProperties.getProbabilities() )
+            {
+                String name = divisionProbability.getName();
+                double value = divisionProbability.getProbability();
+                Element probability = createSimpleElement( asymmetric, "asymmetric_division_probability", value );
+                setAttr(probability, "name", name);
             }
         }
     }
@@ -919,6 +938,16 @@ public class PhysicellExporter implements DataElementExporter
         }
         else
             membraneDistanceElement.setAttribute( "type", getTypeAttr( properties.getMembraneDistance() ) );
+        
+        Element asymmetricElement = createSimpleElement( functionsElement, "function" );
+        asymmetricElement.setAttribute( "name", "cell_division" );
+        if( !properties.isDefaultDivision() )
+        {
+            asymmetricElement.setAttribute( "file", addExtension( properties.getDivisionCustom().getName(), "java" ) );
+            asymmetricElement.setAttribute( "type", "java" );
+        }
+        else
+            asymmetricElement.setAttribute( "type", getTypeAttr( properties.getDivision() ) );
     }
 
     protected void writeRulesElement(Element parent, String fileName)
