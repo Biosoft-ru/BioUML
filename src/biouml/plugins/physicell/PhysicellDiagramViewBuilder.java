@@ -54,13 +54,43 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         }
         return super.createNodeCoreView( container, node, options, g );
     }
+    
+    /**
+     * Creates image view for given node. 
+     * Return true If image successfully created
+     */
+    private boolean createImageView(CompositeView container, Node node, PhysicellDiagramViewOptions options, Graphics g)
+    {
+        ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
+        ComplexTextView title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(),
+                ComplexTextView.TEXT_ALIGN_CENTER, g, options.getNodeTitleLimit() );
+        View imageView = createImageView( node, g );
+        if( imageView != null )
+        {
+            container.add( imageView );
+            if( title != null )
+                container.add( title, CompositeView.X_CC | CompositeView.Y_BT );
+            return true;
+        }
+        else
+        {
+            log.info( "Could not create image view for node " +node.getName());
+            return false;
+        }
+    }
 
     public boolean createCellDefinitionView(CompositeView container, Node node, PhysicellDiagramViewOptions options, Graphics g)
     {
-        Dimension d = node.getShapeSize();
+        if( node.isUseCustomImage() )
+        {
+           if ( createImageView(container, node, options, g))
+               return false;
+        }
+        
         ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
-        ComplexTextView title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, g,
-                options.getNodeTitleLimit() );
+        ComplexTextView title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(),
+                ComplexTextView.TEXT_ALIGN_CENTER, g, options.getNodeTitleLimit() );
+        Dimension d = node.getShapeSize();  
         Rectangle textRect = title.getBounds();
         int height = Math.max( d.height, textRect.height );
         int width = Math.max( d.width, textRect.width + 20 );
@@ -74,6 +104,12 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     protected boolean createEventView(CompositeView eventView, Node node, PhysicellDiagramViewOptions options, Graphics g)
     {
+        if( node.isUseCustomImage() )
+        {
+           if ( createImageView(eventView, node, options, g))
+               return false;
+        }
+        
         EventProperties event = (EventProperties)node.getRole();
         if( event == null )
             return false;
@@ -158,6 +194,12 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     public boolean createSubstanceView(CompositeView container, Node node, PhysicellDiagramViewOptions options, Graphics g)
     {
+        if( node.isUseCustomImage() )
+        {
+           if ( createImageView(container, node, options, g))
+               return false;
+        }
+        
         Dimension d = node.getShapeSize();
         ColorFont font = getTitleFont( node, options.getNodeTitleFont() );
         ComplexTextView title = new ComplexTextView( node.getTitle(), font, options.getFontRegistry(), ComplexTextView.TEXT_ALIGN_LEFT, g,
@@ -191,7 +233,7 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
 
         else if( PhysicellConstants.TYPE_TRANSFORMATION.equals( edge.getKernel().getType() ) )
             view = createTransformationEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
-        
+
         else if( PhysicellConstants.TYPE_NOTE_LINK.equals( edge.getKernel().getType() ) )
             view = createNoteEdgeView( edge, (PhysicellDiagramViewOptions)options, g );
 
@@ -211,7 +253,7 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
         Pen pen = getBorderPen( edge, options.getNoteLinkPen() );
         return new ArrowView( pen, null, path, null, null );
     }
-    
+
     public CompositeView createInteractionEdgeView(Edge edge, PhysicellDiagramViewOptions options, Graphics g)
     {
         Brush brush = getBrush( edge, new Brush( options.getInteractionPen().getColor() ) );
@@ -251,5 +293,11 @@ public class PhysicellDiagramViewBuilder extends DefaultDiagramViewBuilder
     protected Tip createDefaultTriangleTip(Pen pen, Brush brush)
     {
         return ArrowView.createTriangleTip( pen, brush, 15, 5 );
+    }
+
+    @Override
+    public boolean forbidCustomImage(Node node)
+    {
+        return false;
     }
 }
