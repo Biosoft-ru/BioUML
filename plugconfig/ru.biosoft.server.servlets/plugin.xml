@@ -99,6 +99,8 @@
     
     <extension point="ru.biosoft.server.servlets.webTableResolver">
         <tableResolver type="userTasks" class="ru.biosoft.server.servlets.webservices.providers.TaskTableResolver"/>
+        <tableResolver type="query" class="ru.biosoft.server.servlets.webservices.providers.SqlQueryTableResolver"/>
+        <tableResolver type="columns" class="ru.biosoft.server.servlets.webservices.providers.ColumnsTableResolver"/>
     </extension>
     
 </plugin>
