@@ -200,12 +200,12 @@ public class DiagramDocument extends Document implements PropertyChangeListener
     public String getDisplayName()
     {
         Diagram diagram = getDiagram();
-        Module module = Module.optModule(diagram);
-        if( module != null )
-        {
-            return module.getName() + " : " + diagram.getName();
-        }
-        return diagram.getName();
+//        Module module = Module.optModule(diagram);
+//        if( module != null )
+//        {
+//            return module.getName() + " : " + diagram.getName();
+//        }
+        return diagram.getOrigin().getName()+":"+ diagram.getName();
     }
 
     @Override
