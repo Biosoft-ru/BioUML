@@ -1801,6 +1801,7 @@ function SQLEditorViewPart ()
         if(explain)
             query = "EXPLAIN " + query;
         var params = {
+                        type: "query",
                         query: query,
                         read: true
                      };

@@ -21,11 +21,9 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -53,7 +51,6 @@ import com.developmentontheedge.beans.swing.table.SortedTableModel;
 import biouml.model.dynamics.plot.Curve;
 import biouml.model.dynamics.plot.Experiment;
 import biouml.model.dynamics.plot.PlotInfo;
-import biouml.plugins.server.SqlEditorProtocol;
 import biouml.plugins.server.access.AccessProtocol;
 import biouml.standard.simulation.plot.Series;
 import one.util.streamex.Joining;
@@ -70,11 +67,9 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
 import ru.biosoft.access.core.Index;
 import ru.biosoft.access.core.QuerySystem;
-import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.core.filter.Filter;
 import ru.biosoft.access.core.filter.FilteredDataCollection;
 import ru.biosoft.access.repository.IconFactory;
-import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
 import ru.biosoft.access.task.JobControlTask;
 import ru.biosoft.access.task.TaskPool;
@@ -87,12 +82,7 @@ import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.chart.Chart;
 import ru.biosoft.jobcontrol.JobControlException;
 import ru.biosoft.jobcontrol.StackProgressJobControl;
-import ru.biosoft.journal.Journal;
-import ru.biosoft.journal.JournalRegistry;
 import ru.biosoft.plugins.javascript.JavaScriptUtils;
-import ru.biosoft.server.Response;
-import ru.biosoft.server.Service;
-import ru.biosoft.server.ServiceRegistry;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
@@ -106,7 +96,6 @@ import ru.biosoft.table.DescribedString;
 import ru.biosoft.table.MessageStubTableDataCollection;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.RowFilter;
-import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.StringSet;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
@@ -115,8 +104,6 @@ import ru.biosoft.table.access.TableResolver;
 import ru.biosoft.table.columnbeans.Descriptor;
 import ru.biosoft.table.datatype.DataType;
 import ru.biosoft.table.document.editors.ExpressionEditor;
-import ru.biosoft.table.document.editors.TableElement;
-import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.treetable.TreeTableElement;
 import ru.biosoft.util.ClassExtensionRegistry;
 import ru.biosoft.util.ColorUtils;
@@ -136,7 +123,7 @@ public class WebTablesProvider extends WebProviderSupport
     protected static final Logger log = Logger.getLogger( WebTablesProvider.class.getName() );
     public static final String MAP_PATH = "../biouml/map";
 
-    private static final ClassExtensionRegistry<TableResolver> resolverRegistry = new ClassExtensionRegistry<>(
+    protected static final ClassExtensionRegistry<TableResolver> resolverRegistry = new ClassExtensionRegistry<>(
             "ru.biosoft.server.servlets.webTableResolver", "type", TableResolver.class );
 
     @SuppressWarnings ( "rawtypes" )
@@ -1478,169 +1465,6 @@ public class WebTablesProvider extends WebProviderSupport
 
     }
 
-    public static class SqlQueryTableResolver extends TableResolver implements CommonTableResolver
-    {
-        protected String sqlQuery;
-        protected int start;
-        protected int length;
-        protected boolean addToJournal;
-
-        public SqlQueryTableResolver(String sqlquery, int start, int length, boolean addToJournal)
-        {
-            this.start = start;
-            this.length = length;
-            this.sqlQuery = sqlquery;
-            this.addToJournal = addToJournal;
-        }
-
-        @Override
-        public DataCollection<?> getTable(DataElement de) throws Exception
-        {
-            TaskInfo taskInfo = null;
-            Journal journal = JournalRegistry.getCurrentJournal();
-            if( journal != null )
-            {
-                taskInfo = journal.getEmptyAction();
-                taskInfo.setType( TaskInfo.SQL );
-                taskInfo.setData( getQuery() );
-            }
-            try
-            {
-                Service service = ServiceRegistry.getService( SqlEditorProtocol.SQL_EDITOR_SERVICE );
-                Map<String, String> map = new HashMap<>();
-                map.put( SecurityManager.SESSION_ID, SecurityManager.getSession() );
-                map.put( SqlEditorProtocol.KEY_QUERY, sqlQuery );
-                map.put( SqlEditorProtocol.KEY_START, Integer.toString( start ) );
-                map.put( SqlEditorProtocol.KEY_LENGTH, Integer.toString( length ) );
-                SQLResponse response = new SQLResponse();
-                if( service != null )
-                {
-                    service.processRequest( SqlEditorProtocol.DB_EXECUTE, map, response );
-                }
-
-                if( response.getError() != null )
-                {
-                    throw new Exception( response.getError() );
-                }
-
-                if( response.getJsonString() != null )
-                {
-                    JSONObject json = new JSONObject( response.getJsonString() );
-                    JSONArray jsonColumns = json.getJSONArray( "columns" );
-                    JSONObject jsonData = json.getJSONObject( "data" );
-
-                    StandardTableDataCollection tableDataCollection = new StandardTableDataCollection( null, new Properties() );
-                    for( int i = 0; i < jsonColumns.length(); i++ )
-                    {
-                        tableDataCollection.getColumnModel().addColumn( jsonColumns.getString( i ), String.class );
-                    }
-                    int rowCnt = 0;
-                    while( rowCnt < start + length )
-                    {
-                        Object rowValues[] = new Object[jsonColumns.length()];
-                        if( rowCnt >= start )
-                        {
-                            String key = Integer.toString( rowCnt );
-                            if( !jsonData.has( key ) )
-                            {
-                                break;
-                            }
-                            JSONArray jsonRow = jsonData.getJSONArray( key );
-                            for( int i = 0; i < jsonRow.length(); i++ )
-                            {
-                                rowValues[i] = jsonRow.getString( i );
-                            }
-                        }
-                        TableDataCollectionUtils.addRow( tableDataCollection, Integer.toString( rowCnt ), rowValues );
-                        rowCnt++;
-                    }
-                    return tableDataCollection;
-                }
-            }
-            finally
-            {
-                if( journal != null && taskInfo != null )
-                {
-                    taskInfo.setEndTime();
-                    journal.addAction( taskInfo );
-                }
-            }
-            return null;
-        }
-
-        public static class SQLResponse extends Response
-        {
-            protected String error = null;
-            protected String jsonString = null;
-
-            public SQLResponse()
-            {
-                super( null, null );
-            }
-
-            @Override
-            public void error(String message) throws IOException
-            {
-                error = message;
-            }
-
-            @Override
-            public void send(byte[] message, int format) throws IOException
-            {
-                jsonString = new String( message, "UTF-16BE" );
-            }
-
-            public String getError()
-            {
-                return error;
-            }
-
-            public String getJsonString()
-            {
-                return jsonString;
-            }
-        }
-
-        public String getQuery()
-        {
-            return sqlQuery;
-        }
-    }
-
-    /**
-     * Table resolver for column structure.
-     * Is used in Columns view part
-     */
-
-    public static class ColumnsTableResolver extends TableResolver
-    {
-        protected TableResolver baseResolver;
-        public ColumnsTableResolver(TableResolver baseResolver)
-        {
-            this.baseResolver = baseResolver;
-        }
-
-        @Override
-        public DataCollection<?> getTable(DataElement de) throws Exception
-        {
-            if( baseResolver != null )
-            {
-                de = baseResolver.getTable( de );
-            }
-            TableDataCollection dc = de.cast( TableDataCollection.class );
-            VectorDataCollection<TableElement> columns = new VectorDataCollection<>( "Columns", TableElement.class, null );
-            columns.put( new TableElement( dc, -1 ) );
-            int columnCount = dc.getColumnModel().getColumnCount();
-            for( int i = 0; i < columnCount; i++ )
-            {
-                columns.put( new TableElement( dc, i ) );
-            }
-            return columns;
-        }
-    }
-
-
-
     @Override
     public void process(BiosoftWebRequest arguments, BiosoftWebResponse resp) throws Exception
     {
@@ -1659,72 +1483,50 @@ public class WebTablesProvider extends WebProviderSupport
 
         TableResolver resolver = null;
         String dePath = arguments.get( AccessProtocol.KEY_DE );
-        String query = arguments.get( "query" );
+        String type = arguments.get( "type" );
         String path = null;
-        if( dePath == null && query == null )
+        if( dePath == null && type == null )
         {
-            throw new WebException( "EX_QUERY_PARAM_MISSING_BOTH", "de", "query" );
+            throw new WebException( "EX_QUERY_PARAM_MISSING_BOTH", "de", "type" );
+        }
+        path = dePath;
+        String resolverType = arguments.getOrDefault( "type2", type );
+        Class<? extends TableResolver> resolverClass = resolverRegistry.getExtension( resolverType );
+        if( resolverClass != null )
+        {
+            resolver = resolverClass.getConstructor( BiosoftWebRequest.class ).newInstance( arguments );
         }
 
-        if( query != null )
+        //Try to get table resolver by data element and arguments (may be used by rbiouml)
+        if( resolver == null && path != null )
         {
-            int from = arguments.optInt( "iDisplayStart", 0 );
-            int count = arguments.optInt( "iDisplayLength", 1 );
-            resolver = new SqlQueryTableResolver( query, from, count, action.equals( "sceleton" ) );
-            path = "SqlQueryResult";
+            DataElement de = CollectionFactory.getDataElement( path );
+            int maxPriority = 0;
+            for ( Class<? extends TableResolver> resolverRegClass : resolverRegistry )
+            {
+                TableResolver curResolver;
+                try
+                {
+                    curResolver = resolverRegClass.getConstructor( BiosoftWebRequest.class ).newInstance( arguments );
+                }
+                catch (Exception e)
+                {
+                    continue;
+                }
+                int priority = curResolver.accept( de );
+                if( priority > maxPriority )
+                {
+                    maxPriority = priority;
+                    resolver = curResolver;
+                }
+            }
         }
-        else if( dePath != null )
+
+        String cachedResolverName = arguments.get( "cached" );
+        if( cachedResolverName != null )
         {
-            path = dePath;
-
-            String type = arguments.get( "type" );
-            if( type != null )
-            {
-                Class<? extends TableResolver> resolverClass = resolverRegistry.getExtension( type );
-                if( resolverClass != null )
-                {
-                    resolver = resolverClass.getConstructor( BiosoftWebRequest.class ).newInstance( arguments );
-                }
-            }
-            String type2 = arguments.get( "type2" );
-            if( type2 != null )
-            {
-                if( type2.equals( "columns" ) )
-                {
-                    resolver = new ColumnsTableResolver( resolver );
-                }
-            }
-
-            if( resolver == null )
-            {
-                DataElement de = CollectionFactory.getDataElement( path );
-                int maxPriority = 0;
-                for( Class<? extends TableResolver> resolverClass : resolverRegistry )
-                {
-                    TableResolver curResolver;
-                    try
-                    {
-                        curResolver = resolverClass.getConstructor( BiosoftWebRequest.class ).newInstance( arguments );
-                    }
-                    catch( Exception e )
-                    {
-                        continue;
-                    }
-                    int priority = curResolver.accept( de );
-                    if( priority > maxPriority )
-                    {
-                        maxPriority = priority;
-                        resolver = curResolver;
-                    }
-                }
-            }
-
-            String cachedResolverName = arguments.get( "cached" );
-            if( cachedResolverName != null )
-            {
-                //try to get table resolver from cache
-                resolver = (TableResolver)WebServicesServlet.getSessionCache().getObject( cachedResolverName );
-            }
+            //Try to get table resolver from cache
+            resolver = (TableResolver) WebServicesServlet.getSessionCache().getObject( cachedResolverName );
         }
         boolean isReadMode = arguments.getBoolean( "read" );
         DataCollection<?> dc;
