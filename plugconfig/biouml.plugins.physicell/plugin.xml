@@ -131,6 +131,12 @@
         ShortDescription="Simulation result options"
         Priority = "1.4"
       /> 
+        </extension>
+        
+   <extension id="physicell" point="ru.biosoft.plugins.javascript.hostObject">
+		<hostObject name="physicellEngine" class="biouml.plugins.physicell.javascript.JavaScriptPhysicellEngine" alias="physicell">	
+		</hostObject>
+   </extension>
       
-  </extension>
+
 </plugin>
