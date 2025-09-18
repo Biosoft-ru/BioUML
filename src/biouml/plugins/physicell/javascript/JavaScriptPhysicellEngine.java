@@ -62,9 +62,14 @@ public class JavaScriptPhysicellEngine  extends JavaScriptHostObjectBase
         }
     }
 
+    public BufferedImage createImage(Diagram diagram)
+    {
+        return DiagramImageGenerator.generateDiagramImage( diagram );
+    }
+    
     public void showDiagram(Diagram diagram)
     {
-        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
+        BufferedImage image = createImage( diagram );
         ScriptEnvironment environment = Global.getEnvironment();
         if( environment != null )
             environment.showGraphics( image );

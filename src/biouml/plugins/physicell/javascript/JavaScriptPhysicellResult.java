@@ -15,12 +15,12 @@ public class JavaScriptPhysicellResult
 {
     PhysicellSimulationResult result;
     StateVisualizer visualizer;
-    
+
     public JavaScriptPhysicellResult(PhysicellSimulationResult result)
     {
         this.result = result;
         result.init();
-        if (result.getOptions().is2D())
+        if( result.getOptions().is2D() )
         {
             visualizer = new StateVisualizer2D();
         }
@@ -29,19 +29,25 @@ public class JavaScriptPhysicellResult
             visualizer = new StateVisualizer3D();
         }
     }
-    
+
     public ViewOptions getOptions()
     {
         return visualizer.getOptions();
     }
-    
-    public void generateImage() throws Exception
+
+    public BufferedImage createImage() throws Exception
     {
         visualizer.setResult( result );
         TextDataElement tde = result.getPoint( result.getOptions().getTime() );
         visualizer.readAgents( tde.getContent(), tde.getName() );
         visualizer.setDensityState( result.getDensity( result.getOptions().getTime(), result.getOptions().getSubstrate() ) );
-        BufferedImage image =  visualizer.draw();
+        return visualizer.draw();
+
+    }
+
+    public void showImage() throws Exception
+    {
+        BufferedImage image = createImage();
         ScriptEnvironment environment = Global.getEnvironment();
         if( environment != null )
             environment.showGraphics( image );
