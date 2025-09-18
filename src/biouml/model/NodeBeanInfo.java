@@ -20,7 +20,8 @@ public class NodeBeanInfo extends DiagramElementBeanInfo
         property("showTitle").add(2);
         property("location").expert().add(3);
         property("shapeSize2").hidden("isNotResizable").add(4);
-        property("image").hidden("isImageHidden").add();
+        add("useCustomImage");
+        property("image").hidden("useDefaultView").add();
         add("fixed");
         add("visible");
     }
