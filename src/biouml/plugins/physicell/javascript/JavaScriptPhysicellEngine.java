@@ -21,6 +21,8 @@ import biouml.plugins.physicell.SimulationEngineHelper;
 import biouml.plugins.physicell.document.PhysicellSimulationResult;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.script.ScriptEnvironment;
+import ru.biosoft.plugins.javascript.Global;
 import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
 
 public class JavaScriptPhysicellEngine  extends JavaScriptHostObjectBase
@@ -60,9 +62,12 @@ public class JavaScriptPhysicellEngine  extends JavaScriptHostObjectBase
         }
     }
 
-    public BufferedImage showDiagram(Diagram diagram)
+    public void showDiagram(Diagram diagram)
     {
-        return DiagramImageGenerator.generateDiagramImage( diagram );
+        BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
+        ScriptEnvironment environment = Global.getEnvironment();
+        if( environment != null )
+            environment.showGraphics( image );
     }
 
     public String showSummary(DiagramElement de) throws Exception

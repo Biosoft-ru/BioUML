@@ -8,6 +8,8 @@ import biouml.plugins.physicell.document.StateVisualizer2D;
 import biouml.plugins.physicell.document.StateVisualizer3D;
 import biouml.plugins.physicell.document.ViewOptions;
 import ru.biosoft.access.core.TextDataElement;
+import ru.biosoft.access.script.ScriptEnvironment;
+import ru.biosoft.plugins.javascript.Global;
 
 public class JavaScriptPhysicellResult
 {
@@ -33,13 +35,16 @@ public class JavaScriptPhysicellResult
         return visualizer.getOptions();
     }
     
-    public BufferedImage generateImage() throws Exception
+    public void generateImage() throws Exception
     {
         visualizer.setResult( result );
         TextDataElement tde = result.getPoint( result.getOptions().getTime() );
         visualizer.readAgents( tde.getContent(), tde.getName() );
         visualizer.setDensityState( result.getDensity( result.getOptions().getTime(), result.getOptions().getSubstrate() ) );
-        return visualizer.draw();
+        BufferedImage image =  visualizer.draw();
+        ScriptEnvironment environment = Global.getEnvironment();
+        if( environment != null )
+            environment.showGraphics( image );
     }
 
 }
