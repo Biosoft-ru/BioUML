@@ -15,6 +15,7 @@ public class ViewOptions extends Option
     private boolean statistics = true;
     private int statisticsX = 10;
     private int statisticsY = 40;
+    private boolean statisticsBackground = false;
     private int maxTime;
     private int time;
     private View2DOptions options2D = new View2DOptions();
@@ -118,6 +119,19 @@ public class ViewOptions extends Option
         this.options3D = options3D;
         options3D.setParent( this );
         this.firePropertyChange( "options3D", oldValue, options3D );
+    }
+    
+    @PropertyName ( "Statistics background" )
+    public boolean isStatisticsBackground()
+    {
+        return statisticsBackground;
+    }
+    
+    public void setStatisticsBackground(boolean statisticsBackground)
+    {
+        Object oldValue = this.statisticsBackground;
+        this.statisticsBackground = statisticsBackground;
+        this.firePropertyChange( "statisticsBackground", oldValue, statisticsBackground );
     }
     
     @PropertyName ( "Statistics X" )

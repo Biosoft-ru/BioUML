@@ -96,6 +96,11 @@ public class StateVisualizer2D extends StateVisualizer
     {
         int x = location.x;
         int y = location.y;
+        if( options.isStatisticsBackground() )
+        {
+            g.setColor( Color.white );
+            g.fillRect( x-5, y-25, x + 150, y + 55 );
+        }
         g.setFont( new Font( "TimesRoman", Font.PLAIN, 20 ) );
         g.setColor( Color.BLACK );
         g.drawString( "Time: " + options.getTime(), x, y );
@@ -254,7 +259,7 @@ public class StateVisualizer2D extends StateVisualizer
         int n = (int) ( ( options2D.getSlice() + shift ) / size3 );
 
         double maxDensity = DoubleStreamEx.of( densities ).max().orElse( 0 );
-        if (maxDensity == 0)
+        if( maxDensity == 0 )
             maxDensity = 1;
         for( int i = 0; i < n1; i++ )
         {
@@ -284,11 +289,11 @@ public class StateVisualizer2D extends StateVisualizer
             }
         }
     }
-    
+
     public int calculateComponent(int colorComponent, double ratio)
     {
-       int result = (int) ( ( colorComponent - 255 ) * ratio + 255 );
-       return Math.min(Math.max( result, 0 ), 255);
+        int result = (int) ( ( colorComponent - 255 ) * ratio + 255 );
+        return Math.min( Math.max( result, 0 ), 255 );
     }
 
     private void drawLines(Graphics g)
@@ -296,7 +301,7 @@ public class StateVisualizer2D extends StateVisualizer
         g.setFont( new Font( "TimesRoman", Font.BOLD, 20 ) );
         g.setColor( Color.BLACK );
         int w = width - 100;
-        int h =  100;
+        int h = 100;
         int x1 = xShift;
         int y1 = yShift;
         String title1 = "X";
@@ -322,8 +327,8 @@ public class StateVisualizer2D extends StateVisualizer
         g.drawLine( x1, y1, w, y1 );
         g.drawString( title1, w - 20, y1 - 20 );
         g.drawLine( x1, y1, x1, h );
-        g.drawString( title2, x1 + 10, h  );
-        g.fillPolygon( new int[] {w,  w-arrowLength, w-arrowLength}, new int[] {y1, y1+arrowWidth, y1-arrowWidth}, 3 );
-        g.fillPolygon( new int[] {x1,  x1-arrowWidth, x1+arrowWidth}, new int[] {h, h+arrowLength, h+arrowLength}, 3 );
+        g.drawString( title2, x1 + 10, h );
+        g.fillPolygon( new int[] {w, w - arrowLength, w - arrowLength}, new int[] {y1, y1 + arrowWidth, y1 - arrowWidth}, 3 );
+        g.fillPolygon( new int[] {x1, x1 - arrowWidth, x1 + arrowWidth}, new int[] {h, h + arrowLength, h + arrowLength}, 3 );
     }
 }

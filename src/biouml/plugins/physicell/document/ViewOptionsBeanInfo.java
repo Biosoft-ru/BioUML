@@ -29,6 +29,7 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
 //        add("maxDensity");
         add("statisticsX");
         add("statisticsY");
+        add("statisticsBackground");
         //add("saveResult");
         add("fps");
         add("result");
