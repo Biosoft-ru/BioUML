@@ -631,6 +631,16 @@ public class JavaScriptPlot extends JavaScriptHostObjectBase
         instance.setYTo( yTo );
     }
     
+    public Color createColor(int r, int g, int b)
+    {
+        return new Color(r,g,b);
+    }
+    
+    public Color createColor(String name)
+    {
+        return getColor(name, Color.black);
+    }
+    
     /**
      * Translates string representation of color to Color java object.
      * If given string can not be translated to Color returns defaultColor.
