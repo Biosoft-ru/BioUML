@@ -277,12 +277,18 @@ public class StateVisualizer2D extends StateVisualizer
                 double ratio = ( density / maxDensity );
                 ratio = Math.min( 1, ratio );
                 Color c = options.getDensityColor();
-                Color actual = new Color( (int) ( ( c.getRed() - 255 ) * ratio + 255 ), (int) ( ( c.getGreen() - 255 ) * ratio + 255 ),
-                        (int) ( ( c.getBlue() - 255 ) * ratio + 255 ) );
+                Color actual = new Color( calculateComponent( c.getRed(), ratio ), calculateComponent( c.getGreen(), ratio ),
+                        calculateComponent( c.getBlue(), ratio ) );
                 g.setColor( actual );
                 g.fillRect( i * size1, j * size2, size1, size2 );
             }
         }
+    }
+    
+    public int calculateComponent(int colorComponent, double ratio)
+    {
+       int result = (int) ( ( colorComponent - 255 ) * ratio + 255 );
+       return Math.min(Math.max( result, 0 ), 255);
     }
 
     private void drawLines(Graphics g)

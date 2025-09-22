@@ -6,6 +6,9 @@ Bundle-SymbolicName: biouml.plugins.physicell;singleton:=true
 Bundle-Vendor: %providerName
 Require-Bundle: ru.biosoft.physicell,
  org.eclipse.osgi,
+ org.apache.velocity,
+ org.apache.commons.lang,
+ org.apache.commons.math3,
  one.util.streamex,
  json,
  biouml.workbench,
