@@ -62,8 +62,8 @@
 	<classpathentry kind="lib" path="plugins/org.jgrapht_0.5.3/jgrapht-0.5.3.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jgraph.jgraphaddons_1.0.3/jgraphaddons.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jgraph.jgraph_5.1/jgraph.jar"/>
-	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar"/>
-	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.file-2.0.0.jar"/>
+	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.core-2.0.1.jar"/>
+	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.file-2.0.1.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.util-2.0.0.jar"/>
 	<classpathentry kind="lib" path="plugins/htsjdk_2.24.1/htsjdk-2.24.1.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.server.tomcat_2025.2/tomcat/servlet.jar"/>

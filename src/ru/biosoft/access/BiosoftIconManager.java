@@ -76,11 +76,4 @@ public class BiosoftIconManager implements IconManager
         return value;
     }
 
-    @Override
-    public ImageIcon getIconById(String imagename)
-    {
-        // TODO Auto-generated method stub
-        // TODO: from IconFactory
-        return null;
-    }
 }
