@@ -116,6 +116,7 @@ public class PhysicellDiagramSemanticController extends DefaultSemanticControlle
         else if( PhysicellConstants.TYPE_CELL_DEFINITION.equals( de.getKernel().getType() ) )
         {
             CellDefinitionProperties cdp = PhysicellUtil.validateRole( de, CellDefinitionProperties.class, "cellDefinition" );
+            fixPhases(cdp);
             cdp.setDiagramElement( de );
         }
         else if( PhysicellConstants.TYPE_EVENT.equals( de.getKernel().getType() ) )
@@ -170,4 +171,15 @@ public class PhysicellDiagramSemanticController extends DefaultSemanticControlle
         }
         return de;
     }
+    
+    private void fixPhases(CellDefinitionProperties cd)
+    {
+        for (DeathModelProperties dmp: cd.getDeathProperties().getDeathModels())
+        {
+            for (PhaseProperties pp: dmp.getCycle().getPhases())
+                pp.setDeathPhase( true );
+        }
+            
+    }
+    
 }
