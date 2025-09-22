@@ -100,8 +100,8 @@
         <property name="PICARD" value="${PLUGIN_DIR}/net.sf.samtools_1.62.jar;" />
         <property name="JOBCONTROL" value="${PLUGIN_DIR}/ru.biosoft.jobcontrol-2.0.0.jar;" />
         <property name="EXCEPTION" value="${PLUGIN_DIR}/ru.biosoft.exception-1.0.0.jar;" />
-        <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.0.jar;" />
-        <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-2.0.0.jar;" />
+        <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.1.jar;" />
+        <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-2.0.1.jar;" />
         <property name="RTREE" value="${PLUGIN_DIR}/ru.biosoft.rtree-0.0.1.jar" />
         <property name="BIGBED" value="${PLUGIN_DIR}/ru.biosoft.bigbed-1.0.0.jar" />
         <property name="UTIL" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.util-2.0.0.jar" />
