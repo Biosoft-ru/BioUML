@@ -109,8 +109,8 @@ public class WDLEditor extends EditorPartSupport
         try
         {
             setDiagram( (Diagram)model );
-            setWDL( wdlGenerator.generateWDL( getDiagram() ) );
-            setNextFlow( nextFlowGenerator.generateNextFlow( getDiagram(), true) );
+            setWDL( wdlGenerator.generate( getDiagram() ) );
+            setNextFlow( nextFlowGenerator.generate( getDiagram()) );
         }
         catch( Exception ex )
         {
@@ -261,7 +261,7 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                String wdl = wdlGenerator.generateWDL( diagram );
+                String wdl = wdlGenerator.generate( diagram );
                 setWDL( wdl );
             }
             catch( Exception ex )

@@ -57,7 +57,7 @@ public class WDLRunner
         exportIncludes( diagram, outputDir );
 
         if( nextFlowScript == null )
-            nextFlowScript = new NextFlowGenerator().generateNextFlow( diagram, true );
+            nextFlowScript = new NextFlowGenerator().generate( diagram );
         NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
         nextFlowScript = preprocessor.preprocess( nextFlowScript );
 
