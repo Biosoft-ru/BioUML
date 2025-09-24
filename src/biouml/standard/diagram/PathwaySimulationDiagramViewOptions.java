@@ -21,6 +21,7 @@ public class PathwaySimulationDiagramViewOptions extends PathwayDiagramViewOptio
 
     public boolean createPortEdges = true;
 
+    protected ColorFont portFont = new ColorFont("Arial", Font.PLAIN, 14, Color.black);
     protected ColorFont mathTitleFont = new ColorFont("Arial", Font.BOLD, 12, Color.black);
     protected Pen mathPen = new Pen(1, Color.black);
 
@@ -70,6 +71,17 @@ public class PathwaySimulationDiagramViewOptions extends PathwayDiagramViewOptio
         this.mathTitleFont = mathTitleFont;
     }
 
+    @PropertyName ( "Port title font" )
+    @PropertyDescription ( "Font for ports." )
+    public ColorFont getPortTitleFont()
+    {
+        return portFont;
+    }
+    public void setPortTitleFont(ColorFont portFont)
+    {
+        this.portFont = portFont;
+    }
+    
     @PropertyName("Math pen")
     @PropertyDescription("Pen for mathematical objects (equations, events,...). ")
     public Pen getMathPen()

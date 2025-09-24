@@ -563,7 +563,7 @@ public class PathwaySimulationDiagramViewBuilder extends PathwayDiagramViewBuild
     protected boolean createConnectionPortView(CompositeView container, Node node, PathwaySimulationDiagramViewOptions options, Graphics g)
     {
         container.add(createPortCoreView(node, options));
-        View title = new FormulaViewBuilder().createTitleView(node.getTitle(), getTitleFont(node, options.getNodeTitleFont()), g);
+        View title = new FormulaViewBuilder().createTitleView(node.getTitle(), getTitleFont(node, options.getPortTitleFont()), g);
         switch( Util.getPortOrientation(node) )
         {
             case TOP:
