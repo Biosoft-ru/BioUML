@@ -2,7 +2,7 @@ package biouml.plugins.wdl;
 
 import biouml.model.Diagram;
 
-public class WDLGenerator extends WorkflowScriptGenerator
+public class WDLGenerator extends WorkflowTextGenerator
 {
     private static String TEMPLATE_PATH = "resources/wdl.vm";
     private static String TEMPLATE_NAME = "WDL template";

@@ -28,12 +28,12 @@ public class WorkflowSettings extends Option
 
     public void initParameters(Diagram diagram)
     {
-        List<Node> externalParameters = WDLUtil.getExternalParameters( diagram );
+        List<Node> externalParameters = WorkflowUtil.getExternalParameters( diagram );
         for( Node externalParameter : externalParameters )
         {
-            String type = WDLUtil.getType( externalParameter );
-            String name = WDLUtil.getName( externalParameter );
-            Object value = WDLUtil.getExpression( externalParameter );
+            String type = WorkflowUtil.getType( externalParameter );
+            String name = WorkflowUtil.getName( externalParameter );
+            Object value = WorkflowUtil.getExpression( externalParameter );
             Class clazz = String.class;
             if( type.equals( "File" ) || type.equals( "Array[File]" ) )
             {
@@ -63,7 +63,7 @@ public class WorkflowSettings extends Option
                         String name = parameter.split( ":" )[1];
                         DataElement parameterDe = dc.get( name );
                         if( parameterDe != null )
-                            WDLUtil.export( parameterDe, new File( outputDir ) );
+                            WorkflowUtil.export( parameterDe, new File( outputDir ) );
                     }
                     catch( Exception ex )
                     {
@@ -78,7 +78,7 @@ public class WorkflowSettings extends Option
             if( dp.getValue() instanceof DataElementPath )
             {
                 DataElement de = ( (DataElementPath)dp.getValue() ).getDataElement();
-                WDLUtil.export( de, new File( outputDir ) );
+                WorkflowUtil.export( de, new File( outputDir ) );
             }
         }
     }

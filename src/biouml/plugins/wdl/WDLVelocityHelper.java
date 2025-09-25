@@ -2,7 +2,6 @@ package biouml.plugins.wdl;
 
 import biouml.model.Diagram;
 import biouml.model.Node;
-import biouml.plugins.wdl.WDLUtil.ImportProperties;
 
 public class WDLVelocityHelper extends WorkflowVelocityHelper
 {
@@ -31,7 +30,7 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     
     public String getVersion()
     {
-        return WDLUtil.getVersion( diagram );
+        return WorkflowUtil.getVersion( diagram );
     }
 
     public String getCallInput(Node inputNode)
@@ -45,7 +44,7 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
 
     public ImportProperties[] getImports()
     {
-        return WDLUtil.getImports( diagram );
+        return WorkflowUtil.getImports( diagram );
     }
 
 }

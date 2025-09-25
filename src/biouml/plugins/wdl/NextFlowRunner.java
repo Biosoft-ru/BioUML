@@ -1,16 +1,13 @@
 package biouml.plugins.wdl;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -23,14 +20,14 @@ import ru.biosoft.access.TextFileImporter;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.util.StreamGobbler;
 
-public class WDLRunner
+public class NextFlowRunner
 {
     private static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
-    private static final Logger log = Logger.getLogger( WDLRunner.class.getName() );
+    private static final Logger log = Logger.getLogger( NextFlowRunner.class.getName() );
 
     public static File generateFunctions(String outputDir) throws IOException
     {
-        InputStream inputStream = WDLRunner.class.getResourceAsStream( BIOUML_FUNCTIONS_NF );
+        InputStream inputStream = NextFlowRunner.class.getResourceAsStream( BIOUML_FUNCTIONS_NF );
         File result = new File( outputDir, "biouml_function.nf" );
         Files.copy( inputStream, result.toPath(), StandardCopyOption.REPLACE_EXISTING );
         return result;
@@ -153,16 +150,16 @@ public class WDLRunner
             return;
         DataCollection dc = settings.getOutputPath().getDataCollection();
 
-        for ( Compartment n : WDLUtil.getAllCalls( diagram ) )
+        for ( Compartment n : WorkflowUtil.getAllCalls( diagram ) )
         {
-            if (WDLUtil.getDiagramRef( n ) != null)
+            if (WorkflowUtil.getDiagramRef( n ) != null)
             {
-                String ref = WDLUtil.getDiagramRef( n );
+                String ref = WorkflowUtil.getDiagramRef( n );
                 Diagram externalDiagram = (Diagram)diagram.getOrigin().get( ref );
                 importResults( externalDiagram, settings, outputDir );
                 continue;
             }
-            String taskRef = WDLUtil.getTaskRef( n );
+            String taskRef = WorkflowUtil.getTaskRef( n );
             String folderName = (taskRef);
             File folder = new File( outputDir, folderName );
             if( !folder.exists() || !folder.isDirectory() )
@@ -182,12 +179,12 @@ public class WDLRunner
     public static void exportIncludes(Diagram diagram, String outputDir) throws Exception
     {
         for ( Diagram d : getIncludes( diagram))
-            WDLUtil.export( d, new File( outputDir ) );
+            WorkflowUtil.export( d, new File( outputDir ) );
     }
     
     public static Set<Diagram> getIncludes(Diagram diagram)
     {
-        Set<Diagram> result = StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() )
+        Set<Diagram> result = StreamEx.of( WorkflowUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() )
                 .select( Diagram.class ).toSet();
         Set<Diagram> additionals = new HashSet<Diagram>();
         for( Diagram d : result )

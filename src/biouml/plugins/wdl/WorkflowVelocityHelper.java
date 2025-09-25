@@ -6,7 +6,6 @@ import java.util.Map;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
-import biouml.plugins.wdl.WDLUtil.ImportProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class WorkflowVelocityHelper
@@ -17,7 +16,7 @@ public class WorkflowVelocityHelper
     public WorkflowVelocityHelper(Diagram diagram)
     {
         this.diagram = diagram;
-        orderedCalls = WDLUtil.orderCallsScatters( diagram );
+        orderedCalls = WorkflowUtil.orderCallsScatters( diagram );
     }
 
     /**
@@ -33,7 +32,7 @@ public class WorkflowVelocityHelper
      */
     public String getName(Node n)
     {
-        return WDLUtil.getName( n );
+        return WorkflowUtil.getName( n );
     }
     
     /**
@@ -41,7 +40,7 @@ public class WorkflowVelocityHelper
      */
     public List<Compartment> getTasks()
     {
-        return WDLUtil.getTasks( diagram );
+        return WorkflowUtil.getTasks( diagram );
     }
 
     /**
@@ -49,7 +48,7 @@ public class WorkflowVelocityHelper
      */
     public List<Compartment> getScatters(Compartment c)
     {
-        return WDLUtil.getCycles( c );
+        return WorkflowUtil.getCycles( c );
     }
 
     /**
@@ -57,7 +56,7 @@ public class WorkflowVelocityHelper
      */
     public List<Compartment> getCalls(Compartment c)
     {
-        return WDLUtil.getCalls( c );
+        return WorkflowUtil.getCalls( c );
     }
 
     /**
@@ -65,7 +64,7 @@ public class WorkflowVelocityHelper
      */
     public String getExpression(Node n)
     {
-        return WDLUtil.getExpression( n );
+        return WorkflowUtil.getExpression( n );
     }
 
     /**
@@ -73,7 +72,7 @@ public class WorkflowVelocityHelper
      */
     public static Node getSource(Node node)
     {
-        return WDLUtil.getSource( node );
+        return WorkflowUtil.getSource( node );
     }
     
     /**
@@ -81,7 +80,7 @@ public class WorkflowVelocityHelper
      */
     public String getType(Node n)
     {
-        return WDLUtil.getType( n );
+        return WorkflowUtil.getType( n );
     }
 
     /**
@@ -94,32 +93,32 @@ public class WorkflowVelocityHelper
     
     public Map<String, String> getRequirements(Compartment c)
     {
-        return WDLUtil.getRequirements( c );
+        return WorkflowUtil.getRequirements( c );
     }
 
     public Map<String, String> getHints(Compartment c)
     {
-        return WDLUtil.getHints( c );
+        return WorkflowUtil.getHints( c );
     }
 
     public Map<String, String> getRuntime(Compartment c)
     {
-        return WDLUtil.getRuntime( c );
+        return WorkflowUtil.getRuntime( c );
     }
     
     public Map<String, String> getMeta(Compartment c)
     {
-        return WDLUtil.getMeta( c );
+        return WorkflowUtil.getMeta( c );
     }
     
     public Map<String, String> getParametersMeta(Compartment c)
     {
-        return WDLUtil.getParameterMeta( c );
+        return WorkflowUtil.getParameterMeta( c );
     }
     
     public String getCommand(Compartment c)
     {
-        return WDLUtil.getCommand( c );
+        return WorkflowUtil.getCommand( c );
     }
     
     public String getDeclaration(Node n)
@@ -140,86 +139,86 @@ public class WorkflowVelocityHelper
 
     public List<Node> getOrderedInputs(Compartment c)
     {
-        return WDLUtil.getOrderedInputs( c );
+        return WorkflowUtil.getOrderedInputs( c );
     }
 
     public List<Node> getOutputs(Compartment c)
     {
-        return WDLUtil.getOutputs( c );
+        return WorkflowUtil.getOutputs( c );
     }
     
     public List<Node> getExternalParameters()
     {
-        return WDLUtil.getExternalParameters( diagram );
+        return WorkflowUtil.getExternalParameters( diagram );
     }
 
     public List<Node> getExternalOutputs()
     {
-        return WDLUtil.getExternalOutputs( diagram );
+        return WorkflowUtil.getExternalOutputs( diagram );
     }
     
     public String getTaskRef(Compartment c)
     {
-        return WDLUtil.getTaskRef( c );
+        return WorkflowUtil.getTaskRef( c );
     }
     
     public String getImportedDiagram(Compartment call)
     {
-        return WDLUtil.getDiagramRef( call );
+        return WorkflowUtil.getDiagramRef( call );
     }
 
     public String getCycleVariable(Compartment c)
     {
-        return WDLUtil.getCycleVariable( c );
+        return WorkflowUtil.getCycleVariable( c );
     }
 
     public String getCycleName(Compartment c)
     {
-        return WDLUtil.getCycleName( c );
+        return WorkflowUtil.getCycleName( c );
     }
 
     public boolean isCall(Node node)
     {
-        return WDLUtil.isCall( node );
+        return WorkflowUtil.isCall( node );
     }
 
     public boolean isCycle(Node node)
     {
-        return WDLUtil.isCycle( node );
+        return WorkflowUtil.isCycle( node );
     }
     
     public boolean isInsideCycle(Compartment call)
     {
-        return ! ( call instanceof Diagram ) && WDLUtil.isCycle( call.getCompartment() );
+        return ! ( call instanceof Diagram ) && WorkflowUtil.isCycle( call.getCompartment() );
     }
 
     public static boolean isExpression(Node node)
     {
-        return WDLUtil.isExpression( node ) && !WDLUtil.isExternalOutput( node );
+        return WorkflowUtil.isExpression( node ) && !WorkflowUtil.isExternalOutput( node );
     }
 
     public List<Node> orderCalls(Compartment compartment)
     {
-        return WDLUtil.orderCallsScatters( compartment );
+        return WorkflowUtil.orderCallsScatters( compartment );
     }
 
     public String getAlias(Compartment call)
     {
-        return WDLUtil.getAlias( call );
+        return WorkflowUtil.getAlias( call );
     }
 
     public String getExternalDiagramAlias(Compartment call)
     {
-        return WDLUtil.getExternalDiagramAlias( call );
+        return WorkflowUtil.getExternalDiagramAlias( call );
     }
 
     public Object getBeforeCommand(Compartment task)
     {
-        return WDLUtil.getBeforeCommand( task );
+        return WorkflowUtil.getBeforeCommand( task );
     }
 
     public ImportProperties[] getImports()
     {
-        return WDLUtil.getImports( diagram );
+        return WorkflowUtil.getImports( diagram );
     }
 }

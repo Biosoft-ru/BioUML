@@ -16,7 +16,7 @@ import org.apache.velocity.runtime.parser.node.SimpleNode;
 
 import biouml.model.Diagram;
 
-public abstract class WorkflowScriptGenerator
+public abstract class WorkflowTextGenerator
 {
     private Template velocityTemplate = null;
 

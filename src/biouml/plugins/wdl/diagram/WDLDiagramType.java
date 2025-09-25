@@ -10,7 +10,7 @@ import biouml.model.Diagram;
 import biouml.model.DiagramTypeSupport;
 import biouml.model.Edge;
 import biouml.model.Node;
-import biouml.plugins.wdl.WDLUtil;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.standard.type.Base;
 
 /**
@@ -47,7 +47,7 @@ public class WDLDiagramType extends DiagramTypeSupport
     public @Nonnull Diagram createDiagram(DataCollection<?> origin, String diagramName, Base kernel) throws Exception
     {
         Diagram d = super.createDiagram( origin, diagramName, kernel );
-        WDLUtil.setVersion( d, "1.2");
+        WorkflowUtil.setVersion( d, "1.2");
         return d;
     }
 

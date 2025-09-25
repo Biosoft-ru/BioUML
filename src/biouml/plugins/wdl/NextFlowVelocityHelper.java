@@ -33,7 +33,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public Node getCallByOutput(Node node)
     {
-        return node.edges().map( e -> e.getOtherEnd( node ) ).findAny( n -> WDLUtil.isCall( n ) ).orElse( null );
+        return node.edges().map( e -> e.getOtherEnd( node ) ).findAny( n -> WorkflowUtil.isCall( n ) ).orElse( null );
     }
 
     @Override
@@ -95,15 +95,15 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public String getVersion()
     {
-        return WDLUtil.getVersion( diagram );
+        return WorkflowUtil.getVersion( diagram );
     }
 
     public String getCycleName(Compartment c)
     {
-        Node cycleVarNode = WDLUtil.getCycleVariableNode( c );
+        Node cycleVarNode = WorkflowUtil.getCycleVariableNode( c );
         if( cycleVarNode == null )
             return null;
-        Node source = WDLUtil.getSource( cycleVarNode );
+        Node source = WorkflowUtil.getSource( cycleVarNode );
         if( source == null )
             return null;
         return getName( source );
@@ -127,19 +127,19 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public String getInputName(Node n)
     {
-        Node source = WDLUtil.getSource( n );
+        Node source = WorkflowUtil.getSource( n );
         if( source != null )
             n = source;
-        String name = WDLUtil.getName( n );
-        String type = WDLUtil.getType( n );
-        if( WDLUtil.isExternalParameter( n ) )
+        String name = WorkflowUtil.getName( n );
+        String type = WorkflowUtil.getType( n );
+        if( WorkflowUtil.isExternalParameter( n ) )
         {
             String result = name;
             if( "File".equals( type ) )
                 result = "channel.fromPath(" + result + ")";
             return result;
         }
-        if( WDLUtil.isCall( n.getCompartment() ) )
+        if( WorkflowUtil.isCall( n.getCompartment() ) )
             return getResultName( n.getCompartment() ) + "." + name;
         return name;
     }
@@ -149,7 +149,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      */
     public String getResultName(Compartment c)
     {
-        return "result_" + WDLUtil.getCallName( c );
+        return "result_" + WorkflowUtil.getCallName( c );
     }
 
     public String getInputName(Compartment call)
@@ -158,15 +158,15 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         if( inputs.isEmpty() )
             return "";
 
-        if( WDLUtil.isCycle( call.getCompartment() ) )
-            return "input_" + WDLUtil.getCallName( call );
+        if( WorkflowUtil.isCycle( call.getCompartment() ) )
+            return "input_" + WorkflowUtil.getCallName( call );
         else
-            return StreamEx.of( inputs ).map( n -> getFullName( WDLUtil.getSource( n ) ) ).joining( "," );
+            return StreamEx.of( inputs ).map( n -> getFullName( WorkflowUtil.getSource( n ) ) ).joining( "," );
     }
 
     public String getFullName(Node node)
     {
-        if( WDLUtil.isCall( node.getCompartment() ) )
+        if( WorkflowUtil.isCall( node.getCompartment() ) )
         {
             return getResultName( node.getCompartment() ) + "." + getName( node );
         }
@@ -182,7 +182,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         Set<Node> arrayInputs = getArrayDepenedantInputs( cycleVar, call );
         for( Node input : arrayInputs )
         {
-            String expression = WDLUtil.getExpression( input );
+            String expression = WorkflowUtil.getExpression( input );
             if( ( cycleVar.equals( expression ) ) )
                 sb.append( getName( input ) + " = " + cycleName );
             else
@@ -202,7 +202,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             Node source = getSource( input );
             String result = getCallEmit( input );
             if( result == null )
-                result = WDLUtil.getExpression( input );
+                result = WorkflowUtil.getExpression( input );
             if( result == null || result.isEmpty() )
                 result = "\"" + WDLConstants.NO_VALUE + "\"";
             if( source != null && isInsideCycle( source.getCompartment() ) )
@@ -270,10 +270,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     private String substituteVariables(String expression, Compartment process)
     {
         Map<String, String> replacements = new HashMap<>();
-        List<String> variables = WDLUtil.findVariables( expression );
+        List<String> variables = WorkflowUtil.findVariables( expression );
         for( String variable : variables )
         {
-            String variableExpression = WDLUtil.findExpression( variable, process );
+            String variableExpression = WorkflowUtil.findExpression( variable, process );
             if( variableExpression != null )
             {
                 replacements.put( "~{" + variable + "}", variableExpression );
@@ -321,17 +321,17 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public Compartment[] getImportedCalls()
     {
-        return WDLUtil.getAllCalls( diagram ).stream().filter( c -> WDLUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
+        return WorkflowUtil.getAllCalls( diagram ).stream().filter( c -> WorkflowUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
     }
 
     public String getImportedAlias(Compartment call)
     {
-        return WDLUtil.getCallName( call );
+        return WorkflowUtil.getCallName( call );
     }
 
     public String getCallName(Compartment call)
     {
-        return WDLUtil.getCallName( call );
+        return WorkflowUtil.getCallName( call );
     }
 
     public String writePrivateDeclaration(Declaration declaration)
@@ -352,7 +352,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public Set<Node> getArrayDepenedantInputs(String cycleVar, Compartment call)
     {
         Set<Node> result = new HashSet<>();
-        List<Node> inputs = WDLUtil.getInputs( call );
+        List<Node> inputs = WorkflowUtil.getInputs( call );
         for( Node input : inputs )
         {
             if( isArray( cycleVar, input ) )
@@ -363,15 +363,15 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public boolean isArray(String cycleVar, Node input)
     {
-        return input.edges().map( e -> e.getInput() ).anyMatch( n -> WDLUtil.isCycleVariable( n ) );
+        return input.edges().map( e -> e.getInput() ).anyMatch( n -> WorkflowUtil.isCycleVariable( n ) );
     }
 
     public String getExternalParamaterName(Node input)
     {
         String result = "params." + getName( input );
-        if( "File".equals( WDLUtil.getType( input ) ) )
+        if( "File".equals( WorkflowUtil.getType( input ) ) )
             return "file(" + result + ")";
-        else if( WDLUtil.getType( input ).contains( "Array" ) )
+        else if( WorkflowUtil.getType( input ).contains( "Array" ) )
             return "createChannelIfNeeded(" + result + ").flatten()";
         else
             return result;
@@ -379,7 +379,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public boolean isNotEmpty()
     {
-        return !WDLUtil.getAllCalls( diagram ).isEmpty();
+        return !WorkflowUtil.getAllCalls( diagram ).isEmpty();
     }
 
     public boolean isEntryScript()

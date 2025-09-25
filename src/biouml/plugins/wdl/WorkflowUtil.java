@@ -14,9 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.developmentontheedge.application.ApplicationUtils;
-import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
-import com.developmentontheedge.beans.Option;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -33,7 +31,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 
-public class WDLUtil
+public class WorkflowUtil
 {
 
     public static boolean isOfType(String type, DiagramElement de)
@@ -413,7 +411,7 @@ public class WDLUtil
             String[] parts = name.split( "\\." );
             String call = parts[0];
             String varName = parts[1];
-            Compartment callNode = WDLUtil.findCall( call, diagram );
+            Compartment callNode = WorkflowUtil.findCall( call, diagram );
             if( callNode == null )
                 return null;
             Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
@@ -571,58 +569,6 @@ public class WDLUtil
         }
     }
 
-    public static class ImportProperties extends Option
-    {
-        private DataElementPath source;
-        private String alias;
-
-        public ImportProperties()
-        {
-
-        }
-
-        public ImportProperties(DataElementPath source, String alias)
-        {
-            this.alias = alias;
-            this.source = source;
-        }
-        public DataElementPath getSource()
-        {
-            return source;
-        }
-        public String getSourceName()
-        {
-            return source.getName();
-        }
-        public void setSource(DataElementPath source)
-        {
-            this.source = source;
-        }
-        public String getAlias()
-        {
-            return alias;
-        }
-        public void setAlias(String alias)
-        {
-            this.alias = alias;
-        }
-    }
-
-    public static class ImportPropertiesBeanInfo extends BeanInfoEx
-    {
-        public ImportPropertiesBeanInfo()
-        {
-            super( ImportProperties.class );
-        }
-
-        @Override
-        protected void initProperties() throws Exception
-        {
-            add( "source" );
-            add( "alias" );
-        }
-    }
-
     public static void addImport(Diagram diagram, Diagram source, String alias)
     {
         DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
@@ -635,7 +581,7 @@ public class WDLUtil
 
         for( ImportProperties ip : value )
         {
-            if( ip.alias.equals( alias ) && ip.source.toString().equals( source.getCompletePath().toString() ) )
+            if( ip.getAlias().equals( alias ) && ip.getSource().toString().equals( source.getCompletePath().toString() ) )
                 return;
         }
         ImportProperties[] newValue = new ImportProperties[value.length + 1];

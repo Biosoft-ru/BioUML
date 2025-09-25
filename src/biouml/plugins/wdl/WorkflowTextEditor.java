@@ -43,9 +43,9 @@ import ru.biosoft.gui.GUI;
 import ru.biosoft.util.TempFiles;
 
 @SuppressWarnings ( "serial" )
-public class WDLEditor extends EditorPartSupport
+public class WorkflowTextEditor extends EditorPartSupport
 {
-    private static final Logger log = Logger.getLogger( WDLEditor.class.getName() );
+    private static final Logger log = Logger.getLogger( WorkflowTextEditor.class.getName() );
 
     private JTabbedPane tabbedPane;
     private JSplitPane splitPane;
@@ -75,7 +75,7 @@ public class WDLEditor extends EditorPartSupport
 
     String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
 
-    public WDLEditor()
+    public WorkflowTextEditor()
     {
         tabbedPane = new JTabbedPane( SwingConstants.LEFT );
         add( BorderLayout.CENTER, tabbedPane );
@@ -285,7 +285,7 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                WDLRunner.runNextFlow( diagram, WDLEditor.this.getNextFlow(),  settings, outputDir, System.getProperty("os.name").startsWith("Windows") );
+                NextFlowRunner.runNextFlow( diagram, WorkflowTextEditor.this.getNextFlow(),  settings, outputDir, System.getProperty("os.name").startsWith("Windows") );
             }
             catch (Exception ex)
             {

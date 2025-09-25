@@ -2,7 +2,7 @@ package biouml.plugins.wdl;
 
 import biouml.model.Diagram;
 
-public class NextFlowGenerator extends WorkflowScriptGenerator
+public class NextFlowGenerator extends WorkflowTextGenerator
 {
     private static String TEMPLATE_PATH = "resources/nextflow.vm";
     private static String TEMPLATE_NAME = "Next Flow template";
