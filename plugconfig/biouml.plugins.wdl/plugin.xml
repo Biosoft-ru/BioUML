@@ -4,25 +4,6 @@
   <extension point="biouml.workbench.diagramType">
 		<diagramType class="biouml.plugins.wdl.diagram.WDLDiagramType" />
   </extension>
-  
-  <extension point="ru.biosoft.access.transformer"> 
-      <transformer name="WDL script" inputClass="ru.biosoft.access.file.FileDataElement"
-        outputClass="biouml.plugins.wdl.WDLScript" transformerClass="biouml.plugins.wdl.WDLScriptTransformer"/> 
-  </extension>
-
-  <extension point="ru.biosoft.access.scriptType">
-  	<scriptType type="WDL" title="WDL script" product="WDL" class="biouml.plugins.wdl.WDLScript" lexer="com.Ostermiller.Syntax.Lexer.JavaScriptLexer" />
-  </extension>
-
-  <extension point="ru.biosoft.access.elementAction"> 
-     <action name="New WDL script" class="biouml.plugins.wdl.NewWDLScriptAction" priority="10">
-        <property name="Name" value="New WDL script"/>
-        <property name="ShortDescription" value="Create a new WDL script document"/>
-        <property name="LongDescription" value="Create a new WDL script document"/>
-        <property name="SmallIcon" value="wdl-script.gif"/>
-        <property name="ActionCommandKey" value="cmd-new-wdlscript"/>
-     </action>
-  </extension>
 
   <extension point="ru.biosoft.server.servlets.webProvider">
     <provider prefix="wdl" class="biouml.plugins.wdl.web.WDLWebProvider"/>
