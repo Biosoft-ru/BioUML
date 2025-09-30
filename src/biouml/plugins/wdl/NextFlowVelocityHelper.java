@@ -329,10 +329,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return WorkflowUtil.getCallName( call );
     }
 
-    public String getCallName(Compartment call)
-    {
-        return WorkflowUtil.getCallName( call );
-    }
+
 
     public String writePrivateDeclaration(Declaration declaration)
     {

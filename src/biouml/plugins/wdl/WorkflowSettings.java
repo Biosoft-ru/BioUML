@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
 
+import org.json.JSONObject;
+import org.mozilla.javascript.json.JsonParser;
+
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.DynamicPropertySetSupport;
@@ -55,6 +58,26 @@ public class WorkflowSettings extends Option
             {
                 DataCollection dc = de.getOrigin();
                 String content = ( (TextDataElement)de ).getContent();
+                JSONObject map = new JSONObject( content );
+                for (String name: map.keySet())
+                {
+                    Object object = map.get( name );
+                    if (object instanceof JSONObject)
+                    {
+                        Object cls = ((JSONObject)object).get("class");
+                        if (cls.equals( "File" ))
+                        {
+                            Object path = ((JSONObject)object).get("path");
+                            DataElement parameterDe = dc.get( path.toString() );
+                            if( parameterDe != null )
+                            {
+                                System.out.println( "Exporting " + path.toString());
+                                WorkflowUtil.export( parameterDe, new File( outputDir ) );
+                            }
+                        }
+                        
+                    }
+                }
                 String[] parameters = content.replace( "{", "" ).replace( "}", "" ).replace( "\"", "" ).split( "," );
                 for( String parameter : parameters )
                 {
@@ -111,6 +134,19 @@ public class WorkflowSettings extends Option
                 bw.write( "\"" + dp.getName() + "\"" + " : " + value + "\n" );
             }
             bw.write( "}\n" );
+        }
+        return json;
+    }
+
+    public File generateParametersJSON2(String outputDir) throws Exception
+    {
+        File json = new File( outputDir, "parameters.json" );
+        if( isUseJson() )
+        {
+            DataElement de = getJson().getDataElement();
+            FileExporter exporter = new FileExporter();
+            exporter.doExport( de, json );
+            return json;
         }
         return json;
     }

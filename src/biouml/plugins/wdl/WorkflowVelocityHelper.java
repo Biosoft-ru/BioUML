@@ -162,6 +162,11 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.getTaskRef( c );
     }
     
+    public String getCallName(Compartment call)
+    {
+        return WorkflowUtil.getCallName( call );
+    }
+    
     public String getImportedDiagram(Compartment call)
     {
         return WorkflowUtil.getDiagramRef( call );
@@ -221,4 +226,6 @@ public class WorkflowVelocityHelper
     {
         return WorkflowUtil.getImports( diagram );
     }
+    
+    
 }

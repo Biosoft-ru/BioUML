@@ -7,6 +7,11 @@ public class CWLGenerator extends WorkflowTextGenerator
     private static String TEMPLATE_PATH = "resources/cwl.vm";
     private static String TEMPLATE_NAME = "CWL template";
   
+    public CWLGenerator()
+    {
+        
+    }
+    
     @Override
     public String getTemplateName()
     {

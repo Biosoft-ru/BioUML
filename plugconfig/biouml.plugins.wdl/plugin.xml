@@ -20,7 +20,7 @@
    <extension id="WDL" point="biouml.workbench.diagramViewPart">
 	  <diagramViewPart
 	      editor="true"
-	      class="biouml.plugins.wdl.WDLEditor"
+	      class="biouml.plugins.wdl.WorkflowTextEditor"
 	      id="diagram.wdl"
 	      Name="WDL"
 	      ShortDescription="WDL"
