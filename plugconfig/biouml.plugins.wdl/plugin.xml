@@ -32,5 +32,9 @@
    <extension point="ru.biosoft.access.beans">
     <provider class="biouml.plugins.wdl.web.WDLSettingsBeanProvider" prefix="wdlsettings"/>
   </extension>
+  
+  <extension id="ModelAnalysis" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.wdl.analysis.RunWDLAnalysis" group="Workflow utils" name="Run WDL analysis"  description="Executes WDL"/> 
+  </extension>
 </plugin>
 
