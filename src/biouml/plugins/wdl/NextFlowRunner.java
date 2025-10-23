@@ -1,8 +1,10 @@
 package biouml.plugins.wdl;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
@@ -18,7 +20,6 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.TextFileImporter;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.util.StreamGobbler;
 
 public class NextFlowRunner
 {
@@ -34,7 +35,8 @@ public class NextFlowRunner
     }
 
 
-    public static String runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
+    public static String runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl)
+            throws Exception
     {
         if( settings.getOutputPath() == null )
             throw new InvalidParameterException( "Output path not specified" );
@@ -66,7 +68,8 @@ public class NextFlowRunner
         if( useWsl )
         {
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-            builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file", json.getName() );
+            builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
+                    json.getName() );
         }
         else
         {
@@ -75,72 +78,72 @@ public class NextFlowRunner
         }
 
         Process process = builder.start();
-        
-        //        new Thread( new Runnable()
-        //                        {
-        //                            public void run()
-        //                            {
-        //                                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-        //                                String line = null;
-        //                
-        //                                try
-        //                                {
-        //                                    while( ( line = input.readLine() ) != null )
-        //                                        log.info( line );
-        //                                }
-        //                                catch( IOException e )
-        //                                {
-        //                                    e.printStackTrace();
-        //                                }
-        //                                //                
-        //                                //for some reason cwl-runner outputs everything into error stream
-        //                                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-        //                                line = null;
-        //                
-        //                                try
-        //                                {
-        //                                    while( ( line = err.readLine() ) != null )
-        //                                        log.info( line );
-        //                                }
-        //                                catch( IOException e )
-        //                                {
-        //                                    e.printStackTrace();
-        //                                }
-        //                            }
-        //                        } ).start();
-        //                
-        //process.waitFor();
-        //importResults( diagram, settings, outputDir );
 
-        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
-        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
+        new Thread( new Runnable()
+        {
+            public void run()
+            {
+                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+                String line = null;
+
+                try
+                {
+                    while( ( line = input.readLine() ) != null )
+                        log.info( line );
+                }
+                catch( IOException e )
+                {
+                    e.printStackTrace();
+                }
+                //                
+                //for some reason cwl-runner outputs everything into error stream
+                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
+                line = null;
+
+                try
+                {
+                    while( ( line = err.readLine() ) != null )
+                        log.info( line );
+                }
+                catch( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        } ).start();
+
         process.waitFor();
-
-        if( process.exitValue() == 0 )
-        {
-            String logString = "";
-            String outStr = inputReader.getData();
-            if( !outStr.isEmpty() )
-            {
-                logString += outStr;
-                log.info( outStr );
-            }
-            //for some reason cwl-runner outputs everything into error stream
-            String errorStr = errorReader.getData();
-            if( !errorStr.isEmpty() )
-            {
-                logString += errorStr;
-                log.info( errorStr );
-            }
-            importResults( diagram, settings, outputDir );
-            return logString;
-        }
-        else
-        {
-            String errorStr = errorReader.getData();
-            log.info( errorStr );
-            throw new Exception( "Nextflow executed with error: " + errorStr );
-        }
+        importResults( diagram, settings, outputDir );
+        return "";
+        //        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
+        //        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
+        //        process.waitFor();
+        //
+        //        if( process.exitValue() == 0 )
+        //        {
+        //            String logString = "";
+        //            String outStr = inputReader.getData();
+        //            if( !outStr.isEmpty() )
+        //            {
+        //                logString += outStr;
+        //                log.info( outStr );
+        //            }
+        //            //for some reason cwl-runner outputs everything into error stream
+        //            String errorStr = errorReader.getData();
+        //            if( !errorStr.isEmpty() )
+        //            {
+        //                logString += errorStr;
+        //                log.info( errorStr );
+        //            }
+        //            importResults( diagram, settings, outputDir );
+        //            return logString;
+        //        }
+        //        else
+        //        {
+        //            String errorStr = errorReader.getData();
+        //            log.info( errorStr );
+        //            throw new Exception( "Nextflow executed with error: " + errorStr );
+        //        }
 
     }
 
@@ -150,9 +153,9 @@ public class NextFlowRunner
             return;
         DataCollection dc = settings.getOutputPath().getDataCollection();
 
-        for ( Compartment n : WorkflowUtil.getAllCalls( diagram ) )
+        for( Compartment n : WorkflowUtil.getAllCalls( diagram ) )
         {
-            if (WorkflowUtil.getDiagramRef( n ) != null)
+            if( WorkflowUtil.getDiagramRef( n ) != null )
             {
                 String ref = WorkflowUtil.getDiagramRef( n );
                 Diagram externalDiagram = (Diagram)diagram.getOrigin().get( ref );
@@ -160,7 +163,7 @@ public class NextFlowRunner
                 continue;
             }
             String taskRef = WorkflowUtil.getTaskRef( n );
-            String folderName = (taskRef);
+            String folderName = ( taskRef );
             File folder = new File( outputDir, folderName );
             if( !folder.exists() || !folder.isDirectory() )
             {
@@ -168,7 +171,7 @@ public class NextFlowRunner
                 continue;
             }
             DataCollection nested = DataCollectionUtils.createSubCollection( dc.getCompletePath().getChildPath( folderName ) );
-            for ( File f : folder.listFiles() )
+            for( File f : folder.listFiles() )
             {
                 TextFileImporter importer = new TextFileImporter();
                 importer.doImport( nested, f, f.getName(), null, log );
@@ -178,10 +181,10 @@ public class NextFlowRunner
 
     public static void exportIncludes(Diagram diagram, String outputDir) throws Exception
     {
-        for ( Diagram d : getIncludes( diagram))
+        for( Diagram d : getIncludes( diagram ) )
             WorkflowUtil.export( d, new File( outputDir ) );
     }
-    
+
     public static Set<Diagram> getIncludes(Diagram diagram)
     {
         Set<Diagram> result = StreamEx.of( WorkflowUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() )
