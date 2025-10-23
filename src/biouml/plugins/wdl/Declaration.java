@@ -16,7 +16,7 @@ public class Declaration
         this.name = name;
         this.expression = expression;
     }
-    
+
     public Declaration()
     {
     }
@@ -25,7 +25,8 @@ public class Declaration
     {
         type = ast.getType();
         name = ast.getName();
-        expression = ast.getExpression().toString();
+        if( ast.getExpression() != null )
+            expression = ast.getExpression().toString();
     }
 
     public String toString()
