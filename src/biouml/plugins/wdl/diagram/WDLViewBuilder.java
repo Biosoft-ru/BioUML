@@ -97,6 +97,10 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         {
             return createCycleVariableCoreView( container, node, diagramViewOptions, g );
         }
+        else if( WDLConstants.STRUCT_TYPE.equals( type ) )
+        {
+            return createStructView( container, node, diagramViewOptions, g );
+        }
         return super.createNodeCoreView( container, node, viewOptions, g );
     }
 
@@ -191,6 +195,23 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         return false;
     }
 
+    protected boolean createStructView(CompositeView container, Node node, WDLViewOptions viewOptions, Graphics g)
+    {
+        Dimension size = node.getShapeSize();
+
+        View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( node.getTitle() ), viewOptions.getDefaultFont(),
+                viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
+        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
+        Brush nodeBrush = fillNodeBrush( node, viewOptions.getStructBrush() );
+        BoxView view = new BoxView( viewOptions.getAnalysisPen(), nodeBrush, roundRect );
+        view.setLocation( node.getLocation() );
+        view.setModel( node );
+        container.add( view );
+        container.add( text, CompositeView.X_CC | CompositeView.Y_CC );
+        container.setActive( true );
+        return false;
+    }
+    
     protected boolean createTaskView(CompositeView container, Compartment compartment, WDLViewOptions viewOptions, Graphics g)
     {
         Dimension size = compartment.getShapeSize();

@@ -20,6 +20,7 @@ public class WDLViewOptions extends DiagramViewOptions
 {
     private Brush outputBrush;
     private Pen outputPen;
+    private Brush structBrush = new Brush(Color.white);
     
     public WDLViewOptions(Option parent)
     {
@@ -39,6 +40,19 @@ public class WDLViewOptions extends DiagramViewOptions
         setParameterBrush( new Brush(new Color(169, 237, 138), new Color(218, 250, 201)) );
         setParameterPen( new Pen(1, new Color(60, 160, 6)) );
         setNotificationEnabled( true );
+    }
+    
+    @PropertyName("Struct brush")
+    @PropertyDescription("Struct brush")
+    public Brush getStructBrush()
+    {
+        return structBrush;
+    }
+    public void setSmallFont(Brush structBrush)
+    {
+        Brush oldValue = this.structBrush;
+        this.structBrush = structBrush;
+        firePropertyChange("structBrush", oldValue, structBrush);
     }
 
     protected ColorFont smallFont;

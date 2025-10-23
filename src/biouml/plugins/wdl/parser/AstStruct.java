@@ -2,17 +2,36 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.wdl.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AstStruct extends AstScope
 {
     String name;
     public AstStruct(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstStruct(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public List<AstDeclaration> getDeclarations()
+    {
+        List<AstDeclaration> declarations = new ArrayList<>();
+        for( Node child : this.getChildren() )
+        {
+            if( child instanceof AstDeclaration )
+                declarations.add( (AstDeclaration)child );
+        }
+        return declarations;
     }
 
     @Override

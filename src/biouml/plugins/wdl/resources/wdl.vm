@@ -12,6 +12,14 @@
 #if($velocityCount < $list.size()),#end
 #end
 #######################################################################################
+#macro(struct $struct)
+${BR}struct $struct.getName() {
+#foreach($declaration in $helper.getStructMembers($struct))
+$declaration.getType() $declaration.getName()
+#end
+}
+#end
+#######################################################################################
 #macro(call $call)
 #set ($diagramAlias = $helper.getExternalDiagramAlias($call) ) 
   call #if($diagramAlias)$diagramAlias.#end$helper.getTaskRef($call) #if($helper.getAlias($call)) as $helper.getAlias($call)#end {
@@ -35,10 +43,15 @@
   $helper.getType($expression) $helper.getName($expression) = $helper.getExpression($expression)
 #end 
 #######################################################################################
+#########################################START#########################################
+#######################################################################################
 version $helper.getVersion()$BR
 #######################################################################################
 #foreach ($import in $helper.getImports())
 import "$import.getSourceName()" as $import.getAlias()
+#end$BR
+#foreach ($struct in $helper.getStructs())
+#struct($struct)
 #end$BR
 #######################################################################################
 #######################################TASKS###########################################

@@ -38,6 +38,7 @@ import biouml.plugins.wdl.parser.AstOutput;
 import biouml.plugins.wdl.parser.AstRegularFormulaElement;
 import biouml.plugins.wdl.parser.AstScatter;
 import biouml.plugins.wdl.parser.AstStart;
+import biouml.plugins.wdl.parser.AstStruct;
 import biouml.plugins.wdl.parser.AstSymbol;
 import biouml.plugins.wdl.parser.AstTask;
 import biouml.plugins.wdl.parser.AstVersion;
@@ -207,6 +208,10 @@ public class WDLImporter implements DataElementImporter
             {
                 createTaskNode( diagram, (AstTask)n );
             }
+            else if( n instanceof AstStruct )
+            {
+                createStruct( diagram, (AstStruct)n );
+            }
         }
 
         for( int i = 0; i < start.jjtGetNumChildren(); i++ )
@@ -253,6 +258,21 @@ public class WDLImporter implements DataElementImporter
 
         createLinks( diagram );
         return diagram;
+    }
+
+    public Node createStruct(Compartment parent, AstStruct astStruct) throws Exception
+    {
+        String name = astStruct.getName();
+        Stub kernel = new Stub( null, name, WDLConstants.STRUCT_TYPE );
+        Node node = new Node( parent, name, kernel );
+        node.setTitle( name );
+        node.setShapeSize( new Dimension( 50, 50 ) );
+        parent.put( node );
+
+        List<AstDeclaration> astDeclarations = astStruct.getDeclarations();
+        Declaration[] declarations = StreamEx.of( astDeclarations ).map( ast->new Declaration(ast) ).toArray(Declaration[]::new);
+        WorkflowUtil.setStructMembers( node, declarations );
+        return node;
     }
 
     public void createImport(Diagram diagram, AstImport astImport) throws Exception
