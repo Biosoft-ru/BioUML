@@ -3,10 +3,11 @@ package biouml.plugins.wdl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONObject;
-import org.mozilla.javascript.json.JsonParser;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
@@ -28,6 +29,11 @@ public class WorkflowSettings extends Option
     private boolean useJson = false;
     private DataElementPath json;
     private DynamicPropertySet parameters = new DynamicPropertySetSupport();
+    
+    public static String NEXTFLOW_TYPE = "Nextflow";
+    public static String CWL_TYPE = "CWL";
+    
+    private String executionType = NEXTFLOW_TYPE;
 
     public void initParameters(Diagram diagram)
     {
@@ -49,6 +55,26 @@ public class WorkflowSettings extends Option
         }
     }
 
+    public static Set<String> getFileInputs(String json)
+    {
+        Set<String> result = new HashSet<>();
+        JSONObject map = new JSONObject( json );
+        for( String name : map.keySet() )
+        {
+            Object object = map.get( name );
+            if( object instanceof JSONObject )
+            {
+                Object cls = ( (JSONObject)object ).get( "class" );
+                if( cls.equals( "File" ) )
+                {
+                    Object path = ( (JSONObject)object ).get( "path" );
+                    result.add( path.toString() );
+                }
+            }
+        }
+        return result;
+    }
+
     public void exportCollections(String outputDir) throws Exception
     {
         if( useJson )
@@ -58,26 +84,18 @@ public class WorkflowSettings extends Option
             {
                 DataCollection dc = de.getOrigin();
                 String content = ( (TextDataElement)de ).getContent();
-                JSONObject map = new JSONObject( content );
-                for (String name: map.keySet())
+                
+                Set<String> fileInputs = getFileInputs(content);
+                for (String fileInput: fileInputs)
                 {
-                    Object object = map.get( name );
-                    if (object instanceof JSONObject)
+                    DataElement parameterDe = dc.get( fileInput );
+                    if( parameterDe != null )
                     {
-                        Object cls = ((JSONObject)object).get("class");
-                        if (cls.equals( "File" ))
-                        {
-                            Object path = ((JSONObject)object).get("path");
-                            DataElement parameterDe = dc.get( path.toString() );
-                            if( parameterDe != null )
-                            {
-                                System.out.println( "Exporting " + path.toString());
-                                WorkflowUtil.export( parameterDe, new File( outputDir ) );
-                            }
-                        }
-                        
+                        System.out.println( "Exporting " +fileInput );
+                        WorkflowUtil.export( parameterDe, new File( outputDir ) );
                     }
                 }
+                
                 String[] parameters = content.replace( "{", "" ).replace( "}", "" ).replace( "\"", "" ).split( "," );
                 for( String parameter : parameters )
                 {
@@ -207,5 +225,18 @@ public class WorkflowSettings extends Option
         Object oldValue = this.json;
         this.json = json;
         firePropertyChange( "json", oldValue, json );
+    }
+
+    @PropertyName("Execution Type")
+    public String getExecutionType()
+    {
+        return executionType;
+    }
+
+    public void setExecutionType(String executionType)
+    {
+        Object oldValue = this.executionType;
+        this.executionType = executionType;
+        firePropertyChange( "executionType", oldValue, executionType );
     }
 }
