@@ -1,12 +1,14 @@
 package biouml.plugins.wdl;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import biouml.model.Compartment;
 import biouml.model.Diagram;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
@@ -18,17 +20,64 @@ public class CWLRunner
 
     private static final Logger log = Logger.getLogger( CWLRunner.class.getName() );
 
-    public static void runNextFlow(Diagram diagram, String cwl, WorkflowSettings settings, String outputDir, boolean useWsl)
-            throws Exception
+
+    public static Process run(String fileName, String parametersName, String outputDir, boolean useWsl) throws IOException
+    {
+        List<String> commands = new ArrayList<>();
+        if( useWsl )
+        {
+            String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
+            commands.add( "wsl" );
+            commands.add( "--cd" );
+            commands.add( parent );
+        }
+        commands.add( "cwltool" );
+        commands.add( "--outdir" );
+        commands.add( "./cwl_results" );
+        commands.add( fileName );
+        if( parametersName != null )
+            commands.add( parametersName );
+
+        ProcessBuilder builder = new ProcessBuilder( commands.toArray( String[]::new ) );
+
+        if( !useWsl )
+            builder.directory( new File( outputDir ) );
+
+        return builder.start();
+    }
+
+    public static void logProcess(Process process) throws Exception
+    {
+        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
+        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
+        process.waitFor();
+
+        if( process.exitValue() == 0 )
+        {
+            String outStr = inputReader.getData();
+            if( !outStr.isEmpty() )
+                log.info( outStr );
+            //for some reason cwl-runner outputs everything into error stream
+            String errorStr = errorReader.getData();
+            if( !errorStr.isEmpty() )
+                log.info( errorStr );
+        }
+        else
+        {
+            //for some reason cwl-runner outputs everything into error stream
+            String errorStr = errorReader.getData();
+            log.info( errorStr );
+            throw new Exception( "CWL executed with error: " + errorStr );
+        }
+    }
+
+    public static void run(Diagram diagram, String cwl, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
     {
         if( settings.getOutputPath() == null )
             throw new InvalidParameterException( "Output path not specified" );
 
         new File( outputDir ).mkdirs();
         DataCollectionUtils.createSubCollection( settings.getOutputPath() );
-
-        //        File config = new File( outputDir, "nextflow.config" );
-        //        ApplicationUtils.writeString( config, "docker.enabled = true" );
 
         File json = settings.generateParametersJSON2( outputDir );
 
@@ -41,19 +90,7 @@ public class CWLRunner
         File f = new File( outputDir, name + ".cwl" );
         ApplicationUtils.writeString( f, cwl );
 
-        ProcessBuilder builder;
-        //        if( useWsl )
-        //        {
-        String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-        builder = new ProcessBuilder( "wsl", "--cd", parent, "cwltool", "--outdir", "./cwl_results", f.getName(), json.getName() );
-        //        }
-        //        else
-        //        {
-        //            builder = new ProcessBuilder( "nextflow", f.getName(), "-c", "nextflow.config", "-params-file", json.getName() );
-        //            builder.directory( new File( outputDir ) );
-        //        }
-
-        Process process = builder.start();
+        Process process = run( f.getName(), json.getName(), outputDir, useWsl );
 
         //        new Thread( new Runnable()
         //        {
@@ -104,7 +141,7 @@ public class CWLRunner
             String errorStr = errorReader.getData();
             if( !errorStr.isEmpty() )
                 log.info( errorStr );
-            importResults( diagram, settings, outputDir );
+            importResults( settings, outputDir );
         }
         else
         {
@@ -113,38 +150,24 @@ public class CWLRunner
             log.info( errorStr );
             throw new Exception( "Nextflow executed with error: " + errorStr );
         }
-
     }
 
-    public static void importResults(Diagram diagram, WorkflowSettings settings, String outputDir) throws Exception
+    public static void importResults(WorkflowSettings settings, String outputDir) throws Exception
     {
         if( settings.getOutputPath() == null )
             return;
         DataCollection dc = settings.getOutputPath().getDataCollection();
 
-        //        for ( Compartment n : WorkflowUtil.getAllCalls( diagram ) )
-        //        {
-        //            if( WorkflowUtil.getDiagramRef( n ) != null )
-        //            {
-        //                String ref = WorkflowUtil.getDiagramRef( n );
-        //                Diagram externalDiagram = (Diagram) diagram.getOrigin().get( ref );
-        //                importResults( externalDiagram, settings, outputDir );
-        //                continue;
-        //            }
-        //            String taskRef = WorkflowUtil.getTaskRef( n );
-        //            String folderName = (taskRef);
         File folder = new File( outputDir, "cwl_results" );
         if( !folder.exists() || !folder.isDirectory() )
         {
             log.info( "No results found" );
             return;
         }
-        //            DataCollection nested = DataCollectionUtils.createSubCollection( dc.getCompletePath().getChildPath( folderName ) );
         for( File f : folder.listFiles() )
         {
             String data = ApplicationUtils.readAsString( f );
             dc.put( new TextDataElement( f.getName(), dc, data ) );
         }
-        //        }
     }
 }
