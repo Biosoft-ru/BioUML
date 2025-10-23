@@ -36,6 +36,14 @@ public class WorkflowVelocityHelper
     }
     
     /**
+     * @return  list of all nodes corresponding to workflow structs
+     */
+    public List<Node> getStructs()
+    {
+        return WorkflowUtil.getStructs( diagram );
+    }
+    
+    /**
      * @return  list of all compartments corresponding to workflow tasks
      */
     public List<Compartment> getTasks()
@@ -225,7 +233,10 @@ public class WorkflowVelocityHelper
     public ImportProperties[] getImports()
     {
         return WorkflowUtil.getImports( diagram );
+    }  
+
+    public Declaration[] getStructMembers(Node node)
+    {
+        return WorkflowUtil.getStructMembers( node );
     }
-    
-    
 }

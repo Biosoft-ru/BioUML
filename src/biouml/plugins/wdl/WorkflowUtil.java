@@ -43,6 +43,11 @@ public class WorkflowUtil
     {
         return isOfType( WDLConstants.TASK_TYPE, node );
     }
+    
+    public static boolean isStruct(Node node)
+    {
+        return isOfType( WDLConstants.STRUCT_TYPE, node );
+    }
 
     public static boolean isCall(Node node)
     {
@@ -92,6 +97,10 @@ public class WorkflowUtil
     public static List<Compartment> getTasks(Compartment c)
     {
         return c.stream( Compartment.class ).filter( n -> isTask( n ) ).toList();
+    }
+    public static List<Node> getStructs(Compartment c)
+    {
+        return c.stream( Node.class ).filter( n -> isStruct( n ) ).toList();
     }
 
     public static List<Compartment> getCycles(Compartment c)
@@ -707,5 +716,18 @@ public class WorkflowUtil
             if( otherPos > position )
                 setPosition( otherInput, otherPos - 1 );
         }
+    }
+    
+    public static void setStructMembers(Node node, Declaration[] declarations)
+    {
+        node.getAttributes().add( new DynamicProperty( WDLConstants.STRUCT_MEMBERS_ATTR, Declaration[].class, declarations ) );
+    }
+    
+    public static Declaration[] getStructMembers(Node node)
+    {
+       Object declarations = node.getAttributes().getValue( WDLConstants.STRUCT_MEMBERS_ATTR );
+       if (declarations instanceof Declaration[])
+           return (Declaration[])declarations;
+       return new Declaration[0];
     }
 }
