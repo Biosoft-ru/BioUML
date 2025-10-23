@@ -1,11 +1,13 @@
 package biouml.plugins.physicell.document;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.physicell.ui.ModelData;
 
 public class ViewOptions extends Option
@@ -15,6 +17,7 @@ public class ViewOptions extends Option
     private boolean statistics = true;
     private int statisticsX = 10;
     private int statisticsY = 40;
+    private ColorFont statisticsFont =  new ColorFont( "TimesRoman", Font.PLAIN, 20 );
     private boolean statisticsBackground = false;
     private int maxTime;
     private int time;
@@ -158,6 +161,19 @@ public class ViewOptions extends Option
         int oldValue = this.statisticsY;
         this.statisticsY = statisticsY;
         this.firePropertyChange( "statisticsY", oldValue, statisticsY );
+    }
+    
+    @PropertyName("Statistics Font")
+    public ColorFont getStatisticsFont()
+    {
+        return statisticsFont;
+    }
+
+    public void setStatisticsFont(ColorFont statisticsFont)
+    {
+        ColorFont oldValue = this.statisticsFont;
+        this.statisticsFont = statisticsFont;
+        this.firePropertyChange( "statisticsFont", oldValue, statisticsFont );
     }
     
     @PropertyName("Result video path")

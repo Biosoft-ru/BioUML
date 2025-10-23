@@ -1,6 +1,7 @@
 package biouml.plugins.physicell.document;
 
 import one.util.streamex.StreamEx;
+import ru.biosoft.graphics.editor.FontEditor;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
@@ -26,11 +27,10 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         property( "substrate" ).tags(bean -> StreamEx.of(bean.getSubstrates()) ).add();
         add( "drawDensity" );
         add("densityColor");
-//        add("maxDensity");
         add("statisticsX");
         add("statisticsY");
+        add("StatisticsFont", FontEditor.class );
         add("statisticsBackground");
-        //add("saveResult");
         add("fps");
         add("result");
     }

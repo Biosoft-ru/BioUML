@@ -54,7 +54,8 @@ public class StateVisualizer3D extends StateVisualizer
         renderer.setDensityState( densityState );
         renderer.setDrawDensity( options.isDrawDensity() );
         renderer.setSubstrate( options.getSubstrate() );
-        renderer.setStatisticsLOcation( new Point( options.getStatisticsX(), options.getStatisticsY() ) );
+        renderer.setStatisticsLocation( new Point( options.getStatisticsX(), options.getStatisticsY() ) );
+        renderer.setStatisticsFont(options.getStatisticsFont().getFont());
         renderer.setDensityX( options3D.isDensityX() );
         renderer.setDensityY( options3D.isDensityY() );
         renderer.setDensityZ( options3D.isDensityZ() );
