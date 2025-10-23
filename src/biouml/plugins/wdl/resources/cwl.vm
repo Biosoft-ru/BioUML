@@ -16,7 +16,7 @@
          in:
 #set ( $inputs = $helper.getOrderedInputs($step) )
 #foreach($input in $inputs)
-           $helper.getName($input): $helper.getExpression($input)
+           $helper.getName($input): $helper.getCleanExpression($input)
 #end
 #set ( $outputs = $helper.getOutputs($step) )    
          out: [#foreach($output in $outputs)$helper.getName($output)#comma($outputs)#end]
@@ -65,28 +65,40 @@ $BR#callCWL($n)
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 #set ($inputs = $helper.getOrderedInputs($task))
-$BR- class: CommandLineTool
-  id: $task.getName()
 $BR
-  hints:
+- class: CommandLineTool
+  id: $task.getName()
+#set ($hasFiles = 0)
+#foreach( $input in $inputs )
+#if($helper.getType($input) == "File")
+#set ($hasFiles = 1)
+#end
+#end
 #set( $docker = $helper.getContainer($task) )
+#if( $docker || $hasFiles == 1)
+$BR  hints:
+#end
 #if( $docker )
     DockerRequirement:
       dockerPull: $docker
 #end
+#if ($hasFiles == 1)
     InitialWorkDirRequirement:
-#foreach( $input in $inputs )  
       listing:
+#foreach( $input in $inputs )
+#if($helper.getType($input) == "File")
         - entryname: $(inputs.${helper.getName($input)}.basename)
           entry: $(inputs.${helper.getName($input)})
 #end
-$BR  baseCommand: $helper.getBaseCommand($task)
-$BR  arguments:
-#set( $args = $helper.getArguments($task) )
-#foreach( $arg in $args )
-    - $arg
 #end
-$BR  inputs:
+#end
+$BR  baseCommand: sh
+$BR  arguments:
+    - "-c"
+    - valueFrom: |
+#set( $args = $helper.getCommands($task) )
+#foreach( $arg in $args )#if( $args.size() > 1 && $velocityCount > 1 ) && \ $BR        #else        #end$arg#end
+$BR$BR  inputs:
 #foreach( $input in $inputs )  
     $helper.getName($input):
       type: $helper.getType($input)
