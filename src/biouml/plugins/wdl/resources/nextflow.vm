@@ -12,6 +12,18 @@
 #if($velocityCount < $list.size()),#end
 #end
 #######################################################################################
+#macro(conditional $conditional)
+${BR}if ( $helper.findCondition($conditional) ) {
+#foreach( $n in $helper.orderCalls($conditional) )
+#if ( $helper.isCycle($n) )#scatterNF($n)
+#elseif ( $helper.isCall($n) )#callNF($n)
+#elseif ( $helper.isExpression($n) )#expressionNF($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
+#end 
+#end
+}
+#end
+#######################################################################################
 #macro(callNF $call)
 #if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
 #set ($inputs = $helper.getOrderedInputs($call))
@@ -22,6 +34,7 @@
 #foreach( $n in $helper.orderCalls($scatter))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
 #end
@@ -99,6 +112,7 @@ $BR  main:
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 #elseif ($helper.isExpression($n))#expressionNF($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
 #set ($externalOutputs = $helper.getExternalOutputs())
