@@ -14,6 +14,8 @@ public class WDLConstants
     public static String WORKFLOW_OUTPUT_TYPE = "Workflow output";
     public static String EXPRESSION_TYPE = "Expression";
     public static String STRUCT_TYPE = "Struct";
+    public static String CONDITIONAL_TYPE = "Conditional block";
+    public static String CONDITION_TYPE = "Condition";
     
     public static String LINK_TYPE = "Link";
     

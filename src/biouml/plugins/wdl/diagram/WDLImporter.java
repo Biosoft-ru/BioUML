@@ -29,6 +29,7 @@ import biouml.model.Node;
 import biouml.plugins.wdl.Declaration;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.parser.AstCall;
+import biouml.plugins.wdl.parser.AstConditional;
 import biouml.plugins.wdl.parser.AstDeclaration;
 import biouml.plugins.wdl.parser.AstExpression;
 import biouml.plugins.wdl.parser.AstImport;
@@ -252,6 +253,10 @@ public class WDLImporter implements DataElementImporter
                     {
                         createScatterNode( diagram, (AstScatter)child );
                     }
+                    else if( child instanceof AstConditional )
+                    {
+                        createConditionalNode( diagram, (AstConditional)child );
+                    }
                 }
             }
         }
@@ -270,7 +275,7 @@ public class WDLImporter implements DataElementImporter
         parent.put( node );
 
         List<AstDeclaration> astDeclarations = astStruct.getDeclarations();
-        Declaration[] declarations = StreamEx.of( astDeclarations ).map( ast->new Declaration(ast) ).toArray(Declaration[]::new);
+        Declaration[] declarations = StreamEx.of( astDeclarations ).map( ast -> new Declaration( ast ) ).toArray( Declaration[]::new );
         WorkflowUtil.setStructMembers( node, declarations );
         return node;
     }
@@ -295,15 +300,6 @@ public class WDLImporter implements DataElementImporter
         }
     }
 
-    //    public void createMeta(Diagram diagram, AstMeta astMeta) throws Exception
-    //    {
-    //        Diagram imported = (Diagram)diagram.getOrigin().get( astImport.getSource() );
-    //        imports.put( astImport.getAlias(), imported );
-    //        if( imported == null )
-    //            throw new Exception( "Imported diagram " + astImport.getSource() + " not found!" );
-    //        WDLUtil.addImport( diagram, imported, astImport.getAlias() );
-    //    }
-
     public Node createExternalParameterNode(Compartment parent, AstDeclaration declaration)
     {
         String name = declaration.getName();
@@ -319,12 +315,35 @@ public class WDLImporter implements DataElementImporter
 
     public void createLinks(Diagram diagram)
     {
-        for( Node node : diagram.stream().select( Node.class ).filter( n -> WorkflowUtil.getExpression( n ) != null ) )
+        for( Node node : diagram.recursiveStream().select( Node.class ) )
         {
-            Node source = WorkflowUtil.findExpressionNode( diagram, WorkflowUtil.getExpression( node ) );
-            if( source != null )
-                createLink( source, node, WDLConstants.LINK_TYPE );
+            String expression = WorkflowUtil.getExpression( node );
+            if (expression == null)
+                continue;
+            
+            if (WorkflowUtil.isOutput( node ))
+                continue;
+
+            List<String> args = WorkflowUtil.findPossibleArguments( expression );
+            for( String arg : args )
+            {
+                Node source = WorkflowUtil.findExpressionNode( diagram, arg );
+                if( source != null )
+                    createLink( source, node, WDLConstants.LINK_TYPE );
+            }
         }
+    }
+
+    public Node createConditionNode(Compartment parent, AstExpression expression)
+    {
+        String name = WDLSemanticController.uniqName( parent, "condition" );
+        Stub kernel = new Stub( null, name, WDLConstants.CONDITION_TYPE );
+        Node node = new Node( parent, name, kernel );
+        WorkflowUtil.setExpression( node, expression == null ? null : expression.toString() );
+        node.setTitle( name );
+        node.setShapeSize( new Dimension( 80, 60 ) );
+        parent.put( node );
+        return node;
     }
 
     public Node createExpressionNode(Compartment parent, AstDeclaration declaration)
@@ -338,6 +357,7 @@ public class WDLImporter implements DataElementImporter
         parent.put( node );
         return node;
     }
+
 
     public Node createOutputNode(Compartment parent, AstDeclaration declaration)
     {
@@ -398,6 +418,46 @@ public class WDLImporter implements DataElementImporter
         return c;
     }
 
+    public Compartment createConditionalNode(Compartment parent, AstConditional conditional) throws Exception
+    {
+        String name = WDLSemanticController.uniqName( parent, "conditional" );
+        Stub kernel = new Stub( null, name, WDLConstants.CONDITIONAL_TYPE );
+        Compartment c = new Compartment( parent, name, kernel );
+        c.setShapeSize( new Dimension( 700, 700 ) );
+
+        for( biouml.plugins.wdl.parser.Node n : conditional.getChildren() )
+        {
+            if( n instanceof AstExpression )
+            {
+                Node conditionNode = createConditionNode( parent, (AstExpression)n );
+                createLink( conditionNode, c, WDLConstants.LINK_TYPE );
+            }
+        }
+
+        parent.put( c );
+
+        for( biouml.plugins.wdl.parser.Node n : conditional.getChildren() )
+        {
+            if( n instanceof AstDeclaration )
+            {
+                createExpressionNode( c, (AstDeclaration)n );
+            }
+            else if( n instanceof AstCall )
+            {
+                createCallNode( c, (AstCall)n );
+            }
+            else if( n instanceof AstScatter )
+            {
+                createScatterNode( c, (AstScatter)n );
+            }
+            else if( n instanceof AstConditional )
+            {
+                createConditionalNode( c, (AstConditional)n );
+            }
+        }
+        return c;
+    }
+
     public Compartment createScatterNode(Compartment parent, AstScatter scatter) throws Exception
     {
         String name = "scatter";
@@ -431,7 +491,6 @@ public class WDLImporter implements DataElementImporter
         {
             if( n instanceof AstDeclaration )
             {
-                //                System.out.println( ( (AstDeclaration)n ).getName() );
                 createExpressionNode( parent, (AstDeclaration)n );
             }
             else if( n instanceof AstCall )
@@ -442,13 +501,11 @@ public class WDLImporter implements DataElementImporter
             {
                 createScatterNode( c, (AstScatter)n );
             }
-            else
+            else if( n instanceof AstConditional )
             {
-                System.out.println( n.toString() );
+                createConditionalNode( c, (AstConditional)n );
             }
-
         }
-
         return c;
     }
 

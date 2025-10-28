@@ -40,7 +40,7 @@ public class WDLDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getEdgeTypes()
     {
-        return new Object[] {Base.TYPE_DIRECTED_LINK};
+        return new Object[] {WDLConstants.LINK_TYPE};
     }
 
     @Override

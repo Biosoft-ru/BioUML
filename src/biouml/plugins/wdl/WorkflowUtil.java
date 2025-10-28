@@ -43,7 +43,7 @@ public class WorkflowUtil
     {
         return isOfType( WDLConstants.TASK_TYPE, node );
     }
-    
+
     public static boolean isStruct(Node node)
     {
         return isOfType( WDLConstants.STRUCT_TYPE, node );
@@ -52,6 +52,11 @@ public class WorkflowUtil
     public static boolean isCall(Node node)
     {
         return isOfType( WDLConstants.CALL_TYPE, node );
+    }
+
+    public static boolean isConditional(Node node)
+    {
+        return isOfType( WDLConstants.CONDITIONAL_TYPE, node );
     }
 
     public static boolean isLink(DiagramElement de)
@@ -143,10 +148,10 @@ public class WorkflowUtil
     {
         return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
     }
-    
+
     public static List<Node> getOrderedInputs(Compartment c)
     {
-        List<Node> preliminary = getInputs(c);
+        List<Node> preliminary = getInputs( c );
         Node[] result = new Node[preliminary.size()];
         for( Node node : preliminary )
         {
@@ -154,10 +159,10 @@ public class WorkflowUtil
             if( posObj instanceof Integer )
                 result[(Integer)posObj] = node;
         }
-        for (Node n: result)
+        for( Node n : result )
         {
-            if (n == null)
-                System.out.println("");
+            if( n == null )
+                System.out.println( "" );
         }
         return StreamEx.of( result ).toList();
     }
@@ -305,6 +310,16 @@ public class WorkflowUtil
         return n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
     }
 
+    public static String findCondition(Compartment conditional)
+    {
+        Node condition = conditional.edges().map( e -> e.getOtherEnd( conditional ) )
+                .findAny( n -> isOfType( WDLConstants.CONDITION_TYPE, n ) ).orElse( null );
+        if( condition == null )
+            return "true";
+        else
+            return getExpression( condition );
+    }
+
     public static void setCallName(Node n, String name)
     {
         n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
@@ -413,6 +428,18 @@ public class WorkflowUtil
         return parent.stream( Node.class ).filter( n -> isInput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
     }
 
+    public static List<String> findPossibleArguments(String input)
+    {
+        List<String> matches = new ArrayList<>();
+        Pattern pattern = Pattern.compile( "[A-Za-z][A-Za-z0-9_.]*" );
+        Matcher matcher = pattern.matcher( input );
+        while( matcher.find() )
+        {
+            matches.add( matcher.group() );
+        }
+        return matches;
+    }
+    
     public static Node findExpressionNode(Diagram diagram, String name)
     {
         if( name.contains( "." ) )
@@ -500,7 +527,8 @@ public class WorkflowUtil
     {
         List<Node> result = new ArrayList<>();
         Map<Node, Set<Node>> previousSteps = new HashMap<>();
-        for( Node c : compartment.stream( Node.class ).filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) ) )
+        for( Node c : compartment.stream( Node.class )
+                .filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) || isConditional( c ) ) )
             previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
         Set<Node> added = new HashSet<>();
@@ -524,7 +552,8 @@ public class WorkflowUtil
 
     public static Set<Node> getPreviousSteps(Node n, Compartment threshold)
     {
-        return getEdges( n ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).without( n ).nonNull().toSet();
+        return getEdges( n ).filter( e -> isInside( e.getInput(), threshold ) ).map( e -> getCallOrCycle( e.getInput(), threshold ) )
+                .without( n ).nonNull().toSet();
     }
 
     private static StreamEx<Edge> getEdges(Node node)
@@ -545,8 +574,8 @@ public class WorkflowUtil
         if( !isInside( node, threshold ) )
             return null;
 
-        if( isExpression( node ) )
-            return node;//todo: expression inside workflows!
+//        if( isExpression( node ) )
+//            return node;//todo: expression inside workflows!
 
         Compartment c = node.getCompartment();
         LinkedList<Compartment> parents = new LinkedList<>();
@@ -559,7 +588,7 @@ public class WorkflowUtil
         while( !parents.isEmpty() )
         {
             Compartment lastParent = parents.pollLast();
-            if( isCycle( lastParent ) || isCall( lastParent ) )
+            if( isCycle( lastParent ) || isCall( lastParent ) || isConditional( lastParent ) )
                 return lastParent;
         }
         return null;
@@ -644,7 +673,7 @@ public class WorkflowUtil
         }
         else if( de instanceof Diagram )
         {
-            NextFlowGenerator generator = new NextFlowGenerator(false);
+            NextFlowGenerator generator = new NextFlowGenerator( false );
             String nextFlow = generator.generate( (Diagram)de );
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, nextFlow );
@@ -717,17 +746,17 @@ public class WorkflowUtil
                 setPosition( otherInput, otherPos - 1 );
         }
     }
-    
+
     public static void setStructMembers(Node node, Declaration[] declarations)
     {
         node.getAttributes().add( new DynamicProperty( WDLConstants.STRUCT_MEMBERS_ATTR, Declaration[].class, declarations ) );
     }
-    
+
     public static Declaration[] getStructMembers(Node node)
     {
-       Object declarations = node.getAttributes().getValue( WDLConstants.STRUCT_MEMBERS_ATTR );
-       if (declarations instanceof Declaration[])
-           return (Declaration[])declarations;
-       return new Declaration[0];
+        Object declarations = node.getAttributes().getValue( WDLConstants.STRUCT_MEMBERS_ATTR );
+        if( declarations instanceof Declaration[] )
+            return (Declaration[])declarations;
+        return new Declaration[0];
     }
 }

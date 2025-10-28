@@ -175,6 +175,11 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.getCallName( call );
     }
     
+    public String findCondition(Compartment conditional)
+    {
+        return WorkflowUtil.findCondition( conditional );
+    }
+    
     public String getImportedDiagram(Compartment call)
     {
         return WorkflowUtil.getDiagramRef( call );
@@ -193,6 +198,11 @@ public class WorkflowVelocityHelper
     public boolean isCall(Node node)
     {
         return WorkflowUtil.isCall( node );
+    }
+    
+    public boolean isConditional(Node node)
+    {
+        return WorkflowUtil.isConditional( node );
     }
 
     public boolean isCycle(Node node)
