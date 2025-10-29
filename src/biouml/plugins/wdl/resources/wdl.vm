@@ -21,8 +21,9 @@ $declaration.getType() $declaration.getName()
 #end
 #######################################################################################
 #macro(conditional $conditional)
+#set( $ordered = $helper.orderCalls($conditional) )
 ${BR}if ( $helper.findCondition($conditional) ) {
-#foreach( $n in $helper.orderCalls($conditional) )
+#foreach( $n in $ordered )
 #if ( $helper.isCycle($n) )#scatter($n)
 #elseif ( $helper.isCall($n) )#call($n)
 #elseif ( $helper.isExpression($n) )#expression($n)
@@ -44,7 +45,8 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #######################################################################################
 #macro(scatter $scatter)
   scatter ( $helper.getCycleVariable($scatter) in $helper.getCycleName($scatter) ) {
-#foreach( $n in $helper.orderCalls($scatter) )
+#set( $ordered = $helper.orderCalls($scatter) )
+#foreach( $n in  $ordered )
 #if ( $helper.isCycle($n) )#scatter($n)
 #elseif ( $helper.isCall($n) )#call($n)
 #elseif ( $helper.isExpression($n) )#expression($n)
@@ -148,7 +150,8 @@ workflow $helper.getMainWorkflowName() {
 #end
   }$BR
 #end
-#foreach( $n in $helper.orderCalls($diagram))
+#set( $ordered = $helper.orderCalls($diagram) )
+#foreach( $n in $ordered )
 #if ( $helper.isCycle($n) )#scatter($n)
 #elseif ( $helper.isCall($n) )#call($n)
 #elseif ( $helper.isExpression($n) )#expression($n)
