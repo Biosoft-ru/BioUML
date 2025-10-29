@@ -528,7 +528,7 @@ public class WorkflowUtil
         List<Node> result = new ArrayList<>();
         Map<Node, Set<Node>> previousSteps = new HashMap<>();
         for( Node c : compartment.stream( Node.class )
-                .filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) || isConditional( c ) ) )
+                .filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) || isConditional( c ) || isExternalParameter( c ) || isCycleVariable( c )) )
             previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
         Set<Node> added = new HashSet<>();
@@ -591,7 +591,7 @@ public class WorkflowUtil
             if( isCycle( lastParent ) || isCall( lastParent ) || isConditional( lastParent ) )
                 return lastParent;
         }
-        return null;
+        return node;
     }
 
     private static boolean isInside(Node node, Compartment c)
