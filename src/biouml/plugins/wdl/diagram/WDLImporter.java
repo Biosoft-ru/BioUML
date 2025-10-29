@@ -491,7 +491,7 @@ public class WDLImporter implements DataElementImporter
         {
             if( n instanceof AstDeclaration )
             {
-                createExpressionNode( parent, (AstDeclaration)n );
+                createExpressionNode( c, (AstDeclaration)n );
             }
             else if( n instanceof AstCall )
             {
