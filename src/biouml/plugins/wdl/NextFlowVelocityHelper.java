@@ -185,8 +185,12 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             String expression = WorkflowUtil.getExpression( input );
             if( ( cycleVar.equals( expression ) ) )
                 sb.append( getName( input ) + " = " + cycleName );
+            else if( expression.contains( "[" ) )
+                sb.append( getName( input ) + " = " + expression.substring( 0, expression.indexOf( "[" ) ) );
             else
-            sb.append( getName( input ) + " = " + expression.substring( 0, expression.indexOf( "[" ) ) );
+            {
+                sb.append( getName( input ) + " = " + cycleName );
+            }
             //            if( ! ( cycleVar.equals( expression ) ) )
             //                sb.append( ".map{" + cycleVar + " -> " + expression + "}" );
             sb.append( "\n" );
@@ -207,8 +211,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 result = "\"" + WDLConstants.NO_VALUE + "\"";
             if( source != null && isInsideCycle( source.getCompartment() ) )
                 result += ".collect()";
-            if (result.startsWith( "[" ) && result.endsWith( "]" ))
-                result =  result.substring( 1, result.length() - 1 );
+            if( result.startsWith( "[" ) && result.endsWith( "]" ) )
+                result = result.substring( 1, result.length() - 1 );
             return result;
         }
         else
@@ -216,7 +220,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             Compartment cycle = call.getCompartment();
             String cycleVar = getCycleVariable( cycle );
             if( isArray( cycleVar, input ) )
-                return getName(input);//getExpression(input).replaceAll("\\[\\s*"+cycleVar+"\\s*\\]", "");//getName( input ) + "_ch";
+                return getName( input );//getExpression(input).replaceAll("\\[\\s*"+cycleVar+"\\s*\\]", "");//getName( input ) + "_ch";
             else
             {
                 String result = getCallEmit( input );
@@ -246,7 +250,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         }
         else
         {
-            return getExpression(node);
+            return getExpression( node );
         }
     }
 
@@ -321,7 +325,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public Compartment[] getImportedCalls()
     {
-        return WorkflowUtil.getAllCalls( diagram ).stream().filter( c -> WorkflowUtil.getDiagramRef( c ) != null ).toArray( Compartment[]::new );
+        return WorkflowUtil.getAllCalls( diagram ).stream().filter( c -> WorkflowUtil.getDiagramRef( c ) != null )
+                .toArray( Compartment[]::new );
     }
 
     public String getImportedAlias(Compartment call)
