@@ -86,7 +86,7 @@ public class WorkflowTextEditor extends EditorPartSupport
         nextFlowPane = new NextFlowEditorPane();
 
         tabbedPane.addTab( "WDL", new JScrollPane( wdlPane ) );
-        tabbedPane.addTab( "СWL", new JScrollPane( cwlPane ) );
+//        tabbedPane.addTab( "СWL", new JScrollPane( cwlPane ) );
         tabbedPane.addTab( "NextFlow", new JScrollPane( nextFlowPane ) );
         tabbedPane.addTab( "Settings", settingsInspector );
         appender = new TextPaneAppender( new PatternFormatter( "%4$s :  %5$s%n" ), "Application Log" );
