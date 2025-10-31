@@ -29,12 +29,26 @@ public class ExpressionFormatter
             processContainer( (AstContainerElement)node );
         else if (node instanceof AstSubSymbol)
             processSubSymbol((AstSubSymbol)node);
+        else if (node instanceof AstTernary)
+            processTernary((AstTernary)node);
         else
         {
             result.append( node.toString() );
         }
     }
 
+    private void processTernary(AstTernary ternary)
+    {
+        result.append( "if (" );
+        result.append(ternary.getChildren()[0]);
+        result.append( ")" );
+        for(  int i=1; i<ternary.getChildren().length; i++ )
+        {
+            result.append( " " );
+            processNode( ternary.jjtGetChild( i ) );
+        }
+    }
+    
     private void processArray(AstArray array)
     {
         for( Node child : array.getChildren() )
