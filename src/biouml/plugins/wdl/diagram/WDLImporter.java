@@ -321,7 +321,7 @@ public class WDLImporter implements DataElementImporter
             if (expression == null)
                 continue;
             
-            if (WorkflowUtil.isOutput( node ))
+            if (WorkflowUtil.isOutput( node ) || WorkflowUtil.isInput( node ))
                 continue;
 
             List<String> args = WorkflowUtil.findPossibleArguments( expression );
