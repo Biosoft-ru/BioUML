@@ -29,10 +29,10 @@ public class WorkflowSettings extends Option
     private boolean useJson = false;
     private DataElementPath json;
     private DynamicPropertySet parameters = new DynamicPropertySetSupport();
-    
+
     public static String NEXTFLOW_TYPE = "Nextflow";
     public static String CWL_TYPE = "CWL";
-    
+
     private String executionType = NEXTFLOW_TYPE;
 
     public void initParameters(Diagram diagram)
@@ -84,18 +84,18 @@ public class WorkflowSettings extends Option
             {
                 DataCollection dc = de.getOrigin();
                 String content = ( (TextDataElement)de ).getContent();
-                
-                Set<String> fileInputs = getFileInputs(content);
-                for (String fileInput: fileInputs)
+
+                Set<String> fileInputs = getFileInputs( content );
+                for( String fileInput : fileInputs )
                 {
                     DataElement parameterDe = dc.get( fileInput );
                     if( parameterDe != null )
                     {
-                        System.out.println( "Exporting " +fileInput );
+                        System.out.println( "Exporting " + fileInput );
                         WorkflowUtil.export( parameterDe, new File( outputDir ) );
                     }
                 }
-                
+
                 String[] parameters = content.replace( "{", "" ).replace( "}", "" ).replace( "\"", "" ).split( "," );
                 for( String parameter : parameters )
                 {
@@ -145,7 +145,13 @@ public class WorkflowSettings extends Option
                 if( value instanceof DataElementPath dep )
                     value = "\"" + dep.getName() + "\"";
                 else
-                    value = "\"" + value.toString() + "\"";
+                {
+                    String valueStr = value.toString();
+                    if( valueStr.startsWith( "\"" ) && valueStr.endsWith( "\"" ) )
+                        value = valueStr;
+                    else
+                        value = "\"" + valueStr + "\"";
+                }
                 if( !first )
                     bw.write( "," );
                 first = false;
@@ -227,7 +233,7 @@ public class WorkflowSettings extends Option
         firePropertyChange( "json", oldValue, json );
     }
 
-    @PropertyName("Execution Type")
+    @PropertyName ( "Execution Type" )
     public String getExecutionType()
     {
         return executionType;
