@@ -58,6 +58,11 @@ public class WorkflowUtil
     {
         return isOfType( WDLConstants.CONDITIONAL_TYPE, node );
     }
+    
+    public static boolean isCondition(Node node)
+    {
+        return isOfType( WDLConstants.CONDITION_TYPE, node );
+    }
 
     public static boolean isLink(DiagramElement de)
     {
@@ -439,7 +444,7 @@ public class WorkflowUtil
         }
         return matches;
     }
-    
+
     public static Node findExpressionNode(Diagram diagram, String name)
     {
         if( name.contains( "." ) )
@@ -527,8 +532,8 @@ public class WorkflowUtil
     {
         List<Node> result = new ArrayList<>();
         Map<Node, Set<Node>> previousSteps = new HashMap<>();
-        for( Node c : compartment.stream( Node.class )
-                .filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) || isConditional( c ) || isExternalParameter( c ) || isCycleVariable( c )) )
+        for( Node c : compartment.stream( Node.class ).filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) || isConditional( c )
+                || isExternalParameter( c ) || isCycleVariable( c ) || isCondition( c ) ) )
             previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
         Set<Node> added = new HashSet<>();
@@ -574,8 +579,8 @@ public class WorkflowUtil
         if( !isInside( node, threshold ) )
             return null;
 
-//        if( isExpression( node ) )
-//            return node;//todo: expression inside workflows!
+        //        if( isExpression( node ) )
+        //            return node;//todo: expression inside workflows!
 
         Compartment c = node.getCompartment();
         LinkedList<Compartment> parents = new LinkedList<>();
