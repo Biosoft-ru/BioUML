@@ -259,25 +259,6 @@ public class WorkflowTextEditor extends EditorPartSupport
         }
     }
 
-    public void replaceDiagram(Diagram newDiagram)
-    {
-        Document currentDocument = GUI.getManager().getCurrentDocument();
-        this.document = ( DiagramUtility.isComposite( newDiagram ) ) ? new CompositeDiagramDocument( newDiagram )
-                : new DiagramDocument( newDiagram );
-
-        this.document.update();
-
-        if( GUI.getManager().getCurrentDocument() != null )
-        {
-            GUI.getManager().replaceDocument( currentDocument, this.document );
-            GUI.getManager().getDocumentViewAccessProvider().enableDocumentActions( true );
-        }
-        else
-        {
-            log.info( "replacing document, but document is null" );
-        }
-    }
-
     class UpdateWDLAction extends AbstractAction
     {
         public static final String KEY = "Update WDL";
@@ -348,6 +329,7 @@ public class WorkflowTextEditor extends EditorPartSupport
                 diagram = wdlImporter.generateDiagram( start, diagram );
                 wdlImporter.layout( diagram );
                 setDiagram( diagram );
+                setNextFlow( nextFlowGenerator.generate( diagram ) );
                 diagram.save();
             }
             catch( Exception ex )
