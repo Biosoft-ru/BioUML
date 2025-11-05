@@ -83,7 +83,7 @@ public class PhysicellSimulationResult extends BaseSupport
             Integer time = Integer.parseInt( name.split( "_" )[1] );
             agentElements.put( time, name );
         }
-        step = agentElements.navigableKeySet().higher( 0 );
+        step = (agentElements.size() > 1)? agentElements.navigableKeySet().higher( 0 ): 0;
         maxTime = agentElements.navigableKeySet().last();
         options.setSize( modelData, maxTime );
         options.setTimeStep( step );
