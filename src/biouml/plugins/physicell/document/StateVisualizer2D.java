@@ -372,7 +372,8 @@ public class StateVisualizer2D extends StateVisualizer
 
     private void drawLegend(BufferedImage legend, Graphics g)
     {
-        g.clearRect(  options.getLegendX(), options.getLegendY(), legend.getWidth(), legend.getHeight() );
+        g.setColor( Color.white );
+        g.fillRect(  options.getLegendX(), options.getLegendY(), legend.getWidth(), legend.getHeight() );
         g.drawImage( legend, options.getLegendX(), options.getLegendY(), null );
     }
 }
