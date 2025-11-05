@@ -15,7 +15,7 @@ public class ViewOptions extends Option
     private String[] substrates = new String[0];
     
     private boolean statistics = true;
-    private int statisticsX = 10;
+    private int statisticsX = 20;
     private int statisticsY = 40;
     private int legendX;
     private int legendY = 40;

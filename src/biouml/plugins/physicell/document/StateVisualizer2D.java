@@ -135,20 +135,22 @@ public class StateVisualizer2D extends StateVisualizer
         Rectangle2D cellBounds = fm.getStringBounds( cellString, g );
         Rectangle2D sliceBounds = fm.getStringBounds( sliceString, g );
 
-        int offset = 10;
+        int yDelta = 10;
         int xDelta = 10;
-        double height = timeBounds.getHeight() + xDelta + cellBounds.getHeight() + xDelta + sliceBounds.getHeight();
-        double width = timeBounds.getWidth() + cellBounds.getWidth() + sliceBounds.getWidth();
+        double height = timeBounds.getHeight() + yDelta + cellBounds.getHeight() + yDelta + sliceBounds.getHeight()+yDelta;
+        double width = DoubleStreamEx.of(timeBounds.getWidth() , cellBounds.getWidth() , sliceBounds.getWidth()).max().orElse( 0 )+xDelta;
         if( options.isStatisticsBackground() )
         {
             g.setColor( Color.white );
-            g.fillRect( x - 5, y - 25, x + 150, y + 55 );
+            g.fillRect( x - 5, y - 25, (int)width, (int)height );
         }
         g.setFont( font );
         g.setColor( Color.BLACK );
         g.drawString( timeString, x, y );
-        g.drawString( cellString, x, y + 30 );
-        g.drawString( sliceString, x, y + 60 );
+        y += (int)timeBounds.getHeight() + yDelta;
+        g.drawString( cellString, x, y );
+        y += (int)cellBounds.getHeight() + yDelta;
+        g.drawString( sliceString, x, y  );
     }
 
     private void drawAgents(ModelState state, Graphics g)
