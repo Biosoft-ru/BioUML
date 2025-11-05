@@ -22,7 +22,7 @@ public class ViewOptions extends Option
 
 
     private ColorFont statisticsFont =  new ColorFont( "TimesRoman", Font.PLAIN, 20 );
-    private boolean statisticsBackground = false;
+    private boolean statisticsBackground = true;
     private int maxTime;
     private int time;
     private View2DOptions options2D = new View2DOptions();
