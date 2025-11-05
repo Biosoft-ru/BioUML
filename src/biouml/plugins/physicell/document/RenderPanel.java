@@ -1,6 +1,5 @@
 package biouml.plugins.physicell.document;
 
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
@@ -26,20 +25,19 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
     private VideoGenerator videoGenerator;
     private File tempVideoFile;
 
-    public RenderPanel(int width, int height, PhysicellSimulationResult result)
+    public RenderPanel( PhysicellSimulationResult result)
     {
-        setPreferredSize( new Dimension( width, height ) );
-
         this.result = result;
         this.options = result.getOptions();
         visualizer2D.setResult( result );
         visualizer3D.setResult( result );
+        setPreferredSize( visualizer2D.getSize() );
         rotateListener = new RotateListener( options );
         addMouseListener( rotateListener );
         addMouseMotionListener( rotateListener );
         options.addPropertyChangeListener( this );
     }
-
+    
     private StateVisualizer getCurrentVisualizer()
     {
         return options.is3D() ? visualizer3D : visualizer2D;

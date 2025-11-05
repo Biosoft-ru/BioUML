@@ -1,6 +1,7 @@
 package biouml.plugins.physicell.document;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -30,11 +31,18 @@ public class StateVisualizer2D extends StateVisualizer
     protected ModelState modelState;
     private double maxDensity = 1E-13;//6.06;
     private View2DOptions options2D;
+    private BufferedImage legend = null;
+
+    public void setLegend(BufferedImage legend)
+    {
+        this.legend = legend;
+    }
 
     @Override
     public void setResult(PhysicellSimulationResult result)
     {
         super.setResult( result );
+        this.legend = result.getLegend();
         try
         {
             modelState = ModelState.fromString( result.getPoint( 0 ).getContent() );
@@ -75,6 +83,17 @@ public class StateVisualizer2D extends StateVisualizer
             default:
                 break;
         }
+
+        if( result.getLegend() != null )
+        {
+            options.setLegendX( width - 40 );
+            width += result.getLegend().getWidth();
+        }
+    }
+    
+    public Dimension getSize()
+    {
+        return new Dimension(width, height);
     }
 
     public BufferedImage draw(ModelState state)
@@ -91,6 +110,10 @@ public class StateVisualizer2D extends StateVisualizer
             drawText( state.getSize(), state.getTime(), new Point( options.getStatisticsX(), options.getStatisticsY() ), g );
         if( options.isAxes() )
             drawLines( g );
+
+        if( options.isShowLegend() && legend != null )
+            drawLegend( legend, g );
+
         return img;
     }
 
@@ -99,33 +122,33 @@ public class StateVisualizer2D extends StateVisualizer
         String timeString = "Time: " + options.getTime();
         String cellString = "Cells: " + agentsCount;
         String sliceString = "X = " + options2D.getSlice();
-         if( options2D.getSection() == Section.Y )
-             sliceString = "Y = " + options2D.getSlice();
+        if( options2D.getSection() == Section.Y )
+            sliceString = "Y = " + options2D.getSlice();
         else if( options2D.getSection() == Section.Z )
             sliceString = "Z = " + options2D.getSlice();
-        
+
         int x = location.x;
         int y = location.y;
         Font font = options.getStatisticsFont().getFont();
-        FontMetrics fm = g.getFontMetrics(font);
+        FontMetrics fm = g.getFontMetrics( font );
         Rectangle2D timeBounds = fm.getStringBounds( timeString, g );
         Rectangle2D cellBounds = fm.getStringBounds( cellString, g );
         Rectangle2D sliceBounds = fm.getStringBounds( sliceString, g );
-        
+
         int offset = 10;
         int xDelta = 10;
-        double height = timeBounds.getHeight() + xDelta +cellBounds.getHeight() + xDelta +sliceBounds.getHeight();
+        double height = timeBounds.getHeight() + xDelta + cellBounds.getHeight() + xDelta + sliceBounds.getHeight();
         double width = timeBounds.getWidth() + cellBounds.getWidth() + sliceBounds.getWidth();
         if( options.isStatisticsBackground() )
         {
             g.setColor( Color.white );
-            g.fillRect( x-5, y-25, x + 150, y + 55 );
+            g.fillRect( x - 5, y - 25, x + 150, y + 55 );
         }
         g.setFont( font );
         g.setColor( Color.BLACK );
         g.drawString( timeString, x, y );
         g.drawString( cellString, x, y + 30 );
-        g.drawString( sliceString , x, y + 60);
+        g.drawString( sliceString, x, y + 60 );
     }
 
     private void drawAgents(ModelState state, Graphics g)
@@ -345,5 +368,10 @@ public class StateVisualizer2D extends StateVisualizer
         g.drawString( title2, x1 + 10, h );
         g.fillPolygon( new int[] {w, w - arrowLength, w - arrowLength}, new int[] {y1, y1 + arrowWidth, y1 - arrowWidth}, 3 );
         g.fillPolygon( new int[] {x1, x1 - arrowWidth, x1 + arrowWidth}, new int[] {h, h + arrowLength, h + arrowLength}, 3 );
+    }
+
+    private void drawLegend(BufferedImage legend, Graphics g)
+    {
+        g.drawImage( legend, options.getLegendX(), options.getLegendY(), null );
     }
 }

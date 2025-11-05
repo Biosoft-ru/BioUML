@@ -17,6 +17,10 @@ public class ViewOptions extends Option
     private boolean statistics = true;
     private int statisticsX = 10;
     private int statisticsY = 40;
+    private int legendX;
+    private int legendY = 40;
+
+
     private ColorFont statisticsFont =  new ColorFont( "TimesRoman", Font.PLAIN, 20 );
     private boolean statisticsBackground = false;
     private int maxTime;
@@ -35,7 +39,8 @@ public class ViewOptions extends Option
     private boolean drawNuclei = false;
     private double maxDensity = 38;
     private Color densityColor = Color.red;
-    
+    private boolean showLegend = true;
+
     public ViewOptions()
     {
         options2D.setParent( this );
@@ -322,5 +327,44 @@ public class ViewOptions extends Option
         Color oldValue = this.densityColor;
         this.densityColor = densityColor;
         firePropertyChange( "densityColor", oldValue, densityColor );
+    }
+    
+    @PropertyName("Show Legend")
+    public boolean isShowLegend()
+    {
+        return showLegend;
+    }
+
+    public void setShowLegend(boolean showLegend)
+    {
+        boolean oldValue = this.showLegend;
+        this.showLegend = showLegend;
+        firePropertyChange( "showLegend", oldValue, showLegend );
+    }
+
+    @PropertyName("Legend X")
+    public int getLegendX()
+    {
+        return legendX;
+    }
+
+    public void setLegendX(int legendX)
+    {
+        int oldValue = this.legendX;
+        this.legendX = legendX;
+        firePropertyChange( "legendX", oldValue, legendX );
+    }
+
+    @PropertyName("Legend Y")
+    public int getLegendY()
+    {
+        return legendY;
+    }
+
+    public void setLegendY(int legendY)
+    {
+        int oldValue = this.legendY;
+        this.legendY = legendY;    
+        firePropertyChange( "legendY", oldValue, legendY );
     }
 }

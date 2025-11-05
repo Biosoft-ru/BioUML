@@ -1,5 +1,7 @@
 package biouml.plugins.physicell;
 
+import java.awt.Font;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,11 @@ import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
+import ru.biosoft.access.DataCollectionUtils;
+import ru.biosoft.access.ImageDataElement;
+import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.physicell.biofvm.ConstantCoefficientsLOD3D;
 import ru.biosoft.physicell.biofvm.Microenvironment;
 import ru.biosoft.physicell.core.Cell;
@@ -356,6 +362,11 @@ public class PhysicellSimulationEngine extends SimulationEngine
             model.addEvent( event );
         }
 
+        DataCollectionUtils.createSubCollection( opts.getResultPath() );
+        BufferedImage img = PhysicellUtil.generateLegend( model, new ColorFont( "Arial", Font.BOLD, 20) , colorer );
+        DataCollection dc = opts.getResultPath().getDataCollection();
+        dc.put( new ImageDataElement( "Legend", dc, img ) );
+        
         model.init( false );
         return model;
     }

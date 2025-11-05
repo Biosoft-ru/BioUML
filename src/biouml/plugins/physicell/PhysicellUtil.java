@@ -1,10 +1,25 @@
 package biouml.plugins.physicell;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.developmentontheedge.beans.DynamicProperty;
 
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Role;
+import one.util.streamex.StreamEx;
+import ru.biosoft.graphics.font.ColorFont;
+import ru.biosoft.physicell.core.Cell;
+import ru.biosoft.physicell.core.CellDefinition;
+import ru.biosoft.physicell.core.Model;
+import ru.biosoft.physicell.ui.AgentColorer;
+import ru.biosoft.physicell.ui.AgentVisualizer;
 import ru.biosoft.util.DPSUtils;
 
 public class PhysicellUtil
@@ -41,5 +56,41 @@ public class PhysicellUtil
                 return cdp;
         }
         return null;
+    }
+
+    public static BufferedImage generateLegend(Model model, ColorFont font, AgentColorer colorer)
+    {
+        int yOffset = 10;
+        int xOffset = 10;
+        int radius = 10;
+        int nuclearRadius = 5;
+        AgentVisualizer agentVisualizer = new AgentVisualizer();
+        agentVisualizer.setAgentColorer( colorer );
+        BufferedImage temp = new BufferedImage( 1, 1, BufferedImage.TYPE_INT_ARGB );
+        Graphics gTemp = temp.getGraphics();
+        List<String> names = new ArrayList<>();
+        for( CellDefinition cd : model.getCellDefinitions() )
+            names.add( cd.name );
+
+        FontMetrics fm = gTemp.getFontMetrics( font.getFont() );
+
+        int width = StreamEx.of( names ).mapToInt( s -> fm.stringWidth( s ) ).max().orElse( 0 );
+        int height = ( fm.getHeight() + yOffset ) * names.size();
+
+        BufferedImage img = new BufferedImage( width + xOffset + radius*2, height, BufferedImage.TYPE_INT_ARGB );
+        Graphics g = img.getGraphics();
+        int x = 0;
+        int y = 0;
+        for( CellDefinition cd : model.getCellDefinitions() )
+        {
+            String name = cd.name;
+            Cell c = new Cell( cd, model , false);
+            agentVisualizer.drawAgent( c, x + radius, y + radius, radius, nuclearRadius, g );
+            g.setFont( font.getFont() );
+            g.setColor( Color.black );
+            g.drawString( name, x + 2 * radius + xOffset, y + radius  + fm.getHeight()/2 );
+            y += ( fm.getHeight() + yOffset );
+        }
+        return img;
     }
 }

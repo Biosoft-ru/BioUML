@@ -19,10 +19,10 @@ public class PhysicellResultDocument extends Document
         super( result );
         name = result.getName();
         viewPane = new ViewPane();
-        RenderPanel renderPanel = new RenderPanel( 1500, 1500, result );
+        RenderPanel renderPanel = new RenderPanel( result );
         JScrollPane scrollPane = new JScrollPane( renderPanel );
-        scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS );
-        scrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS );
+        scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+        scrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED );
         viewPane.add( scrollPane );
 
         if( result.getOptions().isCells() )

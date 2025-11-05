@@ -31,6 +31,9 @@ public class ViewOptionsBeanInfo extends BeanInfoEx2<ViewOptions>
         add("statisticsY");
         add("StatisticsFont", FontEditor.class );
         add("statisticsBackground");
+        add("showLegend");
+        add("legendX");
+        add("legendY");
         add("fps");
         add("result");
     }

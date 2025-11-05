@@ -1,9 +1,11 @@
 package biouml.plugins.physicell.document;
 
+import java.awt.image.BufferedImage;
 import java.util.TreeMap;
 
 import biouml.standard.type.BaseSupport;
 import ru.biosoft.access.core.TextDataElement;
+import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.physicell.ui.DensityState;
@@ -15,7 +17,7 @@ public class PhysicellSimulationResult extends BaseSupport
     private DataCollection<DataElement> dcAgents = null;
     private DataCollection<DataElement> dcDensity = null;
     protected ModelData modelData;
-    
+    private BufferedImage legend = null;
     private ViewOptions options = new ViewOptions();
     private TreeMap<Integer, String> agentElements = new TreeMap<>();
     private TreeMap<Integer, String> densityElements = new TreeMap<>();
@@ -25,11 +27,21 @@ public class PhysicellSimulationResult extends BaseSupport
     public PhysicellSimulationResult(String name, DataCollection de) throws Exception
     {
         super( null, name );
+        DataElement legendDe = de.get( "Legend" );
+        if (legendDe instanceof ImageDataElement)
+        {
+            legend = ((ImageDataElement)legendDe).getImage();
+        }
         this.dcAgents = (DataCollection)de.get( "Cells" );
         this.dcDensity = (DataCollection)de.get( "Density" );
         modelData = Util.read((TextDataElement)de.get( "info.txt" ));
         options.setSubstrates( modelData.getSubstrates() );
         options.set2D( modelData.isUse2D() );
+    }
+    
+    public BufferedImage getLegend()
+    {
+        return legend;
     }
 
     public ViewOptions getOptions()
