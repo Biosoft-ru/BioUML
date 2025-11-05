@@ -75,7 +75,8 @@ public class PhysicellUtil
         FontMetrics fm = gTemp.getFontMetrics( font.getFont() );
 
         int width = StreamEx.of( names ).mapToInt( s -> fm.stringWidth( s ) ).max().orElse( 0 );
-        int height = ( fm.getHeight() + yOffset ) * names.size();
+        int lineHeight = (int)Math.round(fm.getStringBounds("G", gTemp).getHeight());
+        int height = ( lineHeight + yOffset ) * names.size();
 
         BufferedImage img = new BufferedImage( width + xOffset + radius*2, height, BufferedImage.TYPE_INT_ARGB );
         Graphics g = img.getGraphics();
@@ -88,7 +89,7 @@ public class PhysicellUtil
             agentVisualizer.drawAgent( c, x + radius, y + radius, radius, nuclearRadius, g );
             g.setFont( font.getFont() );
             g.setColor( Color.black );
-            g.drawString( name, x + 2 * radius + xOffset, y + radius  + fm.getHeight()/2 );
+            g.drawString( name, x + 2 * radius + xOffset, y + radius  + lineHeight/2 );
             y += ( fm.getHeight() + yOffset );
         }
         return img;
