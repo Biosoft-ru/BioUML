@@ -86,7 +86,7 @@ public class StateVisualizer2D extends StateVisualizer
 
         if( result.getLegend() != null )
         {
-            options.setLegendX( width - 40 );
+            options.setLegendX( width );
             width += result.getLegend().getWidth();
         }
     }
@@ -372,6 +372,7 @@ public class StateVisualizer2D extends StateVisualizer
 
     private void drawLegend(BufferedImage legend, Graphics g)
     {
+        g.clearRect(  options.getLegendX(), options.getLegendY(), legend.getWidth(), legend.getHeight() );
         g.drawImage( legend, options.getLegendX(), options.getLegendY(), null );
     }
 }
