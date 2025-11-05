@@ -288,10 +288,10 @@ public class PhysicellSimulationEngine extends SimulationEngine
             model.setReportGenerator( FunctionsLoader.load( dep, ReportGenerator.class, log.getLogger(), model ) );
         }
 
-        AgentColorer colorer = null;
+        AgentColorer colorer =  model.getDefaultColorer();
 
-        if( opts.isSaveCellsText() || opts.isSaveCellsTable() || opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
-        {
+//        if( opts.isSaveCellsText() || opts.isSaveCellsTable() || opts.isSaveImage() || opts.isSaveVideo() || opts.isSaveGIF() )
+//        {
             VisualizerProperties visualizerProperties = emodel.getVisualizerProperties();
             if( visualizerProperties.getProperties().length > 0 )
             {
@@ -314,7 +314,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
                 DataElementPath dep = emodel.getReportProperties().getVisualizerPath();
                 colorer = FunctionsLoader.load( dep, AgentColorer.class, log.getLogger(), model );
             }
-        }
+//        }/
 
         if( opts.isSaveCellsTable() )
         {
