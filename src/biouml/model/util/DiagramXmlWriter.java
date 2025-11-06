@@ -355,6 +355,9 @@ public class DiagramXmlWriter extends DiagramXmlSupport implements DiagramWriter
             {
                 element = doc.createElement( IMAGE_ELEMENT );
                 element.setAttribute(PATH_ATTR, imageDesc.getPath().toString() );
+                Dimension size = imageDesc.getSize();
+                element.setAttribute( WIDTH_ATTR, Integer.toString( (int)size.getWidth() ) );
+                element.setAttribute( HEIGHT_ATTR, Integer.toString( (int)size.getHeight() ) );
             }
             String imageSource = imageDesc.getSource();
             if( imageSource != null )
