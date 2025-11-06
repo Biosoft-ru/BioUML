@@ -1,13 +1,9 @@
 package biouml.plugins.physicell;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -118,9 +114,9 @@ public class PhysicellUtil
 
         int width = StreamEx.of( cells.keySet() ).mapToInt( s -> fm.stringWidth( s ) ).max().orElse( 0 );
         int lineHeight = (int)Math.round( fm.getStringBounds( "G", gTemp ).getHeight() );
-        int height = ( lineHeight + yOffset ) * cells.size();
+        int height = ( lineHeight + yOffset ) * ( cells.size() + 1 );
 
-        BufferedImage img = new BufferedImage( width + xOffset + radius * 2, height, BufferedImage.TYPE_INT_ARGB );
+        BufferedImage img = new BufferedImage( width + 2*xOffset + radius * 2, height, BufferedImage.TYPE_INT_ARGB );
         Graphics g = img.getGraphics();
         int x = 0;
         int y = 0;
