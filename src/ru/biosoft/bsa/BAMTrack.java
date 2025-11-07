@@ -2,6 +2,7 @@ package ru.biosoft.bsa;
 
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,17 +16,6 @@ import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import one.util.streamex.StreamEx;
 
-import net.sf.samtools.AbstractBAMFileIndex;
-import net.sf.samtools.BAMIndexMetaData;
-import net.sf.samtools.BAMIndexer;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecord.SAMTagAndValue;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMSequenceRecord;
 import ru.biosoft.access.core.AbstractDataCollection;
 import ru.biosoft.access.core.CloneableDataElement;
 import ru.biosoft.access.core.DataCollection;
@@ -43,20 +33,34 @@ import ru.biosoft.util.ListUtil;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
+import htsjdk.samtools.AbstractBAMFileIndex;
+import htsjdk.samtools.BAMIndexMetaData;
+import htsjdk.samtools.BAMIndexer;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord.SAMTagAndValue;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamInputResource;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
+import htsjdk.samtools.ValidationStringency;
 import ru.biosoft.util.bean.StaticDescriptor;
 
+import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.DynamicPropertySetSupport;
-import com.developmentontheedge.application.ApplicationUtils;
 import ru.biosoft.jobcontrol.JobControl;
 
 public class BAMTrack extends AbstractDataCollection<DataElement> implements Track, CloneableDataElement
 {
     static
     {
-        SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
+        SamReaderFactory.setDefaultValidationStringency( ValidationStringency.SILENT );
     }
 
     public static final String BAM_INDEX_FILE_PROPERTY = "bamIndex";
@@ -112,6 +116,13 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
 
     private Boolean bamSequencesWithChrPrefix = null;
 
+    private final SamReaderFactory factory = SamReaderFactory.makeDefault()
+            /*
+             * .enable( Option.INCLUDE_SOURCE_IN_RECORDS,
+             * Option.VALIDATE_CRC_CHECKSUMS )
+             */
+            .validationStringency( ValidationStringency.SILENT );
+
     public BAMTrack(DataCollection parent, Properties properties)
     {
         super(parent, properties);
@@ -164,12 +175,17 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
         return indexFile;
     }
 
-    private SAMFileReader getReader()
+    private SamReader getReader()
     {
+
         if( type.equals( "sam" ) )
-            return new SAMFileReader( bamFile );
+            return factory.open( bamFile );
+        //return SamReaderFactory
         else
-            return new SAMFileReader( bamFile, getIndexFile() );
+        {
+            SamInputResource resource = SamInputResource.of( bamFile ).index( getIndexFile() );
+            return factory.open( resource );
+        }
     }
 
     @Override
@@ -208,14 +224,14 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
         return viewBuilder;
     }
 
-    public void createIndex(JobControl jc)
+    public void createIndex(JobControl jc) throws IOException
     {
         File indexFile = getIndexFile();
         if( indexFile.exists() )
             indexFile.delete();
-        try (SAMFileReader reader = new SAMFileReader( bamFile ))
+        try (SamReader reader = factory.enable( Option.INCLUDE_SOURCE_IN_RECORDS ).open( bamFile ))
         {
-            reader.enableFileSource(true);
+            //reader.enableFileSource(true);
             BAMIndexer indexer = new BAMIndexer(indexFile, reader.getFileHeader());
             SAMRecordIterator it = reader.iterator();
             while( it.hasNext() )
@@ -225,9 +241,15 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                 indexer.processAlignment( record );
             }
             it.close();
+            reader.close();
             indexer.finish();
         }
         catch( RuntimeException e )
+        {
+            indexFile.delete();
+            throw e;
+        }
+        catch (IOException e)
         {
             indexFile.delete();
             throw e;
@@ -259,7 +281,7 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
             this.chromosomeName = chromosomeName;
         }
 
-        protected SAMRecordIterator samRecordIterator(SAMFileReader reader)
+        protected SAMRecordIterator samRecordIterator(SamReader reader)
         {
             return chromosomeName == null ? reader.iterator()
                     : reader.hasIndex() ? reader.queryOverlapping( chromosomeName, from, to ) : new SAMSequenceIterator( reader, chromosomeName, from, to );
@@ -272,14 +294,18 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
             {
                 if(chromosomeName == null)
                     return getSize();
-                try ( SAMFileReader reader = getReader() )
+                try (SamReader reader = getReader())
                 {
                     int limitedSize = 0;
                     SAMRecordIterator it = samRecordIterator( reader );
                     for( ; it.hasNext() && limitedSize < limit; it.next() )
                         limitedSize++;
                     it.close();
+                    reader.close();
                     return limitedSize;
+                }
+                catch (IOException e)
+                {
                 }
             }
             return size;
@@ -303,13 +329,17 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                 }
                 else
                 {
-                    try ( SAMFileReader reader = getReader() )
+                    try (SamReader reader = getReader())
                     {
                         size = 0;
                         SAMRecordIterator it = samRecordIterator( reader );
                         for( ; it.hasNext(); it.next() )
                             size++;
                         it.close();
+                        reader.close();
+                    }
+                    catch (IOException e)
+                    {
                     }
                 }
             }
@@ -341,7 +371,7 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
         @Override
         public @Nonnull Iterator<Site> iterator()
         {
-            final SAMFileReader reader = getReader();
+            final SamReader reader = getReader();
 
             BAMIterator iterator = new BAMIterator(this, reader);
             iterators.add(iterator);
@@ -551,7 +581,7 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
             private SAMRecord next;
             private SAMRecordIterator innerIterator;
 
-            public SAMSequenceIterator(SAMFileReader reader, String chromosomeName, int from, int to)
+            public SAMSequenceIterator(SamReader reader, String chromosomeName, int from, int to)
             {
                 this.chromosomeName = chromosomeName;
                 this.from = from;
@@ -580,12 +610,12 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                 return record;
             }
 
-            @Override
-            public SAMRecordIterator assertSorted(SortOrder arg0)
-            {
-                // TODO Auto-generated method stub
-                return null;
-            }
+            //            @Override
+            //            public SAMRecordIterator assertSorted(SortOrder arg0)
+            //            {
+            //                // TODO Auto-generated method stub
+            //                return null;
+            //            }
 
             private SAMRecord getProperNext()
             {
@@ -599,6 +629,13 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                     if( site.getSequence().getName().equals( chromosomeName ) && site.getTo() >= from && site.getFrom() <= to )
                         return record;
                 }
+                return null;
+            }
+
+            @Override
+            public SAMRecordIterator assertSorted(SortOrder sortOrder)
+            {
+                // TODO Auto-generated method stub
                 return null;
             }
 
@@ -619,11 +656,11 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
     private static final class BAMIterator implements Iterator<Site>
     {
         private final SAMRecordIterator it;
-        private final SAMFileReader reader;
+        private final SamReader reader;
         private final SitesCollection collection;
         boolean closed = false;
 
-        private BAMIterator(SitesCollection collection, SAMFileReader reader)
+        private BAMIterator(SitesCollection collection, SamReader reader)
         {
             this.collection = collection;
             this.it = collection.samRecordIterator(reader);
@@ -648,7 +685,14 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                 return;
             closed = true;
             it.close();
-            reader.close();
+            //TODO: ??? try or throw
+            try
+            {
+                reader.close();
+            }
+            catch (IOException e)
+            {
+            }
         }
         @Override
         protected void finalize()
@@ -664,7 +708,7 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
             synchronized( this )
             {
                 bamSequencesWithChrPrefix = true;
-                SAMFileReader reader = new SAMFileReader(bamFile);
+                SamReader reader = factory.open( bamFile );
                 List<SAMSequenceRecord> sequences = reader.getFileHeader().getSequenceDictionary().getSequences();
                 if( sequences.isEmpty() )
                 {
@@ -681,12 +725,16 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                 {
                     for ( SAMSequenceRecord s : sequences )
                         if( !s.getSequenceName().startsWith( "chr" ) )
-                        {
                             bamSequencesWithChrPrefix = false;
-                            break;
-                        }
                 }
-                reader.close();
+                //TODO: ??? try or throw
+                try
+                {
+                    reader.close();
+                }
+                catch (IOException e)
+                {
+                }
             }
         }
         if(!bamSequencesWithChrPrefix)
@@ -758,9 +806,10 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
 
         if( type.equals( "sam" ) )
             return;
-        try ( SAMFileReader reader = getReader() )
+        try (SamReader reader = getReader())
         {
-            AbstractBAMFileIndex index = (AbstractBAMFileIndex)reader.getIndex();
+
+            AbstractBAMFileIndex index = (AbstractBAMFileIndex) reader.indexing().getIndex();
             int nRef = index.getNumberOfReferences();
             for( int i = 0; i < nRef; i++ )
             {
@@ -769,12 +818,12 @@ public class BAMTrack extends AbstractDataCollection<DataElement> implements Tra
                 alignedCount += metaData.getAlignedRecordCount();
             }
             unalignedCount += index.getNoCoordinateCount();
+            reader.close();
         }
         catch( Exception e )
         {
             log.log(Level.SEVERE, "Can not init site counts of BAMTrack", e);
         }
-
     }
 
     public int getAlignedCount()

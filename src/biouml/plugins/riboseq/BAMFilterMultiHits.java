@@ -6,12 +6,13 @@ import java.util.Map;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
@@ -36,7 +37,7 @@ public class BAMFilterMultiHits extends AnalysisMethodSupport<BAMFilterMultiHits
         BAMTrack inTrack = parameters.getInputBAMTrack().getDataElement( BAMTrack.class );
         Map<String, Boolean> duplicated = new HashMap<>();
         Map<String, Boolean> secondOfPairDuplicated = new HashMap<>();
-        try(SAMFileReader bamReader = new SAMFileReader( inTrack.getBAMFile() ))
+        try (SamReader bamReader = SamReaderFactory.makeDefault().open( inTrack.getBAMFile() ))
         {
             for(SAMRecord r : bamReader)
             {
@@ -46,7 +47,7 @@ public class BAMFilterMultiHits extends AnalysisMethodSupport<BAMFilterMultiHits
             }
         }
         
-        try (TempFile outFile = TempFiles.file( ".bam" ); SAMFileReader bamReader = new SAMFileReader( inTrack.getBAMFile() );)
+        try (TempFile outFile = TempFiles.file( ".bam" ); SamReader bamReader = SamReaderFactory.makeDefault().open( inTrack.getBAMFile() );)
         {
             SAMFileWriterFactory factory = new SAMFileWriterFactory();
             SAMFileHeader header = bamReader.getFileHeader();

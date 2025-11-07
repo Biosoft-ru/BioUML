@@ -1,6 +1,7 @@
 package biouml.plugins.riboseq.isoforms;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,11 +15,12 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.plugins.riboseq.transcripts.Transcript;
 import biouml.plugins.riboseq.transcripts.TranscriptSet;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
@@ -110,7 +112,7 @@ public class IsoformTEAnalysis extends AnalysisMethodSupport<IsoformTEAnalysis.P
         return cdsSeqs;
     }
 
-    private double[][] sampleTPM(File bamFile, TranscriptSequence[] seqs) throws RepositoryException
+    private double[][] sampleTPM(File bamFile, TranscriptSequence[] seqs) throws RepositoryException, IOException
     {
         Map<String, Integer> nameToId = new HashMap<>();
         for( int i = 0; i < seqs.length; i++ )
@@ -224,9 +226,10 @@ public class IsoformTEAnalysis extends AnalysisMethodSupport<IsoformTEAnalysis.P
             this.hits = hits;
         }
     }
-    private ReadsAndHits parseBAMFile(File file, Map<String, Integer> transcriptIds)
+
+    private ReadsAndHits parseBAMFile(File file, Map<String, Integer> transcriptIds) throws IOException
     {
-        try (SAMFileReader bamReader = new SAMFileReader( file ))
+        try (SamReader bamReader = SamReaderFactory.makeDefault().open( file ))
         {
             SAMFileHeader bamHeader = bamReader.getFileHeader();
             //if( bamHeader.getSortOrder() != SortOrder.queryname )

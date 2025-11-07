@@ -13,10 +13,10 @@ import java.util.Map;
 import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.PropertyDescriptorEx;
 
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMUtils;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.bsa.BAMTrack.SitesCollection.BAMSite;
 import ru.biosoft.bsa.LimitedSizeSitesCollection;

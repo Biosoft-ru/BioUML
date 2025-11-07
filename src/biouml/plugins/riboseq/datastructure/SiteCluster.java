@@ -1,11 +1,11 @@
 package biouml.plugins.riboseq.datastructure;
 
 import biouml.plugins.riboseq.util.SiteUtil;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.util.StringUtil;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.util.StringUtil;
 import ru.biosoft.bsa.BAMTrack;
 import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Sequence;

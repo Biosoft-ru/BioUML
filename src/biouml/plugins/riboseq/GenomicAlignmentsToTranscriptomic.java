@@ -16,17 +16,18 @@ import biouml.plugins.riboseq.ingolia.AlignmentConverter;
 import biouml.plugins.riboseq.ingolia.AlignmentOnTranscript;
 import biouml.plugins.riboseq.transcripts.Transcript;
 import biouml.plugins.riboseq.transcripts.TranscriptSet;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMSequenceRecord;
-import net.sf.samtools.util.SequenceUtil;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.util.SequenceUtil;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
@@ -80,7 +81,7 @@ public class GenomicAlignmentsToTranscriptomic extends AnalysisMethodSupport<Gen
         }
         BAMTrack inTrack = parameters.getInputBamTrack().getDataElement( BAMTrack.class );
 
-        try (TempFile outBamFile = TempFiles.file( ".bam" ); SAMFileReader bamReader = new SAMFileReader( inTrack.getBAMFile() ))
+        try (TempFile outBamFile = TempFiles.file( ".bam" ); SamReader bamReader = SamReaderFactory.makeDefault().open( inTrack.getBAMFile() ))
         {
             SAMFileWriter bamWriter = factory.makeBAMWriter( header, false, outBamFile );
             try

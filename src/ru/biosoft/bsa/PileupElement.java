@@ -16,9 +16,9 @@ import one.util.streamex.StreamEx;
 
 import org.apache.commons.lang.ArrayUtils;
 
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 import ru.biosoft.bsa.BAMTrack.SitesCollection.BAMSite;
 import ru.biosoft.util.Pair;
 
