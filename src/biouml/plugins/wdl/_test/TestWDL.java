@@ -208,7 +208,12 @@ public class TestWDL //extends //TestCase
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
+            boolean useWsl = System.getProperty("os.name").startsWith("Windows");
+            String[] command;
+            if(useWsl)
+                command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
+            else
+                command = new String[] {"nextflow", f.getName()};
             executeCommand( command );
         }
         catch( Exception ex )
