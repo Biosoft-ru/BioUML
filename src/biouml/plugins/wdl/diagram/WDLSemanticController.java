@@ -4,14 +4,23 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+import javax.annotation.Nonnull;
+
 import biouml.model.Compartment;
 import biouml.model.DefaultSemanticController;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.Edge;
 import biouml.model.Node;
+import biouml.plugins.physicell.InteractionProperties;
+import biouml.plugins.physicell.PhysicellConstants;
+import biouml.plugins.physicell.SecretionCreator;
+import biouml.standard.diagram.CreateEdgeAction;
+import biouml.standard.diagram.CreateEdgeAction.EdgeCreator;
 import biouml.standard.type.Base;
 import biouml.standard.type.Stub;
+import ru.biosoft.graphics.editor.ViewEditorPane;
+import ru.biosoft.util.DPSUtils;
 
 /**
  * Semantic controller for workflow diagrams
@@ -19,9 +28,14 @@ import biouml.standard.type.Stub;
 public class WDLSemanticController extends DefaultSemanticController
 {
     @Override
-    public DiagramElementGroup createInstance(Compartment compartment, Object type, Point point, Object properties)
+    public DiagramElementGroup createInstance(@Nonnull Compartment parent, Object type, Point pt, ViewEditorPane viewEditor)
     {
         DiagramElement de = null;
+        if (type.equals( WDLConstants.LINK_TYPE ))
+        {
+            new CreateEdgeAction().createEdge( pt, viewEditor, new LinkCreator() );
+            return null;
+        }
         //        NodeType nodeType = (NodeType)type;
         //        switch(nodeType)
         //        {
@@ -44,6 +58,17 @@ public class WDLSemanticController extends DefaultSemanticController
         return new DiagramElementGroup( de );
     }
 
+    public class LinkCreator implements EdgeCreator
+    {
+        @Override
+        public Edge createEdge(@Nonnull Node in, @Nonnull Node out, boolean temporary)
+        {
+            Edge result = new Edge( new Stub( null, in.getName() + " interact " + out.getName(), WDLConstants.LINK_TYPE ), in,
+                    out );
+            return result;
+        }
+    }
+    
     @Override
     public Dimension move(DiagramElement de, Compartment newParent, Dimension offset, Rectangle oldBounds) throws Exception
     {

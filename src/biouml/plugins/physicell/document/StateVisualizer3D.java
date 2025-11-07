@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.document;
 
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 
@@ -40,6 +41,12 @@ public class StateVisualizer3D extends StateVisualizer
         catch( Exception ex )
         {
         }
+        
+//        if( result.getLegend() != null )
+//        {
+//            options.setLegendX( modelData - 40 );
+//            width += result.getLegend().getWidth();
+//        }
     }
 
     @Override
@@ -54,10 +61,17 @@ public class StateVisualizer3D extends StateVisualizer
         renderer.setDensityState( densityState );
         renderer.setDrawDensity( options.isDrawDensity() );
         renderer.setSubstrate( options.getSubstrate() );
-        renderer.setStatisticsLOcation( new Point( options.getStatisticsX(), options.getStatisticsY() ) );
+        renderer.setStatisticsLocation( new Point( options.getStatisticsX(), options.getStatisticsY() ) );
+        renderer.setStatisticsFont(options.getStatisticsFont().getFont());
         renderer.setDensityX( options3D.isDensityX() );
         renderer.setDensityY( options3D.isDensityY() );
         renderer.setDensityZ( options3D.isDensityZ() );
+        if( options.isShowLegend() )
+        {
+            renderer.setLegend( result.getLegend() );
+            renderer.setShowLegend( true );
+            renderer.setLegendLocation(new Point(options.getLegendX(), options.getLegendY()));
+        }
         if( options.isCells() )
         {
             SceneHelper.addDisks( scene, options3D.getXCutOff(), SceneHelper.PLANE_YZ );

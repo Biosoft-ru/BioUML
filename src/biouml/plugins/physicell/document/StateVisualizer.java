@@ -1,5 +1,6 @@
 package biouml.plugins.physicell.document;
 
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 
 import ru.biosoft.physicell.ui.DensityState;
@@ -28,8 +29,8 @@ public abstract class StateVisualizer
 
         }
     }
-
-    public void setDensityState(DensityState density)
+    
+    public  void setDensityState(DensityState density)
     {
         densityState = density;
     }
@@ -37,4 +38,5 @@ public abstract class StateVisualizer
     public abstract void readAgents(String content, String name);
 
     public abstract BufferedImage draw();
+
 }

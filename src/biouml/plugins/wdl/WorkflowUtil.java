@@ -14,9 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.developmentontheedge.application.ApplicationUtils;
-import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.DynamicProperty;
-import com.developmentontheedge.beans.Option;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
@@ -33,7 +31,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 
-public class WDLUtil
+public class WorkflowUtil
 {
 
     public static boolean isOfType(String type, DiagramElement de)
@@ -46,9 +44,24 @@ public class WDLUtil
         return isOfType( WDLConstants.TASK_TYPE, node );
     }
 
+    public static boolean isStruct(Node node)
+    {
+        return isOfType( WDLConstants.STRUCT_TYPE, node );
+    }
+
     public static boolean isCall(Node node)
     {
         return isOfType( WDLConstants.CALL_TYPE, node );
+    }
+
+    public static boolean isConditional(Node node)
+    {
+        return isOfType( WDLConstants.CONDITIONAL_TYPE, node );
+    }
+    
+    public static boolean isCondition(Node node)
+    {
+        return isOfType( WDLConstants.CONDITION_TYPE, node );
     }
 
     public static boolean isLink(DiagramElement de)
@@ -95,6 +108,10 @@ public class WDLUtil
     {
         return c.stream( Compartment.class ).filter( n -> isTask( n ) ).toList();
     }
+    public static List<Node> getStructs(Compartment c)
+    {
+        return c.stream( Node.class ).filter( n -> isStruct( n ) ).toList();
+    }
 
     public static List<Compartment> getCycles(Compartment c)
     {
@@ -136,10 +153,10 @@ public class WDLUtil
     {
         return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
     }
-    
+
     public static List<Node> getOrderedInputs(Compartment c)
     {
-        List<Node> preliminary = getInputs(c);
+        List<Node> preliminary = getInputs( c );
         Node[] result = new Node[preliminary.size()];
         for( Node node : preliminary )
         {
@@ -147,10 +164,10 @@ public class WDLUtil
             if( posObj instanceof Integer )
                 result[(Integer)posObj] = node;
         }
-        for (Node n: result)
+        for( Node n : result )
         {
-            if (n == null)
-                System.out.println("");
+            if( n == null )
+                System.out.println( "" );
         }
         return StreamEx.of( result ).toList();
     }
@@ -298,6 +315,16 @@ public class WDLUtil
         return n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
     }
 
+    public static String findCondition(Compartment conditional)
+    {
+        Node condition = conditional.edges().map( e -> e.getOtherEnd( conditional ) )
+                .findAny( n -> isOfType( WDLConstants.CONDITION_TYPE, n ) ).orElse( null );
+        if( condition == null )
+            return "true";
+        else
+            return getExpression( condition );
+    }
+
     public static void setCallName(Node n, String name)
     {
         n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
@@ -406,6 +433,18 @@ public class WDLUtil
         return parent.stream( Node.class ).filter( n -> isInput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
     }
 
+    public static List<String> findPossibleArguments(String input)
+    {
+        List<String> matches = new ArrayList<>();
+        Pattern pattern = Pattern.compile( "[A-Za-z][A-Za-z0-9_.]*" );
+        Matcher matcher = pattern.matcher( input );
+        while( matcher.find() )
+        {
+            matches.add( matcher.group() );
+        }
+        return matches;
+    }
+
     public static Node findExpressionNode(Diagram diagram, String name)
     {
         if( name.contains( "." ) )
@@ -413,7 +452,7 @@ public class WDLUtil
             String[] parts = name.split( "\\." );
             String call = parts[0];
             String varName = parts[1];
-            Compartment callNode = WDLUtil.findCall( call, diagram );
+            Compartment callNode = WorkflowUtil.findCall( call, diagram );
             if( callNode == null )
                 return null;
             Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
@@ -493,7 +532,8 @@ public class WDLUtil
     {
         List<Node> result = new ArrayList<>();
         Map<Node, Set<Node>> previousSteps = new HashMap<>();
-        for( Node c : compartment.stream( Node.class ).filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) ) )
+        for( Node c : compartment.stream( Node.class ).filter( c -> isCall( c ) || isCycle( c ) || isExpression( c ) || isConditional( c )
+                || isExternalParameter( c ) || isCycleVariable( c ) || isCondition( c ) ) )
             previousSteps.put( c, getPreviousSteps( c, compartment ) );
 
         Set<Node> added = new HashSet<>();
@@ -517,7 +557,8 @@ public class WDLUtil
 
     public static Set<Node> getPreviousSteps(Node n, Compartment threshold)
     {
-        return getEdges( n ).map( e -> getCallOrCycle( e.getInput(), threshold ) ).without( n ).nonNull().toSet();
+        return getEdges( n ).filter( e -> isInside( e.getInput(), threshold ) ).map( e -> getCallOrCycle( e.getInput(), threshold ) )
+                .without( n ).nonNull().toSet();
     }
 
     private static StreamEx<Edge> getEdges(Node node)
@@ -538,8 +579,8 @@ public class WDLUtil
         if( !isInside( node, threshold ) )
             return null;
 
-        if( isExpression( node ) )
-            return node;//todo: expression inside workflows!
+        //        if( isExpression( node ) )
+        //            return node;//todo: expression inside workflows!
 
         Compartment c = node.getCompartment();
         LinkedList<Compartment> parents = new LinkedList<>();
@@ -552,10 +593,10 @@ public class WDLUtil
         while( !parents.isEmpty() )
         {
             Compartment lastParent = parents.pollLast();
-            if( isCycle( lastParent ) || isCall( lastParent ) )
+            if( isCycle( lastParent ) || isCall( lastParent ) || isConditional( lastParent ) )
                 return lastParent;
         }
-        return null;
+        return node;
     }
 
     private static boolean isInside(Node node, Compartment c)
@@ -571,58 +612,6 @@ public class WDLUtil
         }
     }
 
-    public static class ImportProperties extends Option
-    {
-        private DataElementPath source;
-        private String alias;
-
-        public ImportProperties()
-        {
-
-        }
-
-        public ImportProperties(DataElementPath source, String alias)
-        {
-            this.alias = alias;
-            this.source = source;
-        }
-        public DataElementPath getSource()
-        {
-            return source;
-        }
-        public String getSourceName()
-        {
-            return source.getName();
-        }
-        public void setSource(DataElementPath source)
-        {
-            this.source = source;
-        }
-        public String getAlias()
-        {
-            return alias;
-        }
-        public void setAlias(String alias)
-        {
-            this.alias = alias;
-        }
-    }
-
-    public static class ImportPropertiesBeanInfo extends BeanInfoEx
-    {
-        public ImportPropertiesBeanInfo()
-        {
-            super( ImportProperties.class );
-        }
-
-        @Override
-        protected void initProperties() throws Exception
-        {
-            add( "source" );
-            add( "alias" );
-        }
-    }
-
     public static void addImport(Diagram diagram, Diagram source, String alias)
     {
         DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
@@ -635,7 +624,7 @@ public class WDLUtil
 
         for( ImportProperties ip : value )
         {
-            if( ip.alias.equals( alias ) && ip.source.toString().equals( source.getCompletePath().toString() ) )
+            if( ip.getAlias().equals( alias ) && ip.getSource().toString().equals( source.getCompletePath().toString() ) )
                 return;
         }
         ImportProperties[] newValue = new ImportProperties[value.length + 1];
@@ -689,8 +678,8 @@ public class WDLUtil
         }
         else if( de instanceof Diagram )
         {
-            NextFlowGenerator generator = new NextFlowGenerator();
-            String nextFlow = generator.generateNextFlow( (Diagram)de, false );
+            NextFlowGenerator generator = new NextFlowGenerator( false );
+            String nextFlow = generator.generate( (Diagram)de );
             File exported = new File( dir, de.getName() );
             ApplicationUtils.writeString( exported, nextFlow );
         }
@@ -761,5 +750,18 @@ public class WDLUtil
             if( otherPos > position )
                 setPosition( otherInput, otherPos - 1 );
         }
+    }
+
+    public static void setStructMembers(Node node, Declaration[] declarations)
+    {
+        node.getAttributes().add( new DynamicProperty( WDLConstants.STRUCT_MEMBERS_ATTR, Declaration[].class, declarations ) );
+    }
+
+    public static Declaration[] getStructMembers(Node node)
+    {
+        Object declarations = node.getAttributes().getValue( WDLConstants.STRUCT_MEMBERS_ATTR );
+        if( declarations instanceof Declaration[] )
+            return (Declaration[])declarations;
+        return new Declaration[0];
     }
 }

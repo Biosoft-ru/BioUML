@@ -9,24 +9,48 @@
 #####################################MACROS############################################
 #######################################################################################
 #macro(comma $list)
-#if($velocityCount < $list.size()),#end
+#if( $velocityCount < $list.size() ),#end
+#end
+#######################################################################################
+#macro(struct $struct)
+${BR}struct $struct.getName() {
+#foreach( $declaration in $helper.getStructMembers($struct) )
+$declaration.getType() $declaration.getName()
+#end
+}
+#end
+#######################################################################################
+#macro(conditional $conditional)
+#set( $ordered = $helper.orderCalls($conditional) )
+${BR}if ( $helper.findCondition($conditional) ) {
+#foreach( $n in $ordered )
+#if ( $helper.isCycle($n) )#scatter($n)
+#elseif ( $helper.isCall($n) )#call($n)
+#elseif ( $helper.isExpression($n) )#expression($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
+#end 
+#end
+}
 #end
 #######################################################################################
 #macro(call $call)
-#set ($diagramAlias = $helper.getExternalDiagramAlias($call) ) 
-  call #if($diagramAlias)$diagramAlias.#end$helper.getTaskRef($call) #if($helper.getAlias($call)) as $helper.getAlias($call)#end {
-#set ($inputs = $helper.getOrderedInputs($call))
-#if ($inputs.size()> 0)
-     input: #foreach($input in $inputs) $helper.getCallInput($input)#comma($inputs)#end
+#set ( $diagramAlias = $helper.getExternalDiagramAlias($call) ) 
+  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) #if( $helper.getAlias($call) ) as $helper.getAlias($call)#end {
+#set ( $inputs = $helper.getOrderedInputs($call) )
+#if ( $inputs.size()> 0 )
+     input: #foreach( $input in $inputs ) $helper.getCallInput($input)#comma($inputs)#end
 #end
   }$BR
 #end
 #######################################################################################
 #macro(scatter $scatter)
   scatter ( $helper.getCycleVariable($scatter) in $helper.getCycleName($scatter) ) {
-#foreach( $n in $helper.orderCalls($scatter))
-#if ($helper.isCycle($n))#scatter($n)
-#elseif ($helper.isCall($n))#call($n)
+#set( $ordered = $helper.orderCalls($scatter) )
+#foreach( $n in  $ordered )
+#if ( $helper.isCycle($n) )#scatter($n)
+#elseif ( $helper.isCall($n) )#call($n)
+#elseif ( $helper.isExpression($n) )#expression($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
   }$BR
@@ -35,58 +59,63 @@
   $helper.getType($expression) $helper.getName($expression) = $helper.getExpression($expression)
 #end 
 #######################################################################################
+#########################################START#########################################
+#######################################################################################
 version $helper.getVersion()$BR
 #######################################################################################
-#foreach ($import in $helper.getImports())
+#foreach ( $import in $helper.getImports() )
 import "$import.getSourceName()" as $import.getAlias()
+#end$BR
+#foreach ( $struct in $helper.getStructs() )
+#struct($struct)
 #end$BR
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 task $task.getName() {
-#set ($inputs = $helper.getOrderedInputs($task))
-#if ($inputs.size() > 0)
+#set ( $inputs = $helper.getOrderedInputs($task) )
+#if ( $inputs.size() > 0 )
   input {
 #foreach( $input in $inputs )
     $helper.getDeclaration($input)
 #end
   }$BR
 #end
-#set ($meta = $helper.getMeta($task))
-#if ($meta.size() > 0)
+#set ( $meta = $helper.getMeta($task) )
+#if ( $meta.size() > 0 )
   meta {
-#foreach($prop in $meta.entrySet())
+#foreach( $prop in $meta.entrySet() )
     $prop.getKey(): $prop.getValue()
 #end
   }$BR
 #end
-#set ($parmetersmeta = $helper.getParametersMeta($task))
-#if ($parmetersmeta.size() > 0)
+#set ( $parmetersmeta = $helper.getParametersMeta($task) )
+#if ( $parmetersmeta.size() > 0 )
   parameters_meta {
-#foreach($prop in $parmetersmeta.entrySet())
+#foreach($prop in $parmetersmeta.entrySet() )
     $prop.getKey(): $prop.getValue()
 #end
   }$BR
 #end
-#foreach($declaration in $helper.getBeforeCommand($task))
+#foreach( $declaration in $helper.getBeforeCommand($task) )
   $declaration.toString()
 #end
   command {
      $helper.getCommand($task).trim()
   }$BR
-#set ($outputs = $helper.getOutputs($task))
-#if ($outputs.size() > 0)
+#set ( $outputs = $helper.getOutputs($task))
+#if ( $outputs.size() > 0)
   output {
 #foreach( $output in $outputs )
     $helper.getDeclaration($output)
 #end
   }$BR
 #end
-#set ($runtime = $helper.getRuntime($task))
-#if ($runtime.size() > 0)
+#set ( $runtime = $helper.getRuntime($task) )
+#if ( $runtime.size() > 0 )
   runtime {
-#foreach($prop in $runtime.entrySet())
+#foreach( $prop in $runtime.entrySet() )
     $prop.getKey(): $prop.getValue()
 #end
   }$BR
@@ -97,38 +126,40 @@ task $task.getName() {
 ###################################WORKFLOW############################################
 #######################################################################################
 workflow $helper.getMainWorkflowName() {
-#set ($externalParameters = $helper.getExternalParameters())
-#if ($externalParameters.size() > 0)
+#set ( $externalParameters = $helper.getExternalParameters() )
+#if ( $externalParameters.size() > 0 )
   input {
 #foreach( $externalParameter in $externalParameters )
     $helper.getDeclaration($externalParameter)
 #end
   }$BR
 #end
-#set ($meta = $helper.getMeta($diagram))
-#if ($meta.size() > 0)
+#set ( $meta = $helper.getMeta($diagram) )
+#if ( $meta.size() > 0 )
   meta {
 #foreach($prop in $meta.entrySet())
     $prop.getKey(): $prop.getValue()
 #end
   }$BR
 #end
-#set ($parmeters_meta = $helper.getParametersMeta($diagram))
-#if ($parmeters_meta.size() > 0)
+#set ( $parmeters_meta = $helper.getParametersMeta($diagram) )
+#if ( $parmeters_meta.size() > 0 )
   parameters_meta {
-#foreach($prop in $parmeters_meta.entrySet())
+#foreach( $prop in $parmeters_meta.entrySet() )
     $prop.getKey(): $prop.getValue()
 #end
   }$BR
 #end
-#foreach( $n in $helper.orderCalls($diagram))
-#if ($helper.isCycle($n))#scatter($n)
-#elseif ($helper.isCall($n))#call($n)
-#elseif ($helper.isExpression($n))#expression($n)
+#set( $ordered = $helper.orderCalls($diagram) )
+#foreach( $n in $ordered )
+#if ( $helper.isCycle($n) )#scatter($n)
+#elseif ( $helper.isCall($n) )#call($n)
+#elseif ( $helper.isExpression($n) )#expression($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
-#set ($externalOutputs = $helper.getExternalOutputs())
-#if ($externalOutputs.size() > 0)
+#set ( $externalOutputs = $helper.getExternalOutputs() )
+#if ( $externalOutputs.size() > 0 )
   output {
 #foreach( $externalOutput in $externalOutputs )
     $helper.getDeclaration($externalOutput)

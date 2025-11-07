@@ -30,6 +30,7 @@ public class PathwaySimulationDiagramViewOptionsBeanInfo extends PathwayDiagramV
         add( "maxTitleSize" );
         add( "defaultFont", FontEditor.class );
         add( "nodeTitleFont", FontEditor.class );
+        add("portTitleFont");
         add( "mathTitleFont", FontEditor.class );
         add( "compartmentTitleFont", FontEditor.class );
         add( "diagramTitleFont", FontEditor.class );

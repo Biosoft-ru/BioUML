@@ -12,6 +12,7 @@ public class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
     @Override
     public void initProperties() throws Exception
     {
+        add( "executionType" );
         add( "outputPath" );
         property( "useJson" ).structureChanging().add();
         property( "json" ).hidden( "isNotJson" ).add();

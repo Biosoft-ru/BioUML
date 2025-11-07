@@ -1,0 +1,114 @@
+#######################################################################################
+#####################################CONSTANTS#########################################
+#set ($BR = "
+")
+#set ($INDENT = "  ")
+#set ($QUOTE = '"')
+#######################################################################################
+#####################################MACROS############################################
+#######################################################################################
+#macro(comma $list)
+#if($velocityCount < $list.size()),#end
+#end
+#######################################################################################
+#macro(callCWL $step)
+       $helper.getCallName($step ):
+         in:
+#set ( $inputs = $helper.getOrderedInputs($step) )
+#foreach($input in $inputs)
+           $helper.getName($input): $helper.getCleanExpression($input)
+#end
+#set ( $outputs = $helper.getOutputs($step) )    
+         out: [#foreach($output in $outputs)$helper.getName($output)#comma($outputs)#end]
+         run:
+           "#$helper.getTaskRef($step)"
+#end
+#######################################################################################
+#######################################START###########################################
+#######################################################################################
+cwlVersion: $helper.getVersion()
+$BR$graph:
+#######################################################################################
+###################################WORKFLOW############################################
+#######################################################################################
+- class: Workflow
+  id: main
+$BR  requirements:
+  - class: MultipleInputFeatureRequirement
+  - class: ScatterFeatureRequirement
+  - class: InlineJavascriptRequirement
+#set ($externalParameters = $helper.getExternalParameters())
+#if ($externalParameters.size() > 0)
+$BR  inputs:
+#foreach( $externalParameter in $externalParameters )
+    $helper.getName($externalParameter):
+      type: $helper.getType($externalParameter)
+#end
+#end
+#set ($externalOutputs = $helper.getExternalOutputs())
+#if ($externalOutputs.size() > 0)
+$BR  outputs: 
+#foreach( $externalOutput in $externalOutputs )
+    $helper.getName($externalOutput):
+      type: $helper.getType($externalOutput)
+      outputSource: $helper.getOutputSource($externalOutput)
+#end
+#end
+$BR  steps:
+#foreach( $n in $helper.orderCalls($diagram))
+#if ($helper.isCall($n))
+$BR#callCWL($n)
+#end 
+#end
+#######################################################################################
+#################################COMMAND LINE TOOLS####################################
+#######################################################################################
+#foreach( $task in $helper.getTasks())
+#set ($inputs = $helper.getOrderedInputs($task))
+$BR
+- class: CommandLineTool
+  id: $task.getName()
+#set ($hasFiles = 0)
+#foreach( $input in $inputs )
+#if($helper.getType($input) == "File")
+#set ($hasFiles = 1)
+#end
+#end
+#set( $docker = $helper.getContainer($task) )
+#if( $docker || $hasFiles == 1)
+$BR  hints:
+#end
+#if( $docker )
+    DockerRequirement:
+      dockerPull: $docker
+#end
+#if ($hasFiles == 1)
+    InitialWorkDirRequirement:
+      listing:
+#foreach( $input in $inputs )
+#if($helper.getType($input) == "File")
+        - entryname: $(inputs.${helper.getName($input)}.basename)
+          entry: $(inputs.${helper.getName($input)})
+#end
+#end
+#end
+$BR  baseCommand: sh
+$BR  arguments:
+    - "-c"
+    - valueFrom: |
+#set( $args = $helper.getCommands($task) )
+#foreach( $arg in $args )#if( $args.size() > 1 && $velocityCount > 1 ) && \ $BR        #else        #end$arg#end
+$BR$BR  inputs:
+#foreach( $input in $inputs )  
+    $helper.getName($input):
+      type: $helper.getType($input)
+#end
+$BR  outputs:
+#set ($outputs = $helper.getOutputs($task))
+#foreach( $output in $outputs )
+    $helper.getName($output):
+      type: $helper.getType($output)
+      outputBinding:
+        glob: $helper.getGlobExpression($output)
+#end
+#end

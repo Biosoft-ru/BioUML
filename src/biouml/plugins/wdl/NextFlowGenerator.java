@@ -1,74 +1,44 @@
 package biouml.plugins.wdl;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.runtime.RuntimeServices;
-import org.apache.velocity.runtime.RuntimeSingleton;
-import org.apache.velocity.runtime.parser.node.SimpleNode;
-
 import biouml.model.Diagram;
 
-public class NextFlowGenerator
+public class NextFlowGenerator extends WorkflowTextGenerator
 {
-    protected static String TEMPLATE_PATH = "resources/nextflow.vm";
-    private Template velocityTemplate;
+    private static String TEMPLATE_PATH = "resources/nextflow.vm";
+    private static String TEMPLATE_NAME = "Next Flow template";
+    private boolean isEntryWorkflow = true;
 
-    public String generateNextFlow(Diagram diagram, boolean isEntry) throws Exception
+    public NextFlowGenerator()
     {
-        try
-        {
-            diagram =  new NextFlowPreprocessor().preprocess( diagram );
-            
-            InputStream inputStream = getClass().getResourceAsStream( TEMPLATE_PATH );
+        this.isEntryWorkflow = true;
+    }
 
-            if( velocityTemplate == null )
-            {
-                RuntimeServices runtimeServices = RuntimeSingleton.getRuntimeServices();
-                SimpleNode node = runtimeServices.parse( new InputStreamReader( inputStream ), "Next Flow template" );
-                velocityTemplate = new Template();
-                velocityTemplate.setEncoding( "UTF-8" );
-                velocityTemplate.setRuntimeServices( runtimeServices );
-                velocityTemplate.setData( node );
-                velocityTemplate.initDocument();
-                Velocity.init();
-            }
-            VelocityContext context = new VelocityContext();
+    public NextFlowGenerator(boolean isEntryWorkflow)
+    {
+        this.isEntryWorkflow = isEntryWorkflow;
+    }
 
-            context.put( "helper", new NextFlowVelocityHelper( diagram, isEntry ) );
+    @Override
+    public String getTemplateName()
+    {
+        return TEMPLATE_NAME;
+    }
 
-            //Creation time
-            String pattern = "yyyy.MM.dd HH:mm:ss";
-            Calendar calendar = Calendar.getInstance();
-            Date date = calendar.getTime();
-            SimpleDateFormat format = new SimpleDateFormat( pattern );
-            String creationTime = format.format( date );
+    @Override
+    public String getTemplatePath()
+    {
+        return TEMPLATE_PATH;
+    }
 
-            context.put( "creationTime", creationTime );
-            context.put( "diagram", diagram );
+    @Override
+    public WorkflowVelocityHelper getVelocityHelper(Diagram diagram)
+    {
+        return new NextFlowVelocityHelper( diagram, isEntryWorkflow );
+    }
 
-            StringWriter sw = new StringWriter();
-            velocityTemplate.merge( context, sw );
-            
-            String result = sw.toString();
-
-//            result = result.replace( "$(", "\\$(" );
-//            result = result.replace( "~{", "${" );
-
-            return result;
-        }
-        catch( Exception ex )
-        {
-            ex.printStackTrace();
-            return "";
-        }
-
+    @Override
+    public Diagram preprocess(Diagram diagram) throws Exception
+    {
+        return new NextFlowPreprocessor().preprocess( diagram );
     }
 }

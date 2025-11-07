@@ -4,9 +4,9 @@ import java.util.ListResourceBundle;
 
 import javax.swing.Action;
 
-import biouml.plugins.wdl.WDLEditor.RunScriptAction;
-import biouml.plugins.wdl.WDLEditor.UpdateDiagramAction;
-import biouml.plugins.wdl.WDLEditor.UpdateWDLAction;
+import biouml.plugins.wdl.WorkflowTextEditor.RunScriptAction;
+import biouml.plugins.wdl.WorkflowTextEditor.UpdateDiagramAction;
+import biouml.plugins.wdl.WorkflowTextEditor.UpdateWDLAction;
 
 
 

@@ -8,16 +8,31 @@ public class AstDeclaration extends SimpleNode
 
     public AstDeclaration(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstDeclaration(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
     }
 
     public String getType()
     {
+        AstType astType = getAstType();
+        if( astType.getChildren() != null )
+        {
+            StringBuffer buffer = new StringBuffer();
+            if( astType.firstToken != null )
+                buffer.append( astType.firstToken );
+            for( Node node : astType.getChildren() )
+            {
+                buffer.append( node.toString() );
+            }
+            return buffer.toString();
+        }
+
+        if( type.equals( "?" ) && astType.firstToken != null )
+            return astType.firstToken + type;
         return type;
     }
 
@@ -35,7 +50,7 @@ public class AstDeclaration extends SimpleNode
         }
         return null;
     }
-    
+
     public AstType getAstType()
     {
         for( Node child : getChildren() )
@@ -45,13 +60,13 @@ public class AstDeclaration extends SimpleNode
         }
         return null;
     }
-    
+
     public String toString()
     {
-        String result =  getAstType().toString()+" "+getName();
+        String result = getAstType().toString() + " " + getName();
         AstExpression expression = getExpression();
-        if (expression != null)
-             result +=" = "+expression.toString();
+        if( expression != null )
+            result += " = " + expression.toString();
         return result;
     }
 

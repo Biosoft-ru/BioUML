@@ -61,7 +61,9 @@ public class PhysicellResultWriter
         DataElementPath dep = options.getResultPath();
         if( dep == null )
             throw new IllegalArgumentException( "Please set output folder" );
-        resultFolder = DataCollectionUtils.createSubCollection( options.getResultPath() );
+
+        resultFolder = options.getResultPath().getDataCollection();
+        //                DataCollectionUtils.createSubCollection( options.getResultPath() );
 
         TextDataElement logElement = new TextDataElement( "model.txt", resultFolder );
         logElement.setContent( model.display() );
@@ -293,7 +295,7 @@ public class PhysicellResultWriter
         TextDataElement logElement = new TextDataElement( "log.txt", resultFolder );
         logElement.setContent( simulationLog.toString() );
         resultFolder.put( logElement );
-        
+
         if( options.isSavePlots() )
             resultFolder.put( result );
     }
@@ -345,7 +347,7 @@ public class PhysicellResultWriter
 
     private void countCellTypes(PhysicellModel model) throws Exception
     {
-        double[] counts = new double[plotProperties.getProperties().length+1];
+        double[] counts = new double[plotProperties.getProperties().length + 1];
 
         for( Cell cell : model.getMicroenvironment().getAgents( Cell.class ) )
         {
@@ -362,14 +364,14 @@ public class PhysicellResultWriter
 
     private boolean accepts(CurveProperties curve, Cell cell) throws Exception
     {
-        if (!cell.getDefinition().name.equals( curve.getCellType() ))
-                return false;
-        
-        if (curve.isNoSignal())
+        if( !cell.getDefinition().name.equals( curve.getCellType() ) )
+            return false;
+
+        if( curve.isNoSignal() )
             return true;
         double value = cell.getModel().getSignals().getSingleSignal( cell, curve.getSignal() );
 
-        switch ( curve.getRelationInt()  )
+        switch( curve.getRelationInt() )
         {
             case CurveProperties.LT:
                 return value < curve.getValue();

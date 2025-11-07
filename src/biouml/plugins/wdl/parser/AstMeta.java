@@ -5,7 +5,7 @@ package biouml.plugins.wdl.parser;
 import java.util.HashMap;
 import java.util.Map;
 
-import biouml.plugins.wdl.WDLUtil;
+import biouml.plugins.wdl.WorkflowUtil;
 
 public class AstMeta extends SimpleNode
 {
@@ -45,7 +45,7 @@ public class AstMeta extends SimpleNode
                     value = ((AstMetaFormulaElement)valueNode).getValue();
                 else if( valueNode instanceof AstMap )
                 {
-                    value = WDLUtil.toWDL( ((AstMap)valueNode ).toMap() );
+                    value = WorkflowUtil.toWDL( ((AstMap)valueNode ).toMap() );
                 }
                 if( value != null )
                     result.put( key, value );

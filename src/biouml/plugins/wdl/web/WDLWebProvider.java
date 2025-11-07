@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.WDLGenerator;
-import biouml.plugins.wdl.WDLRunner;
+import biouml.plugins.wdl.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.parser.AstStart;
@@ -52,8 +52,8 @@ public class WDLWebProvider extends WebJSONProviderSupport
         {
             DataElementPath diagramPath = arguments.getDataElementPath();
             Diagram diagram = WebDiagramsProvider.getDiagram( diagramPath.toString(), false );
-            String wdl = new WDLGenerator().generateWDL( diagram );
-            String nextflow = new NextFlowGenerator().generateNextFlow( diagram, true );
+            String wdl = new WDLGenerator().generate( diagram );
+            String nextflow = new NextFlowGenerator().generate( diagram );
             JSONObject res = new JSONObject();
             res.put( "wdl", wdl );
             res.put( "nextflow", nextflow );
@@ -84,7 +84,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             JSONUtils.correctBeanOptions( settings, jsonSettings );
             try
             {
-                String log = WDLRunner.runNextFlow( diagram, null, settings, outputDir, false );
+                String log = NextFlowRunner.runNextFlow( diagram, null, settings, outputDir, false );
                 JSONObject res = new JSONObject();
                 res.put( "result", settings.getOutputPath().toString() );
                 res.put( "log", log );

@@ -13,6 +13,9 @@ public class WDLConstants
     public static String EXTERNAL_PARAMETER_TYPE = "External_parameter";
     public static String WORKFLOW_OUTPUT_TYPE = "Workflow output";
     public static String EXPRESSION_TYPE = "Expression";
+    public static String STRUCT_TYPE = "Struct";
+    public static String CONDITIONAL_TYPE = "Conditional block";
+    public static String CONDITION_TYPE = "Condition";
     
     public static String LINK_TYPE = "Link";
     
@@ -36,6 +39,7 @@ public class WDLConstants
     public static final String POSITION_ATTR = "position";
     public static final String SETTINGS_ATTR = "Settings";
     
+    public static final String STRUCT_MEMBERS_ATTR = "Struct members";
     public static final String NO_VALUE = "NO_VALUE";
 
 }

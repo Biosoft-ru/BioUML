@@ -56,9 +56,12 @@ public class ImageDescriptor extends Option implements ImageObserver, PropertyCh
         scale.addPropertyChangeListener(this);
     }
 
-    public ImageDescriptor(DataElementPath path)
+    public ImageDescriptor(DataElementPath path, Dimension size)
     {
        this.path = path;
+       this.size = size;
+       if( this.size == null )
+           this.size = new Dimension();
     }
     
     public ImageDescriptor(String source)
@@ -259,8 +262,8 @@ public class ImageDescriptor extends Option implements ImageObserver, PropertyCh
                 Dimension nodeSize = ((Node)getParent()).getShapeSize();
                 scale.setWidth((int)(nodeSize.getWidth() / imageWidth * 100.0));
                 scale.setHeight((int)(nodeSize.getHeight() / imageHeight * 100.0));
-                ( (Node)getParent() ).setShapeSize( new Dimension( (int) ( imageWidth * scale.getWidth() / 100.0 ),
-                        (int) ( imageHeight * scale.getHeight() / 100.0 ) ) );
+//                ( (Node)getParent() ).setShapeSize( new Dimension( (int) ( imageWidth * scale.getWidth() / 100.0 ),
+//                        (int) ( imageHeight * scale.getHeight() / 100.0 ) ) );
             }
             
             

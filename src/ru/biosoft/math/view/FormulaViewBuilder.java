@@ -38,6 +38,11 @@ public class FormulaViewBuilder
         return defaultFont;
     }
 
+    /**Subscript font size relative to font size*/
+    protected double subscriptScale = 0.7;
+    /**Offset for subscript relative to font size*/
+    protected double subscriptRelativeOffset = 0.5;
+
     protected ColorFont superscriptFont = new ColorFont( "Arial", Font.BOLD, 10, Color.black );
     protected ColorFont subscriptFont = new ColorFont( "Arial", Font.BOLD, 10, Color.black );
     protected ColorFont errorFont = new ColorFont( "Arial", Font.BOLD, 14, Color.red );
@@ -142,6 +147,8 @@ public class FormulaViewBuilder
         if( title.indexOf( '_' ) < 1 )
             return new TextView( title, font, g );
 
+
+
         boolean addBracket = false;
         boolean addQuote = false;
 
@@ -163,19 +170,24 @@ public class FormulaViewBuilder
             String next = tokensDot.nextToken();
             StringTokenizer tokens = new StringTokenizer( next, "_" );
             int i = 0;
-            int yOffset = 7;
+            Font originalFont = font.getFont();
+            Font subscriptFont = originalFont.deriveFont( (int) ( originalFont.getSize() * this.subscriptScale ) );
+            int offset = (int) ( originalFont.getSize() * this.subscriptRelativeOffset );
+            int yOffset = offset;
             while( tokens.hasMoreTokens() )
             {
                 if( i == 0 )
                 {
-                    TextView innerView = new TextView( tokens.nextToken(), defaultFont, g );
+                    TextView innerView = new TextView( tokens.nextToken(), font, g );
                     view.add( innerView, CompositeView.X_RL | CompositeView.Y_UN, new Point( 1, 0 ) );
                 }
                 else
                 {
-                    TextView innerView = new TextView( tokens.nextToken(), subscriptFont, g );
+                    font.setFont( subscriptFont );
+                    TextView innerView = new TextView( tokens.nextToken(), font, g );
+                    font.setFont( originalFont );
                     view.add( innerView, CompositeView.X_RL | CompositeView.Y_UN, new Point( 1, yOffset ) );
-                    yOffset += 7;
+                    yOffset += offset;
                 }
                 i++;
                 if( view.size() == 1 )
@@ -184,7 +196,7 @@ public class FormulaViewBuilder
 
             if( tokensDot.hasMoreTokens() )
             {
-                TextView innerView = new TextView( ".", defaultFont, g );
+                TextView innerView = new TextView( ".", font, g );
                 view.add( innerView, CompositeView.X_RL | CompositeView.Y_UN, new Point( 1, 0 ) );
             }
             dy = ( height - view.getBounds().height ) / 2;
@@ -192,13 +204,13 @@ public class FormulaViewBuilder
 
         if( addQuote )
         {
-            TextView innerView = new TextView( "\"", defaultFont, g );
+            TextView innerView = new TextView( "\"", font, g );
             view.add( innerView, CompositeView.X_RL | CompositeView.Y_UN, new Point( 1, 0 ) );
         }
 
         if( addBracket )
         {
-            TextView innerView = new TextView( "]", defaultFont, g );
+            TextView innerView = new TextView( "]", font, g );
             view.add( innerView, CompositeView.X_RL | CompositeView.Y_UN, new Point( 1, 0 ) );
         }
         return view;

@@ -2,11 +2,16 @@ package biouml.plugins.wdl;
 
 import biouml.model.Diagram;
 
-public class WDLGenerator extends WorkflowTextGenerator
+public class CWLGenerator extends WorkflowTextGenerator
 {
-    private static String TEMPLATE_PATH = "resources/wdl.vm";
-    private static String TEMPLATE_NAME = "WDL template";
+    private static String TEMPLATE_PATH = "resources/cwl.vm";
+    private static String TEMPLATE_NAME = "CWL template";
   
+    public CWLGenerator()
+    {
+        
+    }
+    
     @Override
     public String getTemplateName()
     {
@@ -22,6 +27,6 @@ public class WDLGenerator extends WorkflowTextGenerator
     @Override
     public WorkflowVelocityHelper getVelocityHelper(Diagram diagram)
     {
-        return new WDLVelocityHelper( diagram );
+        return new CWLVelocityHelper( diagram );
     }
 }

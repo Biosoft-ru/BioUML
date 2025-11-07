@@ -16,5 +16,6 @@ public class PhasePropertiesBeanInfo extends BeanInfoEx2<PhaseProperties>
         property( "title" ).hidden().implicit().add();
         property( "divisionAtExit" ).hidden( "isDeathPhase" ).add();
         property( "removalAtExit" ).hidden( "isLivePhase" ).add();
+        property( "isDeathPhase" ).hidden().add();
     }
 }

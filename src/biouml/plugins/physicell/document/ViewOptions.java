@@ -1,11 +1,13 @@
 package biouml.plugins.physicell.document;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.physicell.ui.ModelData;
 
 public class ViewOptions extends Option
@@ -13,8 +15,14 @@ public class ViewOptions extends Option
     private String[] substrates = new String[0];
     
     private boolean statistics = true;
-    private int statisticsX = 10;
+    private int statisticsX = 20;
     private int statisticsY = 40;
+    private int legendX;
+    private int legendY = 40;
+
+
+    private ColorFont statisticsFont =  new ColorFont( "TimesRoman", Font.PLAIN, 20 );
+    private boolean statisticsBackground = true;
     private int maxTime;
     private int time;
     private View2DOptions options2D = new View2DOptions();
@@ -31,7 +39,8 @@ public class ViewOptions extends Option
     private boolean drawNuclei = false;
     private double maxDensity = 38;
     private Color densityColor = Color.red;
-    
+    private boolean showLegend = true;
+
     public ViewOptions()
     {
         options2D.setParent( this );
@@ -120,6 +129,19 @@ public class ViewOptions extends Option
         this.firePropertyChange( "options3D", oldValue, options3D );
     }
     
+    @PropertyName ( "Statistics background" )
+    public boolean isStatisticsBackground()
+    {
+        return statisticsBackground;
+    }
+    
+    public void setStatisticsBackground(boolean statisticsBackground)
+    {
+        Object oldValue = this.statisticsBackground;
+        this.statisticsBackground = statisticsBackground;
+        this.firePropertyChange( "statisticsBackground", oldValue, statisticsBackground );
+    }
+    
     @PropertyName ( "Statistics X" )
     public int getStatisticsX()
     {
@@ -144,6 +166,19 @@ public class ViewOptions extends Option
         int oldValue = this.statisticsY;
         this.statisticsY = statisticsY;
         this.firePropertyChange( "statisticsY", oldValue, statisticsY );
+    }
+    
+    @PropertyName("Statistics Font")
+    public ColorFont getStatisticsFont()
+    {
+        return statisticsFont;
+    }
+
+    public void setStatisticsFont(ColorFont statisticsFont)
+    {
+        ColorFont oldValue = this.statisticsFont;
+        this.statisticsFont = statisticsFont;
+        this.firePropertyChange( "statisticsFont", oldValue, statisticsFont );
     }
     
     @PropertyName("Result video path")
@@ -292,5 +327,44 @@ public class ViewOptions extends Option
         Color oldValue = this.densityColor;
         this.densityColor = densityColor;
         firePropertyChange( "densityColor", oldValue, densityColor );
+    }
+    
+    @PropertyName("Show Legend")
+    public boolean isShowLegend()
+    {
+        return showLegend;
+    }
+
+    public void setShowLegend(boolean showLegend)
+    {
+        boolean oldValue = this.showLegend;
+        this.showLegend = showLegend;
+        firePropertyChange( "showLegend", oldValue, showLegend );
+    }
+
+    @PropertyName("Legend X")
+    public int getLegendX()
+    {
+        return legendX;
+    }
+
+    public void setLegendX(int legendX)
+    {
+        int oldValue = this.legendX;
+        this.legendX = legendX;
+        firePropertyChange( "legendX", oldValue, legendX );
+    }
+
+    @PropertyName("Legend Y")
+    public int getLegendY()
+    {
+        return legendY;
+    }
+
+    public void setLegendY(int legendY)
+    {
+        int oldValue = this.legendY;
+        this.legendY = legendY;    
+        firePropertyChange( "legendY", oldValue, legendY );
     }
 }

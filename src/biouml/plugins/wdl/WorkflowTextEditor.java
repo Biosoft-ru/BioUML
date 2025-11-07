@@ -43,9 +43,9 @@ import ru.biosoft.gui.GUI;
 import ru.biosoft.util.TempFiles;
 
 @SuppressWarnings ( "serial" )
-public class WDLEditor extends EditorPartSupport
+public class WorkflowTextEditor extends EditorPartSupport
 {
-    private static final Logger log = Logger.getLogger( WDLEditor.class.getName() );
+    private static final Logger log = Logger.getLogger( WorkflowTextEditor.class.getName() );
 
     private JTabbedPane tabbedPane;
     private JSplitPane splitPane;
@@ -58,8 +58,9 @@ public class WDLEditor extends EditorPartSupport
     private WorkflowSettings settings;
 
     private WDLEditorPane wdlPane;
+    private CWLEditorPane cwlPane;
     private NextFlowEditorPane nextFlowPane;
-    private PropertyInspector inspector = new PropertyInspectorEx();
+    private PropertyInspector settingsInspector = new PropertyInspectorEx();
 
     private Diagram diagram;
 
@@ -70,21 +71,24 @@ public class WDLEditor extends EditorPartSupport
     private Action runScriptAction = new RunScriptAction();
 
     private WDLGenerator wdlGenerator;
+    private CWLGenerator cwlGenerator;
     private NextFlowGenerator nextFlowGenerator;
     private WDLImporter wdlImporter;
 
     String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
 
-    public WDLEditor()
+    public WorkflowTextEditor()
     {
         tabbedPane = new JTabbedPane( SwingConstants.LEFT );
         add( BorderLayout.CENTER, tabbedPane );
         wdlPane = new WDLEditorPane();
+        cwlPane = new CWLEditorPane();
         nextFlowPane = new NextFlowEditorPane();
 
         tabbedPane.addTab( "WDL", new JScrollPane( wdlPane ) );
+//        tabbedPane.addTab( "СWL", new JScrollPane( cwlPane ) );
         tabbedPane.addTab( "NextFlow", new JScrollPane( nextFlowPane ) );
-        tabbedPane.addTab( "Settings", inspector );
+        tabbedPane.addTab( "Settings", settingsInspector );
         appender = new TextPaneAppender( new PatternFormatter( "%4$s :  %5$s%n" ), "Application Log" );
         appender.setLevel( Level.SEVERE );
         appender.addToCategories( categoryList );
@@ -94,6 +98,7 @@ public class WDLEditor extends EditorPartSupport
 
         wdlGenerator = new WDLGenerator();
         nextFlowGenerator = new NextFlowGenerator();
+        cwlGenerator = new CWLGenerator();
         wdlImporter = new WDLImporter();
     }
 
@@ -108,9 +113,11 @@ public class WDLEditor extends EditorPartSupport
     {
         try
         {
+            Diagram diagram = (Diagram)model;
             setDiagram( (Diagram)model );
-            setWDL( wdlGenerator.generateWDL( getDiagram() ) );
-            setNextFlow( nextFlowGenerator.generateNextFlow( getDiagram(), true) );
+            setWDL( wdlGenerator.generate( diagram ) );
+            setCWL( cwlGenerator.generate( diagram ) );
+            setNextFlow( nextFlowGenerator.generate( diagram ) );
         }
         catch( Exception ex )
         {
@@ -126,6 +133,16 @@ public class WDLEditor extends EditorPartSupport
     public void setWDL(String wdl)
     {
         wdlPane.setText( wdl );
+    }
+
+    public void setCWL(String cwl)
+    {
+        cwlPane.setText( cwl );
+    }
+    
+    public String getCWL()
+    {
+        return cwlPane.getText();
     }
 
     public String getNextFlow()
@@ -166,7 +183,7 @@ public class WDLEditor extends EditorPartSupport
         }
         settings = (WorkflowSettings)settingsProperty.getValue();
         settings.initParameters( diagram );
-        inspector.explore( settings );
+        settingsInspector.explore( settings );
     }
 
     @Override
@@ -215,7 +232,6 @@ public class WDLEditor extends EditorPartSupport
             super();
             setEditorKit( new StyledEditorKit() );
             HighlightedDocument document = new HighlightedDocument();
-            //            document.setHighlightStyle( WDLColorer.class );
             this.setDocument( document );
             setFont( new Font( "Monospaced", Font.PLAIN, 12 ) );
         }
@@ -226,24 +242,20 @@ public class WDLEditor extends EditorPartSupport
         }
     }
 
-
-
-    public void replaceDiagram(Diagram newDiagram)
+    public class CWLEditorPane extends JEditorPane
     {
-        Document currentDocument = GUI.getManager().getCurrentDocument();
-        this.document = ( DiagramUtility.isComposite( newDiagram ) ) ? new CompositeDiagramDocument( newDiagram )
-                : new DiagramDocument( newDiagram );
-
-        this.document.update();
-
-        if( GUI.getManager().getCurrentDocument() != null )
+        public CWLEditorPane()
         {
-            GUI.getManager().replaceDocument( currentDocument, this.document );
-            GUI.getManager().getDocumentViewAccessProvider().enableDocumentActions( true );
+            super();
+            setEditorKit( new StyledEditorKit() );
+            HighlightedDocument document = new HighlightedDocument();
+            this.setDocument( document );
+            setFont( new Font( "Monospaced", Font.PLAIN, 12 ) );
         }
-        else
+
+        public void setTextSilent(String str)
         {
-            log.info( "replacing document, but document is null" );
+            setText( str );
         }
     }
 
@@ -261,7 +273,7 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                String wdl = wdlGenerator.generateWDL( diagram );
+                String wdl = wdlGenerator.generate( diagram );
                 setWDL( wdl );
             }
             catch( Exception ex )
@@ -285,9 +297,12 @@ public class WDLEditor extends EditorPartSupport
         {
             try
             {
-                WDLRunner.runNextFlow( diagram, WDLEditor.this.getNextFlow(),  settings, outputDir, System.getProperty("os.name").startsWith("Windows") );
+//                CWLRunner.runNextFlow( diagram, WorkflowTextEditor.this.getCWL(), settings, outputDir,
+//                      System.getProperty( "os.name" ).startsWith( "Windows" ) );
+                NextFlowRunner.runNextFlow( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
+                        System.getProperty( "os.name" ).startsWith( "Windows" ) );
             }
-            catch (Exception ex)
+            catch( Exception ex )
             {
                 ex.printStackTrace();
             }
@@ -311,128 +326,17 @@ public class WDLEditor extends EditorPartSupport
                 String text = getWDL();
                 text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
                 AstStart start = new WDLParser().parse( new StringReader( text ) );
-                diagram = wdlImporter.generateDiagram( start, diagram);
+                diagram = wdlImporter.generateDiagram( start, diagram );
                 wdlImporter.layout( diagram );
                 setDiagram( diagram );
+                setNextFlow( nextFlowGenerator.generate( diagram ) );
                 diagram.save();
             }
             catch( Exception ex )
             {
-                log.info( "Error during WDL applying:"+ex.getMessage() );
+                log.info( "Error during WDL applying:" + ex.getMessage() );
                 ex.printStackTrace();
             }
         }
     }
-
-    //    private void runNextFlow(String name, String script)
-    //    {
-    //        try
-    //        {
-    //            if( settings.getOutputPath() == null )
-    //                log.info( "Output path not specified" );
-    //
-    //
-    //            new File( outputDir ).mkdirs();
-    //            DataCollectionUtils.createSubCollection( settings.getOutputPath() );
-    //
-    //            File config = new File( outputDir, "nextflow.config" );
-    //            ApplicationUtils.writeString( config, "docker.enabled = true" );
-    //
-    //            File json = settings.generateParametersJSON( outputDir );
-    //
-    //            settings.exportCollections( outputDir );
-    //
-    //            WDLUtil.generateFunctions( outputDir );
-    //
-    //            for( DataElement de : StreamEx.of( WDLUtil.getImports( diagram ) ).map( f -> f.getSource().getDataElement() ) )
-    //                WDLUtil.export( de, new File( outputDir ) );
-    //
-    //            NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
-    //            script = preprocessor.preprocess( script );
-    //            File f = new File( outputDir, name + ".nf" );
-    //            ApplicationUtils.writeString( f, script );
-    //            String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-    //
-    //            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
-    //                    json.getName()};
-    //            //            String[] command = new String[] {"docker", "run", "-v", parent + ":/data", "nextflow/nextflow", "nextflow", "run",
-    //            //                    "/data/" + f.getName()};
-    //
-    //            executeCommand( command );
-    //
-    //            importResults();
-    //        }
-    //        catch( Exception ex )
-    //        {
-    //            ex.printStackTrace();
-    //        }
-    //    }
-
-    //    private void executeCommand(String[] command) throws Exception
-    //    {
-    //        System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
-    //        Process process = Runtime.getRuntime().exec( command );
-    //
-    //        new Thread( new Runnable()
-    //        {
-    //            public void run()
-    //            {
-    //                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-    //                String line = null;
-    //
-    //                try
-    //                {
-    //                    while( ( line = input.readLine() ) != null )
-    //                        log.info( line );
-    //                }
-    //                catch( IOException e )
-    //                {
-    //                    e.printStackTrace();
-    //                }
-    //                //                
-    //                //for some reason cwl-runner outputs everything into error stream
-    //                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-    //                line = null;
-    //
-    //                try
-    //                {
-    //                    while( ( line = err.readLine() ) != null )
-    //                        log.info( line );
-    //                }
-    //                catch( IOException e )
-    //                {
-    //                    e.printStackTrace();
-    //                }
-    //            }
-    //        } ).start();
-    //
-    //        process.waitFor();
-    //
-    //    }
-
-
-    //    public void importResults() throws Exception
-    //    {
-    //        if( settings.getOutputPath() == null )
-    //            return;
-    //        DataCollection dc = settings.getOutputPath().getDataCollection();
-    //
-    //        for( Compartment n : WDLUtil.getAllCalls( diagram ) )
-    //        {
-    //            String taskRef = WDLUtil.getTaskRef( n );
-    //            String folderName = ( taskRef );
-    //            File folder = new File( outputDir, folderName );
-    //            if( !folder.exists() || !folder.isDirectory() )
-    //            {
-    //                log.info( "No results for " + n.getName() );
-    //                continue;
-    //            }
-    //            DataCollection nested = DataCollectionUtils.createSubCollection( dc.getCompletePath().getChildPath( folderName ) );
-    //            for( File f : folder.listFiles() )
-    //            {
-    //                TextFileImporter importer = new TextFileImporter();
-    //                importer.doImport( nested, f, f.getName(), null, log );
-    //            }
-    //        }
-    //    }
 }

@@ -20,6 +20,21 @@ public class WDLViewOptions extends DiagramViewOptions
 {
     private Brush outputBrush;
     private Pen outputPen;
+    private Brush structBrush = new Brush(Color.white);
+    protected ColorFont smallFont;
+    protected Brush deBrush;
+    protected Brush analysisBrush;
+    protected Brush taskBrush;
+    protected Brush expressionBrush;
+    protected Brush conditionBrush =  new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
+    protected Brush conditionalBrush =  new Brush(new Color(200, 128, 200), new Color(250, 125, 250));
+
+    protected Pen conditionPen =  new Pen(1, new Color(96, 48, 96));
+    protected Brush parameterBrush;
+    protected Pen parameterPen;
+    protected Pen expressionPen;
+    protected Pen analysisPen;
+    protected ColorFont progressFont;
     
     public WDLViewOptions(Option parent)
     {
@@ -40,8 +55,20 @@ public class WDLViewOptions extends DiagramViewOptions
         setParameterPen( new Pen(1, new Color(60, 160, 6)) );
         setNotificationEnabled( true );
     }
+    
+    @PropertyName("Struct brush")
+    @PropertyDescription("Struct brush")
+    public Brush getStructBrush()
+    {
+        return structBrush;
+    }
+    public void setSmallFont(Brush structBrush)
+    {
+        Brush oldValue = this.structBrush;
+        this.structBrush = structBrush;
+        firePropertyChange("structBrush", oldValue, structBrush);
+    }
 
-    protected ColorFont smallFont;
     @PropertyName("Script body font")
     @PropertyDescription("Font to display script text")
     public ColorFont getSmallFont()
@@ -55,7 +82,6 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("smallFont", oldValue, smallFont);
     }
 
-    protected Brush deBrush;
     public Brush getDeBrush()
     {
         return deBrush;
@@ -63,16 +89,10 @@ public class WDLViewOptions extends DiagramViewOptions
     public void setDeBrush(Brush deBrush)
     {
         Brush oldValue = this.deBrush;
-        //if(this.deBrush != null)
-        //    this.deBrush.setParent( null );
         this.deBrush = deBrush;
-        //this.deBrush.setParent( this );
         firePropertyChange("deBrush", oldValue, deBrush);
     }
 
-    protected Brush analysisBrush;
-    protected Brush taskBrush;
-    
     @PropertyName("Analysis brush")
     @PropertyDescription("Brush to fill analysis boxes")
     public Brush getAnalysisBrush()
@@ -82,10 +102,7 @@ public class WDLViewOptions extends DiagramViewOptions
     public void setAnalysisBrush(Brush analysisBrush)
     {
         Brush oldValue = this.analysisBrush;
-        //if(this.analysisBrush != null)
-        //    this.analysisBrush.setParent( null );
         this.analysisBrush = analysisBrush;
-        //this.analysisBrush.setParent( this );
         firePropertyChange("analysisBrush", oldValue, analysisBrush);
     }
     
@@ -102,7 +119,6 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("taskBrush", oldValue, taskBrush);
     }
 
-    protected Brush expressionBrush;
     @PropertyName("Expression brush")
     @PropertyDescription("Brush to fill expression boxes")
     public Brush getExpressionBrush()
@@ -112,14 +128,50 @@ public class WDLViewOptions extends DiagramViewOptions
     public void setExpressionBrush(Brush expressionBrush)
     {
         Brush oldValue = this.expressionBrush;
-        //if(this.expressionBrush != null)
-        //    this.expressionBrush.setParent( null );
         this.expressionBrush = expressionBrush;
-        //this.expressionBrush.setParent( this );
         firePropertyChange("expressionBrush", oldValue, expressionBrush);
     }
+    
+    @PropertyName("Condition brush")
+    @PropertyDescription("Brush to fill condition expressions")
+    public Brush getConditionBrush()
+    {
+        return conditionBrush;
+    }
+    public void setConditionBrush(Brush conditionBrush)
+    {
+        Brush oldValue = this.conditionBrush;
+        this.conditionBrush = conditionBrush;
+        firePropertyChange("conditionBrush", oldValue, conditionBrush);
+    }
+    
+    @PropertyName("Conditional block brush")
+    @PropertyDescription("Brush to fill conditional blocks")
+    public Brush getConditionalBrush()
+    {
+        return conditionalBrush;
+    }
 
-    protected Brush parameterBrush;
+    public void setConditionalBrush(Brush conditionalBrush)
+    {
+        Brush oldValue = this.conditionalBrush;
+        this.conditionalBrush = conditionalBrush;
+        firePropertyChange("conditionalBrush", oldValue, conditionalBrush);
+    }
+    
+    @PropertyName("Condition pen")
+    @PropertyDescription("Outline of condition boxes")
+    public Pen getConditionPen()
+    {
+        return conditionPen;
+    }
+    public void setConditionPen(Pen conditionPen)
+    {
+        Object oldValue = this.conditionPen;
+        this.conditionPen = conditionPen;
+        firePropertyChange("conditionPen", oldValue, conditionPen);
+    }
+
     @PropertyName("Parameter brush")
     @PropertyDescription("Brush to fill parameter boxes")
     public Brush getParameterBrush()
@@ -129,14 +181,10 @@ public class WDLViewOptions extends DiagramViewOptions
     public void setParameterBrush(Brush parameterBrush)
     {
         Brush oldValue = this.parameterBrush;
-        //if(this.parameterBrush != null)
-        //    this.parameterBrush.setParent( null );
         this.parameterBrush = parameterBrush;
-        //this.parameterBrush.setParent( this );
         firePropertyChange("parameterBrush", oldValue, parameterBrush);
     }
     
-    protected ColorFont progressFont;
     @PropertyName("Progress font")
     @PropertyDescription("Font used to display progress of running analysis")
     public ColorFont getProgressFont()
@@ -150,7 +198,6 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("progressFont", oldValue, progressFont);
     }
 
-    protected Pen analysisPen;
     @PropertyName("Analysis pen")
     @PropertyDescription("Outline of analysis boxes")
     public Pen getAnalysisPen()
@@ -164,7 +211,6 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("analysisPen", oldValue, analysisPen);
     }
 
-    protected Pen parameterPen;
     @PropertyName("Parameter pen")
     @PropertyDescription("Outline of parameter boxes")
     public Pen getParameterPen()
@@ -178,7 +224,6 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("parameterPen", oldValue, parameterPen);
     }
 
-    protected Pen expressionPen;
     @PropertyName("Expression pen")
     @PropertyDescription("Outline of expression boxes")
     public Pen getExpressionPen()

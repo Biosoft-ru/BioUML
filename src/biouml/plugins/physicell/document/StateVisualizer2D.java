@@ -1,9 +1,12 @@
 package biouml.plugins.physicell.document;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import biouml.plugins.physicell.document.View2DOptions.Section;
@@ -28,11 +31,18 @@ public class StateVisualizer2D extends StateVisualizer
     protected ModelState modelState;
     private double maxDensity = 1E-13;//6.06;
     private View2DOptions options2D;
+    private BufferedImage legend = null;
+
+    public void setLegend(BufferedImage legend)
+    {
+        this.legend = legend;
+    }
 
     @Override
     public void setResult(PhysicellSimulationResult result)
     {
         super.setResult( result );
+        this.legend = result.getLegend();
         try
         {
             modelState = ModelState.fromString( result.getPoint( 0 ).getContent() );
@@ -73,6 +83,17 @@ public class StateVisualizer2D extends StateVisualizer
             default:
                 break;
         }
+
+        if( result.getLegend() != null )
+        {
+            options.setLegendX( width );
+            width += result.getLegend().getWidth();
+        }
+    }
+    
+    public Dimension getSize()
+    {
+        return new Dimension(width, height);
     }
 
     public BufferedImage draw(ModelState state)
@@ -89,23 +110,47 @@ public class StateVisualizer2D extends StateVisualizer
             drawText( state.getSize(), state.getTime(), new Point( options.getStatisticsX(), options.getStatisticsY() ), g );
         if( options.isAxes() )
             drawLines( g );
+
+        if( options.isShowLegend() && legend != null )
+            drawLegend( legend, g );
+
         return img;
     }
 
     private void drawText(int agentsCount, double time, Point location, Graphics g)
     {
+        String timeString = "Time: " + options.getTime();
+        String cellString = "Cells: " + agentsCount;
+        String sliceString = "X = " + options2D.getSlice();
+        if( options2D.getSection() == Section.Y )
+            sliceString = "Y = " + options2D.getSlice();
+        else if( options2D.getSection() == Section.Z )
+            sliceString = "Z = " + options2D.getSlice();
+
         int x = location.x;
         int y = location.y;
-        g.setFont( new Font( "TimesRoman", Font.PLAIN, 20 ) );
+        Font font = options.getStatisticsFont().getFont();
+        FontMetrics fm = g.getFontMetrics( font );
+        Rectangle2D timeBounds = fm.getStringBounds( timeString, g );
+        Rectangle2D cellBounds = fm.getStringBounds( cellString, g );
+        Rectangle2D sliceBounds = fm.getStringBounds( sliceString, g );
+
+        int yDelta = 10;
+        int xDelta = 10;
+        double height = timeBounds.getHeight() + yDelta + cellBounds.getHeight() + yDelta + sliceBounds.getHeight()+yDelta;
+        double width = DoubleStreamEx.of(timeBounds.getWidth() , cellBounds.getWidth() , sliceBounds.getWidth()).max().orElse( 0 )+xDelta;
+        if( options.isStatisticsBackground() )
+        {
+            g.setColor( Color.white );
+            g.fillRect( x - 5, y - 25, (int)width, (int)height );
+        }
+        g.setFont( font );
         g.setColor( Color.BLACK );
-        g.drawString( "Time: " + options.getTime(), x, y );
-        g.drawString( "Cells: " + agentsCount, x, y + 30 );
-        if( options2D.getSection() == Section.X )
-            g.drawString( "X = " + options2D.getSlice(), x, y + 60 );
-        else if( options2D.getSection() == Section.Y )
-            g.drawString( "Y = " + options2D.getSlice(), x, y + 60 );
-        else
-            g.drawString( "Z = " + options2D.getSlice(), x, y + 60 );
+        g.drawString( timeString, x, y );
+        y += (int)timeBounds.getHeight() + yDelta;
+        g.drawString( cellString, x, y );
+        y += (int)cellBounds.getHeight() + yDelta;
+        g.drawString( sliceString, x, y  );
     }
 
     private void drawAgents(ModelState state, Graphics g)
@@ -254,7 +299,7 @@ public class StateVisualizer2D extends StateVisualizer
         int n = (int) ( ( options2D.getSlice() + shift ) / size3 );
 
         double maxDensity = DoubleStreamEx.of( densities ).max().orElse( 0 );
-        if (maxDensity == 0)
+        if( maxDensity == 0 )
             maxDensity = 1;
         for( int i = 0; i < n1; i++ )
         {
@@ -284,11 +329,11 @@ public class StateVisualizer2D extends StateVisualizer
             }
         }
     }
-    
+
     public int calculateComponent(int colorComponent, double ratio)
     {
-       int result = (int) ( ( colorComponent - 255 ) * ratio + 255 );
-       return Math.min(Math.max( result, 0 ), 255);
+        int result = (int) ( ( colorComponent - 255 ) * ratio + 255 );
+        return Math.min( Math.max( result, 0 ), 255 );
     }
 
     private void drawLines(Graphics g)
@@ -296,7 +341,7 @@ public class StateVisualizer2D extends StateVisualizer
         g.setFont( new Font( "TimesRoman", Font.BOLD, 20 ) );
         g.setColor( Color.BLACK );
         int w = width - 100;
-        int h =  100;
+        int h = 100;
         int x1 = xShift;
         int y1 = yShift;
         String title1 = "X";
@@ -322,8 +367,15 @@ public class StateVisualizer2D extends StateVisualizer
         g.drawLine( x1, y1, w, y1 );
         g.drawString( title1, w - 20, y1 - 20 );
         g.drawLine( x1, y1, x1, h );
-        g.drawString( title2, x1 + 10, h  );
-        g.fillPolygon( new int[] {w,  w-arrowLength, w-arrowLength}, new int[] {y1, y1+arrowWidth, y1-arrowWidth}, 3 );
-        g.fillPolygon( new int[] {x1,  x1-arrowWidth, x1+arrowWidth}, new int[] {h, h+arrowLength, h+arrowLength}, 3 );
+        g.drawString( title2, x1 + 10, h );
+        g.fillPolygon( new int[] {w, w - arrowLength, w - arrowLength}, new int[] {y1, y1 + arrowWidth, y1 - arrowWidth}, 3 );
+        g.fillPolygon( new int[] {x1, x1 - arrowWidth, x1 + arrowWidth}, new int[] {h, h + arrowLength, h + arrowLength}, 3 );
+    }
+
+    private void drawLegend(BufferedImage legend, Graphics g)
+    {
+        g.setColor( Color.white );
+        g.fillRect(  options.getLegendX(), options.getLegendY(), legend.getWidth(), legend.getHeight() );
+        g.drawImage( legend, options.getLegendX(), options.getLegendY(), null );
     }
 }

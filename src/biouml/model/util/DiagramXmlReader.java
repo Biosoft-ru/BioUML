@@ -630,7 +630,9 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
 
         String path = element.getAttribute(PATH_ATTR);
         if (path!= null)
-              return new ImageDescriptor(DataElementPath.create(path));
+        {
+              return new ImageDescriptor(DataElementPath.create(path), readDimension( element, diagramName, nodeName ) );
+        }
 
         String src = getRequiredAttribute( element, SRC_ATTR, diagramName );
         if( src == null )
