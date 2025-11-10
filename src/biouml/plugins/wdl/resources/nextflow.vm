@@ -34,6 +34,7 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #foreach( $n in $helper.orderCalls($scatter))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
+#elseif ( $helper.isExpression($n) )#expressionNF($n)
 #elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
