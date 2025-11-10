@@ -45,7 +45,7 @@ public class TestImage
         diagram = importer.generateDiagram( start, null, name );
 
         WDLGenerator generator = new WDLGenerator();
-        String s = generator.generateWDL( diagram );
+        String s = generator.generate( diagram );
         System.out.println( "Rexported WDL: " );
         System.out.println( s);
     }
