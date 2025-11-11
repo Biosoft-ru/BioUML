@@ -219,7 +219,6 @@ public class SimulationProvider extends WebJSONProviderSupport
         webLogHandler.setLevel(Level.ALL);
 
         final Logger cat = Logger.getLogger("biouml.plugins.simulation");
-        final Level oldLevel = cat.getLevel();
         cat.setLevel( Level.ALL );
         cat.addHandler(webLogHandler);
 
@@ -242,7 +241,6 @@ public class SimulationProvider extends WebJSONProviderSupport
             {
                 log.removeHandler(webLogHandler);
                 cat.removeHandler(webLogHandler);
-                cat.setLevel( oldLevel );
                 engineLogger.removeHandler(webLogHandler);
             }
         });
