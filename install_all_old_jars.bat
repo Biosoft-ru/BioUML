@@ -44,15 +44,6 @@ call mvn -N install:install-file ^
   -Dfile=plugins/it.sauronsoftware.ftp4j_1.6.jar ^
   -DgeneratePom=true
 
-echo Installing samtools...
-call mvn -N install:install-file ^
-  -DgroupId=net.sf.samtools ^
-  -DartifactId=samtools ^
-  -Dversion=1.62 ^
-  -Dpackaging=jar ^
-  -Dfile=plugins/net.sf.samtools_1.62.jar ^
-  -DgeneratePom=true
-
 echo Installing glpk-java...
 call mvn -N install:install-file ^
   -DgroupId=org.gnu.glpk ^
@@ -165,9 +156,9 @@ echo Installing htsjdk...
 call mvn -N install:install-file ^
   -DgroupId=com.github.samtools ^
   -DartifactId=htsjdk ^
-  -Dversion=2.20.3-4-g87ac4d3-SNAPSHOT ^
+  -Dversion=4.3.0 ^
   -Dpackaging=jar ^
-  -Dfile=plugins/htsjdk_2.24.1/htsjdk-2.24.1.jar ^
+  -Dfile=plugins/htsjdk_4.3.0/htsjdk-4.3.0.jar ^
   -DgeneratePom=true
 
 echo Installing jupyter...

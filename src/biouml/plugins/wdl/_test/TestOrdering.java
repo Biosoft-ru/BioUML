@@ -5,7 +5,7 @@ import java.util.List;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
-import biouml.plugins.wdl.WDLUtil;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
@@ -23,14 +23,14 @@ public class TestOrdering
 
     private static void test(Diagram diagram) throws Exception
     {
-        List<Node> result = WDLUtil.orderCallsScatters( diagram );
+        List<Node> result = WorkflowUtil.orderCallsScatters( diagram );
 
         for( Node c : result )
             System.out.println( c.getName() );
         
-        for (Compartment cycle: WDLUtil.getCycles( diagram ))
+        for ( Compartment cycle : WorkflowUtil.getCycles( diagram ) )
         {
-            List<Node> resultCycle = WDLUtil.orderCallsScatters( cycle );
+            List<Node> resultCycle = WorkflowUtil.orderCallsScatters( cycle );
             
             System.out.println( "" );
             System.out.println( "CYCLE "+cycle.getName() );

@@ -677,6 +677,10 @@
   <extension id="Track to table" point="ru.biosoft.analysiscore.method"> 
       <analysisClass class="ru.biosoft.bsa.analysis.TrackToTable" group="Operations with genomic tracks" name="Convert track to table"  description="Convert track to table. All site properties will be put in separate columns."/> 
   </extension>
+  
+  <extension id="HIC to table" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.bsa.track.hic.HIContactsExtractor" group="Operations with genomic tracks" name="Convert .hic to table"  description="Convert .hic file to table."/> 
+  </extension>
 
 
   <extension id="SNP table type" point="ru.biosoft.access.referenceType">

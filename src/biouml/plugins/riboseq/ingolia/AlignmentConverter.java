@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import biouml.plugins.riboseq.transcripts.Transcript;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.bsa.BAMTrack;
 import ru.biosoft.bsa.BAMTrack.SitesCollection.BAMSite;

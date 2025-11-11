@@ -21,7 +21,6 @@
 	<classpathentry kind="lib" path="plugins/jama_1.0.2.jar"/>
 	<classpathentry kind="lib" path="plugins/jdbm_2.0.jar"/>
 	<classpathentry kind="lib" path="plugins/net.htmlparser.jericho_3.2.jar"/>
-	<classpathentry kind="lib" path="plugins/net.sf.samtools_1.62.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.cli_1.0.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.codec_1.6.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.collections_3.2.1.jar"/>
@@ -65,7 +64,7 @@
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.core-2.0.1.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.access.file-2.0.1.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/ru.biosoft.util-2.0.0.jar"/>
-	<classpathentry kind="lib" path="plugins/htsjdk_2.24.1/htsjdk-2.24.1.jar"/>
+	<classpathentry kind="lib" path="plugins/htsjdk_4.3.0/htsjdk-4.3.0.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.server.tomcat_2025.2/tomcat/servlet.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.access/jsr305.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jivesoftware.smack_1.0.0/smack.jar"/>
@@ -179,7 +178,6 @@
 	<classpathentry kind="lib" path="build/bin/junit-platform-console-standalone-1.11.0.jar"/>
 	<classpathentry kind="lib" path="plugconfig/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar"/>
-	<classpathentry kind="lib" path="plugins/ru.biosoft.bigbed-0.0.1.jar" sourcepath="/ru.biosoft.bigbed"/>
-	<classpathentry kind="src" path="/ru.biosoft.bigbed"/>
+	<classpathentry kind="lib" path="plugins/ru.biosoft.bigbed-0.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

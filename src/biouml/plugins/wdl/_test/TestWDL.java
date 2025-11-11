@@ -21,7 +21,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.WDLGenerator;
-import biouml.plugins.wdl.WDLUtil;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.diagram.WDLViewBuilder;
 import biouml.plugins.wdl.parser.AstStart;
@@ -71,16 +71,16 @@ public class TestWDL //extends //TestCase
     public static void testOrder(String name) throws Exception
     {
         Diagram diagram = loadDiagram( name );
-        WDLUtil.orderCallsScatters( diagram );
+        WorkflowUtil.orderCallsScatters( diagram );
     }
     public static void test(String name) throws Exception
     {
         Diagram diagram = loadDiagram( name );
         WDLGenerator wdlGenerator = new WDLGenerator();
-        NextFlowGenerator nextFlowGenerator = new NextFlowGenerator();
-        String wdl = wdlGenerator.generateWDL( diagram );
+        NextFlowGenerator nextFlowGenerator = new NextFlowGenerator( true );
+        String wdl = wdlGenerator.generate( diagram );
 
-        String nextFlow = nextFlowGenerator.generateNextFlow( diagram, true );
+        String nextFlow = nextFlowGenerator.generate( diagram );
 
 //        runNextFlow( name, nextFlow );
         printNextflow( nextFlow );
@@ -208,7 +208,12 @@ public class TestWDL //extends //TestCase
             File f = new File( outputDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-            String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
+            boolean useWsl = System.getProperty("os.name").startsWith("Windows");
+            String[] command;
+            if(useWsl)
+                command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
+            else
+                command = new String[] {"nextflow", f.getName()};
             executeCommand( command );
         }
         catch( Exception ex )

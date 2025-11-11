@@ -7,10 +7,11 @@ import java.util.Properties;
 
 import javax.annotation.Nonnull;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.DataElementExporter;
 
@@ -56,7 +57,7 @@ public class SAMBAMTrackExporter implements DataElementExporter
                 TrackRegion region = (TrackRegion)de;
                 BAMTrack track = (BAMTrack)region.getTrack();
 
-                try (SAMFileReader reader = new SAMFileReader( track.getBAMFile() ))
+                try (SamReader reader = SamReaderFactory.makeDefault().open( track.getBAMFile() ))
                 {
                     final SAMFileWriter writer = new SAMFileWriterFactory().makeBAMWriter( reader.getFileHeader(), true, file );
 

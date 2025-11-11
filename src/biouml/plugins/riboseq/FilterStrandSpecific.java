@@ -9,12 +9,13 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.plugins.riboseq.transcripts.Transcript;
 import biouml.plugins.riboseq.transcripts.TranscriptSet;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
@@ -51,7 +52,7 @@ public class FilterStrandSpecific extends AnalysisMethodSupport<FilterStrandSpec
         if(!parameters.isEnabled())
             return inTrack.clone( outPath.getParentCollection(), outPath.getName() );
 
-        try (TempFile outBamFile = TempFiles.file( ".bam" ); SAMFileReader bamReader = new SAMFileReader( inTrack.getBAMFile() ))
+        try (TempFile outBamFile = TempFiles.file( ".bam" ); SamReader bamReader = SamReaderFactory.makeDefault().open( inTrack.getBAMFile() ))
         {
             SAMFileHeader header = bamReader.getFileHeader();
             boolean sorted = header.getSortOrder() == SortOrder.coordinate;

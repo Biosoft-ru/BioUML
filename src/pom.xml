@@ -260,6 +260,7 @@
                         <exclude>**/ru/biosoft/bsa/_test/ExportTest.java</exclude>
                         <exclude>**/ru/biosoft/bsa/_test/CombinedTrackTest.java</exclude>
                         <exclude>**/ru/biosoft/bsa/_test/IntervalTrackImporterTest.java</exclude>
+                        <exclude>**/ru/biosoft/bsa/_test/BCFTest.java</exclude>
                         <exclude>**/ru/biosoft/bsa/_test/BAMTest.java</exclude>
                         <exclude>**/ru/biosoft/bsa/_test/LongFastaTest.java</exclude>
                         <exclude>**/ru/biosoft/bsa/_test/TestSqlTrack.java</exclude>

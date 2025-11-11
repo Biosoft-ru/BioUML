@@ -1269,7 +1269,7 @@ public class WebTablesProvider extends WebProviderSupport
 
     protected static DataElement getDataElement(String completeName, TableResolver resolver)
     {
-        if( resolver instanceof SqlQueryTableResolver )
+        if( resolver instanceof CommonTableResolver )
         {
             return null;
         }

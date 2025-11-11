@@ -1,9 +1,9 @@
 package biouml.plugins.riboseq.datastructure;
 
 import biouml.plugins.riboseq.util.SiteUtil;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 import ru.biosoft.bsa.Interval;
 import ru.biosoft.bsa.Site;
 

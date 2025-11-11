@@ -3,8 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Localization: plugin
 Bundle-Name: htsjdk
 Bundle-SymbolicName: htsjdk;singleton:=true
-Bundle-Version: 1.5.0
-Bundle-ClassPath: htsjdk-2.24.1.jar,commons-compress-1.19.jar,commons-jexl-2.1.1.jar,commons-logging-1.1.1.jar,mjson-1.4.1.jar,ngs-java-2.9.0.jar,snappy-java-1.1.7.3.jar,xz-1.8.jar
+Bundle-Version: 4.3.0
+Bundle-ClassPath: htsjdk-4.3.0.jar,commons-compress-1.19.jar,commons-jexl-2.1.1.jar,commons-logging-1.1.1.jar,mjson-1.4.1.jar,ngs-java-2.9.0.jar,snappy-java-1.1.7.3.jar,xz-1.8.jar
 Export-Package: htsjdk.tribble,
   htsjdk.tribble.gff,
   htsjdk.tribble.example,
