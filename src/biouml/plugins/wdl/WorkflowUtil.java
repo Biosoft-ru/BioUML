@@ -118,6 +118,19 @@ public class WorkflowUtil
         return c.stream( Compartment.class ).filter( n -> isCycle( n ) ).toList();
     }
 
+    public static List<Compartment> getParentCycles(Compartment c)
+    {
+        List<Compartment> result = new ArrayList<>();
+        Compartment parent = c.getCompartment();
+        while (!(parent instanceof Diagram))
+        {
+            if (isCycle( parent ))
+                result.add( parent );
+            parent = parent.getCompartment();
+        }
+        return result;
+    }
+    
     public static List<Node> getExternalParameters(Diagram diagram)
     {
         return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).sorted( new PositionComparator() ).toList();

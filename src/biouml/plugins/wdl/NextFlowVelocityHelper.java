@@ -173,9 +173,67 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return getName( node );
     }
 
+    
+    /**
+     *  cycle_inputs = range_i.combine(range_j).combine(range_k).multiMap* { i, j, k ->
+     *      call_1_inputs: tuple(i, j)
+     *      call_2_inputs: tuple(i, k)
+     *  }
+     */
+    public String prepareInputsCycle(Compartment cycle)
+    {
+        List<Compartment> calls = WorkflowUtil.getCalls( cycle );
+        if( calls.isEmpty() )
+            return "";
+        List<Compartment> cycles = WorkflowUtil.getParentCycles( cycle );
+        if( cycles.isEmpty() )
+            return "";
+        String name = getCycleName( cycle );
+        StringBuilder sb = new StringBuilder( name + "_inputs = " );
+        
+        cycles.addFirst( cycle );
+        cycles = cycles.reversed();
+
+        List<String> cycleVars = new ArrayList<>();
+        List<String> cycleNames = new ArrayList<>();
+        for( Compartment parentCycle : cycles )
+        {
+            cycleVars.add( getCycleVariable( parentCycle ) );
+            cycleNames.add( getCycleName( parentCycle ) );
+        }
+        
+        sb.append(cycleNames.get( 0 ));
+        for(int i=1; i<cycleNames.size(); i++ )
+        {
+            sb.append( ".combine( " );
+            sb.append( cycleNames.get( i ) );
+            sb.append( " )" );
+        }
+        sb.append( ".multiMap {" );
+
+        sb.append( StreamEx.of( cycleVars ).joining( ", " ) );
+        sb.append( " -> " );
+        for( Compartment call : calls )
+        {
+            sb.append( "\n" );
+            sb.append( WorkflowUtil.getCallName( call ) );
+            sb.append( ": tuple(" );
+            sb.append( StreamEx.of( WorkflowUtil.getOrderedInputs( call ) ).map( input -> WorkflowUtil.getExpression( input ) ).joining( ", " ) );
+            sb.append( ")" );
+        }
+        sb.append( "\n" );
+        sb.append( "}" );
+        return sb.toString();
+    }
+
     public String prepareInputs(Compartment call)
     {
         StringBuilder sb = new StringBuilder( "  " );
+
+        List<Compartment> cycles = WorkflowUtil.getParentCycles( call );
+        if( cycles.size() > 1 )
+            return "";
+
         Compartment cycle = call.getCompartment();
         String cycleVar = getCycleVariable( cycle );
         String cycleName = getCycleName( cycle );
@@ -189,7 +247,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 sb.append( getName( input ) + " = " + expression.substring( 0, expression.indexOf( "[" ) ) );
             else
             {
-                sb.append( getName( input ) + " = " + cycleName );
+                sb.append( ".map{" + cycleVar + " -> " + expression + "}" );
             }
             //            if( ! ( cycleVar.equals( expression ) ) )
             //                sb.append( ".map{" + cycleVar + " -> " + expression + "}" );
@@ -203,6 +261,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         Compartment call = input.getCompartment();
         if( !isInsideCycle( call ) )
         {
+          
             Node source = getSource( input );
             String result = getCallEmit( input );
             if( result == null )
@@ -217,6 +276,14 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         }
         else
         {
+            List<Compartment> cycles = WorkflowUtil.getParentCycles( call );
+            if( cycles.size() > 1 )
+            {
+                int pos = WorkflowUtil.getPosition( input );
+                String cycleName = WorkflowUtil.getCycleName( cycles.get( 0 ) ); //split_inputs.add_inputs.map { it[0] },
+                return cycleName + "_inputs." + WorkflowUtil.getCallName( call ) + ".map { it[" + pos + "] }";
+            }
+            
             Compartment cycle = call.getCompartment();
             String cycleVar = getCycleVariable( cycle );
             if( isArray( cycleVar, input ) )
@@ -252,6 +319,25 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         {
             return getExpression( node );
         }
+    }
+
+
+    /**
+     * replace all variables with 
+     * e.g. i * 2 -> array.map { i->i*2}
+     */
+    public String processExpression(Node node)
+    {
+        String expression = getCallEmit( node );
+        Compartment cycle = getClosestCycle( node );
+        if( cycle == null )
+            return expression;
+
+        String variable = getCycleVariable( cycle );
+        String name = getCycleName( cycle );
+        //        if (expression.matches( name ))
+
+        return name + ".map {" + variable + "->" + expression + " }";
     }
 
     public String getRuntimeProperty(Compartment process, String name)
@@ -320,7 +406,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      */
     public String getFunctions()
     {
-        return "basename; sub; length; range; createChannelIfNeeded; getDefault";
+        return "basename; sub; length; range; createChannelIfNeeded; getDefault; read_int";
     }
 
     public Compartment[] getImportedCalls()
