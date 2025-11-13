@@ -60,6 +60,21 @@ public class AnalysisProvider extends WebJSONProviderSupport
             response.sendJSON( AnalysisMethodRegistry.getAnalysisNamesWithGroup().map( JsonValue::valueOf ).collect( JsonUtils.toArray() ) );
             return;
         }
+        else if( action != null && action.equals( "completeName" ) )
+        {
+            String name = arguments.getString( "name" );
+            AnalysisMethodInfo info = AnalysisMethodRegistry.getMethodInfo( name );
+            if( info != null )
+            {
+                response.sendString( info.getCompletePath().toString() );
+            }
+            else
+            {
+                response.error( "Method '" + name + "' not found" );
+            }
+            return;
+
+        }
         else if( action != null && action.equals( "search" ) )
         {
             //methods
