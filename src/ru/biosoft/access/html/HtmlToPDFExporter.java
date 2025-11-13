@@ -58,7 +58,12 @@ public class HtmlToPDFExporter implements DataElementExporter
     public void doExport(DataElement de, File file, FunctionJobControl jobControl) throws Exception
     {
         File outDir = extractZip( de );
-        File indexHtml = new File(outDir, "index.html");
+        exportDirToPDF( outDir, file );
+    }
+
+    public void exportDirToPDF(File dir, File file) throws IOException, InterruptedException, Exception
+    {
+        File indexHtml = new File( dir, "index.html" );
         
         preprocessHtml(indexHtml);
         
@@ -160,10 +165,15 @@ public class HtmlToPDFExporter implements DataElementExporter
     @Override
     public boolean init(Properties properties)
     {
+        return isPDFExportAvailable();
+    }
+
+    public static boolean isPDFExportAvailable()
+    {
         return isProgExists("chrome-headless-render-pdf");
     }
 
-    private boolean isProgExists(String progName)
+    private static boolean isProgExists(String progName)
     {
         for(String path : System.getenv( "PATH" ).split( ":" ))
         {
