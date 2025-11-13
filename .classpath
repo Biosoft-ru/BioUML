@@ -8,7 +8,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="plugins/biouml.plugins.cwl-1.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="plugins/com.beanexplorer.logging_0.0.1.jar"/>
 	<classpathentry kind="lib" path="plugins/com.developmentontheedge.beans-3.0.4.jar"/>
 	<classpathentry kind="lib" path="plugins/com.eclipsesource.json_0.9.4.jar"/>
@@ -135,7 +134,6 @@
 	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-valencycheck.jar"/>
 	<classpathentry kind="lib" path="plugins/jtar_1.0.3.jar"/>
 	<classpathentry kind="lib" path="plugins/org.openscience.jmol_12.2.4.jar"/>
-	<classpathentry kind="lib" path="plugins/org.ensembl.ensj_39.2/ensj-39.2.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-analysis-common-9.11.1.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-core-9.11.1.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-highlighter-9.11.1.jar"/>
@@ -162,7 +160,6 @@
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.server.servlets/docker-java-transport-3.2.13.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.server.servlets/docker-java-transport-httpclient5-3.2.13.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.bcel_6.10.0.jar"/>
-	<classpathentry kind="lib" path="plugins/org.apache.commons.lang3_3.16.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="plugins/javax.mail_1.4.3.jar"/>
 	<classpathentry kind="lib" path="plugconfig/biouml.plugins.sabiork/sabioclient.jar"/>
 	<classpathentry kind="lib" path="plugins/org.jlibsedml_2.2.1/jlibsedml.jar"/>
@@ -177,7 +174,11 @@
 	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar"/>
 	<classpathentry kind="lib" path="build/bin/junit-platform-console-standalone-1.11.0.jar"/>
 	<classpathentry kind="lib" path="plugconfig/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar"/>
+	<classpathentry kind="lib" path="plugins/ru.biosoft.bigbed-1.0.0.jar"/>
+	<classpathentry kind="lib" path="plugins/javastraw_1/javastraw.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.commons.text_1.14.0.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.commons.lang3_3.18.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar"/>
-	<classpathentry kind="lib" path="plugins/ru.biosoft.bigbed-0.0.1.jar"/>
+	<classpathentry kind="lib" path="plugins/htsjdk_4.3.0/commons-jexl-2.1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
