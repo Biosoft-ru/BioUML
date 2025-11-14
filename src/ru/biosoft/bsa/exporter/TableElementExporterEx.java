@@ -10,8 +10,8 @@ import javax.annotation.Nonnull;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.DataElementExporterRegistry;
+import ru.biosoft.access.html.HtmlToPDFExporter;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.table.ColumnModel;
@@ -31,6 +31,16 @@ public class TableElementExporterEx extends TableElementExporter
         {
             transformer = new ZHTMLExportTransformer();
             return true;
+        }
+        else if( properties.getProperty( DataElementExporterRegistry.SUFFIX ).equals( "pdf" ) )
+        {
+            if( HtmlToPDFExporter.isPDFExportAvailable() )
+            {
+                transformer = new PDFExportTransformer();
+                return true;
+            }
+            else
+                return false;
         }
         return super.init( properties );
     }
@@ -124,14 +134,57 @@ public class TableElementExporterEx extends TableElementExporter
                 transformer.writeFooter();
             }
 
-            try( ZipOutputStream out = new ZipOutputStream( new FileOutputStream( file ) ) )
+            if( transformer instanceof PDFExportTransformer )
             {
-                ArchiveUtil.addDirectoryToZip( out, tempDir, "" );
+                new HtmlToPDFExporter().exportDirToPDF( tempDir, file );
+                //exportToPDF( file, tempDir );
+            }
+            else
+            {
+                try (ZipOutputStream out = new ZipOutputStream( new FileOutputStream( file ) ))
+                {
+                    ArchiveUtil.addDirectoryToZip( out, tempDir, "" );
+                }
             }
 
         }
         else
             super.doExport( de, file, jobControl );
     }
+
+    //    protected void exportToPDF(File file, File tempDir) throws IOException, InterruptedException, Exception
+    //    {
+    //        File indexHtml = new File(tempDir, "index.html");
+    //        
+    //        Document doc = Jsoup.parse( indexHtml, StandardCharsets.US_ASCII.name() );
+    //        doc.outputSettings().escapeMode( EscapeMode.extended );
+    //        doc.outputSettings().charset( StandardCharsets.US_ASCII );
+    //
+    //        String serverName = SecurityManager.getSecurityProvider().getServerName();
+    //        if(!serverName.startsWith( "http://" ) && !serverName.startsWith( "https://" ))
+    //            serverName = "http://" + serverName;
+    //        final String prefix = serverName;
+    //        doc.select( "a" ).forEach( a -> {
+    //            String href = a.attr( "href" );
+    //            if(href.startsWith( "/" ))
+    //                a.attr( "href", prefix + href );
+    //        });
+    //        
+    //        ApplicationUtils.writeString( indexHtml, doc.toString() );
+    //        
+    //        ProcessBuilder pb = new ProcessBuilder( "chrome-headless-render-pdf",
+    //                "--include-background",
+    //                "--paper-width=8.27",
+    //                "--paper-height=11.69", 
+    //                "--url=" + indexHtml.getAbsoluteFile().toURI().toString(),
+    //                "--pdf=" + file.getAbsolutePath());
+    //
+    //        pb.redirectError( new File("/dev/null") );
+    //        pb.redirectOutput( new File("/dev/null") );
+    //        Process proc = pb.start();
+    //        int exitCode = proc.waitFor();
+    //        if(exitCode != 0)
+    //            throw new Exception("Exit code="+exitCode);
+    //    }
 
 }

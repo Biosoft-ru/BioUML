@@ -950,6 +950,17 @@
         description=""
      />
   </extension>
+  
+   <extension id="Export table to PDF format" point="ru.biosoft.access.export"> 
+     <export 
+        format="PDF table document (*.pdf)"
+        suffix="pdf"
+        contentType="application/pdf"
+        exporter="ru.biosoft.bsa.exporter.TableElementExporterEx"
+        description=""
+     />
+  </extension>
+  
 
   <extension point="ru.biosoft.analysis.group">
     <group name="Operations with genomic tracks" description="ru/biosoft/bsa/resources/operations_with_genomic_tracks.html" related="Match sites and genes;TF binding site search;Motif discovery;Mutations;NGS alignment;NGS color-space;NGS utils" />
