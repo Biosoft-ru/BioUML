@@ -116,7 +116,7 @@ public class WorkflowTextEditor extends EditorPartSupport
             Diagram diagram = (Diagram)model;
             setDiagram( (Diagram)model );
             setWDL( wdlGenerator.generate( diagram ) );
-            setCWL( cwlGenerator.generate( diagram ) );
+//            setCWL( cwlGenerator.generate( diagram ) );
             setNextFlow( nextFlowGenerator.generate( diagram ) );
         }
         catch( Exception ex )
