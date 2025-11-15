@@ -35,7 +35,7 @@ $helper.prepareInputsCycle($scatter)
 #foreach( $n in $helper.orderCalls($scatter))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
-#elseif ( $helper.isExpression($n) )#expressionNF($n)
+##elseif ( $helper.isExpression($n) )#expressionNF($n)
 #elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
@@ -107,21 +107,22 @@ workflow $helper.getMainWorkflowName() {
   $helper.getName($externalParameter)
 #end
 #end$BR
-#if ($helper.isNotEmpty())
+#set ($calls = $helper.orderCalls($diagram))
+#if (!$calls.isEmpty())
 $BR  main:
-#end
-#foreach( $n in $helper.orderCalls($diagram))
+#foreach( $n in $calls)
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 #elseif ($helper.isExpression($n))#expressionNF($n)
 #elseif ( $helper.isConditional($n) )#conditional($n)
+#end
 #end 
 #end
 #set ($externalOutputs = $helper.getExternalOutputs())
 #if ($externalOutputs.size() > 0)
   emit: 
 #foreach( $externalOutput in $externalOutputs )
-  $helper.getName($externalOutput) = $helper.getCallEmit($externalOutput)
+  $helper.getName($externalOutput) = $helper.getOutputExpression($externalOutput)
 #end
 #end
 }$BR

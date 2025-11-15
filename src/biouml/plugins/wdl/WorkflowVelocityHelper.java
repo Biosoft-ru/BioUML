@@ -211,7 +211,7 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.isCycle( node );
     }
     
-    public boolean isInsideCycle(Compartment call)
+    public boolean isInsideCycle(Node call)
     {
         return ! ( call instanceof Diagram ) && WorkflowUtil.isCycle( call.getCompartment() );
     }

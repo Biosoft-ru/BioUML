@@ -156,6 +156,11 @@ public class WorkflowUtil
     {
         return c.stream( Compartment.class ).filter( n -> isCall( n ) ).toList();
     }
+    
+    public static List<Node> getExpressions(Compartment c)
+    {
+        return c.stream( Node.class ).filter( n -> isExpression( n ) ).toList();
+    }
 
     public static List<Compartment> getAllCalls(Compartment c)
     {
@@ -776,5 +781,23 @@ public class WorkflowUtil
         if( declarations instanceof Declaration[] )
             return (Declaration[])declarations;
         return new Declaration[0];
+    }
+    
+    public static boolean isDependent(Node node, Node from)
+    {
+         for (Node source: getSources(node))
+         {
+             if (isDependent(source, from))
+                 return true;
+         }
+         return false;
+    }
+    
+    /**
+     * Returns stream of all immediate sources of current node
+     */
+    public static StreamEx<Node> getSources(Node node)
+    {
+       return node.edges().map( e->e.getInput() ).without( node );
     }
 }
