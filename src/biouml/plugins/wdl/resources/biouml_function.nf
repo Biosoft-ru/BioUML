@@ -45,3 +45,38 @@ def createChannelIfNeeded(arr)
      else 
         return arr
 }
+
+def select_first(arr)
+{
+	return list.find { it != null && it != '' }
+}
+
+def select_all(array) {
+    return array.findAll { it != null }
+}
+
+def defined(val) {
+    return val != null
+}
+
+def read_int(path) {
+    def file = new File(path)
+    def lines = file.readLines().findAll { it.trim() }
+    if (lines.size() != 1) {
+        throw new IllegalArgumentException("File must contain exactly one non-empty line")
+    }
+    def line = lines[0].trim()
+    try {
+        return line.toInteger()
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("File does not contain a valid integer")
+    }
+}
+
+def numerate(ch) {
+    def counter = -1
+    return ch.map { sublist ->
+        counter++
+        tuple(counter, sublist)
+    }
+}
