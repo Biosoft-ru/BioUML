@@ -1,0 +1,60 @@
+version 1.0
+
+task generate_files {
+       
+    input {
+       Int num_files
+    }
+
+    command {
+        mkdir -p output
+        for i in $(seq 1 ~{num_files}); do
+            echo "This is file $i" > output/file_${i}.txt
+        done
+    }
+
+     output {
+        Array[File] files = glob("output/file_*.txt")
+    }
+}
+
+task process_file {
+    
+    input {
+       File input_file
+       String output_name
+    }
+    
+    command {
+       echo "Processed file: ~{input_file}" >> ~{output_name}
+       cp ~{input_file} ~{output_name}
+    }
+
+    output {
+       File output_file = output_name
+    }
+
+}
+
+workflow file_chain_wdl {
+    
+    input {
+       Int num_files
+	   Int index
+    }
+    
+    call generate_files {
+        input:
+            num_files = num_files
+    }
+
+    call process_file  {
+        input:
+            input_file = generate_files.files[index],
+            output_name = "res_2"
+    }
+
+    output {
+        File processed_file = process_file.output_file
+    }
+}
