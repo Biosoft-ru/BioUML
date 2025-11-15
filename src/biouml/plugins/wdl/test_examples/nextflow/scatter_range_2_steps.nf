@@ -44,7 +44,7 @@ workflow scatter_range_2_steps {
   index_ch = Channel.from(indices)
   result_generate_file = generate_file( index_ch )
 
-    result_process_file = process_file( result_generate_file.out_file )
+  result_process_file = process_file( result_generate_file.out_file )
 
   emit: 
   generated_files = result_generate_file.out_file
