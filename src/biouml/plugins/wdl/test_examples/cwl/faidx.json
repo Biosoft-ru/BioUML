@@ -1,0 +1,7 @@
+{
+  "reference_fasta":
+  {
+    "class": "File",
+    "path": "short.fasta"
+  }
+}
