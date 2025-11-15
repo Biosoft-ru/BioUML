@@ -25,18 +25,18 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #end
 #######################################################################################
 #macro(callNF $call)
-#if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
+##if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
 #set ($inputs = $helper.getOrderedInputs($call))
   $helper.getResultName($call) = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
-$helper.prepareInputsCycle($scatter)
+$helper.describeCycle($scatter)
 #foreach( $n in $helper.orderCalls($scatter))
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 ##elseif ( $helper.isExpression($n) )#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditional($n)
+##elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
 #end

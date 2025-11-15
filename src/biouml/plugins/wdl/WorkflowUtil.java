@@ -800,4 +800,9 @@ public class WorkflowUtil
     {
        return node.edges().map( e->e.getInput() ).without( node );
     }
+    
+//    public static breakChain(List<Node> calls)
+//    {
+//        
+//    }
 }

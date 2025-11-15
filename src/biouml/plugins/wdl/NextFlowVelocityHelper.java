@@ -174,95 +174,90 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     }
 
 
+    private String[] processCycleNodes(String mappingName, List<Node> nodes, StringBuffer defs, StringBuffer result, StringBuffer out,
+            boolean insideCondition)
+    {
+        for( Node n : nodes )
+        {
+            if( WorkflowUtil.isExpression( n ) )
+            {
+                if( insideCondition )
+                    defs.append( "\n    " + WorkflowUtil.getName( n ) + " = " + getExpression( n )   );
+                else
+                    defs.append( "\n    def " + WorkflowUtil.getName( n ) + " = " + getExpression( n ) );
+                out.append( "\n  " + WorkflowUtil.getName( n ) + " = " + mappingName + "." + WorkflowUtil.getName( n ) );
+                result.append( "\n    " + WorkflowUtil.getName( n ) + ": " + WorkflowUtil.getName( n ) );
+            }
+            else if( WorkflowUtil.isCall( n ) )
+            {
+                List<Node> inputs = WorkflowUtil.getOrderedInputs( (Compartment)n );
+                result.append( "\n    " );
+                result.append( WorkflowUtil.getCallName( n ) + "_input: tuple(" );
+                result.append( StreamEx.of( inputs ).map( input -> WorkflowUtil.getExpression( input ) ).joining( ", " ) );
+                result.append( ")" );
+            }
+            else if( WorkflowUtil.isConditional( n ) )
+            {
+                StringBuffer conditionalDefs = new StringBuffer();
+                StringBuffer conditionalResult = new StringBuffer();
+                StringBuffer conditionalOut = new StringBuffer();
+                processCycleNodes( mappingName, WorkflowUtil.orderCallsScatters( (Compartment)n ), conditionalDefs, conditionalResult,
+                        conditionalOut, true ); 
+                String newDefs = conditionalDefs.toString();
+                for( String newDef : newDefs.split( "\n" ) )
+                {
+                    if( !newDef.trim().isEmpty() )
+                    {
+                        newDef = newDef.substring( 0, newDef.indexOf( "=" )-1 )+" = null";
+                        defs.append( "\n    def " + newDef );
+                    }
+                }
+                defs.append( "\n    if (" + WorkflowUtil.findCondition( (Compartment)n ) + ") {" );
+                defs.append( conditionalDefs );
+                result.append( conditionalResult.toString() );
+                out.append( conditionalOut.toString() );
+                defs.append( "\n    }" );
+            }
+        }
+        return new String[] {defs.toString(), result.toString(), out.toString()};
+    }
+
     /**
      *  cycle_inputs = range_i.combine(range_j).combine(range_k).multiMap* { i, j, k ->
      *      call_1_inputs: tuple(i, j)
      *      call_2_inputs: tuple(i, k)
      *  }
      */
-    public String prepareInputsCycle(Compartment cycle)
+    public String describeCycle(Compartment cycle)
     {
-        //        List<Compartment> calls = WorkflowUtil.getCalls( cycle );
-        //        List<Node> expression = WorkflowUtil.getExpressions( cycle );
         List<Node> nodes = WorkflowUtil.orderCallsScatters( cycle );
         if( nodes.isEmpty() )
             return "";
         List<Compartment> cycles = WorkflowUtil.getParentCycles( cycle );
-        //        if( cycles.isEmpty() )
-        //            return "";
         String name = getCycleName( cycle );
         String mappingName = name + "_mapping";
-        StringBuilder sb = new StringBuilder( "  "+mappingName + " = ");
 
+        StringBuffer defs = new StringBuffer();
+        StringBuffer result = new StringBuffer();
+        StringBuffer out = new StringBuffer();
+        String[] content = processCycleNodes( mappingName, nodes, defs, result, out, false );
+        StringBuilder sb = new StringBuilder( "  " + mappingName + " = " );
         cycles.addFirst( cycle );
         cycles = cycles.reversed();
-
-        List<String> cycleVars = new ArrayList<>();
-        List<String> cycleNames = new ArrayList<>();
-        for( Compartment parentCycle : cycles )
-        {
-            cycleVars.add( getCycleVariable( parentCycle ) );
-            cycleNames.add( getCycleName( parentCycle ) );
-        }
-
-        sb.append( cycleNames.get( 0 ) );
+        List<String> cycleVars = StreamEx.of( cycles ).map( c -> getCycleVariable( c ) ).toList();
+        List<String> cycleNames = StreamEx.of( cycles ).map( c -> getCycleName( c ) ).toList();
+        sb.append( "toChannel("+cycleNames.get( 0 )+")" );
         for( int i = 1; i < cycleNames.size(); i++ )
-        {
-            sb.append( ".combine( " );
-            sb.append( cycleNames.get( i ) );
-            sb.append( " )" );
-        }
-        sb.append( ".multiMap {" );
+            sb.append( ".combine( " + cycleNames.get( i ) + ")" );
 
-        sb.append( StreamEx.of( cycleVars ).joining( ", " ) );
-        sb.append( " -> " );
-        for( Node n : nodes )
-        {
-            if( WorkflowUtil.isExpression( n ) )
-            {
-                sb.append( "\n    def " );
-                sb.append( WorkflowUtil.getName( n ) );
-                sb.append( " = " );
-                sb.append( getExpression( n ) );
-            }
-        }
-        sb.append( "\n");
-        for( Node n : nodes )
-        {
-            if( WorkflowUtil.isCall( n ) )
-            {
-                List<Node> inputs = WorkflowUtil.getOrderedInputs( (Compartment)n );
-                sb.append( "\n    " );
-                sb.append( WorkflowUtil.getCallName( n )+"_input" );
-                sb.append( ": tuple(" );
-                sb.append( StreamEx.of( inputs ).map( input -> WorkflowUtil.getExpression( input ) ).joining( ", " ) );
-                sb.append( ")" );
-            }
-            else if( WorkflowUtil.isExpression( n ) )
-            {
-                sb.append( "\n    " );
-                sb.append( WorkflowUtil.getName( n ) );
-                sb.append( ": " );
-                sb.append( WorkflowUtil.getName( n ) );
-            }
-        }
-
+        sb.append( ".multiMap {" + StreamEx.of( cycleVars ).joining( ", " ) + " -> " );
+        sb.append( content[0] );
+        sb.append( "\n" );
+        sb.append( content[1] );
         sb.append( "\n" );
         sb.append( "  }" );
-        
-        for( Node n : nodes )
-        {
-            if( WorkflowUtil.isExpression( n ) )
-            {
-                sb.append( "\n  " );
-                sb.append( WorkflowUtil.getName( n ) );
-                sb.append( " = " );
-                sb.append( mappingName );
-                sb.append( "." );
-                sb.append( WorkflowUtil.getName( n ));
-            }
-        }
         sb.append( "\n" );
+        sb.append( content[2] );
         return sb.toString();
     }
 
@@ -317,28 +312,28 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         else
         {
             List<Compartment> cycles = WorkflowUtil.getParentCycles( call );
-            if( cycles.size() > 1 )
-            {
+//            if( cycles.size() > 1 )
+//            {
                 int pos = WorkflowUtil.getPosition( input );
                 String cycleName = WorkflowUtil.getCycleName( cycles.get( 0 ) ); //split_inputs.add_inputs.map { it[0] },
-                return cycleName + "_inputs." + WorkflowUtil.getCallName( call ) + ".map { it[" + pos + "] }";
-            }
+                return cycleName + "_mapping." + WorkflowUtil.getCallName( call ) + "_input.map { it[" + pos + "] }";
+//            }
 
-            Compartment cycle = call.getCompartment();
-            String cycleVar = getCycleVariable( cycle );
-            if( isArray( cycleVar, input ) )
-                return getName( input );//getExpression(input).replaceAll("\\[\\s*"+cycleVar+"\\s*\\]", "");//getName( input ) + "_ch";
-            else
-            {
-                String result = getCallEmit( input );
-                if( result == null )
-                    result = getExpression( input );
-                if( result == null || result.isEmpty() )
-                    result = "\"" + WDLConstants.NO_VALUE + "\"";
-                if( result.startsWith( "[" ) && result.endsWith( "]" ) )
-                    result = result.substring( 1, result.length() - 1 );
-                return result;
-            }
+//            Compartment cycle = call.getCompartment();
+//            String cycleVar = getCycleVariable( cycle );
+//            if( isArray( cycleVar, input ) )
+//                return getName( input );//getExpression(input).replaceAll("\\[\\s*"+cycleVar+"\\s*\\]", "");//getName( input ) + "_ch";
+//            else
+//            {
+//                String result = getCallEmit( input );
+//                if( result == null )
+//                    result = getExpression( input );
+//                if( result == null || result.isEmpty() )
+//                    result = "\"" + WDLConstants.NO_VALUE + "\"";
+//                if( result.startsWith( "[" ) && result.endsWith( "]" ) )
+//                    result = result.substring( 1, result.length() - 1 );
+//                return result;
+//            }
         }
     }
 
@@ -353,13 +348,13 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public String getOutputExpression(Node node)
     {
-        if (isInsideCycle( node ))
+        if( isInsideCycle( node ) )
         {
-            
+
         }
-        return getCallEmit(node);
+        return getCallEmit( node );
     }
-    
+
     public String getCallEmit(Node node)
     {
         Node source = getSource( node );
@@ -464,7 +459,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      */
     public String getFunctions()
     {
-        return "basename; sub; length; range; createChannelIfNeeded; getDefault; read_int; numerate; select_first";
+        return "basename; sub; length; range; toChannel; getDefault; read_int; numerate; select_first";
     }
 
     public Compartment[] getImportedCalls()
@@ -517,8 +512,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         String result = "params." + getName( input );
         if( "File".equals( WorkflowUtil.getType( input ) ) )
             return "file(" + result + ")";
-        else if( WorkflowUtil.getType( input ).contains( "Array" ) )
-            return "createChannelIfNeeded(" + result + ").flatten()";
+//        else if( WorkflowUtil.getType( input ).contains( "Array" ) )
+//            return "toChannel(" + result + ").flatten()";
         else
             return result;
     }
