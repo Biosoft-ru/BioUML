@@ -1,0 +1,71 @@
+version 1.0
+
+# Task 1: Generate a file based on an integer input
+task generate_file_a {
+  input {
+    Int index
+  }
+  command {
+    echo "File A: ~{index}" > output_a_~{index}.txt
+  }
+  output {
+    File outFile = "output_a_~{index}.txt"
+  }
+}
+
+# Task 2: Generate another file based on an integer input
+task generate_file_b {
+  input {
+    Int index
+  }
+  command {
+    echo "File B: ~{index}" > output_b_~{index}.txt
+  }
+  output {
+    File outFile = "output_b_~{index}.txt"
+  }
+}
+
+# Task 3: Process two files into a third
+task process_files {
+  input {
+    File fileA
+    File fileB
+  }
+  command {
+    cat ~{fileA} ~{fileB} > combined_~{basename(fileA)}_~{basename(fileB)}.txt
+  }
+  output {
+    File combinedFile = "combined_~{basename(fileA)}_~{basename(fileB)}.txt"
+  }
+}
+
+workflow simple_generate_and_process {
+  input {
+    Int i = 4
+    Int j = 8
+  }
+
+    call generate_file_a {
+      input:
+        index = i
+    }
+
+    call generate_file_b {
+      input:
+        index = j
+    }
+
+    Array[File] x = [generate_file_a.outFile, generate_file_b.outFile]
+
+    call process_files {
+      input:
+        fileA = generate_file_a.outFile,
+        fileB = generate_file_b.outFile
+    }
+
+  # Outputs: all combined files
+  output {
+    File results = process_files.combinedFile
+  }
+}

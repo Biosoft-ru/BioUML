@@ -539,7 +539,7 @@ public class WorkflowUtil
     {
         return node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ).findAny().orElse( null );
     }
-
+    
     public static String getCycleName(Compartment c)
     {
         Node cycleNode = getCycleNode( c );

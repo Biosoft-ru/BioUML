@@ -77,11 +77,11 @@ public class WorkflowVelocityHelper
     }
 
     /**
-     * @return source node from which its formula depends
+     * @return source node from which its formula depend
      */
-    public static Node getSource(Node node)
+    public static List<Node> getSources(Node node)
     {
-        return WorkflowUtil.getSource( node );
+        return WorkflowUtil.getSources( node ).toList();
     }
     
     /**
