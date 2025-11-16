@@ -44,7 +44,7 @@ public class NextFlowPreprocessor
             for( String sep : seps )
             {
                 String name = getSepName( sep );
-                Declaration dec = new Declaration( "String", name + "_str", name + ".join()" );
+                Declaration dec = new Declaration( "String", name + "_str", name + ".join(' ')" );
                 WorkflowUtil.addBeforeCommand( task, dec );
                 command = command.replace( sep, "~{" + name + "_str}" );
             }
@@ -102,7 +102,7 @@ public class NextFlowPreprocessor
                     .filter( n -> WorkflowUtil.isCycleVariable( n ) && WorkflowUtil.getName( n ).equals( index ) ).findAny().orElse( null );
             if( arrayIndex != null )
                 return input;
-            String nextFlowStyle = arrayName + ".map{v->v[" + index + "]}";
+            String nextFlowStyle = "toChannel(" + arrayName + ").collect().map{v->v[" + index + "]}";
             input = input.replace( matcher.group(), nextFlowStyle );
         }
         return input;
@@ -126,7 +126,7 @@ public class NextFlowPreprocessor
             String condition = matcher.group( 1 ).trim();
             String truePart = matcher.group( 2 ).trim();
             String falsePart = matcher.group( 3 ).trim();
-            return condition +" ? " +truePart+" : "+falsePart;
+            return condition + " ? " + truePart + " : " + falsePart;
         }
         return ternary;
     }
