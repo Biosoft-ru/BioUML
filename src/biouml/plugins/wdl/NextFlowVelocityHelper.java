@@ -303,8 +303,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 result = WorkflowUtil.getExpression( input );
             if( result == null || result.isEmpty() )
                 result = "\"" + WDLConstants.NO_VALUE + "\"";
-            if( source != null && isInsideCycle( source.getCompartment() ) )
-                result += ".collect()";
+//            if( source != null && isInsideCycle( source.getCompartment() ) )
+//                result += ".collect()";
             if( result.startsWith( "[" ) && result.endsWith( "]" ) )
                 result = result.substring( 1, result.length() - 1 );
             return result;
@@ -361,12 +361,16 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         if( source != null && isCall( source.getCompartment() ) )
         {
             String result = getResultName( source.getCompartment() );
+            String name = getCallName(source.getCompartment());
+            
             String expression = getExpression( node );
-            boolean startBracket = expression.startsWith( "[" );
-            expression = expression.substring( expression.indexOf( "." ) + 1 );
-            if( startBracket )
-                result = "[" + result;
-            return result + "." + expression;
+            
+            return expression.replace( name, result);
+//            boolean startBracket = expression.startsWith( "[" );
+//            expression = expression.substring( expression.indexOf( "." ) + 1 );
+//            if( startBracket )
+//                result = "[" + result;
+//            return result + "." + expression;
         }
         else
         {
