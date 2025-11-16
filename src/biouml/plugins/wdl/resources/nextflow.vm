@@ -70,6 +70,7 @@ $helper.getExternalInput($externalParameter)
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
+$BR  fair true
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
 $BR  input :
