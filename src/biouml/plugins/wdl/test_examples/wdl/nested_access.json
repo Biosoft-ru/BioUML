@@ -1,0 +1,22 @@
+{
+  "my_experiments": [
+    {
+      "id": "exp001",
+      "variables": ["temperature", "pressure", "humidity"],
+      "data": {
+        "name": 25.5,
+        "control": 100.0,
+        "treatment": 150.5
+      }
+    },
+    {
+      "id": "exp002",
+      "variables": ["pH", "concentration", "volume"],
+      "data": {
+        "name": 7.4,
+        "baseline": 50.0,
+        "final": 75.3
+      }
+    }
+  ]
+}
