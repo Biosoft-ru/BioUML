@@ -77,6 +77,7 @@ public class NextFlowRunner
             builder.directory( new File( outputDir ) );
         }
 
+        System.out.println("COMMAND: " + StreamEx.of(builder.command()).joining(" "));
         Process process = builder.start();
 
         new Thread( new Runnable()
