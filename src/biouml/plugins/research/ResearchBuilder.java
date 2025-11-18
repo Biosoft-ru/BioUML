@@ -54,6 +54,7 @@ public class ResearchBuilder
         Properties primary = new Properties();
         primary.setProperty(DataCollectionConfigConstants.NAME_PROPERTY, name);
         primary.setProperty(DataCollectionConfigConstants.CLASS_PROPERTY, LocalRepository.class.getName());
+        primary.setProperty( LocalRepository.EXCLUDE_NAMES, "luceneIndex" );
 
         Properties transformed = new Properties();
         transformed.setProperty(DataCollectionConfigConstants.CLASS_PROPERTY, Module.class.getName());
@@ -63,6 +64,7 @@ public class ResearchBuilder
         transformed.setProperty(DataCollectionConfigConstants.DESCRIPTION_PROPERTY, DESCRIPTION_FILE);
         transformed.setProperty(QuerySystem.QUERY_SYSTEM_CLASS, "biouml.plugins.lucene.LuceneQuerySystemImpl");
         transformed.setProperty("lucene-directory", "luceneIndex");
+        transformed.setProperty( LocalRepository.EXCLUDE_NAMES, "luceneIndex" );
 
         Module research = (Module)CollectionFactoryUtils.createDerivedCollection(parent, name, primary, transformed, name);
         new File(research.getPath(), DESCRIPTION_FILE).createNewFile();
