@@ -4,7 +4,7 @@
     icon: "icons/next.png",
     visible: "function()
     {
-        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        if( perspective && perspective.name && ('Genome Enhancer' === perspective.name || 'Pathway Omics Suite' === perspective.name) )
         {
           var btn = $('#ge_intro_iframe').contents().find('#wizard-next-btn');
           if(btn)

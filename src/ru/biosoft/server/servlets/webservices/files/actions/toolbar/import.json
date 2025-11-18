@@ -7,7 +7,7 @@
     icon: "icons/import.gif",
     visible: "function()
     {
-    	if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+    	if( perspective && perspective.name && ('Genome Enhancer' === perspective.name || 'Pathway Omics Suite' === perspective.name) )
             return -1;
         if(appInfo.disableToolbarActionImport === true)
           return -1;
