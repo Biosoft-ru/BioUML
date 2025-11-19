@@ -10,6 +10,12 @@ def ceil(val) {
 	return Math.ceil(val)
 }
 
+def get(arr, index) {
+    if (arr instanceof java.util.List)
+        return arr[index]
+    else 
+        return arr.collect().map{v->v[i]}
+}
 
 def length(arr) {
     if (arr instanceof java.util.List)
@@ -59,18 +65,16 @@ def defined(val) {
     return val != null
 }
 
-def read_int(path) {
-    def file = new File(path)
-    def lines = file.readLines().findAll { it.trim() }
-    if (lines.size() != 1) {
-        throw new IllegalArgumentException("File must contain exactly one non-empty line")
-    }
-    def line = lines[0].trim()
-    try {
-        return line.toInteger()
-    } catch (NumberFormatException e) {
-        throw new IllegalArgumentException("File does not contain a valid integer")
-    }
+def read_string(filePath) {
+    return new File(filePath).text.trim()
+}
+
+def read_int(filePath) {
+    return new File(filePath).text.trim() as Integer
+}
+
+def read_float(filePath) {
+    return new File(filePath).text.trim() as Float
 }
 
 def numerate(ch) {
