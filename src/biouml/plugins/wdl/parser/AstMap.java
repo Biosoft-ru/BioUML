@@ -42,6 +42,10 @@ public class AstMap extends SimpleNode
                     {
                         value = ((AstMap)gchild).toMap();
                     }
+                    else if (gchild instanceof AstExpression)
+                    {
+                        value = ((AstExpression)gchild).toString();
+                    }
                 }
                 if (value != null)
                     result.put( key, value );
