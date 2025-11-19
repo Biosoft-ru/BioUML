@@ -801,6 +801,11 @@ public class WorkflowUtil
        return node.edges().map( e->e.getInput() ).without( node );
     }
     
+    public static boolean isCallResult(Node node)
+    {
+        return getSources(node).anyMatch( n->isCall( n.getCompartment()) );
+    }
+    
 //    public static breakChain(List<Node> calls)
 //    {
 //        
