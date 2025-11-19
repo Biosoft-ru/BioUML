@@ -1,7 +1,16 @@
 package biouml.plugins.wdl._test;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+
 import biouml.model.Diagram;
-import biouml.plugins.wdl.WDLGenerator;
+import biouml.model.util.DiagramImageGenerator;
+import biouml.plugins.wdl.diagram.WDLLayouter;
 
 public class TestWDL //extends //TestCase
 {
@@ -11,6 +20,9 @@ public class TestWDL //extends //TestCase
 
     public static void main(String ... args) throws Exception
     {
+        test("pbmm");
+        test("multiqc");
+        test( "simple_if" );
         //        test("two_steps");
         //        for (String name: list)
         //            test(name);
@@ -18,7 +30,7 @@ public class TestWDL //extends //TestCase
         //                test( "scatter_range_2_extra" );
         //                test( "scatter_range_2_steps" );
         //                test( "scatter_simple" );
-                test( "double_scatter" );
+              //  test( "double_scatter" );
         //                test( "scatter_range2" );
         //        test( "two_steps" );
         //        test( "four_steps" );
@@ -41,19 +53,42 @@ public class TestWDL //extends //TestCase
         //        test( "test_scatter" );
     }
 
+    
     public static void test() throws Exception
     {
-        test( "hello" );
+//        test( "hello" );
+    
     }
 
     public static void test(String name) throws Exception
     {
         Diagram diagram = TestUtil.loadDiagram( name );
-        WDLGenerator wdlGenerator = new WDLGenerator();
-
-        String wdl = wdlGenerator.generate( diagram );
+        diagram =  WDLLayouter.layout( diagram );
+        File imageFile = new File("C:/Users/Damag/" + name + ".png");
+        exportImage(diagram, imageFile);
         
-        System.out.println( "Exported WDL: " );
-        System.out.println( wdl );
+//        WDLGenerator wdlGenerator = new WDLGenerator();
+//
+//        String wdl = wdlGenerator.generate( diagram );
+//        
+//        System.out.println( "Exported WDL: " );
+//        System.out.println( wdl );
     }
+    
+    public static void exportImage(@Nonnull
+            Diagram diagram, @Nonnull
+            File file) throws Exception
+            {
+                BufferedImage image = DiagramImageGenerator.generateDiagramImage(diagram, 1, true);
+
+                ImageWriter writer = ImageIO.getImageWritersBySuffix("png").next();
+
+                file.delete();
+                try (ImageOutputStream stream = ImageIO.createImageOutputStream(file))
+                {
+                    writer.setOutput(stream);
+                    writer.write(image);
+                }
+                writer.dispose();
+            }
 }

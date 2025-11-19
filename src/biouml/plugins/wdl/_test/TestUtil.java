@@ -58,49 +58,66 @@ public class TestUtil
     }
 
 
-    public static void executeCommand(String[] command) throws Exception
+    public static boolean executeCommand(String[] command) throws Exception
     {
         System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
         Process process = Runtime.getRuntime().exec( command );
-
-
-        new Thread( new Runnable()
-        {
-            public void run()
-            {
-                BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-                String line = null;
-
-                try
-                {
-                    while( ( line = input.readLine() ) != null )
-                        System.out.println( line );
-                }
-                catch( IOException e )
-                {
-                    e.printStackTrace();
-                }
-                //                
-                //for some reason cwl-runner outputs everything into error stream
-                BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-                line = null;
-
-                try
-                {
-                    while( ( line = err.readLine() ) != null )
-                        System.out.println( line );
-                }
-                catch( IOException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-        } ).start();
-
+        CommandRunner r = new CommandRunner( process );
+        Thread thread = new Thread( r );
+        thread.start();
         process.waitFor();
-
+        return r.isSuccess();
     }
 
+    private static class CommandRunner implements Runnable
+    {
+        Process process;
+        public CommandRunner(Process process)
+        {
+            this.process = process;
+        }
+
+        public boolean success;
+
+        public boolean isSuccess()
+        {
+            return success;
+        }
+        public void run()
+        {
+            success = true;
+            BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+            String line = null;
+
+            try
+            {
+                while( ( line = input.readLine() ) != null )
+                {
+                    System.out.println( line );
+                    if( line.startsWith( "ERROR" ) || line.startsWith( "WARN" ) || line.startsWith( "Missing" ))
+                        success = false;
+                }
+            }
+            catch( IOException e )
+            {
+                e.printStackTrace();
+            }
+            //                
+            //for some reason cwl-runner outputs everything into error stream
+            BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
+            line = null;
+
+            try
+            {
+                while( ( line = err.readLine() ) != null )
+                    System.out.println( line );
+            }
+            catch( IOException e )
+            {
+                e.printStackTrace();
+            }
+        }
+    }
 
     public static void showDiagram(Diagram diagram) throws Exception
     {

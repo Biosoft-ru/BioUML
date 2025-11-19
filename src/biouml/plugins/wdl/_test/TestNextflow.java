@@ -15,6 +15,7 @@ import ru.biosoft.util.TempFiles;
 public class TestNextflow //extends //TestCase
 {
 
+    private static List<String> statistics = new ArrayList<>();
     private static String[] list = new String[] {"hello", "scatter_range_2_steps", "scatter_simple", "scatter_range", "scatter_range2",
             "two_steps", "four_steps"};
 
@@ -22,40 +23,63 @@ public class TestNextflow //extends //TestCase
     {
 
         //CHECKED:
-        //test("simple_if");
-        //test( "cycle_expressions");
-        //test( "cycle_expressions2");
-        //test( "cycle_expressions3");
-        //test( "scatter_range" );
-        //test( "scatter_range2" );
-        //test("hello");
-        //test( "scatter_simple" );
-        //test( "four_steps" );
-        //test( "cycle_expression_call" );
-        //test("cycle_expression_call2");
-        test("two_steps2");
-        
+        //        test("hello_world");
+        //                test( "simple_if" );
+        //                test( "cycle_expressions" );
+        //                test( "cycle_expressions2" );
+        //                test( "cycle_expressions3" );
+        //                test( "scatter_range" );
+        //                test( "scatter_range2" );
+        //                test( "scatter_simple" );
+        //                test( "four_steps" );
+        //                test( "cycle_expression_call" );
+        //                test( "cycle_expression_call2" );
+        //                test( "array_input" );
+        //                test( "array_input2" );
+        //                test( "nested_access" );
+        //                test( "two_inputs" );
+        //                test( "two_steps" );
+        //                test( "two_steps2" );
+        //                test( "two_steps3" );
+        //                test("two_inputs_cycle");
+        //                test("test_map"); 
+        //        test("private_declaration");
+        //        test("object_output");
+        //        test("object_output2");
+        //        test("test_scatter");
+        //        test( "array_select" );
+        //        test( "nested_access2");
+        //        test( "array_select2" );
+        //        test( "double_scatter");
+        //        test( "double_scatter2");
+        //        DO NOT WORK
+
+        //test("hic2");
+
+        //Caclulations in ouput
+        //Expressions from call passed to another call
+
+
+        //        test( "call_mix_expr");
+
+        System.out.println( "\n\nRESULT:" );
+        for( String result : statistics )
+            System.out.println( result );
+
+
         //        for (String name: list)
         //            test(name);
         //                test( "scatter_range_2_extra" );
         //                test( "scatter_range_2_steps" );
-        //        test( "private_declaration_task" );
         //                test( "pbmm2" );
         //        test( "pbsv_1" );
-        //        test( "array_input" );
-        // test( "array_select");
         //      test( "call_mix_expr");
-        //        test( "array_on_the_fly" );
         //        test( "lima" );
         //        test( "faidx2" );
-        //test( "double_scatter");
-        //        test( "double_scatter2");
         //        test( "extra_steps");
-        //                test( "simple_if");
         //        test( "scatter_extra_steps" );
         //        test("faidx_import");
         //        test( "fastqc1" );
-        //        test( "test_scatter" );
     }
 
     public static void test() throws Exception
@@ -76,7 +100,8 @@ public class TestNextflow //extends //TestCase
         String json = getParameters( name );
         System.out.println( "Exported Nextflow: " );
         System.out.println( nextflow );
-        runNextFlow( name, nextflow, json );
+        boolean success = runNextFlow( name, nextflow, json );
+        statistics.add( name + " " + success );
     }
 
     private static String getParameters(String name) throws Exception
@@ -101,12 +126,12 @@ public class TestNextflow //extends //TestCase
         ApplicationUtils.writeString( f, nextFlow );
     }
 
-    private static void runNextFlow(String name, String script, String parameters)
+    private static boolean runNextFlow(String name, String script, String parameters)
     {
-        runNextFlow( name, script, parameters, new ArrayList<String>() );
+        return runNextFlow( name, script, parameters, new ArrayList<String>() );
     }
 
-    private static void runNextFlow(String name, String script, String parameters, List<String> imports)
+    private static boolean runNextFlow(String name, String script, String parameters, List<String> imports)
     {
         try
         {
@@ -138,18 +163,19 @@ public class TestNextflow //extends //TestCase
                 File json = new File( outputDir, name + ".json" );
                 ApplicationUtils.writeString( json, parameters );
                 String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-params-file", json.getName()};
-                TestUtil.executeCommand( command );
+                return TestUtil.executeCommand( command );
             }
             else
             {
                 String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName()};
-                TestUtil.executeCommand( command );
+                return TestUtil.executeCommand( command );
             }
 
         }
         catch( Exception ex )
         {
             ex.printStackTrace();
+            return false;
         }
     }
 
