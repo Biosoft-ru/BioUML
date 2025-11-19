@@ -36,7 +36,7 @@ public class CWLVelocityHelper extends WorkflowVelocityHelper
     {
         String expression = getExpression( node );
         expression = expression.replace( ".", "/" );
-        Node source = getSource( node );
+        Node source = WorkflowUtil.getSource( node );
         if( source == null || WorkflowUtil.isExternalParameter( source ) )
             return expression;
         String replacement = getCleanExpression( source );
