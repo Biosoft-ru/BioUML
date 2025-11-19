@@ -32,14 +32,11 @@ import biouml.plugins.wdl.colorer.WDLColorer;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
+import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
-import biouml.standard.diagram.DiagramUtility;
-import biouml.workbench.diagram.CompositeDiagramDocument;
-import biouml.workbench.diagram.DiagramDocument;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
-import ru.biosoft.gui.GUI;
 import ru.biosoft.util.TempFiles;
 
 @SuppressWarnings ( "serial" )
@@ -327,7 +324,7 @@ public class WorkflowTextEditor extends EditorPartSupport
                 text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
                 AstStart start = new WDLParser().parse( new StringReader( text ) );
                 diagram = wdlImporter.generateDiagram( start, diagram );
-                wdlImporter.layout( diagram );
+                WDLLayouter.layout( diagram );
                 setDiagram( diagram );
                 setNextFlow( nextFlowGenerator.generate( diagram ) );
                 diagram.save();

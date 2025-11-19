@@ -359,8 +359,8 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         Brush mainBrush = getBrush( node, diagramOptions.getConditionalBrush() );
         Point location = node.getLocation();
         Dimension size = node.getShapeSize();
-        int width = size.width - 31;
-        int height = size.height - 26;
+        int width = size.width;
+        int height = size.height;
         View shadowView = new BoxView( pen, shadowBrush, location.x + 1, location.y + 1, width, height );
         View boxView = new BoxView( pen, mainBrush, location.x, location.y, width, height );
         boxView.setModel( node );
@@ -499,9 +499,9 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     @Override
     public PortFinder getPortFinder(Node node)
     {
-        String type = node.getKernel().getType();
-        if( type.equals( Type.TYPE_DATA_ELEMENT_IN ) || type.equals( Type.ANALYSIS_PARAMETER )
-                || type.equals( Type.TYPE_DATA_ELEMENT_OUT ) )
+//        String type = node.getKernel().getType();
+        if( WorkflowUtil.isExpression( node ) || WorkflowUtil.isInput( node ) || WorkflowUtil.isOutput( node ) 
+                || WorkflowUtil.isConditional( node ) || WorkflowUtil.isCondition( node ) || WorkflowUtil.isExternalParameter(node) || WorkflowUtil.isExternalOutput( node ))
             return new InOutFinder( false, getNodeBounds( node ) );
         return super.getPortFinder( node );
     }
