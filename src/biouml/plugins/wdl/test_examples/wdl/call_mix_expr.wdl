@@ -5,7 +5,7 @@ task square_int {
     Int num
   }
   command <<< 
-    echo $((~{num} * ~{num}))
+    echo $((~{num} * ~{num})) > result.txt
   >>>
   output {
     Int squared = read_int(stdout())
@@ -26,7 +26,7 @@ task square_int2 {
 
 workflow process_array {
   input {
-    Array[Int] x
+    Array[Int] x = [10,20,30]
   }
 
   scatter (element in x) {

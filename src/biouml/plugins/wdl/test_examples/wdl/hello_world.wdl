@@ -5,7 +5,7 @@ task sayHello {
      echo "Hello World" > hello.txt
   }
   output {
-     File output = "hello.txt"
+     File result = "hello.txt"
   }
 }
 

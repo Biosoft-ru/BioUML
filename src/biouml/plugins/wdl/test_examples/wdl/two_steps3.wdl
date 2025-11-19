@@ -1,4 +1,4 @@
-version 1.1
+version 1.0
 
 task generate_file {
   input {
@@ -6,27 +6,25 @@ task generate_file {
   }
 
   command <<<
-    echo "This is file number ${index}" > output_${index}.txt
+    echo "This is file number ~{index}" > output_~{index}.txt
   >>>
 
   output {
-    File out_file = "output_${index}.txt"
+    File out_file = "output_~{index}.txt"
   }
 }
 
 task process_file {
   input {
     File in_file
-    String extra_info      # New input added here
   }
 
   command <<<
-    echo "Extra info: ${extra_info}" > processed_${basename(in_file)}
-    cat ${in_file} >> processed_${basename(in_file)}
+    cat ~{in_file} >> processed_~{basename(in_file)}
   >>>
 
   output {
-    File processed_file = "processed_${basename(in_file)}"
+    File processed_file = "processed_~{basename(in_file)}"
   }
 }
 
@@ -43,8 +41,7 @@ workflow scatter_two_steps {
 
     call process_file {
       input: 
-        in_file = generate_file.out_file,
-        extra_info = extra_info     # Pass extra_info input here
+        in_file = generate_file.out_file
     }
   }
 

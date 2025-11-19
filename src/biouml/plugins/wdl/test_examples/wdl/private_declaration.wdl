@@ -1,4 +1,4 @@
-version 1.1
+version 1.0
 
 task private_declaration {
   input {
@@ -6,26 +6,30 @@ task private_declaration {
     String line2
   }
 
-  String concatenated = "~"
+  String concatenator = "~"
+  String concatenated = line1 + concatenator + line2
 
   command <<<
-  head -~{num_lines_clamped} ~{write_lines(lines)}
+    echo "~{concatenated}" > result.txt
   >>>
 
   output {
-    Array[String] out_lines = read_lines(stdout())
+    File result = "result.txt"
   }
 }
 
 workflow run_private_declaration {
+  input {
+    Array[String] lines = ["A", "B", "C", "D"]
+  }
 
-    input {
-        Array[String] lines  = ["A", "B", "C", "D"]
-    }
-
-        call private_declaration {
-            input:
-            lines = lines
-        }
-    
+  call private_declaration {
+    input:
+      line1 = lines[0],
+      line2 = lines[1]
+  }
+  
+  output {
+    String concatenated_output = private_declaration.result
+  }
 }
