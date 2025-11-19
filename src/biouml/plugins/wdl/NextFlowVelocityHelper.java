@@ -191,9 +191,13 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             else if( WorkflowUtil.isCall( n ) )
             {
                 List<Node> inputs = WorkflowUtil.getOrderedInputs( (Compartment)n );
+                inputs = StreamEx.of( inputs ).filter( input -> !WorkflowUtil.isCallResult( input ) ).toList();
+                if (inputs.size() == 0)
+                    continue;
                 result.append( "\n    " );
                 result.append( WorkflowUtil.getCallName( n ) + "_input: tuple(" );
-                result.append( StreamEx.of( inputs ).map( input -> WorkflowUtil.getExpression( input ) ).joining( ", " ) );
+                result.append( StreamEx.of(inputs)
+                        .map( input -> WorkflowUtil.getExpression( input ) ).joining( ", " ) );
                 result.append( ")" );
             }
             else if( WorkflowUtil.isConditional( n ) )
@@ -241,6 +245,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         StringBuffer result = new StringBuffer();
         StringBuffer out = new StringBuffer();
         String[] content = processCycleNodes( mappingName, nodes, defs, result, out, false );
+        if (content[0].isEmpty() && content[1].isEmpty())
+            return "";
         StringBuilder sb = new StringBuilder( "  " + mappingName + " = " );
         cycles.addFirst( cycle );
         cycles = cycles.reversed();
@@ -294,10 +300,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String getCallInputName(Node input)
     {
         Compartment call = input.getCompartment();
-        if( !isInsideCycle( call ) )
+        if( !isInsideCycle( call ) || WorkflowUtil.isCallResult( input ))
         {
 
             //            Node source = getSource( input );
+            
             String result = getCallEmit( input );
             if( result == null )
                 result = WorkflowUtil.getExpression( input );
@@ -307,6 +314,14 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             //                result += ".collect()";
             if( result.startsWith( "[" ) && result.endsWith( "]" ) )
                 result = result.substring( 1, result.length() - 1 );
+            
+            if (isInsideCycle(call))//TODO: probably move to preproccessing
+            {
+                Set<String> cycleVariables = StreamEx.of(WorkflowUtil.getParentCycles( call )).map( cycle-> WorkflowUtil.getCycleVariable( cycle )).toSet();
+                for (String cycleVariable: cycleVariables)
+                    result = result.replace( "["+cycleVariable+"]","" );
+            }
+            
             return result;
         }
         else
@@ -464,7 +479,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      */
     public String getFunctions()
     {
-        return "basename; sub; length; range; toChannel; getDefault; read_int; numerate; select_first";
+        return "get; basename; sub; length; range; toChannel; getDefault; read_int; read_string; read_float; numerate; select_first";
     }
 
     public Compartment[] getImportedCalls()
