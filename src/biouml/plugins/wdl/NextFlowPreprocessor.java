@@ -59,6 +59,7 @@ public class NextFlowPreprocessor
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
+                expression = processMap(expression);
                 WorkflowUtil.setExpression( node, expression );
             }
         }
@@ -102,7 +103,7 @@ public class NextFlowPreprocessor
                     .filter( n -> WorkflowUtil.isCycleVariable( n ) && WorkflowUtil.getName( n ).equals( index ) ).findAny().orElse( null );
             if( arrayIndex != null )
                 return input;
-            String nextFlowStyle = "toChannel(" + arrayName + ").collect().map{v->v[" + index + "]}";
+            String nextFlowStyle = "get(" + arrayName + ", " + index + ")";
             input = input.replace( matcher.group(), nextFlowStyle );
         }
         return input;
@@ -114,6 +115,16 @@ public class NextFlowPreprocessor
         return input.replaceAll( regex, "\"$2\"" );
     }
 
+    public static String processMap(String map)
+    {
+        String content = map.trim();
+        if (content.startsWith( "{" ) && content.endsWith( "}" ) && content.contains( ":" ))
+        {
+            return map.replace( "{", "[").replace( "}", "]" );
+        }
+        return map;
+    }
+    
     public static String processTernary(String ternary)
     {
         String patternString = "if\\s+(.+?)\\s+then\\s+(.+?)\\s+else\\s+(.+)";
