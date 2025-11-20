@@ -353,6 +353,14 @@
       <analysisClass class="ru.biosoft.analysis.RunAnalysis" group="Unclassified" name="Run analysis"  description="Run another analysis with parameter values from table."/> 
   </extension> 
   
+  <extension id="Volcano plot" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.VolcanoPlotAnalysis" group="Plots and charts" name="Volcano plot"  shortDescription="" description="Volcano plot" /> 
+  </extension>
+  
+  <extension id="MA plot" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.MAPlotAnalysis" group="Plots and charts" name="MA plot"  shortDescription="" description="MA plot" /> 
+  </extension>
+  
   <extension id="Genes table type" point="ru.biosoft.access.referenceType">
   	<type typeClass="ru.biosoft.analysis.type.GeneTableType"/>
   	<type typeClass="ru.biosoft.analysis.type.TranscriptTableType"/>
