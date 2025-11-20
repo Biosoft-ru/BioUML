@@ -985,6 +985,14 @@
         description="Import BigWig file"
      />
   </extension>
+  
+  <extension id="HIC importer" point="ru.biosoft.access.import"> 
+     <import 
+        format="HIC (*.hic)"
+        importer="ru.biosoft.bsa.track.hic.HICTrackImporter"
+        description="Import HIC contacts matrix"
+     />
+  </extension>
 
   
   <extension point="ru.biosoft.access.transformer">
