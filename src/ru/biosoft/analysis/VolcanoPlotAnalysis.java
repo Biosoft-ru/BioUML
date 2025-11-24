@@ -32,6 +32,7 @@ import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.access.ImageDataElement;
+import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
@@ -40,6 +41,7 @@ import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
 import ru.biosoft.util.Pair;
 
+@ClassIcon("resources/volcano.png")
 public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analysis.VolcanoPlotAnalysis.Parameters>
 {
 
