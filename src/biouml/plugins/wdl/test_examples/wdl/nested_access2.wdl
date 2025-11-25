@@ -9,7 +9,7 @@ struct Experiment {
 workflow nested_access {
   # Dynamically create new Experiment structs in the workflow
   
-  Experiment new_experiment_1 = {"id": "exp_001", "variablesdsa": ["temperature", "pressure", "volume"], "data": {"name": 85.5, "temperature": 37.0, "pressure": 101.3}}
+  Experiment new_experiment_1 = {"id": "exp_001", "variables": ["temperature", "pressure", "volume"], "data": {"name": 85.5, "temperature": 37.0, "pressure": 101.3}}
   
   Experiment new_experiment_2 = { "id": "exp_002", "variables": ["pH", "concentration", "absorbance"], "data": {"name": 42.0, "pH": 7.4, "concentration": 0.5}}
   

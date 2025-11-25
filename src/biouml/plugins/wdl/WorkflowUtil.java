@@ -58,7 +58,7 @@ public class WorkflowUtil
     {
         return isOfType( WDLConstants.CONDITIONAL_TYPE, node );
     }
-    
+
     public static boolean isCondition(Node node)
     {
         return isOfType( WDLConstants.CONDITION_TYPE, node );
@@ -118,19 +118,31 @@ public class WorkflowUtil
         return c.stream( Compartment.class ).filter( n -> isCycle( n ) ).toList();
     }
 
-    public static List<Compartment> getParentCycles(Compartment c)
+    public static Compartment getParentCycle(Node c)
+    {
+        Compartment parent = c.getCompartment();
+        while( parent != null )
+        {
+            if( isCycle( parent ) )
+                return parent;
+            parent = parent.getCompartment();
+        }
+        return null;
+    }
+
+    public static List<Compartment> getParentCycles(Node c)
     {
         List<Compartment> result = new ArrayList<>();
         Compartment parent = c.getCompartment();
-        while (!(parent instanceof Diagram))
+        while( ! ( parent instanceof Diagram ) )
         {
-            if (isCycle( parent ))
+            if( isCycle( parent ) )
                 result.add( parent );
             parent = parent.getCompartment();
         }
         return result;
     }
-    
+
     public static List<Node> getExternalParameters(Diagram diagram)
     {
         return diagram.stream( Node.class ).filter( n -> isExternalParameter( n ) ).sorted( new PositionComparator() ).toList();
@@ -156,7 +168,7 @@ public class WorkflowUtil
     {
         return c.stream( Compartment.class ).filter( n -> isCall( n ) ).toList();
     }
-    
+
     public static List<Node> getExpressions(Compartment c)
     {
         return c.stream( Node.class ).filter( n -> isExpression( n ) ).toList();
@@ -331,6 +343,11 @@ public class WorkflowUtil
     public static String getCallName(Node n)
     {
         return n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
+    }
+
+    public static Node findConditionNode(Compartment conditional)
+    {
+        return conditional.edges().map( e -> e.getOtherEnd( conditional ) ).findAny( n -> isCondition( n ) ).orElse( null );
     }
 
     public static String findCondition(Compartment conditional)
@@ -539,7 +556,7 @@ public class WorkflowUtil
     {
         return node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ).findAny().orElse( null );
     }
-    
+
     public static String getCycleName(Compartment c)
     {
         Node cycleNode = getCycleNode( c );
@@ -782,32 +799,32 @@ public class WorkflowUtil
             return (Declaration[])declarations;
         return new Declaration[0];
     }
-    
+
     public static boolean isDependent(Node node, Node from)
     {
-         for (Node source: getSources(node))
-         {
-             if (isDependent(source, from))
-                 return true;
-         }
-         return false;
+        for( Node source : getSources( node ) )
+        {
+            if( isDependent( source, from ) )
+                return true;
+        }
+        return false;
     }
-    
+
     /**
      * Returns stream of all immediate sources of current node
      */
     public static StreamEx<Node> getSources(Node node)
     {
-       return node.edges().map( e->e.getInput() ).without( node );
+        return node.edges().map( e -> e.getInput() ).without( node );
     }
-    
+
     public static boolean isCallResult(Node node)
     {
-        return getSources(node).anyMatch( n->isCall( n.getCompartment()) );
+        return getSources( node ).anyMatch( n -> isCall( n.getCompartment() ) );
     }
-    
-//    public static breakChain(List<Node> calls)
-//    {
-//        
-//    }
+
+    //    public static breakChain(List<Node> calls)
+    //    {
+    //        
+    //    }
 }

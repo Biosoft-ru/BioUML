@@ -32,13 +32,13 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #######################################################################################
 #macro(scatterNF $scatter)
 $helper.describeCycle($scatter)
-#foreach( $n in $helper.orderCalls($scatter))
-#if ($helper.isCycle($n))#scatterNF($n)
-#elseif ($helper.isCall($n))#callNF($n)
+##foreach( $n in $helper.orderCalls($scatter))
+##if ($helper.isCycle($n))#scatterNF($n)
+##elseif ($helper.isCall($n))#callNF($n)
 ##elseif ( $helper.isExpression($n) )#expressionNF($n)
 ##elseif ( $helper.isConditional($n) )#conditional($n)
-#end 
-#end
+##end 
+##end
 #end
 #######################################################################################
 #macro(expressionNF $expression)

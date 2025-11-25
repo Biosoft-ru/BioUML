@@ -9,7 +9,9 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.NextFlowRunner;
+import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.WorkflowUtil;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.util.TempFiles;
 
 public class TestNextflow //extends //TestCase
@@ -23,37 +25,47 @@ public class TestNextflow //extends //TestCase
     {
 
         //CHECKED:
-        //        test("hello_world");
+        //                test( "hello_world" );
         //                test( "simple_if" );
         //                test( "cycle_expressions" );
         //                test( "cycle_expressions2" );
         //                test( "cycle_expressions3" );
         //                test( "scatter_range" );
-        //                test( "scatter_range2" );
-        //                test( "scatter_simple" );
         //                test( "four_steps" );
-        //                test( "cycle_expression_call" );
-        //                test( "cycle_expression_call2" );
         //                test( "array_input" );
         //                test( "array_input2" );
         //                test( "nested_access" );
         //                test( "two_inputs" );
         //                test( "two_steps" );
+        //                test( "private_declaration" );
+        //                test( "object_output" );
+        //                test( "object_output2" );
+        //
+        //                test( "test_scatter" );
+        //                test( "cycle_expression_call" );
+        //                test( "cycle_expression_call2" );
         //                test( "two_steps2" );
+        //                test( "test_map" );
+        //                test( "two_inputs_cycle" );
         //                test( "two_steps3" );
-        //                test("two_inputs_cycle");
-        //                test("test_map"); 
-        //        test("private_declaration");
-        //        test("object_output");
-        //        test("object_output2");
-        //        test("test_scatter");
-        //        test( "array_select" );
-        //        test( "nested_access2");
-        //        test( "array_select2" );
-        //        test( "double_scatter");
-        //        test( "double_scatter2");
+        //                test( "array_select" );
+        //                test( "nested_access2" );
+        //                test( "array_select2" );
+        //                test( "scatter_range2" );
+        //                test( "scatter_simple" );
+        //                test( "call_expr_call2" );
+        //        test( "double_scatter" );
         //        DO NOT WORK
+        //        
+        test( "two_inputs_cycle" );
+        //        test( "double_scatter2" );
+        //double if
 
+        //        test("call_expr_call");
+
+        //        test("align");
+        //                test( "struct_to_struct" );
+        //                test( "array_objects" );
         //test("hic2");
 
         //Caclulations in ouput
@@ -102,6 +114,14 @@ public class TestNextflow //extends //TestCase
         System.out.println( nextflow );
         boolean success = runNextFlow( name, nextflow, json );
         statistics.add( name + " " + success );
+    }
+
+    private static String getParameterFile(String name) throws Exception
+    {
+        URL url = TestWDL.class.getResource( "../test_examples/wdl/" + name );
+        if( url == null )
+            return null;
+        return ApplicationUtils.readAsString( new File( url.getFile() ) );
     }
 
     private static String getParameters(String name) throws Exception
@@ -160,9 +180,32 @@ public class TestNextflow //extends //TestCase
 
             if( parameters != null )
             {
-                File json = new File( outputDir, name + ".json" );
-                ApplicationUtils.writeString( json, parameters );
-                String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-params-file", json.getName()};
+                File jsonFile = new File( outputDir, name + ".json" );
+                String[] paramLines = parameters.replace( "{", "" ).replace( "}", "" ).replace( "\"", "" ).split( "," );
+                for( String parameter : paramLines )
+                {
+                    try
+                    {
+                        String paramName = parameter.split( ":" )[1];
+                        paramName = paramName.trim().replace( "\n", "" ).replace( ",", "" );
+                        String paramContent = getParameterFile( paramName );
+                        if( paramContent != null )
+                        {
+                            File paramFile = new File( outputDir, paramName );
+                            ApplicationUtils.writeString( paramFile, paramContent );
+                        }
+                    }
+                    catch( Exception ex )
+                    {
+
+                    }
+                }
+                for( String s : WorkflowSettings.getFileInputs( parameters ) )
+                {
+
+                }
+                ApplicationUtils.writeString( jsonFile, parameters );
+                String[] command = new String[] {"wsl", "--cd", parent, "nextflow", f.getName(), "-params-file", jsonFile.getName()};
                 return TestUtil.executeCommand( command );
             }
             else

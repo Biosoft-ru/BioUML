@@ -9,7 +9,7 @@ workflow TaskReturningObject {
         input:
             sample_name = sample_id
     }
-CreateObject.my_object.view()
+
     output {
         Object result = CreateObject.my_object
     }

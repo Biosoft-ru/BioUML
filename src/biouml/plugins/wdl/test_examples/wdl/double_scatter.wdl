@@ -7,11 +7,11 @@ input {
     Int c
   }
   command {
-    echo $((~{a} + ~{b}+ ~{c})) > result.txt
+    echo $((~{a} + ~{b}+ ~{c})) > result~{c}.txt
   }
 
   output {
-    File res = "result.txt"
+    File res = "result~{c}.txt"
   }
 }
 
