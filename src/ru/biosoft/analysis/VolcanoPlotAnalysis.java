@@ -12,7 +12,9 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -45,8 +47,10 @@ import ru.biosoft.util.Pair;
 public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analysis.VolcanoPlotAnalysis.Parameters>
 {
 
-    private static final int pointSize = 5;
+    private static final int pointSize = 4;
+    private static final int labelPointSize = 6;
     private static final Shape circle = new Ellipse2D.Float( 0, 0, pointSize, pointSize );
+    private static final Shape labelCircle = new Ellipse2D.Float( (pointSize - labelPointSize) / 2, (pointSize - labelPointSize) / 2, labelPointSize, labelPointSize );
     JFreeChart chart;
     XYDataset dataset;
 
@@ -110,23 +114,23 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 {
                     if( x < parameters.getDownCutoff() )
                     {
-                        down2Id.add( new Pair( y, row.getName() ) );
+                        down2Id.add( new Pair( x, row.getName() ) );
                         seriesDown.add( x, y );
                     }
                     else if( x > parameters.getUpCutoff() )
                     {
-                        up2Id.add( new Pair( y, row.getName() ) );
+                        up2Id.add( new Pair( x, row.getName() ) );
                         seriesUp.add( x, y );
                     }
                     else
                     {
-                        ns2Id.add( new Pair( y, row.getName() ) );
+                        ns2Id.add( new Pair( x, row.getName() ) );
                         seriesOut.add( x, y );
                     }
                 }
                 else
                 {
-                    ns2Id.add( new Pair( y, row.getName() ) );
+                    ns2Id.add( new Pair( x, row.getName() ) );
                     seriesOut.add( x, y );
                 }
 
@@ -149,11 +153,13 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
     private XYSeries fillAnnotations(TableDataCollection inputTable, List<Pair<Double, String>> up2Id, List<Pair<Double, String>> down2Id, List<Pair<Double, String>> ns2Id,
             int pvalIdx, int logfcIdx)
     {
-        XYSeries annotationSeries = new XYSeries( "annotations" );
+        XYSeries annotationSeries = new XYSeries( "Annotated" );
         String lblColumn = parameters.getLabelsColumn();
         int idx = inputTable.getColumnModel().getColumnIndex( lblColumn );
         DataElementPath labeledPath = parameters.getTopGenes();
         List<String> idsToShow = new ArrayList<>();
+        Set<String> bold = new HashSet<>();
+        boolean useNumTopGenes = true;
         if( labeledPath != null && labeledPath.exists() && labeledPath.getDataElement() instanceof TableDataCollection )
         {
             //Add labels for genes from the specified list
@@ -162,9 +168,10 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 if( inputTable.contains( id ) )
                     idsToShow.add( id );
             } );
-
+            useNumTopGenes = false;
         }
-        else
+
+        if( useNumTopGenes || parameters.isUseAllTop() )
         {
             int numToLabel = parameters.getNumTopGenes();
             if( numToLabel <= 0 )
@@ -173,13 +180,16 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 return p2.getFirst().compareTo( p1.getFirst() );
             } ).limit( numToLabel ).forEach( p -> {
                 idsToShow.add( p.getSecond() );
-
+                if( parameters.isUseAllTop() )
+                    bold.add( p.getSecond() );
             } );
 
-            down2Id.stream().sorted( (p1, p2) -> {
+            down2Id.stream().sorted( (p2, p1) -> {
                 return p2.getFirst().compareTo( p1.getFirst() ); //reverse sorted
             } ).limit( numToLabel ).forEach( p -> {
                 idsToShow.add( p.getSecond() );
+                if( parameters.isUseAllTop() )
+                    bold.add( p.getSecond() );
 
             } );
         }
@@ -194,13 +204,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 String label = (String) values[idx];
                 Double x = ((Number) values[logfcIdx]).doubleValue();
                 Double y = -Math.log10( ((Number) values[pvalIdx]).doubleValue()  );
-                points.add( new DataPoint( label, x, y ) );
-
-                //LineMetrics lineMetrics = fontMetrics.getLineMetrics(label, gr);
-                XYTextAnnotation annot = new XYTextAnnotation( label, x, y + 0.01 );
-                annot.setPaint( Color.RED );
-
-                //annotations.add( annot );//TODO: scale 0.01
+                points.add( new DataPoint( label, x, y, bold.contains( id ) ) );
                 annotationSeries.add( x, y );
             }
             catch (Exception e)
@@ -225,8 +229,8 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
         //Annotation small circles
         renderer.setSeriesLinesVisible( 0, false );
         renderer.setSeriesShapesVisible( 0, true );
-        renderer.setSeriesShape( 0, new Ellipse2D.Float( 2, 2, 1, 1 ) );
-        renderer.setSeriesPaint( 0, new Color( 0, 0, 0 ) ); //Black 
+        renderer.setSeriesShape( 0, labelCircle );
+        renderer.setSeriesPaint( 0, new Color( 0, 0, 0 ) ); //Black new Color( 255, 251, 138 )
 
         //Up-regulated
         renderer.setSeriesLinesVisible( 1, false );
@@ -275,10 +279,10 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
     private ImageDataElement imageChart()
     {
         DataElementPath imagePath = parameters.getOutputChart();
-        BufferedImage image = chart.createBufferedImage( 900, 900 );
+        BufferedImage image = chart.createBufferedImage( parameters.getImageWidth(), parameters.getImageHeight() );
         Graphics gr = image.createGraphics();
         placeAnnotations( gr, chart.getXYPlot() );
-        BufferedImage image2 = chart.createBufferedImage( 900, 900 );
+        BufferedImage image2 = chart.createBufferedImage( parameters.getImageWidth(), parameters.getImageHeight() );
         ImageDataElement imageDE = new ImageDataElement( imagePath.getName(), imagePath.optParentCollection(), image2 );
         imagePath.save( imageDE );
         return imageDE;
@@ -287,12 +291,15 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
     private void placeAnnotations(Graphics gr, XYPlot plot)
     {
         ValueAxis ya = plot.getRangeAxis();
-        Rectangle2D area = new Rectangle2D.Float( 0, 0, 900, 800 );
+        Rectangle2D area = new Rectangle2D.Float( 0, 0, parameters.getImageWidth(), parameters.getImageHeight() );
         ValueAxis xa = plot.getDomainAxis();
 
         XYTextAnnotation annotation = new XYTextAnnotation( "test", 1, 1 );
-        Font font = annotation.getFont();
-        FontMetrics fontMetrics = gr.getFontMetrics( font );
+        Font regular = annotation.getFont();
+        Font bold = regular.deriveFont( Font.BOLD );
+
+        FontMetrics fontMetricsRegular = gr.getFontMetrics( regular );
+        FontMetrics fontMetricsBold = gr.getFontMetrics( bold );
         points.sort( (p1, p2) -> {
             if( p1.x <= 0 && p2.x <= 0 )
                 return p1.compareTo( p2 );
@@ -304,7 +311,6 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 return p1.compareTo( p2 );
         } );
         double prevYB = Double.MAX_VALUE, prevXL = 0, prevXR = 0;
-        double delta = fontMetrics.getDescent();
         //process negative X first, then start comparing Y from default
         //TODO: refactor - cluster values and place nicely in clusters
         boolean flag = true;
@@ -322,10 +328,12 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 String label = pt.label;
                 Double x = xa.valueToJava2D( pt.x, area, plot.getDomainAxisEdge() );//pt.x;
                 Double y = ya.valueToJava2D( pt.y, area, plot.getRangeAxisEdge() ); //pt.y
+                Font font = pt.isBold ? bold : regular;
+                FontMetrics fontMetrics = pt.isBold ? fontMetricsBold : fontMetricsRegular;
                 LineMetrics lineMetrics = fontMetrics.getLineMetrics( label, gr );
                 int width = fontMetrics.stringWidth( label );
                 float height = lineMetrics.getAscent();
-                double nY = y - pointSize;
+                double nY = y - labelPointSize;
                 double nX = x;
                 double lineX2D = nX;
                 double curYT = nY - height;
@@ -336,7 +344,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                     if( x + width / 2 < prevXL || x - width / 2 > prevXR )
                     {
                         //do nothing
-                        nY = y - pointSize;
+                        nY = y - labelPointSize;
                     }
                     else
                     {
@@ -357,14 +365,14 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                         {
                             if( nX > prevX )
                             {
-                                nY = y - pointSize;
+                                nY = y - labelPointSize;
                                 nX = prevXR + width / 2 + 7;
                                 lineX2D = nX - width / 2;
                                 isPointer = true;
                             }
                             else
                             {
-                                nY = y - pointSize;
+                                nY = y - labelPointSize;
                                 nX = prevXL - width / 2 + 7;
                                 lineX2D = nX + width / 2;
                                 isPointer = true;
@@ -406,6 +414,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 if( isPointer )
                 {
                     annot = new XYTextAnnotation( label, lblx, lbly );
+                    annot.setFont( font );
                     annotations.add( annot );
                     double lineX = xa.java2DToValue( lineX2D, area, plot.getDomainAxisEdge() );
                     double lineY = ya.java2DToValue( nY, area, plot.getRangeAxisEdge() );
@@ -415,6 +424,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 else
                 {
                     annot = new XYTextAnnotation( label, lblx, lbly );
+                    annot.setFont( font );
                     annotations.add( annot );
                 }
             }
@@ -434,12 +444,20 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
     {
         String label;
         double x, y;
+        boolean isBold = false;
 
         DataPoint(String label, double x, double y)
+        {
+            this( label, x, y, false );
+        }
+
+        DataPoint(String label, double x, double y, boolean isBold)
+
         {
             this.label = label;
             this.x = x;
             this.y = y;
+            this.isBold = isBold;
         }
 
         @Override
@@ -462,6 +480,8 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
         private Double downCutoff = -0.6, upCutoff = 0.6, pvalueCutoff = 0.05;
         private int numTopGenes = 5;
         private DataElementPath topGenes;
+        boolean useAllTop = false;
+        private int imageWidth = 1200, imageHeight = 1200;
 
         @PropertyName("P-value column")
         public String getPvalueColumn()
@@ -556,6 +576,46 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
             firePropertyChange( "topGenes", oldValue, this.topGenes );
         }
 
+        @PropertyName("Show both label types")
+        @PropertyDescription("Show labels for the genes from the list and bold labels for the top genes from the input table")
+        public boolean isUseAllTop()
+        {
+            return useAllTop;
+        }
+
+        public void setUseAllTop(boolean usetop)
+        {
+            boolean oldValue = this.useAllTop;
+            this.useAllTop = usetop;
+            firePropertyChange( "useAllTop", oldValue, this.useAllTop );
+        }
+
+        @PropertyName("Width")
+        public int getImageWidth()
+        {
+            return imageWidth;
+        }
+
+        public void setImageWidth(int imageWidth)
+        {
+            int oldValue = this.imageWidth;
+            this.imageWidth = imageWidth;
+            firePropertyChange( "imageWidth", oldValue, this.imageWidth );
+        }
+
+        @PropertyName("Height")
+        public int getImageHeight()
+        {
+            return imageHeight;
+        }
+
+        public void setImageHeight(int imageHeight)
+        {
+            int oldValue = this.imageHeight;
+            this.imageHeight = imageHeight;
+            firePropertyChange( "imageHeight", oldValue, this.imageHeight );
+        }
+
     }
 
     public static class ParametersBeanInfo extends ChartAnalysisParametersBeanInfo
@@ -576,7 +636,10 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
             addExpert( "upCutoff" );
             addExpert( "pvalueCutoff" );
             addExpert( "numTopGenes" );
-            property( "topGenes" ).inputElement( TableDataCollection.class ).canBeNull().add();
+            addExpert( "imageWidth" );
+            addExpert( "imageHeight" );
+            addExpert( "useAllTop" );
+            property( "topGenes" ).inputElement( TableDataCollection.class ).canBeNull().expert().add();
             property( "outputChart" ).outputElement( ImageDataElement.class ).add();
         }
     }
