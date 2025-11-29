@@ -6305,7 +6305,7 @@ function WDLViewPart()
                 '<ul>'+
                 '<li><a href="#wdl_wdl"><span>WDL</span></a></li>'+
                 '<li><a href="#wdl_nextflow"><span>NextFlow</span></a></li>'+
-				'<li><a href="#wdl_cwl"><span>NextFlow</span></a></li>'+
+				'<li><a href="#wdl_cwl"><span>CWL</span></a></li>'+
                 '<li><a href="#wdl_settings"><span>Settings</span></a></li>'+
                 '</ul>'+
                 '<div id="wdl_wdl" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
