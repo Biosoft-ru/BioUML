@@ -6286,7 +6286,7 @@ function CellTypesViewPart()
 function WDLViewPart()
 {
     this.tabId = "diagram.wdl";
-    this.tabName = "WDL";
+    this.tabName = "Workflow";
     this.diagram = null;
     this.shown = "wdl_wdl";
     this.shownIndex = 0;
@@ -6305,12 +6305,15 @@ function WDLViewPart()
                 '<ul>'+
                 '<li><a href="#wdl_wdl"><span>WDL</span></a></li>'+
                 '<li><a href="#wdl_nextflow"><span>NextFlow</span></a></li>'+
+				'<li><a href="#wdl_cwl"><span>NextFlow</span></a></li>'+
                 '<li><a href="#wdl_settings"><span>Settings</span></a></li>'+
                 '</ul>'+
                 '<div id="wdl_wdl" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
                 '<div id="wdl_nextflow" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
+				'<div id="wdl_cwl" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
+				'</div>'+
                 '<div id="wdl_settings" class="complex_vp_container ui-tabs-panel ui-corner-bottom ui-widget-content">'+
                 '</div>'+
                 '</div>');
@@ -6327,19 +6330,20 @@ function WDLViewPart()
         var div = $('<div class="ui-widget-content"/>').css({"min-height":"150px"});
         this.wdlDiv.append(div);
         this.scriptEditor["wdl"] = this.initScriptEditor(div, "shell");
-        
-        
-        var nextflowParent = $('<div class="same-height-parent">');
-        
+         
+        var nextflowParent = $('<div class="same-height-parent">');    
         var nfScript = $('<div id="wdl_nextflow_script" class="same-height-child ui-widget-content">');
         nextflowParent.append(nfScript);
-        this.scriptEditor["nextflow"] = this.initScriptEditor(nfScript, "shell");
-        
+        this.scriptEditor["nextflow"] = this.initScriptEditor(nfScript, "shell");   
         this.mainLogDiv = $('<div id="' + this.tabId + '_log" class="same-height-child ui-widget-content"><div style="text-align:center;">Nextflow log</div></div>').css({"min-width":"320px"});
         nextflowParent.append(this.mainLogDiv);
-        
         this.nextflowDiv = tabDiv.find("#wdl_nextflow");
         this.nextflowDiv.append(nextflowParent);
+		
+		this.cwlDiv = tabDiv.find("#wdl_cwl");
+		var div = $('<div class="ui-widget-content"/>').css({"min-height":"150px"});
+		this.cwlDiv.append(div);
+		this.scriptEditor["cwl"] = this.initScriptEditor(div, "shell");
         
         this.settingsDiv = tabDiv.find("#wdl_settings");
         this.settingsPI = $('<div id="' + this.tabId + '_pi"></div>').css({"width":"500px", "float":"left", "margin-right": "15px"});
@@ -6405,6 +6409,7 @@ function WDLViewPart()
                 this.diagram.addChangeListener(this);
                 this.needUpdate.wdl = true;
                 this.needUpdate.nextflow = true;
+				this.needUpdate.cwl = true;
                 //this.diagram2wdlActionClick();
             }
         }
@@ -6508,8 +6513,10 @@ function WDLViewPart()
         {
             _this.scriptEditor.wdl.editor.setValue(data.values.wdl);
             _this.scriptEditor.nextflow.editor.setValue(data.values.nextflow);
+			_this.scriptEditor.cwl.editor.setValue(data.values.cwl);
             _this.needUpdate["wdl"] = true;
             _this.needUpdate["nextflow"] = true;
+			_this.needUpdate["cwl"] = true;
         },
         function(data)
         {
