@@ -94,6 +94,20 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
         XYSeries seriesDown = new XYSeries( "Downregulated" );
         XYSeries seriesOut = new XYSeries( "Not significant" );
         
+        double maxY = 0.0;
+        for ( RowDataElement row : inputTable )
+        {
+            Object yValueObj = (row.getValues())[pvalIdx];
+            if( yValueObj instanceof Number )
+            {
+                Number yValue = (Number) yValueObj;
+                if( (isNaN( yValue )) || yValue.doubleValue() <= 0 )
+                    continue;
+                maxY = Math.max( maxY, -Math.log10( yValue.doubleValue() ) );
+            }
+        }
+        maxY += 1;
+
         List<Pair<Double, String>> up2Id = new ArrayList<>();
         List<Pair<Double, String>> down2Id = new ArrayList<>();
         List<Pair<Double, String>> ns2Id = new ArrayList<>();
@@ -109,7 +123,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 if( (isNaN( xValue ) || isNaN( yValue )) )
                     continue;
                 Double x = xValue.doubleValue();
-                Double y = -Math.log10( yValue.doubleValue() );
+                Double y = yValue.doubleValue() == 0 ? maxY : -Math.log10( yValue.doubleValue() );
                 if( yValue.doubleValue() < parameters.getPvalueCutoff() )
                 {
                     if( x < parameters.getDownCutoff() )
@@ -136,7 +150,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
 
             }
         }
-        XYSeries annotSeries = fillAnnotations( inputTable, up2Id, down2Id, ns2Id, pvalIdx, logfcIdx );
+        XYSeries annotSeries = fillAnnotations( inputTable, up2Id, down2Id, ns2Id, pvalIdx, logfcIdx, maxY );
         dataset.addSeries( annotSeries );
         dataset.addSeries( seriesUp );
         dataset.addSeries( seriesDown );
@@ -151,7 +165,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
     }
 
     private XYSeries fillAnnotations(TableDataCollection inputTable, List<Pair<Double, String>> up2Id, List<Pair<Double, String>> down2Id, List<Pair<Double, String>> ns2Id,
-            int pvalIdx, int logfcIdx)
+            int pvalIdx, int logfcIdx, double maxZeroPvalue)
     {
         XYSeries annotationSeries = new XYSeries( "Annotated" );
         String lblColumn = parameters.getLabelsColumn();
@@ -203,7 +217,8 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                 Object[] values = inputTable.get( id ).getValues();
                 String label = (String) values[idx];
                 Double x = ((Number) values[logfcIdx]).doubleValue();
-                Double y = -Math.log10( ((Number) values[pvalIdx]).doubleValue()  );
+                Double yValue = ((Number) values[pvalIdx]).doubleValue();
+                Double y = yValue == 0 ? maxZeroPvalue : -Math.log10( yValue );
                 points.add( new DataPoint( label, x, y, bold.contains( id ) ) );
                 annotationSeries.add( x, y );
             }
@@ -300,8 +315,16 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
 
         FontMetrics fontMetricsRegular = gr.getFontMetrics( regular );
         FontMetrics fontMetricsBold = gr.getFontMetrics( bold );
+        double lblWidth = 0.0;
+        if( points.size() > 0 )
+        {
+            DataPoint pt = points.get( 0 );
+            int ww = fontMetricsRegular.stringWidth( pt.label );
+            lblWidth = xa.java2DToValue( ww, area, plot.getDomainAxisEdge() ) - xa.java2DToValue( 0, area, plot.getDomainAxisEdge() );
+        }
+        final double minDistance = lblWidth;
         points.sort( (p1, p2) -> {
-            if( p1.x <= 0 && p2.x <= 0 )
+            if( p1.x <= 0 && p2.x <= 0 || p1.x > 0 && p2.x > 0 || Math.abs( p1.x - p2.x ) < minDistance )
                 return p1.compareTo( p2 );
             else if( p1.x <= 0 && p2.x > 0 )
                 return -1;
@@ -310,19 +333,21 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
             else
                 return p1.compareTo( p2 );
         } );
+        
         double prevYB = Double.MAX_VALUE, prevXL = 0, prevXR = 0;
-        //process negative X first, then start comparing Y from default
+        //process negative X first, then start comparing Y from default - incorrect - closer values should be processed simultaneously
+        //consider they are sorted correctly already
         //TODO: refactor - cluster values and place nicely in clusters
         boolean flag = true;
         for ( DataPoint pt : points )
         {
             boolean isPointer = false;
             double ptrx, ptry;
-            if( flag && pt.x > 0 )
-            {
-                prevYB = Double.MAX_VALUE;
-                flag = false;
-            }
+            //            if( flag && pt.x > 0 )
+            //            {
+            //                prevYB = Double.MAX_VALUE;
+            //                flag = false;
+            //            }
             try
             {
                 String label = pt.label;
@@ -373,7 +398,7 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
                             else
                             {
                                 nY = y - labelPointSize;
-                                nX = prevXL - width / 2 + 7;
+                                nX = prevXL - width / 2 - 7;
                                 lineX2D = nX + width / 2;
                                 isPointer = true;
                             }
@@ -470,6 +495,14 @@ public class VolcanoPlotAnalysis extends AnalysisMethodSupport<ru.biosoft.analys
             }
             return Double.compare( x, o.x );
         }
+
+        @Override
+        public String toString()
+        {
+            // TODO Auto-generated method stub
+            return label + ": " + x + " " + y;
+        }
+
     }
 
     @SuppressWarnings("serial")
