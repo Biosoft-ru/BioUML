@@ -7,7 +7,7 @@
     icon: "icons/toggle_repository.png",
     visible: "function(doc)
     {
-        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        if( perspective && perspective.name && ('Genome Enhancer' === perspective.name || 'Pathway Omics Suite' === perspective.name) )
         {
             return -1;
         }

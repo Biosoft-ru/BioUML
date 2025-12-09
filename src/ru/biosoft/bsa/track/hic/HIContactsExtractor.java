@@ -36,8 +36,8 @@ public class HIContactsExtractor extends AnalysisMethodSupport<HIContactsExtract
     @Override
     public Object justAnalyzeAndPut() throws Exception
     {
-        FileDataElement de = parameters.getHicPath().getDataElement( FileDataElement.class );
-        Dataset ds = HiCFileTools.extractDatasetForCLT( de.getFile().getAbsolutePath(), false, true, false );
+        HICTrack de = parameters.getHicPath().getDataElement( HICTrack.class );
+        Dataset ds = HiCFileTools.extractDatasetForCLT( de.getFilePath(), false, true, false );
         String resolution = parameters.getResolution();
         HiCZoom zoom = null;
         for ( HiCZoom cur : ds.getAllPossibleResolutions() )
@@ -164,8 +164,8 @@ public class HIContactsExtractor extends AnalysisMethodSupport<HIContactsExtract
         {
             try
             {
-                FileDataElement de = hicPath.getDataElement( FileDataElement.class );
-                Dataset ds = HiCFileTools.extractDatasetForCLT( de.getFile().getAbsolutePath(), false, true, false );
+                HICTrack de = hicPath.getDataElement( HICTrack.class );
+                Dataset ds = HiCFileTools.extractDatasetForCLT( de.getFilePath(), false, true, false );
                 List<HiCZoom> zooms = ds.getAllPossibleResolutions();
                 allZooms = new String[zooms.size()];
                 for ( int i = 0; i < zooms.size(); i++ )
@@ -246,7 +246,7 @@ public class HIContactsExtractor extends AnalysisMethodSupport<HIContactsExtract
         @Override
         protected void initProperties() throws Exception
         {
-            property( "hicPath" ).inputElement( FileDataElement.class ).structureChanging().add();
+            property( "hicPath" ).inputElement( HICTrack.class ).structureChanging().add();
             property( "resolution" ).editor( ResolutionSelector.class ).simple().add();
             property( "normalization" ).editor( NormalizationSelector.class ).simple().add();
             property( "resultTablePath" ).outputElement( TableDataCollection.class ).add();

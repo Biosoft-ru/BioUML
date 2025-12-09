@@ -9,7 +9,7 @@
     {
         if(appInfo.disableToolbarActionProjectProperties === true)
           return -1;
-        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        if( perspective && perspective.name && ('Genome Enhancer' === perspective.name || 'Pathway Omics Suite' === perspective.name) )
             return -1;
         return true; 
     }",
