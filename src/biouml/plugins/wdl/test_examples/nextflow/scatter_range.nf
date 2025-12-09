@@ -1,5 +1,5 @@
 nextflow.enable.dsl=2
-include { basename; sub; length; range } from './biouml_function.nf'
+include { basename; sub; length; range; toChannel; getDefault; read_int; numerate; select_first } from './biouml_function.nf'
 params.len = 3
 
 process square {
@@ -16,17 +16,25 @@ process square {
   """
 }
 
-workflow scatter_range {
+workflow mainWorkflow {
   take:
   len
 
+
+
   main:
   expression = range(len)
-  input_value_ch = Channel.from(expression)
-  result_square = square( input_value_ch )
+
+  expression_mapping = expression.multiMap {idx -> 
+
+    square_input: tuple(idx)
+  }
+
+  input_value = expression
+  result_square = square( expression_mapping.square_input.map { it[0] } )
 
 }
 
 workflow {
-scatter_range( params.len  )
+mainWorkflow( params.len  )
 }

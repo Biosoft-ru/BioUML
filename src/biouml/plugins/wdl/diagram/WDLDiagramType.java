@@ -54,12 +54,7 @@ public class WDLDiagramType extends DiagramTypeSupport
     @Override
     public boolean needLayout(Node node)
     {
-        if( ! ( node instanceof Compartment ) )
-            return false;
-        Base kernel = node.getKernel();
-        if( kernel == null )
-            return true;
-        return false;
+        return (WorkflowUtil.isCycle( node ) || WorkflowUtil.isConditional( node ));
     }
 
     @Override

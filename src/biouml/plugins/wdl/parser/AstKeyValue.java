@@ -19,7 +19,7 @@ public class AstKeyValue extends SimpleNode
     @Override
     public String toString()
     {
-        return keyName;
+        return keyName+getChildren()[0].toString()+getChildren()[1].toString();
     }
 
     public void setKey(String key)

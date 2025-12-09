@@ -102,6 +102,7 @@ public class WorkflowSettings extends Option
                     try
                     {
                         String name = parameter.split( ":" )[1];
+                        name = name.trim().replace( "\n", "").replace( ",", "");
                         DataElement parameterDe = dc.get( name );
                         if( parameterDe != null )
                             WorkflowUtil.export( parameterDe, new File( outputDir ) );

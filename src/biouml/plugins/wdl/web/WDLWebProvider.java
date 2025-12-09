@@ -8,11 +8,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import biouml.model.Diagram;
+import biouml.plugins.wdl.CWLGenerator;
 import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
+import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
 import ru.biosoft.access.core.DataElementPath;
@@ -35,7 +37,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
     @Override
     public void process(BiosoftWebRequest arguments, JSONResponse response) throws Exception
     {
-        
+
         String action = arguments.getAction();
         //        if( GET_DIAGRAM_VIEW.equals( action ) )
         //        {
@@ -54,9 +56,19 @@ public class WDLWebProvider extends WebJSONProviderSupport
             Diagram diagram = WebDiagramsProvider.getDiagram( diagramPath.toString(), false );
             String wdl = new WDLGenerator().generate( diagram );
             String nextflow = new NextFlowGenerator().generate( diagram );
+            String cwl = "";
+            try
+            {
+                cwl = new CWLGenerator().generate( diagram );
+            }
+            catch( Exception ex )
+            {
+
+            }
             JSONObject res = new JSONObject();
             res.put( "wdl", wdl );
             res.put( "nextflow", nextflow );
+            res.put( "cwl", cwl );
             response.sendJSON( res );
 
         }
@@ -69,7 +81,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             AstStart start = new WDLParser().parse( new StringReader( text ) );
             WDLImporter wdlImporter = new WDLImporter();
             diagram = wdlImporter.generateDiagram( start, diagram );
-            wdlImporter.layout( diagram );
+            WDLLayouter.layout( diagram );
             diagramPath.save( diagram );
             OutputStream out = response.getOutputStream();
             WebDiagramsProvider.sendDiagramChanges( diagram, out, "json" );
@@ -90,7 +102,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
                 res.put( "log", log );
                 response.sendJSON( res );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
                 log.log( Level.SEVERE, e.getMessage() );
                 response.error( e.getMessage() );

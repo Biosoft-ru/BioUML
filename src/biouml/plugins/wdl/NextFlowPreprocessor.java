@@ -1,6 +1,8 @@
 package biouml.plugins.wdl;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,11 +42,16 @@ public class NextFlowPreprocessor
             }
 
             String command = WorkflowUtil.getCommand( task );
+            ConversionResult converted = processIf( command );
+            for( Declaration dec : converted.declarations )
+                WorkflowUtil.addBeforeCommand( task, dec );
+
+            command = converted.convertedCommand;
             Set<String> seps = findSeps( command );
             for( String sep : seps )
             {
                 String name = getSepName( sep );
-                Declaration dec = new Declaration( "String", name + "_str", name + ".join()" );
+                Declaration dec = new Declaration( "String", name + "_str", name + ".join(' ')" );
                 WorkflowUtil.addBeforeCommand( task, dec );
                 command = command.replace( sep, "~{" + name + "_str}" );
             }
@@ -54,15 +61,33 @@ public class NextFlowPreprocessor
         for( Node node : result.recursiveStream().select( Node.class ) )
         {
             String expression = WorkflowUtil.getExpression( node );
+            
             if( expression != null && !expression.isEmpty() )
             {
+//                expression =processCallName(node, expression);
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
+                expression = processMap( expression );
                 WorkflowUtil.setExpression( node, expression );
             }
         }
         return result;
+    }
+    
+    
+    String processCallName(Node node, String expression)
+    {
+        for (Node source: WorkflowUtil.getSources( node ))
+        {
+            Compartment parent = source.getCompartment();
+            if (WorkflowUtil.isCall( parent ))
+            {
+                String callName = WorkflowUtil.getCallName( parent );
+                expression = expression.replace( callName+".", "result_"+callName+"." );
+            }
+        }
+        return expression;
     }
 
     public String preprocess(String s) throws Exception
@@ -102,7 +127,7 @@ public class NextFlowPreprocessor
                     .filter( n -> WorkflowUtil.isCycleVariable( n ) && WorkflowUtil.getName( n ).equals( index ) ).findAny().orElse( null );
             if( arrayIndex != null )
                 return input;
-            String nextFlowStyle = arrayName + ".map{v->v[" + index + "]}";
+            String nextFlowStyle = "get(" + arrayName + ", " + index + ")";
             input = input.replace( matcher.group(), nextFlowStyle );
         }
         return input;
@@ -112,6 +137,20 @@ public class NextFlowPreprocessor
     {
         String regex = "glob\\((['\"])([a-zA-Z0-9./*_]+)\\1\\)";
         return input.replaceAll( regex, "\"$2\"" );
+    }
+
+    public static String processMap(String map)
+    {
+        String content = map.trim();
+        if( content.startsWith( "{" ) && content.endsWith( "}" ) && content.contains( ":" ) )
+        {
+            return map.replace( "{", "[" ).replace( "}", "]" );
+        }
+        else if ( content.startsWith( "[" ) && content.endsWith( "]" ) && content.contains( ":" ) )
+        {
+            return map.replace( "{", "[" ).replace( "}", "]" );
+        }
+        return map;
     }
 
     public static String processTernary(String ternary)
@@ -126,8 +165,62 @@ public class NextFlowPreprocessor
             String condition = matcher.group( 1 ).trim();
             String truePart = matcher.group( 2 ).trim();
             String falsePart = matcher.group( 3 ).trim();
-            return condition +" ? " +truePart+" : "+falsePart;
+            return condition + " ? " + truePart + " : " + falsePart;
         }
         return ternary;
+    }
+
+    public static class ConversionResult
+    {
+        public List<Declaration> declarations;
+        public String convertedCommand;
+
+        public ConversionResult(List<Declaration> declarations, String command)
+        {
+            this.declarations = declarations;
+            this.convertedCommand = command;
+        }
+    }
+
+    /**
+     * Matches: ~{if defined(var) then value1 else value2}
+     */
+    public static ConversionResult processIf(String wdlCommand)
+    {
+        List<Declaration> declarations = new ArrayList<>();
+        String result = wdlCommand;
+        int counter = 0;
+
+        Pattern pattern = Pattern.compile( "~\\{if (.+?) then (.+?) else (.+?)\\}" );
+
+        Matcher matcher = pattern.matcher( result );
+        StringBuffer sb = new StringBuffer();
+
+        while( matcher.find() )
+        {
+            String variable = matcher.group( 1 ).trim();
+            String thenValue = cleanValue( matcher.group( 2 ).trim() );
+            String elseValue = cleanValue( matcher.group( 3 ).trim() );
+            String varName = "var_" + counter++;
+
+            // Generate: def var_0 = isDefined(x) ? "value1" : "value2"
+            String expression = "defined(" + variable + ") ? " + "\"" + thenValue + "\"" + " : " + "\"" + elseValue + "\"";
+            declarations.add( new Declaration( "String", varName, expression ) );
+            matcher.appendReplacement( sb, "\\${" + varName + "}" );
+        }
+        matcher.appendTail( sb );
+        result = sb.toString();
+
+        // Handle ~{default="X" var} -> ${var ?: 'X'}
+        result = result.replaceAll( "~\\{\\s*default\\s*=\\s*\"([^\"]*)\"\\s+([^}]+)\\s*\\}", "\\${$2 ?: '$1'}" );
+        return new ConversionResult( declarations, result );
+    }
+
+    /**
+     * Clean WDL value: remove quotes and handle string concatenation
+     */
+    private static String cleanValue(String value)
+    {
+        return value.replace( "\"", "" ).replace( "'", "" ).replace( " + ", "" ).replace( "+", "" );
     }
 }

@@ -2,11 +2,11 @@ version 1.1
 
 task private_declaration {
   input {
-    Array[String] lines
+    String line1
+    String line2
   }
 
-  Int num_lines = length(lines)
-  Int num_lines_clamped = if num_lines > 3 then 3 else num_lines
+  String concatenated = "~"
 
   command <<<
   head -~{num_lines_clamped} ~{write_lines(lines)}
@@ -15,4 +15,17 @@ task private_declaration {
   output {
     Array[String] out_lines = read_lines(stdout())
   }
+}
+
+workflow run_private_declaration {
+
+    input {
+        Array[String] lines  = ["A", "B", "C", "D"]
+    }
+
+        call private_declaration {
+            input:
+            lines = lines
+        }
+    
 }

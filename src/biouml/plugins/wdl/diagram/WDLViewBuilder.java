@@ -43,6 +43,7 @@ import ru.biosoft.graphics.PolygonView;
 import ru.biosoft.graphics.SimplePath;
 import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.View;
+import ru.biosoft.graphics.font.ColorFont;
 
 public class WDLViewBuilder extends DefaultDiagramViewBuilder
 {
@@ -228,7 +229,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), viewOptions.getDefaultFont(),
                 viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
         RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
-        Brush nodeBrush = getBrush( compartment, viewOptions.getAnalysisBrush() );
+        Brush nodeBrush = getBrush( compartment, viewOptions.getCallBrush() );
         BoxView view = new BoxView( viewOptions.getAnalysisPen(), nodeBrush, roundRect );
         view.setLocation( compartment.getLocation() );
         view.setModel( compartment );
@@ -284,7 +285,8 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
     protected boolean createExpressionCoreView(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g)
     {
-        View text = new TextView( node.getName(), diagramOptions.getNodeTitleFont(), g );
+        ColorFont font = getTitleFont( node, diagramOptions.getExpressionFont() );
+        View text = new TextView( node.getName(), font, g );
         int d = 2;
         Rectangle r = text.getBounds();
 
@@ -357,8 +359,8 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         Brush mainBrush = getBrush( node, diagramOptions.getConditionalBrush() );
         Point location = node.getLocation();
         Dimension size = node.getShapeSize();
-        int width = size.width - 31;
-        int height = size.height - 26;
+        int width = size.width;
+        int height = size.height;
         View shadowView = new BoxView( pen, shadowBrush, location.x + 1, location.y + 1, width, height );
         View boxView = new BoxView( pen, mainBrush, location.x, location.y, width, height );
         boxView.setModel( node );
@@ -497,9 +499,9 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     @Override
     public PortFinder getPortFinder(Node node)
     {
-        String type = node.getKernel().getType();
-        if( type.equals( Type.TYPE_DATA_ELEMENT_IN ) || type.equals( Type.ANALYSIS_PARAMETER )
-                || type.equals( Type.TYPE_DATA_ELEMENT_OUT ) )
+//        String type = node.getKernel().getType();
+        if( WorkflowUtil.isExpression( node ) || WorkflowUtil.isInput( node ) || WorkflowUtil.isOutput( node ) 
+                || WorkflowUtil.isConditional( node ) || WorkflowUtil.isCondition( node ) || WorkflowUtil.isExternalParameter(node) || WorkflowUtil.isExternalOutput( node ))
             return new InOutFinder( false, getNodeBounds( node ) );
         return super.getPortFinder( node );
     }
