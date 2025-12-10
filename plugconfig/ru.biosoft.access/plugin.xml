@@ -215,6 +215,7 @@
     <class name="ru.biosoft.access.core.TextDataElement" oldNames="ru.biosoft.access.TextDataElement"/>
     <class name="ru.biosoft.access.file.FileTextTransformer" oldNames="ru.biosoft.access.support.FileTextTransformer"/>
     <class name="ru.biosoft.access.file.FileDataElement" oldNames="ru.biosoft.access.FileDataElement"/>
+	<class name="ru.biosoft.bsa.transformer.ChrNameMappingTransformer" oldNames="ru.biosoft.bsa.ChrNameMappingTransformer"/>
   </extension>
 
   <extension id="matchinpathwriter" point="ru.biosoft.templates.contextItem">
