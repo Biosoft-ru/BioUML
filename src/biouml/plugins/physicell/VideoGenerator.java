@@ -3,9 +3,7 @@ package biouml.plugins.physicell;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
-
 import org.jcodec.api.awt.AWTSequenceEncoder;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.io.SeekableByteChannel;
@@ -17,13 +15,14 @@ public class VideoGenerator extends ResultGenerator
 {
     public static void main(String... args) throws IOException
     {
-        String path = "D:/BIOFVM/Images All/imgs";
+        String path = "C:\\Users\\Damag\\eclipse_2024_6\\COVID19\\PhysiCell\\output\\Imgs";
         File f = new File(path);
-        VideoGenerator generator = new VideoGenerator(new File("D:/BIOFVM/Images All/d.mp4"));
+        VideoGenerator generator = new VideoGenerator(new File("D:/BIOFVM/d.mp4"));
         generator.init();
         for (File imgFile: f.listFiles())
         {
             BufferedImage img = ImageIO.read(imgFile);
+            
             generator.update( img );
         }
         generator.finish();

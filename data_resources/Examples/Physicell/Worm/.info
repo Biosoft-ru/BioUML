@@ -1,0 +1,3 @@
+files:
+- name: Worm
+  type: BioUML diagram
