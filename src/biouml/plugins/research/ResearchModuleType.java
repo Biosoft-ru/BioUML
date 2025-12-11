@@ -54,17 +54,29 @@ public class ResearchModuleType extends DataElementSupport implements ModuleType
             try
             {
                 DataCollection<?> journalCollection = (DataCollection<?>)module.get(JOURNAL_COLLECTION);
-                journalCollection.setNotificationEnabled(false);
-                SecurityManager.runPrivileged(() -> {
-                    DataCollection<?> primaryJournalCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged(journalCollection);
-                    primaryJournalCollection.setNotificationEnabled(false);
-                    if ( primaryJournalCollection instanceof DerivedDataCollection )
+                if( journalCollection.isNotificationEnabled() )
+                {
+                    try
                     {
-                        DataCollection<?> primaryJournalCollection2 = ((DerivedDataCollection) primaryJournalCollection).getPrimaryCollection();
-                        primaryJournalCollection2.setNotificationEnabled(false);
+                        journalCollection.setNotificationEnabled( false );
+                        SecurityManager.runPrivileged( () -> {
+                            DataCollection<?> primaryJournalCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged( journalCollection );
+                            primaryJournalCollection.setNotificationEnabled( false );
+                            if( primaryJournalCollection instanceof DerivedDataCollection )
+                            {
+                                DataCollection<?> primaryJournalCollection2 = ((DerivedDataCollection) primaryJournalCollection).getPrimaryCollection();
+                                primaryJournalCollection2.setNotificationEnabled( false );
+                            }
+                            return null;
+                        } );
                     }
-                    return null;
-                });
+                    catch (Exception e)
+                    {
+                        //Read-only projects will cause error on setNotificationEnabled
+                        //The user will not be able to modify the project anyway so do nothing here 
+                        //log.log( Level.INFO, "Error setting journal notifications for module " + module.getName() + ": " + e.getMessage() );
+                    }
+                }
                 researchJournal = new DataCollectionJournal(journalCollection);
             }
             catch( Exception e )

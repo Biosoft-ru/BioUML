@@ -12,7 +12,7 @@
     }",
     action: "function(event)
     {
-        if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+        if( perspective && perspective.name && ('Genome Enhancer' === perspective.name || 'Pathway Omics Suite' === perspective.name))
         {
             window.open(appInfo.userAccountLink);
             return;

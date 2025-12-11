@@ -5,4 +5,6 @@ Bundle-Name: org.sbolstandard.core2
 Bundle-SymbolicName: org.sbolstandard.core2;singleton:=true
 Bundle-Version: 2.4.0
 Bundle-ClassPath: libSBOLj-2.4.0-withDependencies.jar
-Export-Package: org.sbolstandard.core2
+Export-Package: org.sbolstandard.core2,
+ com.google.common.collect,
+ com.google.common.base

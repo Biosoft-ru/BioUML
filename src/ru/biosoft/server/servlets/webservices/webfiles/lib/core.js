@@ -90,6 +90,16 @@ function isPathExists(path)
     return result;
 }
 
+function isPathExistsWithCallback(path, callback, args)
+{
+    logger.setQuietMode(true);
+    var callbackWithVerbose = function (result){
+        callback(result != undefined, args);
+        logger.setQuietMode(false);
+    }
+    getDataCollection(getElementPath(path)).getElementInfo(getElementName(path), callbackWithVerbose)
+}
+
 /*
  * Get DataCollection element by full path
  */

@@ -157,7 +157,8 @@ $.extend($.ui.tabs.prototype, {
 					maxPageWidth = (pageWidth + maxTabPadding);				
 
 			    // hide all tabs then show tabs for current page
-				self.tabs.hide().slice(pages[currentPage].start, pages[currentPage].end).show();
+				if (pages[currentPage])
+					self.tabs.hide().slice(pages[currentPage].start, pages[currentPage].end).show();
 				if (currentPage == (pages.length - 1) && !opts.cycle) 
 					disableButton('next');			
 				if (currentPage == 0 && !opts.cycle) 
