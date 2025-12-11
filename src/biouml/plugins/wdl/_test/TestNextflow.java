@@ -11,7 +11,6 @@ import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.WorkflowUtil;
-import ru.biosoft.access.core.DataElement;
 import ru.biosoft.util.TempFiles;
 
 public class TestNextflow //extends //TestCase
@@ -25,40 +24,44 @@ public class TestNextflow //extends //TestCase
     {
 
         //CHECKED:
-        //                test( "hello_world" );
-        //                test( "simple_if" );
-        //                test( "cycle_expressions" );
-        //                test( "cycle_expressions2" );
-        //                test( "cycle_expressions3" );
-        //                test( "scatter_range" );
-        //                test( "four_steps" );
-        //                test( "array_input" );
-        //                test( "array_input2" );
-        //                test( "nested_access" );
-        //                test( "two_inputs" );
-        //                test( "two_steps" );
-        //                test( "private_declaration" );
-        //                test( "object_output" );
-        //                test( "object_output2" );
-        //
-        //                test( "test_scatter" );
-        //                test( "cycle_expression_call" );
-        //                test( "cycle_expression_call2" );
-        //                test( "two_steps2" );
-        //                test( "test_map" );
-        //                test( "two_inputs_cycle" );
-        //                test( "two_steps3" );
-        //                test( "array_select" );
-        //                test( "nested_access2" );
-        //                test( "array_select2" );
-        //                test( "scatter_range2" );
-        //                test( "scatter_simple" );
-        //                test( "call_expr_call2" );
-        //        test( "double_scatter" );
-        //        DO NOT WORK
-        //        
+        test( "hello_world" );
+        test( "simple_if" );
+        test( "cycle_expressions" );
+        test( "cycle_expressions2" );
+        test( "cycle_expressions3" );
+        test( "scatter_range" );
+        test( "four_steps" );
+        test( "array_input" );
+        test( "array_input2" );
+        test( "array_input3" );
+        test( "nested_access" );
+        test( "two_inputs" );
+        test( "two_steps" );
+        test( "private_declaration" );
+        test( "object_output" );
+        test( "object_output2" );
+        test( "call_expr_call2" );
+        test( "array_select2" );
+        test( "test_scatter" );
+        test( "cycle_expression_call" );
+        test( "cycle_expression_call2" );
+        test( "two_steps2" );
+        test( "test_map" );
+        test( "array_select" );
+        test( "nested_access2" );
+        test( "scatter_range2" );
+        test( "scatter_simple" );
+        test( "double_scatter" );
+        test( "two_steps3" );
         test( "two_inputs_cycle" );
-        //        test( "double_scatter2" );
+        test( "scatter_simple" );
+
+        //        DO NOT WORK
+
+
+
+        //        test( "nested_cycles" );
+        //                test( "double_scatter2" );
         //double if
 
         //        test("call_expr_call");
@@ -94,6 +97,14 @@ public class TestNextflow //extends //TestCase
         //        test( "fastqc1" );
     }
 
+    private File generateHTML()
+    {
+        URL url = TestWDL.class.getResource( "../test_examples/report.html" );
+        File file = new File( url.getFile() );
+
+        return file;
+    }
+
     public static void test() throws Exception
     {
         test( "hello" );
@@ -112,6 +123,7 @@ public class TestNextflow //extends //TestCase
         String json = getParameters( name );
         System.out.println( "Exported Nextflow: " );
         System.out.println( nextflow );
+        saveResult( name, nextflow );
         boolean success = runNextFlow( name, nextflow, json );
         statistics.add( name + " " + success );
     }
@@ -142,7 +154,7 @@ public class TestNextflow //extends //TestCase
 
     private static void saveResult(String name, String nextFlow) throws Exception
     {
-        File f = new File( "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/nextflow/" + name + ".nf" );
+        File f = new File( "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/nextflow2/" + name + ".nf" );
         ApplicationUtils.writeString( f, nextFlow );
     }
 
