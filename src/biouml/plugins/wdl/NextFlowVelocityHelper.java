@@ -346,12 +346,28 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         {
             Compartment call = (Compartment)node;
             List<Node> inputs = WorkflowUtil.getOrderedInputs( call );
-            String inputNames = StreamEx.of( inputs ).map( n -> createInputName( n ) ).joining( ", " );
+            List<String> inputNames = new ArrayList<>();
+            List<String> inputDeclarations = new ArrayList<>();
             List<Compartment> parentCycles = WorkflowUtil.getParentCycles( node ).reversed();
             sb.append( "\n" );
             for( Node input : inputs )
-                sb.append( "  " + createInputName( input ) + " = " + combine( parentCycles, input ) + "\n" );
-            sb.append( "  " + getResultName( call ) + " = " + getCallName( call ) + "( " + inputNames + " )\n" );
+            {
+                //                sb.append( "  " + createInputName( input ) + " = " + combine( parentCycles, input ) + "\n" );
+                List<Node> cycledSources = getCycledSources( input );
+                if( cycledSources.size() == 0 )
+                {
+                    inputNames.add( getExpression( input ) );
+                }
+                else
+                {
+                    inputDeclarations.add( createInputName( input ) + " = " + combine( parentCycles, input ) );
+                    inputNames.add( createInputName( input ) );
+                }
+            }
+
+            sb.append( StreamEx.of( inputDeclarations ).joining( "\n  ", "  ", "" ) );
+            sb.append( "  \n" + getResultName( call ) + " = " + getCallName( call ) + "( " + StreamEx.of( inputNames ).joining( ", " )
+                    + " )\n" );
         }
         //        y=arr.map { (it >2) ? it : null}.filter{ it !=  null }
 
@@ -429,18 +445,37 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         for( Compartment parentCycle : parentCycles )
             cycleToSources.put( parentCycle, new ArrayList<>() );
 
+        if( cycledSources.size() == 1 )
+        {
+            Node cycledSource = cycledSources.get( 0 );
+            List<Node> sources = WorkflowUtil.getSources( input ).toList();
+            Node otherSource = null;
+            if( sources.size() <= 2 )//sometimes edge is missing TODO: fix
+            {
+                otherSource = sources.size() == 2 ? StreamEx.of( sources ).without( cycledSource ).findAny().orElse( null )
+                        : sources.get( 0 );
+                Compartment cycle = WorkflowUtil.getParentCycle( input );
+                String sycledName = WorkflowUtil.getCycleVariable( cycle );
+                if( isCall( otherSource.getCompartment() ) )
+                {
+                    //Special case: we iterate through call output
+                    String qualified = getCallName( otherSource.getCompartment() ) + "." + getName( otherSource );
+                    if( expression.equals( qualified + '[' + sycledName + ']' ) )
+                        return "result_" + qualified;
+                }
+                else if( WorkflowUtil.isExternalParameter( otherSource ) )
+                {
+                    if( expression.equals( getName( otherSource ) + '[' + sycledName + ']' ) )
+                        return "toChannel("+getName( otherSource )+")";
+                }
+            }
+        }
         for( Node cycledSource : cycledSources )
         {
             Compartment cycle = WorkflowUtil.getParentCycle( cycledSource );
             Compartment parent = cycledSource.getCompartment();
             if( isCall( parent ) )
-            {
-                //Special case: we iterate through call output
-                String qualified = getCallName( parent ) + "." + getName( cycledSource );
-                if( expression.contains( qualified + '[' ) )
-                    return "result_" + qualified;
-                expression = replaceCallPrefix( expression, parent );
-            }
+            	  expression = replaceCallPrefix( expression, parent );
             cycleToSources.computeIfAbsent( cycle, k -> new ArrayList<>() ).add( cycledSource );
         }
 
