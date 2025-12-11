@@ -69,7 +69,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         {
             return createInOutCoreView( container, node, diagramViewOptions, g, true );
         }
-        else if( WDLConstants.EXTERNAL_PARAMETER_TYPE.equals( type ) )
+        else if( WDLConstants.WORKFLOW_INPUT_TYPE.equals( type ) )
         {
             return createExternalParameter( container, node, diagramViewOptions, g );
         }

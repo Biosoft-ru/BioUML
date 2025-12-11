@@ -266,7 +266,7 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.getBeforeCommand( task );
     }
 
-    public ImportProperties[] getImports()
+    public  List<ImportProperties> getImports()
     {
         return WorkflowUtil.getImports( diagram );
     }  

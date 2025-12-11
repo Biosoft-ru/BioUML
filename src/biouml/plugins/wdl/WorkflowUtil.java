@@ -76,7 +76,7 @@ public class WorkflowUtil
 
     public static boolean isExternalParameter(Node node)
     {
-        return isOfType( WDLConstants.EXTERNAL_PARAMETER_TYPE, node );
+        return isOfType( WDLConstants.WORKFLOW_INPUT_TYPE, node );
     }
 
     public static boolean isExpression(Node node)
@@ -365,12 +365,30 @@ public class WorkflowUtil
         n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
     }
 
-    public static ImportProperties[] getImports(Diagram diagram)
+    public static  List<ImportProperties> getImports(Diagram diagram)
     {
-        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
-        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
-            return new ImportProperties[0];
-        return (ImportProperties[])dp.getValue();
+        return gatherImports(diagram);
+//        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+//        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
+//            return new ImportProperties[0];
+//        return (ImportProperties[])dp.getValue();
+    }
+
+    public static List<ImportProperties> gatherImports(Diagram diagram)
+    {
+        Map<String, ImportProperties> result = new HashMap<>();
+        
+        for( Compartment call : diagram.recursiveStream().select( Compartment.class ).filter( n -> isCall( n ) ) )
+        {
+            String alias = getExternalDiagramAlias( call );
+            String diagramName = getDiagramRef( call );
+            if (diagramName != null)
+            {
+                ImportProperties ip = new ImportProperties(diagramName, alias);
+                result.put( diagramName,  ip );
+            }             
+        }
+        return StreamEx.of(result.values()).toList();
     }
 
     public static String getName(Node n)
@@ -522,9 +540,9 @@ public class WorkflowUtil
         return null;
     }
 
-    public static Node getCycleVariableNode(Compartment c)
+    public static Node getCycleVariableNode(Compartment cycle)
     {
-        for( Node node : c.getNodes() )
+        for( Node node : cycle.getNodes() )
         {
             if( isCycleVariable( node ) )
                 return node;

@@ -7,6 +7,7 @@ import ru.biosoft.access.core.DataElementPath;
 public class ImportProperties extends Option
 {
     DataElementPath source;
+    private String sourceName;
     private String alias;
 
     public ImportProperties()
@@ -14,6 +15,12 @@ public class ImportProperties extends Option
 
     }
 
+    public ImportProperties(String sourceName, String alias)
+    {
+        this.alias = alias;
+        this.sourceName = sourceName;
+    }
+    
     public ImportProperties(DataElementPath source, String alias)
     {
         this.alias = alias;
@@ -25,7 +32,7 @@ public class ImportProperties extends Option
     }
     public String getSourceName()
     {
-        return source.getName();
+        return source != null? source.getName(): sourceName;
     }
     public void setSource(DataElementPath source)
     {

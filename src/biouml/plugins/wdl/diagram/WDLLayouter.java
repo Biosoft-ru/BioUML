@@ -22,10 +22,10 @@ import ru.biosoft.graph.PathLayouterWrapper;
 
 public class WDLLayouter
 {
-    private static HierarchicLayouter layouter = new HierarchicLayouter();
-    private static OrthogonalPathLayouter edgeLayouter = new OrthogonalPathLayouter();
+    private  HierarchicLayouter layouter = new HierarchicLayouter();
+    private OrthogonalPathLayouter edgeLayouter = new OrthogonalPathLayouter();
 
-    private static void redirectEdges(Diagram diagram)
+    private void redirectEdges(Diagram diagram)
     {
         for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
         {
@@ -39,7 +39,7 @@ public class WDLLayouter
         }
     }
 
-    private static void restoreEdges(Diagram diagram)
+    private void restoreEdges(Diagram diagram)
     {
         for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
         {
@@ -52,7 +52,7 @@ public class WDLLayouter
         }
     }
 
-    private static Node findLargestParent(Node node, Compartment c)
+    private Node findLargestParent(Node node, Compartment c)
     {
         while( ! ( node.getCompartment().equals( c ) ) )
         {
@@ -61,7 +61,7 @@ public class WDLLayouter
         return node;
     }
 
-    public static Diagram layout(Diagram diagram)
+    public Diagram layout(Diagram diagram)
     {
 //        preLayout( diagram );
         redirectEdges( diagram );
@@ -74,7 +74,7 @@ public class WDLLayouter
         return diagram;
     }
 
-    private static void layoutEdges(Diagram diagram)
+    private void layoutEdges(Diagram diagram)
     {
         edgeLayouter.setSmoothEdges( true );
         for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
@@ -84,7 +84,7 @@ public class WDLLayouter
     }
 
 
-    private static void layoutNodes(Compartment c)
+    private void layoutNodes(Compartment c)
     {
         Diagram diagram = Diagram.getDiagram( c );
         DiagramViewBuilder builder = diagram.getType().getDiagramViewBuilder();
@@ -149,12 +149,12 @@ public class WDLLayouter
         c.setView( null );
     }
 
-    private static boolean needInnerLayout(Compartment c)
+    private boolean needInnerLayout(Compartment c)
     {
         return WorkflowUtil.isCycle( c ) || WorkflowUtil.isConditional( c );
     }
 
-    private static void fixConditions(Diagram d)
+    private void fixConditions(Diagram d)
     {
         for( Node node : d.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isCondition( n ) ) )
             node.setFixed( true );
