@@ -11,10 +11,12 @@ def ceil(val) {
 }
 
 def get(arr, index) {
-    if (arr instanceof java.util.List)
+    if (arr instanceof java.util.List || arr instanceof java.util.Map) {
         return arr[index]
-    else 
-        return arr.collect().map{v->v[i]}
+    }
+    else {
+        return arr.collect().map{v->v[index]}
+    }
 }
 
 def length(arr) {
@@ -82,5 +84,15 @@ def numerate(ch) {
     return ch.map { sublist ->
         counter++
         tuple(counter, sublist)
+    }
+}
+
+def combineAll(inputs) {
+    if (inputs.size() == 0) {
+        return Channel.empty()
+    }
+    
+    return inputs.drop(1).inject(toChannel(inputs[0])) { result, input ->
+        result.combine(toChannel(input))
     }
 }
