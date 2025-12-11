@@ -864,10 +864,28 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public boolean isFunctionCalled(String funName)
     {
-        for( Object value : diagram.recursiveStream().map( n -> n.getAttributes().getValue( WDLConstants.EXPRESSION_ATTR ) ) )
+        for( String value : diagram.recursiveStream().select( Node.class ).map( n -> WorkflowUtil.getExpression( n ) ) )
         {
-            if( value instanceof String && value.toString().contains( funName ) )
+            if( value != null && value.toString().contains( funName ) )
                 return true;
+        }
+
+        for( Compartment compartment : diagram.recursiveStream().select( Compartment.class ).filter( c -> WorkflowUtil.isTask( c ) ) )
+        {
+            String command = WorkflowUtil.getCommand( compartment );
+            if( command != null && command.contains( funName ) )
+                return true;
+
+            Object before = WorkflowUtil.getBeforeCommand( compartment );
+            if( before instanceof Declaration[] )
+            {
+                for( Declaration declaration : (Declaration[])before )
+                {
+                    if( declaration.getExpression().contains( funName ) )
+                        return true;
+                }
+            }
+
         }
         return false;
     }
