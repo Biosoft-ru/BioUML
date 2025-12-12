@@ -100,3 +100,20 @@ function updateURL()
     document.location.hash = name2hash;
 }
 
+function removeHashParameters(hash, parameters) 
+{
+    if(hash.substring(0,1) == "#") hash = hash.substring(1);
+    var pars = hash.split(/[&;]/g);
+    //reverse iteration as may be destructive
+    for(var pi = 0; pi < parameters.length; pi++)
+    {
+        var prefix = encodeURIComponent(parameters[pi]) + '=';
+        for (var i = pars.length; i-- > 0;) {    
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) 
+            {  
+                pars.splice(i, 1);
+            }
+        }
+    }
+    return pars.length > 0 ? pars.join('&') : '';
+}
