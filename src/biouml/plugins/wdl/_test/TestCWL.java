@@ -12,7 +12,9 @@ import biouml.model.Diagram;
 import biouml.plugins.wdl.CWLGenerator;
 //import junit.framework.TestCase;
 import biouml.plugins.wdl.CWLRunner;
+import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.WorkflowSettings;
+import biouml.plugins.wdl.diagram.WDLLayouter;
 import ru.biosoft.util.TempFiles;
 
 public class TestCWL
@@ -25,8 +27,9 @@ public class TestCWL
     {
         //        test( "faidx" );
 
-        test( "two_steps" );
-
+//        test( "two_steps" );
+//        test( "two_steps" );
+        test("aggregate");
         //        for (String name: list)
         //            test(name);
 
@@ -54,20 +57,26 @@ public class TestCWL
 
     public static void test() throws Exception
     {
-        test( "hello" );
+        test( "two_steps" );
     }
 
     public static void test(String name) throws Exception
     {
-        Diagram diagram = TestUtil.loadDiagram( name );
-
-        CWLGenerator cwlGenerator = new CWLGenerator();
-
-        String cwl = cwlGenerator.generate( diagram );
-        System.out.println( "Exported CWL: " );
+        Diagram diagram = TestUtil.loadDiagramCWL( name );
+        WDLLayouter.layout( diagram );
+        TestWDL.exportImage(diagram, new File("C:/Users/Damag/cwl.png"));
+        
+        String cwl =  new CWLGenerator().generate( diagram );
         System.out.println( cwl );
+//        String nextflow =  new NextFlowGenerator().generate( diagram );
+//        System.out.println( nextflow );
+//        CWLGenerator cwlGenerator = new CWLGenerator();
 
-        runCWL( name, cwl );
+//        String cwl = cwlGenerator.generate( diagram );
+//        System.out.println( "Exported CWL: " );
+//        System.out.println( cwl );
+
+//        runCWL( name, cwl );
         //        checkScript( name, nextFlow );
     }
 

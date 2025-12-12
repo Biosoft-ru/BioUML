@@ -22,8 +22,8 @@
 	      editor="true"
 	      class="biouml.plugins.wdl.WorkflowTextEditor"
 	      id="diagram.wdl"
-	      Name="WDL"
-	      ShortDescription="WDL"
+	      Name="Workflow"
+	      ShortDescription="Workflow Description"
 	      Priority="4"
 	      ignoreInIDE="true"
 	  />

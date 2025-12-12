@@ -103,7 +103,7 @@ public class NextFlowPreprocessor
     public static Set<String> findSeps(String input)
     {
         Set<String> result = new HashSet<>();
-        String regex = "~\\{sep=\" \" ([a-zA-Z_][a-zA-Z0-9_]*)}";
+        String regex = "~\\{sep=([\"'])\\s*\\1 ([a-zA-Z_][a-zA-Z0-9_]*)}";
         Pattern pattern = Pattern.compile( regex );
         Matcher matcher = pattern.matcher( input );
         while( matcher.find() )

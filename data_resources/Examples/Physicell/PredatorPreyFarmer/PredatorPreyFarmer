@@ -1,0 +1,977 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dml appVersion="0.7.7" version="0.7.7">
+  <diagram diagramType="biouml.plugins.physicell.PhysicellDiagramType" title="PredatorPreyFarmer">
+    <diagramInfo title="PredatorPreyFarmer"/>
+    <viewOptions>
+      <propertyRef elementType="biouml.model.DiagramElementStyleDeclaration" name="styles" type="array"/>
+    </viewOptions>
+    <simulationOptions type="biouml.plugins.physicell.PhysicellSimulationEngine">
+      <property name="logReport" short-description="logReport" type="boolean" value="false"/>
+      <property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.physicell.PhysicellOptions">
+        <property name="calculateGradient" short-description="calculateGradient" type="boolean" value="true"/>
+        <property name="cellUpdateType" short-description="cellUpdateType" type="String" value="Default"/>
+        <property name="diffusionDt" short-description="diffusionDt" type="double" value="0.01"/>
+        <property name="finalTime" short-description="finalTime" type="double" value="7200.0"/>
+        <property name="imageInterval" short-description="imageInterval" type="double" value="10.0"/>
+        <property name="mechanicsDt" short-description="mechanicsDt" type="double" value="0.1"/>
+        <property name="modelType" short-description="modelType" type="String" value="Default"/>
+        <property name="parallelDiffusion" short-description="parallelDiffusion" type="boolean" value="false"/>
+        <property name="phenotypeDt" short-description="phenotypeDt" type="double" value="6.0"/>
+        <property name="reportInterval" short-description="reportInterval" type="double" value="10.0"/>
+        <property name="resultPath" short-description="resultPath" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/res13"/>
+        <property name="saveCellsTable" short-description="saveCellsTable" type="boolean" value="false"/>
+        <property name="saveCellsText" short-description="saveCellsText" type="boolean" value="true"/>
+        <property name="saveDensity" short-description="saveDensity" type="boolean" value="true"/>
+        <property name="saveGIF" short-description="saveGIF" type="boolean" value="false"/>
+        <property name="saveImage" short-description="saveImage" type="boolean" value="false"/>
+        <property name="savePlots" short-description="savePlots" type="boolean" value="false"/>
+        <property name="saveReport" short-description="saveReport" type="boolean" value="true"/>
+        <property name="saveVideo" short-description="saveVideo" type="boolean" value="true"/>
+        <property name="seed" short-description="seed" type="java.lang.Long" value="13"/>
+        <property name="strictAgentsOrder" short-description="strictAgentsOrder" type="boolean" value="true"/>
+        <property name="trackInnerSubstrates" short-description="trackInnerSubstrates" type="boolean" value="true"/>
+        <property name="useManualSeed" short-description="useManualSeed" type="boolean" value="true"/>
+      </property>
+      <property name="solverName" short-description="solverName" type="String" value="Physicell default"/>
+    </simulationOptions>
+    <plots type="biouml.plugins.physicell.plot.PlotProperties">
+      <property elementType="biouml.plugins.physicell.plot.CurveProperties" name="properties" short-description="properties" type="array"/>
+    </plots>
+    <nodes>
+      <node height="75" isTitleHidden="false" kernel="stub/farmer" kernel_type="cell_definition" title="farmer" width="75" x="0" y="150">
+        <property isHidden="true" isReadOnly="true" name="cellDefinition" short-description="cellDefinition" type="biouml.plugins.physicell.CellDefinitionProperties">
+          <property name="color" short-description="color" type="brush" value="black"/>
+          <property name="comment" short-description="comment" type="String" value=""/>
+          <property name="customDataProperties" short-description="customDataProperties" type="biouml.plugins.physicell.CustomDataProperties">
+            <property elementType="biouml.plugins.physicell.VariableProperties" name="variables" short-description="variables" type="array">
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy_use_rate"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy_creation_rate"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="predator_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="-1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="prey_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="-1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="food_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="-10.0"/>
+              </item>
+            </property>
+          </property>
+          <property name="cycleProperties" short-description="cycleProperties" type="biouml.plugins.physicell.CycleProperties">
+            <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+            <property name="cycleName" short-description="cycleName" type="String" value="Live"/>
+            <property name="deathModel" short-description="deathModel" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+              <item>
+                <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="true"/>
+                <property name="name" short-description="name" type="String" value="Live"/>
+                <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                <property name="title" short-description="title" type="String" value="Live"/>
+              </item>
+            </property>
+            <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+              <item>
+                <property name="fixed" short-description="fixed" type="boolean" value="false"/>
+                <property name="from" short-description="from" type="String" value="Live"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="title" short-description="title" type="String" value="Live -&gt; Live"/>
+                <property name="to" short-description="to" type="String" value="Live"/>
+              </item>
+            </property>
+          </property>
+          <property name="deathProperties" short-description="deathProperties" type="biouml.plugins.physicell.DeathProperties">
+            <property elementType="biouml.plugins.physicell.DeathModelProperties" name="deathModels" short-description="deathModels" type="array">
+              <item>
+                <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+                <property name="cycle" short-description="cycle" type="biouml.plugins.physicell.CycleProperties">
+                  <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+                  <property name="cycleName" short-description="cycleName" type="String" value="Apoptosis"/>
+                  <property name="deathModel" short-description="deathModel" type="boolean" value="true"/>
+                  <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Apoptotic"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="true"/>
+                      <property name="title" short-description="title" type="String" value="Apoptotic"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Debris"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                  <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Apoptotic"/>
+                      <property name="rate" short-description="rate" type="double" value="0.001937984496124031"/>
+                      <property name="title" short-description="title" type="String" value="Apoptotic -&gt; Debris"/>
+                      <property name="to" short-description="to" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                </property>
+                <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="0.0166667"/>
+                <property name="lysed_fluid_change_rate" short-description="lysed_fluid_change_rate" type="double" value="0.0"/>
+                <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.00583333"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+                <property name="time_units" short-description="time_units" type="String" value=""/>
+                <property name="unlysed_fluid_change_rate" short-description="unlysed_fluid_change_rate" type="double" value="0.05"/>
+              </item>
+              <item>
+                <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+                <property name="cycle" short-description="cycle" type="biouml.plugins.physicell.CycleProperties">
+                  <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+                  <property name="cycleName" short-description="cycleName" type="String" value="Necrosis"/>
+                  <property name="deathModel" short-description="deathModel" type="boolean" value="true"/>
+                  <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Necrotic (swelling)"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (swelling)"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Necrotic (lysed)"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="true"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (lysed)"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Debris"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                  <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Necrotic (swelling)"/>
+                      <property name="rate" short-description="rate" type="double" value="9.0E9"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (swelling) -&gt; Necrotic (lysed)"/>
+                      <property name="to" short-description="to" type="String" value="Necrotic (lysed)"/>
+                    </item>
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Necrotic (lysed)"/>
+                      <property name="rate" short-description="rate" type="double" value="1.1574074074074073E-5"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (lysed) -&gt; Debris"/>
+                      <property name="to" short-description="to" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                </property>
+                <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="5.33333E-5"/>
+                <property name="lysed_fluid_change_rate" short-description="lysed_fluid_change_rate" type="double" value="8.33333E-4"/>
+                <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.00216667"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+                <property name="time_units" short-description="time_units" type="String" value=""/>
+                <property name="unlysed_fluid_change_rate" short-description="unlysed_fluid_change_rate" type="double" value="0.0111667"/>
+              </item>
+            </property>
+          </property>
+          <property name="divisionProperties" short-description="divisionProperties" type="biouml.plugins.physicell.DivisionProperties">
+            <property name="asymmetric" short-description="asymmetric" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.DivisionProperties$DivisionProbability" name="probabilities" short-description="probabilities" type="array"/>
+          </property>
+          <property name="functionsProperties" short-description="functionsProperties" type="biouml.plugins.physicell.FunctionsProperties">
+            <property name="contact" short-description="contact" type="String" value="-"/>
+            <property name="contactCustom" short-description="contactCustom" type="dataElementPath" value=""/>
+            <property name="customRule" short-description="customRule" type="String" value="Custom..."/>
+            <property name="customRuleCustom" short-description="customRuleCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/AvoidBoundariesRule.java"/>
+            <property name="division" short-description="division" type="String" value="-"/>
+            <property name="divisionCustom" short-description="divisionCustom" type="dataElementPath" value=""/>
+            <property name="instantiate" short-description="instantiate" type="String" value="-"/>
+            <property name="instantiateCustom" short-description="instantiateCustom" type="dataElementPath" value=""/>
+            <property name="membraneDistance" short-description="membraneDistance" type="String" value="-"/>
+            <property name="membraneDistanceCustom" short-description="membraneDistanceCustom" type="dataElementPath" value=""/>
+            <property name="membraneInteraction" short-description="membraneInteraction" type="String" value="Avoid domain edge"/>
+            <property name="membraneInteractionCustom" short-description="membraneInteractionCustom" type="dataElementPath" value=""/>
+            <property name="migrationUpdate" short-description="migrationUpdate" type="String" value="Custom..."/>
+            <property name="migrationUpdateCustom" short-description="migrationUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/WeightedMotility.java"/>
+            <property name="orientation" short-description="orientation" type="String" value="-"/>
+            <property name="orientationCustom" short-description="orientationCustom" type="dataElementPath" value=""/>
+            <property name="phenotypeUpdate" short-description="phenotypeUpdate" type="String" value="-"/>
+            <property name="phenotypeUpdateCustom" short-description="phenotypeUpdateCustom" type="dataElementPath" value=""/>
+            <property name="velocityUpdate" short-description="velocityUpdate" type="String" value="Standard velocity"/>
+            <property name="velocityUpdateCustom" short-description="velocityUpdateCustom" type="dataElementPath" value=""/>
+            <property name="volumeUpdate" short-description="volumeUpdate" type="String" value="Standard volume update."/>
+            <property name="volumeUpdateCustom" short-description="volumeUpdateCustom" type="dataElementPath" value=""/>
+          </property>
+          <property name="geometryProperties" short-description="geometryProperties" type="biouml.plugins.physicell.GeometryProperties">
+            <property name="nuclearRadius" short-description="nuclearRadius" type="double" value="5.051670902881889"/>
+            <property name="polarity" short-description="polarity" type="double" value="0.0"/>
+            <property name="radius" short-description="radius" type="double" value="8.412710547954227"/>
+          </property>
+          <property name="initialDistributionProperties" short-description="initialDistributionProperties" type="biouml.plugins.physicell.InitialDistributionProperties">
+            <property elementType="biouml.plugins.physicell.InitialDistributionProperties$ParameterDistribution" name="parameterDistributions" short-description="parameterDistributions" type="array"/>
+          </property>
+          <property name="initialNumber" short-description="initialNumber" type="int" value="0"/>
+          <property name="integrityProperties" short-description="integrityProperties" type="biouml.plugins.physicell.IntegrityProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="0.0"/>
+            <property name="damageRepairRate" short-description="damageRepairRate" type="double" value="0.0"/>
+          </property>
+          <property name="interactionsProperties" short-description="interactionsProperties" type="biouml.plugins.physicell.InteractionsProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="1.0"/>
+            <property name="deadPhagocytosisRate" short-description="deadPhagocytosisRate" type="double" value="0.0"/>
+            <property elementType="biouml.plugins.physicell.InteractionProperties" name="interactions" short-description="interactions" type="array"/>
+          </property>
+          <property name="intracellularProperties" short-description="intracellularProperties" type="biouml.plugins.physicell.ode.IntracellularProperties">
+            <property name="diagram" short-description="diagram" type="dataElementPath" value=""/>
+            <property name="engine" short-description="engine" type="biouml.plugins.physicell.ode.SimulationEngineWrapper">
+              <property name="engineName" short-description="engineName" type="String" value="ODE Simulation Engine"/>
+              <property name="simulator" short-description="simulator" type="String" value="JVode"/>
+              <property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.simulation.ode.jvode.JVodeOptions">
+                <property name="atol" short-description="atol" type="double" value="1.0E-20"/>
+                <property name="detectIncorrectNumbers" short-description="detectIncorrectNumbers" type="boolean" value="false"/>
+                <property name="hMaxInv" short-description="hMaxInv" type="double" value="1.0E-100"/>
+                <property name="hMin" short-description="hMin" type="double" value="1.0E-100"/>
+                <property name="iterations" short-description="iterations" type="int" value="0"/>
+                <property name="jacobianApproximation" short-description="jacobianApproximation" type="int" value="0"/>
+                <property name="method" short-description="method" type="int" value="1"/>
+                <property name="ml" short-description="ml" type="int" value="0"/>
+                <property name="mu" short-description="mu" type="int" value="0"/>
+                <property name="rtol" short-description="rtol" type="double" value="1.0E-12"/>
+                <property name="statisticsMode" short-description="statisticsMode" type="String" value="On"/>
+                <property name="stepsLimit" short-description="stepsLimit" type="int" value="100000"/>
+              </property>
+              <property name="timeIncrement" short-description="timeIncrement" type="double" value="0.1"/>
+            </property>
+            <property elementType="biouml.plugins.physicell.ode.PhenotypeVariable" name="variables" short-description="variables" type="array"/>
+          </property>
+          <property name="mechanicsProperties" short-description="mechanicsProperties" type="biouml.plugins.physicell.MechanicsProperties">
+            <property name="attachmentElasticConstant" short-description="attachmentElasticConstant" type="double" value="0.01"/>
+            <property name="attachmentRate" short-description="attachmentRate" type="double" value="0.0"/>
+            <property name="cellBMAdhesionStrength" short-description="cellBMAdhesionStrength" type="double" value="4.0"/>
+            <property name="cellBMRepulsionStrength" short-description="cellBMRepulsionStrength" type="double" value="100.0"/>
+            <property name="cellCellAdhesionStrength" short-description="cellCellAdhesionStrength" type="double" value="0.0"/>
+            <property name="cellCellRepulsionStrength" short-description="cellCellRepulsionStrength" type="double" value="10.0"/>
+            <property name="detachmentRate" short-description="detachmentRate" type="double" value="0.0"/>
+            <property name="maxAttachments" short-description="maxAttachments" type="int" value="12"/>
+            <property name="relMaxAdhesionDistance" short-description="relMaxAdhesionDistance" type="double" value="1.25"/>
+          </property>
+          <property name="motilityProperties" short-description="motilityProperties" type="biouml.plugins.physicell.MotilityProperties">
+            <property elementType="biouml.plugins.physicell.ChemotaxisProperties" name="chemotaxis" short-description="chemotaxis" type="array"/>
+            <property name="migrationBias" short-description="migrationBias" type="double" value="0.5"/>
+            <property name="migrationSpeed" short-description="migrationSpeed" type="double" value="0.25"/>
+            <property name="motile" short-description="motile" type="boolean" value="true"/>
+            <property name="persistenceTime" short-description="persistenceTime" type="double" value="5.0"/>
+            <property name="restrictTo2D" short-description="restrictTo2D" type="boolean" value="true"/>
+          </property>
+          <property name="name" short-description="name" type="String" value="farmer"/>
+          <property name="rulesProperties" short-description="rulesProperties" type="biouml.plugins.physicell.RulesProperties">
+            <property elementType="biouml.plugins.physicell.RuleProperties" name="rules" short-description="rules" type="array"/>
+          </property>
+          <property name="secretionsProperties" short-description="secretionsProperties" type="biouml.plugins.physicell.SecretionsProperties">
+            <property elementType="biouml.plugins.physicell.SecretionProperties" name="secretion" short-description="secretion" type="array">
+              <item>
+                <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+                <property name="secretionRate" short-description="secretionRate" type="double" value="10.0"/>
+                <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+                <property name="title" short-description="title" type="String" value="food"/>
+                <property name="uptakeRate" short-description="uptakeRate" type="double" value="0.0"/>
+              </item>
+            </property>
+          </property>
+          <property name="transformationsProperties" short-description="transformationsProperties" type="biouml.plugins.physicell.TransformationsProperties">
+            <property elementType="biouml.plugins.physicell.TransformationProperties" name="transformations" short-description="transformations" type="array"/>
+          </property>
+          <property name="volumeProperties" short-description="volumeProperties" type="biouml.plugins.physicell.VolumeProperties">
+            <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+            <property name="calcified_fraction" short-description="calcified_fraction" type="double" value="0.0"/>
+            <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="0.0045"/>
+            <property name="fluid_change_rate" short-description="fluid_change_rate" type="double" value="0.05"/>
+            <property name="fluid_fraction" short-description="fluid_fraction" type="double" value="0.75"/>
+            <property name="nuclear" short-description="nuclear" type="double" value="540.0"/>
+            <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.0055"/>
+            <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+            <property name="total" short-description="total" type="double" value="2494.0"/>
+          </property>
+        </property>
+      </node>
+      <node height="75" isTitleHidden="false" kernel="stub/food" kernel_type="substrate" title="food" width="75" x="0" y="0">
+        <property isHidden="true" isReadOnly="true" name="substrate" short-description="substrate" type="biouml.plugins.physicell.SubstrateProperties">
+          <property name="decayRate" short-description="decayRate" type="double" value="0.0"/>
+          <property name="diffusionCoefficient" short-description="diffusionCoefficient" type="double" value="100.0"/>
+          <property name="initialCondition" short-description="initialCondition" type="double" value="1.0"/>
+          <property name="name" short-description="name" type="String" value="food"/>
+          <property name="xMax" short-description="xMax" type="double" value="0.0"/>
+          <property name="xMin" short-description="xMin" type="double" value="0.0"/>
+          <property name="yMax" short-description="yMax" type="double" value="0.0"/>
+          <property name="yMin" short-description="yMin" type="double" value="0.0"/>
+          <property name="zMax" short-description="zMax" type="double" value="0.0"/>
+          <property name="zMin" short-description="zMin" type="double" value="0.0"/>
+        </property>
+      </node>
+      <node height="75" isTitleHidden="false" kernel="stub/predator" kernel_type="cell_definition" title="predator" width="75" x="307" y="0">
+        <property isHidden="true" isReadOnly="true" name="cellDefinition" short-description="cellDefinition" type="biouml.plugins.physicell.CellDefinitionProperties">
+          <property name="color" short-description="color" type="brush" value="black"/>
+          <property name="comment" short-description="comment" type="String" value=""/>
+          <property name="customDataProperties" short-description="customDataProperties" type="biouml.plugins.physicell.CustomDataProperties">
+            <property elementType="biouml.plugins.physicell.VariableProperties" name="variables" short-description="variables" type="array">
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy_use_rate"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="0.1"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy_creation_rate"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="predator_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="-2.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="prey_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="100.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="food_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+            </property>
+          </property>
+          <property name="cycleProperties" short-description="cycleProperties" type="biouml.plugins.physicell.CycleProperties">
+            <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+            <property name="cycleName" short-description="cycleName" type="String" value="Live"/>
+            <property name="deathModel" short-description="deathModel" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+              <item>
+                <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="true"/>
+                <property name="name" short-description="name" type="String" value="Live"/>
+                <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                <property name="title" short-description="title" type="String" value="Live"/>
+              </item>
+            </property>
+            <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+              <item>
+                <property name="fixed" short-description="fixed" type="boolean" value="false"/>
+                <property name="from" short-description="from" type="String" value="Live"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="title" short-description="title" type="String" value="Live -&gt; Live"/>
+                <property name="to" short-description="to" type="String" value="Live"/>
+              </item>
+            </property>
+          </property>
+          <property name="deathProperties" short-description="deathProperties" type="biouml.plugins.physicell.DeathProperties">
+            <property elementType="biouml.plugins.physicell.DeathModelProperties" name="deathModels" short-description="deathModels" type="array">
+              <item>
+                <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+                <property name="cycle" short-description="cycle" type="biouml.plugins.physicell.CycleProperties">
+                  <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+                  <property name="cycleName" short-description="cycleName" type="String" value="Apoptosis"/>
+                  <property name="deathModel" short-description="deathModel" type="boolean" value="true"/>
+                  <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Apoptotic"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="true"/>
+                      <property name="title" short-description="title" type="String" value="Apoptotic"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Debris"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                  <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Apoptotic"/>
+                      <property name="rate" short-description="rate" type="double" value="0.001937984496124031"/>
+                      <property name="title" short-description="title" type="String" value="Apoptotic -&gt; Debris"/>
+                      <property name="to" short-description="to" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                </property>
+                <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="0.0166667"/>
+                <property name="lysed_fluid_change_rate" short-description="lysed_fluid_change_rate" type="double" value="0.0"/>
+                <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.00583333"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+                <property name="time_units" short-description="time_units" type="String" value=""/>
+                <property name="unlysed_fluid_change_rate" short-description="unlysed_fluid_change_rate" type="double" value="0.05"/>
+              </item>
+              <item>
+                <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+                <property name="cycle" short-description="cycle" type="biouml.plugins.physicell.CycleProperties">
+                  <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+                  <property name="cycleName" short-description="cycleName" type="String" value="Necrosis"/>
+                  <property name="deathModel" short-description="deathModel" type="boolean" value="true"/>
+                  <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Necrotic (swelling)"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (swelling)"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Necrotic (lysed)"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="true"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (lysed)"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Debris"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                  <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Necrotic (swelling)"/>
+                      <property name="rate" short-description="rate" type="double" value="9.0E9"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (swelling) -&gt; Necrotic (lysed)"/>
+                      <property name="to" short-description="to" type="String" value="Necrotic (lysed)"/>
+                    </item>
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Necrotic (lysed)"/>
+                      <property name="rate" short-description="rate" type="double" value="1.1574074074074073E-5"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (lysed) -&gt; Debris"/>
+                      <property name="to" short-description="to" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                </property>
+                <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="5.33333E-5"/>
+                <property name="lysed_fluid_change_rate" short-description="lysed_fluid_change_rate" type="double" value="8.33333E-4"/>
+                <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.00216667"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+                <property name="time_units" short-description="time_units" type="String" value=""/>
+                <property name="unlysed_fluid_change_rate" short-description="unlysed_fluid_change_rate" type="double" value="0.0111667"/>
+              </item>
+            </property>
+          </property>
+          <property name="divisionProperties" short-description="divisionProperties" type="biouml.plugins.physicell.DivisionProperties">
+            <property name="asymmetric" short-description="asymmetric" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.DivisionProperties$DivisionProbability" name="probabilities" short-description="probabilities" type="array"/>
+          </property>
+          <property name="functionsProperties" short-description="functionsProperties" type="biouml.plugins.physicell.FunctionsProperties">
+            <property name="contact" short-description="contact" type="String" value="-"/>
+            <property name="contactCustom" short-description="contactCustom" type="dataElementPath" value=""/>
+            <property name="customRule" short-description="customRule" type="String" value="Custom..."/>
+            <property name="customRuleCustom" short-description="customRuleCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/AvoidBoundariesRule.java"/>
+            <property name="division" short-description="division" type="String" value="-"/>
+            <property name="divisionCustom" short-description="divisionCustom" type="dataElementPath" value=""/>
+            <property name="instantiate" short-description="instantiate" type="String" value="-"/>
+            <property name="instantiateCustom" short-description="instantiateCustom" type="dataElementPath" value=""/>
+            <property name="membraneDistance" short-description="membraneDistance" type="String" value="-"/>
+            <property name="membraneDistanceCustom" short-description="membraneDistanceCustom" type="dataElementPath" value=""/>
+            <property name="membraneInteraction" short-description="membraneInteraction" type="String" value="Avoid domain edge"/>
+            <property name="membraneInteractionCustom" short-description="membraneInteractionCustom" type="dataElementPath" value=""/>
+            <property name="migrationUpdate" short-description="migrationUpdate" type="String" value="Custom..."/>
+            <property name="migrationUpdateCustom" short-description="migrationUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/WeightedMotility.java"/>
+            <property name="orientation" short-description="orientation" type="String" value="-"/>
+            <property name="orientationCustom" short-description="orientationCustom" type="dataElementPath" value=""/>
+            <property name="phenotypeUpdate" short-description="phenotypeUpdate" type="String" value="Custom..."/>
+            <property name="phenotypeUpdateCustom" short-description="phenotypeUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/PredatorPhenotype.java"/>
+            <property name="velocityUpdate" short-description="velocityUpdate" type="String" value="Standard velocity"/>
+            <property name="velocityUpdateCustom" short-description="velocityUpdateCustom" type="dataElementPath" value=""/>
+            <property name="volumeUpdate" short-description="volumeUpdate" type="String" value="Standard volume update."/>
+            <property name="volumeUpdateCustom" short-description="volumeUpdateCustom" type="dataElementPath" value=""/>
+          </property>
+          <property name="geometryProperties" short-description="geometryProperties" type="biouml.plugins.physicell.GeometryProperties">
+            <property name="nuclearRadius" short-description="nuclearRadius" type="double" value="5.051670902881889"/>
+            <property name="polarity" short-description="polarity" type="double" value="0.0"/>
+            <property name="radius" short-description="radius" type="double" value="8.412710547954227"/>
+          </property>
+          <property name="initialDistributionProperties" short-description="initialDistributionProperties" type="biouml.plugins.physicell.InitialDistributionProperties">
+            <property elementType="biouml.plugins.physicell.InitialDistributionProperties$ParameterDistribution" name="parameterDistributions" short-description="parameterDistributions" type="array"/>
+          </property>
+          <property name="initialNumber" short-description="initialNumber" type="int" value="0"/>
+          <property name="integrityProperties" short-description="integrityProperties" type="biouml.plugins.physicell.IntegrityProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="0.0"/>
+            <property name="damageRepairRate" short-description="damageRepairRate" type="double" value="0.0"/>
+          </property>
+          <property name="interactionsProperties" short-description="interactionsProperties" type="biouml.plugins.physicell.InteractionsProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="1.0"/>
+            <property name="deadPhagocytosisRate" short-description="deadPhagocytosisRate" type="double" value="0.0"/>
+            <property elementType="biouml.plugins.physicell.InteractionProperties" name="interactions" short-description="interactions" type="array"/>
+          </property>
+          <property name="intracellularProperties" short-description="intracellularProperties" type="biouml.plugins.physicell.ode.IntracellularProperties">
+            <property name="diagram" short-description="diagram" type="dataElementPath" value=""/>
+            <property name="engine" short-description="engine" type="biouml.plugins.physicell.ode.SimulationEngineWrapper">
+              <property name="engineName" short-description="engineName" type="String" value="ODE Simulation Engine"/>
+              <property name="simulator" short-description="simulator" type="String" value="JVode"/>
+              <property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.simulation.ode.jvode.JVodeOptions">
+                <property name="atol" short-description="atol" type="double" value="1.0E-20"/>
+                <property name="detectIncorrectNumbers" short-description="detectIncorrectNumbers" type="boolean" value="false"/>
+                <property name="hMaxInv" short-description="hMaxInv" type="double" value="1.0E-100"/>
+                <property name="hMin" short-description="hMin" type="double" value="1.0E-100"/>
+                <property name="iterations" short-description="iterations" type="int" value="0"/>
+                <property name="jacobianApproximation" short-description="jacobianApproximation" type="int" value="0"/>
+                <property name="method" short-description="method" type="int" value="1"/>
+                <property name="ml" short-description="ml" type="int" value="0"/>
+                <property name="mu" short-description="mu" type="int" value="0"/>
+                <property name="rtol" short-description="rtol" type="double" value="1.0E-12"/>
+                <property name="statisticsMode" short-description="statisticsMode" type="String" value="On"/>
+                <property name="stepsLimit" short-description="stepsLimit" type="int" value="100000"/>
+              </property>
+              <property name="timeIncrement" short-description="timeIncrement" type="double" value="0.1"/>
+            </property>
+            <property elementType="biouml.plugins.physicell.ode.PhenotypeVariable" name="variables" short-description="variables" type="array"/>
+          </property>
+          <property name="mechanicsProperties" short-description="mechanicsProperties" type="biouml.plugins.physicell.MechanicsProperties">
+            <property name="attachmentElasticConstant" short-description="attachmentElasticConstant" type="double" value="0.01"/>
+            <property name="attachmentRate" short-description="attachmentRate" type="double" value="0.0"/>
+            <property name="cellBMAdhesionStrength" short-description="cellBMAdhesionStrength" type="double" value="4.0"/>
+            <property name="cellBMRepulsionStrength" short-description="cellBMRepulsionStrength" type="double" value="100.0"/>
+            <property name="cellCellAdhesionStrength" short-description="cellCellAdhesionStrength" type="double" value="0.0"/>
+            <property name="cellCellRepulsionStrength" short-description="cellCellRepulsionStrength" type="double" value="10.0"/>
+            <property name="detachmentRate" short-description="detachmentRate" type="double" value="0.0"/>
+            <property name="maxAttachments" short-description="maxAttachments" type="int" value="12"/>
+            <property name="relMaxAdhesionDistance" short-description="relMaxAdhesionDistance" type="double" value="1.25"/>
+          </property>
+          <property name="motilityProperties" short-description="motilityProperties" type="biouml.plugins.physicell.MotilityProperties">
+            <property elementType="biouml.plugins.physicell.ChemotaxisProperties" name="chemotaxis" short-description="chemotaxis" type="array"/>
+            <property name="migrationBias" short-description="migrationBias" type="double" value="0.5"/>
+            <property name="migrationSpeed" short-description="migrationSpeed" type="double" value="0.5"/>
+            <property name="motile" short-description="motile" type="boolean" value="true"/>
+            <property name="persistenceTime" short-description="persistenceTime" type="double" value="2.5"/>
+            <property name="restrictTo2D" short-description="restrictTo2D" type="boolean" value="true"/>
+          </property>
+          <property name="name" short-description="name" type="String" value="predator"/>
+          <property name="rulesProperties" short-description="rulesProperties" type="biouml.plugins.physicell.RulesProperties">
+            <property elementType="biouml.plugins.physicell.RuleProperties" name="rules" short-description="rules" type="array"/>
+          </property>
+          <property name="secretionsProperties" short-description="secretionsProperties" type="biouml.plugins.physicell.SecretionsProperties">
+            <property elementType="biouml.plugins.physicell.SecretionProperties" name="secretion" short-description="secretion" type="array">
+              <item>
+                <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+                <property name="secretionRate" short-description="secretionRate" type="double" value="10.0"/>
+                <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+                <property name="title" short-description="title" type="String" value="predator signal"/>
+                <property name="uptakeRate" short-description="uptakeRate" type="double" value="0.0"/>
+              </item>
+            </property>
+          </property>
+          <property name="transformationsProperties" short-description="transformationsProperties" type="biouml.plugins.physicell.TransformationsProperties">
+            <property elementType="biouml.plugins.physicell.TransformationProperties" name="transformations" short-description="transformations" type="array"/>
+          </property>
+          <property name="volumeProperties" short-description="volumeProperties" type="biouml.plugins.physicell.VolumeProperties">
+            <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+            <property name="calcified_fraction" short-description="calcified_fraction" type="double" value="0.0"/>
+            <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="0.0045"/>
+            <property name="fluid_change_rate" short-description="fluid_change_rate" type="double" value="0.05"/>
+            <property name="fluid_fraction" short-description="fluid_fraction" type="double" value="0.75"/>
+            <property name="nuclear" short-description="nuclear" type="double" value="540.0"/>
+            <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.0055"/>
+            <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+            <property name="total" short-description="total" type="double" value="2494.0"/>
+          </property>
+        </property>
+      </node>
+      <node height="75" isTitleHidden="false" kernel="stub/predator signal" kernel_type="substrate" title="predator signal" width="75" x="287" y="156">
+        <property isHidden="true" isReadOnly="true" name="substrate" short-description="substrate" type="biouml.plugins.physicell.SubstrateProperties">
+          <property name="decayRate" short-description="decayRate" type="double" value="0.1"/>
+          <property name="diffusionCoefficient" short-description="diffusionCoefficient" type="double" value="1000.0"/>
+          <property name="initialCondition" short-description="initialCondition" type="double" value="0.0"/>
+          <property name="name" short-description="name" type="String" value="predator signal"/>
+          <property name="xMax" short-description="xMax" type="double" value="0.0"/>
+          <property name="xMin" short-description="xMin" type="double" value="0.0"/>
+          <property name="yMax" short-description="yMax" type="double" value="0.0"/>
+          <property name="yMin" short-description="yMin" type="double" value="0.0"/>
+          <property name="zMax" short-description="zMax" type="double" value="0.0"/>
+          <property name="zMin" short-description="zMin" type="double" value="0.0"/>
+        </property>
+      </node>
+      <node height="75" isTitleHidden="false" kernel="stub/prey" kernel_type="cell_definition" title="prey" width="75" x="150" y="0">
+        <property isHidden="true" isReadOnly="true" name="cellDefinition" short-description="cellDefinition" type="biouml.plugins.physicell.CellDefinitionProperties">
+          <property name="color" short-description="color" type="brush" value="black"/>
+          <property name="comment" short-description="comment" type="String" value=""/>
+          <property name="customDataProperties" short-description="customDataProperties" type="biouml.plugins.physicell.CustomDataProperties">
+            <property elementType="biouml.plugins.physicell.VariableProperties" name="variables" short-description="variables" type="array">
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy_use_rate"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="energy_creation_rate"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="predator_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="-100.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="prey_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="10.0"/>
+              </item>
+              <item>
+                <property name="conserved" short-description="conserved" type="boolean" value="false"/>
+                <property name="name" short-description="name" type="String" value="food_weight"/>
+                <property name="units" short-description="units" type="String" value="dimensionless"/>
+                <property name="value" short-description="value" type="double" value="1.0"/>
+              </item>
+            </property>
+          </property>
+          <property name="cycleProperties" short-description="cycleProperties" type="biouml.plugins.physicell.CycleProperties">
+            <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+            <property name="cycleName" short-description="cycleName" type="String" value="Live"/>
+            <property name="deathModel" short-description="deathModel" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+              <item>
+                <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="true"/>
+                <property name="name" short-description="name" type="String" value="Live"/>
+                <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                <property name="title" short-description="title" type="String" value="Live"/>
+              </item>
+            </property>
+            <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+              <item>
+                <property name="fixed" short-description="fixed" type="boolean" value="false"/>
+                <property name="from" short-description="from" type="String" value="Live"/>
+                <property name="rate" short-description="rate" type="double" value="0.003"/>
+                <property name="title" short-description="title" type="String" value="Live -&gt; Live"/>
+                <property name="to" short-description="to" type="String" value="Live"/>
+              </item>
+            </property>
+          </property>
+          <property name="deathProperties" short-description="deathProperties" type="biouml.plugins.physicell.DeathProperties">
+            <property elementType="biouml.plugins.physicell.DeathModelProperties" name="deathModels" short-description="deathModels" type="array">
+              <item>
+                <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+                <property name="cycle" short-description="cycle" type="biouml.plugins.physicell.CycleProperties">
+                  <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+                  <property name="cycleName" short-description="cycleName" type="String" value="Apoptosis"/>
+                  <property name="deathModel" short-description="deathModel" type="boolean" value="true"/>
+                  <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Apoptotic"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="true"/>
+                      <property name="title" short-description="title" type="String" value="Apoptotic"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Debris"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                  <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Apoptotic"/>
+                      <property name="rate" short-description="rate" type="double" value="0.001937984496124031"/>
+                      <property name="title" short-description="title" type="String" value="Apoptotic -&gt; Debris"/>
+                      <property name="to" short-description="to" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                </property>
+                <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="0.0166667"/>
+                <property name="lysed_fluid_change_rate" short-description="lysed_fluid_change_rate" type="double" value="0.0"/>
+                <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.00583333"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+                <property name="time_units" short-description="time_units" type="String" value=""/>
+                <property name="unlysed_fluid_change_rate" short-description="unlysed_fluid_change_rate" type="double" value="0.05"/>
+              </item>
+              <item>
+                <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+                <property name="cycle" short-description="cycle" type="biouml.plugins.physicell.CycleProperties">
+                  <property name="customCycle" short-description="customCycle" type="dataElementPath"/>
+                  <property name="cycleName" short-description="cycleName" type="String" value="Necrosis"/>
+                  <property name="deathModel" short-description="deathModel" type="boolean" value="true"/>
+                  <property elementType="biouml.plugins.physicell.PhaseProperties" name="phases" short-description="phases" type="array">
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Necrotic (swelling)"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (swelling)"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Necrotic (lysed)"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="true"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (lysed)"/>
+                    </item>
+                    <item>
+                      <property name="divisionAtExit" short-description="divisionAtExit" type="boolean" value="false"/>
+                      <property name="name" short-description="name" type="String" value="Debris"/>
+                      <property name="removalAtExit" short-description="removalAtExit" type="boolean" value="false"/>
+                      <property name="title" short-description="title" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                  <property elementType="biouml.plugins.physicell.TransitionProperties" name="transitions" short-description="transitions" type="array">
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Necrotic (swelling)"/>
+                      <property name="rate" short-description="rate" type="double" value="9.0E9"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (swelling) -&gt; Necrotic (lysed)"/>
+                      <property name="to" short-description="to" type="String" value="Necrotic (lysed)"/>
+                    </item>
+                    <item>
+                      <property name="fixed" short-description="fixed" type="boolean" value="true"/>
+                      <property name="from" short-description="from" type="String" value="Necrotic (lysed)"/>
+                      <property name="rate" short-description="rate" type="double" value="1.1574074074074073E-5"/>
+                      <property name="title" short-description="title" type="String" value="Necrotic (lysed) -&gt; Debris"/>
+                      <property name="to" short-description="to" type="String" value="Debris"/>
+                    </item>
+                  </property>
+                </property>
+                <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="5.33333E-5"/>
+                <property name="lysed_fluid_change_rate" short-description="lysed_fluid_change_rate" type="double" value="8.33333E-4"/>
+                <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.00216667"/>
+                <property name="rate" short-description="rate" type="double" value="0.0"/>
+                <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+                <property name="time_units" short-description="time_units" type="String" value=""/>
+                <property name="unlysed_fluid_change_rate" short-description="unlysed_fluid_change_rate" type="double" value="0.0111667"/>
+              </item>
+            </property>
+          </property>
+          <property name="divisionProperties" short-description="divisionProperties" type="biouml.plugins.physicell.DivisionProperties">
+            <property name="asymmetric" short-description="asymmetric" type="boolean" value="false"/>
+            <property elementType="biouml.plugins.physicell.DivisionProperties$DivisionProbability" name="probabilities" short-description="probabilities" type="array"/>
+          </property>
+          <property name="functionsProperties" short-description="functionsProperties" type="biouml.plugins.physicell.FunctionsProperties">
+            <property name="contact" short-description="contact" type="String" value="-"/>
+            <property name="contactCustom" short-description="contactCustom" type="dataElementPath" value=""/>
+            <property name="customRule" short-description="customRule" type="String" value="Custom..."/>
+            <property name="customRuleCustom" short-description="customRuleCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/AvoidBoundariesRule.java"/>
+            <property name="division" short-description="division" type="String" value="-"/>
+            <property name="divisionCustom" short-description="divisionCustom" type="dataElementPath" value=""/>
+            <property name="instantiate" short-description="instantiate" type="String" value="-"/>
+            <property name="instantiateCustom" short-description="instantiateCustom" type="dataElementPath" value=""/>
+            <property name="membraneDistance" short-description="membraneDistance" type="String" value="-"/>
+            <property name="membraneDistanceCustom" short-description="membraneDistanceCustom" type="dataElementPath" value=""/>
+            <property name="membraneInteraction" short-description="membraneInteraction" type="String" value="Avoid domain edge"/>
+            <property name="membraneInteractionCustom" short-description="membraneInteractionCustom" type="dataElementPath" value=""/>
+            <property name="migrationUpdate" short-description="migrationUpdate" type="String" value="Custom..."/>
+            <property name="migrationUpdateCustom" short-description="migrationUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/WeightedMotility.java"/>
+            <property name="orientation" short-description="orientation" type="String" value="-"/>
+            <property name="orientationCustom" short-description="orientationCustom" type="dataElementPath" value=""/>
+            <property name="phenotypeUpdate" short-description="phenotypeUpdate" type="String" value="Custom..."/>
+            <property name="phenotypeUpdateCustom" short-description="phenotypeUpdateCustom" type="dataElementPath" value="data/Examples/Physicell/PredatorPreyFarmer/PreyPhenotype.java"/>
+            <property name="velocityUpdate" short-description="velocityUpdate" type="String" value="Standard velocity"/>
+            <property name="velocityUpdateCustom" short-description="velocityUpdateCustom" type="dataElementPath" value=""/>
+            <property name="volumeUpdate" short-description="volumeUpdate" type="String" value="Standard volume update."/>
+            <property name="volumeUpdateCustom" short-description="volumeUpdateCustom" type="dataElementPath" value=""/>
+          </property>
+          <property name="geometryProperties" short-description="geometryProperties" type="biouml.plugins.physicell.GeometryProperties">
+            <property name="nuclearRadius" short-description="nuclearRadius" type="double" value="5.051670902881889"/>
+            <property name="polarity" short-description="polarity" type="double" value="0.0"/>
+            <property name="radius" short-description="radius" type="double" value="8.412710547954227"/>
+          </property>
+          <property name="initialDistributionProperties" short-description="initialDistributionProperties" type="biouml.plugins.physicell.InitialDistributionProperties">
+            <property elementType="biouml.plugins.physicell.InitialDistributionProperties$ParameterDistribution" name="parameterDistributions" short-description="parameterDistributions" type="array"/>
+          </property>
+          <property name="initialNumber" short-description="initialNumber" type="int" value="0"/>
+          <property name="integrityProperties" short-description="integrityProperties" type="biouml.plugins.physicell.IntegrityProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="0.0"/>
+            <property name="damageRepairRate" short-description="damageRepairRate" type="double" value="0.0"/>
+          </property>
+          <property name="interactionsProperties" short-description="interactionsProperties" type="biouml.plugins.physicell.InteractionsProperties">
+            <property name="damageRate" short-description="damageRate" type="double" value="1.0"/>
+            <property name="deadPhagocytosisRate" short-description="deadPhagocytosisRate" type="double" value="0.0"/>
+            <property elementType="biouml.plugins.physicell.InteractionProperties" name="interactions" short-description="interactions" type="array"/>
+          </property>
+          <property name="intracellularProperties" short-description="intracellularProperties" type="biouml.plugins.physicell.ode.IntracellularProperties">
+            <property name="diagram" short-description="diagram" type="dataElementPath" value=""/>
+            <property name="engine" short-description="engine" type="biouml.plugins.physicell.ode.SimulationEngineWrapper">
+              <property name="engineName" short-description="engineName" type="String" value="ODE Simulation Engine"/>
+              <property name="simulator" short-description="simulator" type="String" value="JVode"/>
+              <property name="simulatorOptions" short-description="simulatorOptions" type="biouml.plugins.simulation.ode.jvode.JVodeOptions">
+                <property name="atol" short-description="atol" type="double" value="1.0E-20"/>
+                <property name="detectIncorrectNumbers" short-description="detectIncorrectNumbers" type="boolean" value="false"/>
+                <property name="hMaxInv" short-description="hMaxInv" type="double" value="1.0E-100"/>
+                <property name="hMin" short-description="hMin" type="double" value="1.0E-100"/>
+                <property name="iterations" short-description="iterations" type="int" value="0"/>
+                <property name="jacobianApproximation" short-description="jacobianApproximation" type="int" value="0"/>
+                <property name="method" short-description="method" type="int" value="1"/>
+                <property name="ml" short-description="ml" type="int" value="0"/>
+                <property name="mu" short-description="mu" type="int" value="0"/>
+                <property name="rtol" short-description="rtol" type="double" value="1.0E-12"/>
+                <property name="statisticsMode" short-description="statisticsMode" type="String" value="On"/>
+                <property name="stepsLimit" short-description="stepsLimit" type="int" value="100000"/>
+              </property>
+              <property name="timeIncrement" short-description="timeIncrement" type="double" value="0.1"/>
+            </property>
+            <property elementType="biouml.plugins.physicell.ode.PhenotypeVariable" name="variables" short-description="variables" type="array"/>
+          </property>
+          <property name="mechanicsProperties" short-description="mechanicsProperties" type="biouml.plugins.physicell.MechanicsProperties">
+            <property name="attachmentElasticConstant" short-description="attachmentElasticConstant" type="double" value="0.01"/>
+            <property name="attachmentRate" short-description="attachmentRate" type="double" value="0.0"/>
+            <property name="cellBMAdhesionStrength" short-description="cellBMAdhesionStrength" type="double" value="4.0"/>
+            <property name="cellBMRepulsionStrength" short-description="cellBMRepulsionStrength" type="double" value="100.0"/>
+            <property name="cellCellAdhesionStrength" short-description="cellCellAdhesionStrength" type="double" value="0.0"/>
+            <property name="cellCellRepulsionStrength" short-description="cellCellRepulsionStrength" type="double" value="10.0"/>
+            <property name="detachmentRate" short-description="detachmentRate" type="double" value="0.0"/>
+            <property name="maxAttachments" short-description="maxAttachments" type="int" value="12"/>
+            <property name="relMaxAdhesionDistance" short-description="relMaxAdhesionDistance" type="double" value="1.25"/>
+          </property>
+          <property name="motilityProperties" short-description="motilityProperties" type="biouml.plugins.physicell.MotilityProperties">
+            <property elementType="biouml.plugins.physicell.ChemotaxisProperties" name="chemotaxis" short-description="chemotaxis" type="array"/>
+            <property name="migrationBias" short-description="migrationBias" type="double" value="0.5"/>
+            <property name="migrationSpeed" short-description="migrationSpeed" type="double" value="0.5"/>
+            <property name="motile" short-description="motile" type="boolean" value="true"/>
+            <property name="persistenceTime" short-description="persistenceTime" type="double" value="5.0"/>
+            <property name="restrictTo2D" short-description="restrictTo2D" type="boolean" value="true"/>
+          </property>
+          <property name="name" short-description="name" type="String" value="prey"/>
+          <property name="rulesProperties" short-description="rulesProperties" type="biouml.plugins.physicell.RulesProperties">
+            <property elementType="biouml.plugins.physicell.RuleProperties" name="rules" short-description="rules" type="array"/>
+          </property>
+          <property name="secretionsProperties" short-description="secretionsProperties" type="biouml.plugins.physicell.SecretionsProperties">
+            <property elementType="biouml.plugins.physicell.SecretionProperties" name="secretion" short-description="secretion" type="array">
+              <item>
+                <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+                <property name="secretionRate" short-description="secretionRate" type="double" value="0.0"/>
+                <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+                <property name="title" short-description="title" type="String" value="food"/>
+                <property name="uptakeRate" short-description="uptakeRate" type="double" value="1.0"/>
+              </item>
+              <item>
+                <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+                <property name="secretionRate" short-description="secretionRate" type="double" value="10.0"/>
+                <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+                <property name="title" short-description="title" type="String" value="prey signal"/>
+                <property name="uptakeRate" short-description="uptakeRate" type="double" value="0.0"/>
+              </item>
+            </property>
+          </property>
+          <property name="transformationsProperties" short-description="transformationsProperties" type="biouml.plugins.physicell.TransformationsProperties">
+            <property elementType="biouml.plugins.physicell.TransformationProperties" name="transformations" short-description="transformations" type="array"/>
+          </property>
+          <property name="volumeProperties" short-description="volumeProperties" type="biouml.plugins.physicell.VolumeProperties">
+            <property name="calcification_rate" short-description="calcification_rate" type="double" value="0.0"/>
+            <property name="calcified_fraction" short-description="calcified_fraction" type="double" value="0.0"/>
+            <property name="cytoplasmic_biomass_change_rate" short-description="cytoplasmic_biomass_change_rate" type="double" value="0.0045"/>
+            <property name="fluid_change_rate" short-description="fluid_change_rate" type="double" value="0.05"/>
+            <property name="fluid_fraction" short-description="fluid_fraction" type="double" value="0.75"/>
+            <property name="nuclear" short-description="nuclear" type="double" value="540.0"/>
+            <property name="nuclear_biomass_change_rate" short-description="nuclear_biomass_change_rate" type="double" value="0.0055"/>
+            <property name="relative_rupture_volume" short-description="relative_rupture_volume" type="double" value="2.0"/>
+            <property name="total" short-description="total" type="double" value="2494.0"/>
+          </property>
+        </property>
+      </node>
+      <node height="75" isTitleHidden="false" kernel="stub/prey signal" kernel_type="substrate" title="prey signal" width="75" x="140" y="150">
+        <property isHidden="true" isReadOnly="true" name="substrate" short-description="substrate" type="biouml.plugins.physicell.SubstrateProperties">
+          <property name="decayRate" short-description="decayRate" type="double" value="0.1"/>
+          <property name="diffusionCoefficient" short-description="diffusionCoefficient" type="double" value="1000.0"/>
+          <property name="initialCondition" short-description="initialCondition" type="double" value="0.0"/>
+          <property name="name" short-description="name" type="String" value="prey signal"/>
+          <property name="xMax" short-description="xMax" type="double" value="0.0"/>
+          <property name="xMin" short-description="xMin" type="double" value="0.0"/>
+          <property name="yMax" short-description="yMax" type="double" value="0.0"/>
+          <property name="yMin" short-description="yMin" type="double" value="0.0"/>
+          <property name="zMax" short-description="zMax" type="double" value="0.0"/>
+          <property name="zMin" short-description="zMin" type="double" value="0.0"/>
+        </property>
+      </node>
+    </nodes>
+    <edges>
+      <edge edgeID="farmer -&gt; food" in="farmer" inPort="37;149" kernel="stub/farmer -&gt; food" kernel_type="secretion" out="food" outPort="37;78" title="farmer -&gt; food">
+        <property isHidden="true" isReadOnly="true" name="secretion" short-description="secretion" type="biouml.plugins.physicell.SecretionProperties">
+          <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+          <property name="secretionRate" short-description="secretionRate" type="double" value="10.0"/>
+          <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+          <property name="title" short-description="title" type="String" value="food"/>
+          <property name="uptakeRate" short-description="uptakeRate" type="double" value="0.0"/>
+        </property>
+      </edge>
+      <edge edgeID="predator -&gt; predator signal" in="predator" inPort="347;82" kernel="stub/predator -&gt; predator signal" kernel_type="secretion" out="predator signal" outPort="347;153" title="predator -&gt; predator signal">
+        <property isHidden="true" isReadOnly="true" name="secretion" short-description="secretion" type="biouml.plugins.physicell.SecretionProperties">
+          <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+          <property name="secretionRate" short-description="secretionRate" type="double" value="10.0"/>
+          <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+          <property name="title" short-description="title" type="String" value="predator signal"/>
+          <property name="uptakeRate" short-description="uptakeRate" type="double" value="0.0"/>
+        </property>
+      </edge>
+      <edge edgeID="prey -&gt; food" in="prey" inPort="149;37" kernel="stub/prey -&gt; food" kernel_type="secretion" out="food" outPort="78;37" title="prey -&gt; food">
+        <property isHidden="true" isReadOnly="true" name="secretion" short-description="secretion" type="biouml.plugins.physicell.SecretionProperties">
+          <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+          <property name="secretionRate" short-description="secretionRate" type="double" value="0.0"/>
+          <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+          <property name="title" short-description="title" type="String" value="food"/>
+          <property name="uptakeRate" short-description="uptakeRate" type="double" value="1.0"/>
+        </property>
+      </edge>
+      <edge edgeID="prey -&gt; prey signal" in="prey" inPort="187;76" kernel="stub/prey -&gt; prey signal" kernel_type="secretion" out="prey signal" outPort="187;147" title="prey -&gt; prey signal">
+        <property isHidden="true" isReadOnly="true" name="secretion" short-description="secretion" type="biouml.plugins.physicell.SecretionProperties">
+          <property name="netExportRate" short-description="netExportRate" type="double" value="0.0"/>
+          <property name="secretionRate" short-description="secretionRate" type="double" value="10.0"/>
+          <property name="secretionTarget" short-description="secretionTarget" type="double" value="1.0"/>
+          <property name="title" short-description="title" type="String" value="prey signal"/>
+          <property name="uptakeRate" short-description="uptakeRate" type="double" value="0.0"/>
+        </property>
+      </edge>
+    </edges>
+    <filters elementType="biouml.model.DiagramFilter" type="[Lbiouml.model.DiagramFilter;"/>
+  </diagram>
+  <executableModel class="biouml.plugins.physicell.MulticellEModel">
+    <options disableAutomatedAdhesion="false"/>
+    <domain use2D="true" xFrom="-500.0" xStep="20.0" xTo="500.0" yFrom="-500.0" yStep="20.0" yTo="500.0" zFrom="-10.0" zStep="20.0" zTo="10.0"/>
+    <userParameters>
+      <userParameter name="random_seed" value="0"/>
+      <userParameter name="number_of_farmers" value="15"/>
+      <userParameter name="number_of_prey" value="50"/>
+      <userParameter name="number_of_predators" value="20"/>
+    </userParameters>
+    <initialCondition customCode="data/Examples/Physicell/PredatorPreyFarmer/PPFInitial.java" customTable=""/>
+    <report customReport="data/Examples/Physicell/PredatorPreyFarmer/PPFReport.java" customVisualizer="data/Examples/Physicell/PredatorPreyFarmer/PPFVisualizer.java"/>
+  </executableModel>
+</dml>

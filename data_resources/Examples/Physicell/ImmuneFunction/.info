@@ -1,0 +1,7 @@
+files:
+- name: Model
+  type: BioUML diagram
+- name: cells.csv
+  type: Table (BioUML format)
+- name: Colorer
+  type: Java code

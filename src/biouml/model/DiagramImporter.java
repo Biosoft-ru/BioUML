@@ -16,8 +16,8 @@ import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementImporter;
-import ru.biosoft.access.DataElementRegistry;
-import ru.biosoft.exception.ExceptionRegistry;
+//import ru.biosoft.access.DataElementRegistry;
+//import ru.biosoft.exception.ExceptionRegistry;
 
 /** General interface to import diagram, for example from SBML or CellML file. */
 public abstract class DiagramImporter implements DataElementImporter
@@ -109,11 +109,11 @@ public abstract class DiagramImporter implements DataElementImporter
         {
             try
             {
-                moduleType = ClassLoading.loadSubClass( moduleTypeName, properties.getProperty(DataElementRegistry.PLUGIN_ID), ModuleType.class );
+//                moduleType = ClassLoading.loadSubClass( moduleTypeName, properties.getProperty(DataElementRegistry.PLUGIN_ID), ModuleType.class );
             }
             catch( Exception e )
             {
-                ExceptionRegistry.log(e);
+//                ExceptionRegistry.log(e);
                 return false;
             }
         }

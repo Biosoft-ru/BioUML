@@ -81,7 +81,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             AstStart start = new WDLParser().parse( new StringReader( text ) );
             WDLImporter wdlImporter = new WDLImporter();
             diagram = wdlImporter.generateDiagram( start, diagram );
-            WDLLayouter.layout( diagram );
+            new WDLLayouter().layout( diagram );
             diagramPath.save( diagram );
             OutputStream out = response.getOutputStream();
             WebDiagramsProvider.sendDiagramChanges( diagram, out, "json" );

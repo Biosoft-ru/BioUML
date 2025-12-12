@@ -63,7 +63,7 @@ public class TestWDL //extends //TestCase
     public static void test(String name) throws Exception
     {
         Diagram diagram = TestUtil.loadDiagram( name );
-        diagram =  WDLLayouter.layout( diagram );
+        diagram =  new WDLLayouter().layout( diagram );
         File imageFile = new File("C:/Users/Damag/" + name + ".png");
         exportImage(diagram, imageFile);
         

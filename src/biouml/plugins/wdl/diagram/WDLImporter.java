@@ -54,10 +54,7 @@ import ru.biosoft.access.core.DataElementImporter;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.jobcontrol.FunctionJobControl;
-import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.bean.BeanInfoEx2;
-
-
 
 public class WDLImporter implements DataElementImporter
 {
@@ -107,7 +104,7 @@ public class WDLImporter implements DataElementImporter
             if( jobControl != null )
                 jobControl.functionFinished();
 
-            WDLLayouter.layout( diagram );
+            new WDLLayouter().layout( diagram );
             CollectionFactoryUtils.save( diagram );
 
             return diagram;
@@ -303,7 +300,7 @@ public class WDLImporter implements DataElementImporter
     public Node createExternalParameterNode(Compartment parent, AstDeclaration declaration)
     {
         String name = declaration.getName();
-        Stub kernel = new Stub( null, name, WDLConstants.EXTERNAL_PARAMETER_TYPE );
+        Stub kernel = new Stub( null, name, WDLConstants.WORKFLOW_INPUT_TYPE );
         Node node = new Node( parent, name, kernel );
         WorkflowUtil.setPosition( node, externalPosition++ );
         setDeclaration( node, declaration );
@@ -718,7 +715,7 @@ public class WDLImporter implements DataElementImporter
     }
 
 
-    private Node addPort(String name, String nodeType, int position, Compartment parent) throws DataElementPutException
+    public static Node addPort(String name, String nodeType, int position, Compartment parent) throws DataElementPutException
     {
         Node inNode = new Node( parent, new Stub( parent, name, nodeType ) );
         WorkflowUtil.setPosition( inNode, position );

@@ -7,7 +7,7 @@
 #set ($QUOTE = '"')
 #######################################################################################
 #####################################MACROS############################################
-#######################################################################################
+######################f#################################################################
 #macro(comma $list)
 #if($velocityCount < $list.size()),#end
 #end
@@ -25,7 +25,6 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #end
 #######################################################################################
 #macro(callNF $call)
-##if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
 #set ($inputs = $helper.getOrderedInputs($call))
   $helper.getResultName($call) = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
 #end
@@ -73,7 +72,7 @@ process $task.getName() {
 $BR  fair true
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
-$BR  input :
+$BR  input:
 #foreach( $input in $inputs )  $helper.getShortDeclaration($input)$BR#end
 $BR#end
 #set ($container = $helper.getContainer($task))#if($container)  container '$container'$BR#end

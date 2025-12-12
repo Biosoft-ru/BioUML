@@ -3874,10 +3874,10 @@ void keyValue()          :
 void primitiveType():
 {}
 {
-    < TRUE_OR_FALSE >
-    | < FLOATING_POINT_LITERAL > 
+    text()
     | < INTEGER >
-    | < TEXT_STRING > 
+    | < TRUE_OR_FALSE >  
+    | < FLOATING_POINT_LITERAL >
 }
 
 void pair()      :
