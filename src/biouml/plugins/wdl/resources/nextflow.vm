@@ -70,23 +70,16 @@ $helper.getExternalInput($externalParameter)
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
 $BR  fair true
-#set ($inputs = $helper.getOrderedInputs($task))
-#if ($inputs.size() > 0)
-$BR  input:
-#foreach( $input in $inputs )  $helper.getShortDeclaration($input)$BR#end
-$BR#end
 #set ($container = $helper.getContainer($task))#if($container)  container '$container'$BR#end
 #set ($cpus = $helper.getCPUs($task))#if($cpus)  cpus $cpus$BR#end
 #set ($memory = $helper.getMemory($task))#if($memory)  memory $memory$BR#end
 #set ($maxRetries = $helper.getMaxRetries($task))#if($maxRetries)  maxRetries $maxRetries$BR#end
-$BR  publishDir "$task.getName()", mode: 'copy'
-$BR  script:
-#foreach($declaration in $helper.getPrivateDeclarations($task))
-  $helper.writePrivateDeclaration($declaration)
-#end
-  """
-  $helper.getCommand($task).trim()
-  """
+  publishDir "$task.getName()", mode: 'copy'
+#set ($inputs = $helper.getOrderedInputs($task))
+#if ($inputs.size() > 0)
+$BR  input:
+#foreach( $input in $inputs )  $helper.getShortDeclaration($input)$BR#end
+$#end
 #set ($outputs = $helper.getOutputs($task))
 #if ($outputs.size() > 0)
 $BR  output:
@@ -94,6 +87,13 @@ $BR  output:
   $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output) 
 #end
 #end
+$BR  script:
+#foreach($declaration in $helper.getPrivateDeclarations($task))
+  $helper.writePrivateDeclaration($declaration)
+#end
+  """
+  $helper.getCommand($task).trim()
+  """
 }$BR
 #end
 #######################################################################################
@@ -102,11 +102,11 @@ $BR  output:
 workflow $helper.getMainWorkflowName() {
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
-  take:
+$BR  take:
 #foreach( $externalParameter in $externalParameters )
   $helper.getName($externalParameter)
 #end
-#end$BR
+#end
 #set ($calls = $helper.orderCalls($diagram))
 #if (!$calls.isEmpty())
 $BR  main:
