@@ -2,7 +2,9 @@ package ru.biosoft.analysis;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.Nonnull;
@@ -81,10 +83,24 @@ public class PlotBarChartAnalysis extends AnalysisMethodSupport<PlotBarChartAnal
 
         DataElementPath imagePath = parameters.getOutputChart();
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        Set<String> usedNames = new HashSet<>();
+        boolean hasDuplicates = false;
         for( DataPoint data : head )
         {
-            dataset.addValue( data.value, data.label, "" );
+            String label = data.label;
+            if( usedNames.contains( label ) )
+            {
+                hasDuplicates = true;
+                String lbase = label;
+                int i = 2;
+                while ( usedNames.contains( label ) )
+                    label = lbase + " (" + i++ + ")";
+            }
+            usedNames.add( label );
+            dataset.addValue( data.value, label, "" );
         }
+        if( hasDuplicates )
+            log.info( "Duplicated labels found and renamed" );
 
         String xAxisLabel = parameters.getXAxisLabel();
         String yAxisLabel = parameters.getYAxisLabel();
