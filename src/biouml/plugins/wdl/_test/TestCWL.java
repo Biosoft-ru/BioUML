@@ -63,7 +63,7 @@ public class TestCWL
     public static void test(String name) throws Exception
     {
         Diagram diagram = TestUtil.loadDiagramCWL( name );
-        WDLLayouter.layout( diagram );
+        new WDLLayouter().layout( diagram );
         TestWDL.exportImage(diagram, new File("C:/Users/Damag/cwl.png"));
         
         String cwl =  new CWLGenerator().generate( diagram );

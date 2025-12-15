@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>$name</title>
+<style>
+.details {
+  table-layout: fixed;
+  width: 100%;
+  max-width: 1900px;
+  border-collapse: collapse;
+}
+
+.details td {
+  border: 1px solid #000;
+  padding: 5px;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 0;
+  width: 50%;
+}
+
+.details pre, .details code {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-family: monospace;
+}
+
+.details object {
+  width: 100%;
+  height: 500px;
+  border: none;
+  overflow: auto;
+}
+</style>
+</head>
+<body>
+<h1>$name</h1>
+<hr>
+<h2>Description</h2>
+<object data="${name}.txt"></object>
+<hr>
+<h2>Diagram</h2>
+<img src="${name}.png"></td>
+<hr>
+<h2>Workflow Description Language</h2>
+<table class="details" cellspacing="2" cellpadding="5" width="95%" border="1">
+<tbody>
+<tr valign="top" style="border: medium solid ;">
+<th align="center" valign="middle">Original WDL</th>
+<th align="center" valign="middle">Generated WDL</th>
+</tr>
+<tr>
+<td><pre><code><object data="${name}.wdl"></object></code></pre><code></td>
+<td><pre><code><object data="${name}_exported.wdl"></object></code></pre><code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>Nextflow</h2>
+<table class="details" cellspacing="2" cellpadding="5" width="95%" border="1">
+<tbody>
+<tr valign="top" style="border: medium solid ;">
+<th align="center" valign="middle">Expected Nextflow</th>
+<th align="center" valign="middle">Generated Nextflow</th>
+</tr>
+<tr>
+<td><pre><code><object data="${name}.nf"></object></code></pre><code></td>
+<td><pre><code><object data="${name}.nf"></object></code></pre><code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</body>
+</html>

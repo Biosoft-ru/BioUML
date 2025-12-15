@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.Properties;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -19,39 +20,74 @@ import com.developmentontheedge.application.ApplicationUtils;
 import biouml.model.Diagram;
 import biouml.plugins.wdl.CWLParser;
 import biouml.plugins.wdl.diagram.WDLImporter;
+import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.diagram.WDLViewBuilder;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
+import biouml.workbench.diagram.ImageExporter;
 import biouml.workbench.graph.DiagramToGraphTransformer;
 import one.util.streamex.StreamEx;
+import ru.biosoft.access.DataElementExporterRegistry;
 import ru.biosoft.graph.HierarchicLayouter;
 import ru.biosoft.graphics.CompositeView;
 
 public class TestUtil
 {
 
-    public static Diagram loadDiagram(String name) throws Exception
+    public static Diagram generateDiagram(String name, String wdl) throws Exception
+    {
+        WDLParser parser = new WDLParser();
+
+        wdl = wdl.replace( "<<<", "{" ).replace( ">>>", "}" );
+        AstStart start = parser.parse( new StringReader( wdl ) );
+        WDLImporter importer = new WDLImporter();
+        return importer.generateDiagram( start, null, name );
+    }
+
+    public static String loadDescription(String name) throws Exception
+    {
+        URL url = TestWDL.class.getResource( "../test_examples/descriptions/" + name + ".txt" );
+        if( url == null )
+            return "TBA";
+
+        File file = new File( url.getFile() );
+        return ApplicationUtils.readAsString( file );
+    }
+    
+    public static String loadWDL(String name) throws Exception
     {
         URL url = TestWDL.class.getResource( "../test_examples/wdl/" + name + ".wdl" );
         if( url == null )
             throw new IllegalArgumentException( "No input file exists: " + name );
 
         File file = new File( url.getFile() );
-        WDLParser parser = new WDLParser();
-        String wdl = ApplicationUtils.readAsString( file );
-        wdl = wdl.replace( "<<<", "{" ).replace( ">>>", "}" );
-        AstStart start = parser.parse( new StringReader( wdl ) );
-        WDLImporter importer = new WDLImporter();
-        return importer.generateDiagram( start, null, name );
+        return ApplicationUtils.readAsString( file );
+    }
+
+    public static Diagram loadDiagram(String name, String wdl) throws Exception
+    {
+        return generateDiagram( loadWDL(name), wdl );
     }
     
+    public static void exportImage(File imageFile, Diagram diagram) throws Exception
+    {
+        new WDLLayouter().layout( diagram );
+        ImageExporter imageWriter = new ImageExporter();
+        //        File file = new File( imagesDir, diagram.getName() + ".png" );
+        Properties properties = new Properties();
+        properties.setProperty( DataElementExporterRegistry.FORMAT, "PNG" );
+        properties.setProperty( DataElementExporterRegistry.SUFFIX, ".png" );
+        imageWriter.init( properties );
+        imageWriter.doExport( diagram, imageFile );
+    }
+
     public static Diagram loadDiagramCWL(String name) throws Exception
     {
         URL url = TestWDL.class.getResource( "../test_examples/cwl/" + name + ".cwl" );
         if( url == null )
             throw new IllegalArgumentException( "No input file exists: " + name );
 
-        return new CWLParser().loadDiagram(new File( url.getFile() ), null, name);
+        return new CWLParser().loadDiagram( new File( url.getFile() ), null, name );
     }
 
     public static void layoutDiagram(Diagram diagram) throws Exception
@@ -104,7 +140,7 @@ public class TestUtil
                 while( ( line = input.readLine() ) != null )
                 {
                     System.out.println( line );
-                    if( line.startsWith( "ERROR" ) || line.startsWith( "WARN" ) || line.startsWith( "Missing" ))
+                    if( line.startsWith( "ERROR" ) || line.startsWith( "WARN" ) || line.startsWith( "Missing" ) )
                         success = false;
                 }
             }
@@ -129,16 +165,21 @@ public class TestUtil
         }
     }
 
+    public static BufferedImage generateImage(Diagram diagram, int width, int height)
+    {
+        new WDLLayouter().layout( diagram );
+        BufferedImage image = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
+        Graphics2D graphics2D = image.createGraphics();
+        CompositeView view = new WDLViewBuilder().createDiagramView( diagram, graphics2D );
+        view.paint( graphics2D );
+        return image;
+    }
+
     public static void showDiagram(Diagram diagram) throws Exception
     {
         int width = 1000;
         int height = 800;
-        layoutDiagram( diagram );
-        BufferedImage image = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D graphics2D = image.createGraphics();
-
-        CompositeView view = new WDLViewBuilder().createDiagramView( diagram, graphics2D );
-        view.paint( graphics2D );
+        BufferedImage image = generateImage( diagram, width, height );
 
         JFrame frame = new JFrame( diagram.getName() );
         frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );

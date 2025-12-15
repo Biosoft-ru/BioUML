@@ -1,0 +1,29 @@
+<html>
+<head>
+<title></title>
+</head>
+<body>
+<h2>WDL</h2>
+<table class="details" cellspacing="2" cellpadding="5" width="95%" border="1">
+<tbody>
+<tr valign="top" style="border: medium solid ;">
+<th align="center" valign="middle">#</th>
+<th align="center" valign="middle">Name</th>
+<th align="center" valign="middle">Diagram generated</th>
+<th align="center" valign="middle">WDL generated</th>
+<th align="center" valign="middle">Nextflow generated</th>
+</tr>
+#set ($index = 1)
+#foreach($result in $results)
+<tr>
+<td>$index</td>
+<td><a href="${result.getName()}/${result.getName()}.html" target="_blank">$result.getName()</a></td>
+<td>$result.getDiagramGeneration()</td>
+<td>$result.getWDLGeneration()</td>
+<td>$result.getNextflowGeneration()</td>
+</tr>
+#set ($index = $index + 1)
+#end
+</tbody>
+</body>
+</html>
