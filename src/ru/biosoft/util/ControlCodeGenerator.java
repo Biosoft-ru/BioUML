@@ -1,5 +1,7 @@
 package ru.biosoft.util;
 
+import java.util.Properties;
+
 import ru.biosoft.util.j2html.tags.Tag;
 
 /**
@@ -12,4 +14,19 @@ public interface ControlCodeGenerator
 {
     Tag<?> getControlCode(Object value) throws Exception;
     Class<?> getSupportedItemType();
+
+    default boolean needProperties()
+    {
+        return false;
+    }
+
+    default Tag<?> getControlCode(Object value, Properties properties) throws Exception
+    {
+        return getControlCode( value );
+    }
+
+    default boolean isApplicable(Properties properties)
+    {
+        return false;
+    }
 }

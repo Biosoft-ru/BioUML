@@ -94,6 +94,10 @@
         <provider prefix="states" class="biouml.model.web.StatesWebProvider"/>
 	</extension>
 	
+    <extension point="ru.biosoft.server.servlets.controlCodeGenerator" id="PlotColorPenCodeGenerator">
+        <generator prefix="PlotColorPen" class="biouml.standard.simulation.plot.web.PlotColorPenCodeGenerator"/>
+    </extension>
+    
 	<extension id="StandardModuleType" point="biouml.workbench.moduleType">
 		<moduleType class="biouml.standard.StandardModuleType" displayName="%standardModule" description="%standardModuleDescription" priority = "100.0"/>
 	</extension>
@@ -633,6 +637,7 @@
   		</viewparts>
   		<importers>
   		    <deny id="biouml.plugins.genomeenhancer.importer.*"/>
+  		    <allow id="biouml.plugins.genomeenhancer.importer.RCCZipFileImporter"/>
   		</importers>
   		<actions>
 	        <deny id="Fix in compartment"/>
