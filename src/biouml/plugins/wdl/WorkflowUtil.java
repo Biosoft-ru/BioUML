@@ -365,30 +365,30 @@ public class WorkflowUtil
         n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
     }
 
-    public static  List<ImportProperties> getImports(Diagram diagram)
+    public static List<ImportProperties> getImports(Diagram diagram)
     {
-        return gatherImports(diagram);
-//        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
-//        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
-//            return new ImportProperties[0];
-//        return (ImportProperties[])dp.getValue();
+        return gatherImports( diagram );
+        //        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+        //        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
+        //            return new ImportProperties[0];
+        //        return (ImportProperties[])dp.getValue();
     }
 
     public static List<ImportProperties> gatherImports(Diagram diagram)
     {
         Map<String, ImportProperties> result = new HashMap<>();
-        
+
         for( Compartment call : diagram.recursiveStream().select( Compartment.class ).filter( n -> isCall( n ) ) )
         {
             String alias = getExternalDiagramAlias( call );
             String diagramName = getDiagramRef( call );
-            if (diagramName != null)
+            if( diagramName != null )
             {
-                ImportProperties ip = new ImportProperties(diagramName, alias);
-                result.put( diagramName,  ip );
-            }             
+                ImportProperties ip = new ImportProperties( diagramName, alias );
+                result.put( diagramName, ip );
+            }
         }
-        return StreamEx.of(result.values()).toList();
+        return StreamEx.of( result.values() ).toList();
     }
 
     public static String getName(Node n)
@@ -503,13 +503,18 @@ public class WorkflowUtil
         if( name.contains( "." ) )
         {
             String[] parts = name.split( "\\." );
-            String call = parts[0];
+            String firstPart = parts[0];
             String varName = parts[1];
-            Compartment callNode = WorkflowUtil.findCall( call, diagram );
-            if( callNode == null )
-                return null;
-            Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
-            return port;
+            Compartment callNode = WorkflowUtil.findCall( firstPart, diagram );
+            if( callNode != null )
+            {
+                Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
+                return port;
+            }
+            else
+            {
+                return diagram.findNode( firstPart );
+            }
         }
         return diagram.recursiveStream().select( Node.class )
                 .filter( n -> ( isExternalParameter( n ) || isExpression( n ) || isCycleVariable( n ) ) )
