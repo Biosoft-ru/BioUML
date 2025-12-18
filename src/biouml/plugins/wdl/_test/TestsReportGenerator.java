@@ -14,8 +14,6 @@ import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.parser.node.SimpleNode;
 
-import biouml.plugins.wdl._test.TestNextflow.TestResult;
-
 public class TestsReportGenerator
 {
     private Template velocityTemplate = null;
