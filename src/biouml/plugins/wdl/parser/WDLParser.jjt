@@ -129,8 +129,8 @@ TOKEN : /* STATE SWITCHERS */
 
 | < OUTPUT : "output" >
 
-| < PRIMITIVE_TYPE :  "Boolean" | "File" |
-                    "Float"| "Int"| "String" >
+| < PRIMITIVE_TYPE :  "Boolean" |  "Boolean?" | "File"  | "File?" |
+                      "Float"| "Float?" | "Int" | "Int?" | "String" |  "String?" >
 | < ARRAY : "Array">
 
 | < NONE : "None" >
