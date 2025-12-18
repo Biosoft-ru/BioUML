@@ -65,6 +65,7 @@ public class NextFlowPreprocessor
             if( expression != null && !expression.isEmpty() )
             {
 //                expression =processCallName(node, expression);
+                expression = removeObject(expression);
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
@@ -133,6 +134,11 @@ public class NextFlowPreprocessor
         return input;
     }
 
+    public static String removeObject(String input)
+    {
+        return input.replace( "object{", "{");
+    }
+    
     public static String removeGlobs(String input)
     {
         String regex = "glob\\((['\"])([a-zA-Z0-9./*_]+)\\1\\)";
