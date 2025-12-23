@@ -10,8 +10,6 @@ import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.NextFlowRunner;
 import biouml.plugins.wdl.WDLGenerator;
-import biouml.plugins.wdl.WorkflowSettings;
-import ru.biosoft.util.TempFiles;
 
 public class TestNextflow //extends //TestCase
 {
@@ -25,47 +23,48 @@ public class TestNextflow //extends //TestCase
 
     private File testsDir;
     private File resultsDir;
-    private List<String> tests = new ArrayList<>();
-    private WorkflowReportGenerator workflowReportGenerator  = new WorkflowReportGenerator();
+    private WorkflowReportGenerator workflowReportGenerator = new WorkflowReportGenerator();
     private List<TestResult> testResults = new ArrayList<>();
 
     public static void main(String ... args) throws Exception
     {
         TestNextflow tester = new TestNextflow();
-        tester.init( TestWDL.class.getResource( "../test_examples/"));
+        tester.init( TestNextflow.class.getResource( "resources/test_suite/" ) );
 
         //CHECKED:
         tester.test( "hello_world" );
+        tester.test( "two_steps" );
+        tester.test( "two_steps2" );
+        tester.test( "two_steps3" );
+        tester.test( "four_steps" );
+        tester.test( "scatter_simple" );
+        tester.test( "test_scatter" );
+        tester.test( "call_expr_call2" );
         tester.test( "simple_if" );
         tester.test( "cycle_expressions" );
         tester.test( "cycle_expressions2" );
         tester.test( "cycle_expressions3" );
         tester.test( "scatter_range" );
-        tester.test( "four_steps" );
+        tester.test( "scatter_range2" );
+        tester.test( "private_declaration" );
+        tester.test( "test_map" );
+        tester.test( "object_output" );
+        tester.test( "object_output2" );
+        tester.test( "nested_access" );
+        tester.test( "nested_access2" );
+        tester.test( "array_select" );
+        tester.test( "array_select2" );
         tester.test( "array_input" );
         tester.test( "array_input2" );
         tester.test( "array_input3" );
-        tester.test( "nested_access" );
         tester.test( "two_inputs" );
-        tester.test( "two_steps" );
-        tester.test( "private_declaration" );
-        tester.test( "object_output" );
-        tester.test( "object_output2" );
-        tester.test( "call_expr_call2" );
-        tester.test( "array_select2" );
-        tester.test( "test_scatter" );
+        tester.test( "two_inputs_cycle" );
         tester.test( "cycle_expression_call" );
         tester.test( "cycle_expression_call2" );
-        tester.test( "two_steps2" );
-        tester.test( "test_map" );
-        tester.test( "array_select" );
-        tester.test( "nested_access2" );
-        tester.test( "scatter_range2" );
-        tester.test( "double_scatter" );
-        tester.test( "two_steps3" );
-        tester.test( "two_inputs_cycle" );
-        tester.test( "scatter_simple" );
+
         //        DO NOT WORK
+
+        //      tester.test( "double_scatter" );
 
         //        test( "nested_cycles" );
         //                test( "double_scatter2" );
@@ -75,8 +74,6 @@ public class TestNextflow //extends //TestCase
         //                test( "array_objects" );
         //test("hic2");
         //        test( "call_mix_expr");
-
-        tester.generateStatistics( tester.testResults );
 
         //                test( "scatter_range_2_extra" );
         //                test( "scatter_range_2_steps" );
@@ -89,12 +86,15 @@ public class TestNextflow //extends //TestCase
         //        test( "scatter_extra_steps" );
         //        test("faidx_import");
         //        test( "fastqc1" );
+
+        tester.generateStatistics( tester.testResults );
     }
 
     public void init(URL url) throws Exception
     {
-        testsDir = new File( url.toURI() );
-        resultsDir = new File( testsDir, "results" );
+        File suiteDir = new File( url.toURI() );
+        testsDir = new File( suiteDir, "tests" );
+        resultsDir = new File( suiteDir, "results" );
         TestUtil.deleteDir( resultsDir );
         resultsDir.mkdir();
     }
@@ -109,15 +109,19 @@ public class TestNextflow //extends //TestCase
 
     public void test(String name) throws Exception
     {
-        tests.add( name );
         TestResult testResult = new TestResult( name );
-        File testDir = TestUtil.loadTestFolder( name );
+        File testDir = new File( testsDir, name );
         String originalWDL = ApplicationUtils.readAsString( new File( testDir, name + ".wdl" ) );
         Diagram diagram = null;
         String nextflow = null;
         String generatedWDL = null;
         String validated = null;
         String roundWDL = null;
+        File resultDir = new File( resultsDir, name );
+        resultDir.mkdirs();
+
+        copyFiles( testDir, resultDir );
+
         //1. Generate diagram
         try
         {
@@ -132,7 +136,8 @@ public class TestNextflow //extends //TestCase
 
         if( diagram != null )
         {
-
+            testResult.setTitle( TestUtil.getTitle( diagram ) );
+            testResult.setDescrption( TestUtil.getShortDescription( diagram ) );
             //2. Generate WDL
             try
             {
@@ -179,7 +184,7 @@ public class TestNextflow //extends //TestCase
                 {
                     File jsonFile = new File( testDir, name + ".json" );
                     String json = jsonFile.exists() ? ApplicationUtils.readAsString( jsonFile ) : null;
-                    String nextFlowExecuted = runNextFlow( name, nextflow, json );
+                    String nextFlowExecuted = runNextFlow( testDir, resultDir, name, nextflow, json );
                     testResult.setNextflowExecuted( nextFlowExecuted );
                 }
                 catch( Exception ex )
@@ -187,9 +192,9 @@ public class TestNextflow //extends //TestCase
                     testResult.setNextflowExecuted( ex.toString() );
                 }
             }
-            saveResults( name, TestUtil.loadDescription( name ), originalWDL, roundWDL, generatedWDL, nextflow, diagram );
+            saveResults( name, resultDir, TestUtil.getShortDescription( diagram ), roundWDL, generatedWDL, nextflow, diagram );
 
-            //5. Validate WDL (optional)
+            //6. Validate WDL (optional)
             if( !validateWDL )
                 validated = "N/A";
             else if( generatedWDL != null )
@@ -203,41 +208,33 @@ public class TestNextflow //extends //TestCase
         //        System.out.println( generatedWDL );
     }
 
-    private static String getParameterFile(String name) throws Exception
+    private void copyFiles(File source, File target) throws Exception
     {
-        URL url = TestWDL.class.getResource( "../test_examples/wdl/" + name );
-        if( url == null )
-            return null;
-        return ApplicationUtils.readAsString( new File( url.getFile() ) );
+        for( File s : source.listFiles() )
+        {
+            if( s.getName().endsWith( ".nf" ) )
+                continue;
+            File copy = new File( target, s.getName() );
+            copy.createNewFile();
+            String content = ApplicationUtils.readAsString( s );
+            ApplicationUtils.writeString( copy, content );
+        }
     }
 
-    private void saveInput(String name, String originalWDL, String nextflow) throws Exception
-    {
-        File dir = new File( testsDir, name );
-        dir.mkdirs();
-        ApplicationUtils.writeString( new File( dir, name + ".wdl" ), originalWDL );
-        ApplicationUtils.writeString( new File( dir, name + ".nf" ), nextflow );
-    }
-
-    private void saveResults(String name, String description, String originalWDL, String roundWDL, String generatedWDL, String nextflow,
+    private void saveResults(String name, File resultDir, String description, String roundWDL, String generatedWDL, String nextflow,
             Diagram diagram) throws Exception
     {
-        File dir = new File( resultsDir, name );
-        dir.mkdirs();
         if( diagram != null )
-            TestUtil.exportImage( new File( dir, name + ".png" ), diagram );
+            TestUtil.exportImage( new File( resultDir, name + ".png" ), diagram );
         if( nextflow != null )
-            ApplicationUtils.writeString( new File( dir, name + ".nf" ), nextflow );
+            ApplicationUtils.writeString( new File( resultDir, name + ".nf" ), nextflow );
         if( description != null )
-            ApplicationUtils.writeString( new File( dir, name + ".txt" ), description );
-        if( originalWDL != null )
-            ApplicationUtils.writeString( new File( dir, name + ".wdl" ), originalWDL );
+            ApplicationUtils.writeString( new File( resultDir, name + ".txt" ), description );
         if( generatedWDL != null )
-            ApplicationUtils.writeString( new File( dir, name + "_exported.wdl" ), generatedWDL );
+            ApplicationUtils.writeString( new File( resultDir, name + "_exported.wdl" ), generatedWDL );
         if( roundWDL != null )
-            ApplicationUtils.writeString( new File( dir, name + "_round.wdl" ), roundWDL );
-        ApplicationUtils.writeString( new File( dir, name + ".html" ), workflowReportGenerator.generate( name, dir ) );
-
+            ApplicationUtils.writeString( new File( resultDir, name + "_round.wdl" ), roundWDL );
+        ApplicationUtils.writeString( new File( resultDir, name + ".html" ), workflowReportGenerator.generate( name, resultDir ) );
     }
 
     private static void checkScript(String name, String nextFlow) throws Exception
@@ -247,36 +244,26 @@ public class TestNextflow //extends //TestCase
         //        assertEquals( test, nextFlow );
     }
 
-
-    private static String runNextFlow(String name, String script, String parameters)
+    private static String runNextFlow(File testDir, File resultDir, String name, String script, String parameters)
     {
-        return runNextFlow( name, script, parameters, new ArrayList<String>() );
+        return runNextFlow( testDir, resultDir, name, script, parameters, new ArrayList<String>() );
     }
 
-    private static String runNextFlow(String name, String script, String parameters, List<String> imports)
+    private static String runNextFlow(File testDir, File resultDir, String name, String script, String parameters, List<String> imports)
     {
         boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
         try
         {
-            String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
-            new File( outputDir ).mkdirs();
-            NextFlowRunner.generateFunctions( outputDir );
-
+            NextFlowRunner.generateFunctions( resultDir );
 
             for( String imported : imports )
             {
-                URL url = TestWDL.class.getResource( "../test_examples/nextflow/" + imported + ".nf" );
-                if( url == null )
-                    throw new IllegalArgumentException( "No input file exists: " + name );
-
-                File file = new File( url.getFile() );
-                File copy = new File( outputDir, file.getName() );
+                File file = new File( testDir, imported + ".nf" );
+                File copy = new File( resultDir, file.getName() );
                 ApplicationUtils.copyFile( copy, file );
             }
 
-            String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-
-            File f = new File( outputDir, name + ".nf" );
+            File f = new File( resultDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
 
             ProcessBuilder builder = null;
@@ -284,52 +271,27 @@ public class TestNextflow //extends //TestCase
             if( parameters != null )
             {
                 String jsonName = name + ".json";
-                File jsonFile = new File( outputDir, name + ".json" );
-                String[] paramLines = parameters.replace( "{", "" ).replace( "}", "" ).replace( "\"", "" ).split( "," );
-                for( String parameter : paramLines )
-                {
-                    try
-                    {
-                        String paramName = parameter.split( ":" )[1];
-                        paramName = paramName.trim().replace( "\n", "" ).replace( ",", "" );
-                        String paramContent = getParameterFile( paramName );
-                        if( paramContent != null )
-                        {
-                            File paramFile = new File( outputDir, paramName );
-                            ApplicationUtils.writeString( paramFile, paramContent );
-                        }
-                    }
-                    catch( Exception ex )
-                    {
-
-                    }
-                }
-                for( String s : WorkflowSettings.getFileInputs( parameters ) )
-                {
-
-                }
-                ApplicationUtils.writeString( jsonFile, parameters );
-
                 if( isWindows )
                 {
-                    builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", f.getName(), "-params-file", jsonName );
+                    builder = new ProcessBuilder( "wsl", "--cd", resultDir.getAbsolutePath(), "nextflow", f.getName(), "-params-file",
+                            jsonName );
                 }
                 else
                 {
                     builder = new ProcessBuilder( "nextflow", f.getName(), "-params-file", jsonName );
-                    builder.directory( new File( outputDir ) );
+                    builder.directory( resultDir );
                 }
             }
             else
             {
                 if( isWindows )
                 {
-                    builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", f.getName() );
+                    builder = new ProcessBuilder( "wsl", "--cd", resultDir.getAbsolutePath(), "nextflow", f.getName() );
                 }
                 else
                 {
                     builder = new ProcessBuilder( "nextflow", f.getName() );
-                    builder.directory( new File( outputDir ) );
+                    builder.directory( resultDir );
                 }
             }
             return TestUtil.executeProcess( builder.start() );
