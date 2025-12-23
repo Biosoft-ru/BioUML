@@ -64,9 +64,9 @@ public class TestUtil
         return ApplicationUtils.readAsString( file );
     }
 
-    public static Diagram loadDiagram(String name, String wdl) throws Exception
+    public static Diagram loadDiagram(String name) throws Exception
     {
-        return generateDiagram( loadWDL(name), wdl );
+        return generateDiagram( name, loadWDL( name ) );
     }
     
     public static void exportImage(File imageFile, Diagram diagram) throws Exception

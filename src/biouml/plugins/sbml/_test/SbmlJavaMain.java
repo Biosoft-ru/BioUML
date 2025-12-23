@@ -63,7 +63,8 @@ public class SbmlJavaMain
 
         CommandLine commandLine = ( new PosixParser() ).parse(options, args);
 
-        String name = commandLine.getOptionValue("f", null);
+        String defValue = null;
+        String name = commandLine.getOptionValue( "f", defValue );
         if( name == null )
         {
             throw new IllegalArgumentException("File name is not specified.");
