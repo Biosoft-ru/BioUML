@@ -22,6 +22,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.CWLParser;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.diagram.WDLViewBuilder;
@@ -282,5 +283,26 @@ public class TestUtil
         if( r.isSuccess() )
             return TEST_OK;
         return r.getError();
+    }
+
+
+    public static String getTitle(Diagram diagram)
+    {
+        String title = WorkflowUtil.getMeta( diagram ).get( "title" );
+        if( title == null )
+            title = diagram.getTitle();
+        if( title.startsWith( "\"" ) && title.endsWith( "\"" ) )
+            title = title.substring( 1, title.length() - 1 );
+        return title;
+    }
+
+    public static String getShortDescription(Diagram diagram)
+    {
+        String description = WorkflowUtil.getMeta( diagram ).get( "description" );
+        if( description == null )
+            description = diagram.getTitle();
+        if( description.startsWith( "\"" ) && description.endsWith( "\"" ) )
+            description = description.substring( 1, description.length() - 1 );
+        return description;
     }
 }
