@@ -9,7 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.swing.JFrame;
@@ -19,20 +22,20 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.CWLParser;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.diagram.WDLViewBuilder;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
 import biouml.workbench.diagram.ImageExporter;
-import biouml.workbench.graph.DiagramToGraphTransformer;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataElementExporterRegistry;
-import ru.biosoft.graph.HierarchicLayouter;
 import ru.biosoft.graphics.CompositeView;
 
 public class TestUtil
 {
+    public static final String TEST_OK = "Ok";
 
     public static Diagram generateDiagram(String name, String wdl) throws Exception
     {
@@ -53,7 +56,16 @@ public class TestUtil
         File file = new File( url.getFile() );
         return ApplicationUtils.readAsString( file );
     }
-    
+
+    public static File loadTestFolder(String name) throws Exception
+    {
+        URL url = TestWDL.class.getResource( "../test_examples/tests/" + name );
+        if( url == null )
+            throw new IllegalArgumentException( "No folder exists: " + name );
+
+        return new File( url.getFile() );
+    }
+
     public static String loadWDL(String name) throws Exception
     {
         URL url = TestWDL.class.getResource( "../test_examples/wdl/" + name + ".wdl" );
@@ -64,11 +76,11 @@ public class TestUtil
         return ApplicationUtils.readAsString( file );
     }
 
-    public static Diagram loadDiagram(String name) throws Exception
+    public static Diagram loadDiagram(String name, String wdl) throws Exception
     {
-        return generateDiagram( name, loadWDL( name ) );
+        return generateDiagram( name, wdl );
     }
-    
+
     public static void exportImage(File imageFile, Diagram diagram) throws Exception
     {
         new WDLLayouter().layout( diagram );
@@ -81,6 +93,13 @@ public class TestUtil
         imageWriter.doExport( diagram, imageFile );
     }
 
+
+    public static Diagram loadDiagram(String name) throws Exception
+    {
+        return generateDiagram( name, loadWDL( name ) );
+
+    }
+    
     public static Diagram loadDiagramCWL(String name) throws Exception
     {
         URL url = TestWDL.class.getResource( "../test_examples/cwl/" + name + ".cwl" );
@@ -90,59 +109,62 @@ public class TestUtil
         return new CWLParser().loadDiagram( new File( url.getFile() ), null, name );
     }
 
-    public static void layoutDiagram(Diagram diagram) throws Exception
+    public static void deleteDir(File dir)
     {
-        HierarchicLayouter layouter = new HierarchicLayouter();
-        //        Layouter layouter = new FastGridLayouter();
-        DiagramToGraphTransformer.layout( diagram, layouter );
+        if( dir.isDirectory() )
+        {
+            for( File f : dir.listFiles() )
+                deleteDir( f );
+        }
+        dir.delete();
     }
 
-    public static void showDiagram(String name) throws Exception
+    public static String executeProcess(Process process) throws Exception
     {
-        Diagram diagram = loadDiagram( name );
-        showDiagram( diagram );
-    }
-
-
-    public static boolean executeCommand(String[] command) throws Exception
-    {
-        System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
-        Process process = Runtime.getRuntime().exec( command );
-        CommandRunner r = new CommandRunner( process );
+        CommandRunner r = new CommandRunner( process, new NextFlowResultChecker() );
         Thread thread = new Thread( r );
         thread.start();
         process.waitFor();
-        return r.isSuccess();
+        return r.isSuccess() ? TEST_OK : r.getError();
+    }
+
+    public static String executeCommand(String[] command) throws Exception
+    {
+        System.out.println( "Executing command " + StreamEx.of( command ).joining( " " ) );
+        Process process = Runtime.getRuntime().exec( command );
+        return executeProcess( process );
     }
 
     private static class CommandRunner implements Runnable
     {
         Process process;
-        public CommandRunner(Process process)
+        ResultChecker resultChecker;
+        String error = "";
+        boolean checked = false;
+
+        public CommandRunner(Process process, ResultChecker resultChecker)
         {
             this.process = process;
+            this.resultChecker = resultChecker;
         }
 
-        public boolean success;
+        public String getError()
+        {
+            return error;
+        }
 
         public boolean isSuccess()
         {
-            return success;
+            return error.isEmpty() && checked;
         }
+
         public void run()
         {
-            success = true;
             BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-            String line = null;
-
             try
             {
-                while( ( line = input.readLine() ) != null )
-                {
-                    System.out.println( line );
-                    if( line.startsWith( "ERROR" ) || line.startsWith( "WARN" ) || line.startsWith( "Missing" ) )
-                        success = false;
-                }
+                checked = resultChecker.check( input );
+                error = StreamEx.of( resultChecker.getErrors() ).joining( "\n" );
             }
             catch( IOException e )
             {
@@ -151,10 +173,14 @@ public class TestUtil
             //                
             //for some reason cwl-runner outputs everything into error stream
             BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-            line = null;
+            String line = null;
 
             try
             {
+                StringWriter sw = new StringWriter();
+                err.transferTo( sw );
+                error = error + sw.getBuffer().toString();
+
                 while( ( line = err.readLine() ) != null )
                     System.out.println( line );
             }
@@ -162,6 +188,50 @@ public class TestUtil
             {
                 e.printStackTrace();
             }
+
+        }
+    }
+
+    private static abstract class ResultChecker
+    {
+        List<String> errors = new ArrayList<>();
+        public List<String> getErrors()
+        {
+            return errors;
+        }
+        public abstract boolean check(BufferedReader input) throws IOException;
+    }
+
+    private static class NextFlowResultChecker extends ResultChecker
+    {
+
+        public boolean check(BufferedReader input) throws IOException
+        {
+            String line = null;
+            while( ( line = input.readLine() ) != null )
+            {
+                System.out.println( line );
+                if( line.startsWith( "ERROR" ) || line.startsWith( "WARN" ) || line.startsWith( "Missing" ) )
+                {
+                    errors.add( line );
+                }
+            }
+            return errors.isEmpty();
+        }
+    }
+
+    private static class WDLValidationResultChecker extends ResultChecker
+    {
+        public boolean check(BufferedReader input) throws IOException
+        {
+            String line = null;
+            while( ( line = input.readLine() ) != null )
+            {
+                System.out.println( line );
+                if( line.startsWith( "Success" ) )
+                    return true;
+            }
+            return false;
         }
     }
 
@@ -206,5 +276,40 @@ public class TestUtil
             if( image != null )
                 g.drawImage( image, 0, 0, this );
         }
+    }
+
+
+    public static String validateWDL(String wdlPath, String womtoolPath) throws Exception
+    {
+        String[] command = new String[] {"java", "-jar", womtoolPath, "validate", wdlPath};
+        Process process = Runtime.getRuntime().exec( command );
+        CommandRunner r = new CommandRunner( process, new WDLValidationResultChecker() );
+        Thread thread = new Thread( r );
+        thread.start();
+        process.waitFor();
+        if( r.isSuccess() )
+            return TEST_OK;
+        return r.getError();
+    }
+
+
+    public static String getTitle(Diagram diagram)
+    {
+        String title = WorkflowUtil.getMeta( diagram ).get( "title" );
+        if( title == null )
+            title = diagram.getTitle();
+        if( title.startsWith( "\"" ) && title.endsWith( "\"" ) )
+            title = title.substring( 1, title.length() - 1 );
+        return title;
+    }
+
+    public static String getShortDescription(Diagram diagram)
+    {
+        String description = WorkflowUtil.getMeta( diagram ).get( "description" );
+        if( description == null )
+            description = diagram.getTitle();
+        if( description.startsWith( "\"" ) && description.endsWith( "\"" ) )
+            description = description.substring( 1, description.length() - 1 );
+        return description;
     }
 }

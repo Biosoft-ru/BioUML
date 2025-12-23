@@ -10,6 +10,14 @@ def ceil(val) {
 	return Math.ceil(val)
 }
 
+def get(arr, index) {
+    if (arr instanceof java.util.List || arr instanceof java.util.Map) {
+        return arr[index]
+    }
+    else {
+        return arr.collect().map{v->v[index]}
+    }
+}
 
 def length(arr) {
     if (arr instanceof java.util.List)
@@ -48,29 +56,27 @@ def toChannel(arr)
 
 def select_first(arr)
 {
-	return arr.find { it != null && it != '' }
+	return arr.find { it != null && it != "NO_VALUE" }
 }
 
 def select_all(array) {
-    return array.findAll { it != null }
+    return array.findAll { it != null && it != "NO_VALUE"}
 }
 
 def defined(val) {
     return val != null
 }
 
-def read_int(path) {
-    def file = new File(path)
-    def lines = file.readLines().findAll { it.trim() }
-    if (lines.size() != 1) {
-        throw new IllegalArgumentException("File must contain exactly one non-empty line")
-    }
-    def line = lines[0].trim()
-    try {
-        return line.toInteger()
-    } catch (NumberFormatException e) {
-        throw new IllegalArgumentException("File does not contain a valid integer")
-    }
+def read_string(filePath) {
+    return new File(filePath).text.trim()
+}
+
+def read_int(filePath) {
+    return new File(filePath).text.trim() as Integer
+}
+
+def read_float(filePath) {
+    return new File(filePath).text.trim() as Float
 }
 
 def numerate(ch) {
@@ -78,5 +84,15 @@ def numerate(ch) {
     return ch.map { sublist ->
         counter++
         tuple(counter, sublist)
+    }
+}
+
+def combineAll(inputs) {
+    if (inputs.size() == 0) {
+        return Channel.empty()
+    }
+    
+    return inputs.drop(1).inject(toChannel(inputs[0])) { result, input ->
+        result.combine(toChannel(input))
     }
 }

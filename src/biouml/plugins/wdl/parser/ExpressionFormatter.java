@@ -108,6 +108,7 @@ public class ExpressionFormatter
     
     private void processConstructor(AstConstructor astConstructor)
     {
+        result.append(((AstConstructor)astConstructor).firstToken);
         for (Node node: astConstructor.getChildren())
         {
             result.append(node.toString());

@@ -28,7 +28,7 @@ public class NextFlowRunner
     private static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
     private static final Logger log = Logger.getLogger( NextFlowRunner.class.getName() );
 
-    public static File generateFunctions(String outputDir) throws IOException
+    public static File generateFunctions(File outputDir) throws IOException
     {
         InputStream inputStream = NextFlowRunner.class.getResourceAsStream( BIOUML_FUNCTIONS_NF );
         File result = new File( outputDir, "biouml_function.nf" );
@@ -37,25 +37,26 @@ public class NextFlowRunner
     }
 
 
-    public static String runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl)
+    public static String runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputPath, boolean useWsl)
             throws Exception
     {
         if( settings.getOutputPath() == null )
             throw new InvalidParameterException( "Output path not specified" );
 
-        new File( outputDir ).mkdirs();
+        File outputDir =  new File( outputPath );
+        outputDir.mkdirs();
         DataCollectionUtils.createSubCollection( settings.getOutputPath() );
 
         File config = new File( outputDir, "nextflow.config" );
         ApplicationUtils.writeString( config, "docker.enabled = true" );
 
-        File json = settings.generateParametersJSON( outputDir );
+        File json = settings.generateParametersJSON( outputPath );
 
-        settings.exportCollections( outputDir );
+        settings.exportCollections( outputPath );
 
         generateFunctions( outputDir );
 
-        exportIncludes( diagram, outputDir );
+        exportIncludes( diagram, outputPath );
 
         if( nextFlowScript == null )
             nextFlowScript = new NextFlowGenerator().generate( diagram );
@@ -69,14 +70,14 @@ public class NextFlowRunner
         ProcessBuilder builder;
         if( useWsl )
         {
-            String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
+            String parent = new File( outputPath ).getAbsolutePath().replace( "\\", "/" );
             builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
                     json.getName() );
         }
         else
         {
             builder = new ProcessBuilder( "nextflow", f.getName(), "-c", "nextflow.config", "-params-file", json.getName() );
-            builder.directory( new File( outputDir ) );
+            builder.directory( new File( outputPath ) );
         }
 
         System.out.println( "COMMAND: " + StreamEx.of( builder.command() ).joining( " " ) );
@@ -116,7 +117,7 @@ public class NextFlowRunner
         } ).start();
 
         process.waitFor();
-        importResults( diagram, settings, outputDir );
+        importResults( diagram, settings, outputPath );
         return "";
         //        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
         //        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );

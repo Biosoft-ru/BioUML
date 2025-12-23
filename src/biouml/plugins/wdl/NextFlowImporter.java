@@ -42,7 +42,7 @@ public class NextFlowImporter
         f.createNewFile();
         ApplicationUtils.writeString( f, nextFlowScript );
 
-        NextFlowRunner.generateFunctions( outputDir );
+        NextFlowRunner.generateFunctions( new File( outputDir ) );
         ProcessBuilder builder;
         if( useWsl )
         {

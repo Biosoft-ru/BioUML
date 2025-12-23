@@ -65,10 +65,10 @@ version $helper.getVersion()$BR
 #######################################################################################
 #foreach ( $import in $helper.getImports() )
 import "$import.getSourceName()" as $import.getAlias()
-#end$BR
+#end
 #foreach ( $struct in $helper.getStructs() )
 #struct($struct)
-#end$BR
+#end
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################
@@ -101,9 +101,9 @@ task $task.getName() {
 #foreach( $declaration in $helper.getBeforeCommand($task) )
   $declaration.toString()
 #end
-  command {
+  command <<<
      $helper.getCommand($task).trim()
-  }$BR
+  >>>$BR
 #set ( $outputs = $helper.getOutputs($task))
 #if ( $outputs.size() > 0)
   output {

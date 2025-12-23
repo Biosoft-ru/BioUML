@@ -1,4 +1,4 @@
-version 1.2
+version 1.0
 
 task write_number {
   input {
@@ -6,7 +6,7 @@ task write_number {
   }
 
   command {
-    echo "~{number}" > output.txt
+    echo ~{number} > output.txt
   }
 
   output {

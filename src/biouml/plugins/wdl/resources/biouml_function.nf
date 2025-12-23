@@ -56,11 +56,11 @@ def toChannel(arr)
 
 def select_first(arr)
 {
-	return arr.find { it != null && it != '' }
+	return arr.find { it != null && it != "NO_VALUE" }
 }
 
 def select_all(array) {
-    return array.findAll { it != null }
+    return array.findAll { it != null && it != "NO_VALUE"}
 }
 
 def defined(val) {

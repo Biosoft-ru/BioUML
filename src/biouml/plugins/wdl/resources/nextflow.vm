@@ -12,13 +12,13 @@
 #if($velocityCount < $list.size()),#end
 #end
 #######################################################################################
-#macro(conditional $conditional)
+#macro(conditionalNF $conditional)
 ${BR}if ( $helper.findCondition($conditional) ) {
 #foreach( $n in $helper.orderCalls($conditional) )
 #if ( $helper.isCycle($n) )#scatterNF($n)
 #elseif ( $helper.isCall($n) )#callNF($n)
 #elseif ( $helper.isExpression($n) )#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditional($n)
+#elseif ( $helper.isConditional($n) )#conditionalNF($n)
 #end 
 #end
 }
@@ -107,7 +107,7 @@ $BR  main:
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 #elseif ($helper.isExpression($n))#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditional($n)
+#elseif ( $helper.isConditional($n) )#conditionalNF($n)
 #end
 #end 
 #end
