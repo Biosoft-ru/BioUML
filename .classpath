@@ -180,5 +180,6 @@
 	<classpathentry kind="lib" path="plugins/org.apache.commons.lang3_3.18.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar"/>
 	<classpathentry kind="lib" path="plugins/htsjdk_4.3.0/commons-jexl-2.1.1.jar"/>
+	<classpathentry kind="lib" path="plugins/jackson-core-2.11.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
