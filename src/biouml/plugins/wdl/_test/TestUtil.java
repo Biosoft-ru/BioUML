@@ -78,7 +78,7 @@ public class TestUtil
 
     public static Diagram loadDiagram(String name, String wdl) throws Exception
     {
-        return generateDiagram( loadWDL( name ), wdl );
+        return generateDiagram( name, wdl );
     }
 
     public static void exportImage(File imageFile, Diagram diagram) throws Exception
@@ -93,6 +93,13 @@ public class TestUtil
         imageWriter.doExport( diagram, imageFile );
     }
 
+
+    public static Diagram loadDiagram(String name) throws Exception
+    {
+        return generateDiagram( name, loadWDL( name ) );
+
+    }
+    
     public static Diagram loadDiagramCWL(String name) throws Exception
     {
         URL url = TestWDL.class.getResource( "../test_examples/cwl/" + name + ".cwl" );
