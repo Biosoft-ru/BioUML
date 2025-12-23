@@ -1,0 +1,56 @@
+version 1.0
+X
+
+task FirstTask {
+  input {
+    Int element
+  }
+  command {
+    echo ~{element} > element_~{element}.txt
+  }
+  output {
+    File out_file = "element_~{element}.txt"
+  }
+}
+
+task SecondTask {
+  input {
+    File in_file
+    String suffix
+  }
+  command {
+    cp ~{in_file} modified_~{suffix}.txt
+  }
+  output {
+    File modified_file = "modified_~{suffix}.txt"
+  }
+}
+
+workflow NestedScatterExample {
+  input {
+    Array[Array[Int]] F
+  }
+
+  scatter (i in range(length(F))) {
+    Array[Int] data = F[i]
+
+      scatter (j in range(length(data))) {
+        call FirstTask {
+          input: element = data[j]
+        }
+      }
+	  
+      Array[File] elems = FirstTask.out_file
+      scatter (k in range(length(elems))) {
+        call SecondTask {
+          input: 
+            in_file = elems[k],
+            suffix = "x" + i.toString()
+        }
+      }
+  }
+
+  output {
+    Array[Array[File]] all_files = SecondTask.modified_file
+  }
+}
