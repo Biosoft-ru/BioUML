@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<plugin>  
-  <!--extension id="ReactomeBioPAXHub" point="ru.biosoft.access.biohub"> 
-     <hubItem name="Reactome BioPAX" class="biouml.plugins.reactome.biohub.ReactomeBioHub">
-        <property name="moduleName" value="%moduleNameReactomeBioPAX"/>
-     </hubItem> 
-  </extension-->
-</plugin>
