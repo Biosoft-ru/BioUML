@@ -195,7 +195,7 @@ var resourcesEN = {
     dlgPlotEditorAddSeriesTable: "Simulation result/experiment table:",
     dlgPlotEditorAddSeriesX: "X variable",
     dlgPlotEditorAddSeriesY: "Y variable",
-    dlgPlotEditorSeriesSave: "Save series changes and update plot",
+    dlgPlotEditorSeriesSave: "Apply series changes and update plot",
     dlgPlotEditorEdit: "Edit plot options",
     dlgPlotEditorTableNoPlots: "Plots not found for diagram <b>{diagram}</b>. Please, create plot to edit variables.",
     

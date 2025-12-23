@@ -38,7 +38,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
-import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
 import com.developmentontheedge.beans.model.Property;
 import com.developmentontheedge.beans.model.Property.PropWrapper;
@@ -48,11 +47,7 @@ import com.developmentontheedge.beans.swing.table.ColumnModel;
 import com.developmentontheedge.beans.swing.table.ColumnWithSort;
 import com.developmentontheedge.beans.swing.table.SortedTableModel;
 
-import biouml.model.dynamics.plot.Curve;
-import biouml.model.dynamics.plot.Experiment;
-import biouml.model.dynamics.plot.PlotInfo;
 import biouml.plugins.server.access.AccessProtocol;
-import biouml.standard.simulation.plot.Series;
 import one.util.streamex.Joining;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
@@ -77,7 +72,6 @@ import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.graphics.ColorEditor;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.Pen;
-import ru.biosoft.graphics.PenEditor;
 import ru.biosoft.graphics.View;
 import ru.biosoft.graphics.chart.Chart;
 import ru.biosoft.jobcontrol.JobControlException;
@@ -717,39 +711,7 @@ public class WebTablesProvider extends WebProviderSupport
                             .attr( "onclick", "getExpressionDialog('" + id+ "', this);" ));
             }
 
-            else if( PenEditor.class.isAssignableFrom( editorClass ) && rowBean != null
-                    && Series.class.isAssignableFrom( rowBean.getClass() ) )
-            {
-                //TODO: use ControlCodeGenerator
-                String plotPath = path.substring( TABLE_CELL_PREFIX.length() );
-                String name = ( (Series)rowBean ).getName();
-                String parentPath = "plotseriespen/" + plotPath + ";" + name;
-                return p().withClass( "cellControl" ).attr( "style", "white-space:nowrap;" )
-                        .with( input().withType( "image" ).withSrc( "icons/edit.gif" ).withValue( "Edit" ).attr( "onclick",
-                                "createBeanEditorDialog('Plot line specification', '" + parentPath
-                                        + "', function(){}, true);" ) );
-            }
-            else if( PenEditor.class.isAssignableFrom( editorClass ) && rowBean != null && rowBean instanceof DataElement
-                    && ( Curve.class.isAssignableFrom( rowBean.getClass() ) || Experiment.class.isAssignableFrom( rowBean.getClass() ) ) )
-            {
-                //TODO: rewrite the code, use ControlCodeGenerator
-                //TODO: create specific web control for any pen (processing as json) and avoid bean mediator 
-                String fullPath = path.substring( TABLE_CELL_PREFIX.length() );
-                String name = ( (DataElement)rowBean ).getName();
-                Option plotParent = ( (Option)rowBean ).getParent();
-                if( plotParent != null && plotParent instanceof PlotInfo )
-                {
-                    String plotName = ( (PlotInfo)plotParent ).getTitle();
-                    String varType = Curve.class.isAssignableFrom( rowBean.getClass() ) ? "curve" : "experiment";
-                    String parentPath = "plotseriespen/" + fullPath + ";" + plotName + ";" + name + ";" + varType;
-                    return p().withClass( "cellControl" ).attr( "style", "white-space:nowrap;" )
-                            .with( input().withType( "image" ).withSrc( "icons/edit.gif" ).withValue( "Edit" ).attr( "onclick",
-                                    "createBeanEditorDialog('Plot line specification', '" + parentPath + "', function(){}, true);" ) );
-                }
-                else
-                    return getControlCode( value, readOnly, id, path, null, false );
 
-            }
             else if( ColorEditor.class.isAssignableFrom(editorClass) && !readOnly )
             {
                 Color color = ((Color) value);
@@ -760,6 +722,24 @@ public class WebTablesProvider extends WebProviderSupport
             }
             else
             {
+                Properties propsForGenerator = new Properties();
+                propsForGenerator.put( "value", value );
+                propsForGenerator.put( "editorClass", editorClass );
+                propsForGenerator.put( "parentPath", path.substring( TABLE_CELL_PREFIX.length() ) );
+                propsForGenerator.put( "parentBean", rowBean );
+                ControlCodeGenerator cg = controlCodeGenerators.stream().findFirst( ccg -> ccg.isApplicable( propsForGenerator ) ).orElse( null );
+                if( cg != null )
+                {
+                    try
+                    {
+                        Tag<?> controlCode = cg.getControlCode( value, propsForGenerator );
+                        if( controlCode != null )
+                            return controlCode;
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                }
                 return getControlCode( value, readOnly, id, path, null, false );
             }
         }

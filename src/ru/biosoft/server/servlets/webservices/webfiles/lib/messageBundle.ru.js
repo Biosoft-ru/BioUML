@@ -307,7 +307,7 @@ var resourcesRU = {
     dlgPlotEditorAddSeriesTable: "Результат симуляции/таблица эксперимента:",
     dlgPlotEditorAddSeriesX: "X переменная",
     dlgPlotEditorAddSeriesY: "Y переменная",
-    dlgPlotEditorSeriesSave: "Сохранить изменения серии и обновить график",
+    dlgPlotEditorSeriesSave: "Применить изменения серии и обновить график",
     dlgPlotEditorEdit: "Редактировать параметры графика",
     dlgPlotEditorTableNoPlots: "Графики не найдены для диаграммы <b>{diagram}</b>. Пожалуйста, создайте график для редактирования переменных.",
 

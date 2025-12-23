@@ -849,11 +849,7 @@
     </target>
 
     <target name="plugin.reactome" depends="compile">
-        <create.plugin plugin="biouml.plugins.reactome" source="biouml/plugins/reactome">
-            <files>
-                <exclude name="biouml/plugins/reactome/biohub/**"/>
-            </files>
-        </create.plugin>
+        <create.plugin plugin="biouml.plugins.reactome" source="biouml/plugins/reactome"/>
     </target>
 
     <target name="plugin.chemoinformatics" depends="compile">
