@@ -846,8 +846,15 @@ public class WorkflowUtil
         return getSources( node ).anyMatch( n -> isCall( n.getCompartment() ) );
     }
 
-    //    public static breakChain(List<Node> calls)
-    //    {
-    //        
-    //    }
+    public static boolean equals(List<Compartment> list1, List<Compartment> list2)
+    {
+        if( list1.size() != list2.size() )
+            return false;
+        for( int i = 0; i < list1.size(); i++ )
+        {
+            if( ! ( list1.get( i ).equals( list2.get( i ) ) ) )
+                return false;
+        }
+        return true;
+    }
 }
