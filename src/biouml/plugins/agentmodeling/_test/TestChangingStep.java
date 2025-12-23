@@ -41,7 +41,7 @@ public class TestChangingStep extends TestCase
         event.addEventAssignment( new Assignment("__TIME_INCREMENT__", "100", event), true );
         diagram.getType().getSemanticController().createInstance( diagram, Event.class, new Point(0,0), event );
         
-        SubDiagramProperties properties = new SubDiagramProperties(diagram);
+//        SubDiagramProperties properties = new SubDiagramProperties(diagram);
 //        properties.se
 //        agentDiagram.getType().getSemanticController().createInstance( diagram, SubDiagram.class, null, event );
     }
