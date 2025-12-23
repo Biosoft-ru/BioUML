@@ -203,9 +203,6 @@
                         <exclude>**/biouml/plugins/server/_test/ServerTest.java</exclude>
                         <exclude>**/biouml/plugins/server/_test/ClientDataCollectionTest.java</exclude>
 
-                        <exclude>**/biouml/plugins/keynodes/_test/KeyNodesTest.java</exclude>
-                        <exclude>**/biouml/plugins/keynodes/_test/ReactomeBioHubTest.java</exclude>
-
                         <exclude>**/biouml/plugins/simulation/_test/TestSolverResult.java</exclude>
                         <exclude>**/biouml/plugins/simulation/_test/CompositeSimulationTest.java</exclude>
                         <exclude>**/biouml/plugins/simulation/_test/ResultSqlTransformerTest.java</exclude>
