@@ -4,6 +4,7 @@ import junit.framework.TestSuite;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysis.HypergeometricAnalysis;
 import ru.biosoft.analysis.HypergeometricAnalysisParameters;
@@ -73,7 +74,13 @@ public class HypergeometricAnalysisTest extends AbstractBioUMLTest
         DataCollection repo = CollectionFactory.createRepository( repositoryPath );
         assertNotNull( "Repository is null", repo );
         assertEquals( "Repo name", "data", repo.getName() );
-        DataCollection collection = CollectionFactory.getDataCollection(OUTPUT_COLLECTION);
+        DataElement collection2 = repo.get( "Data" );
+        assertNotNull( "DataElement 'Data' is null", collection2 );
+        DataCollection collection = CollectionFactory.getDataCollection( "data/Data" );
+        if( collection == null )
+        {
+            collection = (DataCollection) collection2;
+        }
         assertNotNull( "Collection is null", collection );
         TableDataCollection table = TableDataCollectionUtils.createTableDataCollection(collection, "HypergeometricAnalysisTestInput");
 

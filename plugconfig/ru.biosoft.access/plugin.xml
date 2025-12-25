@@ -211,7 +211,7 @@
     <class name="ru.biosoft.access.core.DataElementPathSet" oldNames="ru.biosoft.access.DataElementPathSet"/>
     <class name="ru.biosoft.access.core.DataElement" oldNames="ru.biosoft.access.DataElement"/>
     <class name="ru.biosoft.access.core.DataCollection" oldNames="ru.biosoft.access.DataCollection"/>
-    <class name="import ru.biosoft.access.core.PluginEntry" oldNames="ru.biosoft.util.entry.PluginEntry"/>
+    <class name="ru.biosoft.access.core.PluginEntry" oldNames="ru.biosoft.util.entry.PluginEntry"/>
     <class name="ru.biosoft.access.core.TextDataElement" oldNames="ru.biosoft.access.TextDataElement"/>
     <class name="ru.biosoft.access.file.FileTextTransformer" oldNames="ru.biosoft.access.support.FileTextTransformer"/>
     <class name="ru.biosoft.access.file.FileDataElement" oldNames="ru.biosoft.access.FileDataElement"/>
