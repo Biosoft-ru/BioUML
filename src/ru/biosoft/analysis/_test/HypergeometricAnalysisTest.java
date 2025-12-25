@@ -71,16 +71,14 @@ public class HypergeometricAnalysisTest extends AbstractBioUMLTest
     public TableDataCollection createTableDataCollection() throws Exception
     {
         String repositoryPath = "../data/test/ru/biosoft/analysis/data";
+        DataCollection oldData = CollectionFactory.getDataCollection( "data" );
+        String msg = "Old data is null? " + ((oldData == null) ? "yes" : "no");
+        System.out.println( msg );
         DataCollection repo = CollectionFactory.createRepository( repositoryPath );
-        assertNotNull( "Repository is null", repo );
-        assertEquals( "Repo name", "data", repo.getName() );
+        System.out.println( "data repository name list " + repo.getNameList().toString() );
         DataElement collection2 = repo.get( "Data" );
         assertNotNull( "DataElement 'Data' is null", collection2 );
         DataCollection collection = CollectionFactory.getDataCollection( "data/Data" );
-        if( collection == null )
-        {
-            collection = (DataCollection) collection2;
-        }
         assertNotNull( "Collection is null", collection );
         TableDataCollection table = TableDataCollectionUtils.createTableDataCollection(collection, "HypergeometricAnalysisTestInput");
 

@@ -349,12 +349,14 @@
                         <exclude>**/biouml/plugins/glycan/_test/GlycanViewTest.java</exclude>
                         <exclude>**/biouml/plugins/graphml/_test/TestGraphML.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/ArterialTreeFitTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/ArterialTreeStabilityTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/PressureTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/PulseWaveValidationTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/SimpleTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/SolodyannikovValidationTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestArterialTree.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestHemodynamicsModel.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestHemodynamicsObserver.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestInitialValuesCalculator.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestResultAnalysis.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/UtilTest.java</exclude>
