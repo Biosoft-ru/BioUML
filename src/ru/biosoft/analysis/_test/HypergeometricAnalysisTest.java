@@ -70,9 +70,11 @@ public class HypergeometricAnalysisTest extends AbstractBioUMLTest
     public TableDataCollection createTableDataCollection() throws Exception
     {
         String repositoryPath = "../data/test/ru/biosoft/analysis/data";
-        CollectionFactory.createRepository(repositoryPath);
+        DataCollection repo = CollectionFactory.createRepository( repositoryPath );
+        assertNotNull( "Repository is null", repo );
+        assertEquals( "Repo name", "data", repo.getName() );
         DataCollection collection = CollectionFactory.getDataCollection(OUTPUT_COLLECTION);
-        //assertNotNull( "Collection is null", collection );
+        assertNotNull( "Collection is null", collection );
         TableDataCollection table = TableDataCollectionUtils.createTableDataCollection(collection, "HypergeometricAnalysisTestInput");
 
         for( int i = 1; i <= 22; i++ )
