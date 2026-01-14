@@ -68,6 +68,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
     private int fixedFastModelParam;
 
     private Diagram compositeDiagram;
+    private TableDataCollection paramMapping;
 
     private AnalysisJobControl nestedJobControl = null;
 
@@ -405,11 +406,14 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         
         SimulationEngine engine = DiagramUtility.getPreferredEngine( diagram );
         engine.setDiagram( diagram );
+        double initialIncrement = engine.getTimeIncrement();
         if( diagram.getName().equals( PopulationUtils.FAST_MODEL + "_ss" ) )
             engine.setTimeIncrement( 0.005 );
         SimulationResult sr = new SimulationResult( diagram.getOrigin(), "" );
         Model model = engine.createModel();
         engine.simulate( model, sr );
+        if( diagram.getName().equals( PopulationUtils.FAST_MODEL + "_ss" ) )
+            engine.setTimeIncrement( initialIncrement );
 
         int cNum = opt.getParameters().getOptimizationConstraints().size();
 
@@ -527,7 +531,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
                 return false;
             }
 
-            int ind = engine.getVarPathIndexMapping().get( PopulationUtils.FAST_MODEL + "_ss" + "/P_S" );
+            int ind = engine.getVarPathIndexMapping().get( PopulationUtils.FAST_MODEL + "_ss/" + paramMapping.get("SBP").getValue("Designation") );
             double[] times = sr.getTimes();
             for( int i = 0; i < times.length - 1; ++i )
             {
@@ -607,10 +611,10 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         TableDataCollection smConstr = (TableDataCollection)input.get( "SlowModelConstraints" );
         TableDataCollection fmConstr = (TableDataCollection)input.get( "FastModelConstraints" );
 
-        TableDataCollection paramMapping = (TableDataCollection)input.get( "ParameterMapping" );
+        paramMapping = (TableDataCollection)input.get( "ParameterMapping" );
 
         Diagram smDiagram = initSlowModelDiagram( slowModel, output );
-        Diagram fmDiagram = initFastModelDiagram( fastModel, slowModel, output, paramMapping );
+        Diagram fmDiagram = initFastModelDiagram( fastModel, slowModel, output );
 
         CollectionFactoryUtils.save( smDiagram );
         CollectionFactoryUtils.save( fmDiagram );
@@ -619,7 +623,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         CollectionFactoryUtils.save( compositeDiagram );
 
         TableDataCollection smExp = initSlowModelExperiment( output, smDiagram );
-        fmExp = initFastModelExperiment( output, fmDiagram, smDiagram, paramMapping );
+        fmExp = initFastModelExperiment( output, fmDiagram, smDiagram );
 
         CollectionFactoryUtils.save( smExp );
         CollectionFactoryUtils.save( fmExp );
@@ -694,7 +698,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         return patientSM;
     }
 
-    private Diagram initFastModelDiagram(Diagram fastModel, Diagram slowModel, DataCollection<?> output, TableDataCollection paramMapping) throws Exception
+    private Diagram initFastModelDiagram(Diagram fastModel, Diagram slowModel, DataCollection<?> output) throws Exception
     {
         Diagram patientFM = fastModel.clone( output, fastModel.getName() );
         EModel model = patientFM.getRole( EModel.class );
@@ -764,7 +768,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         return tdc;
     }
 
-    private TableDataCollection initFastModelExperiment(DataCollection<?> output, Diagram fastModel, Diagram slowModel, TableDataCollection paramMapping) throws Exception
+    private TableDataCollection initFastModelExperiment(DataCollection<?> output, Diagram fastModel, Diagram slowModel) throws Exception
     {
         TableDataCollection tdc = TableDataCollectionUtils.createTableDataCollection( output, "exp_" + fastModel.getName() );
         List<Double> values = new ArrayList<Double>();
