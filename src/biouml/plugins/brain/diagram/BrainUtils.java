@@ -1,5 +1,6 @@
 package biouml.plugins.brain.diagram;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -14,7 +15,9 @@ import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
+import biouml.model.DiagramViewBuilder;
 import biouml.model.Node;
+import biouml.model.SemanticController;
 import biouml.model.SubDiagram;
 import biouml.model.SubDiagram.PortOrientation;
 import biouml.model.dynamics.Assignment;
@@ -26,6 +29,7 @@ import biouml.model.dynamics.TableElement;
 import biouml.model.dynamics.VariableRole;
 import biouml.model.xml.XmlDiagramTypeConstants;
 import biouml.standard.diagram.DiagramUtility;
+import biouml.standard.diagram.SimpleBusProperties;
 import biouml.standard.diagram.Util;
 import biouml.standard.type.Base;
 import biouml.standard.type.Reaction;
@@ -333,7 +337,16 @@ public class BrainUtils
     /*
      * method adds a public port to the diagram.
      */
-    public static Node createPort(String variableName, String title, String type, 
+    public static Node createPort(String variableName, String title, String type,
+    		@Nonnull Diagram diagram, Point point) throws Exception
+    {
+        return createPort(variableName, title, type, Stub.ConnectionPort.PUBLIC, diagram, point);
+    }
+    
+    /*
+     * method adds a port with a specific access type to the diagram.
+     */
+    public static Node createPort(String variableName, String title, String type, String accessType,
     		@Nonnull Diagram diagram, Point point) throws Exception
     {
     	EModel emodel = diagram.getRole(EModel.class);
@@ -342,11 +355,11 @@ public class BrainUtils
     		emodel.declareVariable(variableName, 0.0);
     	}
     	
-        String validName = DefaultSemanticController.generateUniqueNodeName(diagram, "port");
+        String validName = DefaultSemanticController.generateUniqueNodeName(diagram, variableName + "_port");
         Node portNode = new Node(diagram, Stub.ConnectionPort.createPortByType(diagram, validName, type));
         portNode.setLocation(point);
         portNode.setTitle(title);
-        portNode.getAttributes().add(new DynamicProperty(Stub.ConnectionPort.ACCESS_TYPE, String.class, Stub.ConnectionPort.PUBLIC));
+        portNode.getAttributes().add(new DynamicProperty(Stub.ConnectionPort.ACCESS_TYPE, String.class, accessType));
         portNode.getAttributes().add(new DynamicProperty(PortOrientation.ORIENTATION_ATTR, PortOrientation.class, PortOrientation.RIGHT));
         portNode.getAttributes().add(new DynamicProperty(Stub.ConnectionPort.PORT_TYPE, String.class, type));
         portNode.getAttributes().add(new DynamicProperty(XmlDiagramTypeConstants.XML_TYPE, String.class, type));
@@ -356,28 +369,52 @@ public class BrainUtils
     }
     
     /*
-     * method adds a private port to the diagram.
+     * method adds a bus to the diagram.
      */
-    public static Node createPrivatePort(String variableName, String title, String type, 
+    public static Node createBus(String variableName,
     		@Nonnull Diagram diagram, Point point) throws Exception
-    {
-    	EModel emodel = diagram.getRole(EModel.class);
-    	if (!emodel.containsVariable(variableName))
-    	{
-    		emodel.declareVariable(variableName, 0.0);
-    	}
-    	
-        String validName = DefaultSemanticController.generateUniqueNodeName(diagram, "port");
-        Node portNode = new Node(diagram, Stub.ConnectionPort.createPortByType(diagram, validName, type));
-        portNode.setLocation(point);
-        portNode.setTitle(title);
-        portNode.getAttributes().add(new DynamicProperty(Stub.ConnectionPort.ACCESS_TYPE, String.class, Stub.ConnectionPort.PRIVATE));
-        portNode.getAttributes().add(new DynamicProperty(PortOrientation.ORIENTATION_ATTR, PortOrientation.class, PortOrientation.RIGHT));
-        portNode.getAttributes().add(new DynamicProperty(Stub.ConnectionPort.PORT_TYPE, String.class, type));
-        portNode.getAttributes().add(new DynamicProperty(XmlDiagramTypeConstants.XML_TYPE, String.class, type));
-        portNode.getAttributes().add(new DynamicProperty(Stub.ConnectionPort.VARIABLE_NAME_ATTR, String.class, variableName));
-        diagram.put(portNode);
-        return portNode;
+    {        
+        return createBus(variableName, Color.black, false, diagram, point);
+    }
+    
+    /*
+     * method adds a bus with a specific color to the diagram.
+     */
+    public static Node createBus(String variableName, Color color,
+    		@Nonnull Diagram diagram, Point point) throws Exception
+    {        
+        return createBus(variableName, color, false, diagram, point);
+    }
+    
+    /*
+     * method adds a bus with a specific color and direction to the diagram.
+     */
+    public static Node createBus(String variableName, Color color, boolean directed,
+    		@Nonnull Diagram diagram, Point point) throws Exception
+    {        
+        SimpleBusProperties busProps = new SimpleBusProperties(diagram);
+
+        boolean busExists = (busProps.findBus(variableName) != null);
+
+        if (busExists) 
+        {
+            busProps.setNewBus(false);
+            busProps.setExistingName(variableName);
+        } 
+        else 
+        {
+            busProps.setNewBus(true);
+            busProps.setName(variableName);
+            busProps.setColor(color);
+        }
+
+        busProps.setDirected(directed);
+
+        DiagramElementGroup elements = busProps.createElements(diagram, new Point(0, 0), null);
+        elements.putToCompartment();
+        Node busNode = (Node)elements.get(0);
+        busNode.setLocation(point);
+        return busNode;
     }
     
     /*
@@ -508,23 +545,59 @@ public class BrainUtils
     {
     	return subDiagram.findPort(variableName).orElseThrow(() -> new Exception("Could not find port for '" + variableName + "' in " + subDiagram.getName()));
     }
+//    
+//    /*
+//     * method finds input port in subDiagram by variableName and returns it.
+//     */
+//    public static Node findInputPort(SubDiagram subDiagram, String variableName) throws Exception
+//    {
+//    	return subDiagram.stream(Node.class).findAny(de->Util.isInputPort(de) && variableName.equals(Util.getPortVariable(de)))
+//    	    .orElseThrow(() -> new Exception("Could not find port for '" + variableName + "' in " + subDiagram.getName()));
+//    }
+//    
+//    /*
+//     * method finds output port in subDiagram by variableName and returns it.
+//     */
+//    public static Node findOutputPort(SubDiagram subDiagram, String variableName) throws Exception
+//    {
+//    	return subDiagram.stream(Node.class).findAny(de->Util.isOutputPort(de) && variableName.equals(Util.getPortVariable(de)))
+//    	    .orElseThrow(() -> new Exception("Could not find port for '" + variableName + "' in " + subDiagram.getName()));
+//    }
     
     /*
      * method finds input port in subDiagram by variableName and returns it.
      */
-    public static Node findInputPort(SubDiagram subDiagram, String variableName) throws Exception
+    public static Node findInputPortByVariable(SubDiagram subDiagram, String variableName)
     {
     	return subDiagram.stream(Node.class).findAny(de->Util.isInputPort(de) && variableName.equals(Util.getPortVariable(de)))
-    	    .orElseThrow(() -> new Exception("Could not find port for '" + variableName + "' in " + subDiagram.getName()));
+    	    .orElse(null);
     }
     
     /*
      * method finds output port in subDiagram by variableName and returns it.
      */
-    public static Node findOutputPort(SubDiagram subDiagram, String variableName) throws Exception
+    public static Node findOutputPortByVariable(SubDiagram subDiagram, String variableName)
     {
     	return subDiagram.stream(Node.class).findAny(de->Util.isOutputPort(de) && variableName.equals(Util.getPortVariable(de)))
-    	    .orElseThrow(() -> new Exception("Could not find port for '" + variableName + "' in " + subDiagram.getName()));
+    	    .orElse(null);
+    }
+    
+    /*
+     * method finds input port in subDiagram by portTitle and returns it.
+     */
+    public static Node findInputPortByTitle(SubDiagram subDiagram, String portTitle)
+    {
+    	return subDiagram.stream(Node.class).findAny(de->Util.isInputPort(de) && portTitle.equals(de.getTitle()))
+	    	    .orElse(null);
+    }
+    
+    /*
+     * method finds output port in subDiagram by portTitle and returns it.
+     */
+    public static Node findOutputPortByTitle(SubDiagram subDiagram, String portTitle)
+    {
+    	return subDiagram.stream(Node.class).findAny(de->Util.isOutputPort(de) && portTitle.equals(de.getTitle()))
+	    	    .orElse(null);
     }
     
     /*
@@ -565,22 +638,18 @@ public class BrainUtils
      */
     public static void createConnection(Diagram outerDiagram, SubDiagram subDiagramFrom, String outputVariableName, SubDiagram subDiagramTo, String inputVatiableName) throws Exception
     {
-    	Node portFrom = BrainUtils.findOutputPort(subDiagramFrom, outputVariableName);
-    	Node portTo = BrainUtils.findInputPort(subDiagramTo, inputVatiableName);
+    	Node portFrom = BrainUtils.findOutputPortByVariable(subDiagramFrom, outputVariableName);
+    	Node portTo = BrainUtils.findInputPortByVariable(subDiagramTo, inputVatiableName);
     	DiagramUtility.createConnection(outerDiagram, portFrom, portTo, true);
     }
+    
     
     /*
      * method safely assigns an initial value to the variable on the diagram by name.
      */
     public static void setInitialValue(Diagram diagram, String variableName, Double value)
     {
-        EModel emodel = diagram.getRole(EModel.class);
-        
-        if (emodel.getVariable(variableName) != null)
-        {
-            emodel.getVariable(variableName).setInitialValue(value);
-        }
+    	setInitialValue(diagram, variableName, value, "");
     }
     
     /*
@@ -590,10 +659,127 @@ public class BrainUtils
     {
         EModel emodel = diagram.getRole(EModel.class);
         
-        if (emodel.getVariable(variableName) != null)
-        {
-            emodel.getVariable(variableName).setInitialValue(value);
+    	if (!emodel.containsVariable(variableName))
+    	{
+    		emodel.declareVariable(variableName, value);
+    		emodel.getVariable(variableName).setComment(comment);
+    	}
+    	else
+    	{
+    		emodel.getVariable(variableName).setInitialValue(value);
             emodel.getVariable(variableName).setComment(comment);
+    	}
+    }
+    
+    public static void setInitialValue(SubDiagram subDiagram, String variableName, Double value)
+    {
+        EModel emodel = subDiagram.getRole(EModel.class);
+        
+    	if (!emodel.containsVariable(variableName))
+    	{
+    		emodel.declareVariable(variableName, value);
+    	}
+    	else
+    	{
+    		emodel.getVariable(variableName).setInitialValue(value);
+    	}
+    }
+    
+    public static void alignCenterX(Diagram diagram, Node referenceNode, Node targetNode)
+    {
+        DiagramViewBuilder builder = diagram.getType().getDiagramViewBuilder();
+        SemanticController sc = diagram.getType().getSemanticController();
+        
+        double minPos = builder.getNodeBounds(referenceNode).getBounds().getMinX();
+        double maxPos = builder.getNodeBounds(referenceNode).getBounds().getMaxX();
+        double midPos = (maxPos + minPos) / 2;
+        
+        int offset = (int)(midPos - builder.getNodeBounds(targetNode).getCenterX());
+        if (offset != 0)
+        {
+              try
+              {
+                  sc.move(targetNode, (Compartment)(targetNode.getOrigin()), new Dimension(offset, 0), builder.getNodeBounds(targetNode));
+              }
+              catch (Exception e)
+              {
+              	
+              }
+        }
+    }
+    
+    public static void alignCenterX(Diagram diagram, Node referenceNode, List<Node> targetNodes)
+    {
+        DiagramViewBuilder builder = diagram.getType().getDiagramViewBuilder();
+        SemanticController sc = diagram.getType().getSemanticController();
+        
+        double minPos = builder.getNodeBounds(referenceNode).getBounds().getMinX();
+        double maxPos = builder.getNodeBounds(referenceNode).getBounds().getMaxX();
+        double midPos = (maxPos + minPos) / 2;
+        
+        for(Node node : targetNodes)
+        {
+	        int offset = (int)(midPos - builder.getNodeBounds(node).getCenterX());
+	        if (offset != 0)
+	        {
+	              try
+	              {
+	                  sc.move(node, (Compartment)(node.getOrigin()), new Dimension(offset, 0), builder.getNodeBounds(node));
+	              }
+	              catch (Exception e)
+	              {
+	              	
+	              }
+	        }
+        }
+    }
+    
+    public static void alignCenterY(Diagram diagram, Node referenceNode, Node targetNode)
+    {
+        DiagramViewBuilder builder = diagram.getType().getDiagramViewBuilder();
+        SemanticController sc = diagram.getType().getSemanticController();
+        
+        double minPos = builder.getNodeBounds(referenceNode).getBounds().getMinY();
+        double maxPos = builder.getNodeBounds(referenceNode).getBounds().getMaxY();
+        double midPos = (maxPos + minPos) / 2;
+        
+        int offset = (int)(midPos - builder.getNodeBounds(targetNode).getCenterY());
+        if (offset != 0)
+        {
+              try
+              {
+                  sc.move(targetNode, (Compartment)(targetNode.getOrigin()), new Dimension(0, offset), builder.getNodeBounds(targetNode));
+              }
+              catch (Exception e)
+              {
+              	
+              }
+        }
+    }
+    
+    public static void alignCenterY(Diagram diagram, Node referenceNode, List<Node> targetNodes)
+    {
+        DiagramViewBuilder builder = diagram.getType().getDiagramViewBuilder();
+        SemanticController sc = diagram.getType().getSemanticController();
+        
+        double minPos = builder.getNodeBounds(referenceNode).getBounds().getMinY();
+        double maxPos = builder.getNodeBounds(referenceNode).getBounds().getMaxY();
+        double midPos = (maxPos + minPos) / 2;
+        
+        for(Node node : targetNodes)
+        {
+	        int offset = (int)(midPos - builder.getNodeBounds(node).getCenterY());
+	        if (offset != 0)
+	        {
+	              try
+	              {
+	                  sc.move(node, (Compartment)(node.getOrigin()), new Dimension(0, offset), builder.getNodeBounds(node));
+	              }
+	              catch (Exception e)
+	              {
+	              	
+	              }
+	        }
         }
     }
 }
