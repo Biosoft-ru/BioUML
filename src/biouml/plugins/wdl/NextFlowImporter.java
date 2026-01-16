@@ -42,12 +42,15 @@ public class NextFlowImporter
         f.createNewFile();
         ApplicationUtils.writeString( f, nextFlowScript );
 
+        File config = new File( outputDir, "temp.config" );
+        DummyParamsGenerator.generateDummyConfig( f, config );
+        
         NextFlowRunner.generateFunctions( new File( outputDir ) );
         ProcessBuilder builder;
         if( useWsl )
         {
             String parent = new File( outputDir ).getAbsolutePath().replace( "\\", "/" );
-            builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", "run", f.getName(), "-preview", "-with-dag", "dag.dot" );
+            builder = new ProcessBuilder( "wsl", "--cd", parent, "nextflow", "run", f.getName(), "-preview", "-with-dag", "dag.dot" , "-c", "temp.config");
         }
         else
         {
