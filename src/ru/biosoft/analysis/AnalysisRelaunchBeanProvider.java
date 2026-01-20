@@ -3,6 +3,7 @@ package ru.biosoft.analysis;
 import ru.biosoft.access.BeanProvider;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.analysiscore.AnalysisParametersFactory;
+import ru.biosoft.analysiscore.AnalysisParameters;
 
 /**
  * @author lan
@@ -15,7 +16,10 @@ public class AnalysisRelaunchBeanProvider implements BeanProvider
     {
         try
         {
-            return AnalysisParametersFactory.read(CollectionFactory.getDataElement(path));
+            AnalysisParameters parameters = AnalysisParametersFactory.read( CollectionFactory.getDataElement( path ) );
+            parameters.setExpertMode( true );
+            return parameters;
+
         }
         catch( Exception e )
         {
