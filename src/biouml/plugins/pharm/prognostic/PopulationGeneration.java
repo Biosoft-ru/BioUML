@@ -956,6 +956,11 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
                     double bv = parameters.getPatientPhysiology().getCalculatedParameters().getBv();
                     value = calculateTBW(bv);
                 }
+ 
+                if( value < bounds.lower )
+                	value = bounds.lower;
+                if( value > bounds.upper )
+                	value = bounds.upper;
 
                 Parameter param = new Parameter( var.getName(), value, bounds.lower, bounds.upper );
                 param.setParentDiagramName( diagram.getName() );
@@ -1046,7 +1051,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         	calculateFRCBounds( bounds );
             return bounds;
         }
-        if( var.getValue( "expression" ) != null && var.getValue( "expression" ).equals( "V_DEI-0.267*TV+1291/RR" ) )
+        if( var.getValue( "expression" ) != null && var.getValue( "expression" ).equals( "V_DEI" ) )
         {
         	calculateDeadSpaceVolumeBounds(bounds);
             return bounds;
@@ -1069,6 +1074,9 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
             bounds.upper = (double)var.getValue( "max_normal_" + sex );
         else
             bounds.upper = (double)var.getValue( "max_normal" );
+
+        bounds.minNormal = bounds.lower;
+        bounds.maxNormal = bounds.upper;
 
         Field[] diseases = PatientPhysiology.Diseases.class.getDeclaredFields();
         for( Field disease : diseases )
@@ -1106,6 +1114,10 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
                             for( String item : classification.getItems() )
                                 refreshBounds( var, disease.getName() + "_" + item, bounds, false );
                         }
+                        else if (sex != null && var.getValue( "min_" + disease.getName() + "_" + sex ) != null)
+                        {
+                        	refreshBounds( var, disease.getName() + "_" + sex, bounds, false );
+                        }
                         else
                             refreshBounds( var, disease.getName(), bounds, false );
                         break;
@@ -1116,6 +1128,10 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
                         {
                             String item = classification.getSelectedItem();
                             refreshBounds( var, disease.getName() + "_" + item, bounds, true );
+                        }
+                        else if (sex != null && var.getValue( "min_" + disease.getName() + "_" + sex ) != null)
+                        {
+                            refreshBounds( var, disease.getName() + "_" + sex, bounds, true );
                         }
                         else
                             refreshBounds( var, disease.getName(), bounds, true );
@@ -1171,20 +1187,27 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
 			    sd = 820;
 			    break;
 		}
+
+		String copd = parameters.getPatientPhysiology().getDiseases().getCopd();
+		if (copd.equals(Diagnosis.YES.toString()) || copd.equals(Diagnosis.UNKNOWN.toString()))
+		{
+			mean *= 1.5;
+			sd = 1800;
+		}
+
 		bounds.lower = mean - sd;
 		bounds.upper = mean + sd;
 	}
 
     /**
-     * Harris E.A., et al. Prediction of the physiological dead-space in resting normal subjects. Clin Sci Mol Med. 1973;45(3):375-386.
+     * Hart MC, Orzalesi MM, Cook CD. Relation between anatomic respiratory dead space and body size and lung volume. J Appl Physiol (1985). 1963. 18(3):519-522.
      */
 	private void calculateDeadSpaceVolumeBounds(Bounds bounds)
 	{
 		double h = parameters.getPatientPhysiology().getGeneralData().getHeight();
-		double age = parameters.getPatientPhysiology().getGeneralData().getAge();
 
-		double mean = 0.93 * age + 1.725 * h - 213;
-		double deviation = 30;
+		double mean = 7.585 * Math.pow(h, 2.363) * 0.0001 ;
+		double deviation = 0.169 * mean;
 
 		bounds.lower = mean - deviation;
 		bounds.upper = mean + deviation;
@@ -1195,38 +1218,79 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         Double min = (Double)var.getValue( "min_" + diseaseName );
         if( ! ( min == null ) && !min.isNaN())
         {
-            if( bounds.minIsNormal )
-            {
-                bounds.minIsNormal = false;
-                bounds.lower = min;
-
-                if( known )
-                    bounds.minIsKnown = true;
-            }
-            else if( known )
-            {
-                if( !bounds.minIsKnown )
-                {
-                    bounds.minIsKnown = true;
-                    bounds.lower = min;
-                }
-                else if( min > bounds.lower )
-                    bounds.lower = min;
-            }
-            else if( !bounds.minIsKnown && min < bounds.lower )
-                bounds.lower = min;
+        	if ( Double.isNaN(bounds.lower) )
+        		bounds.lower = min;
+        	else if( known )
+        	{
+        		if( bounds.lower == bounds.minNormal )
+        			bounds.lower = min;
+        	    else if( bounds.lower > bounds.minNormal )
+        		{
+        			if ( min > bounds.lower )
+        				bounds.lower = min;
+        			else if( min < bounds.minNormal )
+        				bounds.lower -= (bounds.minNormal - min);
+        		}
+        	    else
+        		{
+        	    	if ( min < bounds.lower )
+        				bounds.lower = min;
+        			else if( min > bounds.minNormal )
+        				bounds.lower += (min - bounds.minNormal);
+        		}
+        	}
+        	else
+        	{
+        		if( bounds.lower <= bounds.minNormal )
+        		{
+        			if( min < bounds.lower )
+        				bounds.lower = min;
+        		}
+        		else
+        		{
+        			if( min < bounds.minNormal )
+        				bounds.lower -= (bounds.minNormal - min);
+        		}
+        	}
         }
 
         Double max = (Double)var.getValue( "max_" + diseaseName );
         if( ! ( max == null ) && !max.isNaN())
         {
-            if( bounds.maxIsNormal )
-            {
-                bounds.maxIsNormal = false;
-                bounds.upper = max;
-            }
-            else if( max > bounds.upper )
-                bounds.upper = max;
+        	if ( Double.isNaN(bounds.upper) )
+        		bounds.upper = max;
+        	else if( known )
+        	{
+        		if( bounds.upper == bounds.maxNormal )
+        			bounds.upper = max;
+        	    else if( bounds.upper > bounds.maxNormal )
+        		{
+        			if ( max > bounds.upper )
+        				bounds.upper = max;
+        			else if( max < bounds.maxNormal )
+        				bounds.upper -= (bounds.maxNormal - max);
+        		}
+        	    else
+        		{
+        	    	if ( max < bounds.upper )
+        				bounds.upper = max;
+        			else if( max > bounds.maxNormal )
+        				bounds.upper += (max - bounds.maxNormal);
+        		}
+        	}
+        	else
+        	{
+        		if( bounds.upper >= bounds.maxNormal )
+        		{
+        			if( max > bounds.upper )
+        				bounds.upper = max;
+        		}
+        		else
+        		{
+        			if( max > bounds.maxNormal )
+        				bounds.upper += (max - bounds.maxNormal);
+        		}
+        	}
         }
 
         return bounds;
@@ -1236,9 +1300,8 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
     {
         protected double lower;
         protected double upper;
-        protected boolean minIsNormal = true;
-        protected boolean maxIsNormal = true;
-        protected boolean minIsKnown = false;
+        protected double minNormal;
+        protected double maxNormal;
     }
 
     private Parameter initParameter(Diagram diagram, String pName) throws Exception
