@@ -329,7 +329,7 @@
                         <exclude>**/biouml/plugins/sbgn/_test/TestSbgnExamples.java</exclude>
                         <exclude>**/biouml/plugins/sbgn/sbgnml/_test/TestSbgnMlExportImport.java</exclude>
                         <exclude>**/biouml/workbench/module/_test/ImportExportModuleTest.java</exclude>
-                        <exclude>**/ru/biosoft/access/_test/DataElementPathTest.java</exclude>
+                        <!--exclude>**/ru/biosoft/access/_test/DataElementPathTest.java</exclude-->
                         <exclude>**/ru/biosoft/bsastats/_test/MicroRNAAlignerTest.java</exclude>
                         <exclude>**/ru/biosoft/server/servlets/webservices/_test/TestWebActionsProvider.java</exclude>
                         <exclude>**/ru/biosoft/server/servlets/webservices/_test/AbstractProviderTest.java</exclude>
