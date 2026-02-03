@@ -117,7 +117,7 @@
                         <!-- These fail now. Should be fixed -->
                         <!-- ******************************* -->
 
-                        <exclude>**/biouml/model/_test/TestCompartment.java</exclude>
+                        <!--exclude>**/biouml/model/_test/TestCompartment.java</exclude-->
                         <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReadWriteTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoViewTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReaderTest.java</exclude>
