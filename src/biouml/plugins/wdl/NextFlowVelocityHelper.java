@@ -16,6 +16,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.model.ExpressionInfo;
 import one.util.streamex.StreamEx;
 
 public class NextFlowVelocityHelper extends WorkflowVelocityHelper
@@ -390,7 +391,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                     if( isCall( cycledVar.getCompartment() ) )
                         expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".", "" );
                     sb.append( getName( inConditional ) + " = " + channelName + ".map { " + cycledVarName + "-> ( " + condition + " ) ? "
-                            + expression + ": \"NO_VALUE\" }" );
+                            + expression + ": null }.filter { it != null }" );
                 }
             }
         }
@@ -442,26 +443,12 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         String expression = getExpression( input );
         List<Node> cycledSources = getCycledSources( input );
         Map<Compartment, List<Node>> cycleToSources = new HashMap<>(); //cycle to all nodes in cycle from which input depends
-
         for( Compartment parentCycle : parentCycles )
             cycleToSources.put( parentCycle, new ArrayList<>() );
 
         if( cycledSources.size() == 1 )
         {
             Node cycledSource = cycledSources.get( 0 );
-
-            if( !WorkflowUtil.isCycleVariable( cycledSource ) )
-            {
-                if( WorkflowUtil.equals( parentCycles, WorkflowUtil.getParentCycles( cycledSource ).reversed() ) )
-                {
-                    if( isCall( cycledSource.getCompartment() ) )
-                    {
-                        String qualified = getCallName( cycledSource.getCompartment() ) + "." + getName( cycledSource );
-                            return "result_" + qualified;
-                    }
-                    return getName( cycledSource );
-                }
-            }
             List<Node> sources = WorkflowUtil.getSources( input ).toList();
             Node otherSource = null;
             if( sources.size() <= 2 )//sometimes edge is missing TODO: fix
@@ -480,7 +467,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 else if( WorkflowUtil.isExternalParameter( otherSource ) )
                 {
                     if( expression.equals( getName( otherSource ) + '[' + sycledName + ']' ) )
-                        return "toChannel(" + getName( otherSource ) + ")";
+                        return "toChannel("+getName( otherSource )+")";
                 }
             }
         }
@@ -489,7 +476,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             Compartment cycle = WorkflowUtil.getParentCycle( cycledSource );
             Compartment parent = cycledSource.getCompartment();
             if( isCall( parent ) )
-                expression = replaceCallPrefix( expression, parent );
+            	  expression = replaceCallPrefix( expression, parent );
             cycleToSources.computeIfAbsent( cycle, k -> new ArrayList<>() ).add( cycledSource );
         }
 
@@ -926,9 +913,9 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 return true;
 
             Object before = WorkflowUtil.getBeforeCommand( compartment );
-            if( before instanceof Declaration[] )
+            if( before instanceof ExpressionInfo[] )
             {
-                for( Declaration declaration : (Declaration[])before )
+                for( ExpressionInfo declaration : (ExpressionInfo[])before )
                 {
                     if( declaration.getExpression().contains( funName ) )
                         return true;
@@ -952,7 +939,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
 
 
-    public String writePrivateDeclaration(Declaration declaration)
+    public String writePrivateDeclaration(ExpressionInfo declaration)
     {
         String expression = declaration.getExpression();
         expression = expression.replace( "~{", "${" );
