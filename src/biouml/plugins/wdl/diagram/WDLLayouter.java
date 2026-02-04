@@ -22,7 +22,7 @@ import ru.biosoft.graph.PathLayouterWrapper;
 
 public class WDLLayouter
 {
-    private  HierarchicLayouter layouter = new HierarchicLayouter();
+    private HierarchicLayouter layouter = new HierarchicLayouter();
     private OrthogonalPathLayouter edgeLayouter = new OrthogonalPathLayouter();
 
     private void redirectEdges(Diagram diagram)
@@ -110,7 +110,8 @@ public class WDLLayouter
             }
         } );
 
-        layouter.doLayout( graph, null );
+        if( graph.getNodes().size() != 0 )
+            layouter.doLayout(graph, null);
 
         Map<String, Point> oldCompartmentLocations = new HashMap<>();
         c.stream().select( Compartment.class ).forEach( inner -> oldCompartmentLocations.put( inner.getName(), inner.getLocation() ) );
