@@ -8,7 +8,7 @@
 #####################################MACROS############################################
 #######################################################################################
 #macro(comma $list)
-#if($velocityCount < $list.size()),#end
+#if($foreach.count < $list.size()),#end
 #end
 #######################################################################################
 #macro(callCWL $step)
@@ -27,6 +27,8 @@
 #######################################START###########################################
 #######################################################################################
 cwlVersion: $helper.getVersion()
+##set( $steps = $helper.orderCalls($diagram) )
+##set ( $graphMode = $steps.size() > 0 && $helper.getTasks($diagram))
 $BR$graph:
 #######################################################################################
 ###################################WORKFLOW############################################
@@ -38,7 +40,9 @@ $BR  requirements:
   - class: ScatterFeatureRequirement
   - class: InlineJavascriptRequirement
 #set ($externalParameters = $helper.getExternalParameters())
-#if ($externalParameters.size() > 0)
+#if ($externalParameters.size() == 0)
+$BR  inputs: []
+#else
 $BR  inputs:
 #foreach( $externalParameter in $externalParameters )
     $helper.getName($externalParameter):
@@ -46,7 +50,9 @@ $BR  inputs:
 #end
 #end
 #set ($externalOutputs = $helper.getExternalOutputs())
-#if ($externalOutputs.size() > 0)
+#if ($externalOutputs.size() == 0)
+$BR  outputs: []
+#else
 $BR  outputs: 
 #foreach( $externalOutput in $externalOutputs )
     $helper.getName($externalOutput):
@@ -54,11 +60,16 @@ $BR  outputs:
       outputSource: $helper.getOutputSource($externalOutput)
 #end
 #end
+#set($steps = $helper.orderCalls($diagram))
+#if ($steps.size() == 0)
+$BR  steps: []
+#else
 $BR  steps:
-#foreach( $n in $helper.orderCalls($diagram))
+#foreach( $n in $steps)
 #if ($helper.isCall($n))
-$BR#callCWL($n)
-#end 
+#callCWL($n)
+#end
+#end
 #end
 #######################################################################################
 #################################COMMAND LINE TOOLS####################################

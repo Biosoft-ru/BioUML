@@ -9,16 +9,16 @@
 #####################################MACROS############################################
 ######################f#################################################################
 #macro(comma $list)
-#if($velocityCount < $list.size()),#end
+#if($foreach.count < $list.size()),#end
 #end
 #######################################################################################
-#macro(conditionalNF $conditional)
+#macro(conditional $conditional)
 ${BR}if ( $helper.findCondition($conditional) ) {
 #foreach( $n in $helper.orderCalls($conditional) )
 #if ( $helper.isCycle($n) )#scatterNF($n)
 #elseif ( $helper.isCall($n) )#callNF($n)
 #elseif ( $helper.isExpression($n) )#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditionalNF($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
 }
@@ -34,7 +34,12 @@ $helper.describeCycle($scatter)
 #end
 #######################################################################################
 #macro(expressionNF $expression)
-  $helper.getName($expression) = $helper.getCallEmit($expression)$BR
+#set( $rhs = $helper.getCallEmit($expression) )
+#if( $helper.getName($expression).isEmpty())
+   $rhs$BR###
+#else
+   $helper.getName($expression) = $rhs$BR##
+#end
 #end 
 #######################################################################################
 #######################################START###########################################
@@ -63,16 +68,28 @@ $helper.getExternalInput($externalParameter)
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
 $BR  fair true
-#set ($container = $helper.getContainer($task))#if($container)  container '$container'$BR#end
-#set ($cpus = $helper.getCPUs($task))#if($cpus)  cpus $cpus$BR#end
-#set ($memory = $helper.getMemory($task))#if($memory)  memory $memory$BR#end
-#set ($maxRetries = $helper.getMaxRetries($task))#if($maxRetries)  maxRetries $maxRetries$BR#end
+#set ($container = $helper.getContainer($task))
+#if($container)
+  container '$container'$BR## 
+#end
+#set ($cpus = $helper.getCPUs($task))
+#if($cpus)
+  cpus $cpus$BR##
+#end
+#set ($memory = $helper.getMemory($task))
+#if($memory)
+  memory $memory$BR##
+#end
+#set ($maxRetries = $helper.getMaxRetries($task))
+#if($maxRetries)
+  maxRetries $maxRetries$BR##
+#end
   publishDir "$task.getName()", mode: 'copy'
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
 $BR  input:
 #foreach( $input in $inputs )  $helper.getShortDeclaration($input)$BR#end
-$#end
+#end
 #set ($outputs = $helper.getOutputs($task))
 #if ($outputs.size() > 0)
 $BR  output:
@@ -107,7 +124,7 @@ $BR  main:
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 #elseif ($helper.isExpression($n))#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditionalNF($n)
+#elseif ( $helper.isConditional($n) )#conditional($n)
 #end
 #end 
 #end
@@ -122,6 +139,6 @@ $BR  main:
 ################################ENTRY WORKFLOW#########################################
 #if ($helper.isEntryScript())
 workflow {
-$helper.getMainWorkflowName()( #foreach($ep in $externalParameters)$helper.getExternalParamaterName($ep)#comma($externalParameters) #end )
+  $helper.getMainWorkflowName()( #foreach($ep in $externalParameters)$helper.getExternalParamaterName($ep)#comma($externalParameters) #end )
 }
 #end
