@@ -417,7 +417,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
 
         int cNum = opt.getParameters().getOptimizationConstraints().size();
 
-        //Ignore auxiliary constraints in the slow model optimization: Fi_sodin-Fi_u_sod>-1.0E-8; Fi_sodin-Fi_u_sod<1.0E-8; Fi_win-Fi_u>-1.0E-8; Fi_win-Fi_u<1.0E-8
+        //Ignore auxiliary constraints in the slow model optimization: Q_sodin-Q_u_sod>-1.0E-8; Q_sodin-Q_u_sod<1.0E-8; Q_win-Q_u>-1.0E-8; Q_win-Q_u<1.0E-8
         if( diagram.getName().startsWith( PopulationUtils.SLOW_MODEL ) )
             cNum -= 4;
 
@@ -511,7 +511,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
         log.info( MessageBundle.getMessage( "INFO_SODIUM_LOAD_EXPERIMENT" ) );
 
         Diagram smDiagram = ( (SubDiagram)diagram.get( PopulationUtils.SLOW_MODEL + "_ss" ) ).getDiagram();
-        ( (EModel)smDiagram.getRole() ).getVariable( "Fi_sodin" ).setInitialValue( 0.24306 ); //high sodium diet (0.24306 mEq/min ≈ 350 mmol/d)
+        ( (EModel)smDiagram.getRole() ).getVariable( "Q_sodin" ).setInitialValue( 0.24306 ); //high sodium diet (0.24306 mEq/min ≈ 350 mmol/d)
 
         try
         {
