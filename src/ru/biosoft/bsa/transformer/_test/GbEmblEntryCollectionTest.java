@@ -8,6 +8,9 @@ import ru.biosoft.access._test.FileEntryCollectionTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 /**
  *
  */
@@ -31,6 +34,8 @@ public class GbEmblEntryCollectionTest extends FileEntryCollectionTest
     @Override
     protected void setUp() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         try( FileInputStream stream = new java.io.FileInputStream(
                 SEQUENCES_PATH + "/gbembl.format" + DataCollectionConfigConstants.DEFAULT_CONFIG_SUFFIX ) )
         {

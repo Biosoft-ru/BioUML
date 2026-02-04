@@ -293,6 +293,9 @@ function User()
             queryBioUML("web/logout", {}, function(data)
             {
                 currentUser = null;
+                var url = window.location.hash;
+                url = removeHashParameters(url, ["user", "pass"]);
+                window.location.hash = url;
                 if(appInfo.externalLogin)
                 {
                     window.location.replace(appInfo.serverPath+'map?'+toURI({logout: 1}));
