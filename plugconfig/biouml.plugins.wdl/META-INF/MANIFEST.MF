@@ -23,7 +23,8 @@ Require-Bundle: ru.biosoft.graphics,
  ru.biosoft.server.servlets,
  ru.biosoft.workbench,
  com.Ostermiller.syntax,
- com.eclipsesource.json
+ com.eclipsesource.json,
+ org.codehaus.groovy.ast
 Export-Package: biouml.plugins.wdl,
   biouml.plugins.wdl.diagram,
   biouml.plugins.wdl.web
