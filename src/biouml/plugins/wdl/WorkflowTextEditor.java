@@ -361,7 +361,7 @@ public class WorkflowTextEditor extends EditorPartSupport
             {
                 if( tabbedPane.getSelectedIndex() == NEXTFLOW_TAB_INDEX )
                 {
-                    NextFlowImporter.runNextFlowDry( getNextFlow(), diagram );
+                    new NextFlowImporter().importNextflow( getNextFlow(), diagram );
                     reloadCWL();
                     reloadWDL();
                     new WDLLayouter().layout( diagram );
