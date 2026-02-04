@@ -8,6 +8,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.model.ExpressionInfo;
 
 public class WorkflowVelocityHelper
 {
@@ -271,7 +272,7 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.getImports( diagram );
     }  
 
-    public Declaration[] getStructMembers(Node node)
+    public ExpressionInfo[] getStructMembers(Node node)
     {
         return WorkflowUtil.getStructMembers( node );
     }

@@ -22,6 +22,8 @@ import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.model.ExpressionInfo;
+import biouml.plugins.wdl.model.MetaInfo;
 import biouml.plugins.wdl.parser.AstMeta;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
@@ -272,6 +274,14 @@ public class WorkflowUtil
         }
         return result;
     }
+    
+    public static void setMeta(Compartment c, MetaInfo meta)
+    {
+        String name = meta.getName();
+        String attr = name.equals( "meta" ) ? WDLConstants.META_ATTR : WDLConstants.PARAMETER_META_ATTR;
+        setMapAttribute( c, attr, meta.getValues() );
+    }
+    
     public static void setMeta(Compartment c, AstMeta meta)
     {
         String name = meta.getName();
@@ -365,30 +375,30 @@ public class WorkflowUtil
         n.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, name ) );
     }
 
-    public static List<ImportProperties> getImports(Diagram diagram)
+    public static  List<ImportProperties> getImports(Diagram diagram)
     {
-        return gatherImports( diagram );
-        //        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
-        //        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
-        //            return new ImportProperties[0];
-        //        return (ImportProperties[])dp.getValue();
+        return gatherImports(diagram);
+//        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+//        if( dp == null || ! ( dp.getValue() instanceof ImportProperties[] ) )
+//            return new ImportProperties[0];
+//        return (ImportProperties[])dp.getValue();
     }
 
     public static List<ImportProperties> gatherImports(Diagram diagram)
     {
         Map<String, ImportProperties> result = new HashMap<>();
-
+        
         for( Compartment call : diagram.recursiveStream().select( Compartment.class ).filter( n -> isCall( n ) ) )
         {
             String alias = getExternalDiagramAlias( call );
             String diagramName = getDiagramRef( call );
-            if( diagramName != null )
+            if (diagramName != null)
             {
-                ImportProperties ip = new ImportProperties( diagramName, alias );
-                result.put( diagramName, ip );
-            }
+                ImportProperties ip = new ImportProperties(diagramName, alias);
+                result.put( diagramName,  ip );
+            }             
         }
-        return StreamEx.of( result.values() ).toList();
+        return StreamEx.of(result.values()).toList();
     }
 
     public static String getName(Node n)
@@ -418,27 +428,27 @@ public class WorkflowUtil
         return c.getAttributes().getValueAsString( WDLConstants.COMMAND_ATTR );
     }
 
-    public static void addBeforeCommand(Compartment compartment, Declaration dec)
+    public static void addBeforeCommand(Compartment compartment, ExpressionInfo dec)
     {
-        Declaration[] newValue = null;
+        ExpressionInfo[] newValue = null;
         Object before = getBeforeCommand( compartment );
-        if( before instanceof Declaration[] )
+        if( before instanceof ExpressionInfo[] )
         {
-            Declaration[] oldValue = (Declaration[])before;
-            newValue = new Declaration[oldValue.length + 1];
+            ExpressionInfo[] oldValue = (ExpressionInfo[])before;
+            newValue = new ExpressionInfo[oldValue.length + 1];
             System.arraycopy( oldValue, 0, newValue, 0, oldValue.length );
             newValue[oldValue.length] = dec;
         }
         else
         {
-            newValue = new Declaration[] {dec};
+            newValue = new ExpressionInfo[] {dec};
         }
         setBeforeCommand( compartment, newValue );
     }
-
-    public static void setBeforeCommand(Compartment compartment, Declaration[] beforeCommand)
+    
+    public static void setBeforeCommand(Compartment compartment, ExpressionInfo[] beforeCommand)
     {
-        compartment.getAttributes().add( new DynamicProperty( WDLConstants.BEFORE_COMMAND_ATTR, Declaration[].class, beforeCommand ) );
+        compartment.getAttributes().add( new DynamicProperty( WDLConstants.BEFORE_COMMAND_ATTR, ExpressionInfo[].class, beforeCommand ) );
     }
     public static Object getBeforeCommand(Compartment c)
     {
@@ -503,18 +513,13 @@ public class WorkflowUtil
         if( name.contains( "." ) )
         {
             String[] parts = name.split( "\\." );
-            String firstPart = parts[0];
+            String call = parts[0];
             String varName = parts[1];
-            Compartment callNode = WorkflowUtil.findCall( firstPart, diagram );
-            if( callNode != null )
-            {
-                Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
-                return port;
-            }
-            else
-            {
-                return diagram.findNode( firstPart );
-            }
+            Compartment callNode = WorkflowUtil.findCall( call, diagram );
+            if( callNode == null )
+                return null;
+            Node port = callNode.stream( Node.class ).filter( n -> varName.equals( getName( n ) ) ).findAny().orElse( null );
+            return port;
         }
         return diagram.recursiveStream().select( Node.class )
                 .filter( n -> ( isExternalParameter( n ) || isExpression( n ) || isCycleVariable( n ) ) )
@@ -702,9 +707,9 @@ public class WorkflowUtil
     public static String findExpression(String variable, Compartment process)
     {
         Object beforeCommand = getBeforeCommand( process );
-        if( beforeCommand instanceof Declaration[] )
+        if( beforeCommand instanceof ExpressionInfo[] )
         {
-            for( Declaration declaration : (Declaration[])beforeCommand )
+            for( ExpressionInfo declaration : (ExpressionInfo[])beforeCommand )
             {
                 if( declaration.getName().equals( variable ) )
                     return declaration.getExpression();
@@ -810,17 +815,17 @@ public class WorkflowUtil
         }
     }
 
-    public static void setStructMembers(Node node, Declaration[] declarations)
+    public static void setStructMembers(Node node, ExpressionInfo[] declarations)
     {
-        node.getAttributes().add( new DynamicProperty( WDLConstants.STRUCT_MEMBERS_ATTR, Declaration[].class, declarations ) );
+        node.getAttributes().add( new DynamicProperty( WDLConstants.STRUCT_MEMBERS_ATTR, ExpressionInfo[].class, declarations ) );
     }
 
-    public static Declaration[] getStructMembers(Node node)
+    public static ExpressionInfo[] getStructMembers(Node node)
     {
         Object declarations = node.getAttributes().getValue( WDLConstants.STRUCT_MEMBERS_ATTR );
-        if( declarations instanceof Declaration[] )
-            return (Declaration[])declarations;
-        return new Declaration[0];
+        if( declarations instanceof ExpressionInfo[] )
+            return (ExpressionInfo[])declarations;
+        return new ExpressionInfo[0];
     }
 
     public static boolean isDependent(Node node, Node from)
@@ -846,15 +851,8 @@ public class WorkflowUtil
         return getSources( node ).anyMatch( n -> isCall( n.getCompartment() ) );
     }
 
-    public static boolean equals(List<Compartment> list1, List<Compartment> list2)
-    {
-        if( list1.size() != list2.size() )
-            return false;
-        for( int i = 0; i < list1.size(); i++ )
-        {
-            if( ! ( list1.get( i ).equals( list2.get( i ) ) ) )
-                return false;
-        }
-        return true;
-    }
+    //    public static breakChain(List<Node> calls)
+    //    {
+    //        
+    //    }
 }
