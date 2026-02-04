@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.model.ExpressionInfo;
 
 public class NextFlowPreprocessor
 {
@@ -37,13 +38,13 @@ public class NextFlowPreprocessor
                 {
                     String name = WorkflowUtil.getName( input );
                     WorkflowUtil.addBeforeCommand( task,
-                            new Declaration( WorkflowUtil.getType( input ), name, "getDefault(" + name + ", " + expression + ")" ) );
+                            new ExpressionInfo( WorkflowUtil.getType( input ), name, "getDefault(" + name + ", " + expression + ")" ) );
                 }
             }
 
             String command = WorkflowUtil.getCommand( task );
             ConversionResult converted = processIf( command );
-            for( Declaration dec : converted.declarations )
+            for( ExpressionInfo dec : converted.declarations )
                 WorkflowUtil.addBeforeCommand( task, dec );
 
             command = converted.convertedCommand;
@@ -51,7 +52,7 @@ public class NextFlowPreprocessor
             for( String sep : seps )
             {
                 String name = getSepName( sep );
-                Declaration dec = new Declaration( "String", name + "_str", name + ".join(' ')" );
+                ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join(' ')" );
                 WorkflowUtil.addBeforeCommand( task, dec );
                 command = command.replace( sep, "~{" + name + "_str}" );
             }
@@ -65,7 +66,6 @@ public class NextFlowPreprocessor
             if( expression != null && !expression.isEmpty() )
             {
 //                expression =processCallName(node, expression);
-                expression = removeObject(expression);
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
@@ -134,11 +134,6 @@ public class NextFlowPreprocessor
         return input;
     }
 
-    public static String removeObject(String input)
-    {
-        return input.replace( "object{", "{");
-    }
-    
     public static String removeGlobs(String input)
     {
         String regex = "glob\\((['\"])([a-zA-Z0-9./*_]+)\\1\\)";
@@ -178,10 +173,10 @@ public class NextFlowPreprocessor
 
     public static class ConversionResult
     {
-        public List<Declaration> declarations;
+        public List<ExpressionInfo> declarations;
         public String convertedCommand;
 
-        public ConversionResult(List<Declaration> declarations, String command)
+        public ConversionResult(List<ExpressionInfo> declarations, String command)
         {
             this.declarations = declarations;
             this.convertedCommand = command;
@@ -193,7 +188,7 @@ public class NextFlowPreprocessor
      */
     public static ConversionResult processIf(String wdlCommand)
     {
-        List<Declaration> declarations = new ArrayList<>();
+        List<ExpressionInfo> declarations = new ArrayList<>();
         String result = wdlCommand;
         int counter = 0;
 
@@ -211,7 +206,7 @@ public class NextFlowPreprocessor
 
             // Generate: def var_0 = isDefined(x) ? "value1" : "value2"
             String expression = "defined(" + variable + ") ? " + "\"" + thenValue + "\"" + " : " + "\"" + elseValue + "\"";
-            declarations.add( new Declaration( "String", varName, expression ) );
+            declarations.add( new ExpressionInfo( "String", varName, expression ) );
             matcher.appendReplacement( sb, "\\${" + varName + "}" );
         }
         matcher.appendTail( sb );
