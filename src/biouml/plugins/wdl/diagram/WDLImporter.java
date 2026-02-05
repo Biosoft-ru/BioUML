@@ -355,30 +355,32 @@ public class WDLImporter implements DataElementImporter
     private static ConditionalInfo createConditionalInfo(AstConditional astConditional)
     {
         ConditionalInfo result = new ConditionalInfo();
+        String condition = null;
         for( biouml.plugins.wdl.parser.Node n : astConditional.getChildren() )
         {
             if( n instanceof AstExpression )
             {
-                result.setExpression(n.toString());
+                condition = n.toString();
+                result.addCondition(condition);
             }
         }
         for( biouml.plugins.wdl.parser.Node n : astConditional.getChildren() )
         {
             if( n instanceof AstDeclaration )
             {
-                result.addObject(createExpressionInfo((AstDeclaration)n));
+                result.add(condition, createExpressionInfo((AstDeclaration)n));
             }
             else if( n instanceof AstCall )
             {
-                result.addObject(createCallInfo((AstCall)n));
+                result.add(condition,createCallInfo((AstCall)n));
             }
             else if( n instanceof AstScatter )
             {
-                result.addObject(createScatterInfo((AstScatter)n));
+                result.add(condition,createScatterInfo((AstScatter)n));
             }
             else if( n instanceof AstConditional )
             {
-                result.addObject(createConditionalInfo((AstConditional)n));
+                result.add(condition,createConditionalInfo((AstConditional)n));
             }
         }
         return result;

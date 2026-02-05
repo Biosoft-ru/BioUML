@@ -3,13 +3,12 @@ package biouml.plugins.wdl.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorkflowInfo
+public class WorkflowInfo extends ContainerInfo
 {
     private String name;
     private MetaInfo meta = new MetaInfo();
     private List<InputInfo> inputs = new ArrayList<>();
     private List<OutputInfo> outputs = new ArrayList<>();
-    private List<Object> objects = new ArrayList<>();
 
     public WorkflowInfo(String name)
     {
@@ -31,11 +30,6 @@ public class WorkflowInfo
         meta = metaInfo;
     }
 
-    public void addObject(Object obj)
-    {
-        objects.add(obj);
-    }
-
     public void addInput(InputInfo input)
     {
         inputs.add(input);
@@ -44,11 +38,6 @@ public class WorkflowInfo
     public void addOutput(OutputInfo output)
     {
         outputs.add(output);
-    }
-
-    public List<Object> getObjects()
-    {
-        return new ArrayList<>(objects);
     }
 
     public List<InputInfo> getInputs()
@@ -63,7 +52,7 @@ public class WorkflowInfo
 
     public Object findStep(String name)
     {
-        for( Object object : objects )
+        for( Object object : getObjects() )
         {
             if( object instanceof CallInfo && ( (CallInfo)object ).getAlias().equals(name) )
                 return object;

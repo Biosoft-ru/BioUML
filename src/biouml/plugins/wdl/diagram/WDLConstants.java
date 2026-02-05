@@ -18,6 +18,9 @@ public class WDLConstants
     public static String CONDITION_TYPE = "Condition";
     
     public static String LINK_TYPE = "Link";
+    public static String LOGICAL_LINK_TYPE = "Logical Link";
+    public static String LOGICAL_TYPE_ATTR ="Logical type";
+    
     
     public static final String BEFORE_COMMAND_ATTR = "BEFORE_COMMAND";
     public static final String COMMAND_ATTR = "COMMAND";

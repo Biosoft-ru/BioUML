@@ -2,6 +2,7 @@ package biouml.plugins.wdl.nextflow;
 
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
+import org.codehaus.groovy.ast.expr.BooleanExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.DeclarationExpression;
@@ -9,12 +10,17 @@ import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.LambdaExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.NotExpression;
+import org.codehaus.groovy.ast.expr.PropertyExpression;
+import org.codehaus.groovy.ast.expr.TernaryExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 
+import biouml.plugins.wdl.model.CallInfo;
+import biouml.plugins.wdl.model.WorkflowInfo;
 import one.util.streamex.StreamEx;
 
 public class NextFlowFormatter
@@ -62,12 +68,56 @@ public class NextFlowFormatter
         {
             formatBinary( (BinaryExpression)expression, sb );
         }
+        else if( expression instanceof BooleanExpression )
+        {
+            formatBoolean( (BooleanExpression)expression, sb );
+        }
+        else if (expression instanceof PropertyExpression)
+        {
+            formatPropertyExpression((PropertyExpression)expression, sb);
+        }
+        else if (expression instanceof TernaryExpression)
+        {
+            formatTernary((TernaryExpression)expression, sb);
+        }
         else
         {
             formatUnknown( expression, sb );
         }
     }
 
+    private static void formatPropertyExpression(PropertyExpression propertyExpression, StringBuilder sb)
+    {
+        Expression objectExpression = propertyExpression.getObjectExpression();
+        Expression property = propertyExpression.getProperty();
+        String source = null;
+        String propertyString = null;
+        if( objectExpression instanceof VariableExpression )
+            source = ( (VariableExpression)objectExpression ).getName();
+        if( property instanceof ConstantExpression )
+            propertyString = ( (ConstantExpression)property ).getValue().toString();
+
+//        CallInfo callInfo = findCallByResult( workflowInfo, source );
+//        String callName = callInfo.getAlias();
+        sb.append( source);
+        sb.append( ".");  
+        sb.append( propertyString );
+    }
+    
+    
+    private static void formatTernary(TernaryExpression expression, StringBuilder sb)
+    {
+       Expression trueExpression = expression.getTrueExpression();
+       Expression falseExpression = expression.getFalseExpression();
+       BooleanExpression booleanExpression = expression.getBooleanExpression();
+       sb.append("if (");
+       sb.append( format(booleanExpression) );
+       sb.append( ") then " );
+       sb.append( format(trueExpression) );
+       sb.append( " else " );
+       sb.append( format(falseExpression) );
+    }
+    
     private static void formatConstant(ConstantExpression expression, StringBuilder sb)
     {
         Object value = ( (ConstantExpression)expression ).getValue();
@@ -86,6 +136,21 @@ public class NextFlowFormatter
     private static void formatUnknown(Expression expression, StringBuilder sb)
     {
         sb.append( "ERROR " + expression.getClass() );
+        System.out.println( "ERROR " + expression.getClass() );
+    }
+
+    private static void formatBoolean(BooleanExpression booleanExpr, StringBuilder sb)
+    {
+        if( booleanExpr instanceof NotExpression )
+        {
+            sb.append( "!( " );
+            format( booleanExpr.getExpression(), sb );
+            sb.append( " )" );
+        }
+        else
+        {
+            format( booleanExpr.getExpression(), sb );
+        }
     }
 
     private static void formatBinary(BinaryExpression binary, StringBuilder sb)
@@ -179,13 +244,13 @@ public class NextFlowFormatter
                 if( statement instanceof ExpressionStatement )
                 {
                     br( sb );
-                    indent(sb);
+                    indent( sb );
                     format( ( (ExpressionStatement)statement ).getExpression(), sb );
                 }
                 else if( statement instanceof ReturnStatement )
                 {
                     br( sb );
-                    indent(sb);
+                    indent( sb );
                     sb.append( "return " );
                     format( ( (ReturnStatement)statement ).getExpression(), sb );
                 }

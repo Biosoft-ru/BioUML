@@ -47,12 +47,6 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     }
 
     @Override
-    public @Nonnull CompositeView createDiagramView(Diagram diagram, Graphics g)
-    {
-        return super.createDiagramView( diagram, g );
-    }
-
-    @Override
     public boolean createNodeCoreView(CompositeView container, Node node, DiagramViewOptions viewOptions, Graphics g)
     {
         WDLViewOptions diagramViewOptions = (WDLViewOptions)viewOptions;
@@ -121,7 +115,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     public @Nonnull CompositeView createEdgeView(Edge edge, DiagramViewOptions viewOptions, Graphics g)
     {
         String type = edge.getKernel().getType();
-        if(WDLConstants.LINK_TYPE.equals( type ) )
+        if( WDLConstants.LINK_TYPE.equals( type ) )
         {
             CompositeView view = new CompositeView();
             Pen pen = viewOptions.getConnectionPen();
@@ -196,7 +190,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         container.setActive( true );
         return false;
     }
-    
+
     protected boolean createTaskView(CompositeView container, Compartment compartment, WDLViewOptions viewOptions, Graphics g)
     {
         Dimension size = compartment.getShapeSize();
@@ -248,26 +242,26 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
             iconId = null;
 
         if( iconId == null || iconId.isEmpty() )
-            iconId = getClass().getResource("resources/default-connector.gif").getFile();
-        
-//        String iconName = null;
-//        switch( WDLUtil.getType( node ) )
-//        {
-//            case "String":
-//                iconName = "string.gif";
-//                break;
-//            case "File":
-//                iconName = "file.gif";
-//                break;
-//            case "Array[File]":
-//                iconName = "files.gif";
-//                break;
-//            case "Int":
-//                iconName = "integer.gif";
-//                break;
-//        }
-//        if( iconName != null )
-//            iconId = ClassLoading.getResourceLocation( getClass(), "resources/" + iconName );
+            iconId = getClass().getResource( "resources/default-connector.gif" ).getFile();
+
+        //        String iconName = null;
+        //        switch( WDLUtil.getType( node ) )
+        //        {
+        //            case "String":
+        //                iconName = "string.gif";
+        //                break;
+        //            case "File":
+        //                iconName = "file.gif";
+        //                break;
+        //            case "Array[File]":
+        //                iconName = "files.gif";
+        //                break;
+        //            case "Int":
+        //                iconName = "integer.gif";
+        //                break;
+        //        }
+        //        if( iconName != null )
+        //            iconId = ClassLoading.getResourceLocation( getClass(), "resources/" + iconName );
         ImageView img = new ImageView( IconFactory.getIconById( iconId ).getImage(), 0, 0 );
         img.setPath( iconId );
         container.add( img, CompositeView.X_LL | CompositeView.Y_TT );
@@ -279,9 +273,9 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
     {
         ColorFont font = getTitleFont( node, diagramOptions.getExpressionFont() );
         String text = WorkflowUtil.getName( node );
-        if (text.isEmpty())
+        if( text.isEmpty() )
             text = WorkflowUtil.getExpression( node );
-        
+
         View textView = new TextView( text, font, g );
         int d = 2;
         Rectangle r = textView.getBounds();
@@ -296,12 +290,15 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         container.add( textView, CompositeView.X_CC | CompositeView.Y_CC );
         return false;
     }
-    
+
     protected boolean createConditionCoreView(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g)
     {
-        View text = new TextView( WorkflowUtil.getExpression( node ), diagramOptions.getNodeTitleFont(), g );
+        String text = WorkflowUtil.getExpression( node );
+        if( !text.equals( "else" ) )
+            text = "if ( " + text + ")";
+        View textView = new TextView( text, diagramOptions.getNodeTitleFont(), g );
         int d = 2;
-        Rectangle r = text.getBounds();
+        Rectangle r = textView.getBounds();
 
         Brush nodeBrush = getBrush( node, diagramOptions.getConditionBrush() );
         PolygonView view = new PolygonView( diagramOptions.getConditionPen(), nodeBrush,
@@ -310,7 +307,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         view.setModel( node );
         view.setActive( true );
         container.add( view );
-        container.add( text, CompositeView.X_CC | CompositeView.Y_CC );
+        container.add( textView, CompositeView.X_CC | CompositeView.Y_CC );
         return false;
     }
 
@@ -330,14 +327,14 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         container.add( text, CompositeView.X_CC | CompositeView.Y_CC );
         return false;
     }
-    
+
     protected boolean createWorkflowOutput(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g)
     {
         View text = new TextView( node.getName(), diagramOptions.getNodeTitleFont(), g );
         int d = 2;
         Rectangle r = text.getBounds();
 
-        Brush nodeBrush = getBrush( node,  diagramOptions.getOutputBrush() );
+        Brush nodeBrush = getBrush( node, diagramOptions.getOutputBrush() );
         PolygonView view = new PolygonView( diagramOptions.getOutputPen(), nodeBrush,
                 new int[] {r.width + d * 2, r.width + d * 2, -d, -4 * d, -d},
                 new int[] { -d, r.height + d, r.height + d, r.height / 2, -d} );
@@ -347,11 +344,11 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         container.add( text, CompositeView.X_CC | CompositeView.Y_CC );
         return false;
     }
-    
+
     protected boolean createConditionalBlockView(CompositeView container, Compartment node, WDLViewOptions diagramOptions, Graphics g)
     {
         Brush shadowBrush = new Brush();
-        Pen pen = getBorderPen(node, diagramOptions.getDefaultPen());
+        Pen pen = getBorderPen( node, diagramOptions.getDefaultPen() );
         Brush mainBrush = getBrush( node, diagramOptions.getConditionalBrush() );
         Point location = node.getLocation();
         Dimension size = node.getShapeSize();
@@ -365,11 +362,11 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         container.add( boxView );
         return false;
     }
-    
+
     protected boolean createScatterView(CompositeView container, Compartment node, WDLViewOptions diagramOptions, Graphics g)
     {
         Brush shadowBrush = new Brush();
-        Pen pen = getBorderPen(node, diagramOptions.getDefaultPen());
+        Pen pen = getBorderPen( node, diagramOptions.getDefaultPen() );
         Brush mainBrush = getBrush( node, new Brush( Color.white ) );
         Point location = node.getLocation();
         Dimension size = node.getShapeSize();
@@ -412,7 +409,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
         return false;
     }
-    
+
     @Override
     public PortFinder getPortFinder(Node node)
     {
@@ -422,5 +419,5 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
             return new InOutFinder( false, getNodeBounds( node ) );
         return super.getPortFinder( node );
     }
-    
+
 }

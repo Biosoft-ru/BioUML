@@ -1,13 +1,9 @@
 package biouml.plugins.wdl.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ScatterInfo
+public class ScatterInfo extends ContainerInfo
 {
     private String variable;
     private String expression;
-    private List<Object> objects = new ArrayList<>();
 
     public String getVariable()
     {
@@ -18,16 +14,6 @@ public class ScatterInfo
     {
         this.variable = variable;
     }
-    public void addObject(Object obj)
-    {
-        objects.add(obj);
-    }
-
-    public Iterable<Object> getObjects()
-    {
-        return objects;
-    }
-
     public String getExpression()
     {
         return expression;

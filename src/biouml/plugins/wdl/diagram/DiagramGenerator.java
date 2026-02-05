@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -178,7 +179,7 @@ public class DiagramGenerator
             {
                 Node source = WorkflowUtil.findExpressionNode(diagram, arg);
                 if( source != null )
-                    createLink(source, node, WDLConstants.LINK_TYPE);
+                    createLink(source, node);
             }
         }
     }
@@ -264,18 +265,44 @@ public class DiagramGenerator
         return c;
     }
 
-    public Compartment createConditionalNode(Compartment parent, ConditionalInfo conditional) throws Exception
-    {
-        String name = WDLSemanticController.uniqName(parent, "conditional");
-        Stub kernel = new Stub(null, name, WDLConstants.CONDITIONAL_TYPE);
-        Compartment c = new Compartment(parent, name, kernel);
-        c.setShapeSize(new Dimension(700, 700));
-        String expression = conditional.getExpression();
-        Node conditionNode = createConditionNode(parent, expression);
-        createLink(conditionNode, c, WDLConstants.LINK_TYPE);
-        parent.put(c);
+    public void createConditionalNode(Compartment parent, ConditionalInfo conditional) throws Exception
+    {                
+        Node previousNode = null;
+        for( String condition : conditional.getConditions() )
+        {
+            Node conditionNode = createConditionNode( parent, condition );              
+            String name = WDLSemanticController.uniqName(parent, "block");        
+            Compartment c = new Compartment(parent, name, new Stub(null, name, WDLConstants.CONDITIONAL_TYPE));
+            c.setShapeSize(new Dimension(700, 700));            
+            fillCompartment(conditional.get( condition ), c);
+            
+            if (previousNode != null)
+                createLink( previousNode, conditionNode );
+            
+            parent.put( c );
+            createLink( conditionNode, c );
 
-        for( Object obj : conditional.getObjects() )
+            previousNode = conditionNode;
+        }       
+        
+        if (conditional.hasElse())
+        {
+            Node conditionNode = createConditionNode( parent, "else" );
+            String name = WDLSemanticController.uniqName(parent, "block");        
+            Compartment c = new Compartment(parent, name, new Stub(null, name, WDLConstants.CONDITIONAL_TYPE));
+            c.setShapeSize(new Dimension(700, 700));            
+            fillCompartment( conditional.getElse() , c);
+
+            if (previousNode != null)
+                createLink( previousNode, conditionNode);
+            parent.put( c );
+            createLink( conditionNode, c );
+        }
+    }
+    
+    private void fillCompartment(Iterable<Object> objects, Compartment c) throws Exception
+    {
+        for( Object obj : objects )
         {
             if( obj instanceof ExpressionInfo )
             {
@@ -294,7 +321,6 @@ public class DiagramGenerator
                 createConditionalNode(c, (ConditionalInfo)obj);
             }
         }
-        return c;
     }
 
     public Compartment createScatterNode(Compartment parent, ScatterInfo scatter) throws Exception
@@ -314,7 +340,7 @@ public class DiagramGenerator
         Node variableNode = new Node(c, name, new Stub(null, name, WDLConstants.SCATTER_VARIABLE_TYPE));
         WorkflowUtil.setName(variableNode, variable);
         c.put(variableNode);
-        createLink(arrayNode, variableNode, WDLConstants.LINK_TYPE);
+        createLink(arrayNode, variableNode);
         parent.put(c);
         for( Object obj : scatter.getObjects() )
         {
@@ -572,12 +598,33 @@ public class DiagramGenerator
         return inNode;
     }
 
-    public static Edge createLink(Node input, Node output, String type)
+    public static Edge createLogicalLink(Node input, Node output, String type)
+    {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put( WDLConstants.LOGICAL_TYPE_ATTR, type );
+        return createLink(input, output, WDLConstants.LOGICAL_LINK_TYPE, new HashMap<>());
+    }
+    
+    public static Edge createLink(Node input, Node output)
+    {
+        return createLink(input, output, WDLConstants.LINK_TYPE, new HashMap<>());
+    }
+    
+    public static Edge createLink(Node input, Node output, Map<String, Object> attributes)
+    {
+        return createLink(input, output, WDLConstants.LINK_TYPE, attributes);
+    }
+    
+    public static Edge createLink(Node input, Node output, String type, Map<String, Object> attributes)
     {
         String name = input.getName() + "_to_" + output.getName();
         Diagram d = Diagram.getDiagram(input);
         name = DefaultSemanticController.generateUniqueName(d, name);
         Edge e = new Edge(new Stub(null, name, type), input, output);
+        for (Entry<String, Object> entry: attributes.entrySet())
+        {
+            e.getAttributes().add( new DynamicProperty(entry.getKey(), entry.getValue().getClass(), entry.getValue()) );
+        }
         e.getCompartment().put(e);
         return e;
     }

@@ -1,30 +1,46 @@
 package biouml.plugins.wdl.model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class ConditionalInfo
 {
-    private String expression;
-    private List<Object> objects = new ArrayList<>();
+    private LinkedHashMap<String, ContainerInfo> ifBlocks = new LinkedHashMap<>();
+    private ContainerInfo elseBlock = new ContainerInfo();
 
-    public void addObject(Object obj)
+    public void addCondition(String expression)
     {
-        objects.add(obj);
+        ifBlocks.put( expression, new ContainerInfo() );
     }
 
-    public Iterable<Object> getObjects()
+    public List<String> getConditions()
     {
-        return objects;
+        return new ArrayList<>( ifBlocks.keySet() );
     }
 
-    public String getExpression()
+    public void addElse(Object object)
     {
-        return expression;
+        elseBlock.addObject( object );
+    }
+
+    public boolean hasElse()
+    {
+        return !elseBlock.isEmpty();
+    }
+
+    public Iterable<Object> getElse()
+    {
+        return elseBlock.getObjects();
+    }
+
+    public void add(String condition, Object object)
+    {
+        ifBlocks.computeIfAbsent( condition, k -> new ContainerInfo() ).addObject( object );
     }
     
-    public void setExpression(String expression)
+    public Iterable<Object> get(String condition)
     {
-        this.expression = expression;
+        return ifBlocks.get( condition ).getObjects();
     }
 }
