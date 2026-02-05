@@ -16,6 +16,8 @@ public class Permission
     public static final int ALL    = 0b11111;
 
     private static Map<String, Integer> securityMap = new HashMap<>();
+
+    static 
     {
         securityMap.put("getSize", INFO);
         securityMap.put("getDataElementType", INFO);
