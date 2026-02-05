@@ -10,6 +10,7 @@ import biouml.model.Diagram;
 import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.NextFlowRunner;
 import biouml.plugins.wdl.WDLGenerator;
+import biouml.plugins.wdl.WorkflowUtil;
 
 public class TestNextflow //extends //TestCase
 {
@@ -136,8 +137,8 @@ public class TestNextflow //extends //TestCase
 
         if( diagram != null )
         {
-            testResult.setTitle( TestUtil.getTitle( diagram ) );
-            testResult.setDescrption( TestUtil.getShortDescription( diagram ) );
+//            testResult.setTitle( WorkflowUtil.getTitle( diagram ) );
+//            testResult.setDescrption( WorkflowUtil.getShortDescription( diagram ) );
             //2. Generate WDL
             try
             {
@@ -192,7 +193,7 @@ public class TestNextflow //extends //TestCase
                     testResult.setNextflowExecuted( ex.toString() );
                 }
             }
-            saveResults( name, resultDir, TestUtil.getShortDescription( diagram ), roundWDL, generatedWDL, nextflow, diagram );
+            saveResults( name, resultDir, WorkflowUtil.getShortDescription( diagram ), roundWDL, generatedWDL, nextflow, diagram );
 
             //6. Validate WDL (optional)
             if( !validateWDL )

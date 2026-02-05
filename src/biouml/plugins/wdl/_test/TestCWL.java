@@ -1,88 +1,144 @@
 package biouml.plugins.wdl._test;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.CWLGenerator;
-//import junit.framework.TestCase;
+import biouml.plugins.wdl.CWLParser;
 import biouml.plugins.wdl.CWLRunner;
-import biouml.plugins.wdl.NextFlowGenerator;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLLayouter;
+import ru.biosoft.util.StreamGobbler;
 import ru.biosoft.util.TempFiles;
 
 public class TestCWL
 {
+
+    private File testsDir;
+    private File resultsDir;
 
     private static String[] list = new String[] {"hello", "scatter_range_2_steps", "scatter_simple", "scatter_range", "scatter_range2",
             "two_steps", "four_steps"};
 
     public static void main(String ... args) throws Exception
     {
-        //        test( "faidx" );
-
-//        test( "two_steps" );
-//        test( "two_steps" );
-        test("aggregate");
-        //        for (String name: list)
-        //            test(name);
-
-        //                test( "scatter_range_2_extra" );
-        //                test( "scatter_range_2_steps" );
-        //                test( "scatter_simple" );
-        //        test( "scatter_range" );
-        //                test( "scatter_range2" );
-        //        test( "two_steps" );
-        //        test( "four_steps" );
-        //        test( "private_declaration_task" );
-        //                test( "pbmm2" );
-        //        test( "pbsv_1" );
-        //        test( "array_input" );
-        // test( "array_select");
-
-
-        //        test( "array_on_the_fly" );
-        //        test( "lima" );
-
-        //        test("faidx_import");
-        //        test( "fastqc1" );
-        //        test( "test_scatter" );
+        TestCWL tester = new TestCWL();
+        tester.init( TestCWL.class.getResource( "../test_examples/cwl/" ) );
+        tester.test( "aggregate" );
     }
 
-    public static void test() throws Exception
+    public void test(String name) throws Exception
     {
-        test( "two_steps" );
-    }
-
-    public static void test(String name) throws Exception
-    {
-        Diagram diagram = TestUtil.loadDiagramCWL( name );
+        String originalCWL = ApplicationUtils.readAsString( new File( testsDir, name + ".cwl" ) );
+        Diagram diagram = new CWLParser().loadDiagram( originalCWL, null );
         new WDLLayouter().layout( diagram );
-        TestWDL.exportImage(diagram, new File("C:/Users/Damag/cwl.png"));
-        
-        String cwl =  new CWLGenerator().generate( diagram );
+        TestWDL.exportImage( diagram, new File( resultsDir, name + ".png" ) );
+        String cwl = new CWLGenerator().generate( diagram );
+
+        File generatedCWLFile = new File( resultsDir, name + ".cwl" );
+        ApplicationUtils.writeString( generatedCWLFile, cwl );
         System.out.println( cwl );
-//        String nextflow =  new NextFlowGenerator().generate( diagram );
-//        System.out.println( nextflow );
-//        CWLGenerator cwlGenerator = new CWLGenerator();
+        validate( generatedCWLFile, resultsDir );
+    }
 
-//        String cwl = cwlGenerator.generate( diagram );
-//        System.out.println( "Exported CWL: " );
-//        System.out.println( cwl );
-
-//        runCWL( name, cwl );
-        //        checkScript( name, nextFlow );
+    public void init(URL url) throws Exception
+    {
+        File suiteDir = new File( url.toURI() );
+        testsDir = suiteDir;//new File( suiteDir, "tests" );
+        resultsDir = new File( suiteDir, "results" );
+        TestUtil.deleteDir( resultsDir );
+        resultsDir.mkdir();
     }
 
     private static void runCWL(String name, String script)
     {
         runCWL( name, script, new ArrayList<>() );
+    }
+
+    private static int validate(File cwl, File outputDir) throws Exception
+    {
+        Process process = createProcess( cwl, outputDir );
+        StringWriter infoWriter = new StringWriter();
+        int code = logProcess2( process, infoWriter );
+        if( code == 0 )
+            System.out.println( "Success!" );
+        else
+            System.out.println( infoWriter.toString() );
+        return code;
+    }
+
+    public static int logProcess2(Process process, Writer writer) throws Exception
+    {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit( () -> {
+
+            try (BufferedReader reader = new BufferedReader( new InputStreamReader( process.getInputStream() ) ))
+            {
+                String line;
+                while( ( line = reader.readLine() ) != null )
+                    writer.append( "\n" + line );
+            }
+            return "";
+        } );
+        int exitCode = process.waitFor();
+        process.destroy();
+        executor.shutdown();
+        return exitCode;
+    }
+
+    public static int logProcess(Process process, Writer writer, Writer errorWriter) throws Exception
+    {
+        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
+        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
+        process.waitFor();
+
+        String outStr = inputReader.getData();
+        if( !outStr.isEmpty() )
+            writer.append( outStr );
+
+        String errorStr = errorReader.getData();
+        if( !errorStr.isEmpty() )
+            errorWriter.append( errorStr );
+        return process.exitValue();
+    }
+
+    private static Process createProcess(File cwl, File outputDir) throws IOException
+    {
+        boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
+        List<String> commands = new ArrayList<>();
+        if( isWindows )
+        {
+            commands.add( "wsl" );
+            commands.add( "--cd" );
+            commands.add( cwl.getParentFile().getAbsolutePath().replace( "\\", "/" ) );
+        }
+        commands.add( "cwltool" );
+        commands.add( "--validate" );
+        commands.add( cwl.getName());
+        ProcessBuilder builder = new ProcessBuilder( commands.toArray( String[]::new ) );
+
+        if( !isWindows )
+            builder.directory( outputDir );
+        builder.redirectErrorStream( true );
+        builder.environment().put( "PYTHONUNBUFFERED", "1" );
+        Process process = builder.start();
+        return process;
     }
 
     private static void runCWL(String name, String script, List<String> imports)
@@ -133,19 +189,5 @@ public class TestCWL
         {
             ex.printStackTrace();
         }
-    }
-
-    private static void checkScript(String name, String cwl) throws Exception
-    {
-        URL url = TestWDL.class.getResource( "../test_examples/cwl/" + name + ".cwl" );
-        File f = new File( url.getFile() );
-        String test = ApplicationUtils.readAsString( new File( url.getFile() ) );
-        //        assertEquals( test, cwl );
-    }
-
-    private static void saveResult(String name, String nextFlow) throws Exception
-    {
-        File f = new File( "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/nextflow/" + name + ".nf" );
-        ApplicationUtils.writeString( f, nextFlow );
     }
 }
