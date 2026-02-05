@@ -208,7 +208,7 @@ public class SecurityManager
         return permission;
     }
 
-    private static boolean isRecursiveDeleteAllowed(String dataCollectionName, Permission permission, UserPermissions userInfo)
+    private static boolean isRecursiveDeleteAllowedPrev(String dataCollectionName, Permission permission, UserPermissions userInfo)
     {
         if(permission.isAdminAllowed())
             return true;
@@ -221,6 +221,46 @@ public class SecurityManager
             .filterKeys( path->path.isDescendantOf( dataCollectionPath ) )
                 .values().map( Permission::isDeleteAllowed ).reduce( Boolean::logicalAnd ).orElse( false );
         return recursiveDeleteAllowed;
+    }
+
+    private static boolean isRecursiveDeleteAllowed(String dataCollectionName, Permission permission, UserPermissions userInfo)
+    {
+        if(permission.isAdminAllowed())
+            return true;
+        if(!permission.isWriteAllowed())
+            return false;
+        
+        // Early exit: if there are no permissions cached, we can't determine recursive delete
+        Hashtable<String, Permission> dbToPermission = userInfo.getDbToPermission();
+        if(dbToPermission.isEmpty())
+            return false;
+        
+        // Parse target path once
+        DataElementPath dataCollectionPath = DataElementPath.create(dataCollectionName);
+        
+        // Use string prefix filtering to avoid parsing every path
+        String pathPrefix = dataCollectionName.endsWith("/") ? dataCollectionName : dataCollectionName + "/";
+        
+        // Check only descendant paths with early termination
+        for(Map.Entry<String, Permission> entry : dbToPermission.entrySet())
+        {
+            String childPathStr = entry.getKey();
+            
+            // Quick string check before expensive path creation
+            if(!childPathStr.startsWith(pathPrefix))
+                continue;
+            
+            // Only parse paths that are potential descendants
+            DataElementPath childPath = DataElementPath.create(childPathStr);
+            if(childPath.isDescendantOf(dataCollectionPath))
+            {
+                // Early exit on first non-deletable descendant
+                if(!entry.getValue().isDeleteAllowed())
+                    return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
