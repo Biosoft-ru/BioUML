@@ -193,7 +193,7 @@ public class TestNextflow //extends //TestCase
                     testResult.setNextflowExecuted( ex.toString() );
                 }
             }
-            saveResults( name, resultDir, WorkflowUtil.getShortDescription( diagram ), roundWDL, generatedWDL, nextflow, diagram );
+            saveResults( name, resultDir, "//TODO" , roundWDL, generatedWDL, nextflow, diagram );
 
             //6. Validate WDL (optional)
             if( !validateWDL )
