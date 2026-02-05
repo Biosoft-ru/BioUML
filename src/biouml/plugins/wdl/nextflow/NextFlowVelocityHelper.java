@@ -1,4 +1,4 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.nextflow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +15,8 @@ import com.developmentontheedge.beans.DynamicProperty;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.WorkflowUtil;
+import biouml.plugins.wdl.WorkflowVelocityHelper;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import one.util.streamex.StreamEx;

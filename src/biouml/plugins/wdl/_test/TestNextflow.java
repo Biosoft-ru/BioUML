@@ -7,8 +7,8 @@ import java.util.List;
 
 import com.developmentontheedge.application.ApplicationUtils;
 import biouml.model.Diagram;
-import biouml.plugins.wdl.NextFlowGenerator;
-import biouml.plugins.wdl.NextFlowRunner;
+import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl.WorkflowUtil;
 

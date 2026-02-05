@@ -1,4 +1,4 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.cwl;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
+import biouml.plugins.wdl.WorkflowSettings;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.TextDataElement;

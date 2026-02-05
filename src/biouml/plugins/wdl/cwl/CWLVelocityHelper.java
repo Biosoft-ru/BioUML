@@ -1,4 +1,4 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.cwl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,8 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Node;
+import biouml.plugins.wdl.WorkflowUtil;
+import biouml.plugins.wdl.WorkflowVelocityHelper;
 import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class CWLVelocityHelper extends WorkflowVelocityHelper

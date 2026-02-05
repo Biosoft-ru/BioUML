@@ -1,4 +1,4 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.nextflow;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,6 +16,9 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
+import biouml.plugins.wdl.ImportProperties;
+import biouml.plugins.wdl.WorkflowSettings;
+import biouml.plugins.wdl.WorkflowUtil;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.TextFileImporter;

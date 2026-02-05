@@ -1,4 +1,4 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.cwl;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -18,10 +18,10 @@ import com.developmentontheedge.beans.DynamicProperty;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
-import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.standard.type.DiagramInfo;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;

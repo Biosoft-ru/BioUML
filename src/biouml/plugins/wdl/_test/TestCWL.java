@@ -12,16 +12,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
-import biouml.plugins.wdl.CWLGenerator;
-import biouml.plugins.wdl.CWLParser;
-import biouml.plugins.wdl.CWLRunner;
+import biouml.plugins.wdl.cwl.CWLGenerator;
+import biouml.plugins.wdl.cwl.CWLParser;
+import biouml.plugins.wdl.cwl.CWLRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLLayouter;
 import ru.biosoft.util.StreamGobbler;

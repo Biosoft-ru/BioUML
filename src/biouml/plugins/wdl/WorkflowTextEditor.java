@@ -29,10 +29,15 @@ import com.developmentontheedge.log.TextPaneAppender;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.colorer.WDLColorer;
+import biouml.plugins.wdl.cwl.CWLGenerator;
+import biouml.plugins.wdl.cwl.CWLParser;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.diagram.WDLLayouter;
+import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.NextFlowImporter;
+import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
 import ru.biosoft.gui.Document;

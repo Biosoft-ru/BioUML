@@ -1,6 +1,8 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.nextflow;
 
 import biouml.model.Diagram;
+import biouml.plugins.wdl.WorkflowTextGenerator;
+import biouml.plugins.wdl.WorkflowVelocityHelper;
 
 public class NextFlowGenerator extends WorkflowTextGenerator
 {

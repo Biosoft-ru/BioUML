@@ -1,4 +1,4 @@
-package biouml.plugins.wdl;
+package biouml.plugins.wdl.nextflow;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.WorkflowSettings;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.model.ExpressionInfo;
 
 public class NextFlowPreprocessor
