@@ -24,6 +24,7 @@ import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.MetaInfo;
+import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import biouml.plugins.wdl.parser.AstMeta;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;

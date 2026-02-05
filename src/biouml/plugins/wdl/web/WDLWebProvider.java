@@ -8,10 +8,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import biouml.model.Diagram;
-import biouml.plugins.wdl.CWLGenerator;
-import biouml.plugins.wdl.NextFlowGenerator;
+import biouml.plugins.wdl.cwl.CWLGenerator;
+import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import biouml.plugins.wdl.WDLGenerator;
-import biouml.plugins.wdl.NextFlowRunner;
+import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.diagram.WDLLayouter;

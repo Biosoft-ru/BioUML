@@ -3,8 +3,8 @@ package biouml.plugins.wdl.analysis;
 import java.util.logging.Logger;
 
 import biouml.model.Diagram;
-import biouml.plugins.wdl.NextFlowGenerator;
-import biouml.plugins.wdl.NextFlowRunner;
+import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 
