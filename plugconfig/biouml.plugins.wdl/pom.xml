@@ -20,6 +20,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>3.0.23</version>
+        </dependency>
         <!-- Depend on the compiled classes from the parent module -->
         <dependency>
             <groupId>org.biouml</groupId>
