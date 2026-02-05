@@ -24,9 +24,9 @@ public class TestNextflowImporter
         File file = new File( url.getFile() );
         String nextflow = ApplicationUtils.readAsString( file );
         Diagram d = new WDLDiagramType().createDiagram( null, "test", new DiagramInfo( null, "test" ) );
-        NextFlowImporter.runNextFlowDry( nextflow, d );
+        new NextFlowImporter().importNextflow( nextflow, d );
         
-        TestWDL.exportImage(d, new File("C:/Users/Damag/dot.png"));
+//        TestWDL.exportImage(d, new File("C:/Users/Damag/dot.png"));
     }
 
 }
