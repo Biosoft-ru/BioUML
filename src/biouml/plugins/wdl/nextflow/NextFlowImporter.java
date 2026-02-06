@@ -23,13 +23,13 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.model.util.DiagramImageGenerator;
+import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.model.CallInfo;
 import biouml.plugins.wdl.model.CommandInfo;
 import biouml.plugins.wdl.model.ConditionalInfo;
-import biouml.plugins.wdl.model.ContainerInfo;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.InputInfo;
 import biouml.plugins.wdl.model.OutputInfo;
@@ -55,7 +55,9 @@ public class NextFlowImporter
     //            "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/nextflow/simple_if.nf" );
     //        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/two_steps.nf" );
 
-    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/ifelse.nf" );
+    //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/ifelse.nf" );
+
+    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/SNV/DIVIDE.nf" );
 
     static File imageFile = new File( workDir, "two_steps.png" );
 
@@ -152,11 +154,11 @@ public class NextFlowImporter
             {
                 MethodCallExpression methodCall = (MethodCallExpression)expression;
                 String methodName = getMethodName( methodCall );
-                boolean inout = methodName.equals( "val" ) || methodName.equals( "path" );
+                boolean inout = methodName.equals( "val" ) || methodName.equals( "path" ) || methodName.equals( "tuple" );
                 if( inout && isInput( currentLabels ) )
                     parseInput( methodCall, taskInfo );
                 else if( inout && isOutput( currentLabels ) )
-                    parseOutput( methodCall, taskInfo );
+                    parseOutput( methodCall, taskInfo, null );
                 else if( !inout )
                     parseDirective( methodCall, taskInfo );
             }
@@ -177,17 +179,23 @@ public class NextFlowImporter
         return taskInfo;
     }
 
-    private OutputInfo parseOutput(MethodCallExpression expression, TaskInfo taskInfo)
+    private void parseOutput(MethodCallExpression expression, TaskInfo taskInfo, String emitName)
     {
-        String outputName = null;
+        boolean isTuple = false;
+        String outputName = emitName;
         String outputExpression = null;
         String outputType = getMethodName( expression );
         Expression arguments = expression.getArguments();
+
         for( Expression argumentExpression : ( (ArgumentListExpression)arguments ).getExpressions() )
         {
             if( argumentExpression instanceof ConstantExpression )
             {
                 outputExpression = ( (ConstantExpression)argumentExpression ).getValue().toString();
+            }
+            else if (argumentExpression instanceof VariableExpression)
+            {
+                outputExpression = ((VariableExpression)argumentExpression).getName();
             }
             else if( argumentExpression instanceof MapExpression )
             {
@@ -202,13 +210,20 @@ public class NextFlowImporter
                     }
                 }
             }
+            else if( argumentExpression instanceof MethodCallExpression )
+            {
+                isTuple = true;
+                parseOutput( (MethodCallExpression)argumentExpression, taskInfo, outputName );
+            }
         }
+
+        if ( isTuple )
+            return;
         OutputInfo outputInfo = new OutputInfo();
         outputInfo.setName( outputName );
         outputInfo.setExpression( outputExpression );
         outputInfo.setType( outputType );
         taskInfo.addOutputInfo( outputInfo );
-        return outputInfo;
     }
 
     private void parseDirective(MethodCallExpression methodExpression, TaskInfo taskInfo)
@@ -234,7 +249,7 @@ public class NextFlowImporter
             taskInfo.setMetaProperty( key, value );
     }
 
-    private InputInfo parseInput(MethodCallExpression expression, TaskInfo taskInfo)
+    private void parseInput(MethodCallExpression expression, TaskInfo taskInfo)
     {
         String inputName = null;
         String inputType = getMethodName( expression );
@@ -244,13 +259,16 @@ public class NextFlowImporter
             if( argumentExpression instanceof VariableExpression )
             {
                 inputName = ( (VariableExpression)argumentExpression ).getName();
+                InputInfo inputInfo = new InputInfo();
+                inputInfo.setName( inputName );
+                inputInfo.setType( inputType );
+                taskInfo.addInputInfo( inputInfo );
+            }
+            else if( argumentExpression instanceof MethodCallExpression )
+            {
+                parseInput( (MethodCallExpression)argumentExpression, taskInfo );
             }
         }
-        InputInfo inputInfo = new InputInfo();
-        inputInfo.setName( inputName );
-        inputInfo.setType( inputType );
-        taskInfo.addInputInfo( inputInfo );
-        return inputInfo;
     }
 
     public WorkflowInfo parseWorkflow(MethodCallExpression workflow) throws Exception
@@ -370,7 +388,7 @@ public class NextFlowImporter
         }
         else if( statement instanceof IfStatement )
         {
-            return parseConditional((IfStatement )statement, workflowInfo);
+            return parseConditional( (IfStatement)statement, workflowInfo );
         }
         else
         {
@@ -378,14 +396,14 @@ public class NextFlowImporter
         }
         return null;
     }
-    
+
     private ConditionalInfo parseConditional(IfStatement ifStatement, WorkflowInfo workflowInfo) throws Exception
     {
         ConditionalInfo conditionalInfo = new ConditionalInfo();
-        parseConditionalBlock(ifStatement, conditionalInfo, workflowInfo);
+        parseConditionalBlock( ifStatement, conditionalInfo, workflowInfo );
         return conditionalInfo;
     }
-    
+
     private void parseConditionalBlock(IfStatement ifStatement, ConditionalInfo conditionalInfo, WorkflowInfo workflowInfo) throws Exception
     {
         String condition = NextFlowFormatter.format( ifStatement.getBooleanExpression() );
@@ -395,7 +413,7 @@ public class NextFlowImporter
             Object step = parseStep( inBlockStatement, workflowInfo );
             conditionalInfo.add( condition, step );
         }
-        
+
         Statement elseStatement = ifStatement.getElseBlock();
         if( elseStatement instanceof BlockStatement )
         {
@@ -405,12 +423,12 @@ public class NextFlowImporter
                 conditionalInfo.addElse( step );
             }
         }
-        else if (elseStatement instanceof IfStatement)
+        else if( elseStatement instanceof IfStatement )
         {
-            parseConditionalBlock((IfStatement)elseStatement, conditionalInfo, workflowInfo); 
+            parseConditionalBlock( (IfStatement)elseStatement, conditionalInfo, workflowInfo );
         }
     }
-    
+
 
     private ExpressionInfo parseDeclaration(MethodCallExpression methodCall)
     {
@@ -462,11 +480,11 @@ public class NextFlowImporter
                 rhs = NextFlowFormatter.format( right );
                 //            }
             }
-            else if (expression instanceof VariableExpression)
+            else if( expression instanceof VariableExpression )
             {
-                variable = ((VariableExpression)expression).getName();
+                variable = ( (VariableExpression)expression ).getName();
             }
-                
+
             OutputInfo outputInfo = new OutputInfo();
             outputInfo.setName( variable );
             outputInfo.setExpression( rhs );
