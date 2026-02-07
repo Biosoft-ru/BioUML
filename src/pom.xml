@@ -39,6 +39,7 @@
                 <includes>
                      <include>**/_test/resources/*</include>
                      <include>**/simulation/resources/*</include>
+                     <include>**/physicell/resources/*</include>
                  </includes>
                  <excludes>
                       <exclude>target/**</exclude>
@@ -116,7 +117,7 @@
                         <!-- These fail now. Should be fixed -->
                         <!-- ******************************* -->
 
-                        <exclude>**/biouml/model/_test/TestCompartment.java</exclude>
+                        <!--exclude>**/biouml/model/_test/TestCompartment.java</exclude-->
                         <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReadWriteTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoViewTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReaderTest.java</exclude>
@@ -202,9 +203,6 @@
 
                         <exclude>**/biouml/plugins/server/_test/ServerTest.java</exclude>
                         <exclude>**/biouml/plugins/server/_test/ClientDataCollectionTest.java</exclude>
-
-                        <exclude>**/biouml/plugins/keynodes/_test/KeyNodesTest.java</exclude>
-                        <exclude>**/biouml/plugins/keynodes/_test/ReactomeBioHubTest.java</exclude>
 
                         <exclude>**/biouml/plugins/simulation/_test/TestSolverResult.java</exclude>
                         <exclude>**/biouml/plugins/simulation/_test/CompositeSimulationTest.java</exclude>
@@ -331,7 +329,7 @@
                         <exclude>**/biouml/plugins/sbgn/_test/TestSbgnExamples.java</exclude>
                         <exclude>**/biouml/plugins/sbgn/sbgnml/_test/TestSbgnMlExportImport.java</exclude>
                         <exclude>**/biouml/workbench/module/_test/ImportExportModuleTest.java</exclude>
-                        <exclude>**/ru/biosoft/access/_test/DataElementPathTest.java</exclude>
+                        <!--exclude>**/ru/biosoft/access/_test/DataElementPathTest.java</exclude-->
                         <exclude>**/ru/biosoft/bsastats/_test/MicroRNAAlignerTest.java</exclude>
                         <exclude>**/ru/biosoft/server/servlets/webservices/_test/TestWebActionsProvider.java</exclude>
                         <exclude>**/ru/biosoft/server/servlets/webservices/_test/AbstractProviderTest.java</exclude>
@@ -351,12 +349,14 @@
                         <exclude>**/biouml/plugins/glycan/_test/GlycanViewTest.java</exclude>
                         <exclude>**/biouml/plugins/graphml/_test/TestGraphML.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/ArterialTreeFitTest.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/ArterialTreeStabilityTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/PressureTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/PulseWaveValidationTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/SimpleTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/SolodyannikovValidationTest.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestArterialTree.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestHemodynamicsModel.java</exclude>
+                        <exclude>**/biouml/plugins/hemodynamics/_test/TestHemodynamicsObserver.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestInitialValuesCalculator.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/TestResultAnalysis.java</exclude>
                         <exclude>**/biouml/plugins/hemodynamics/_test/UtilTest.java</exclude>

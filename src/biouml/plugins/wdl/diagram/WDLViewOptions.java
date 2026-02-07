@@ -21,9 +21,8 @@ public class WDLViewOptions extends DiagramViewOptions
     private Brush outputBrush;
     private Pen outputPen;
     private Brush structBrush = new Brush(Color.white);
-    protected ColorFont smallFont;
     protected Brush deBrush;
-    protected Brush analysisBrush;
+    protected Brush callBrush;
     protected Brush taskBrush;
     protected Brush expressionBrush;
     protected Brush conditionBrush =  new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
@@ -34,7 +33,6 @@ public class WDLViewOptions extends DiagramViewOptions
     protected Pen parameterPen;
     protected Pen expressionPen;
     protected Pen analysisPen;
-    protected ColorFont progressFont;
     
     public WDLViewOptions(Option parent)
     {
@@ -44,10 +42,10 @@ public class WDLViewOptions extends DiagramViewOptions
         setNotificationEnabled( false );
         setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
         setOutputPen( new Pen(1, new Color(160, 60, 6)) );
-        setSmallFont( new ColorFont("Arial", Font.PLAIN, 9, Color.black) );
+        setExpressionFont( new ColorFont("Arial", Font.PLAIN, 12, Color.black)  );
         setDeBrush( new Brush(new Color(176, 196, 222)) );
         setTaskBrush( new Brush(new Color(96, 96, 96), new Color(186, 186, 186)) );
-        setAnalysisBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
+        setCallBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
         setAnalysisPen( new Pen(1, new Color(83, 180, 222)) );
         setExpressionBrush( new Brush(new Color(254, 214, 116), new Color(252, 245, 193)) );
         setExpressionPen( new Pen(1, new Color(236, 158, 29)) );
@@ -69,19 +67,6 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("structBrush", oldValue, structBrush);
     }
 
-    @PropertyName("Script body font")
-    @PropertyDescription("Font to display script text")
-    public ColorFont getSmallFont()
-    {
-        return smallFont;
-    }
-    public void setSmallFont(ColorFont smallFont)
-    {
-        ColorFont oldValue = this.smallFont;
-        this.smallFont = smallFont;
-        firePropertyChange("smallFont", oldValue, smallFont);
-    }
-
     public Brush getDeBrush()
     {
         return deBrush;
@@ -93,17 +78,17 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("deBrush", oldValue, deBrush);
     }
 
-    @PropertyName("Analysis brush")
-    @PropertyDescription("Brush to fill analysis boxes")
-    public Brush getAnalysisBrush()
+    @PropertyName("Call brush")
+    @PropertyDescription("Brush to fill call boxes")
+    public Brush getCallBrush()
     {
-        return analysisBrush;
+        return callBrush;
     }
-    public void setAnalysisBrush(Brush analysisBrush)
+    public void setCallBrush(Brush callBrush)
     {
-        Brush oldValue = this.analysisBrush;
-        this.analysisBrush = analysisBrush;
-        firePropertyChange("analysisBrush", oldValue, analysisBrush);
+        Brush oldValue = this.callBrush;
+        this.callBrush = callBrush;
+        firePropertyChange("callBrush", oldValue, callBrush);
     }
     
     @PropertyName("Task brush")
@@ -183,19 +168,6 @@ public class WDLViewOptions extends DiagramViewOptions
         Brush oldValue = this.parameterBrush;
         this.parameterBrush = parameterBrush;
         firePropertyChange("parameterBrush", oldValue, parameterBrush);
-    }
-    
-    @PropertyName("Progress font")
-    @PropertyDescription("Font used to display progress of running analysis")
-    public ColorFont getProgressFont()
-    {
-        return progressFont;
-    }
-    public void setProgressFont(ColorFont progressFont)
-    {
-        ColorFont oldValue = this.progressFont;
-        this.progressFont = progressFont;
-        firePropertyChange("progressFont", oldValue, progressFont);
     }
 
     @PropertyName("Analysis pen")

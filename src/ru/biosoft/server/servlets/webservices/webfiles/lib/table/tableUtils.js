@@ -580,6 +580,22 @@ function changeColorFromTable(colorBtn)
             });
 }
 
+function editColorPenBean(parentPath, colorControlId)
+{
+    createBeanEditorDialog('Plot line specification', parentPath, function(data){
+        var colored = $(getJQueryIdSelector(colorControlId));
+        if(colored)
+        {
+            var color = findDPSValue(data, "color");
+            if(color)
+            {
+                var val = $.parseJSON(color);
+                colored.css({'backgroundColor': "rgb("+val[0]+","+val[1]+","+val[2]+")"});
+            }
+        }
+    }, true);
+}
+
 function displayTableCell(cell)
 {
 	cell = $(cell);

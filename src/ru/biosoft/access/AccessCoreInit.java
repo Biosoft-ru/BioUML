@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionHelper;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.Environment;
 import ru.biosoft.access.core.Transformer;
@@ -25,6 +26,15 @@ public class AccessCoreInit
         Environment.setClassLoading( new BiosoftClassLoading() );
         Environment.setIconManager( new BiosoftIconManager() );
         Environment.setValue( FileTypeRegistry.FILE_TYPE_REGISTRY_CLASS, BiosoftFileTypeRegistry.class );
+        Environment.setDataCollectionHelper( new DataCollectionHelper()
+        {
+
+            @Override
+            public File getChildFile(DataCollection<?> collection, String name)
+            {
+                return DataCollectionUtils.getChildFile( collection, name );
+            }
+        } );
         
         
         ru.biosoft.access.file.v1.Environment.INSTANCE = new ru.biosoft.access.file.v1.Environment()

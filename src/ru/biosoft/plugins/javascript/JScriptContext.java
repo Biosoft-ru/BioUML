@@ -142,6 +142,7 @@ public class JScriptContext
     }
 
     private static ThreadLocal<ImporterTopLevel> scope = new ThreadLocal<>();
+
     public static ImporterTopLevel getScope()
     {
         ImporterTopLevel threadScope = scope.get();

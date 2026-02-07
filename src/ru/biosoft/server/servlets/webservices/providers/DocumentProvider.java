@@ -107,22 +107,6 @@ public class DocumentProvider extends WebJSONProviderSupport
                 {
                     de = ((CloneableDataElement)de).clone(parent, newPath.getName());
                 }
-                catch (CloneNotSupportedException cns)
-                {
-                    //Workaround for pending FileDataElement.copy
-                    if(de instanceof FileDataElement)
-                    {
-                        File newFile = DataCollectionUtils.getChildFile( parent, newPath.getName() );
-                        try
-                        {
-                            de = ((FileDataElement) de).cloneWithFile( parent, newPath.getName(), newFile );
-                        }
-                        catch (CloneNotSupportedException e)
-                        {
-                            throw new WebException( e, "EX_ACCESS_CANNOT_COPY", oldPath, newPath, e.getMessage() );
-                        }
-                    }
-                }
                 catch( Exception e )
                 {
                     throw new WebException(e, "EX_ACCESS_CANNOT_COPY", oldPath, newPath, e.getMessage());

@@ -1,0 +1,11 @@
+files:
+- name: Interactions
+  type: BioUML diagram
+- name: Interactions2
+  properties:
+    diagramRole: biouml.plugins.physicell.MulticellEModel
+    compositeDiagram: 'false'
+    cloneForEdit: 'true'
+    diagramType: biouml.plugins.physicell.PhysicellDiagramType
+  transformer: biouml.model.util.DiagramXmlTransformer
+  type: BioUML diagram

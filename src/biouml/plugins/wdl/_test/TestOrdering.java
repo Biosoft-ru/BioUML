@@ -6,6 +6,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowUtil;
+import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
@@ -95,7 +96,8 @@ public class TestOrdering
             Node output = new Node( p, outputName, new Stub( null, outputName, WDLConstants.OUTPUT_TYPE ) );
             p.put( input );
 
-            WDLImporter.createLink( output, input, WDLConstants.LINK_TYPE );
+            
+            DiagramGenerator.createLink( output, input, WDLConstants.LINK_TYPE );
         }
 
     }

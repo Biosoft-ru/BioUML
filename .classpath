@@ -20,7 +20,6 @@
 	<classpathentry kind="lib" path="plugins/jama_1.0.2.jar"/>
 	<classpathentry kind="lib" path="plugins/jdbm_2.0.jar"/>
 	<classpathentry kind="lib" path="plugins/net.htmlparser.jericho_3.2.jar"/>
-	<classpathentry kind="lib" path="plugins/org.apache.commons.cli_1.0.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.codec_1.6.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.collections_3.2.1.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.collections4_4.1.jar"/>
@@ -50,7 +49,7 @@
 	<classpathentry kind="lib" path="plugins/plaf.metal_1.5.0.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.exception-1.0.0.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.jobcontrol-2.0.0.jar"/>
-	<classpathentry kind="lib" path="plugins/ru.biosoft.physicell_2025.2.jar" sourcepath="/JPhysiCell/src"/>
+	<classpathentry kind="lib" path="plugins/ru.biosoft.physicell_2025.2.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.rtree-0.0.1.jar"/>
 	<classpathentry kind="lib" path="plugins/streamex-0.7.0.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.graph/graph.jar"/>
@@ -70,7 +69,6 @@
 	<classpathentry kind="lib" path="plugins/org.jivesoftware.smack_1.0.0/smackx.jar"/>
 	<classpathentry kind="lib" path="plugins/glpk/glpk-java-1.12.0.jar"/>
 	<classpathentry kind="lib" path="plugins/gurobi/gurobi.jar"/>
-	<classpathentry kind="lib" path="plugins/junit_3.8.1/junit.jar"/>
 	<classpathentry kind="lib" path="plugins/com.Ostermiller.syntax_1.0.0/syntax.jar"/>
 	<classpathentry kind="lib" path="plugconfig/biouml.plugins.chipmunk/chipmunk.jar"/>
 	<classpathentry kind="lib" path="plugins/org.semanticweb.owl_2.1.0/owlapi-api.jar"/>
@@ -180,5 +178,8 @@
 	<classpathentry kind="lib" path="plugins/org.apache.commons.lang3_3.18.0.jar"/>
 	<classpathentry kind="lib" path="plugins/org.sbolstandard.core2_4.0/libSBOLj-2.4.0-withDependencies.jar"/>
 	<classpathentry kind="lib" path="plugins/htsjdk_4.3.0/commons-jexl-2.1.1.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="lib" path="plugins/jackson-core-2.11.2.jar"/>
+	<classpathentry kind="lib" path="plugins/org.apache.commons.cli_1.9.0.jar"/>
+	<classpathentry kind="lib" path="plugins/groovy-3.0.25.jar" sourcepath="/nextflow/src/main"/>
+	<classpathentry kind="output" path="out"/>
 </classpath>

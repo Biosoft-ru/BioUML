@@ -19,7 +19,7 @@
         <pluginDir>${rootDir}/plugconfig/${project.artifactId}</pluginDir>
     </properties>
 
-    <dependencies>
+    <dependencies>     
         <!-- Depend on the compiled classes from the parent module -->
         <dependency>
             <groupId>org.biouml</groupId>

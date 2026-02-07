@@ -499,6 +499,8 @@ public class PatientPhysiology extends OptionEx
 
         private Diagnosis atherosclerosis = Diagnosis.UNKNOWN;
 
+        private Diagnosis copd = Diagnosis.UNKNOWN;
+
         private Diagnosis mr = Diagnosis.UNKNOWN;
         private Classification mrType = RegurgitationStage.MILD;
 
@@ -621,6 +623,18 @@ public class PatientPhysiology extends OptionEx
         public void setAtherosclerosis(String newChoice)
         {
             this.atherosclerosis = Diagnosis.getValue( newChoice );
+        }
+
+        /**
+         * Chronic obstructive pulmonary disease
+         */
+        public String getCopd()
+        {
+            return copd.toString();
+        }
+        public void setCopd(String newChoice)
+        {
+            this.copd = Diagnosis.getValue( newChoice );
         }
 
         /**
@@ -768,6 +782,8 @@ public class PatientPhysiology extends OptionEx
             property( "crf" ).title( "CRF" ).tags( Diagnosis.getValues() ).add();
 
             property( "atherosclerosis" ).title( "ATHEROSCLEROSIS" ).tags( Diagnosis.getValues() ).add();
+
+            property( "copd" ).title( "COPD" ).tags( Diagnosis.getValues() ).add();
 
             property( "mr" ).title( "MR" ).tags( Diagnosis.getValues() ).add();
             property( "mrType" ).title( "MR_STAGE" ).tags( RegurgitationStage.getValues() ).hidden( "isMrTypeHidden" ).add();

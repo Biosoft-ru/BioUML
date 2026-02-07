@@ -205,6 +205,38 @@ mvn -N install:install-file \
 #  -DgeneratePom=true
 
 mvn -N install:install-file \
+  -DgroupId=org.sbolstandard \
+  -DartifactId=sbol-data-core \
+  -Dversion=0.2.0-SNAPSHOT \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-core-0.2.0-SNAPSHOT.jar \
+  -DgeneratePom=true
+  
+mvn -N install:install-file \
+  -DgroupId=org.sbolstandard \
+  -DartifactId=sbol-data-examples \
+  -Dversion=0.2.0-SNAPSHOT \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-examples-0.2.0-SNAPSHOT.jar \
+  -DgeneratePom=true
+  
+mvn -N install:install-file \
+  -DgroupId=org.sbolstandard \
+  -DartifactId=sbol-data-io-RDF \
+  -Dversion=0.2.0-SNAPSHOT \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-io-RDF-0.2.0-SNAPSHOT.jar \
+  -DgeneratePom=true
+  
+mvn -N install:install-file \
+  -DgroupId=org.sbolstandard \
+  -DartifactId=sbol-data-nativeSbol \
+  -Dversion=0.2.0-SNAPSHOT \
+  -Dpackaging=jar \
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-nativeSbol-0.2.0-SNAPSHOT.jar \
+  -DgeneratePom=true
+
+mvn -N install:install-file \
   -DgroupId=org.apache.batik \
   -DartifactId=batik-all \
   -Dversion=1.7.0 \

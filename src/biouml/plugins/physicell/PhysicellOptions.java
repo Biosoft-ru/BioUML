@@ -12,6 +12,7 @@ public class PhysicellOptions extends Options
 {
     public static String DEFAULT_MODEL = "Default";
     public static String COVID_MODEL = "Covid";
+    public static String MICROMETS_MODEL = "Micromets";
     private String modelType = DEFAULT_MODEL;
     
     private DataElementPath resultPath;

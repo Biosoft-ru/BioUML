@@ -1,0 +1,25 @@
+version 1.0
+
+import "common" as common
+
+workflow run_pbsv {
+
+  input {
+    File inputFile
+  }
+
+  # gzip and index the genome-wide VCF
+  call common.zip_and_index_vcf as zip_and_index_final_vcf {
+    input: 
+      input_vcf = inputFile,
+  }
+
+  output {
+    File vcf = zip_and_index_final_vcf.vcf
+    File index = zip_and_index_final_vcf.index
+  }
+}
+
+
+}
+

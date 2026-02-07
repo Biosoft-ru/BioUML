@@ -142,21 +142,21 @@ public class CWLDockeredAnalysis extends AnalysisMethodSupport<CWLDockeredAnalys
             .withFollowStream(true)
             .withTailAll();
 
-        try
-        {
-            logContainerCmd.exec( new LogContainerResultCallback() 
-            {
-                @Override
-                public void onNext( Frame item ) 
-                {
-                    log.info( item.toString() );
-                }
-            }).awaitCompletion();
-        }
-        catch( Throwable e )
-        {
-            log.log(Level.SEVERE, "" + e.getMessage(), e);
-        }
+//        try
+//        {
+//            logContainerCmd.exec( new LogContainerResultCallback() 
+//            {
+//                @Override
+//                public void onNext( Frame item ) 
+//                {
+//                    log.info( item.toString() );
+//                }
+//            }).awaitCompletion();
+//        }
+//        catch( Throwable e )
+//        {
+//            log.log(Level.SEVERE, "" + e.getMessage(), e);
+//        }
 
         getJobControl().setPreparedness(90);
 

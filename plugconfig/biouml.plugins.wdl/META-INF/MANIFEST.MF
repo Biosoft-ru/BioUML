@@ -15,6 +15,7 @@ Require-Bundle: ru.biosoft.graphics,
  com.developmentontheedge.util,
  ru.biosoft.jobcontrol,
  json,
+ org.yaml.snakeyaml,
  ru.biosoft.access,
  ru.biosoft.analysiscore,
  ru.biosoft.graph,
@@ -22,7 +23,8 @@ Require-Bundle: ru.biosoft.graphics,
  ru.biosoft.server.servlets,
  ru.biosoft.workbench,
  com.Ostermiller.syntax,
- com.eclipsesource.json
+ com.eclipsesource.json,
+ org.codehaus.groovy.ast
 Export-Package: biouml.plugins.wdl,
   biouml.plugins.wdl.diagram,
   biouml.plugins.wdl.web

@@ -814,4 +814,25 @@ public class PopulationAgentSimulationEngine extends SimulationEngine implements
         return threads;
     }
 
+    private void initVarPathIndexMapping(List<AgentSimulationEngineWrapper> engines)
+    {
+        varPathIndexMapping = new HashMap<>();
+
+        for( String var : mainEngine.getVarIndexMapping().keySet() )
+            varPathIndexMapping.put( var, mainEngine.getVarIndexMapping().get( var ) );
+
+        int size = mainEngine.getVarIndexMapping().size();
+
+        for( AgentSimulationEngineWrapper engineWrapper : engines )
+        {
+            SimulationEngine engine = engineWrapper.getEngine();
+            for( String var : engine.getVarIndexMapping().keySet() )
+            {
+                int index = size + engine.getVarIndexMapping().get( var );
+                String path = DiagramUtility.generatPath( engine.getDiagram() ) + VAR_PATH_DELIMITER + var;
+                varPathIndexMapping.put( path, index );
+            }
+            size += engine.getVarIndexMapping().size();
+        }
+    }
 }

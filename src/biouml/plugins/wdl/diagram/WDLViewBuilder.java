@@ -2,9 +2,7 @@ package biouml.plugins.wdl.diagram;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
-import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.RectangularShape;
@@ -18,19 +16,14 @@ import org.apache.commons.text.StringEscapeUtils;
 import biouml.model.Compartment;
 import biouml.model.DefaultDiagramViewBuilder;
 import biouml.model.Diagram;
-import biouml.model.DiagramElement;
 import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowUtil;
-import biouml.standard.type.Type;
 import biouml.workbench.graph.InOutFinder;
-import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.repository.IconFactory;
-import ru.biosoft.analysiscore.AnalysisDPSUtils;
-import ru.biosoft.analysiscore.AnalysisMethod;
 import ru.biosoft.graph.PortFinder;
 import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.BoxView;
@@ -43,6 +36,7 @@ import ru.biosoft.graphics.PolygonView;
 import ru.biosoft.graphics.SimplePath;
 import ru.biosoft.graphics.TextView;
 import ru.biosoft.graphics.View;
+import ru.biosoft.graphics.font.ColorFont;
 
 public class WDLViewBuilder extends DefaultDiagramViewBuilder
 {
@@ -68,7 +62,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         {
             return createInOutCoreView( container, node, diagramViewOptions, g, true );
         }
-        else if( WDLConstants.EXTERNAL_PARAMETER_TYPE.equals( type ) )
+        else if( WDLConstants.WORKFLOW_INPUT_TYPE.equals( type ) )
         {
             return createExternalParameter( container, node, diagramViewOptions, g );
         }
@@ -189,11 +183,10 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
     protected boolean createStructView(CompositeView container, Node node, WDLViewOptions viewOptions, Graphics g)
     {
-        Dimension size = node.getShapeSize();
-
         View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( node.getTitle() ), viewOptions.getDefaultFont(),
                 viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
-        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
+        Rectangle textRect = text.getBounds();
+        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, textRect.width + 10, textRect.height + 10, 10, 10 );
         Brush nodeBrush = getBrush( node, viewOptions.getStructBrush() );
         BoxView view = new BoxView( viewOptions.getAnalysisPen(), nodeBrush, roundRect );
         view.setLocation( node.getLocation() );
@@ -228,7 +221,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), viewOptions.getDefaultFont(),
                 viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
         RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
-        Brush nodeBrush = getBrush( compartment, viewOptions.getAnalysisBrush() );
+        Brush nodeBrush = getBrush( compartment, viewOptions.getCallBrush() );
         BoxView view = new BoxView( viewOptions.getAnalysisPen(), nodeBrush, roundRect );
         view.setLocation( compartment.getLocation() );
         view.setModel( compartment );
@@ -255,7 +248,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
             iconId = null;
 
         if( iconId == null || iconId.isEmpty() )
-            iconId = ClassLoading.getResourceLocation( getClass(), "resources/default-connector.gif" );
+            iconId = getClass().getResource("resources/default-connector.gif").getFile();
         
 //        String iconName = null;
 //        switch( WDLUtil.getType( node ) )
@@ -284,9 +277,14 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
     protected boolean createExpressionCoreView(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g)
     {
-        View text = new TextView( node.getName(), diagramOptions.getNodeTitleFont(), g );
+        ColorFont font = getTitleFont( node, diagramOptions.getExpressionFont() );
+        String text = WorkflowUtil.getName( node );
+        if (text.isEmpty())
+            text = WorkflowUtil.getExpression( node );
+        
+        View textView = new TextView( text, font, g );
         int d = 2;
-        Rectangle r = text.getBounds();
+        Rectangle r = textView.getBounds();
 
         Brush nodeBrush = getBrush( node, diagramOptions.getExpressionBrush() );
         PolygonView view = new PolygonView( diagramOptions.getExpressionPen(), nodeBrush,
@@ -295,7 +293,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         view.setModel( node );
         view.setActive( true );
         container.add( view );
-        container.add( text, CompositeView.X_CC | CompositeView.Y_CC );
+        container.add( textView, CompositeView.X_CC | CompositeView.Y_CC );
         return false;
     }
     
@@ -357,8 +355,8 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         Brush mainBrush = getBrush( node, diagramOptions.getConditionalBrush() );
         Point location = node.getLocation();
         Dimension size = node.getShapeSize();
-        int width = size.width - 31;
-        int height = size.height - 26;
+        int width = size.width;
+        int height = size.height;
         View shadowView = new BoxView( pen, shadowBrush, location.x + 1, location.y + 1, width, height );
         View boxView = new BoxView( pen, mainBrush, location.x, location.y, width, height );
         boxView.setModel( node );
@@ -414,92 +412,13 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
         return false;
     }
-
-    /**
-     * Returns vertical position of the node
-     * @param node
-     * @param isIn
-     * @return
-     */
-    protected double getPart(Node node, boolean isIn)
-    {
-        Compartment parent = ( (Compartment)node.getOrigin() );
-        Object positionObj = node.getAttributes().getValue( "position" );
-
-        // Count total number of input or output parameters
-        int count = 0;
-        for( DiagramElement de : parent )
-        {
-            if( ( de.getKernel().getType().equals( Type.TYPE_DATA_ELEMENT_IN ) && isIn )
-                    || ( de.getKernel().getType().equals( Type.TYPE_DATA_ELEMENT_OUT ) && !isIn ) )
-                count++;
-        }
-
-        int pos = 0;
-        if( positionObj instanceof Number )
-        {
-            pos = ( (Number)positionObj ).intValue() + 1;
-            return count == 0 ? 0.0 : ( pos - 0.5 ) / ( count );
-        }
-        // To support older workflows
-        AnalysisMethod analysisMethod = AnalysisDPSUtils.getAnalysisMethodByNode( parent.getAttributes() );
-        if( analysisMethod != null )
-        {
-            String[] names = isIn ? analysisMethod.getParameters().getInputNames() : analysisMethod.getParameters().getOutputNames();
-            if( count == 0 )
-                return 0.0;
-            for( pos = 0; pos < names.length; pos++ )
-            {
-                if( names[pos].equals( node.getName().replace( ':', '/' ) ) )
-                {
-                    return ( pos + 0.5 ) / ( count );
-                }
-            }
-        }
-        pos = 0;
-        for( DiagramElement de : parent )
-        {
-            if( ( de.getKernel().getType().equals( Type.TYPE_DATA_ELEMENT_IN ) && isIn )
-                    || ( de.getKernel().getType().equals( Type.TYPE_DATA_ELEMENT_OUT ) && !isIn ) )
-            {
-                pos++;
-                if( de == node )
-                {
-                    return count == 0 ? 0.0 : ( pos - 0.5 ) / ( count );
-                }
-            }
-        }
-        return 0.0;
-    }
-
-    protected Paint toBlackWhite(Paint paint)
-    {
-        double gamma = 2.5;
-        if( paint instanceof Color )
-        {
-            Color color = (Color)paint;
-            int c = (int) ( Math.pow( ( 0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue() ) / 255, gamma )
-                    * 255 );
-            return new Color( c, c, c );
-        }
-        else if( paint instanceof GradientPaint )
-        {
-            GradientPaint gradient = (GradientPaint)paint;
-            int c1 = (int) ( Math.pow( ( 0.299 * gradient.getColor1().getRed() + 0.587 * gradient.getColor1().getGreen()
-                    + 0.114 * gradient.getColor1().getBlue() ) / 255, gamma ) * 255 );
-            int c2 = (int) ( Math.pow( ( 0.299 * gradient.getColor2().getRed() + 0.587 * gradient.getColor2().getGreen()
-                    + 0.114 * gradient.getColor2().getBlue() ) / 255, gamma ) * 255 );
-            return new GradientPaint( gradient.getPoint1(), new Color( c1, c1, c1 ), gradient.getPoint2(), new Color( c2, c2, c2 ) );
-        }
-        return null;
-    }
-
+    
     @Override
     public PortFinder getPortFinder(Node node)
     {
-        String type = node.getKernel().getType();
-        if( type.equals( Type.TYPE_DATA_ELEMENT_IN ) || type.equals( Type.ANALYSIS_PARAMETER )
-                || type.equals( Type.TYPE_DATA_ELEMENT_OUT ) )
+        if( WorkflowUtil.isExpression( node ) || WorkflowUtil.isInput( node ) || WorkflowUtil.isOutput( node )
+                || WorkflowUtil.isConditional( node ) || WorkflowUtil.isCondition( node ) || WorkflowUtil.isExternalParameter( node )
+                || WorkflowUtil.isExternalOutput( node ) )
             return new InOutFinder( false, getNodeBounds( node ) );
         return super.getPortFinder( node );
     }
