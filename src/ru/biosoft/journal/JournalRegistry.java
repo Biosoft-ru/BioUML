@@ -141,4 +141,24 @@ public class JournalRegistry
         }
         return result.toArray(new String[result.size()]);
     }
+
+    public static Journal getJournalByPath(DataElementPath path)
+    {
+        DataElementPath targetPath = path.getTargetPath();
+        for ( JournalList jl : journalLists )
+        {
+            List<String> names = jl.getNameList();
+            for ( String journalName : names )
+            {
+                Journal journal = jl.getJournal( journalName );
+                if( getProjectPath( journal ) != null )
+                {
+                    DataElementPath projectPath = getProjectPath( journal ).getTargetPath();
+                    if( projectPath.isAncestorOf( targetPath ) )
+                        return journal;
+                }
+            }
+        }
+        return null;
+    }
 }

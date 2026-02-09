@@ -58,11 +58,15 @@ import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.ProtectedDataCollection;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.exception.LoggedClassNotFoundException;
+import ru.biosoft.journal.Journal;
+import ru.biosoft.journal.JournalRegistry;
 import ru.biosoft.server.Connection;
 import ru.biosoft.server.Response;
 import ru.biosoft.server.Service;
 import ru.biosoft.server.ServiceSupport;
 import ru.biosoft.server.ServiceSupport.ServiceRequest;
+import ru.biosoft.tasks.TaskInfo;
+import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.ClassExtensionRegistry;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.FileItem;
@@ -1262,6 +1266,19 @@ public class AccessService extends AccessProtocol implements Service
         try
         {
             dc.remove(de);
+            Journal journal = JournalRegistry.getJournalByPath( dc.getCompletePath() );
+            if( journal != null )
+            {
+                TaskInfo task = journal.getEmptyAction();
+
+                task.setType( TaskInfo.REMOVE );
+                task.setData( dc.getCompletePath().getChildPath( de ).toString() );
+                task.setEndTime();
+                task.setUser( SecurityManager.getSessionUser() );
+                journal.addAction( task );
+                //Add hidden task record to tasks table
+                TaskManager.logHiddenTaskRecord( task );
+            }
             request.send("ok");
         }
         catch( Exception ex )
