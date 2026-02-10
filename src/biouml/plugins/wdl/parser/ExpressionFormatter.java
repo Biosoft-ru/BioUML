@@ -1,5 +1,10 @@
 package biouml.plugins.wdl.parser;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
+import one.util.streamex.StreamEx;
+
 public class ExpressionFormatter
 {
     protected StringBuilder result;
@@ -31,6 +36,10 @@ public class ExpressionFormatter
             processSubSymbol((AstSubSymbol)node);
         else if (node instanceof AstTernary)
             processTernary((AstTernary)node);
+        else if (node instanceof AstMap)
+            processMap((AstMap)node);
+        else if (node instanceof AstConstructor)
+            processConstructor((AstConstructor)node);
         else
         {
             result.append( node.toString() );
@@ -87,5 +96,22 @@ public class ExpressionFormatter
         result.append( node.toString() );
         for( Node child : node.children )
             processNode( child );
+    }
+    
+    private void processMap(AstMap astMap)
+    {
+        result.append( "{ " );
+        Map<String, Object> map = astMap.toMap();
+        result.append(StreamEx.of( map.entrySet() ).map( e->e.getKey()+": "+e.getValue() ).joining(", "));
+        result.append( " }" );
+    }
+    
+    private void processConstructor(AstConstructor astConstructor)
+    {
+        result.append(((AstConstructor)astConstructor).firstToken);
+        for (Node node: astConstructor.getChildren())
+        {
+            result.append(node.toString());
+        }
     }
 }

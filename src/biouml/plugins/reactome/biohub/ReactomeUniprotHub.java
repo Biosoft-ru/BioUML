@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 import biouml.plugins.ensembl.tabletype.UniprotProteinTableType;
 import biouml.plugins.reactome.ReactomeProteinTableType;
 import biouml.standard.type.Species;
-import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.biohub.BioHubSupport;

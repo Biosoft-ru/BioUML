@@ -1,0 +1,3 @@
+files:
+- name: ODEEnergy
+  type: BioUML diagram

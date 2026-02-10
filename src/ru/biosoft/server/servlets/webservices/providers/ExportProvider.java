@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import org.json.JSONArray;
 
 import com.developmentontheedge.application.ApplicationUtils;
+import com.developmentontheedge.beans.DynamicProperty;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
@@ -22,12 +23,17 @@ import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
+import ru.biosoft.journal.Journal;
+import ru.biosoft.journal.JournalRegistry;
 import ru.biosoft.server.JSONUtils;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.BiosoftWebResponse;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.server.servlets.webservices.WebException;
 import ru.biosoft.server.servlets.webservices.WebJob;
+import ru.biosoft.tasks.TaskInfo;
+import ru.biosoft.tasks.TaskManager;
+import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.ObjectExtensionRegistry;
 import ru.biosoft.util.TempFiles;
 
@@ -188,9 +194,10 @@ public class ExportProvider extends WebProviderSupport
                 File file = TempFiles.file("export_"+suffix);
 
                 DataElementExporter exporterInstance = exporterInfo[0].cloneExporter();
+                Object parameters = null;
                 if( jsonParameters != null )
                 {
-                    Object parameters = exporterInstance.getProperties(de, file);
+                    parameters = exporterInstance.getProperties( de, file );
                     if( parameters != null )
                     {
                         JSONUtils.correctBeanOptions(parameters, jsonParameters);
@@ -203,6 +210,27 @@ public class ExportProvider extends WebProviderSupport
                 {
                     file.delete();
                     return;
+                }
+
+                Journal journal = JournalRegistry.getJournalByPath( de.getCompletePath() );
+                if( journal != null )
+                {
+                    TaskInfo task = journal.getEmptyAction();
+                    task.setType( TaskInfo.EXPORT );
+                    task.setData( de.getName() );
+                    task.getAttributes().add( new DynamicProperty( TaskInfo.EXPORT_OUTPUT_PROPERTY_DESCRIPTOR, String.class, de.getCompletePath().toString() ) );
+                    Long len = file.length();
+                    task.getAttributes().add( new DynamicProperty( TaskInfo.IMPORT_FILESIZE_PROPERTY_DESCRIPTOR, Long.class, len ) );
+                    task.getAttributes().add( new DynamicProperty( TaskInfo.EXPORT_FORMAT_PROPERTY_DESCRIPTOR, String.class, suffix ) );
+                    if( parameters != null )
+                    {
+                        DPSUtils.writeBeanToDPS( parameters, task.getAttributes(), DPSUtils.PARAMETER_ANALYSIS_PARAMETER + "." );
+                    }
+                    task.setEndTime();
+                    task.setUser( SecurityManager.getSessionUser() );
+                    journal.addAction( task );
+                    //Add hidden task record to tasks table
+                    TaskManager.logHiddenTaskRecord( task );
                 }
 
                 resp.setHeader("Content-Disposition", "attachment;filename=\"" + de.getName() + suffix + "\"");

@@ -361,6 +361,10 @@
       <analysisClass class="ru.biosoft.analysis.MAPlotAnalysis" group="Plots and charts" name="MA plot"  shortDescription="" description="MA plot" /> 
   </extension>
   
+  <extension id="Dot plot" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.DotPlotAnalysis" group="Plots and charts" name="Dot plot"  shortDescription="" description="Dot plot" /> 
+  </extension>
+  
   <extension id="Genes table type" point="ru.biosoft.access.referenceType">
   	<type typeClass="ru.biosoft.analysis.type.GeneTableType"/>
   	<type typeClass="ru.biosoft.analysis.type.TranscriptTableType"/>

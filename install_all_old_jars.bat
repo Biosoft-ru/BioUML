@@ -215,4 +215,37 @@ call mvn -N install:install-file ^
   -Dfile=plugins/org.apache.batik_1.7/xml-apis-ext.jar ^
   -DgeneratePom=true
 
+echo Installing sbol-data-...
+call mvn -N install:install-file ^
+  -DgroupId=org.sbolstandard ^
+  -DartifactId=sbol-data-core ^
+  -Dversion=0.2.0-SNAPSHOT ^
+  -Dpackaging=jar ^
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-core-0.2.0-SNAPSHOT.jar ^
+  -DgeneratePom=true
+  
+call mvn -N install:install-file ^
+  -DgroupId=org.sbolstandard ^
+  -DartifactId=sbol-data-examples ^
+  -Dversion=0.2.0-SNAPSHOT ^
+  -Dpackaging=jar ^
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-examples-0.2.0-SNAPSHOT.jar ^
+  -DgeneratePom=true
+  
+call mvn -N install:install-file ^
+  -DgroupId=org.sbolstandard ^
+  -DartifactId=sbol-data-io-RDF ^
+  -Dversion=0.2.0-SNAPSHOT ^
+  -Dpackaging=jar ^
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-io-RDF-0.2.0-SNAPSHOT.jar ^
+  -DgeneratePom=true
+  
+call mvn -N install:install-file ^
+  -DgroupId=org.sbolstandard ^
+  -DartifactId=sbol-data-nativeSbol ^
+  -Dversion=0.2.0-SNAPSHOT ^
+  -Dpackaging=jar ^
+  -Dfile=plugins/org.sbolstandard.core2_4.0/sbol-data-nativeSbol-0.2.0-SNAPSHOT.jar ^
+  -DgeneratePom=true
+
 endlocal

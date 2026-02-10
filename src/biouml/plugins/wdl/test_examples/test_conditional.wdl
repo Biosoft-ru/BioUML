@@ -21,10 +21,12 @@ workflow test_conditional {
   if (do_scatter) {
     Int j = 2
 
-    scatter (i in scatter_range) {
+    scatter (i in scatter_range) 
+	{
       call gt_three { input: i = i + j }
       
-      if (gt_three.valid) {
+      if (gt_three.valid) 
+	  {
         Int result = i * j
       }
 
@@ -40,8 +42,6 @@ workflow test_conditional {
 
   output {
     Int? j_out = j
-    # We can unwrap the inner optional using select_all to get rid of all
-    # the `None` values in the array.
     Array[Int] result_array = select_all(maybe_results)
 
     # Here we reference the implicit declaration of result2, which is

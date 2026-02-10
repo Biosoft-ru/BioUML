@@ -1,5 +1,6 @@
 package biouml.plugins.wdl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -7,6 +8,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.model.ExpressionInfo;
 
 public class WorkflowVelocityHelper
 {
@@ -76,11 +78,11 @@ public class WorkflowVelocityHelper
     }
 
     /**
-     * @return source node from which its formula depends
+     * @return source node from which its formula depend
      */
-    public static Node getSource(Node node)
+    public static List<Node> getSources(Node node)
     {
-        return WorkflowUtil.getSource( node );
+        return WorkflowUtil.getSources( node ).toList();
     }
     
     /**
@@ -210,9 +212,34 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.isCycle( node );
     }
     
-    public boolean isInsideCycle(Compartment call)
+    public boolean isInsideCycle(Node call)
     {
         return ! ( call instanceof Diagram ) && WorkflowUtil.isCycle( call.getCompartment() );
+    }
+    
+    public List<Compartment> getCycles(Node node)
+    {
+        List<Compartment> result = new ArrayList<>();
+        Compartment c = node.getCompartment();
+        while( ! ( c instanceof Diagram ) )
+        {
+            if( isCycle( c ) )
+                result.add( c );
+            c = c.getCompartment();
+        }
+        return result;
+    }
+    
+    public Compartment getClosestCycle(Node node)
+    {
+        Compartment c = node.getCompartment();
+        while( ! ( c instanceof Diagram ) )
+        {
+            if( isCycle( c ) )
+                return c;
+            c = c.getCompartment();
+        }
+        return null;
     }
 
     public static boolean isExpression(Node node)
@@ -240,12 +267,12 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.getBeforeCommand( task );
     }
 
-    public ImportProperties[] getImports()
+    public  List<ImportProperties> getImports()
     {
         return WorkflowUtil.getImports( diagram );
     }  
 
-    public Declaration[] getStructMembers(Node node)
+    public ExpressionInfo[] getStructMembers(Node node)
     {
         return WorkflowUtil.getStructMembers( node );
     }

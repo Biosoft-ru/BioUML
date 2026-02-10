@@ -90,6 +90,7 @@ public class MessageBundle_en extends MessageBundle
         { "LVH",                        "LV hypertrophy"},
         { "CRF",                        "Chronic renal failure"},
         { "ATHEROSCLEROSIS",            "Carotid and/or coronary atherosclerosis"},
+        { "COPD",   			        "Chronic obstructive pulmonary disease"},
         { "MR",                         "Mitral regurgitation"},
         { "MR_STAGE",                   " - Mitral regurgitation stage"},
         { "TR",                         "Tricuspid regurgitation"},

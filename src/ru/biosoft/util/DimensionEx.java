@@ -73,4 +73,9 @@ public class DimensionEx extends Option
     {
         return new Dimension(width, height);
     }
+    
+    public DimensionEx clone()
+    {
+        return new DimensionEx( getParent(), minWidth, maxWidth, minHeight, maxHeight, width, height );
+    }
 }

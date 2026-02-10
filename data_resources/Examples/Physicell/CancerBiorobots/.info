@@ -1,0 +1,7 @@
+files:
+- name: CancerBiorobots
+  type: BioUML diagram
+- name: CargoInstantiator
+  type: Java code
+- name: WorkerInstantiator
+  type: Java code

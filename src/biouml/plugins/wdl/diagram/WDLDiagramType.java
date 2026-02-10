@@ -5,13 +5,13 @@ import javax.annotation.Nonnull;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import ru.biosoft.access.core.DataCollection;
-import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramTypeSupport;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.standard.type.Base;
+import biouml.standard.type.DiagramInfo;
 
 /**
  * Workflow diagram type
@@ -50,16 +50,16 @@ public class WDLDiagramType extends DiagramTypeSupport
         WorkflowUtil.setVersion( d, "1.2");
         return d;
     }
+    
+    public @Nonnull Diagram createDiagram(DataCollection<?> origin, String diagramName) throws Exception
+    {
+        return createDiagram( origin,  diagramName, new DiagramInfo(diagramName) );
+    }
 
     @Override
     public boolean needLayout(Node node)
     {
-        if( ! ( node instanceof Compartment ) )
-            return false;
-        Base kernel = node.getKernel();
-        if( kernel == null )
-            return true;
-        return false;
+        return (WorkflowUtil.isCycle( node ) || WorkflowUtil.isConditional( node ));
     }
 
     @Override

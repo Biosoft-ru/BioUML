@@ -1227,7 +1227,10 @@ $br
     {
         public void run(double[] dydt, double[] var, double[] x_values, double time)
         {
+#set ($nbytesStochastic = 0)
+#set ($indicatorStochastic = 0)
 #foreach( $v in $variables )
+ #set($prevnbytesStochastic = $nbytesStochastic)
  #if ( $engine.isArrayModeVariable($v) )
   #set($rightSide = "")
   #set($equations = $engine.getDefiningEquations($v.getName()))
@@ -1246,16 +1249,30 @@ $br
        #set($rightSide = "${rightSide}+")
       #end
       #set($rightSide = "${rightSide}$stochasticPartFormatted")
+      #set($math = $eq.getMath())
+      #set($nbytesStochastic = $nbytesStochastic + $sew.estimateByteCodeLength($math, 3))
       #break
      #end
     #end
    #end
-   #set($math = $eq.getMath())
   #end
   #if ($rightSide == "")
    #set($rightSide = "0")
   #end
-            dydt[$engine.getVariableRateIndex($v.getName())] = $rightSide; // $v.getName()
+  #set($nbytesStochastic = $nbytesStochastic + 3 + $sew.estimateConstantByteCodeLength($engine.getVariableRateIndex($v.getName())))
+  #if ($nbytesStochastic + 8 > $maxCodeSize)
+   #set($nbytesStochastic = $nbytesStochastic - $prevnbytesStochastic)
+   #set($indicatorStochastic = $indicatorStochastic + 1)
+        }
+    }
+$br
+#set( $staticInits = $staticInits.append( "${newLine}${spaces}Dy_dt_stochastic_$indicatorStochastic" ).append( ".class.getName();" ) )
+    class Dy_dt_stochastic_$indicatorStochastic
+    {
+        public void run(double[] dydt, double[] var, double[] x_values, double time)
+        {
+  #end
+            dydt[$engine.getVariableRateIndex($v.getName())] = $rightSide; // $v.getName(), bytes = $nbytesStochastic
  #end
 #end
         }
@@ -1266,7 +1283,10 @@ $br
     {
         public void run(double[] dydt, double[] var, double[] x_values, double time)
         {
+#set ($nbytesDeterministic = 0)
+#set ($indicatorDeterministic = 0)
 #foreach( $v in $variables )
+ #set($prevnbytesDeterministic = $nbytesDeterministic)
  #if ( $engine.isArrayModeVariable($v) )
   #set($rightSide = "")
   #set($equations = $engine.getDefiningEquations($v.getName()))
@@ -1288,10 +1308,24 @@ $br
        #set($rightSide = "${rightSide}+")
     #end
     #set($rightSide = "${rightSide}$deterministicPartFormatted")
+    #set($math = $eq.getMath())
+    #set($nbytesDeterministic = $nbytesDeterministic + $sew.estimateByteCodeLength($math, 3))
    #end
-   #set($math = $eq.getMath())
   #end
-            dydt[$engine.getVariableRateIndex($v.getName())] = $rightSide; // $v.getName()
+  #set($nbytesDeterministic = $nbytesDeterministic + 3 + $sew.estimateConstantByteCodeLength($engine.getVariableRateIndex($v.getName())))
+  #if ($nbytesDeterministic + 8 > $maxCodeSize)
+   #set($nbytesDeterministic = $nbytesDeterministic - $prevnbytesDeterministic)
+   #set($indicatorDeterministic = $indicatorDeterministic + 1)
+        }
+    }
+$br
+#set( $staticInits = $staticInits.append( "${newLine}${spaces}Dy_dt_deterministic_$indicatorDeterministic" ).append( ".class.getName();" ) )
+    class Dy_dt_deterministic_$indicatorDeterministic
+    {
+        public void run(double[] dydt, double[] var, double[] x_values, double time)
+        {
+  #end
+            dydt[$engine.getVariableRateIndex($v.getName())] = $rightSide; // $v.getName(), bytes = $nbytesDeterministic
  #end
 #end
         }
@@ -1310,6 +1344,11 @@ $br
 #end
 
         new Dy_dt_stochastic().run(dydt, var, x_values, time);
+#if($indicatorStochastic > 0)
+#foreach( $n in [1..$indicatorStochastic] )
+        new Dy_dt_stochastic_${n}().run(dydt, var, x_values, time);
+#end
+#end
         return dydt;
     }
 $br
@@ -1326,6 +1365,11 @@ $br
 #end
 
         new Dy_dt_deterministic().run(dydt, var, x_values, time);
+#if($indicatorDeterministic > 0)
+#foreach( $n in [1..$indicatorDeterministic] )
+        new Dy_dt_deterministic_${n}().run(dydt, var, x_values, time);
+#end
+#end
         return dydt;
     }
 ##end of stochastic methods

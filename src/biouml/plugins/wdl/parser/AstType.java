@@ -7,18 +7,27 @@ public class AstType extends SimpleNode
     private String type;
     public AstType(int id)
     {
-        super(id);
+        super( id );
     }
 
     public AstType(WDLParser p, int id)
     {
-        super(p, id);
+        super( p, id );
     }
-    
+
     @Override
     public String toString()
     {
-        return firstToken.image;
+        StringBuilder builder = new StringBuilder();
+        builder.append( firstToken.image );
+        if( this.children != null )
+        {
+            for( Node node : children )
+            {
+                builder.append( node.toString() );
+            }
+        }
+        return builder.toString();
     }
 }
 /* JavaCC - OriginalChecksum=06c3d61521507f24f7df91db368906bf (do not edit this line) */

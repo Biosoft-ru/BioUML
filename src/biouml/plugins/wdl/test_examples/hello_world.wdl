@@ -2,10 +2,10 @@ version 1.0
 
 task sayHello {
   command {
-     echo "Hello World"
+     echo "Hello World" > hello.txt
   }
   output {
-     File output_greeting = stdout()
+     File output = "hello.txt"
   }
 }
 

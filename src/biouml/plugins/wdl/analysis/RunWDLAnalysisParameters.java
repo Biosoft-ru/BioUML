@@ -5,12 +5,9 @@ import java.beans.PropertyChangeListener;
 import java.io.StringReader;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
-import com.developmentontheedge.beans.DynamicPropertySetSupport;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
-import biouml.plugins.wdl.NextFlowGenerator;
-import biouml.plugins.wdl.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.parser.AstStart;

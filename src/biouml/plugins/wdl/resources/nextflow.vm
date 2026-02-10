@@ -7,9 +7,9 @@
 #set ($QUOTE = '"')
 #######################################################################################
 #####################################MACROS############################################
-#######################################################################################
+######################f#################################################################
 #macro(comma $list)
-#if($velocityCount < $list.size()),#end
+#if($foreach.count < $list.size()),#end
 #end
 #######################################################################################
 #macro(conditional $conditional)
@@ -25,22 +25,21 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #end
 #######################################################################################
 #macro(callNF $call)
-#if ($helper.isInsideCycle($call))$helper.prepareInputs($call)#end
 #set ($inputs = $helper.getOrderedInputs($call))
   $helper.getResultName($call) = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
-#foreach( $n in $helper.orderCalls($scatter))
-#if ($helper.isCycle($n))#scatterNF($n)
-#elseif ($helper.isCall($n))#callNF($n)
-#elseif ( $helper.isConditional($n) )#conditional($n)
-#end 
-#end
+$helper.describeCycle($scatter)
 #end
 #######################################################################################
 #macro(expressionNF $expression)
-  $helper.getName($expression) = $helper.getCallEmit($expression)$BR
+#set( $rhs = $helper.getCallEmit($expression) )
+#if( $helper.getName($expression).isEmpty())
+   $rhs$BR###
+#else
+   $helper.getName($expression) = $rhs$BR##
+#end
 #end 
 #######################################################################################
 #######################################START###########################################
@@ -68,23 +67,29 @@ $helper.getExternalInput($externalParameter)
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
+$BR  fair true
+#set ($container = $helper.getContainer($task))
+#if($container)
+  container '$container'$BR## 
+#end
+#set ($cpus = $helper.getCPUs($task))
+#if($cpus)
+  cpus $cpus$BR##
+#end
+#set ($memory = $helper.getMemory($task))
+#if($memory)
+  memory $memory$BR##
+#end
+#set ($maxRetries = $helper.getMaxRetries($task))
+#if($maxRetries)
+  maxRetries $maxRetries$BR##
+#end
+  publishDir "$task.getName()", mode: 'copy'
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
-$BR  input :
+$BR  input:
 #foreach( $input in $inputs )  $helper.getShortDeclaration($input)$BR#end
-$BR#end
-#set ($container = $helper.getContainer($task))#if($container)  container '$container'$BR#end
-#set ($cpus = $helper.getCPUs($task))#if($cpus)  cpus $cpus$BR#end
-#set ($memory = $helper.getMemory($task))#if($memory)  memory $memory$BR#end
-#set ($maxRetries = $helper.getMaxRetries($task))#if($maxRetries)  maxRetries $maxRetries$BR#end
-$BR  publishDir "$task.getName()", mode: 'copy'
-$BR  script:
-#foreach($declaration in $helper.getPrivateDeclarations($task))
-  $helper.writePrivateDeclaration($declaration)
 #end
-  """
-  $helper.getCommand($task).trim()
-  """
 #set ($outputs = $helper.getOutputs($task))
 #if ($outputs.size() > 0)
 $BR  output:
@@ -92,6 +97,13 @@ $BR  output:
   $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output) 
 #end
 #end
+$BR  script:
+#foreach($declaration in $helper.getPrivateDeclarations($task))
+  $helper.writePrivateDeclaration($declaration)
+#end
+  """
+  $helper.getCommand($task).trim()
+  """
 }$BR
 #end
 #######################################################################################
@@ -100,32 +112,33 @@ $BR  output:
 workflow $helper.getMainWorkflowName() {
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
-  take:
+$BR  take:
 #foreach( $externalParameter in $externalParameters )
   $helper.getName($externalParameter)
 #end
-#end$BR
-#if ($helper.isNotEmpty())
-$BR  main:
 #end
-#foreach( $n in $helper.orderCalls($diagram))
+#set ($calls = $helper.orderCalls($diagram))
+#if (!$calls.isEmpty())
+$BR  main:
+#foreach( $n in $calls)
 #if ($helper.isCycle($n))#scatterNF($n)
 #elseif ($helper.isCall($n))#callNF($n)
 #elseif ($helper.isExpression($n))#expressionNF($n)
 #elseif ( $helper.isConditional($n) )#conditional($n)
+#end
 #end 
 #end
 #set ($externalOutputs = $helper.getExternalOutputs())
 #if ($externalOutputs.size() > 0)
   emit: 
 #foreach( $externalOutput in $externalOutputs )
-  $helper.getName($externalOutput) = $helper.getCallEmit($externalOutput)
+  $helper.getName($externalOutput) = $helper.getOutputExpression($externalOutput)
 #end
 #end
 }$BR
 ################################ENTRY WORKFLOW#########################################
 #if ($helper.isEntryScript())
 workflow {
-$helper.getMainWorkflowName()( #foreach($ep in $externalParameters)$helper.getExternalParamaterName($ep)#comma($externalParameters) #end )
+  $helper.getMainWorkflowName()( #foreach($ep in $externalParameters)$helper.getExternalParamaterName($ep)#comma($externalParameters) #end )
 }
 #end

@@ -14,14 +14,17 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.TabularPropertiesEditor;
 import ru.biosoft.table.TableDataCollection;
+import ru.biosoft.util.DPSUtils;
 import biouml.model.Diagram;
 import biouml.model.dynamics.EModel;
 import biouml.plugins.fbc.analysis.FbcAnalysis;
 import biouml.plugins.fbc.table.FbcBuilderDataTableAnalysis;
+import one.util.streamex.StreamEx;
 
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
+import com.developmentontheedge.beans.DynamicProperty;
 
 @SuppressWarnings ( "serial" )
 public class FbcReactionsEditor extends TabularPropertiesEditor implements PropertyChangeListener
@@ -53,12 +56,12 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
         try
         {
             this.diagram = (Diagram)model;
-            FbcBuilderDataTableAnalysis analysis = new FbcBuilderDataTableAnalysis(null, null);
-            tableDC = analysis.getFbcData(this.diagram);
-            tableDC.addPropertyChangeListener(this);
-            explore(tableDC.iterator());
+            FbcBuilderDataTableAnalysis analysis = new FbcBuilderDataTableAnalysis( null, null );
+            tableDC = analysis.getFbcData( this.diagram );
+            tableDC.addPropertyChangeListener( this );
+            explore( tableDC.iterator() );
             activeTable = tableDC;
-            getTable().setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+            getTable().setAutoResizeMode( JTable.AUTO_RESIZE_ALL_COLUMNS );
         }
         catch( Exception e )
         {
@@ -72,17 +75,17 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
         ActionManager actionManager = Application.getActionManager();
         if( actions == null )
         {
-            actionManager.addAction(ShowTable.KEY, showTable);
-            actionManager.addAction(ShowOptimalValues.KEY, showOptimalValues);
-            actionManager.addAction(EditOptions.KEY, editOptions);
-            actionManager.addAction(SaveTable.KEY, saveTable);
+            actionManager.addAction( ShowTable.KEY, showTable );
+            actionManager.addAction( ShowOptimalValues.KEY, showOptimalValues );
+            actionManager.addAction( EditOptions.KEY, editOptions );
+            actionManager.addAction( SaveTable.KEY, saveTable );
 
-            ActionInitializer initializer = new ActionInitializer(MessageBundle.class);
+            ActionInitializer initializer = new ActionInitializer( MessageBundle.class );
 
-            initializer.initAction(showTable, ShowTable.KEY);
-            initializer.initAction(showOptimalValues, ShowOptimalValues.KEY);
-            initializer.initAction(editOptions, EditOptions.KEY);
-            initializer.initAction(saveTable, SaveTable.KEY);
+            initializer.initAction( showTable, ShowTable.KEY );
+            initializer.initAction( showOptimalValues, ShowOptimalValues.KEY );
+            initializer.initAction( editOptions, EditOptions.KEY );
+            initializer.initAction( saveTable, SaveTable.KEY );
 
             actions = new Action[] {showTable, showOptimalValues, editOptions, saveTable};
         }
@@ -96,13 +99,13 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
 
         public ShowTable()
         {
-            super(KEY);
+            super( KEY );
         }
 
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            explore(tableDC.iterator());
+            explore( tableDC.iterator() );
             activeTable = tableDC;
         }
     }
@@ -112,25 +115,47 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
         public static final String KEY = "Optimal Values";
         public ShowOptimalValues()
         {
-            super(KEY);
+            super( KEY );
         }
 
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            TableDataCollection tdc = FbcAnalysis.getFbcResult(diagram, tableDC, typeObjectiveFunc, creator, null);
-            if(tdc == null)
+            addFBCAnnottaion(diagram);
+            TableDataCollection tdc = FbcAnalysis.getFbcResult( diagram, tableDC, typeObjectiveFunc, creator, null );
+            if( tdc == null )
                 return;
-            explore(tdc.iterator());
+            explore( tdc.iterator() );
             activeTable = tdc;
         }
     }
+    
+    public static void addFBCAnnottaion(Diagram diagram)
+    {
+        DynamicProperty dp = diagram.getAttributes().getProperty( "Packages" );
+        if( dp == null )
+        {
+            diagram.getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( "Packages", String[].class, new String[]{"fbc"} ) );
+        }
+        else
+        {
+            String[] packages = (String[])dp.getValue();
+            if( !StreamEx.of( packages ).toSet().contains( "fbc" ) )
+            {
+                String[] newPackges = new String[packages.length];
+                System.arraycopy( packages, 0, newPackges, 0, packages.length );
+                newPackges[packages.length] = "fbc";
+                dp.setValue( newPackges );
+            }
+        }
+    }
+    
     class EditOptions extends AbstractAction
     {
         public static final String KEY = "Options";
         public EditOptions()
         {
-            super(KEY);
+            super( KEY );
         }
 
         @Override
@@ -149,7 +174,7 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
         public static final String KEY = "Save table";
         public SaveTable()
         {
-            super(KEY);
+            super( KEY );
         }
 
         @Override
@@ -163,11 +188,11 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
                     DataCollection<DataElement> origin = dialog.resultPath.getParentCollection();
                     String name = dialog.resultPath.getName();
 
-                    origin.remove(name);
+                    origin.remove( name );
                     TableDataCollection toPut;
 
-                    toPut = FbcAnalysis.getFbcResultToPut(origin, name, diagram, activeTable);
-                    origin.put(toPut);
+                    toPut = FbcAnalysis.getFbcResultToPut( origin, name, diagram, activeTable );
+                    origin.put( toPut );
                 }
                 catch( Exception e1 )
                 {
@@ -180,6 +205,6 @@ public class FbcReactionsEditor extends TabularPropertiesEditor implements Prope
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        FbcDiagramUpdater.update(diagram, evt);
+        FbcDiagramUpdater.update( diagram, evt );
     }
 }

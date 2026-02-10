@@ -67,19 +67,18 @@ import biouml.workbench.perspective.PerspectiveRegistry;
 import biouml.workbench.perspective.PerspectiveUI;
 import biouml.workbench.resources.MessageBundle;
 import ru.biosoft.access.AccessCoreInit;
-import ru.biosoft.access.BiosoftIconManager;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionListenerRegistry;
 import ru.biosoft.access.QuerySystemRegistry;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.core.Environment;
 import ru.biosoft.access.exception.BiosoftExceptionTranslator;
+import ru.biosoft.access.file.GenericFileDataCollection;
+import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.repository.PluginActions;
 import ru.biosoft.access.repository.RepositoryListener;
 import ru.biosoft.access.repository.RepositoryTabs;
-import ru.biosoft.access.security.BiosoftClassLoading;
 import ru.biosoft.access.security.LoginAction;
 import ru.biosoft.access.security.LoginDialog;
 import ru.biosoft.access.security.LogoutAction;
@@ -973,7 +972,7 @@ public class BioUMLApplication extends ApplicationFrame implements ChangeListene
             {
                 Module module = Module.optModule(node);
                 boolean enable = false;
-                if( node instanceof Module || module != null )
+                if( (node instanceof Module  && module != null) || node instanceof GenericFileDataCollection || node instanceof GenericDataCollection)
                     enable = true;
                 Application.getActionManager().enableActions( enable, ImportElementAction.KEY );
             }

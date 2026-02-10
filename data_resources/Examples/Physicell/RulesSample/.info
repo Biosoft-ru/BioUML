@@ -1,0 +1,5 @@
+files:
+- name: Rules
+  type: BioUML diagram
+- name: cells.csv
+  type: Table (BioUML format)

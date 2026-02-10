@@ -18,6 +18,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.developmentontheedge.beans.DynamicProperty;
+
 import biouml.plugins.download.FileDownloader;
 import biouml.plugins.download.FileDownloader.RemoteFileInfo;
 import one.util.streamex.StreamEx;
@@ -38,6 +40,8 @@ import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.jobcontrol.JobControlEvent;
 import ru.biosoft.jobcontrol.JobControlListenerAdapter;
+import ru.biosoft.journal.Journal;
+import ru.biosoft.journal.JournalRegistry;
 import ru.biosoft.server.JSONUtils;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
 import ru.biosoft.server.servlets.webservices.JSONResponse;
@@ -46,7 +50,10 @@ import ru.biosoft.server.servlets.webservices.WebServicesServlet;
 import ru.biosoft.server.servlets.webservices.providers.WebBeanProvider;
 import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
 import ru.biosoft.table.TableCSVImporter.NullImportProperties;
+import ru.biosoft.tasks.TaskInfo;
+import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.BeanUtil;
+import ru.biosoft.util.DPSUtils;
 
 public class ImportProvider extends WebJSONProviderSupport
 {
@@ -625,6 +632,7 @@ public class ImportProvider extends WebJSONProviderSupport
                         ImportRecord curRec = optRec.get();
                         curRec.setDEName( result.getName() );
                         dao.updateRecord( curRec );
+                        logImportTask( curRec );
                     }
                 }
                 //TODO: add file removal here
@@ -646,6 +654,29 @@ public class ImportProvider extends WebJSONProviderSupport
                 jobControl.functionTerminatedByError( e );
             }
         } ) );
+    }
+
+    private static void logImportTask(ImportRecord curRec)
+    {
+        Journal journal = JournalRegistry.getCurrentJournal();
+        if( journal != null )
+        {
+            TaskInfo task = journal.getEmptyAction();
+            task.setType( TaskInfo.IMPORT );
+            task.setData( curRec.getFileName() );
+            task.getAttributes().add( new DynamicProperty( TaskInfo.IMPORT_OUTPUT_PROPERTY_DESCRIPTOR, String.class, curRec.getDEName() ) );
+            task.getAttributes().add( new DynamicProperty( TaskInfo.IMPORT_FILESIZE_PROPERTY_DESCRIPTOR, Long.class, curRec.getFileSize() ) );
+            task.getAttributes().add( new DynamicProperty( TaskInfo.IMPORT_FORMAT_PROPERTY_DESCRIPTOR, String.class, curRec.getFormat() ) );
+            Object opt = curRec.getFormatOptions();
+            if( opt != null )
+                DPSUtils.writeBeanToDPS( opt, task.getAttributes(), DPSUtils.PARAMETER_ANALYSIS_PARAMETER + "." );
+
+            task.setEndTime();
+            task.setUser( SecurityManager.getSessionUser() );
+            journal.addAction( task );
+            //Add hidden task record to tasks table
+            TaskManager.logHiddenTaskRecord( task );
+        }
     }
 
     private void processCurrentImports(BiosoftWebRequest args, JSONResponse resp) throws JSONException, IOException

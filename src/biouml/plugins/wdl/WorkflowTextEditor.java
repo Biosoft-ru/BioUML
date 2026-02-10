@@ -29,22 +29,27 @@ import com.developmentontheedge.log.TextPaneAppender;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.colorer.WDLColorer;
+import biouml.plugins.wdl.cwl.CWLGenerator;
+import biouml.plugins.wdl.cwl.CWLParser;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
+import biouml.plugins.wdl.diagram.WDLLayouter;
+import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.NextFlowImporter;
+import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
-import biouml.standard.diagram.DiagramUtility;
-import biouml.workbench.diagram.CompositeDiagramDocument;
-import biouml.workbench.diagram.DiagramDocument;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
-import ru.biosoft.gui.GUI;
 import ru.biosoft.util.TempFiles;
 
 @SuppressWarnings ( "serial" )
 public class WorkflowTextEditor extends EditorPartSupport
 {
+    private static int NEXTFLOW_TAB_INDEX = 2;
+    private static int CWL_TAB_INDEX = 1;
+    
     private static final Logger log = Logger.getLogger( WorkflowTextEditor.class.getName() );
 
     private JTabbedPane tabbedPane;
@@ -86,7 +91,7 @@ public class WorkflowTextEditor extends EditorPartSupport
         nextFlowPane = new NextFlowEditorPane();
 
         tabbedPane.addTab( "WDL", new JScrollPane( wdlPane ) );
-//        tabbedPane.addTab( "СWL", new JScrollPane( cwlPane ) );
+        tabbedPane.addTab( "СWL", new JScrollPane( cwlPane ) );
         tabbedPane.addTab( "NextFlow", new JScrollPane( nextFlowPane ) );
         tabbedPane.addTab( "Settings", settingsInspector );
         appender = new TextPaneAppender( new PatternFormatter( "%4$s :  %5$s%n" ), "Application Log" );
@@ -139,7 +144,7 @@ public class WorkflowTextEditor extends EditorPartSupport
     {
         cwlPane.setText( cwl );
     }
-    
+
     public String getCWL()
     {
         return cwlPane.getText();
@@ -153,6 +158,42 @@ public class WorkflowTextEditor extends EditorPartSupport
     public void setNextFlow(String nextFlow)
     {
         nextFlowPane.setText( nextFlow );
+    }
+
+    public void reloadCWL()
+    {
+        try
+        {
+            setCWL( cwlGenerator.generate( diagram ) );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    public void reloadNextflow()
+    {
+        try
+        {
+            setNextFlow( nextFlowGenerator.generate( diagram ) );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    public void reloadWDL()
+    {
+        try
+        {
+            setWDL( wdlGenerator.generate( diagram ) );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -297,8 +338,8 @@ public class WorkflowTextEditor extends EditorPartSupport
         {
             try
             {
-//                CWLRunner.runNextFlow( diagram, WorkflowTextEditor.this.getCWL(), settings, outputDir,
-//                      System.getProperty( "os.name" ).startsWith( "Windows" ) );
+                //                CWLRunner.runNextFlow( diagram, WorkflowTextEditor.this.getCWL(), settings, outputDir,
+                //                      System.getProperty( "os.name" ).startsWith( "Windows" ) );
                 NextFlowRunner.runNextFlow( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
                         System.getProperty( "os.name" ).startsWith( "Windows" ) );
             }
@@ -323,14 +364,37 @@ public class WorkflowTextEditor extends EditorPartSupport
         {
             try
             {
-                String text = getWDL();
-                text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
-                AstStart start = new WDLParser().parse( new StringReader( text ) );
-                diagram = wdlImporter.generateDiagram( start, diagram );
-                wdlImporter.layout( diagram );
-                setDiagram( diagram );
-                setNextFlow( nextFlowGenerator.generate( diagram ) );
-                diagram.save();
+                if( tabbedPane.getSelectedIndex() == NEXTFLOW_TAB_INDEX )
+                {
+                    new NextFlowImporter().importNextflow( getNextFlow(), diagram );
+                    reloadCWL();
+                    reloadWDL();
+                    new WDLLayouter().layout( diagram );
+                    setDiagram( diagram );
+                    diagram.save();
+                }
+                else if( tabbedPane.getSelectedIndex() == CWL_TAB_INDEX )
+                {
+                    diagram = new CWLParser().loadDiagram( getCWL(), diagram );
+                    new WDLLayouter().layout( diagram );
+                    setDiagram( diagram );
+                    reloadNextflow();
+                    reloadWDL();
+                    setWDL( wdlGenerator.generate( diagram ) );
+                    diagram.save();
+                }
+                else
+                {
+                    String text = getWDL();
+                    text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
+                    AstStart start = new WDLParser().parse( new StringReader( text ) );
+                    diagram = wdlImporter.generateDiagram( start, diagram );
+                    new WDLLayouter().layout( diagram );
+                    setDiagram( diagram );
+                    reloadNextflow();
+                    reloadNextflow();
+                    diagram.save();
+                }
             }
             catch( Exception ex )
             {

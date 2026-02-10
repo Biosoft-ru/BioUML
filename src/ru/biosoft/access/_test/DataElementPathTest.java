@@ -15,6 +15,9 @@ import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.util.TextUtil2;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class DataElementPathTest extends TestCase
 {
     public void testConstruction() throws Exception
@@ -237,6 +240,8 @@ public class DataElementPathTest extends TestCase
     @Override
     protected void setUp() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         VectorDataCollection<DataElement> vdc = new VectorDataCollection<>("test");
         CollectionFactory.registerRoot(vdc);
         VectorDataCollection<DataElement> vdc2 = new VectorDataCollection<>("test2", vdc, null);

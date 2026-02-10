@@ -15,9 +15,10 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
     protected void initProperties() throws Exception
     {
         add("autoLayout");
-        add("analysisBrush");
+        add("showTasks");
+        add("callBrush");
         add("taskBrush");
-        add("analysisPen");
+        add("callPen");
         add("expressionBrush");
         add("conditionBrush");
         add("conditionalBrush");
@@ -31,6 +32,6 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
 //        add( "defaultFont", FontEditor.class );
 //        add( "nodeTitleFont", FontEditor.class );
 //        add( "progressFont", FontEditor.class );
-//        add( "expressionFont", FontEditor.class );
+        add( "expressionFont", FontEditor.class );
     }
 }

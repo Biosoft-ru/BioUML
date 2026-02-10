@@ -725,4 +725,28 @@ public class TaskManager implements JobControlListener
         }
         return null;
     }
+
+    public static void logTaskRecord(TaskInfo taskInfo)
+    {
+        try
+        {
+            TasksSqlTransformer.logTaskRecord( taskInfo, false );
+        }
+        catch (Exception e)
+        {
+            log.log( Level.SEVERE, "Unable to log task " + taskInfo, e );
+        }
+    }
+
+    public static void logHiddenTaskRecord(TaskInfo taskInfo)
+    {
+        try
+        {
+            TasksSqlTransformer.logTaskRecord( taskInfo, true );
+        }
+        catch (Exception e)
+        {
+            log.log( Level.SEVERE, "Unable to log task " + taskInfo, e );
+        }
+    }
 }

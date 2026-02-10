@@ -90,7 +90,7 @@ function PlotEditorViewPart()
         });
         toolbarBlock.append(this.removeAction);
         
-        this.saveAction = createToolbarButton(resources.dlgPlotEditorSeriesSave, "save.gif");
+        this.saveAction = createToolbarButton(resources.dlgPlotEditorSeriesSave, "apply.gif");
         this.saveAction.click(function()
         {
             _this.saveTable(function(){
