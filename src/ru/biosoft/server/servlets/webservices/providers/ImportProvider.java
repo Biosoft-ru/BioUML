@@ -32,6 +32,7 @@ import ru.biosoft.server.servlets.webservices.WebJob;
 import ru.biosoft.server.servlets.webservices.WebServicesServlet;
 import ru.biosoft.server.servlets.webservices.WebSession;
 import ru.biosoft.tasks.TaskInfo;
+import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.FileItem;
@@ -244,6 +245,12 @@ public class ImportProvider extends WebJSONProviderSupport
                                 {
                                     job.functionTerminatedByError(e);
                                 }
+                                if( result != null )
+                                {
+                                    job.resultsAreReady( new Object[] { result } );
+                                    webJob.addJobMessage( DataElementPath.create( result ).toString() );
+                                    job.reallyFinished();
+                                }
                                 if( webJob.getJobControl().getStatus() == JobControl.COMPLETED)
                                     WebSession.getCurrentSession().pushRefreshPath( DataElementPath.create( dc ) );
                                 if( webJob.getJobControl().getStatus() == JobControl.COMPLETED && task != null )
@@ -255,19 +262,19 @@ public class ImportProvider extends WebJSONProviderSupport
                                                     .create(dc, fileName).toString()));
                                     task.getAttributes().add(
                                             new DynamicProperty(TaskInfo.IMPORT_FORMAT_PROPERTY_DESCRIPTOR, String.class, format));
+                                    Long len = file.length();
+                                    task.getAttributes().add( new DynamicProperty( TaskInfo.IMPORT_FILESIZE_PROPERTY_DESCRIPTOR, Long.class, len ) );
                                     if( finalBean != null )
                                     {
                                         DPSUtils.writeBeanToDPS(finalBean, task.getAttributes(), DPSUtils.PARAMETER_ANALYSIS_PARAMETER + ".");
                                     }
                                     task.setEndTime();
+                                    task.setUser( SecurityManager.getSessionUser() );
                                     journal.addAction(task);
+                                    //Add hidden task record to tasks table
+                                    TaskManager.logHiddenTaskRecord( task );
                                 }
-                                if( result != null )
-                                {
-                                    job.resultsAreReady(new Object[] {result});
-                                    webJob.addJobMessage(DataElementPath.create(result).toString());
-                                    job.reallyFinished();
-                                }
+
                             }));
             resp.sendString(jobID);
         }
