@@ -102,17 +102,21 @@ public class GitWebProvider extends WebJSONProviderSupport
         DataElement de = path.getDataElement();
         //log.info( "DataElementPath = " + path );
         //log.info( "DataElement = " + de );
+
         if( "isEnabled".equals( action ) )
         {
-            DataCollection<?> dc = (DataCollection<?>) de;
-            if( dc instanceof GitDataCollection || Boolean.valueOf( dc.getInfo().getProperties().getProperty( GitConstants.GIT_ENABLED_PROPERTY, "false" ) ) )
+            if( de != null && de instanceof DataCollection )
             {
-                ProcessBuilder processBuilder = new ProcessBuilder().command( "git", "--version" );
-                Pair<Integer, String> gitOut = gitCommand( processBuilder );
-                if( gitOut != null && gitOut.getSecond().startsWith( "git version" ) )
+                DataCollection<?> dc = (DataCollection<?>) de;
+                if( dc instanceof GitDataCollection || Boolean.valueOf( dc.getInfo().getProperties().getProperty( GitConstants.GIT_ENABLED_PROPERTY, "false" ) ) )
                 {
-                    response.sendString( "ok" );
-                    return;
+                    ProcessBuilder processBuilder = new ProcessBuilder().command( "git", "--version" );
+                    Pair<Integer, String> gitOut = gitCommand( processBuilder );
+                    if( gitOut != null && gitOut.getSecond().startsWith( "git version" ) )
+                    {
+                        response.sendString( "ok" );
+                        return;
+                    }
                 }
             }
             response.sendString( "false" );
