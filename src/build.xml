@@ -216,11 +216,13 @@
         <echo message="Compiling BioUML Library..." />
         <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${BUILD_CLASSPATH}" debug="on" deprecation="off" optimize="off" includeantruntime="false"  encoding="UTF-8"  nowarn="on">
             <include name="**/*.java" />
-            <exclude name="**/_test/*.java" />
+	    <exclude name="**/_test/*.java" />
+	    <exclude name="**/target/**" />
         </javac>
         <copy todir="${OUTDIR}">
             <fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml,**/*.nf">
-                <exclude name="**/large/"/>
+		    <exclude name="**/large/"/>
+		    <exclude name="**/target/**" />
             </fileset>
         </copy>
         <if>
@@ -1272,7 +1274,8 @@
         <property name="TEST_CLASSPATH" value="${BUILD_CLASSPATH};${JUNIT};${JUNITX};${JUNIT5};${COMMON}" />
         <echo message="Building Tests..." />
         <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${TEST_CLASSPATH}" debug="on" deprecation="off" optimize="off" encoding="UTF-8">
-            <include name="**/_test/*.java" />
+		<include name="**/_test/*.java" />
+		<exclude name="**/target/**" />
         </javac>
     </target>
 
