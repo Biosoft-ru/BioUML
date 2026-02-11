@@ -147,6 +147,8 @@ public class BeanAsMapUtil
 
     public static void setPropertyFromSimpleObject(Property property, Object value)
     {
+        if( property.isReadOnly() )
+            return;
         if( value != null && !property.getValueClass().isInstance( value ) )
         {
             try
