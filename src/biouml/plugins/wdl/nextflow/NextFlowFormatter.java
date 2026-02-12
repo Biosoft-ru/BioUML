@@ -3,38 +3,48 @@ package biouml.plugins.wdl.nextflow;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.BooleanExpression;
+import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.LambdaExpression;
+import org.codehaus.groovy.ast.expr.ListExpression;
+import org.codehaus.groovy.ast.expr.MapEntryExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.NamedArgumentListExpression;
 import org.codehaus.groovy.ast.expr.NotExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.TernaryExpression;
+import org.codehaus.groovy.ast.expr.TupleExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 
-import biouml.plugins.wdl.model.CallInfo;
-import biouml.plugins.wdl.model.WorkflowInfo;
 import one.util.streamex.StreamEx;
 
 public class NextFlowFormatter
 {
     private static String INDENT = "  ";
+    private boolean addQuote = true;
 
-    public static String format(Expression expression)
+    public String format(Expression expression, boolean addQuote)
     {
+        this.addQuote = addQuote;
         StringBuilder sb = new StringBuilder();
         format( expression, sb );
         return sb.toString();
     }
 
-    public static void format(Expression expression, StringBuilder sb)
+    public String format(Expression expression)
+    {
+        return format( expression, false );
+    }
+
+    public void format(Expression expression, StringBuilder sb)
     {
         if( expression instanceof MethodCallExpression )
         {
@@ -72,13 +82,37 @@ public class NextFlowFormatter
         {
             formatBoolean( (BooleanExpression)expression, sb );
         }
-        else if (expression instanceof PropertyExpression)
+        else if( expression instanceof PropertyExpression )
         {
-            formatPropertyExpression((PropertyExpression)expression, sb);
+            formatPropertyExpression( (PropertyExpression)expression, sb );
         }
-        else if (expression instanceof TernaryExpression)
+        else if( expression instanceof TernaryExpression )
         {
-            formatTernary((TernaryExpression)expression, sb);
+            formatTernary( (TernaryExpression)expression, sb );
+        }
+        else if( expression instanceof ListExpression )
+        {
+            formatList( (ListExpression)expression, sb );
+        }
+        else if( expression instanceof ClassExpression )
+        {
+            formatClass( (ClassExpression)expression, sb );
+        }
+        else if( expression instanceof ArgumentListExpression )
+        {
+            formatArgumentList( (ArgumentListExpression)expression, sb );
+        }
+        else if( expression instanceof TupleExpression )
+        {
+            formatTuple( (TupleExpression)expression, sb );
+        }
+        else if( expression instanceof NamedArgumentListExpression )
+        {
+            formatNamedArgumentList( (NamedArgumentListExpression)expression, sb );
+        }
+        else if( expression instanceof MapEntryExpression )
+        {
+            formatMapEntry( (MapEntryExpression)expression, sb );
         }
         else
         {
@@ -86,7 +120,47 @@ public class NextFlowFormatter
         }
     }
 
-    private static void formatPropertyExpression(PropertyExpression propertyExpression, StringBuilder sb)
+    private void formatMapEntry(MapEntryExpression mapEntry, StringBuilder sb)
+    {
+        sb.append(format( mapEntry.getKeyExpression(), false ));
+        sb.append( " : " );
+        sb.append(format( mapEntry.getValueExpression(), true ));
+    }
+
+    private void formatNamedArgumentList(NamedArgumentListExpression argumentExpression, StringBuilder sb)
+    {
+        sb.append( StreamEx.of( argumentExpression.getMapEntryExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
+    }
+
+    private void formatArgumentList(ArgumentListExpression argumentExpression, StringBuilder sb)
+    {
+        sb.append( StreamEx.of( argumentExpression.getExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
+    }
+
+    private void formatTuple(TupleExpression tupleExpression, StringBuilder sb)
+    {
+        format( tupleExpression.getExpression( 0 ), sb );//TODO: check
+    }
+
+    private void formatClass(ClassExpression classExpression, StringBuilder sb)//TODO: check
+    {
+        sb.append( classExpression.getType().getName() );
+    }
+
+    private void formatList(ListExpression listExpression, StringBuilder sb)//TODO: check
+    {
+        sb.append( "[" );
+        for( int i = 0; i < listExpression.getExpressions().size(); i++ )
+        {
+            format( listExpression.getExpressions().get( i ), sb );
+            if( i < listExpression.getExpressions().size() )
+                ;
+            sb.append( "," );
+        }
+        sb.append( "]" );
+    }
+
+    private void formatPropertyExpression(PropertyExpression propertyExpression, StringBuilder sb)
     {
         Expression objectExpression = propertyExpression.getObjectExpression();
         Expression property = propertyExpression.getProperty();
@@ -97,28 +171,28 @@ public class NextFlowFormatter
         if( property instanceof ConstantExpression )
             propertyString = ( (ConstantExpression)property ).getValue().toString();
 
-//        CallInfo callInfo = findCallByResult( workflowInfo, source );
-//        String callName = callInfo.getAlias();
-        sb.append( source);
-        sb.append( ".");  
+        //        CallInfo callInfo = findCallByResult( workflowInfo, source );
+        //        String callName = callInfo.getAlias();
+        sb.append( source );
+        sb.append( "." );
         sb.append( propertyString );
     }
-    
-    
-    private static void formatTernary(TernaryExpression expression, StringBuilder sb)
+
+
+    private void formatTernary(TernaryExpression expression, StringBuilder sb)
     {
-       Expression trueExpression = expression.getTrueExpression();
-       Expression falseExpression = expression.getFalseExpression();
-       BooleanExpression booleanExpression = expression.getBooleanExpression();
-       sb.append("if (");
-       sb.append( format(booleanExpression) );
-       sb.append( ") then " );
-       sb.append( format(trueExpression) );
-       sb.append( " else " );
-       sb.append( format(falseExpression) );
+        Expression trueExpression = expression.getTrueExpression();
+        Expression falseExpression = expression.getFalseExpression();
+        BooleanExpression booleanExpression = expression.getBooleanExpression();
+        sb.append( "if (" );
+        sb.append( format( booleanExpression ) );
+        sb.append( ") then " );
+        sb.append( format( trueExpression ) );
+        sb.append( " else " );
+        sb.append( format( falseExpression ) );
     }
-    
-    private static void formatConstant(ConstantExpression expression, StringBuilder sb)
+
+    private void formatConstant(ConstantExpression expression, StringBuilder sb)
     {
         Object value = ( (ConstantExpression)expression ).getValue();
         if( value instanceof String )
@@ -133,13 +207,13 @@ public class NextFlowFormatter
         }
     }
 
-    private static void formatUnknown(Expression expression, StringBuilder sb)
+    private void formatUnknown(Expression expression, StringBuilder sb)
     {
         sb.append( "ERROR " + expression.getClass() );
         System.out.println( "ERROR " + expression.getClass() );
     }
 
-    private static void formatBoolean(BooleanExpression booleanExpr, StringBuilder sb)
+    private void formatBoolean(BooleanExpression booleanExpr, StringBuilder sb)
     {
         if( booleanExpr instanceof NotExpression )
         {
@@ -153,7 +227,7 @@ public class NextFlowFormatter
         }
     }
 
-    private static void formatBinary(BinaryExpression binary, StringBuilder sb)
+    private void formatBinary(BinaryExpression binary, StringBuilder sb)
     {
         format( binary.getLeftExpression(), sb );
         sb.append( " " );
@@ -162,25 +236,33 @@ public class NextFlowFormatter
         format( binary.getRightExpression(), sb );
     }
 
-    private static void formatGString(GStringExpression gString, StringBuilder sb)
+    private void formatGString(GStringExpression gString, StringBuilder sb)
     {
         quote( sb );
         String text = gString.getText();
         for( Expression expression : gString.getValues() )
         {
-            String variableName = ( (VariableExpression)expression ).getName();
-            text = text.replace( "$" + variableName, "${" + variableName + "}" );
+            if( expression instanceof VariableExpression )
+            {
+                String variableName = ( (VariableExpression)expression ).getName();
+                text = text.replace( "$" + variableName, "${" + variableName + "}" );
+            }
+            else
+            {
+                String variableName = format( expression );
+                text = text.replace( "$" + variableName, "${" + variableName + "}" );
+            }
         }
         sb.append( text );
         quote( sb );
     }
 
-    private static void formatLambda(LambdaExpression lambda, StringBuilder sb)
+    private void formatLambda(LambdaExpression lambda, StringBuilder sb)
     {
         sb.append( "ERROR " + lambda.getClass() );
     }
 
-    private static void formatDeclaration(DeclarationExpression declaration, StringBuilder sb)
+    private void formatDeclaration(DeclarationExpression declaration, StringBuilder sb)
     {
         sb.append( "def " );
         format( declaration.getLeftExpression(), sb );
@@ -190,25 +272,13 @@ public class NextFlowFormatter
         format( declaration.getRightExpression(), sb );
     }
 
-    private static void formatMethodCall(MethodCallExpression methodCall, StringBuilder sb)
+    private void formatMethodCall(MethodCallExpression methodCall, StringBuilder sb)
     {
-        Expression methodExpression = methodCall.getMethod();
-        Expression objectExpression = methodCall.getObjectExpression();
-        ArgumentListExpression argumentsExpression = (ArgumentListExpression)methodCall.getArguments();
+        String arguments = format( methodCall.getArguments() );
+        String object = format( methodCall.getObjectExpression() );
+        String method = format( methodCall.getMethod(), false );
 
-        String object = format( objectExpression );
-        String method = null;
-        if( methodExpression instanceof ConstantExpression )
-        {
-            method = ( (ConstantExpression)methodExpression ).getValue().toString();
-        }
-        else
-        {
-            method = format( methodExpression );
-        }
         boolean isMap = method.equals( "map" );
-
-        String arguments = StreamEx.of( argumentsExpression.getExpressions() ).map( arg -> format( arg ) ).joining( "," );
 
         if( ! ( "this".equals( object ) ) )
         {
@@ -231,7 +301,7 @@ public class NextFlowFormatter
         }
     }
 
-    private static void formatClosure(ClosureExpression closureExpression, StringBuilder sb)
+    private void formatClosure(ClosureExpression closureExpression, StringBuilder sb)
     {
         sb.append( StreamEx.of( closureExpression.getParameters() ).map( p -> p.getName() ).joining( "," ) );
         sb.append( " -> " );
@@ -254,22 +324,28 @@ public class NextFlowFormatter
                     sb.append( "return " );
                     format( ( (ReturnStatement)statement ).getExpression(), sb );
                 }
+                else
+                {
+                    System.out.println( "" );
+                }
+
             }
         }
     }
 
 
-    private static void quote(StringBuilder sb)
+    private void quote(StringBuilder sb)
     {
-        sb.append( "\"" );
+        if( addQuote )
+            sb.append( "\"" );
     }
 
-    private static void indent(StringBuilder sb)
+    private void indent(StringBuilder sb)
     {
         sb.append( INDENT );
     }
 
-    private static void br(StringBuilder sb)
+    private void br(StringBuilder sb)
     {
         sb.append( System.lineSeparator() );
         sb.append( INDENT );
