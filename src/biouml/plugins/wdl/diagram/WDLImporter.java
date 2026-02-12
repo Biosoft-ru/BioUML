@@ -88,7 +88,7 @@ public class WDLImporter implements DataElementImporter
             text = text.replace("<<<", "{").replace(">>>", "}");//TODO: fix parsing <<< >>>
 
             AstStart start = new WDLParser().parse(new StringReader(text));
-            ScriptInfo scriptInfo = createScriptInfo(start);
+            ScriptInfo scriptInfo = createScriptInfo(start, diagramName);
             
             DiagramGenerator generator = new DiagramGenerator();
             Diagram diagram = generator.generateDiagram(scriptInfo, parent, properties.getDiagramName());
@@ -114,20 +114,20 @@ public class WDLImporter implements DataElementImporter
         String text = ApplicationUtils.readAsString(file);
         text = text.replace("<<<", "{").replace(">>>", "}");//TODO: fix parsing <<< >>>
         AstStart start = new WDLParser().parse(new StringReader(text));
-        ScriptInfo scriptInfo = createScriptInfo(start);
+        ScriptInfo scriptInfo = createScriptInfo(start, name);
         Diagram diagram = new WDLDiagramType().createDiagram( parent, name, null );
         return new DiagramGenerator().generateDiagram( scriptInfo, diagram );
     }
     
     public Diagram generateDiagram(AstStart start, Diagram diagram) throws Exception
     {
-        ScriptInfo scriptInfo = createScriptInfo(start);
+        ScriptInfo scriptInfo = createScriptInfo(start, diagram.getName());
         return new DiagramGenerator().generateDiagram( scriptInfo, diagram );
     }
     
     public Diagram generateDiagram(AstStart start, DataCollection dc, String name) throws Exception
     {
-        ScriptInfo scriptInfo = createScriptInfo(start);
+        ScriptInfo scriptInfo = createScriptInfo(start, name);
         Diagram result = new WDLDiagramType().createDiagram( dc, name, null );
         return new DiagramGenerator().generateDiagram( scriptInfo, result );
     }
@@ -317,9 +317,9 @@ public class WDLImporter implements DataElementImporter
         return meta;
     }
 
-    private static ScriptInfo createScriptInfo(AstStart start)
+    private static ScriptInfo createScriptInfo(AstStart start, String name)
     {
-        ScriptInfo scriptInfo = new ScriptInfo();
+        ScriptInfo scriptInfo = new ScriptInfo(name);
 
         for( int i = 0; i < start.jjtGetNumChildren(); i++ )
         {
