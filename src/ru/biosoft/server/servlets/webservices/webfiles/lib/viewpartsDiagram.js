@@ -1532,11 +1532,12 @@ function WorkflowViewPart()
                 var researchPath = getElementPath(_this.currentDiagram.completeName);
                 if(_this.currentDiagram.completeName.match(/^analyses/))
                     researchPath = getDefaultProjectDataPath();
-                var property = new DynamicProperty("researchPath", "data-element-path", createPath(researchPath, getElementName(_this.currentDiagram.completeName)+" research"));
+                var property = new DynamicProperty("researchPath", "data-element-path", "");
                 property.getDescriptor().setDisplayName(resources.vpWorkflowParametersDialogSaveResearch);
         		property.setAttribute("dataElementType", "biouml.model.Diagram");
         		property.setAttribute("promptOverwrite", true);
         		property.setCanBeNull("yes");
+                property.setAttribute("checked", false);
                 researchDPS.add(property);
                 saveResearchPropertyPane.setParentNodeId(researchSaveID);
                 saveResearchPropertyPane.setModel(researchDPS);
