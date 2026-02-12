@@ -467,7 +467,7 @@ public class WorkflowUtil
 
     public static void setDiagramRef(Compartment c, String ref)
     {
-        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, DataElementPath.class, ref ) );
+        c.getAttributes().add( new DynamicProperty( WDLConstants.EXTERNAL_DIAGRAM, String.class, ref ) );
     }
     public static String getDiagramRef(Compartment c)
     {
@@ -498,7 +498,7 @@ public class WorkflowUtil
     }
 
     public static List<String> findPossibleArguments(String input)
-    {
+    {        
         List<String> matches = new ArrayList<>();
         Pattern pattern = Pattern.compile( "[A-Za-z][A-Za-z0-9_.]*" );
         Matcher matcher = pattern.matcher( input );
@@ -506,6 +506,23 @@ public class WorkflowUtil
         {
             matches.add( matcher.group() );
         }
+        List<String> paramsModified = new ArrayList<>();
+        for (String match: matches)
+        {
+            if (match.startsWith( "params." ))//TODO: fix this hack
+                paramsModified.add( match.substring( 7 ) );
+            
+            if (match.endsWith( ".out"))
+            {
+                paramsModified.add( match.substring( 0, match.lastIndexOf( "." ) ) );
+            }
+            else if (match.contains( ".out." ))
+            {
+                paramsModified.add( match.substring( 0 , match.indexOf( "." )) );
+            }
+        }
+        
+        matches.addAll( paramsModified );
         return matches;
     }
 
@@ -676,26 +693,26 @@ public class WorkflowUtil
         }
     }
 
-    public static void addImport(Diagram diagram, Diagram source, String alias)
-    {
-        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
-        if( dp == null )
-        {
-            dp = new DynamicProperty( WDLConstants.IMPORTS_ATTR, ImportProperties[].class, new ImportProperties[0] );
-            diagram.getAttributes().add( dp );
-        }
-        ImportProperties[] value = (ImportProperties[])dp.getValue();
-
-        for( ImportProperties ip : value )
-        {
-            if( ip.getAlias().equals( alias ) && ip.getSource().toString().equals( source.getCompletePath().toString() ) )
-                return;
-        }
-        ImportProperties[] newValue = new ImportProperties[value.length + 1];
-        System.arraycopy( value, 0, newValue, 0, value.length );
-        newValue[value.length] = new ImportProperties( source.getCompletePath(), alias );
-        dp.setValue( newValue );
-    }
+//    public static void addImport(Diagram diagram, Diagram source, String alias)
+//    {
+//        DynamicProperty dp = diagram.getAttributes().getProperty( WDLConstants.IMPORTS_ATTR );
+//        if( dp == null )
+//        {
+//            dp = new DynamicProperty( WDLConstants.IMPORTS_ATTR, ImportProperties[].class, new ImportProperties[0] );
+//            diagram.getAttributes().add( dp );
+//        }
+//        ImportProperties[] value = (ImportProperties[])dp.getValue();
+//
+//        for( ImportProperties ip : value )
+//        {
+//            if( ip.getAlias().equals( alias ) && ip.getSource().toString().equals( source.getCompletePath().toString()) )
+//                return;
+//        }
+//        ImportProperties[] newValue = new ImportProperties[value.length + 1];
+//        System.arraycopy( value, 0, newValue, 0, value.length );
+//        newValue[value.length] = new ImportProperties( source.getCompletePath(), alias );
+//        dp.setValue( newValue );
+//    }
 
     public static String getAlias(Compartment call)
     {
