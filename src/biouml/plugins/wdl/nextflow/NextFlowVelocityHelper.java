@@ -76,6 +76,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             case "File":
             case "Array[File]":
                 return "path";
+            case "tuple":
+                return "tuple";
             default:
                 return "val";
         }
