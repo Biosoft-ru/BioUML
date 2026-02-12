@@ -8,11 +8,16 @@ import java.util.Set;
 
 public class ScriptInfo
 {
+    private String name;
     private Map<String, WorkflowInfo> workflows = new HashMap<>();
     private Map<String, TaskInfo> tasks = new HashMap<>();
-    private List<ImportInfo> imports = new ArrayList<>();
+    private Map<String, ImportInfo> imports = new HashMap<>();
     private List<StructInfo> structs = new ArrayList<>();
 
+    public ScriptInfo(String name)
+    {
+        this.name = name;
+    }
     public void addWorkflow(WorkflowInfo workflow)
     {
         workflows.put(workflow.getName(), workflow);
@@ -45,12 +50,17 @@ public class ScriptInfo
 
     public void addImport(ImportInfo importInfo)
     {
-        imports.add(importInfo);
+        imports.put(importInfo.getSource() , importInfo);
     }
 
     public Iterable<ImportInfo> getImports()
     {
-        return imports;
+        return imports.values();
+    }
+    
+    public ImportInfo getImport(String taskName)
+    {
+        return imports.get( taskName );
     }
     
     public void addStruct(StructInfo structInfo)
@@ -61,5 +71,15 @@ public class ScriptInfo
     public Iterable<StructInfo> getStructs()
     {
         return structs;
+    }
+    
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+    
+    public String getName()
+    {
+        return name;
     }
 }
