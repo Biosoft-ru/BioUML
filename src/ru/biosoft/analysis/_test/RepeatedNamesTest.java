@@ -10,6 +10,9 @@ import junit.framework.TestSuite;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.CollectionFactory;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class RepeatedNamesTest extends TestCase
 {
     public RepeatedNamesTest(String name)
@@ -29,6 +32,8 @@ public class RepeatedNamesTest extends TestCase
      */
     public void test() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         String repositoryPath = "../data_resources";
         CollectionFactory.createRepository( repositoryPath );
 
