@@ -15,6 +15,9 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.TempFiles;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 /**
  * Batch unit test for biouml.model package.
  */
@@ -53,6 +56,8 @@ public class StandardModuleTypeTest extends TestCase
 
     public void testCreateModule() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         File dir = TempFiles.dir("example");
         
         ApplicationUtils.copyFile ( new File(dir, "default.config"), new File("../data/test/biouml/standard/default.config") );
