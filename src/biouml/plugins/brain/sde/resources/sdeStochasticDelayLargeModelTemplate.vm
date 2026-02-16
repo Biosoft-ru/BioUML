@@ -1235,24 +1235,21 @@ $br
   #set($rightSide = "")
   #set($equations = $engine.getDefiningEquations($v.getName()))
   #foreach( $eq in  $equations )
-   #if ($sew.isRate($eq))
-    // $eq.getFormula()
-    #set ($statementWithDeclaration = $engine.formatMath($eq.getFormula(), $eq))
-    #foreach ($sv in $engine.getVarNameStochasticIndexMapping().keySet())
-     #if ($statementWithDeclaration.get(1).indexOf($engine.getVariableCodeName($sv)) != -1)
-      #set($stochasticPart = $engine.extractStochasticPart($eq, $sv))
-      #set($stochasticPartFormatted = $engine.formatMath($stochasticPart, null).get(1))
-      #if ($statementWithDeclaration.get(0)!="")
-       $statementWithDeclaration.get(0)
+    #if ($sew.isRate($eq))
+     // $eq.getFormula()
+      #set($stochasticPart = $engine.extractStochasticPart($eq))
+      #set($stochMath = $engine.formatMath($stochasticPart, $eq))
+      #set($stochasticPartFormatted = $stochMath.get(1))
+      #if ($stochasticPartFormatted != "" && $stochasticPartFormatted != "0")
+        #if ($stochMath.get(0)!="")
+          $stochMath.get(0)
+        #end
+      #if ($rightSide != "")
+        #set($rightSide = "${rightSide}+")
       #end
-      #if( $statementWithDeclaration.get(1).charAt(0) != "-")
-       #set($rightSide = "${rightSide}+")
-      #end
-      #set($rightSide = "${rightSide}$stochasticPartFormatted")
+      #set($rightSide = "${rightSide}${stochasticPartFormatted}")
       #set($math = $eq.getMath())
       #set($nbytesStochastic = $nbytesStochastic + $sew.estimateByteCodeLength($math, 3))
-      #break
-     #end
     #end
    #end
   #end
@@ -1293,29 +1290,30 @@ $br
   #foreach( $eq in  $equations )
    #if ($sew.isRate($eq))
     // $eq.getFormula()
-    #set($statementWithDeclaration = $engine.formatMath($eq.getFormula(), $eq))
-    #set($deterministicPart = $eq.getFormula())
-    #foreach ($sv in $engine.getVarNameStochasticIndexMapping().keySet())
-     #if ($statementWithDeclaration.get(1).indexOf($engine.getVariableCodeName($sv)) != -1)
-      #set($deterministicPart = $deterministicPart.replace($sv, "0"))
-     #end
+    #set($deterministicPart = $engine.extractDeterministicPart($eq))
+    #set($detMath = $engine.formatMath($deterministicPart, $eq))
+    #if ($detMath.get(0)!="")
+      $detMath.get(0)
     #end
-    #set($deterministicPartFormatted = $engine.formatMath($deterministicPart, null).get(1))
-    #if ($statementWithDeclaration.get(0)!="")
-       $statementWithDeclaration.get(0)
+    #set($deterministicPartFormatted = $detMath.get(1))
+    #if ($deterministicPartFormatted == "")
+      #set($deterministicPartFormatted = "0")
     #end
     #if ( $deterministicPartFormatted.charAt(0) != "-")
-       #set($rightSide = "${rightSide}+")
+      #set($rightSide = "${rightSide}+")
     #end
     #set($rightSide = "${rightSide}$deterministicPartFormatted")
     #set($math = $eq.getMath())
     #set($nbytesDeterministic = $nbytesDeterministic + $sew.estimateByteCodeLength($math, 3))
    #end
   #end
+  #if ($rightSide == "")
+    #set($rightSide = "0")
+  #end
   #set($nbytesDeterministic = $nbytesDeterministic + 3 + $sew.estimateConstantByteCodeLength($engine.getVariableRateIndex($v.getName())))
   #if ($nbytesDeterministic + 8 > $maxCodeSize)
-   #set($nbytesDeterministic = $nbytesDeterministic - $prevnbytesDeterministic)
-   #set($indicatorDeterministic = $indicatorDeterministic + 1)
+    #set($nbytesDeterministic = $nbytesDeterministic - $prevnbytesDeterministic)
+    #set($indicatorDeterministic = $indicatorDeterministic + 1)
         }
     }
 $br

@@ -19,9 +19,15 @@ import biouml.plugins.simulation.java.JavaLargeModel;
 public abstract class SdeModel extends JavaLargeModel 
 {
     private static final Logger log = Logger.getLogger(SdeModel.class.getName());
+
+//    private int seed = 0;
+//    
+//    private Normal normal = null;
+//    private Uniform unif = null;
+//    private Poisson poisson = null;
+//    private Exponential exponential = null;
     
     private int seed = (int)(new Date().getTime() / 1000);
-    
     private Normal normal = new Normal(0, 1, new MersenneTwister(this.seed));
     private Uniform unif = new Uniform(new MersenneTwister(this.seed));
     private Poisson poisson = new Poisson(1, new MersenneTwister(this.seed));
@@ -45,6 +51,13 @@ public abstract class SdeModel extends JavaLargeModel
     
     protected double stochasticValuesPreviousTime = 0;
     protected double stochasticValuesCurrentTime = 0;
+    
+    protected boolean STOCHASTIC_GENERATION_ENABLED = true;
+    
+    public void setStochasticGenerationEnabled(boolean enabled)
+    {
+        this.STOCHASTIC_GENERATION_ENABLED = enabled;
+    }
     
     public void setSeed(Date seed)
     {
@@ -170,12 +183,17 @@ public abstract class SdeModel extends JavaLargeModel
     }
     
     public double stochastic(int auxVarIndex, String distributionType, double loc, double scale, double time)
-    {
+    {  	
     	if (Math.abs(time - stochasticValuesCurrentTime) < 1E-8)
     	{
     	    // visit a new grid node for the first time
     		if (!stochasticValuesCurrentMapping.containsKey(auxVarIndex))
     		{
+    	    	if (!STOCHASTIC_GENERATION_ENABLED)
+    	    	{
+    	    	    return 0.0;
+    	    	}
+    			
     			stochasticValuesCurrentMapping.put(auxVarIndex, stochastic(distributionType, loc, scale));
     		}
     		return stochasticValuesCurrentMapping.get(auxVarIndex);
