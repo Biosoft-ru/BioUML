@@ -24,7 +24,7 @@ public class WDLLayouter
 {
     private HierarchicLayouter layouter = new HierarchicLayouter();
     private OrthogonalPathLayouter edgeLayouter = new OrthogonalPathLayouter();
-
+    
     private void redirectEdges(Diagram diagram)
     {
         for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
@@ -63,7 +63,7 @@ public class WDLLayouter
 
     public Diagram layout(Diagram diagram)
     {
-//        preLayout( diagram );
+
         redirectEdges( diagram );
         fixConditions( diagram );
         layoutNodes( diagram );
@@ -77,9 +77,12 @@ public class WDLLayouter
     private void layoutEdges(Diagram diagram)
     {
         edgeLayouter.setSmoothEdges( true );
+        edgeLayouter.setGridY( 20);
+        edgeLayouter.setGridX( 20);
+
         for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
         {
-            DiagramToGraphTransformer.layoutSingleEdge( edge, edgeLayouter, null );
+            DiagramToGraphTransformer.layoutSingleEdge( edge, edgeLayouter, new SingleEdgeFilter(edge) );
         }
     }
 
@@ -89,6 +92,11 @@ public class WDLLayouter
         Diagram diagram = Diagram.getDiagram( c );
         DiagramViewBuilder builder = diagram.getType().getDiagramViewBuilder();
         layouter.setHoistNodes( true );
+        if( c instanceof Diagram )
+        {
+            layouter.setLayerDeltaX( 80 );
+            layouter.setLayerDeltaY( 80 );
+        }
         layouter.setPathLayouterWrapper( new PathLayouterWrapper( edgeLayouter ) );
 
         for( Compartment inner : c.stream( Compartment.class ).filter( in -> needInnerLayout( in ) ) )
@@ -111,7 +119,7 @@ public class WDLLayouter
         } );
 
         if( graph.getNodes().size() != 0 )
-            layouter.doLayout(graph, null);
+            layouter.doLayout( graph, null );
 
         Map<String, Point> oldCompartmentLocations = new HashMap<>();
         c.stream().select( Compartment.class ).forEach( inner -> oldCompartmentLocations.put( inner.getName(), inner.getLocation() ) );
@@ -159,6 +167,27 @@ public class WDLLayouter
     {
         for( Node node : d.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isCondition( n ) ) )
             node.setFixed( true );
+    }
+    
+    public static class SingleEdgeFilter implements Filter<DiagramElement>
+    {
+        Edge edge;
+        public SingleEdgeFilter(Edge edge)
+        {
+            this.edge = edge;
+        }
+        @Override
+        public boolean isEnabled()
+        {
+            return true;
+        }
+
+        @Override
+        public boolean isAcceptable(DiagramElement de)
+        {
+            return de instanceof Node || de.equals( edge );
+        }
+
     }
 
 }
