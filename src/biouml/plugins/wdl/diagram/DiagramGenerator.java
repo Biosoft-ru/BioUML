@@ -83,6 +83,11 @@ public class DiagramGenerator
             createTaskNode( diagram, script.getTask( taskName ) );
         }
 
+        for( InputInfo input : script.getInputs() )
+        {
+            createExternalParameterNode( diagram, input );
+        }
+
         for( String workflowName : script.getWorkflowNames() )
         {
             WorkflowInfo workflow = script.getWorkflow( workflowName );//TODO" create compartment?
@@ -116,7 +121,83 @@ public class DiagramGenerator
         }
         createLinks( diagram );
         addOutputs( diagram );
+        //        setInputs(diagram);
+        splitInputs( diagram );
         return diagram;
+    }
+
+    public void setInputs(Diagram diagram) throws Exception
+    {
+        List<Node> nodes = diagram.stream( Node.class ).filter( n -> WorkflowUtil.isExpression( n ) ).toList();
+        for( Node node : nodes )
+        {
+            if( node.edges().filter( e -> e.getOutput().equals( node ) ).count() == 0 )
+            {
+                String name = node.getName();
+                Node newNode = new Node( diagram, name, new Stub( null, name, WDLConstants.WORKFLOW_INPUT_TYPE ) );
+                WorkflowUtil.setName( newNode, WorkflowUtil.getName( node ) );
+                WorkflowUtil.setType( newNode, WorkflowUtil.getType( node ) );
+                WorkflowUtil.setExpression( newNode, WorkflowUtil.getExpression( newNode ) );
+                newNode.setTitle( name );
+                newNode.setShapeSize( new Dimension( 80, 60 ) );
+
+                diagram.remove( node.getName() );
+                diagram.put( newNode );
+
+                for( Edge edge : node.getEdges() )
+                {
+                    edge.setInput( newNode );
+                    newNode.addEdge( edge );
+                    node.removeEdge( edge );
+                }
+
+            }
+        }
+    }
+
+    public void splitInputs(Diagram diagram)
+    {
+        List<Node> nodes = diagram.stream( Node.class ).filter( n -> WorkflowUtil.isExternalParameter( n ) && n.getEdges().length > 3 )
+                .toList();
+        for( Node node : nodes )
+        {
+            Node newNode = node;
+            System.out.println( "Clone " + newNode.getName() );
+            Edge[] edges = node.getEdges();
+            int length = edges.length;
+            int j = 0;
+            for( int i = 0; i < length; i++ )
+            {
+                if( j > 2 )
+                {
+                    j = 0;
+                    newNode = cloneInput( node );
+                    System.out.println( "Clone " + newNode.getName() );
+                }
+                j++;
+                Edge edge = edges[i];
+                edge.setInput( newNode );
+                System.out.println( "Set edge " + newNode.getName() );
+                newNode.addEdge( edge );
+                node.removeEdge( edge );
+            }
+        }
+    }
+
+    private static Node cloneInput(Node node)
+    {
+        Diagram diagram = Diagram.getDiagram( node );
+        String name = DefaultSemanticController.generateUniqueName( diagram, node.getName() );
+        Stub kernel = new Stub( null, name, node.getKernel().getType() );
+        Node newNode = new Node( diagram, name, kernel );
+        newNode.setTitle( node.getTitle() );
+        WorkflowUtil.setName( newNode, WorkflowUtil.getName( node ) );
+        WorkflowUtil.setType( newNode, WorkflowUtil.getType( node ) );
+        WorkflowUtil.setExpression( newNode, WorkflowUtil.getExpression( newNode ) );
+        newNode.setTitle( node.getTitle() );
+        newNode.setShapeSize( new Dimension( 80, 60 ) );
+        diagram.put( newNode );
+        return newNode;
     }
 
     public void addOutputs(Diagram diagram)
@@ -192,11 +273,17 @@ public class DiagramGenerator
     public Node createExternalParameterNode(Compartment parent, ExpressionInfo expressionInfo)
     {
         String name = expressionInfo.getName();
+        String title = name;
+        if( name.startsWith( "params." ) )
+        {
+            title = name.substring( name.indexOf( "." ) + 1 );
+            name = name.replace( ".", "__" );
+        }
         Stub kernel = new Stub( null, name, WDLConstants.WORKFLOW_INPUT_TYPE );
         Node node = new Node( parent, name, kernel );
         WorkflowUtil.setPosition( node, externalPosition++ );
         setDeclaration( node, expressionInfo );
-        node.setTitle( name );
+        node.setTitle( title );
         node.setShapeSize( new Dimension( 80, 60 ) );
         parent.put( node );
         return node;
@@ -213,21 +300,36 @@ public class DiagramGenerator
             if( expression == null )
                 continue;
 
-            List<String> args = WorkflowUtil.findPossibleArguments( expression );
-            for( String arg : args )
+            String[] arguments = WorkflowUtil.getArguments( node );
+            if( arguments != null )
             {
-                Compartment call = WorkflowUtil.findCall( arg, diagram );
-                if( call != null )
+                for( String arg : arguments )
                 {
-                    Node source = call.stream( Node.class ).filter( n -> WorkflowUtil.isOutput( n ) ).findAny().orElse( null );
-                    if( source != null )
+                    List<Node> sources = WorkflowUtil.findSources( arg, diagram );
+                    for( Node source : sources )
                         createLink( source, node );
                 }
-                else
+            }
+            else
+            {
+                List<String> args = WorkflowUtil.findPossibleArguments( expression );
+                for( String arg : args )
                 {
-                    Node source = WorkflowUtil.findExpressionNode( diagram, arg );
-                    if( source != null )
+                    List<Node> sources = WorkflowUtil.findSources( arg, diagram );
+                    for( Node source : sources )
                         createLink( source, node );
+                    //                Compartment call = WorkflowUtil.findCall( arg, diagram );
+                    //                if( call != null )
+                    //                {
+                    //                    Node source = call.stream( Node.class ).filter( n -> WorkflowUtil.isOutput( n ) ).findAny().orElse( null );
+                    //                    if( source != null )
+                    //                        createLink( source, node );
+                    //                }
+                    //                else
+                    //                {
+                    //                    Node source = WorkflowUtil.findExpressionNode( diagram, arg );
+                    //                    if( source != null )
+                    //                        createLink( source, node );
                 }
             }
         }
@@ -431,6 +533,7 @@ public class DiagramGenerator
         WorkflowUtil.setName( node, declaration.getName() );
         WorkflowUtil.setType( node, declaration.getType() );
         WorkflowUtil.setExpression( node, declaration.getExpression() );
+        WorkflowUtil.setArguments( node, declaration.getArguments() );
     }
 
     public Compartment createCallNode(Compartment parent, CallInfo call) throws Exception
@@ -438,7 +541,7 @@ public class DiagramGenerator
         Diagram diagram = Diagram.getDiagram( parent );
         String name = call.getTaskName();
         Compartment taskСompartment = tasks.get( name );
-        if (taskСompartment == null)
+        if( taskСompartment == null )
             taskСompartment = this.importedTasks.get( name );
         String taskRef = name;
         String diagramRef = null;
@@ -635,6 +738,8 @@ public class DiagramGenerator
 
     public static Edge createLink(Node input, Node output, String type, Map<String, Object> attributes)
     {
+        if( input.equals( output ) )
+            return null;
         String name = input.getName() + "_to_" + output.getName();
         Diagram d = Diagram.getDiagram( input );
         name = DefaultSemanticController.generateUniqueName( d, name );
