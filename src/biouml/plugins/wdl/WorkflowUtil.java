@@ -928,9 +928,4 @@ public class WorkflowUtil
         return getSources( node ).anyMatch( n -> isCall( n.getCompartment() ) );
     }
 
-
-    public static Node cloneExpression(Node node)
-    {
-
-    }
 }
