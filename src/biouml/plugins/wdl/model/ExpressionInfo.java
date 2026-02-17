@@ -1,13 +1,14 @@
 package biouml.plugins.wdl.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ExpressionInfo
 {
     private String type;
     private String name;
     private String expression;
+    private Set<String> arguments = new HashSet<>();
     
     public ExpressionInfo()
     {
@@ -46,5 +47,15 @@ public class ExpressionInfo
     public String getExpression()
     {
         return expression;
+    }
+    
+    public void setArguments(Set<String> arguments)
+    {
+        this.arguments = arguments;
+    }
+    
+    public Set<String> getArguments()
+    {
+        return arguments;
     }
 }

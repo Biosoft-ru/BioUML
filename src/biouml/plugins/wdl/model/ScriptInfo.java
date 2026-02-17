@@ -13,7 +13,9 @@ public class ScriptInfo
     private Map<String, TaskInfo> tasks = new HashMap<>();
     private Map<String, ImportInfo> imports = new HashMap<>();
     private List<StructInfo> structs = new ArrayList<>();
-
+    
+    private List<InputInfo> inputs = new ArrayList<>();
+    
     public ScriptInfo(String name)
     {
         this.name = name;
@@ -46,6 +48,16 @@ public class ScriptInfo
     public TaskInfo getTask(String name)
     {
         return tasks.get(name);
+    }
+    
+    public void addInput(InputInfo inputInfo)
+    {
+        inputs.add(inputInfo);
+    }
+    
+    public Iterable<InputInfo> getInputs()
+    {
+        return inputs;
     }
 
     public void addImport(ImportInfo importInfo)

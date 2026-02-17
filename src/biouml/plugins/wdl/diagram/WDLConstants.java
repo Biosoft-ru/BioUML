@@ -33,6 +33,7 @@ public class WDLConstants
     public static final String TYPE_ATTR = "TYPE";
     public static final String CALL_NAME_ATTR = "CALL_NAME";
     public static final String EXPRESSION_ATTR = "EXPRESSION";
+    public static final String ARGUMENTS_ATTR = "ARGUMENTS";
     public static final String VERSION_ATTR = "VERSION";
     public static final String TASK_REF_ATTR = "TASK_REFERENCE";
     public static final String EXTERNAL_DIAGRAM_ALIAS_ATTR = "EXTERNAL_DIARAM_ALIAS";

@@ -38,12 +38,16 @@ import biouml.plugins.wdl.model.OutputInfo;
 import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.model.TaskInfo;
 import biouml.plugins.wdl.model.WorkflowInfo;
+import biouml.plugins.wdl.nextflow.ast.ArgumentsCollector;
+import biouml.plugins.wdl.nextflow.ast.NextFlowFormatter;
+import biouml.plugins.wdl.nextflow.ast.ParamsCollector;
 import one.util.streamex.StreamEx;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,17 +69,19 @@ public class NextFlowImporter
     //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/ifelse.nf" );
 
         static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/SNV/main.nf" );
-
+//    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/nextflow_tests/fromPath.nf" );
     //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/sc analysis/main.nf" );
-//        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/metagenomics/main.nf" );
-//    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/tuples.nf" );
-    static File imageFile = new File( workDir, "sc analysis.png" );
+    //        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/metagenomics/main.nf" );
+    //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/tuples.nf" );
+    static File imageFile = new File( workDir, "sc analysis_40_40.png" );
 
     private ScriptInfo scriptInfo;
 
     private Map<String, TaskInfo> importedTasks = new HashMap<>();
     private Map<String, ScriptInfo> importedScripts = new HashMap<>();
 
+    private Set<String> params = new HashSet<>();
+    
     public static void main(String[] args) throws Exception
     {
         try
@@ -112,7 +118,7 @@ public class NextFlowImporter
 
     public Diagram importNextflow(String nextflow, Diagram diagram) throws Exception
     {
-        parseNextflow(diagram.getName(),  nextflow  );
+        parseNextflow( diagram.getName(), nextflow );
         new DiagramGenerator().generateDiagram( scriptInfo, diagram );
         return diagram;
     }
@@ -126,16 +132,13 @@ public class NextFlowImporter
 
     public ScriptInfo parseNextflow(String name, String nextflow) throws Exception
     {
-        scriptInfo = new ScriptInfo(name);
-//        AstBuilder builder = ;
+        scriptInfo = new ScriptInfo( name );
         List<ASTNode> nodes = new AstBuilder().buildFromString( CompilePhase.SEMANTIC_ANALYSIS, false, nextflow );
-
         for( MethodCallExpression include : getIncludes( nodes ) )
         {
             ImportInfo importInfo = parseInclude( include );
             scriptInfo.addImport( importInfo );
         }
-
         for( MethodCallExpression process : getProcesses( nodes ) )
         {
             TaskInfo taskInfo = parseProcess( process );
@@ -146,25 +149,30 @@ public class NextFlowImporter
             WorkflowInfo workflowInfo = parseWorkflow( workflow );
             scriptInfo.addWorkflow( workflowInfo );
         }
-
-        WorkflowInfo main = scriptInfo.getWorkflow( "" );
-        for( Expression param : getParams( nodes ) )
+        for( String param : getParams( nodes ) )
         {
             InputInfo inputInfo = parseParam( param );
-            main.addInput( inputInfo );
+            scriptInfo.addInput( inputInfo );
+        }
+
+        WorkflowInfo main = scriptInfo.getWorkflow( "" );
+        for( Expression declaration : getDeclarations( nodes ) )
+        {
+            Expression left = ( (BinaryExpression)declaration ).getLeftExpression();
+            Expression right = ( (BinaryExpression)declaration ).getRightExpression();
+            String variable = nextflowFormatter.format( left );
+            ExpressionInfo info = parseDeclaration( right );
+            info.setName( variable );
+            main.addObject( info );
         }
         return scriptInfo;
     }
+   
 
-    public InputInfo parseParam(Expression paramExpression) throws Exception
+    public InputInfo parseParam(String param) throws Exception
     {
         InputInfo inputInfo = new InputInfo();
-        if( paramExpression instanceof PropertyExpression )
-        {
-            //            String name = NextFlowFormatter.format( ( ( (PropertyExpression)paramExpression ).getProperty() ) );
-            String name = ( (PropertyExpression)paramExpression ).getPropertyAsString();
-            inputInfo.setName( name );
-        }
+        inputInfo.setName( param );
         return inputInfo;
     }
 
@@ -280,7 +288,7 @@ public class NextFlowImporter
             }
             else if( argumentExpression instanceof VariableExpression )
             {
-                args.add(  ( (VariableExpression)argumentExpression ).getName() );
+                args.add( ( (VariableExpression)argumentExpression ).getName() );
             }
             else if( argumentExpression instanceof MapExpression )
             {
@@ -557,9 +565,9 @@ public class NextFlowImporter
     private ExpressionInfo parseDeclaration(Expression methodCall)
     {
         ExpressionInfo expressionInfo = new ExpressionInfo();
-        String formatted = nextflowFormatter.format( methodCall );
-        expressionInfo.setExpression( formatted );
+        expressionInfo.setExpression( nextflowFormatter.format( methodCall ) );
         expressionInfo.setName( "" );
+        expressionInfo.setArguments( new ArgumentsCollector().getArguments( methodCall ) );
         return expressionInfo;
     }
 
@@ -624,10 +632,10 @@ public class NextFlowImporter
         Expression property = propertyExpression.getProperty();
         String source = null;
         String propertyString = null;
-//        if( objectExpression instanceof VariableExpression )
-            source = nextflowFormatter.format( objectExpression );//( (VariableExpression)objectExpression ).getName();
-//        if( property instanceof ConstantExpression )
-            propertyString = nextflowFormatter.format( property );//( (ConstantExpression)property ).getValue().toString();
+        //        if( objectExpression instanceof VariableExpression )
+        source = nextflowFormatter.format( objectExpression );//( (VariableExpression)objectExpression ).getName();
+        //        if( property instanceof ConstantExpression )
+        propertyString = nextflowFormatter.format( property );//( (ConstantExpression)property ).getValue().toString();
 
         CallInfo callInfo = findCallByResult( workflowInfo, source );
         if( callInfo != null )
@@ -641,13 +649,13 @@ public class NextFlowImporter
         }
     }
 
-    public CallInfo findCallByResult(WorkflowInfo workflow, String resultName)
+    public CallInfo findCallByResult(Iterable<Object> objects, String resultName)
     {
-        if (resultName.endsWith( ".out" ))
+        if( resultName.endsWith( ".out" ) )
         {
             resultName = resultName.substring( 0, resultName.lastIndexOf( "." ) );
         }
-        for( Object object : workflow.getObjects() )
+        for( Object object : objects )
         {
             if( object instanceof CallInfo )
             {
@@ -661,9 +669,22 @@ public class NextFlowImporter
                 }
                 else
                 {
-                    if (resultName.equals( callInfo.getAlias() ))
+                    if( resultName.equals( callInfo.getAlias() ) )
                         return (CallInfo)object;
                 }
+            }
+            else if( object instanceof ConditionalInfo )
+            {
+                ConditionalInfo conditionalInfo = (ConditionalInfo)object;
+                for( String condition : conditionalInfo.getConditions() )
+                {
+                    CallInfo callInfo = findCallByResult( conditionalInfo.get( condition ), resultName );
+                    if( callInfo != null )
+                        return callInfo;
+                }
+                CallInfo callInfo = findCallByResult( conditionalInfo.getElse(), resultName );
+                if( callInfo != null )
+                    return callInfo;
             }
         }
         return null;
@@ -805,9 +826,16 @@ public class NextFlowImporter
     }
 
 
-    public List<Expression> getParams(List<ASTNode> nodes)
+    public Set<String> getParams(List<ASTNode> nodes)
     {
-        List<Expression> result = new ArrayList<>();
+        ParamsCollector paramsCollector = new ParamsCollector();
+        paramsCollector.visit( nodes );
+        return paramsCollector.getParameters();
+    }
+
+    public List<Expression> getDeclarations(List<ASTNode> nodes)
+    {
+        List<Expression> expressions = new ArrayList<Expression>();
         for( ASTNode node : nodes )
         {
             if( node instanceof BlockStatement )
@@ -819,40 +847,13 @@ public class NextFlowImporter
                         Expression expression = ( (ExpressionStatement)statement ).getExpression();
                         if( expression instanceof BinaryExpression )
                         {
-                            Expression left = ( (BinaryExpression)expression ).getLeftExpression();
-                            if( left instanceof PropertyExpression )
-                            {
-                                Expression objectExpression = ( (PropertyExpression)left ).getObjectExpression();
-                                if( objectExpression instanceof VariableExpression )
-                                {
-                                    if( "params".equals( ( (VariableExpression)objectExpression ).getName() ) )
-                                        result.add( expression );
-                                }
-                            }
-                        }
-                        else if( expression instanceof PropertyExpression )
-                        {
-                            Expression objectExpression = ( (PropertyExpression)expression ).getObjectExpression();
-                            if( objectExpression instanceof VariableExpression )
-                            {
-                                if( "params".equals( ( (VariableExpression)objectExpression ).getName() ) )
-                                    result.add( expression );
-                            }
+                            expressions.add( expression );
                         }
                     }
                 }
             }
         }
-        return result;
-    }
 
-    public List<Expression> getDeclarations(List<ASTNode> nodes)
-    {
-        List<Expression> expressions = getExpressions( nodes );
-        for( Expression expression : expressions )
-        {
-            System.out.println( expression );
-        }
         return expressions;
     }
 
@@ -900,6 +901,10 @@ public class NextFlowImporter
                             {
                                 result.add( (MethodCallExpression)expression );
                             }
+                        }
+                        else
+                        {
+                            System.out.println( "" );
                         }
                     }
                 }
