@@ -1,4 +1,4 @@
-package biouml.plugins.wdl.nextflow;
+package biouml.plugins.wdl.nextflow.ast;
 
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
@@ -12,6 +12,7 @@ import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.LambdaExpression;
 import org.codehaus.groovy.ast.expr.ListExpression;
 import org.codehaus.groovy.ast.expr.MapEntryExpression;
+import org.codehaus.groovy.ast.expr.MapExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.NamedArgumentListExpression;
 import org.codehaus.groovy.ast.expr.NotExpression;
@@ -114,37 +115,46 @@ public class NextFlowFormatter
         {
             formatMapEntry( (MapEntryExpression)expression, sb );
         }
+        else if( expression instanceof MapExpression )
+        {
+            formatMap( (MapExpression)expression, sb );
+        }
         else
         {
             formatUnknown( expression, sb );
         }
     }
 
+    private void formatMap(MapExpression mapEntry, StringBuilder sb)
+    {
+        format( sb, StreamEx.of( mapEntry.getMapEntryExpressions() ).map( expr -> format( expr ) ).joining( " ," ) );
+    }
+
     private void formatMapEntry(MapEntryExpression mapEntry, StringBuilder sb)
     {
-        sb.append(format( mapEntry.getKeyExpression(), false ));
+        sb.append( format( mapEntry.getKeyExpression(), false ) );
         sb.append( " : " );
-        sb.append(format( mapEntry.getValueExpression(), true ));
+        sb.append( format( mapEntry.getValueExpression(), true ) );
     }
 
     private void formatNamedArgumentList(NamedArgumentListExpression argumentExpression, StringBuilder sb)
     {
-        sb.append( StreamEx.of( argumentExpression.getMapEntryExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
+        format( sb, StreamEx.of( argumentExpression.getMapEntryExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
     }
 
     private void formatArgumentList(ArgumentListExpression argumentExpression, StringBuilder sb)
     {
-        sb.append( StreamEx.of( argumentExpression.getExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
+        format( sb, StreamEx.of( argumentExpression.getExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
     }
 
     private void formatTuple(TupleExpression tupleExpression, StringBuilder sb)
     {
-        format( tupleExpression.getExpression( 0 ), sb );//TODO: check
+        format( sb, tupleExpression.getExpression( 0 ) );//TODO: check
     }
 
     private void formatClass(ClassExpression classExpression, StringBuilder sb)//TODO: check
     {
-        sb.append( classExpression.getType().getName() );
+        format( sb, classExpression.getType().getName() );
     }
 
     private void formatList(ListExpression listExpression, StringBuilder sb)//TODO: check
@@ -153,43 +163,20 @@ public class NextFlowFormatter
         for( int i = 0; i < listExpression.getExpressions().size(); i++ )
         {
             format( listExpression.getExpressions().get( i ), sb );
-            if( i < listExpression.getExpressions().size() )
-                ;
-            sb.append( "," );
+            if( i < listExpression.getExpressions().size()-1 )
+                sb.append( "," );
         }
         sb.append( "]" );
     }
 
     private void formatPropertyExpression(PropertyExpression propertyExpression, StringBuilder sb)
     {
-        Expression objectExpression = propertyExpression.getObjectExpression();
-        Expression property = propertyExpression.getProperty();
-        String source = null;
-        String propertyString = null;
-        if( objectExpression instanceof VariableExpression )
-            source = ( (VariableExpression)objectExpression ).getName();
-        if( property instanceof ConstantExpression )
-            propertyString = ( (ConstantExpression)property ).getValue().toString();
-
-        //        CallInfo callInfo = findCallByResult( workflowInfo, source );
-        //        String callName = callInfo.getAlias();
-        sb.append( source );
-        sb.append( "." );
-        sb.append( propertyString );
+        format( sb, propertyExpression.getObjectExpression(), ".", propertyExpression.getProperty() );
     }
 
-
-    private void formatTernary(TernaryExpression expression, StringBuilder sb)
+    private void formatTernary(TernaryExpression expr, StringBuilder sb)
     {
-        Expression trueExpression = expression.getTrueExpression();
-        Expression falseExpression = expression.getFalseExpression();
-        BooleanExpression booleanExpression = expression.getBooleanExpression();
-        sb.append( "if (" );
-        sb.append( format( booleanExpression ) );
-        sb.append( ") then " );
-        sb.append( format( trueExpression ) );
-        sb.append( " else " );
-        sb.append( format( falseExpression ) );
+        format( sb, "if (", expr.getBooleanExpression(), ") then ", expr.getTrueExpression(), " else ", expr.getFalseExpression() );
     }
 
     private void formatConstant(ConstantExpression expression, StringBuilder sb)
@@ -203,13 +190,13 @@ public class NextFlowFormatter
         }
         else
         {
-            sb.append( value.toString() );
+            format( sb, value.toString() );
         }
     }
 
     private void formatUnknown(Expression expression, StringBuilder sb)
     {
-        sb.append( "ERROR " + expression.getClass() );
+        format( sb, "ERROR " + expression.getClass() );
         System.out.println( "ERROR " + expression.getClass() );
     }
 
@@ -217,23 +204,17 @@ public class NextFlowFormatter
     {
         if( booleanExpr instanceof NotExpression )
         {
-            sb.append( "!( " );
-            format( booleanExpr.getExpression(), sb );
-            sb.append( " )" );
+            format( sb, "!(", booleanExpr.getExpression(), " )" );
         }
         else
         {
-            format( booleanExpr.getExpression(), sb );
+            format( sb, booleanExpr.getExpression() );
         }
     }
 
     private void formatBinary(BinaryExpression binary, StringBuilder sb)
     {
-        format( binary.getLeftExpression(), sb );
-        sb.append( " " );
-        sb.append( binary.getOperation().getText() );
-        sb.append( " " );
-        format( binary.getRightExpression(), sb );
+        format( sb, binary.getLeftExpression(), " ", binary.getOperation().getText(), " ", binary.getRightExpression() );
     }
 
     private void formatGString(GStringExpression gString, StringBuilder sb)
@@ -259,17 +240,12 @@ public class NextFlowFormatter
 
     private void formatLambda(LambdaExpression lambda, StringBuilder sb)
     {
-        sb.append( "ERROR " + lambda.getClass() );
+        format( sb, "ERROR " + lambda.getClass() );
     }
 
-    private void formatDeclaration(DeclarationExpression declaration, StringBuilder sb)
+    private void formatDeclaration(DeclarationExpression expr, StringBuilder sb)
     {
-        sb.append( "def " );
-        format( declaration.getLeftExpression(), sb );
-        sb.append( " " );
-        sb.append( declaration.getOperation().getText() );
-        sb.append( " " );
-        format( declaration.getRightExpression(), sb );
+        format( sb, "def ", expr.getLeftExpression(), " ", expr.getOperation().getText(), " ", expr.getRightExpression() );
     }
 
     private void formatMethodCall(MethodCallExpression methodCall, StringBuilder sb)
@@ -342,12 +318,31 @@ public class NextFlowFormatter
 
     private void indent(StringBuilder sb)
     {
-        sb.append( INDENT );
+        format( sb, INDENT );
     }
 
     private void br(StringBuilder sb)
     {
-        sb.append( System.lineSeparator() );
-        sb.append( INDENT );
+        format( sb, System.lineSeparator(), INDENT );
     }
+
+    private void format(StringBuilder sb, Object ... objects)
+    {
+        for( Object object : objects )
+        {
+            if( object instanceof String )
+            {
+                sb.append( (String)object );
+            }
+            else if( object instanceof Expression )
+            {
+                format( (Expression)object, sb );
+            }
+            else
+            {
+                sb.append( "ERROR" );
+            }
+        }
+    }
+
 }
