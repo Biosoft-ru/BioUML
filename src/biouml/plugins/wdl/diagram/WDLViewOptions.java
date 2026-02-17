@@ -18,21 +18,21 @@ import ru.biosoft.graphics.font.ColorFont;
 @PropertyName("View options")
 public class WDLViewOptions extends DiagramViewOptions
 {
-    private Brush outputBrush;
-    private Pen outputPen;
+    private Brush outputBrush = new Brush(new Color(255, 173, 142), new Color(255, 200, 200));
+    private Pen outputPen = new Pen();
     private Brush structBrush = new Brush(Color.white);
     protected Brush deBrush;
-    protected Brush callBrush;
+    protected Brush callBrush  = new Brush(new Color(146, 223, 253), new Color(205, 241, 253));
     protected Brush taskBrush;
-    protected Brush expressionBrush;
-    protected Brush conditionBrush =  new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
-    protected Brush conditionalBrush =  new Brush(new Color(200, 128, 200), new Color(250, 125, 250));
+    protected Brush expressionBrush = new Brush(new Color(146, 223, 253), new Color(205, 241, 253));
+    protected Brush conditionBrush =  new Brush(new Color(224, 238, 245));//new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
+    protected Brush conditionalBrush =   new Brush(new Color(224, 238, 245));//new Brush(new Color(200, 128, 200), new Color(250, 125, 250));
 
-    protected Pen conditionPen =  new Pen(1, new Color(96, 48, 96));
-    protected Brush parameterBrush;
-    protected Pen parameterPen;
-    protected Pen expressionPen;
-    protected Pen analysisPen;
+    protected Pen conditionPen = new Pen();// =  new Pen(1, new Color(96, 48, 96));
+    protected Brush parameterBrush =  new Brush(new Color(178, 242, 227), new Color(200, 242, 250));
+    protected Pen parameterPen = new Pen();
+    protected Pen expressionPen = new Pen(1, new Color(83, 180, 222));
+    protected Pen analysisPen = new Pen(1, new Color(83, 180, 222));
     
     public WDLViewOptions(Option parent)
     {
@@ -40,17 +40,17 @@ public class WDLViewOptions extends DiagramViewOptions
         diagramTitleVisible = false;
         autoLayout = true;
         setNotificationEnabled( false );
-        setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
+//        setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
         setOutputPen( new Pen(1, new Color(160, 60, 6)) );
-        setExpressionFont( new ColorFont("Arial", Font.PLAIN, 12, Color.black)  );
+//        setExpressionFont( new ColorFont("Arial", Font.PLAIN, 12, Color.black)  );
         setDeBrush( new Brush(new Color(176, 196, 222)) );
         setTaskBrush( new Brush(new Color(96, 96, 96), new Color(186, 186, 186)) );
-        setCallBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
-        setAnalysisPen( new Pen(1, new Color(83, 180, 222)) );
-        setExpressionBrush( new Brush(new Color(254, 214, 116), new Color(252, 245, 193)) );
-        setExpressionPen( new Pen(1, new Color(236, 158, 29)) );
-        setParameterBrush( new Brush(new Color(169, 237, 138), new Color(218, 250, 201)) );
-        setParameterPen( new Pen(1, new Color(60, 160, 6)) );
+//        setCallBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
+//        setAnalysisPen( new Pen(1, new Color(83, 180, 222)) );
+//        setExpressionBrush( new Brush(new Color(254, 214, 116), new Color(252, 245, 193)) );
+//        setExpressionPen( new Pen(1, new Color(236, 158, 29)) );
+//        setParameterBrush( new Brush(new Color(169, 237, 138), new Color(218, 250, 201)) );
+//        setParameterPen( new Pen(1, new Color(60, 160, 6)) );
         setNotificationEnabled( true );
     }
     

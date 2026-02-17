@@ -214,7 +214,7 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
         View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), viewOptions.getDefaultFont(),
                 viewOptions.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, g );
-        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 5, 5 );
+        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, size.width, size.height, 20, 20 );
         Brush nodeBrush = getBrush( compartment, viewOptions.getCallBrush() );
         BoxView view = new BoxView( viewOptions.getAnalysisPen(), nodeBrush, roundRect );
         view.setLocation( compartment.getLocation() );
@@ -281,9 +281,12 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
         Rectangle r = textView.getBounds();
 
         Brush nodeBrush = getBrush( node, diagramOptions.getExpressionBrush() );
-        PolygonView view = new PolygonView( diagramOptions.getExpressionPen(), nodeBrush,
-                new int[] {0, -r.height / 2 - d, -d, r.width + d, r.width + r.height / 2 + d, r.width + d},
-                new int[] {r.height + d, r.height / 2, -d, -d, r.height / 2, r.height + d} );
+        
+        RectangularShape roundRect = new RoundRectangle2D.Float( 0, 0, r.width+10, r.height+10, 20, 20 );
+        BoxView view = new BoxView( diagramOptions.getExpressionPen(), nodeBrush, roundRect );
+//        PolygonView view = new PolygonView( diagramOptions.getExpressionPen(), nodeBrush,
+//                new int[] {0, -r.height / 2 - d, -d, r.width + d, r.width + r.height / 2 + d, r.width + d},
+//                new int[] {r.height + d, r.height / 2, -d, -d, r.height / 2, r.height + d} );
         view.setModel( node );
         view.setActive( true );
         container.add( view );
@@ -313,8 +316,8 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
 
     protected boolean createExternalParameter(CompositeView container, Node node, WDLViewOptions diagramOptions, Graphics g)
     {
-        View text = new TextView( node.getName(), diagramOptions.getNodeTitleFont(), g );
-        int d = 2;
+        View text = new TextView( node.getTitle(), diagramOptions.getNodeTitleFont(), g );
+        int d = 3;
         Rectangle r = text.getBounds();
 
         Brush nodeBrush = getBrush( node, diagramOptions.getParameterBrush() );
