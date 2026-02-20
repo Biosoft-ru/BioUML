@@ -407,156 +407,30 @@ $br
 
 #else ## if model not static then dy_dt method should present
 ##
-###########################################Create dy_dt Method######################################
+## NOTE:
+## This template is used for stochastic (SDE) models.
+## SDE solvers must use dy_dt_deterministic() and dy_dt_stochastic().
+## Default ODE dy_dt() code generation is intentionally omitted 
+## to avoid redundant RHS processing and AUX_stochastic_* inflation.
 ##
-$br
-#set( $staticInits = $staticInits.append( "${newLine}${spaces}Dy_dt.class.getName();" ) )
-    class Dy_dt
-    {
-        public void run(double[] dydt, double[] var, double[] x_values, double time)
-        {
-#set ($nbytes = 0)
-#set ($indicator = 0)
-#foreach( $v in $variables )
- #set($prevnbytes = $nbytes)
- #if ( $engine.isArrayModeVariable($v) )
-  #set($rightSide = "")
-  #set($equations = $engine.getDefiningEquations($v.getName()))
-  #foreach( $eq in  $equations )
-   #if ($sew.isRate($eq))
-    #set ($statementWithDeclaration = $engine.formatMath($eq.getFormula(), $eq))
-    #if ($statementWithDeclaration.get(0)!="")
-      $statementWithDeclaration.get(0)
-    #end
-    #if( $statementWithDeclaration.get(1).charAt(0) != "-")
-     #set($rightSide = "${rightSide}+")
-     #set($nbytes = $nbytes + 1)
-    #end
-    #set($rightSide = "${rightSide}$statementWithDeclaration.get(1)")
-   #end
-   #set($math = $eq.getMath())
-   #set($nbytes = $nbytes + $sew.estimateByteCodeLength($math, 3))
-  #end
-  #set($nbytes = $nbytes + 3 + $sew.estimateConstantByteCodeLength($engine.getVariableRateIndex($v.getName())))
-  #if ($nbytes + 8 > $maxCodeSize)
-   #set($nbytes = $nbytes - $prevnbytes)
-   #set($indicator = $indicator + 1)
-        }
-    }
-$br
-   #set( $staticInits = $staticInits.append( "${newLine}${spaces}Dy_dt_$indicator" ).append( ".class.getName();" ) )
-    class Dy_dt_$indicator
-    {
-        public void run(double[] dydt, double[] var, double[] x_values, double time)
-        {
-  #end
-            dydt[$engine.getVariableRateIndex($v.getName())] = $rightSide; //$nbytes
- #end
-#end
-        }
-    }
 $br
     public double[] dy_dt_slow(double time, double[] x_values) throws Exception
     {
-        this.time = time;
-        this.x_values = x_values;
-        final double[] dydt = new double[$dimension];
-#if ($calculateParametersMethod.length() > 0 || $algebraicMethodCall!="")
-        $calculateParametersCall
-#end
-#if ($calculateReactionRatesMethod.length() > 0)
-        $calculateReactionRatesCall
-#end
-
-        new Dy_dt().run(dydt, var, x_values, time);
-#if($indicator > 0)
- #foreach( $n in [1..$indicator] )
-        new Dy_dt_${n}().run(dydt, var, x_values, time);
- #end
-#end
-        return dydt;
+        return dy_dt_deterministic(time, x_values);
     }
 
-##
-###########################################Create dy_dt Method for FAST reactions only!######################################
-##
 #if ( $sew.hasFastReactions() )
     public boolean hasFastOde()
     {
-        return true;
+        return false;
     }
-#set( $staticInits = $staticInits.append( "${newLine}${spaces}Dy_dt_fast.class.getName();" ) )
-    class Dy_dt_fast
-    {
-        public void run(double[] dydt)
-        {
-#set ($nbytes = 0)
-#set ($indicator = 0)
-#foreach( $v in $variables )
- #set($prevnbytes = $nbytes)
- #if ( $engine.isArrayModeVariable($v) )
-  #set($rightSide = "")
-  #set($equations = $engine.getDefiningEquations($v.getName()))
-  #foreach( $eq in  $equations )
-   #if ($sew.isRate($eq) && $sew.isFast($eq))
-    #set ($statementWithDeclaration = $engine.formatMath($eq.getFormula(), $eq))
-    #if ($statementWithDeclaration.get(0)!="")
-      $statementWithDeclaration.get(0)
-    #end
-    #if ($statementWithDeclaration.get(1)!="")
-     #if( $statementWithDeclaration.get(1).charAt(0) != "-")
-      #set($rightSide = "${rightSide}+")
-     #end
-     #set($nbytes = $nbytes + 1)
-     #set($rightSide = "${rightSide}$statementWithDeclaration.get(1)")
-    #end
-   #end
-   #set($math = $eq.getMath())
-   //"RS: "$rightSide.isEmpty()
-   #if (!($rightSide.isEmpty()))
-    #set($nbytes = $nbytes + $sew.estimateByteCodeLength($math, 3))
-    #set($nbytes = $nbytes + 3 + $sew.estimateConstantByteCodeLength($engine.getVariableRateIndex($v.getName())))
-    #if ($nbytes + 8 > $maxCodeSize)
-     #set($nbytes = $nbytes - $prevnbytes)
-     #set($indicator = $indicator + 1)
-        }
-    }
-$br
-     #set( $staticInits = $staticInits.append( "${newLine}${spaces}Dy_dt_$indicator" ).append( ".class.getName();" ) )
-    class Dy_dt_fast$indicator
-    {
-        public void run(double[] dydt)
-        {
-    #end
-            dydt[$engine.getVariableRateIndex($v.getName())] = $rightSide; //$nbytes
-   #end
-  #end
- #end
-#end
-        }
-    }
-$br
+
     public double[] dy_dt_fast(double time, double[] x_values) throws Exception
     {
-        this.time = time;
-        this.x_values = x_values;
-        final double[] dydt = new double[$dimension];
-#if ($calculateParametersMethod.length() > 0 || $algebraicMethodCall!="")
-        $calculateParametersCall
-#end
-#if ($calculateReactionRatesMethod.length() > 0)
-        $calculateReactionRatesCall
-#end
-
-        new Dy_dt_fast().run(dydt);
-#if($indicator > 0)
-#foreach( $n in [1..$indicator] )
-        new Dy_dt_fast_${n}().run(dydt);
-#end
-#end
-        return dydt;
+        return dy_dt_deterministic(time, x_values);
     }
 #end
+
 #end
 ##
 #############################################Model initialization###########################################################
