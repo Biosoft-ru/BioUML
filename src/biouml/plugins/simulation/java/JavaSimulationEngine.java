@@ -465,15 +465,12 @@ public class JavaSimulationEngine extends OdeSimulationEngine
         if( largeTemplate )
             templatePath = parallel ? PARALLEL_LARGE_TEMPLATE : hasDelays ? LARGE_DELAY_TEMPLATE : LARGE_TEMPLATE;
 
-        log.info("Generating code with template " + templatePath);
         return OdeSimulationEngine.class.getResourceAsStream(templatePath);
     }
 
     private void doGenerateModel() throws Exception
     {
         String name = executableModel.getDiagramElement().getName();
-        System.out.println("Generating model" + diagram.getName()+" in folder "+outputDir);
-        log.info("Generating model" + diagram.getName()+" in folder "+outputDir);
         File dir = new File(outputDir);
         if( !dir.exists() && !dir.mkdirs() )
             throw new Exception("Failed to create directory '" + outputDir + "'.");
