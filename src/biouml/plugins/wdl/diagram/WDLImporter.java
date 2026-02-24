@@ -262,11 +262,11 @@ public class WDLImporter implements DataElementImporter
         taskInfo.setCommand(new CommandInfo(astTask.getCommand()));
         for( AstDeclaration astDeclaration : astTask.getInput().getDeclarations() )
         {
-            taskInfo.addInputInfo(createExpressionInfo(astDeclaration));
+            taskInfo.addInput(createExpressionInfo(astDeclaration));
         }
         for( AstDeclaration astDeclaration : astTask.getOutput().getDeclarations() )
         {
-            taskInfo.addOutputInfo(createExpressionInfo(astDeclaration));
+            taskInfo.addOutput(createExpressionInfo(astDeclaration));
         }
         return taskInfo;
     }

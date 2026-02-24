@@ -25,7 +25,6 @@ import biouml.plugins.wdl.model.ConditionalInfo;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.ImportInfo;
 import biouml.plugins.wdl.model.InputInfo;
-import biouml.plugins.wdl.model.OutputInfo;
 import biouml.plugins.wdl.model.ScatterInfo;
 import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.model.StructInfo;
@@ -45,8 +44,9 @@ public class DiagramGenerator
 
     //    private boolean doImportDiagram = false;
     private Map<String, Diagram> imports = new HashMap<>();
-    private Map<String, Compartment> importedTasks = new HashMap<>();
+    private Map<String, Compartment> importedExecutables = new HashMap<>();
     private Map<String, Compartment> tasks = new HashMap<>();
+    private Map<String, Compartment> workflows = new HashMap<>();
     private int externalPosition = 0;
 
     public Diagram generateDiagram(ScriptInfo script, DataCollection dc, String name) throws Exception
@@ -90,40 +90,63 @@ public class DiagramGenerator
 
         for( String workflowName : script.getWorkflowNames() )
         {
-            WorkflowInfo workflow = script.getWorkflow( workflowName );//TODO" create compartment?
-            WorkflowUtil.setMeta( diagram, workflow.getMeta() );
+            if( workflowName.isEmpty() )
+                continue;
+            WorkflowInfo workflow = script.getWorkflow( workflowName );
+            createWorkflow( diagram, workflow );
+        }
 
-            for( InputInfo input : workflow.getInputs() )
-                createExternalParameterNode( diagram, input );
+        WorkflowInfo workflow = script.getWorkflow( "" );
+        if( workflow != null )
+            createWorkflow( diagram, workflow );
 
-            for( OutputInfo output : workflow.getOutputs() )
-                createOutputNode( diagram, output );
+        createLinks( diagram );
+        splitInputs( diagram );
+//                Util.hideDirectPathes( diagram );
+        Util.movePortsToEdge( diagram );
+        addOutputs( diagram );
 
-            for( Object object : workflow.getObjects() )
+        diagram.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isTask( n ) ).forEach( n -> n.setVisible( false ) );
+        return diagram;
+    }
+
+    private void createWorkflow(Diagram diagram, WorkflowInfo workflow) throws Exception
+    {
+        String workflowName = workflow.getName();
+        Compartment parent = diagram;
+        if( !workflowName.isEmpty() )
+        {
+            parent = new Compartment( diagram, workflowName, new Stub( null, workflowName, WDLConstants.WORKFLOW__TYPE ) );
+            workflows.put( workflowName, parent );
+            diagram.put( parent );
+        }
+        WorkflowUtil.setMeta( parent, workflow.getMeta() );
+
+        for( ExpressionInfo input : workflow.getInputs() )
+            createExternalParameterNode( parent, input );
+
+        for( ExpressionInfo output : workflow.getOutputs() )
+            createOutputNode( parent, output );
+
+        for( Object object : workflow )
+        {
+            if( object instanceof ExpressionInfo )
             {
-                if( object instanceof ExpressionInfo )
-                {
-                    createExpressionNode( diagram, (ExpressionInfo)object );
-                }
-                else if( object instanceof CallInfo )
-                {
-                    createCallNode( diagram, (CallInfo)object );
-                }
-                else if( object instanceof ScatterInfo )
-                {
-                    createScatterNode( diagram, (ScatterInfo)object );
-                }
-                else if( object instanceof ConditionalInfo )
-                {
-                    createConditionalNode( diagram, (ConditionalInfo)object );
-                }
+                createExpressionNode( parent, (ExpressionInfo)object );
+            }
+            else if( object instanceof CallInfo )
+            {
+                createCallNode( parent, (CallInfo)object );
+            }
+            else if( object instanceof ScatterInfo )
+            {
+                createScatterNode( parent, (ScatterInfo)object );
+            }
+            else if( object instanceof ConditionalInfo )
+            {
+                createConditionalNodes( parent, (ConditionalInfo)object );
             }
         }
-        createLinks( diagram );
-        addOutputs( diagram );
-        //        setInputs(diagram);
-        splitInputs( diagram );
-        return diagram;
     }
 
     public void setInputs(Diagram diagram) throws Exception
@@ -168,7 +191,7 @@ public class DiagramGenerator
             int j = 0;
             for( int i = 0; i < length; i++ )
             {
-                if( j > 2 )
+                if( j > 0 )
                 {
                     j = 0;
                     newNode = cloneInput( node );
@@ -206,6 +229,8 @@ public class DiagramGenerator
                 .filter( n -> ( n.getEdges().length == 0 && WorkflowUtil.isOutput( n ) && WorkflowUtil.isCall( n.getCompartment() ) ) ) )
         {
 
+            if (!(WorkflowUtil.getEnclosedWorkflow( node ) instanceof Diagram))
+                return;
             String expression = WorkflowUtil.getName( node );
             ExpressionInfo expressionInfo = new ExpressionInfo();
             if( expression == null )
@@ -245,29 +270,11 @@ public class DiagramGenerator
         if( importInfo.getTask() != null )
         {
             DiagramElement de = importedDiagram.findDiagramElement( importInfo.getTask() );
-            if( de instanceof Compartment && WorkflowUtil.isTask( (Compartment)de ) )
+            if( de instanceof Compartment && WorkflowUtil.isTask( (Compartment)de ) || WorkflowUtil.isWorkflow( (Compartment)de ) )
             {
-                importedTasks.put( de.getName(), (Compartment)de );
+                importedExecutables.put( de.getName(), (Compartment)de );
             }
         }
-        //        try
-        //        {
-        ////            DataElementPath dep = diagram.getOrigin().getCompletePath();
-        ////            String path = importInfo.getSource();
-        ////            String[] parts = path.split( "/" );
-        ////            DataElementPath importPath = dep.getChildPath( parts );
-        ////            Diagram imported = importPath.getDataElement( Diagram.class );
-        //            Diagram imported = new WDLDiagramType().createDiagram( null, importInfo.getAlias() );
-        //            Diagram importedDiagram = new DiagramGenerator().generateDiagram( importInfo.getImported(), imported );
-        //            imports.put( importInfo.getAlias(), imported );
-        //            if( imported == null )
-        //                throw new Exception( "Imported diagram " + importInfo.getSource() + " not found!" );
-        //            WorkflowUtil.addImport( diagram, imported, importInfo.getAlias() );
-        //        }
-        //        catch( Exception ex )
-        //        {
-        //            log.info( "Can not process import " + importInfo.toString() + ": " + ex.getMessage() );
-        //        }
     }
 
     public Node createExternalParameterNode(Compartment parent, ExpressionInfo expressionInfo)
@@ -293,19 +300,22 @@ public class DiagramGenerator
     {
         for( Node node : diagram.recursiveStream().select( Node.class ).without( diagram ) )
         {
-            if( WorkflowUtil.isTask( node.getCompartment() ) || WorkflowUtil.isOutput( node ) )
+            Compartment parent = node.getCompartment();
+            if( WorkflowUtil.isTask( parent ) || ( WorkflowUtil.isCall( parent ) && WorkflowUtil.isOutput( node ) ) )
                 continue;
+
+            Compartment enclosingWorkflow = WorkflowUtil.getEnclosedWorkflow( node );
 
             String expression = WorkflowUtil.getExpression( node );
             if( expression == null )
                 continue;
 
             String[] arguments = WorkflowUtil.getArguments( node );
-            if( arguments != null )
+            if( arguments != null && (arguments.length != 0))
             {
                 for( String arg : arguments )
                 {
-                    List<Node> sources = WorkflowUtil.findSources( arg, diagram );
+                    List<Node> sources = WorkflowUtil.findSources( arg, enclosingWorkflow );
                     for( Node source : sources )
                         createLink( source, node );
                 }
@@ -315,21 +325,9 @@ public class DiagramGenerator
                 List<String> args = WorkflowUtil.findPossibleArguments( expression );
                 for( String arg : args )
                 {
-                    List<Node> sources = WorkflowUtil.findSources( arg, diagram );
+                    List<Node> sources = WorkflowUtil.findSources( arg, enclosingWorkflow );
                     for( Node source : sources )
                         createLink( source, node );
-                    //                Compartment call = WorkflowUtil.findCall( arg, diagram );
-                    //                if( call != null )
-                    //                {
-                    //                    Node source = call.stream( Node.class ).filter( n -> WorkflowUtil.isOutput( n ) ).findAny().orElse( null );
-                    //                    if( source != null )
-                    //                        createLink( source, node );
-                    //                }
-                    //                else
-                    //                {
-                    //                    Node source = WorkflowUtil.findExpressionNode( diagram, arg );
-                    //                    if( source != null )
-                    //                        createLink( source, node );
                 }
             }
         }
@@ -338,8 +336,7 @@ public class DiagramGenerator
     public Node createConditionNode(Compartment parent, String expression)
     {
         String name = WDLSemanticController.uniqName( parent, "condition" );
-        Stub kernel = new Stub( null, name, WDLConstants.CONDITION_TYPE );
-        Node node = new Node( parent, name, kernel );
+        Node node = createNode( parent, name, WDLConstants.CONDITION_TYPE );
         WorkflowUtil.setExpression( node, expression );
         node.setTitle( name );
         node.setShapeSize( new Dimension( 80, 60 ) );
@@ -384,7 +381,6 @@ public class DiagramGenerator
         String name = task.getName();
         name = WDLSemanticController.uniqName( parent, name );
         Stub kernel = new Stub( null, name, WDLConstants.TASK_TYPE );
-
         Compartment c = new Compartment( parent, name, kernel );
         WorkflowUtil.setBeforeCommand( c, task.getBeforeCommand().toArray( ExpressionInfo[]::new ) );
         WorkflowUtil.setCommand( c, task.getCommand().getScript() );
@@ -399,7 +395,6 @@ public class DiagramGenerator
         {
             Node portNode = addPort( WDLSemanticController.uniqName( parent, "input" ), WDLConstants.INPUT_TYPE, i++, c );
             setDeclaration( portNode, expression );
-            //            }
             maxPorts = task.getInputs().size();
         }
 
@@ -418,38 +413,45 @@ public class DiagramGenerator
         return c;
     }
 
-    public void createConditionalNode(Compartment parent, ConditionalInfo conditional) throws Exception
+    public Compartment createConditionalBlock(Compartment parent, Iterable<Object> objects) throws Exception
+    {
+        String name = WDLSemanticController.uniqName( parent, "block" );
+        Compartment c = new Compartment( parent, name, new Stub( null, name, WDLConstants.CONDITIONAL_TYPE ) );
+        c.setShapeSize( new Dimension( 700, 700 ) );
+        fillCompartment( objects, c );
+        createNode( c, "port", WDLConstants.CONDITIONAL_PORT_TYPE );
+        parent.put( c );
+        return c;
+    }
+
+    private static Node createNode(Compartment parent, String name, String type)
+    {
+        name = WDLSemanticController.uniqName( parent, name );
+        Node node = new Node( parent, name, new Stub( null, name, type ) );
+        parent.put( node );
+        return node;
+    }
+
+    public void createConditionalNodes(Compartment parent, ConditionalInfo conditional) throws Exception
     {
         Node previousNode = null;
         for( String condition : conditional.getConditions() )
         {
+            Compartment c = createConditionalBlock( parent, conditional.get( condition ) );
             Node conditionNode = createConditionNode( parent, condition );
-            String name = WDLSemanticController.uniqName( parent, "block" );
-            Compartment c = new Compartment( parent, name, new Stub( null, name, WDLConstants.CONDITIONAL_TYPE ) );
-            c.setShapeSize( new Dimension( 700, 700 ) );
-            fillCompartment( conditional.get( condition ), c );
-
             if( previousNode != null )
-                createLink( previousNode, conditionNode );
-
-            parent.put( c );
-            createLink( conditionNode, c );
-
+                createLogicalLink( previousNode, conditionNode, WDLConstants.LOGICAL_FALSE_TYPE );
+            createLogicalLink( conditionNode, c, WDLConstants.LOGICAL_TRUE_TYPE );
             previousNode = conditionNode;
         }
 
         if( conditional.hasElse() )
         {
+            Compartment c = createConditionalBlock( parent, conditional.getElse() );
             Node conditionNode = createConditionNode( parent, "else" );
-            String name = WDLSemanticController.uniqName( parent, "block" );
-            Compartment c = new Compartment( parent, name, new Stub( null, name, WDLConstants.CONDITIONAL_TYPE ) );
-            c.setShapeSize( new Dimension( 700, 700 ) );
-            fillCompartment( conditional.getElse(), c );
-
             if( previousNode != null )
-                createLink( previousNode, conditionNode );
-            parent.put( c );
-            createLink( conditionNode, c );
+                createLogicalLink( previousNode, conditionNode, WDLConstants.LOGICAL_FALSE_TYPE );
+            createLogicalLink( conditionNode, c, WDLConstants.LOGICAL_TRUE_TYPE );
         }
     }
 
@@ -471,7 +473,7 @@ public class DiagramGenerator
             }
             else if( obj instanceof ConditionalInfo )
             {
-                createConditionalNode( c, (ConditionalInfo)obj );
+                createConditionalNodes( c, (ConditionalInfo)obj );
             }
         }
     }
@@ -489,8 +491,7 @@ public class DiagramGenerator
 
         if( arrayNode == null )
             arrayNode = createExpression( array, "Array[Int]", parent );
-        name = WDLSemanticController.uniqName( parent, variable );
-        Node variableNode = new Node( c, name, new Stub( null, name, WDLConstants.SCATTER_VARIABLE_TYPE ) );
+        Node variableNode = createNode( c, name, WDLConstants.SCATTER_VARIABLE_TYPE );
         WorkflowUtil.setName( variableNode, variable );
         c.put( variableNode );
         createLink( arrayNode, variableNode );
@@ -511,7 +512,7 @@ public class DiagramGenerator
             }
             else if( obj instanceof ConditionalInfo )
             {
-                createConditionalNode( c, (ConditionalInfo)obj );
+                createConditionalNodes( c, (ConditionalInfo)obj );
             }
         }
         return c;
@@ -520,7 +521,7 @@ public class DiagramGenerator
     private Node createExpression(String expression, String type, Compartment parent)
     {
         String name = DefaultSemanticController.generateUniqueName( parent, "expression" );
-        Node resultNode = new Node( parent, name, new Stub( null, name, WDLConstants.EXPRESSION_TYPE ) );
+        Node resultNode = createNode( parent, name, WDLConstants.EXPRESSION_TYPE );
         WorkflowUtil.setExpression( resultNode, expression );
         WorkflowUtil.setName( resultNode, name );
         WorkflowUtil.setType( resultNode, type );
@@ -542,7 +543,9 @@ public class DiagramGenerator
         String name = call.getTaskName();
         Compartment taskСompartment = tasks.get( name );
         if( taskСompartment == null )
-            taskСompartment = this.importedTasks.get( name );
+            taskСompartment = this.importedExecutables.get( name );
+        if( taskСompartment == null )
+            taskСompartment = this.workflows.get( name );
         String taskRef = name;
         String diagramRef = null;
         String diagramAlias = null;
@@ -610,6 +613,8 @@ public class DiagramGenerator
                 expression = inputName;
 
             Node portNode = addPort( inputName, WDLConstants.INPUT_TYPE, inputs++, c );
+            WorkflowUtil.setName( portNode, symbol.getName() );
+            WorkflowUtil.setExpression( portNode, symbol.getExpression() );
 
             if( taskСompartment instanceof Diagram )
             {
@@ -632,18 +637,16 @@ public class DiagramGenerator
             {
                 for( Node node : taskСompartment.getNodes() )
                 {
-                    if( WorkflowUtil.isInput( node ) )
+                    if( WorkflowUtil.isInput( node ) || WorkflowUtil.isExternalParameter( node ) || WorkflowUtil.isExternalOutput( node ) )
                     {
                         String varName = WorkflowUtil.getName( node );
                         if( varName == null )
                         {
-                            System.out.println( "" );
+                            System.out.println( "s" );
                         }
                         if( varName.equals( inputName ) )
                         {
-                            WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
-                            WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
-                            WorkflowUtil.setExpression( portNode, expression );
+                            WorkflowUtil.copyExpresion( portNode, node );
                             WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
                         }
                     }
@@ -656,9 +659,7 @@ public class DiagramGenerator
             for( Node node : WorkflowUtil.getExternalOutputs( (Diagram)taskСompartment ) )
             {
                 Node portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, outputs++, c );
-                WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
-                WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
-                WorkflowUtil.setExpression( portNode, WorkflowUtil.getExpression( node ) );
+                WorkflowUtil.copyExpresion( portNode, node );
                 WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
             }
             for( Node node : WorkflowUtil.getExternalParameters( (Diagram)taskСompartment ) )
@@ -666,9 +667,7 @@ public class DiagramGenerator
                 if( !addedInputs.contains( WorkflowUtil.getName( node ) ) )
                 {
                     Node portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
-                    WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
-                    WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
-                    WorkflowUtil.setExpression( portNode, WorkflowUtil.getExpression( node ) );
+                    WorkflowUtil.copyExpresion( portNode, node );
                     WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
                 }
             }
@@ -678,24 +677,20 @@ public class DiagramGenerator
             for( Node node : taskСompartment.getNodes() )
             {
                 Node portNode = null;
-                if( WDLConstants.OUTPUT_TYPE.equals( node.getKernel().getType() ) )
+                if( WorkflowUtil.isOutput( node ) || WorkflowUtil.isExternalOutput( node ) )
                 {
                     portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, outputs++, c );
-                    WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
-                    WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
-                    WorkflowUtil.setExpression( portNode, WorkflowUtil.getExpression( node ) );
+                    WorkflowUtil.copyExpresion( portNode, node );
                 }
-                else if( !addedInputs.contains( WorkflowUtil.getName( node ) ) )
+                else if( WorkflowUtil.isInput( node ) && !addedInputs.contains( WorkflowUtil.getName( node ) ) )
                 {
                     portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
-                    WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
-                    WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
-                    WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
+                    WorkflowUtil.copyExpresion( portNode, node );
                 }
             }
         }
         int maxPorts = Math.max( inputs, outputs );
-        int height = Math.max( 50, 24 * maxPorts + 8 );
+        int height = Math.max( 50, 24 * maxPorts + 16 );
         c.setShapeSize( new Dimension( 200, height ) );
         c.getAttributes().add( new DynamicProperty( "innerNodesPortFinder", Boolean.class, true ) );
         c.setNotificationEnabled( true );
@@ -706,24 +701,27 @@ public class DiagramGenerator
 
     public static Node addPort(String name, String nodeType, int position, Compartment parent) throws DataElementPutException
     {
-        Node inNode = new Node( parent, new Stub( parent, name, nodeType ) );
+        Node inNode = createNode( parent, name, nodeType );
         WorkflowUtil.setPosition( inNode, position );
         inNode.setFixed( true );
         Point parentLoc = parent.getLocation();
         Dimension parentDim = parent.getShapeSize();
         if( WDLConstants.INPUT_TYPE.equals( nodeType ) )
-            inNode.setLocation( parentLoc.x + 2, parentLoc.y + position * 24 + 8 );
+            inNode.setLocation( parentLoc.x + 2, parentLoc.y + position * 24 + 10 );
         else
-            inNode.setLocation( parentLoc.x + parentDim.width - 16 - 2, parentLoc.y + position * 24 + 8 );
+        {
+            inNode.setLocation( parentLoc.x + parentDim.width - 16 - 2, parentLoc.y + position * 24 + 10 );
+        }
         parent.put( inNode );
         return inNode;
     }
 
     public static Edge createLogicalLink(Node input, Node output, String type)
     {
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put( WDLConstants.LOGICAL_TYPE_ATTR, type );
-        return createLink( input, output, WDLConstants.LOGICAL_LINK_TYPE, new HashMap<>() );
+        if( WorkflowUtil.isConditional( output ) )
+            output = ( (Compartment)output ).stream( Node.class )
+                    .findAny( n -> WDLConstants.CONDITIONAL_PORT_TYPE.equals( n.getKernel().getType() ) ).orElse( null );
+        return createLink( input, output, type, new HashMap<>() );
     }
 
     public static Edge createLink(Node input, Node output)
@@ -738,7 +736,11 @@ public class DiagramGenerator
 
     public static Edge createLink(Node input, Node output, String type, Map<String, Object> attributes)
     {
-        if( input.equals( output ) )
+        if (WorkflowUtil.isWorkflow( input ))
+        {
+            System.out.println( "Ds" );
+        }
+        if( input.equals( output )  )
             return null;
         String name = input.getName() + "_to_" + output.getName();
         Diagram d = Diagram.getDiagram( input );

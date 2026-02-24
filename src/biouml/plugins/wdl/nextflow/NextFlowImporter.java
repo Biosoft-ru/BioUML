@@ -31,6 +31,7 @@ import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.model.CallInfo;
 import biouml.plugins.wdl.model.CommandInfo;
 import biouml.plugins.wdl.model.ConditionalInfo;
+import biouml.plugins.wdl.model.ExecutableInfo;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.ImportInfo;
 import biouml.plugins.wdl.model.InputInfo;
@@ -58,26 +59,27 @@ import javax.imageio.stream.ImageOutputStream;
 
 public class NextFlowImporter
 {
+    private static final String NEXTFLOW_ENABLE_DSL = "nextflow.enable.dsl";
     private ScriptLoader scriptLoader = null;
     private NextFlowFormatter nextflowFormatter = new NextFlowFormatter();
 
     static File workDir = new File( "C:/Users/Damag/nextflow_work" );
     //    static File nextflowFile = new File(
     //            "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/nextflow/simple_if.nf" );
-    //        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/two_steps.nf" );
+//            static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/two_steps.nf" );
 
     //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/ifelse.nf" );
 
-        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/SNV/main.nf" );
+        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/multiple_workflow.nf" );
 //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/nextflow_tests/fromPath.nf" );
     //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/sc analysis/main.nf" );
-    //        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/metagenomics/main.nf" );
+//            static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/metagenomics/main.nf" );
     //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/tuples.nf" );
-    static File imageFile = new File( workDir, "sc analysis_40_40.png" );
+    static File imageFile = new File( workDir, "mw.png" );
 
     private ScriptInfo scriptInfo;
 
-    private Map<String, TaskInfo> importedTasks = new HashMap<>();
+    private Map<String, ExecutableInfo> importedExecutables = new HashMap<>();
     private Map<String, ScriptInfo> importedScripts = new HashMap<>();
 
     private Set<String> params = new HashSet<>();
@@ -88,7 +90,7 @@ public class NextFlowImporter
         {
             String code = ApplicationUtils.readAsString( nextflowFile );
             NextFlowImporter importer = new NextFlowImporter();
-            importer.scriptLoader = new FileScriptLoader( new File( "C:/Users/Damag/nextflow_work/SNV/" ) );
+            importer.scriptLoader = new FileScriptLoader( new File( "C:/Users/Damag/nextflow_work/" ) );
 
             Diagram diagram = importer.importNextflow( code );
             new WDLLayouter().layout( diagram );
@@ -154,13 +156,17 @@ public class NextFlowImporter
             InputInfo inputInfo = parseParam( param );
             scriptInfo.addInput( inputInfo );
         }
-
         WorkflowInfo main = scriptInfo.getWorkflow( "" );
+        if( main == null )
+            main = new WorkflowInfo( "" );
+        scriptInfo.addWorkflow( main );
         for( Expression declaration : getDeclarations( nodes ) )
         {
             Expression left = ( (BinaryExpression)declaration ).getLeftExpression();
             Expression right = ( (BinaryExpression)declaration ).getRightExpression();
             String variable = nextflowFormatter.format( left );
+            if (variable.equals( NEXTFLOW_ENABLE_DSL ) || variable.startsWith( "params." ))
+                continue;
             ExpressionInfo info = parseDeclaration( right );
             info.setName( variable );
             main.addObject( info );
@@ -214,8 +220,10 @@ public class NextFlowImporter
 
         ScriptInfo importedScript = scriptLoader.loadScript( path );
         this.importedScripts.put( path, importedScript );
-        TaskInfo taskInfo = importedScript.getTask( task );
-        this.importedTasks.put( task, taskInfo );
+        ExecutableInfo imported = importedScript.getTask( task );
+        if (imported == null)
+            imported = importedScript.getWorkflow( task );
+        this.importedExecutables.put( task, imported );
         importInfo.setImported( importedScript );
         importInfo.setTask( task );
         importInfo.setSource( path );
@@ -258,13 +266,6 @@ public class NextFlowImporter
             else if( isScript( currentLabels ) )
             {
                 String command = nextflowFormatter.format( expression );
-                //                String command = ( (GStringExpression)expression ).getText();
-                //                List<Expression> variables = ( (GStringExpression)expression ).getValues();
-                //                for( Expression variable : variables )
-                //                {
-                //                    String variableName = ( (VariableExpression)variable ).getName();
-                //                    command = command.replace( "$" + variableName, "~{" + variableName + "}" );
-                //                }
                 CommandInfo commandInfo = new CommandInfo( command );
                 taskInfo.setCommand( commandInfo );
             }
@@ -309,11 +310,11 @@ public class NextFlowImporter
             }
         }
 
-        OutputInfo outputInfo = new OutputInfo();
+        ExpressionInfo outputInfo = new ExpressionInfo();
         outputInfo.setName( outputName );
         outputInfo.setExpression( StreamEx.of( args ).joining( ", " ) );
         outputInfo.setType( outputType );
-        taskInfo.addOutputInfo( outputInfo );
+        taskInfo.addOutput( outputInfo );
     }
 
     private void parseDirective(MethodCallExpression methodExpression, TaskInfo taskInfo)
@@ -348,7 +349,7 @@ public class NextFlowImporter
             InputInfo inputInfo = new InputInfo();
             inputInfo.setName( nextflowFormatter.format( expression.getArguments() ) );
             inputInfo.setType( inputType );
-            taskInfo.addInputInfo( inputInfo );
+            taskInfo.addInput( inputInfo );
         }
         else
         {
@@ -361,7 +362,7 @@ public class NextFlowImporter
                     InputInfo inputInfo = new InputInfo();
                     inputInfo.setName( inputName );
                     inputInfo.setType( inputType );
-                    taskInfo.addInputInfo( inputInfo );
+                    taskInfo.addInput( inputInfo );
                 }
                 else if( argumentExpression instanceof MethodCallExpression )
                 {
@@ -703,15 +704,17 @@ public class NextFlowImporter
         Expression method = methodCall.getMethod();
         Expression object = methodCall.getObjectExpression();
 
-        if( isThis( object ) && method instanceof ConstantExpression ) //this is process call
+        if( isThis( object ) && method instanceof ConstantExpression ) //this is call
         {
             String taskName = ( (ConstantExpression)method ).getValue().toString();
 
-            TaskInfo taskInfo = scriptInfo.getTask( taskName );
-            if( taskInfo == null )
-                taskInfo = importedTasks.get( taskName );
-
-            List<ExpressionInfo> taskInputs = taskInfo.getInputs();
+            ExecutableInfo executable = scriptInfo.getTask( taskName );
+            if( executable == null )
+                executable = scriptInfo.getWorkflow( taskName );
+            if( executable == null )
+                executable = importedExecutables.get( taskName );
+            
+            List<ExpressionInfo> taskInputs = executable.getInputs();
 
             callInfo.setTaskName( taskName );
             callInfo.setAlias( taskName );
@@ -733,7 +736,6 @@ public class NextFlowImporter
                     inputInfo.setExpression( input );
                     inputInfo.setName( taskInput.getName() );
                     callInfo.addInputInfo( inputInfo );
-
                     index++;
                 }
                 else if( argument instanceof PropertyExpression )
@@ -743,7 +745,6 @@ public class NextFlowImporter
                     inputInfo.setName( taskInput.getName() );
                     inputInfo.setExpression( rhs );
                     callInfo.addInputInfo( inputInfo );
-
                     index++;
                 }
             }

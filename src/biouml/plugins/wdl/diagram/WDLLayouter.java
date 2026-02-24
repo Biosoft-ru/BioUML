@@ -65,8 +65,9 @@ public class WDLLayouter
     {
 
         redirectEdges( diagram );
-        fixConditions( diagram );
+//        fixConditions( diagram );
         layoutNodes( diagram );
+        Util.movePortsToEdge( diagram );
         restoreEdges( diagram );
         layoutEdges( diagram );
         diagram.setView( null );
@@ -77,8 +78,8 @@ public class WDLLayouter
     private void layoutEdges(Diagram diagram)
     {
         edgeLayouter.setSmoothEdges( true );
-        edgeLayouter.setGridY( 20);
-        edgeLayouter.setGridX( 20);
+//        edgeLayouter.setGridY( 20);
+//        edgeLayouter.setGridX( 20);
 
         for( Edge edge : diagram.recursiveStream().select( Edge.class ) )
         {
@@ -108,7 +109,7 @@ public class WDLLayouter
             @Override
             public boolean isAcceptable(DiagramElement de)
             {
-                return de.getParent().equals( c );
+                return de.getParent().equals( c ) && !WorkflowUtil.isConditionalPort( de );
             }
 
             @Override
@@ -160,12 +161,12 @@ public class WDLLayouter
 
     private boolean needInnerLayout(Compartment c)
     {
-        return WorkflowUtil.isCycle( c ) || WorkflowUtil.isConditional( c );
+        return WorkflowUtil.isCycle( c ) || WorkflowUtil.isConditional( c ) || WorkflowUtil.isWorkflow( c );
     }
 
     private void fixConditions(Diagram d)
     {
-        for( Node node : d.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isCondition( n ) ) )
+        for( Node node : d.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isConditionalPort( n ) ) )
             node.setFixed( true );
     }
     

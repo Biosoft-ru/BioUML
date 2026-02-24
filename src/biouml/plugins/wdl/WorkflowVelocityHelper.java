@@ -68,6 +68,11 @@ public class WorkflowVelocityHelper
     {
         return WorkflowUtil.getCalls( c );
     }
+    
+    public List<Compartment> getWorkflows()
+    {
+        return WorkflowUtil.getWorkflows( diagram );
+    }
 
     /**
      * @return formula for given node if there is any
@@ -159,12 +164,22 @@ public class WorkflowVelocityHelper
     
     public List<Node> getExternalParameters()
     {
-        return WorkflowUtil.getExternalParameters( diagram );
+        return getExternalParameters( diagram );
+    }
+    
+    public List<Node> getExternalParameters(Compartment c)
+    {
+        return WorkflowUtil.getExternalParameters( c );
+    }
+    
+    public List<Node> getExternalOutputs(Compartment c)
+    {
+        return WorkflowUtil.getExternalOutputs( c );
     }
 
     public List<Node> getExternalOutputs()
     {
-        return WorkflowUtil.getExternalOutputs( diagram );
+        return getExternalOutputs( diagram );
     }
     
     public String getTaskRef(Compartment c)

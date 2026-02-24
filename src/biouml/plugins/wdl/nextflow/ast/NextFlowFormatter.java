@@ -139,12 +139,12 @@ public class NextFlowFormatter
 
     private void formatNamedArgumentList(NamedArgumentListExpression argumentExpression, StringBuilder sb)
     {
-        format( sb, StreamEx.of( argumentExpression.getMapEntryExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
+        format( sb, StreamEx.of( argumentExpression.getMapEntryExpressions() ).map( arg -> format( arg, true ) ).joining( ", " ) );
     }
 
     private void formatArgumentList(ArgumentListExpression argumentExpression, StringBuilder sb)
     {
-        format( sb, StreamEx.of( argumentExpression.getExpressions() ).map( arg -> format( arg ) ).joining( ", " ) );
+        format( sb, StreamEx.of( argumentExpression.getExpressions() ).map( arg -> format( arg, true ) ).joining( ", " ) );
     }
 
     private void formatTuple(TupleExpression tupleExpression, StringBuilder sb)

@@ -89,8 +89,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             return "??";
 
         StringBuilder result = new StringBuilder();
-
-        result.append( "params." );
         result.append( getName( n ) );
         String expression = getExpression( n );
         if( expression != null && !expression.isEmpty() )
@@ -1005,6 +1003,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         {
             this.compartment = compartment;
         }
+    }
+    
+    public List<Compartment> getNamedWorkflows()
+    {
+        return WorkflowUtil.getWorkflows( diagram );
     }
 
 }

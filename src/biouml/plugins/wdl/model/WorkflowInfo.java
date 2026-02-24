@@ -1,58 +1,19 @@
 package biouml.plugins.wdl.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
-public class WorkflowInfo extends ContainerInfo
+public class WorkflowInfo extends ExecutableInfo implements Iterable<Object>
 {
-    private String name;
-    private MetaInfo meta = new MetaInfo();
-    private List<InputInfo> inputs = new ArrayList<>();
-    private List<OutputInfo> outputs = new ArrayList<>();
-
+    private ContainerInfo steps = new ContainerInfo();
+    
     public WorkflowInfo(String name)
     {
-        this.name = name;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public MetaInfo getMeta()
-    {
-        return meta;
-    }
-
-    public void setMeta(MetaInfo metaInfo)
-    {
-        meta = metaInfo;
-    }
-
-    public void addInput(InputInfo input)
-    {
-        inputs.add(input);
-    }
-
-    public void addOutput(OutputInfo output)
-    {
-        outputs.add(output);
-    }
-
-    public List<InputInfo> getInputs()
-    {
-        return List.copyOf(inputs);
-    }
-
-    public List<OutputInfo> getOutputs()
-    {
-        return List.copyOf(outputs);
+        super(name);
     }
 
     public Object findStep(String name)
     {
-        for( Object object : getObjects() )
+        for( Object object : steps.getObjects() )
         {
             if( object instanceof CallInfo && ( (CallInfo)object ).getAlias().equals(name) )
                 return object;
@@ -60,5 +21,26 @@ public class WorkflowInfo extends ContainerInfo
                 return object;
         }
         return null;
+    }
+
+    @Override
+    public Iterator<Object> iterator()
+    {
+        return steps.iterator();
+    }
+    
+    public void addObject(Object object)
+    {
+        steps.addObject( object );
+    }
+    
+    public int size()
+    {
+        return steps.size();
+    }
+    
+    public boolean isEmpty()
+    {
+        return steps.isEmpty();
     }
 }
