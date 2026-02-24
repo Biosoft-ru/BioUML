@@ -12,13 +12,13 @@
 #if($velocityCount < $list.size()),#end
 #end
 #######################################################################################
-#macro(conditional $conditional)
-${BR}if ( $helper.findCondition($conditional) ) {
+#macro(conditionalNF $conditional)
+${BR}if( $helper.findCondition($conditional) ) {
 #foreach( $n in $helper.orderCalls($conditional) )
-#if ( $helper.isCycle($n) )#scatterNF($n)
-#elseif ( $helper.isCall($n) )#callNF($n)
-#elseif ( $helper.isExpression($n) )#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditional($n)
+#if( $helper.isCycle($n) )#scatterNF($n)
+#elseif( $helper.isCall($n) )#callNF($n)
+#elseif( $helper.isExpression($n) )#expressionNF($n)
+#elseif( $helper.isConditional($n) )#conditionalNF($n)
 #end 
 #end
 }
@@ -53,7 +53,6 @@ include { $functions } from './biouml_function.nf'
 #######################################################################################
 #foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
 #######################################################################################
-#if ($helper.isEntryScript())
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
 #foreach( $externalParameter in $externalParameters )
@@ -61,7 +60,6 @@ $helper.getExternalInput($externalParameter)
 #end
 #end
 #if($externalParameters.size() > 0)$BR#end
-#end
 #######################################################################################
 #######################################TASKS###########################################
 #######################################################################################
@@ -107,28 +105,29 @@ $BR  script:
 }$BR
 #end
 #######################################################################################
-###################################WORKFLOW############################################
+###################################WORKFLOWS###########################################
 #######################################################################################
-workflow $helper.getMainWorkflowName() {
-#set ($externalParameters = $helper.getExternalParameters())
+#foreach ( $workflow in $helper.getNamedWorkflows() )
+workflow $workflow.getName() {
+#set ($externalParameters = $helper.getExternalParameters($workflow))
 #if ($externalParameters.size() > 0)
 $BR  take:
 #foreach( $externalParameter in $externalParameters )
   $helper.getName($externalParameter)
 #end
 #end
-#set ($calls = $helper.orderCalls($diagram))
+#set ($calls = $helper.orderCalls($workflow))
 #if (!$calls.isEmpty())
 $BR  main:
 #foreach( $n in $calls)
-#if ($helper.isCycle($n))#scatterNF($n)
-#elseif ($helper.isCall($n))#callNF($n)
-#elseif ($helper.isExpression($n))#expressionNF($n)
-#elseif ( $helper.isConditional($n) )#conditional($n)
+#if( $helper.isCycle($n) )#scatterNF($n)
+#elseif( $helper.isCall($n) )#callNF($n)
+#elseif( $helper.isExpression($n) )#expressionNF($n)
+#elseif( $helper.isConditional($n) )#conditionalNF($n)
 #end
 #end 
 #end
-#set ($externalOutputs = $helper.getExternalOutputs())
+#set ($externalOutputs = $helper.getExternalOutputs($workflow))
 #if ($externalOutputs.size() > 0)
   emit: 
 #foreach( $externalOutput in $externalOutputs )
@@ -140,9 +139,17 @@ $BR  main:
 #end
 #end
 }$BR
+#end
 ################################ENTRY WORKFLOW#########################################
-#if ($helper.isEntryScript())
+#set ($calls = $helper.orderCalls($diagram))
+#if( !$calls.isEmpty() )
 workflow {
-  $helper.getMainWorkflowName()( #foreach($ep in $externalParameters)$helper.getExternalParamaterName($ep)#comma($externalParameters) #end )
+#foreach( $n in $calls)
+#if ( $helper.isCycle($n) )#scatterNF($n)
+#elseif( $helper.isCall($n) )#callNF($n)
+#elseif( $helper.isExpression($n) )#expressionNF($n)
+#elseif( $helper.isConditional($n) )#conditionalNF($n)
+#end
+#end 
 }
 #end

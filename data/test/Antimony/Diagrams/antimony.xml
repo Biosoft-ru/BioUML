@@ -2,6 +2,7 @@
 <sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" level="3" version="2">
   <model id="antimony" name="bistable">
     <annotation>
+      <antimony text="//------------------------------------------&#13;&#10;//Bistable Switch&#13;&#10;//Two genes down-regulate one another. Hill coefficient = 2&#13;&#10;//input x can be used to upregulate one of the genes&#13;&#10;//------------------------------------------&#13;&#10;&#13;&#10;model bistable&#13;&#10;   species g1, g2;&#13;&#10;   species s1, s2;&#13;&#10;   r1: -&gt; s1; k1*(1 + x)/(1 + k2*s2^2) //gene 1 makes protein s1 at this rate&#13;&#10;   r2: s1 -&gt; ; k0*s1                       //protein 1 degrades&#13;&#10;   r3: -&gt; s2; k3/(1 + k4*s1^2)         //gene 2 makes protein s2&#13;&#10;   r4: s2 -&gt; ; k0*s2                       //protein s2 degrades&#13;&#10;&#13;&#10;   k0 = 0.1         //parameters in the model&#13;&#10;   k1 = 1&#13;&#10;   k2 = 1&#13;&#10;   k3 = 1&#13;&#10;   k4 = 1&#13;&#10;   s2 = 1.0;&#13;&#10;end" version="2.0"/>
       <sbgn xmlns:biouml="http://www.biouml.org/ns">
         <nodes>
           <node Structure="" id="g1" multimer="0" parent="" ref="g1" type="macromolecule">
@@ -60,7 +61,6 @@
         </viewOptions>
         <filters elementType="biouml.model.DiagramFilter" type="[Lbiouml.model.DiagramFilter;"/>
       </sbgn>
-      <antimony text="//------------------------------------------&#10;//Bistable Switch&#10;//Two genes down-regulate one another. Hill coefficient = 2&#10;//input x can be used to upregulate one of the genes&#10;//------------------------------------------&#10;&#10;model bistable&#10;   species g1, g2;&#10;   species s1, s2;&#10;   r1: -&gt; s1; k1*(1 + x)/(1 + k2*s2^2) //gene 1 makes protein s1 at this rate&#10;   r2: s1 -&gt; ; k0*s1                       //protein 1 degrades&#10;   r3: -&gt; s2; k3/(1 + k4*s1^2)         //gene 2 makes protein s2&#10;   r4: s2 -&gt; ; k0*s2                       //protein s2 degrades&#10;&#10;   k0 = 0.1         //parameters in the model&#10;   k1 = 1&#10;   k2 = 1&#10;   k3 = 1&#10;   k4 = 1&#10;   s2 = 1.0;&#10;end" version="2.0"/>
       <biouml:BIOUML xmlns:biouml="http://www.biouml.org/ns">
         <biouml:diagramInfo/>
         <biouml:viewOptions autoLayout="false" dependencyEdges="false"/>

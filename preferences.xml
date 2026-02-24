@@ -2,6 +2,11 @@
 <dynamicPropertySet> 
     <property name="DataCollectionPaths" type="com.developmentontheedge.beans.Preferences" display-name="DataCollectionPaths" short-description="DataCollectionPaths">
         <dynamicPropertySet> 
+            <property name="(default)" type="java.lang.String" value="data/Collaboration/Ilya/Data/Diagrams" display-name="(default)" short-description="(default)"/> 
+            <property name="Diagram" type="java.lang.String" value="data/Collaboration/Ilya/Data/Diagrams/Agent_Babaev" display-name="Diagram" short-description="Diagram"/> 
+            <property name="FolderCollection" type="java.lang.String" value="data/Collaboration/Ilya/Data/Diagrams/Agent_Babaev" display-name="FolderCollection" short-description="FolderCollection"/> 
+            <property name="TableDataCollection" type="java.lang.String" value="data/Collaboration/Ilya/Data/Diagrams/Agent_Babaev" display-name="TableDataCollection" short-description="TableDataCollection"/> 
+            <property name="TextDataElement" type="java.lang.String" value="data/Collaboration/test/inputs" display-name="TextDataElement" short-description="TextDataElement"/> 
         </dynamicPropertySet> 
     </property> 
     <property name="Global" type="com.developmentontheedge.beans.Preferences" display-name="Global" short-description="Global" hidden="true">
@@ -11,8 +16,8 @@
             <property name="ApplicationVersion" type="java.lang.String" value="0.9.4" display-name="ApplicationVersion" short-description="ApplicationVersion"/> 
             <property name="HistoryDiagrams" type="java.lang.String" value="history/diagrams" display-name="HistoryDiagrams" short-description="HistoryDiagrams"/> 
             <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/> 
-            <property name="ServerPath" type="java.lang.String" value="http://localhost:24555/biouml" display-name="ServerPath" short-description="ServerPath"/> 
-            <property name="ServerSession" type="java.lang.String" value="de2ca6a7-e73d-45f3-9656-2e818ad274b4" display-name="ServerSession" short-description="ServerSession"/> 
+            <property name="ServerPath" type="java.lang.String" value="http://localhost:22317/biouml" display-name="ServerPath" short-description="ServerPath"/> 
+            <property name="ServerSession" type="java.lang.String" value="dbefffe3-34f8-4f0c-ae6d-71fd4152e86e" display-name="ServerSession" short-description="ServerSession"/> 
         </dynamicPropertySet> 
     </property> 
     <property name="GridOptions" type="com.developmentontheedge.beans.Preferences" display-name="Grid options" short-description="Diagram editor grid options" ordered="true">
@@ -46,20 +51,22 @@
     <property name="View Options" type="com.developmentontheedge.beans.Preferences" display-name="View Options" short-description="View options">
         <dynamicPropertySet> 
             <property name="Diagram element title size" type="java.lang.Integer" value="30" display-name="Title size" short-description="Maximum diagram element title size"/> 
-            <property name="Variable name mode" type="java.lang.String" value="title(brief)" display-name="Variable name mode" short-description="Variable name mode"/> 
+            <property name="Variable name mode" type="java.lang.String" value="ID" display-name="Variable name mode" short-description="Variable name mode"/> 
         </dynamicPropertySet> 
     </property> 
     <property name="Window location" type="com.developmentontheedge.beans.Preferences" display-name="Window location" short-description="Window location" hidden="true">
         <dynamicPropertySet> 
-            <property name="height" type="java.lang.Integer" value="750" display-name="height" short-description="height"/> 
-            <property name="width" type="java.lang.Integer" value="1200" display-name="width" short-description="width"/> 
-            <property name="x" type="java.lang.Integer" value="360" display-name="x" short-description="x"/> 
-            <property name="y" type="java.lang.Integer" value="165" display-name="y" short-description="y"/> 
+            <property name="height" type="java.lang.Integer" value="1030" display-name="height" short-description="height"/> 
+            <property name="width" type="java.lang.Integer" value="1918" display-name="width" short-description="width"/> 
+            <property name="x" type="java.lang.Integer" value="1" display-name="x" short-description="x"/> 
+            <property name="y" type="java.lang.Integer" value="1" display-name="y" short-description="y"/> 
         </dynamicPropertySet> 
     </property> 
-    <property name="currentJournal" type="java.lang.String" value="Research: Iron metabolism" display-name="Current journal" short-description="Current journal"/> 
+    <property name="currentJournal" type="java.lang.String" value="Research: Demo" display-name="Current journal" short-description="Current journal"/> 
     <property name="dialogs" type="com.developmentontheedge.beans.Preferences" display-name="dialogs" short-description="dialogs" expert="true">
         <dynamicPropertySet> 
+            <property name="exportDialog.exportDirectory" type="java.lang.String" value="C:\Users\Damag\Desktop" display-name="Export dialog, directory" short-description="Default directory for file chooser specify file to export element."/> 
+            <property name="importDialog.importDirectory" type="java.lang.String" value="C:\Users\Damag\Downloads\micromets_immuno-1.0.5 (1)\micromets_immuno-1.0.5\config" display-name="Default import directory" short-description="Directory for file chooser to specify file for import."/> 
         </dynamicPropertySet> 
     </property> 
     <property name="threadsNumber" type="java.lang.Integer" value="0" display-name="Preferred number of threads" short-description="Set 0 for number of processors available"/> 

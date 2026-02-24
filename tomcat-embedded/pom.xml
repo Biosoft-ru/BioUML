@@ -147,8 +147,8 @@
                     <argument>-Dcatalina.home=${rootDir}/target/tomcat</argument>
                     <argument>-Dbiouml.war=${biouml.war}</argument>
                     <argument>-Dbioumlweb.war=${bioumlweb.war}</argument>
-                    <argument>-Dbiouml.http.port=8080</argument>
-                    <argument>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n</argument>
+                    <argument>-Dbiouml.http.port=8085</argument>
+                    <argument>-agentlib:jdwp=transport=dt_socket,address=8001,server=y,suspend=n</argument>
                     <argument>-jar</argument>
                     <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-2025.2-jar-with-dependencies.jar</argument>
                   </arguments>

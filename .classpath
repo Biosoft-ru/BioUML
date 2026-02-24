@@ -52,7 +52,7 @@
 	<classpathentry kind="lib" path="plugins/ru.biosoft.physicell_2025.2.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.rtree-0.0.1.jar"/>
 	<classpathentry kind="lib" path="plugins/streamex-0.7.0.jar"/>
-	<classpathentry kind="lib" path="plugconfig/ru.biosoft.graph/graph.jar"/>
+	<classpathentry kind="lib" path="plugconfig/ru.biosoft.graph/graph.jar" sourcepath="/graph_layout"/>
 	<classpathentry kind="lib" path="plugins/cern.jet.random_1.3.0/colt.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.graphics/ru.biosoft.core-2.0.0.jar"/>
 	<classpathentry kind="lib" path="plugconfig/ru.biosoft.graphics/ru.biosoft.editor-2.0.0.jar"/>

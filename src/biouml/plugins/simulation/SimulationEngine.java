@@ -27,7 +27,6 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.exception.BiosoftParseException;
 import ru.biosoft.graphics.Pen;
 import ru.biosoft.util.ApplicationUtils;
-import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.WeakPropertyChangeForwarder;
 import ru.biosoft.util.bean.JSONBean;
 import com.developmentontheedge.beans.annot.PropertyDescription;
@@ -169,7 +168,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             EModel emodel = path.isEmpty() ? executableModel
                     : Util.getSubDiagram( originalDiagram, path ).getDiagram().getRole( EModel.class );
 
-            if( !emodel.containsVariable( xVar.getName() ) )
+          if( xVar.getVariable( emodel ) == null )
                 incorrect.add( xVar.getTitle() );
 
             for( Curve curve : plot.getYVariables() )
@@ -185,7 +184,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
                     emodel = subDiagram.getDiagram().getRole( EModel.class );
                 }
 
-                if( !emodel.containsVariable( curve.getName() ) )
+                if( curve.getVariable( emodel ) == null )
                     incorrect.add( curve.getTitle() );
             }
         }
@@ -733,12 +732,12 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     public SimulationEngine.Var getXVariable(PlotInfo plot)
     {
         PlotVariable xVariable = plot.getXVariable();
-        String name = xVariable.getName();
         String title = xVariable.getTitle();
         String path = xVariable.getPath();
         SubDiagram subDiagram = Util.getSubDiagram(originalDiagram, path);
         EModel emodel = (subDiagram != null)? subDiagram.getDiagram().getRole(EModel.class): originalDiagram.getRole(EModel.class);
-        Variable var = emodel.getVariable( name );
+        Variable var = xVariable.getVariable( emodel );
+        String name = var.getName();
         double initialValue = var.getInitialValue();
         Integer index = getVarPathIndexMapping().get(path.isEmpty() ? name : path + VAR_PATH_DELIMITER + name);
         return new Var( name, title, initialValue, index, null );
@@ -760,12 +759,13 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
 
         for( Curve curve : plot.getYVariables() )
         {
-            String name = curve.getName();
             String title = curve.getTitle();
             String path = curve.getPath();
             SubDiagram subDiagram = Util.getSubDiagram(originalDiagram, path);
             EModel emodel = (subDiagram != null)? subDiagram.getDiagram().getRole(EModel.class): originalDiagram.getRole(EModel.class);
-            double initialValue = emodel.getVariable(name).getInitialValue();
+            Variable variable = curve.getVariable( emodel );
+            String name = variable.getName();
+            double initialValue = variable.getInitialValue();
             Integer index = getVarPathIndexMapping().get(path.isEmpty() ? name : path + VAR_PATH_DELIMITER + name);
             List<Series> list = new ArrayList<>();   
             list.add(new XYSeries(title, false, true));

@@ -22,18 +22,19 @@ public class PlotVariable extends Option implements DataElement
     private String name;
     private String title;
     private EModel emodel;
+    private VariableDescriptor descriptor = new VariableDescriptor();
 
     public PlotVariable(String path, String name, String title, EModel emodel)
     {
-        this.setPath(path);
-        this.setName(name);
-        this.setTitle(title);
-        this.setEModel(emodel);
+        this.setPath( path );
+        this.setName( name );
+        this.setTitle( title );
+        this.setEModel( emodel );
     }
 
     public PlotVariable()
     {
-        this("", TIME_VARIABLE, TIME_VARIABLE, null);
+        this( "", TIME_VARIABLE, TIME_VARIABLE, null );
     }
 
     public EModel getEModel()
@@ -44,15 +45,15 @@ public class PlotVariable extends Option implements DataElement
     {
         this.emodel = emodel;
 
-        if( !variables().toSet().contains(name) ) //this variable is not valid in this context
-            this.setName(TIME_VARIABLE);
+        if( !variables().toSet().contains( name ) ) //this variable is not valid in this context
+            this.setName( TIME_VARIABLE );
     }
 
     public String getCompleteName()
     {
-        return getPath().isEmpty()? getName(): getPath()+"/"+getName();
+        return getPath().isEmpty() ? getName() : getPath() + "/" + getName();
     }
-    
+
     @PropertyName ( "Path" )
     public String getPath()
     {
@@ -62,7 +63,7 @@ public class PlotVariable extends Option implements DataElement
     {
         String oldValue = this.path;
         this.path = path;
-        firePropertyChange("path", oldValue, path);
+        firePropertyChange( "path", oldValue, path );
         if( !Objects.equals( oldValue, path ) )
         {
             setName( PlotVariable.TIME_VARIABLE );
@@ -79,53 +80,54 @@ public class PlotVariable extends Option implements DataElement
     public void setName(String name)
     {
         String oldValue = this.name;
+        this.name = name;
+        setTitle( descriptor.getTitle( name, emodel ) );
+        firePropertyChange( "name", oldValue, name );
+    }
 
-        if( emodel != null )
-        {
-            Diagram diagram = Util.getInnerDiagram(emodel.getParent(), path);
-            if( diagram.getRole() instanceof EModel )
-            {
-                Variable var = diagram.getRole(EModel.class).getVariable(name);
-                if (var == null)
-                   return;
+    public String getVariableName()
+    {
+       return descriptor.getVariableName( name, emodel );
+    }
+    
+    public Variable getVariable(EModel emodel)
+    {
+        String variableName = getVariableName();
+        if (variableName == null)
+            return null;
+        return emodel.getVariable( variableName );
+    }
 
-                this.name = name;
-                setTitle( var.getTitle() );
-            }
-        }
-        else
-        {
-            this.name = name;
-            setTitle( name );
-        }
-
-        firePropertyChange("name", oldValue, name);
-
+    public void setVariableName(String name)
+    {
+        Variable var = emodel.getVariable( name );
+        String description = descriptor.getDescription( var, emodel );
+        setName( description );
     }
 
     public StreamEx<String> variables()
     {
-        if (emodel == null)
+        if( emodel == null )
             return StreamEx.empty();
-        Diagram diagram = Util.getInnerDiagram(emodel.getParent(), path);
+        Diagram diagram = Util.getInnerDiagram( emodel.getParent(), path );
         if( ! ( diagram.getRole() instanceof EModel ) )
-            return StreamEx.of(new String[] {""});
-
-        return StreamEx.of( diagram.getRole( EModel.class ).getVariables().stream() ).map( variable -> variable.getName() );
+            return StreamEx.empty();
+        EModel emodel = diagram.getRole( EModel.class );
+        return descriptor.getDescriptions( emodel );
     }
 
     public Stream<String> modules()
     {
         Diagram diagram = emodel.getParent();
-        if( !DiagramUtility.isComposite(diagram) )
-            return StreamEx.of(new String[] {""});
+        if( !DiagramUtility.isComposite( diagram ) )
+            return StreamEx.of( new String[] {""} );
 
-        return StreamEx.of(Util.getSubDiagrams(diagram)).map(s -> Util.getPath(s)).append("");
+        return StreamEx.of( Util.getSubDiagrams( diagram ) ).map( s -> Util.getPath( s ) ).append( "" );
     }
 
     public boolean isPathReadOnly()
     {
-        return !DiagramUtility.isComposite(getEModel().getParent());
+        return !DiagramUtility.isComposite( getEModel().getParent() );
     }
 
     @PropertyName ( "Title" )
@@ -137,12 +139,12 @@ public class PlotVariable extends Option implements DataElement
     {
         String oldValue = this.title;
         this.title = title;
-        firePropertyChange("title", oldValue, title);
+        firePropertyChange( "title", oldValue, title );
     }
 
     public PlotVariable clone(EModel emodel)
     {
-        return new PlotVariable(path, name, title, emodel);
+        return new PlotVariable( path, name, title, emodel );
     }
 
     public boolean isPathHidden()
