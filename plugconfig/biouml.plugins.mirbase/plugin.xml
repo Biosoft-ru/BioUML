@@ -2,7 +2,7 @@
 <plugin>
   <extension id="miRBase biohub" point="ru.biosoft.access.biohub"> 
      <hubItem name="miRBase biohub" class="biouml.plugins.mirbase.MiRBaseHub">
-     	<property name="jdbcURL" value="jdbc:mysql://localhost:3306/mirbase"/>
+     	<property name="jdbcURL" value="jdbc:mysql://@DEFAULT_DATABASE_SERVER@:3306/mirbase"/>
      	<property name="jdbcUser" value="mirbase"/>
      	<property name="jdbcPassword" value="mirbase"/>
      </hubItem> 
