@@ -67,7 +67,7 @@ public class VariableDescriptor
         }
         else
         {
-            return emodel.getVariables().stream().filter( v -> v.getTitle().equals( description ) ).findAny().orElse( null );
+            return emodel.getVariables().stream().filter( v -> v.getTitle().equals( description ) || description.equals( stripBucks( v.getTitle() ) ) ).findAny().orElse( null );
         }
     }
 
