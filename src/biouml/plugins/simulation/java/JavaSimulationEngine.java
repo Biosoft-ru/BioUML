@@ -471,7 +471,7 @@ public class JavaSimulationEngine extends OdeSimulationEngine
     private void doGenerateModel() throws Exception
     {
         String name = executableModel.getDiagramElement().getName();
-        log.info( "Generating model" + diagram.getName() + " in folder " + outputDir );
+        log.info( "Generating model" + diagram.getName() );
         File dir = new File(outputDir);
         if( !dir.exists() && !dir.mkdirs() )
             throw new Exception("Failed to create directory '" + outputDir + "'.");
