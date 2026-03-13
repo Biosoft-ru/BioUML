@@ -52,7 +52,7 @@ public class StateVisualizer3D extends StateVisualizer
     @Override
     public BufferedImage draw()
     {
-        renderer.setAngle( options3D.getHead(), options3D.getPitch() );
+        renderer.setAngle( options3D.getHeading(), options3D.getPitch() );
         renderer.setCutOff( options3D.getCutOff() );
         renderer.setAxes( options.isAxes() );
         renderer.setAgents(options.isCells());

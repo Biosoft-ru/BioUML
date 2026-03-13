@@ -153,9 +153,9 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
        
         if (result.getOptions().is2D())
             return;
-        int head =  result.getOptions().getOptions3D().getHead();
+        int head =  result.getOptions().getOptions3D().getHeading();
         head += headAddon;
-        result.getOptions().getOptions3D().setHead( head );
+        result.getOptions().getOptions3D().setHeading( head );
         sendSimulationImage( result, arguments.getString( AccessProtocol.KEY_DE ), response, arguments );
     }
     
