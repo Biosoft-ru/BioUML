@@ -81,39 +81,52 @@ public class PlotVariable extends Option implements DataElement
     {
         String oldValue = this.name;
         this.name = name;
-        setTitle( descriptor.getTitle( name, emodel ) );
+        setTitle( descriptor.getTitle( name, getActualEModel() ) );
         firePropertyChange( "name", oldValue, name );
     }
 
     public String getVariableName()
     {
-       return descriptor.getVariableName( name, emodel );
+       return descriptor.getVariableName( name, getActualEModel() );
     }
     
-    public Variable getVariable(EModel emodel)
+    public Variable getVariable()
     {
-        String variableName = getVariableName();
+        EModel actualEModel = getActualEModel();
+        String variableName = descriptor.getVariableName( name, actualEModel );
         if (variableName == null)
             return null;
-        return emodel.getVariable( variableName );
+        return actualEModel.getVariable( variableName );
     }
 
     public void setVariableName(String name)
     {
-        Variable var = emodel.getVariable( name );
-        String description = descriptor.getDescription( var, emodel );
+        EModel actualEModel = getActualEModel();
+        Variable var = actualEModel.getVariable( name );
+        String description = descriptor.getDescription( var, actualEModel );
         setName( description );
     }
 
     public StreamEx<String> variables()
     {
+        EModel emodel = getActualEModel();
         if( emodel == null )
             return StreamEx.empty();
+        return descriptor.getDescriptions( emodel );
+    }
+    
+    /**
+     * Either current diagram emodel or subdiagrams emodel
+     * @return
+     */
+    public EModel getActualEModel()
+    {
+        if( emodel == null )
+            return null;
         Diagram diagram = Util.getInnerDiagram( emodel.getParent(), path );
         if( ! ( diagram.getRole() instanceof EModel ) )
-            return StreamEx.empty();
-        EModel emodel = diagram.getRole( EModel.class );
-        return descriptor.getDescriptions( emodel );
+            return null;
+        return diagram.getRole( EModel.class );
     }
 
     public Stream<String> modules()

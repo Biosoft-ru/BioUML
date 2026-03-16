@@ -33,7 +33,6 @@ import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 import ru.biosoft.access.core.PluginEntry;
 import biouml.model.Diagram;
-import biouml.model.SubDiagram;
 import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.model.dynamics.plot.Curve;
@@ -41,7 +40,6 @@ import biouml.model.dynamics.plot.PlotInfo;
 import biouml.model.dynamics.plot.PlotVariable;
 import biouml.model.dynamics.Variable;
 import biouml.plugins.simulation.java.RunTimeCompiler;
-import biouml.standard.diagram.Util;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
 
@@ -164,27 +162,24 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         for( PlotInfo plot : plots.getActivePlots() )
         {
             PlotVariable xVar = plot.getXVariable();
-            String path = xVar.getPath();
-            EModel emodel = path.isEmpty() ? executableModel
-                    : Util.getSubDiagram( originalDiagram, path ).getDiagram().getRole( EModel.class );
-
-          if( xVar.getVariable( emodel ) == null )
+          if( xVar.getVariable( ) == null )
                 incorrect.add( xVar.getTitle() );
 
             for( Curve curve : plot.getYVariables() )
             {
-                path = curve.getPath();
-                if( path.isEmpty() )
-                    emodel = executableModel;
-                else
-                {
-                    SubDiagram subDiagram = Util.getSubDiagram( originalDiagram, path );
-                    if( subDiagram == null )                    
-                        throw new Exception( "Can not find subdiagram" + path + " in diagram " + originalDiagram );                    
-                    emodel = subDiagram.getDiagram().getRole( EModel.class );
-                }
+//                emodel = curve.getActualEModel();
+//                path = curve.getPath();
+//                if( path.isEmpty() )
+//                    emodel = executableModel;
+//                else
+//                {
+//                    SubDiagram subDiagram = Util.getSubDiagram( originalDiagram, path );
+//                    if( subDiagram == null )                    
+//                        throw new Exception( "Can not find subdiagram" + path + " in diagram " + originalDiagram );                    
+//                    emodel = subDiagram.getDiagram().getRole( EModel.class );
+//                }
 
-                if( curve.getVariable( emodel ) == null )
+                if( curve.getVariable(  ) == null )
                     incorrect.add( curve.getTitle() );
             }
         }
@@ -734,9 +729,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         PlotVariable xVariable = plot.getXVariable();
         String title = xVariable.getTitle();
         String path = xVariable.getPath();
-        SubDiagram subDiagram = Util.getSubDiagram(originalDiagram, path);
-        EModel emodel = (subDiagram != null)? subDiagram.getDiagram().getRole(EModel.class): originalDiagram.getRole(EModel.class);
-        Variable var = xVariable.getVariable( emodel );
+        Variable var = xVariable.getVariable( );
         String name = var.getName();
         double initialValue = var.getInitialValue();
         Integer index = getVarPathIndexMapping().get(path.isEmpty() ? name : path + VAR_PATH_DELIMITER + name);
@@ -761,9 +754,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         {
             String title = curve.getTitle();
             String path = curve.getPath();
-            SubDiagram subDiagram = Util.getSubDiagram(originalDiagram, path);
-            EModel emodel = (subDiagram != null)? subDiagram.getDiagram().getRole(EModel.class): originalDiagram.getRole(EModel.class);
-            Variable variable = curve.getVariable( emodel );
+            Variable variable = curve.getVariable(  );
             String name = variable.getName();
             double initialValue = variable.getInitialValue();
             Integer index = getVarPathIndexMapping().get(path.isEmpty() ? name : path + VAR_PATH_DELIMITER + name);
