@@ -167,18 +167,6 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
 
             for( Curve curve : plot.getYVariables() )
             {
-//                emodel = curve.getActualEModel();
-//                path = curve.getPath();
-//                if( path.isEmpty() )
-//                    emodel = executableModel;
-//                else
-//                {
-//                    SubDiagram subDiagram = Util.getSubDiagram( originalDiagram, path );
-//                    if( subDiagram == null )                    
-//                        throw new Exception( "Can not find subdiagram" + path + " in diagram " + originalDiagram );                    
-//                    emodel = subDiagram.getDiagram().getRole( EModel.class );
-//                }
-
                 if( curve.getVariable(  ) == null )
                     incorrect.add( curve.getTitle() );
             }
