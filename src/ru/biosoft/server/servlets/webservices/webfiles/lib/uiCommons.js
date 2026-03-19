@@ -417,6 +417,8 @@ function showAnalysisControl(parentDiv, analysis, options)
 
 function createProgressBar(element, jobID, completeCallback, processCallback)
 {
+    if(!jobID)
+        return;
 	element = $(element);
 	var progressMeter, progressText;
 	
