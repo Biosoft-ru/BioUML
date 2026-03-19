@@ -102,7 +102,7 @@ function JavaScriptViewPart()
             scriptRunning = true;
             var updateOutput = function()
             {
-                if(!scriptRunning) return;
+                if(!scriptRunning || !scriptJobID) return;
                 queryBioUML("web/jobcontrol", {jobID: scriptJobID}, 
                     function(data)
                     {
@@ -2792,10 +2792,57 @@ function GitConsoleViewPart ()
         this.runAction = createToolbarButton(resources.vpGitConsoleRun, "simulate.gif", this.executeCommand);
         toolbarBlock.append(this.runAction);
         
+        this.statusAction = createToolbarButton(resources.vpGitConsoleStatus, "git_status.png", this.statusActionClick);
+        toolbarBlock.append(this.statusAction);
+        
+        this.pullAction = createToolbarButton(resources.vpGitConsolePull, "git_pull.png", this.pullActionClick);
+        toolbarBlock.append(this.pullAction);
+        
+        this.commitAction = createToolbarButton(resources.vpGitConsoleCommit, "git_commit.png", this.commitActionClick);
+        toolbarBlock.append(this.commitAction);
+        
+        this.pushAction = createToolbarButton(resources.vpGitConsolePush, "git_push.png", this.pushActionClick);
+        toolbarBlock.append(this.pushAction);
+        
         this.hideViewpartAction = createToolbarButton(resources.vpGitConsoleClose, "cancel.gif", this.hideActionClick);
         toolbarBlock.append(this.hideViewpartAction);
     };
     
+    this.statusActionClick = function()
+    {
+        _this.editor.setValue("git status");
+        _this.executeCommand();
+        
+    };
+    this.pullActionClick = function()
+    {
+        _this.editor.setValue("git pull");
+        _this.executeCommand();
+    };
+    this.commitActionClick = function()
+    {
+        createPromptDialog(resources.dlgGitCommitMessage, "", function(message)
+        {
+            _this.editor.setValue("git commit -m \"" + _this.validateCommitMessage(message) + "\"");
+            _this.executeCommand();
+        }, "" , false);
+            
+        
+    };
+    
+    this.validateCommitMessage= function (message){
+      //? Check length (git recommends 50 chars for subject, 72 for body)
+      return  message
+              .replace(/\0/g, '')
+              .replace(/\s+$/gm, '')
+              .trim();
+    }
+    this.pushActionClick = function()
+    {
+        _this.editor.setValue("git push");
+        _this.executeCommand();
+    };
+
     this.hideActionClick = function()
     {
         _this.visible = false;

@@ -531,6 +531,11 @@ var resourcesEN = {
     vpGitConsoleTitle: "Git console",
     vpGitConsoleRun: "Run command",
     vpGitConsoleClose: "Close console",
+    vpGitConsolePull: "Pull",
+    vpGitConsolePush: "Push",
+    vpGitConsoleCommit: "Commit",
+    vpGitConsoleStatus: "Status",
+    dlgGitCommitMessage: "Enter commit message",
     
     /* Analysis document (prefix: an) */
     anLoading: "Loading properties...",
