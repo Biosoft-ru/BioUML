@@ -5,8 +5,8 @@ function gitClone(path, callback)
     var form = $(
     '<table> \
      <tr><td>Repository:</td><td><input size="65" id="git_repository"/></td></tr> \
-     <tr><td>Username:</td><td><input size="25" id="git_username"/></td></tr> \
-     <tr><td>Password:</td><td><input type="password" size="25" id="git_password"/></td></tr> \
+     <tr><td>Git username:</td><td><input size="25" id="git_username"/></td></tr> \
+     <tr><td>Git Personal Access Token:</td><td><input type="password" size="25" id="git_password"/></td></tr> \
      <tr><td>Branch:</td><td><input size="25" id="git_branch"/></td></tr> \
      <tr><td>Project&nbsp;name (if&nbsp;exists):</td><td><input size="25" id="git_prjname"/></td></tr> \
      </table>');

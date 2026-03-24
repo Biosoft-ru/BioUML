@@ -1231,9 +1231,12 @@ function SequenceDocument(completeName, paramHash, customId)
     
     this.removeTrack = function(trackId)
     {
-        this.panes[trackId].viewPane.remove();
-        this.panes[trackId].labelDiv.remove();
-        delete this.panes[trackId];
+        if(this.panes[trackId] != undefined)
+        {
+            this.panes[trackId].viewPane.remove();
+            this.panes[trackId].labelDiv.remove();
+            delete this.panes[trackId];
+        }
         delete this.enabledTracks[trackId];
         this.onTracksResize();
         this.updateViewParts(true);

@@ -82,7 +82,7 @@ public class SearchRegulatedGenes extends SearchByRegulation<SearchRegulatedGene
                 setTf( (String)availableTFs[0] );
         }
         
-        private DataElementPath resultingGenes = DataElementPath.create( "data/Collaboration/Demo/tmp/Regulated genes" );
+        private DataElementPath resultingGenes;// = DataElementPath.create( "data/Collaboration/Demo/tmp/Regulated genes" );
 
         @PropertyName ( "Regulated genes" )
         @PropertyDescription ( "Found genes regulated by transcription factor" )
@@ -117,7 +117,7 @@ public class SearchRegulatedGenes extends SearchByRegulation<SearchRegulatedGene
         {
             super.initProperties();
             PropertyDescriptorEx pde = DataElementPathEditor.registerOutput( "resultingGenes", beanClass, TableDataCollection.class );
-            pde.setExpert( true );
+            //pde.setExpert( true );
             add( pde );
         }
     }

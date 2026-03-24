@@ -255,7 +255,7 @@ public class TestNextflow //extends //TestCase
         boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
         try
         {
-            NextFlowRunner.generateFunctions( resultDir );
+            NextFlowRunner.generateFunctions( resultDir.getCanonicalPath() );
 
             for( String imported : imports )
             {

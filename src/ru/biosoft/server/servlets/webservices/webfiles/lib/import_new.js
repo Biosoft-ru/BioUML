@@ -65,6 +65,8 @@ function doUpload()
 	        event.preventDefault();
 	        event.stopPropagation();
 	        var files = event.originalEvent.dataTransfer.files;
+            fud.parent().remove();
+            $(uploadDialogDiv).find('.dropFilesBlock').remove();
 	        addFiles(uploadDialogDiv, files);
 	    }
 	    else if(event.dataTransfer.files.length)
@@ -72,6 +74,8 @@ function doUpload()
 	        event.preventDefault();
             event.stopPropagation();
             var files = event.dataTransfer.files;
+            fud.parent().remove();
+            $(uploadDialogDiv).find('.dropFilesBlock').remove();
             addFiles(uploadDialogDiv, files);
         }
 	    return false;

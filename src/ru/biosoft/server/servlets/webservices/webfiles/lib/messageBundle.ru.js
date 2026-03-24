@@ -643,6 +643,11 @@ var resourcesRU = {
     vpGitConsoleTitle: "Консоль Git",
     vpGitConsoleRun: "Выполнить",
     vpGitConsoleClose: "Закрыть консоль",
+    vpGitConsolePull: "Pull",
+    vpGitConsolePush: "Push",
+    vpGitConsoleCommit: "Commit",
+    vpGitConsoleStatus: "Status",
+    dlgGitCommitMessage: "Введите сообщение для коммита",
 
     /* Analysis document (prefix: an) */
     anLoading: "Загрузка свойств...",
