@@ -51,7 +51,7 @@ public class PlotVariable extends Option implements DataElement
 
     public String getCompleteName()
     {
-        return getPath().isEmpty() ? getName() : getPath() + "/" + getName();
+        return getPath().isEmpty() ? getVariableName() : getPath() + "/" + getVariableName();
     }
 
     @PropertyName ( "Path" )
