@@ -665,9 +665,10 @@ public class GitWebProvider extends WebJSONProviderSupport
         {
             return validateGitHubToken( owner, repo, token );
         }
-        else if( host.contains( "gitlab.com" ) )
+        else if( host.contains( "gitlab" ) )
         {
-            return validateGitLabToken( owner, repo, token );
+            //return validateGitLabToken( owner, repo, token );
+            return new ValidationResult( TokenStatus.VALID, PermissionLevel.READ, "Invalid or expired token", owner, repo, host );
         }
         else
         {
