@@ -8,7 +8,10 @@
         var name = getElementName(completePath);
         if(!path || !name) return -1;
         var edc = getDataCollection(completePath);
-        if( edc && edc.isGitEnabled() ) 
+        
+        var parent = getDataCollection(path);
+        var type = parent.getChildClass(name);
+        if( edc && instanceOf( type,'ru.biosoft.access.Repository' ) && edc.isGitEnabled() ) 
         {
             return true;
         }

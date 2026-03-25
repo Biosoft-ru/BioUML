@@ -21,43 +21,43 @@ function gitClone(path, callback)
     var projectName = null;
     var dialogButtons = {};
     dialogButtons[ "Clone" ] = function()
+    {
+        var urlInput = $('#git_repository');
+
+        if( !urlInput.val() )
+        { 
+            logger.error( "Please fill 'Repository' field!" );
+            return;
+        }
+
+        var userInput = $('#git_username');
+        var passInput = $('#git_password');
+
+        var waitButton = git_private_hackButtons(); 
+        
+        var branch = $('#git_branch');
+        var projectAltName = $('#git_prjname');
+
+        queryBioUML("web/git/clone",
+        {
+            de: path,
+            repository: urlInput.val(),
+            username: userInput.val(),
+            password: passInput.val(),
+            branch: branch.val(),
+            projectAltName: projectAltName.val()  
+        },
+        function(data)
+        {
+            console.log( data );
+            if( waitButton )
             {
-                var urlInput = $('#git_repository');
-
-                if( !urlInput.val() )
-                { 
-                    logger.error( "Please fill 'Repository' field!" );
-                    return;
-                }
-
-                var userInput = $('#git_username');
-                var passInput = $('#git_password');
-
-                var waitButton = git_private_hackButtons(); 
-                
-                var branch = $('#git_branch');
-                var projectAltName = $('#git_prjname');
-
-                queryBioUML("web/git/clone",
-                {
-                    de: path,
-                    repository: urlInput.val(),
-                    username: userInput.val(),
-                    password: passInput.val(),
-                    branch: branch.val(),
-                    projectAltName: projectAltName.val()  
-                },
-                function(data)
-                {
-                    console.log( data );
-                    if( waitButton )
-                    {
-                       waitButton.hide();
-                    }
-                    progress.val( data.values[ 1 ] );
-                    projectName = data.values[ 0 ];
-                });
-            };
+               waitButton.hide();
+            }
+            progress.val( data.values[ 1 ] );
+            projectName = data.values[ 0 ];
+        });
+    };
     dialogButtons[ resources.dlgButtonCancel ] = function()
             {
                 $(this).dialog("close");
@@ -218,9 +218,15 @@ function gitCommit(path, callback)
 function gitPush(path, callback)
 {
     var dialogDiv = $('<div title="Push to Git repository"></div>');
+    var form = $(
+        '<table> \
+         <tr><td>Git username:</td><td><input size="25" id="git_username"/></td></tr> \
+         <tr><td>Git Personal Access Token:</td><td><input type="password" size="25" id="git_password"/></td></tr> \
+         </table>');
 
     var progress = $('<textarea style="width:98%; background-color:#F8F8F8" rows="10"></textarea>').attr("readonly", "readonly");
 
+    dialogDiv.append( form );
     dialogDiv.append('Server output:<br />');
     dialogDiv.append(progress);
 
@@ -229,10 +235,14 @@ function gitPush(path, callback)
     dialogButtons[ "Push" ] = function()
             {
                 var waitButton = git_private_hackButtons(); 
+                var userInput = $('#git_username');
+                var passInput = $('#git_password');
 
                 queryBioUML("web/git/push",
                 {
-                    de: path
+                    de: path,
+                    username: userInput.val(),
+                    password: passInput.val(),
                 },
                 function(data)
                 {
@@ -243,6 +253,9 @@ function gitPush(path, callback)
                     }
                     progress.val( data.values[ 1 ] );
                     projectName = data.values[ 0 ];
+                    if(callback)
+                       callback(projectName, data.values[ 1 ]); 
+                       
                 });
             };
     dialogButtons[ resources.dlgButtonCancel ] = function()
@@ -254,7 +267,7 @@ function gitPush(path, callback)
                 {
                     if(callback)
                     {
-                        callback(projectName);
+                        callback(projectName, "");
                     }
                 } 
             };

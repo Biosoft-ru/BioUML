@@ -57,10 +57,6 @@ openMolecule.json:Experimental
 openAlignmentViewer.json:Experimental
 changeType.json
 gitConsole.json
-gitStatus.json
-gitPull.json
-gitCommit.json
-gitPush.json
 gitClone.json
 openOASYS.json:Experimental
 runDockerCwlWorkflow.json:Experimental

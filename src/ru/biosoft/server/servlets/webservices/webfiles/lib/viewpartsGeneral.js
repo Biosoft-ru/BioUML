@@ -2839,8 +2839,10 @@ function GitConsoleViewPart ()
     }
     this.pushActionClick = function()
     {
-        _this.editor.setValue("git push");
-        _this.executeCommand();
+        gitPush(_this.project, function(prjName, message){
+            if(message)
+                _this.addResult("git push", message, false);
+        });
     };
 
     this.hideActionClick = function()
