@@ -6,15 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -160,12 +156,6 @@ public class GitWebProvider extends WebJSONProviderSupport
             {
                 response.error( "Git validation failed: " + result.message );
                 return;
-            }
-
-            if( result.permission.equals( PermissionLevel.WRITE ) || result.permission.equals( PermissionLevel.ADMIN ) )
-            {
-                //can commit and push
-                //TODO: cache this info in SingleSignOn?
             }
 
             String fullUrl = parsedUrl.toHttpsUrl();//createGitRepoUrl( repository, username, password );
@@ -648,7 +638,7 @@ public class GitWebProvider extends WebJSONProviderSupport
     }
 
     /**
-     * Verify credentials with REST api of github/gitlab
+     * Verify credentials by running git ls-remote
      * 
      * @param parsedUrl
      * @param username
@@ -661,24 +651,58 @@ public class GitWebProvider extends WebJSONProviderSupport
         String host = parsedUrl.getHost();
         String owner = parsedUrl.getOwner();
         String repo = parsedUrl.getRepo();
-        if( host.contains( "github.com" ) )
+
+        String fullUrl = parsedUrl.toHttpsUrlWithCredentials( username, token );
+        String noCredentialsUrl = parsedUrl.toHttpsUrlWithoutCredentials();
+
+        ProcessBuilder processBuilder = new ProcessBuilder().command( "git", "ls-remote", fullUrl );
+        try
         {
-            return validateGitHubToken( owner, repo, token );
+            Pair<Integer, String> gitOut = gitCommand( processBuilder );
+            if( gitOut.getFirst() == 0 )
+            {
+                return new ValidationResult( TokenStatus.VALID, PermissionLevel.READ, "Token validated successfully", owner, repo, host );
+            }
+            else
+            {
+                String errorMessage = interpretGitError( gitOut.getSecond(), noCredentialsUrl );
+                return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, errorMessage, owner, repo, host );
+            }
         }
-        else if( host.contains( "gitlab" ) )
+        catch (Exception e)
         {
-            //return validateGitLabToken( owner, repo, token );
-            return new ValidationResult( TokenStatus.VALID, PermissionLevel.READ, "Invalid or expired token", owner, repo, host );
-        }
-        else
-        {
-            // Generic Git server - try basic auth test
-            return validateGenericGit( parsedUrl.getRepo(), username != null ? username : "oauth2", token );
+            return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, "Validation failed: " + e.getMessage(), owner, repo, host );
         }
     }
 
-    private static final String GITHUB_API_BASE = "https://api.github.com";
-    private static final String GITLAB_API_BASE = "https://gitlab.com/api/v4";
+    private static String interpretGitError(String errorOutput, String repoUrl)
+    {
+        String errorLC = errorOutput.toLowerCase();
+
+        if (errorLC.contains("authentication failed") || errorLC.contains("invalid credentials") || errorLC.contains("401")) {
+            return "Authentication failed. Please check your username and password/token.";
+        }
+        if (errorLC.contains("repository not found") || errorLC.contains("not found") || errorLC.contains("404")) {
+            return "Repository not found. Please verify the repository URL: " + repoUrl;
+        }
+        if (errorLC.contains("could not resolve hostname") || errorLC.contains("name resolution failed")) {
+            return "Cannot resolve server hostname. Please check your network connection and server URL.";
+        }
+        if (errorLC.contains("connection timed out") || errorLC.contains("connection reset")) {
+            return "Connection timed out. The server may be down or unreachable.";
+        }
+        if (errorLC.contains("permission denied") || errorLC.contains("403")) {
+            return "Access denied. Your account may not have permission to access this repository.";
+        }
+        if (errorLC.contains("ssl certificate problem") || errorLC.contains("certificate verify failed")) {
+            return "SSL certificate verification failed. The server's certificate may be self-signed or expired.";
+        }
+        if (errorLC.contains("fatal:")) {
+            return "Git error: " + errorOutput.trim().replaceAll("fatal:\\s*", "");
+        }
+
+        return "Unknown error occurred. Please check your network and repository settings.";
+    }
 
     public enum TokenStatus
     {
@@ -714,257 +738,6 @@ public class GitWebProvider extends WebJSONProviderSupport
         {
             return String.format( "ValidationResult{status=%s, permission=%s, message='%s', repo='%s/%s'}", status, permission, message, owner, repo );
         }
-    }
-
-    private static ValidationResult validateGitHubToken(String owner, String repo, String token) throws IOException
-    {
-
-        // Step 1: Validate token itself
-        String userResponse = makeApiRequest( GITHUB_API_BASE + "/user", token, "GET" );
-
-        int userStatus = getHttpStatusCode( userResponse );
-        if( userStatus == 401 )
-        {
-            return new ValidationResult( TokenStatus.INVALID, PermissionLevel.NONE, "Invalid or expired token", owner, repo, "github.com" );
-        }
-        else if( userStatus != 200 )
-        {
-            return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, "API error: " + userStatus, owner, repo, "github.com" );
-        }
-
-        // Step 2: Check repository permissions
-        String repoResponse = makeApiRequest( GITHUB_API_BASE + "/repos/" + owner + "/" + repo, token, "GET" );
-
-        int repoStatus = getHttpStatusCode( repoResponse );
-        if( repoStatus == 404 )
-        {
-            return new ValidationResult( TokenStatus.NO_ACCESS, PermissionLevel.NONE, "Repository not found or no access", owner, repo, "github.com" );
-        }
-        else if( repoStatus != 200 )
-        {
-            return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, "Repository API error: " + repoStatus, owner, repo, "github.com" );
-        }
-
-        // Step 3: Parse permissions
-        PermissionLevel permission = parseGitHubPermissions( repoResponse );
-
-        return new ValidationResult( TokenStatus.VALID, permission, "Token validated successfully", owner, repo, "github.com" );
-    }
-
-    /**
-     * Validate GitLab token
-     */
-    private static ValidationResult validateGitLabToken(String owner, String repo, String token) throws IOException
-    {
-
-        // Step 1: Validate token
-        String userResponse = makeApiRequest( GITLAB_API_BASE + "/user", token, "GET", "PRIVATE-TOKEN" );
-
-        int userStatus = getHttpStatusCode( userResponse );
-        if( userStatus == 401 )
-        {
-            return new ValidationResult( TokenStatus.INVALID, PermissionLevel.NONE, "Invalid or expired token", owner, repo, "gitlab.com" );
-        }
-        else if( userStatus != 200 )
-        {
-            return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, "API error: " + userStatus, owner, repo, "gitlab.com" );
-        }
-
-        // Step 2: Get project ID
-        String projectUrl = GITLAB_API_BASE + "/projects/" + URLEncoder.encode( owner + "/" + repo, StandardCharsets.UTF_8.toString() );
-
-        String projectResponse = makeApiRequest( projectUrl, token, "GET", "PRIVATE-TOKEN" );
-
-        int projectStatus = getHttpStatusCode( projectResponse );
-        if( projectStatus == 404 )
-        {
-            return new ValidationResult( TokenStatus.NO_ACCESS, PermissionLevel.NONE, "Repository not found or no access", owner, repo, "gitlab.com" );
-        }
-        else if( projectStatus != 200 )
-        {
-            return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, "Project API error: " + projectStatus, owner, repo, "gitlab.com" );
-        }
-
-        // Step 3: Parse permissions
-        PermissionLevel permission = parseGitLabPermissions( projectResponse );
-
-        return new ValidationResult( TokenStatus.VALID, permission, "Token validated successfully", owner, repo, "gitlab.com" );
-    }
-
-    /**
-     * Validate generic Git server with basic auth
-     */
-    private static ValidationResult validateGenericGit(String repoUrl, String username, String token) throws IOException
-    {
-
-        // Try git ls-remote via API simulation
-        String testUrl = repoUrl.replace( ".git", "" ) + "/info/refs?service=git-upload-pack";
-
-        HttpURLConnection conn = (HttpURLConnection) new URL( testUrl ).openConnection();
-        conn.setRequestMethod( "GET" );
-        conn.setRequestProperty( "Authorization", "Basic " + Base64.getEncoder().encodeToString( (username + ":" + token).getBytes() ) );
-        conn.setConnectTimeout( 5000 );
-        conn.setReadTimeout( 5000 );
-
-        int status = conn.getResponseCode();
-        conn.disconnect();
-
-        if( status == 200 )
-        {
-            return new ValidationResult( TokenStatus.VALID, PermissionLevel.READ, "Basic auth successful", null, null, "generic" );
-        }
-        else if( status == 401 )
-        {
-            return new ValidationResult( TokenStatus.INVALID, PermissionLevel.NONE, "Authentication failed", null, null, "generic" );
-        }
-        else
-        {
-            return new ValidationResult( TokenStatus.ERROR, PermissionLevel.NONE, "Connection error: " + status, null, null, "generic" );
-        }
-    }
-
-    /**
-     * Parse GitHub permissions from API response
-     */
-    private static PermissionLevel parseGitHubPermissions(String jsonResponse)
-    {
-        if( jsonResponse.contains( "\"admin\":true" ) )
-        {
-            return PermissionLevel.ADMIN;
-        }
-        else if( jsonResponse.contains( "\"maintain\":true" ) )
-        {
-            return PermissionLevel.WRITE;
-        }
-        else if( jsonResponse.contains( "\"push\":true" ) )
-        {
-            return PermissionLevel.WRITE;
-        }
-        else if( jsonResponse.contains( "\"pull\":true" ) )
-        {
-            return PermissionLevel.READ;
-        }
-        return PermissionLevel.NONE;
-    }
-
-    /**
-     * Parse GitLab permissions from API response
-     */
-    private static PermissionLevel parseGitLabPermissions(String jsonResponse)
-    {
-        // GitLab access levels: 10=Guest, 20=Reporter, 30=Developer, 40=Maintainer, 50=Owner
-        if( jsonResponse.contains( "\"access_level\":50" ) || jsonResponse.contains( "\"access_level\":40" ) )
-        {
-            return PermissionLevel.ADMIN;
-        }
-        else if( jsonResponse.contains( "\"access_level\":30" ) )
-        {
-            return PermissionLevel.WRITE;
-        }
-        else if( jsonResponse.contains( "\"access_level\":20" ) || jsonResponse.contains( "\"access_level\":10" ) )
-        {
-            return PermissionLevel.READ;
-        }
-        return PermissionLevel.NONE;
-    }
-
-    /**
-     * Make API request
-     */
-    private static String makeApiRequest(String urlString, String token, String method) throws IOException
-    {
-        return makeApiRequest( urlString, token, method, "Authorization" );
-    }
-
-    /**
-     * Make API request with custom auth header
-     */
-    private static String makeApiRequest(String urlString, String token, String method, String authHeaderName) throws IOException
-    {
-        URL url = new URL( urlString );
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        conn.setRequestMethod( method );
-        conn.setRequestProperty( "Accept", "application/json" );
-
-        if( "Authorization".equals( authHeaderName ) )
-        {
-            conn.setRequestProperty( "Authorization", "token " + token );
-        }
-        else
-        {
-            conn.setRequestProperty( authHeaderName, token );
-        }
-
-        conn.setConnectTimeout( 5000 );
-        conn.setReadTimeout( 5000 );
-
-        int status = conn.getResponseCode();
-
-        InputStream inputStream;
-        if( status >= 400 )
-        {
-            inputStream = conn.getErrorStream();
-        }
-        else
-        {
-            inputStream = conn.getInputStream();
-        }
-
-        String response;
-        if( inputStream != null )
-        {
-            response = new String( inputStream.readAllBytes(), StandardCharsets.UTF_8 );
-        }
-        else
-        {
-            response = "";
-        }
-
-        // Store status code in response for parsing
-        response = "HTTP_STATUS:" + status + "\n" + response;
-
-        conn.disconnect();
-        return response;
-    }
-
-    /**
-     * Extract HTTP status code from response
-     */
-    private static int getHttpStatusCode(String response)
-    {
-        if( response.startsWith( "HTTP_STATUS:" ) )
-        {
-            int endIndex = response.indexOf( "\n" );
-            if( endIndex > 0 )
-            {
-                try
-                {
-                    return Integer.parseInt( response.substring( 12, endIndex ) );
-                }
-                catch (NumberFormatException e)
-                {
-                    return -1;
-                }
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Extract response body without status line
-     */
-    private static String getResponseBody(String response)
-    {
-        if( response.startsWith( "HTTP_STATUS:" ) )
-        {
-            int endIndex = response.indexOf( "\n" );
-            if( endIndex > 0 )
-            {
-                return response.substring( endIndex + 1 );
-            }
-        }
-        return response;
     }
 
     private String getRepositoryPath(GitDataCollection project) throws Exception
@@ -1099,6 +872,22 @@ public class GitWebProvider extends WebJSONProviderSupport
         {
             StringBuilder sb = new StringBuilder( "https://" );
             sb.append( user ).append( ":" ).append( token ).append( "@" );
+            sb.append( host );
+            if( port != null )
+            {
+                sb.append( ":" ).append( port );
+            }
+            sb.append( "/" ).append( path );
+            if( hasGitSuffix )
+            {
+                sb.append( ".git" );
+            }
+            return sb.toString();
+        }
+
+        public String toHttpsUrlWithoutCredentials()
+        {
+            StringBuilder sb = new StringBuilder( "https://" );
             sb.append( host );
             if( port != null )
             {
