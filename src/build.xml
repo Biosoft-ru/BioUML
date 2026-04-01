@@ -1261,6 +1261,35 @@
         </if>
     </target>
 
+ <target name="installer" depends="plugin.all">
+        <property name="INSTALLER_DIR" location="${TOPDIR}/installer(IzPack)"/>
+        <copy file="${INSTALLER_DIR}/install.xml" todir="${OUTDIR}">
+            <filterchain>
+                <tokenfilter>
+                    <replacestring from="$PUBLIC_VERSION$" to="${PUBLIC_VERSION}" />
+                    <replacestring from="$VERSION$" to="${VERSION}" />
+                </tokenfilter>
+            </filterchain>
+        </copy>
+ <!--       <taskdef name="IzPack" classpath="${INSTALLER_DIR}/izpack-standalone-compiler-4.3.5.jar" classname="com.izforge.izpack.ant.IzPackTask"/>--> 
+  <taskdef name="IzPack" classname="com.izforge.izpack.ant.IzPackTask">
+           <classpath>
+		   <fileset dir="C:/Program Files/IzPack/lib">
+            <include name="izpack-ant-*.jar"/>
+            <include name="izpack-compiler-*.jar"/>
+            <include name="izpack-core-*.jar"/>
+			<include name="izpack-api-*.jar"/>
+						<include name="izpack-util-*.jar"/>
+						<include name="*.jar"/>
+			 </fileset>
+			 </classpath>
+			 </taskdef >
+        <IzPack input="${OUTDIR}/install.xml"
+                output="${INSTALLER_DIR}/BioUML-install.jar"
+                installerType="standard"
+                basedir="${INSTALLER_DIR}"
+                IzPackDir="${INSTALLER_DIR}"/>
+    </target>
     <!-- =================================================================== -->
     <!-- Compiles and run regression tests                                   -->
     <!-- =================================================================== -->
