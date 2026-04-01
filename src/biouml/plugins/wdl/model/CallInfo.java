@@ -14,6 +14,7 @@ public class CallInfo
     private List<InputInfo> inputs = new ArrayList<>();
     private String taskName;
     private String alias;
+    private String resultName = null;
     
     public void setTaskName(String taskName)
     {
@@ -59,6 +60,17 @@ public class CallInfo
     {
         return attributes.get(name);
     }
+    
+    public String getResultName()
+    {
+        return resultName;
+    }
+
+    public void setResultName(String resultName)
+    {
+        this.resultName = resultName;
+    }
+
     
     public String toString()
     {

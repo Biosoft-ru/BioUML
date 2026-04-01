@@ -9,9 +9,11 @@ import java.util.Set;
 public class ScriptInfo
 {
     private String name;
+    private WorkflowInfo mainWorkflow = new WorkflowInfo("");
     private Map<String, WorkflowInfo> workflows = new HashMap<>();
     private Map<String, TaskInfo> tasks = new HashMap<>();
     private Map<String, ImportInfo> imports = new HashMap<>();
+    private Map<String, Object> attributes = new HashMap<>();
     private List<StructInfo> structs = new ArrayList<>();
     
     private List<InputInfo> inputs = new ArrayList<>();
@@ -30,6 +32,16 @@ public class ScriptInfo
         tasks.put(task.getName(), task);
     }
 
+    public WorkflowInfo getMainWorkflow()
+    {
+        return mainWorkflow;
+    }
+    
+    public void setMainWorkflow(WorkflowInfo workflow)
+    {
+        mainWorkflow = workflow;
+    }
+    
     public Set<String> getWorkflowNames()
     {
         return workflows.keySet();
@@ -93,5 +105,20 @@ public class ScriptInfo
     public String getName()
     {
         return name;
+    }
+    
+    public void setAttribute(String name, String value)
+    {
+        this.attributes.put( name, value );
+    }
+    
+    public Set<String> getAttributeNames()
+    {
+        return attributes.keySet();
+    }
+    
+    public Object getAttribute(String name)
+    {
+        return attributes.get( name );
     }
 }
