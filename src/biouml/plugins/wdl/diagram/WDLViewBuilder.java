@@ -21,7 +21,6 @@ import biouml.model.DiagramViewOptions;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowUtil;
-import biouml.standard.diagram.Util;
 import biouml.workbench.graph.InOutFinder;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElementPath;
