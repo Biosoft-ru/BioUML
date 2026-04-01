@@ -3,8 +3,8 @@ package biouml.plugins.wdl._test;
 public class TestResult
 {
     private String name;
-    private String title;
-    private String description;
+    private String title = null;
+    private String description = "";
     private String wdlGenerated = "Failed";
     private String wdlValidated = "N/A";
     private String diagramGenerated = "Failed";
