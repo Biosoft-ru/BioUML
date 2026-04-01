@@ -366,7 +366,9 @@ public class WorkflowTextEditor extends EditorPartSupport
             {
                 if( tabbedPane.getSelectedIndex() == NEXTFLOW_TAB_INDEX )
                 {
-                    new NextFlowImporter().importNextflow( getNextFlow(), diagram );
+                    NextFlowImporter importer = new NextFlowImporter();
+                    importer.setScriptLoader( new RepositoryScriptLoader( diagram.getOrigin().getCompletePath() ) );
+                    importer.importNextflow( getNextFlow(), diagram );
                     reloadCWL();
                     reloadWDL();
                     new WDLLayouter().layout( diagram );
@@ -385,10 +387,7 @@ public class WorkflowTextEditor extends EditorPartSupport
                 }
                 else
                 {
-                    String text = getWDL();
-                    text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
-                    AstStart start = new WDLParser().parse( new StringReader( text ) );
-                    diagram = wdlImporter.generateDiagram( start, diagram );
+                    diagram = wdlImporter.generateDiagram( getWDL(), diagram );
                     new WDLLayouter().layout( diagram );
                     setDiagram( diagram );
                     reloadNextflow();
