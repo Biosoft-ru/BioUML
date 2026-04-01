@@ -24,14 +24,17 @@ import org.codehaus.groovy.ast.stmt.Statement;
 
 public abstract class NextflowVisitor
 {
-    public abstract void doVisit(Expression expression);
+    public abstract boolean doVisit(Expression expression);
 
     public void visit(Expression expression)
     {
         if( expression == null )
             return;
 
-        doVisit( expression );
+        boolean doContinue = doVisit( expression );
+        
+        if (!doContinue)
+            return;
 
         if( expression instanceof BinaryExpression )
         {
