@@ -77,10 +77,8 @@ public class WDLWebProvider extends WebJSONProviderSupport
             DataElementPath diagramPath = arguments.getDataElementPath();
             Diagram diagram = WebDiagramsProvider.getDiagram( diagramPath.toString(), false );
             String text = arguments.get( "wdl" );
-            text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
-            AstStart start = new WDLParser().parse( new StringReader( text ) );
             WDLImporter wdlImporter = new WDLImporter();
-            diagram = wdlImporter.generateDiagram( start, diagram );
+            diagram = wdlImporter.generateDiagram( text, diagram );
             new WDLLayouter().layout( diagram );
             diagramPath.save( diagram );
             OutputStream out = response.getOutputStream();

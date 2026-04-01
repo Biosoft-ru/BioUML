@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -42,6 +43,7 @@ import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.AstStruct;
 import biouml.plugins.wdl.parser.AstSymbol;
 import biouml.plugins.wdl.parser.AstTask;
+import biouml.plugins.wdl.parser.AstVersion;
 import biouml.plugins.wdl.parser.AstWorkflow;
 import biouml.plugins.wdl.parser.WDLParser;
 import one.util.streamex.StreamEx;
@@ -55,83 +57,71 @@ import ru.biosoft.util.bean.BeanInfoEx2;
 public class WDLImporter implements DataElementImporter
 {
     private WDLImportProperties properties = null;
-    protected static final Logger log = Logger.getLogger(WDLImporter.class.getName());
+    protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
 
     @Override
     public int accept(DataCollection<?> parent, File file)
     {
-        if( parent.isAcceptable(Diagram.class) )
+        if( parent.isAcceptable( Diagram.class ) )
             if( file == null )
                 return ACCEPT_HIGHEST_PRIORITY;
             else
             {
                 String lcname = file.getName().toLowerCase();
-                if( lcname.endsWith(".wdl") )
+                if( lcname.endsWith( ".wdl" ) )
                     return ACCEPT_HIGHEST_PRIORITY;
             }
         return ACCEPT_UNSUPPORTED;
     }
 
+    
     @Override
-    public DataElement doImport(DataCollection<?> parent, File file, String diagramName, FunctionJobControl jobControl, Logger log)
+    public DataElement doImport(DataCollection<?> parent, File file, String name, FunctionJobControl jobControl, Logger log)
             throws Exception
     {
         if( jobControl != null )
             jobControl.functionStarted();
 
-        try (FileInputStream in = new FileInputStream(file); InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8))
+        try (FileInputStream in = new FileInputStream( file );
+                InputStreamReader reader = new InputStreamReader( in, StandardCharsets.UTF_8 ))
         {
-            if( properties.getDiagramName() == null || properties.getDiagramName().isEmpty() )
-                throw new Exception("Please specify diagram name.");
-
-            String text = ApplicationUtils.readAsString(file);
-            text = text.replace("<<<", "{").replace(">>>", "}");//TODO: fix parsing <<< >>>
-
-            AstStart start = new WDLParser().parse(new StringReader(text));
-            ScriptInfo scriptInfo = createScriptInfo(start, diagramName);
-            
-            DiagramGenerator generator = new DiagramGenerator();
-            Diagram diagram = generator.generateDiagram(scriptInfo, parent, properties.getDiagramName());
+            Diagram diagram = generateDiagram( file, name, parent );
 
             if( jobControl != null )
                 jobControl.functionFinished();
 
-            new WDLLayouter().layout(diagram);
-            CollectionFactoryUtils.save(diagram);
+            new WDLLayouter().layout( diagram );
+            CollectionFactoryUtils.save( diagram );
 
             return diagram;
         }
         catch( Exception e )
         {
             if( jobControl != null )
-                jobControl.functionTerminatedByError(e);
+                jobControl.functionTerminatedByError( e );
             throw e;
         }
     }
-    
-    public Diagram generateDiagram(File file, String name, DataCollection parent) throws Exception
+
+    public Diagram generateDiagram(File file, String name, DataCollection dc) throws Exception
     {
-        String text = ApplicationUtils.readAsString(file);
-        text = text.replace("<<<", "{").replace(">>>", "}");//TODO: fix parsing <<< >>>
-        AstStart start = new WDLParser().parse(new StringReader(text));
-        ScriptInfo scriptInfo = createScriptInfo(start, name);
-        Diagram diagram = new WDLDiagramType().createDiagram( parent, name, null );
-        return new DiagramGenerator().generateDiagram( scriptInfo, diagram );
-    }
-    
-    public Diagram generateDiagram(AstStart start, Diagram diagram) throws Exception
-    {
-        ScriptInfo scriptInfo = createScriptInfo(start, diagram.getName());
-        return new DiagramGenerator().generateDiagram( scriptInfo, diagram );
-    }
-    
-    public Diagram generateDiagram(AstStart start, DataCollection dc, String name) throws Exception
-    {
-        ScriptInfo scriptInfo = createScriptInfo(start, name);
-        Diagram result = new WDLDiagramType().createDiagram( dc, name, null );
-        return new DiagramGenerator().generateDiagram( scriptInfo, result );
+        String text = ApplicationUtils.readAsString( file );
+        return generateDiagram( text, name, dc );
     }
 
+    public Diagram generateDiagram(String wdl, String name, DataCollection dc) throws Exception
+    {
+        Diagram result = new WDLDiagramType().createDiagram( dc, name );
+        return generateDiagram( wdl, result );
+    }
+
+    public Diagram generateDiagram(String wdl, Diagram diagram) throws Exception
+    {
+        String text = wdl.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
+        AstStart start = new WDLParser().parse( new StringReader( text ) );
+        ScriptInfo scriptInfo = createScriptInfo( start, diagram.getName() );
+        return new DiagramGenerator().generateDiagram( scriptInfo, diagram );
+    }
 
     @Override
     public Object getProperties(DataCollection<?> parent, File file, String elementName)
@@ -139,9 +129,9 @@ public class WDLImporter implements DataElementImporter
         if( properties == null )
             properties = new WDLImportProperties();
         if( elementName != null )
-            properties.setDiagramName(elementName);
+            properties.setDiagramName( elementName );
         else if( file != null )
-            properties.setDiagramName(file.getName());
+            properties.setDiagramName( file.getName() );
         return properties;
     }
 
@@ -176,50 +166,50 @@ public class WDLImporter implements DataElementImporter
     {
         public WDLImportPropertiesBeanInfo()
         {
-            super(WDLImportProperties.class);
+            super( WDLImportProperties.class );
         }
 
         @Override
         public void initProperties() throws Exception
         {
-            add("diagramName");
+            add( "diagramName" );
         }
     }
-    
+
     private static WorkflowInfo createWorkflowInfo(AstWorkflow astWorkflow)
     {
-        WorkflowInfo result = new WorkflowInfo(astWorkflow.getName());
+        WorkflowInfo result = new WorkflowInfo( astWorkflow.getName() );
         for( biouml.plugins.wdl.parser.Node child : astWorkflow.getChildren() )
         {
             if( child instanceof AstInput )
             {
-                for( AstDeclaration astD : StreamEx.of( ( (AstInput)child ).getChildren()).select(AstDeclaration.class) )
-                    result.addInput(createInputInfo(astD));
+                for( AstDeclaration astD : StreamEx.of( ( (AstInput)child ).getChildren() ).select( AstDeclaration.class ) )
+                    result.addInput( createInputInfo( astD ) );
             }
             else if( child instanceof AstOutput )
             {
-                for( AstDeclaration astD : StreamEx.of( ( (AstOutput)child ).getChildren()).select(AstDeclaration.class) )
-                    result.addOutput(createOutputInfo(astD));
+                for( AstDeclaration astD : StreamEx.of( ( (AstOutput)child ).getChildren() ).select( AstDeclaration.class ) )
+                    result.addOutput( createOutputInfo( astD ) );
             }
             else if( child instanceof AstDeclaration )
             {
-                result.addObject(createExpressionInfo((AstDeclaration)child));
+                result.addObject( createExpressionInfo( (AstDeclaration)child ) );
             }
             else if( child instanceof AstMeta )
             {
-                result.setMeta(createMetaInfo(WDLConstants.META_ATTR, (AstMeta)child));
+                result.setMeta( createMetaInfo( WDLConstants.META_ATTR, (AstMeta)child ) );
             }
             else if( child instanceof AstCall )
             {
-                result.addObject(createCallInfo((AstCall)child));
+                result.addObject( createCallInfo( (AstCall)child ) );
             }
             else if( child instanceof AstScatter )
             {
-                result.addObject(createScatterInfo((AstScatter)child));
+                result.addObject( createScatterInfo( (AstScatter)child ) );
             }
             else if( child instanceof AstConditional )
             {
-                result.addObject(createConditionalInfo((AstConditional)child));
+                result.addObject( createConditionalInfo( (AstConditional)child ) );
             }
         }
         return result;
@@ -228,8 +218,8 @@ public class WDLImporter implements DataElementImporter
     private static CallInfo createCallInfo(AstCall astCall)
     {
         CallInfo callInfo = new CallInfo();
-        callInfo.setTaskName(astCall.getName());
-        callInfo.setAlias(astCall.getAlias() == null ? astCall.getName() : astCall.getAlias());
+        callInfo.setTaskName( astCall.getName() );
+        callInfo.setAlias( astCall.getAlias() == null ? astCall.getName() : astCall.getAlias() );
 
         for( AstSymbol symbol : astCall.getInputs() )
         {
@@ -237,36 +227,38 @@ public class WDLImporter implements DataElementImporter
             AstExpression expr = null;
             if( symbol.getChildren() != null )
             {
-                List<AstExpression> exprs = WorkflowUtil.findChild(symbol, AstExpression.class);
+                List<AstExpression> exprs = WorkflowUtil.findChild( symbol, AstExpression.class );
                 if( !exprs.isEmpty() )
                 {
-                    expr = exprs.get(0);
+                    expr = exprs.get( 0 );
                     expression = expr.toString();
                 }
             }
-            InputInfo input = new InputInfo(null, symbol.getName(), expression);
-            
-            callInfo.addInputInfo(input);
+            InputInfo input = new InputInfo( null, symbol.getName(), expression );
+            if( expr != null )
+                input.setArguments( expr.getArguments() );
+            callInfo.addInputInfo( input );
         }
         return callInfo;
     }
 
     private static TaskInfo createTaskInfo(AstTask astTask)
     {
-        TaskInfo taskInfo = new TaskInfo(astTask.getName());
+        TaskInfo taskInfo = new TaskInfo( astTask.getName() );
         for( AstDeclaration astDeclaration : astTask.getBeforeCommand() )
         {
-            taskInfo.addBeforeCommand(createExpressionInfo(astDeclaration));
+            taskInfo.addBeforeCommand( createExpressionInfo( astDeclaration ) );
         }
-        astTask.getRuntime().entrySet().stream().forEach(e -> taskInfo.setRuntime(e.getKey(), e.getValue()));
-        taskInfo.setCommand(new CommandInfo(astTask.getCommand()));
-        for( AstDeclaration astDeclaration : astTask.getInput().getDeclarations() )
+        astTask.getRuntime().entrySet().stream().forEach( e -> taskInfo.setRuntime( e.getKey(), e.getValue() ) );
+        taskInfo.setCommand( new CommandInfo( astTask.getCommand() ) );
+        for( AstDeclaration astDeclaration : astTask.getInput() )
         {
-            taskInfo.addInput(createExpressionInfo(astDeclaration));
+            taskInfo.addInput( createExpressionInfo( astDeclaration ) );
         }
-        for( AstDeclaration astDeclaration : astTask.getOutput().getDeclarations() )
+
+        for( AstDeclaration astDeclaration : astTask.getOutput() )
         {
-            taskInfo.addOutput(createExpressionInfo(astDeclaration));
+            taskInfo.addOutput( createExpressionInfo( astDeclaration ) );
         }
         return taskInfo;
     }
@@ -275,9 +267,10 @@ public class WDLImporter implements DataElementImporter
     {
         ExpressionInfo expressionInfo = new ExpressionInfo();
         if( astDeclaration.getExpression() != null )
-            expressionInfo.setExpression(astDeclaration.getExpression().toString());
-        expressionInfo.setName(astDeclaration.getName());
-        expressionInfo.setType(astDeclaration.getType());
+            expressionInfo.setExpression( astDeclaration.getExpression().toString() );
+        expressionInfo.setName( astDeclaration.getName() );
+        expressionInfo.setType( astDeclaration.getType() );
+        expressionInfo.setArguments( astDeclaration.getVariables() );
         return expressionInfo;
     }
 
@@ -285,9 +278,9 @@ public class WDLImporter implements DataElementImporter
     {
         InputInfo inputInfo = new InputInfo();
         if( astDeclaration.getExpression() != null )
-            inputInfo.setExpression(astDeclaration.getExpression().toString());
-        inputInfo.setName(astDeclaration.getName());
-        inputInfo.setType(astDeclaration.getType());
+            inputInfo.setExpression( astDeclaration.getExpression().toString() );
+        inputInfo.setName( astDeclaration.getName() );
+        inputInfo.setType( astDeclaration.getType() );
         return inputInfo;
     }
 
@@ -295,58 +288,85 @@ public class WDLImporter implements DataElementImporter
     {
         OutputInfo outputInfo = new OutputInfo();
         if( astDeclaration.getExpression() != null )
-            outputInfo.setExpression(astDeclaration.getExpression().toString());
-        outputInfo.setName(astDeclaration.getName());
-        outputInfo.setType(astDeclaration.getType());
+            outputInfo.setExpression( astDeclaration.getExpression().toString() );
+        outputInfo.setName( astDeclaration.getName() );
+        outputInfo.setType( astDeclaration.getType() );
+        outputInfo.setArguments( astDeclaration.getVariables() );
         return outputInfo;
     }
 
     private static ImportInfo createImport(AstImport ast)
     {
-        return new ImportInfo(ast.getAlias(), ast.getSource());
+        return new ImportInfo( ast.getAlias(), ast.getSource() );
     }
 
     private static MetaInfo createMetaInfo(String name, AstMeta ast)
     {
         MetaInfo meta = new MetaInfo();
-        meta.setName(name);
-        for( Entry<String, String> entry : meta.getValues().entrySet() )
+        meta.setName( name );
+        for( Entry<String, String> entry : ast.getMetaValues().entrySet() )
         {
-            meta.setProperty(entry.getKey(), entry.getValue());
+            meta.setProperty( entry.getKey(), entry.getValue() );
         }
         return meta;
     }
 
     private static ScriptInfo createScriptInfo(AstStart start, String name)
     {
-        ScriptInfo scriptInfo = new ScriptInfo(name);
-
+        ScriptInfo scriptInfo = new ScriptInfo( name );
+        
+        List<AstWorkflow> workflows = new ArrayList<>();
         for( int i = 0; i < start.jjtGetNumChildren(); i++ )
         {
-            biouml.plugins.wdl.parser.Node n = start.jjtGetChild(i);
-            if( n instanceof AstWorkflow )
+            if( start.jjtGetChild( i ) instanceof AstWorkflow )
+                workflows.add((AstWorkflow)start.jjtGetChild( i ) );
+        }
+        
+        if (workflows.size() == 1)
+        {
+            WorkflowInfo workflowInfo = createWorkflowInfo( workflows.get( 0 ));
+            scriptInfo.setMainWorkflow( workflowInfo );
+        }
+        else
+        {
+            for (AstWorkflow workflow: workflows)
             {
-                AstWorkflow astWorkflow = (AstWorkflow)n;
-                WorkflowInfo workflowInfo = createWorkflowInfo(astWorkflow);
-                scriptInfo.addWorkflow(workflowInfo);
+                WorkflowInfo workflowInfo = createWorkflowInfo(workflow);
+                String workflowName = workflow.getName();
+                if (workflowName.equals( name ))
+                {
+                    scriptInfo.setMainWorkflow( workflowInfo );
+                }
+                else
+                    scriptInfo.addWorkflow( workflowInfo );
             }
-            else if( n instanceof AstTask )
+        }
+        
+        for( int i = 0; i < start.jjtGetNumChildren(); i++ )
+        {
+            biouml.plugins.wdl.parser.Node n = start.jjtGetChild( i );
+            if( n instanceof AstTask )
             {
                 AstTask task = (AstTask)n;
-                TaskInfo taskInfo = createTaskInfo(task);
-                scriptInfo.addTask(taskInfo);
+                TaskInfo taskInfo = createTaskInfo( task );
+                scriptInfo.addTask( taskInfo );
             }
             else if( n instanceof AstImport )
             {
                 AstImport astImport = (AstImport)n;
-                ImportInfo importInfo = createImport(astImport);
-                scriptInfo.addImport(importInfo);
+                ImportInfo importInfo = createImport( astImport );
+                scriptInfo.addImport( importInfo );
             }
             else if( n instanceof AstStruct )
             {
                 AstStruct astStruct = (AstStruct)n;
-                StructInfo structInfo = createStruct(astStruct);
-                scriptInfo.addStruct(structInfo);
+                StructInfo structInfo = createStruct( astStruct );
+                scriptInfo.addStruct( structInfo );
+            }
+            else if (n instanceof AstVersion )
+            {
+               String s =  ((AstVersion)n).jjtGetLastToken().toString();
+               scriptInfo.setAttribute( WDLConstants.WDL_VERSION_ATTR, s );
             }
         }
         return scriptInfo;
@@ -361,26 +381,26 @@ public class WDLImporter implements DataElementImporter
             if( n instanceof AstExpression )
             {
                 condition = n.toString();
-                result.addCondition(condition);
+                result.addCondition( condition, ((AstExpression)n).getArguments() );
             }
         }
         for( biouml.plugins.wdl.parser.Node n : astConditional.getChildren() )
         {
             if( n instanceof AstDeclaration )
             {
-                result.add(condition, createExpressionInfo((AstDeclaration)n));
+                result.add( condition, createExpressionInfo( (AstDeclaration)n ) );
             }
             else if( n instanceof AstCall )
             {
-                result.add(condition,createCallInfo((AstCall)n));
+                result.add( condition, createCallInfo( (AstCall)n ) );
             }
             else if( n instanceof AstScatter )
             {
-                result.add(condition,createScatterInfo((AstScatter)n));
+                result.add( condition, createScatterInfo( (AstScatter)n ) );
             }
             else if( n instanceof AstConditional )
             {
-                result.add(condition,createConditionalInfo((AstConditional)n));
+                result.add( condition, createConditionalInfo( (AstConditional)n ) );
             }
         }
         return result;
@@ -391,26 +411,27 @@ public class WDLImporter implements DataElementImporter
         ScatterInfo result = new ScatterInfo();
         String variable = astScatter.getVarible();
         AstExpression array = astScatter.getArrayExpression();
-        result.setVariable(variable);
-        result.setExpression(array.toString());
-      
+        result.setVariable( variable );
+        result.setExpression( array.toString() );
+        result.setArguments( array.getArguments() );
+
         for( biouml.plugins.wdl.parser.Node n : astScatter.getChildren() )
         {
             if( n instanceof AstDeclaration )
             {
-                result.addObject(createExpressionInfo((AstDeclaration)n));
+                result.addObject( createExpressionInfo( (AstDeclaration)n ) );
             }
             else if( n instanceof AstCall )
             {
-                result.addObject(createCallInfo((AstCall)n));
+                result.addObject( createCallInfo( (AstCall)n ) );
             }
             else if( n instanceof AstScatter )
             {
-                result.addObject(createScatterInfo((AstScatter)n));
+                result.addObject( createScatterInfo( (AstScatter)n ) );
             }
             else if( n instanceof AstConditional )
             {
-                result.addObject(createConditionalInfo((AstConditional)n));
+                result.addObject( createConditionalInfo( (AstConditional)n ) );
             }
         }
         return result;
@@ -419,9 +440,9 @@ public class WDLImporter implements DataElementImporter
     private static StructInfo createStruct(AstStruct struct)
     {
         StructInfo structInfo = new StructInfo();
-        structInfo.setName(struct.getStructName());
+        structInfo.setName( struct.getStructName() );
         for( AstDeclaration declaration : struct.getDeclarations() )
-            structInfo.addExpressions(createExpressionInfo(declaration));
+            structInfo.addExpressions( createExpressionInfo( declaration ) );
         return structInfo;
     }
 }
