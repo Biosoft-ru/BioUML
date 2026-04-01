@@ -965,6 +965,7 @@
         <create.plugin plugin="biouml.plugins.wdl" source="biouml/plugins/wdl">
         	<files>
                 <include name="biouml/plugins/wdl/**/*.nf"/>
+                <include name="biouml/plugins/wdl/**/*.wdl"/>
             </files>
         </create.plugin>
     </target>
