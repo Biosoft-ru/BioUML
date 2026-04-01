@@ -16,6 +16,8 @@ import biouml.plugins.wdl.WorkflowUtil;
 
 public class Util
 {
+    public static final String RESULT_NAME_ATTR = "Result name";
+    
     public static List<Node> findDirectPath(Node input)
     {
         List<Node> result = new ArrayList<Node>();
