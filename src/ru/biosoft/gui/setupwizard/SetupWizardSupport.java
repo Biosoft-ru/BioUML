@@ -25,12 +25,12 @@ public class SetupWizardSupport
         Preferences setupPreferences = getSetupPreferences();
         Boolean value = (Boolean)setupPreferences.getValue(SetupWizardDialog.SETUP_WIZARD_USAGE);
         if( value == null )
-        {
             value = true;
+        if( value )
+        {
             setupPreferences.add(new DynamicProperty(SetupWizardDialog.SETUP_WIZARD_USAGE, SetupWizardDialog.SETUP_WIZARD_USAGE,
                     "Show on startup", Boolean.class, value));
         }
-
         return value;
     }
 }
