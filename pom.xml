@@ -323,13 +323,13 @@
         <dependency>
             <groupId>ru.biosoft.access</groupId>
             <artifactId>core</artifactId>
-            <version>[2.0.0,)</version>
+            <version>[2.0.2,)</version>
         </dependency>
 
         <dependency>
             <groupId>ru.biosoft.access</groupId>
             <artifactId>file</artifactId>
-            <version>[2.0.0,)</version>
+            <version>[2.0.2,)</version>
         </dependency>
 
         <dependency>
