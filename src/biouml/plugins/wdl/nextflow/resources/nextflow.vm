@@ -26,7 +26,13 @@ ${BR}if( $helper.findCondition($conditional) ) {
 #######################################################################################
 #macro(callNF $call)
 #set ($inputs = $helper.getOrderedInputs($call))
-  $helper.getResultName($call) = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
+#set($result = false)
+#set ($result = $helper.getResultName($call))
+#if ($result  && $result != "null")
+  $result = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
+#else
+  $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
+#end
 #end
 #######################################################################################
 #macro(scatterNF $scatter)
@@ -51,7 +57,14 @@ nextflow.enable.dsl=2
 include { $functions } from './biouml_function.nf'
 #end
 #######################################################################################
-#foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
+#foreach ( $import in $helper.getImports() )
+#if ( $import.getAlias() )
+include ( $import.getName() as $import.getAlias() ) from '$import.getSourceName()'
+#else
+include ( $import.getName() ) from '$import.getSourceName()'
+#end
+#end
+##foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
 #######################################################################################
 #set ($externalParameters = $helper.getExternalParameters())
 #if ($externalParameters.size() > 0)
@@ -65,24 +78,7 @@ $helper.getExternalInput($externalParameter)
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
-$BR  fair true
-#set ($container = $helper.getContainer($task))
-#if($container)
-  container '$container'$BR## 
-#end
-#set ($cpus = $helper.getCPUs($task))
-#if($cpus)
-  cpus $cpus$BR##
-#end
-#set ($memory = $helper.getMemory($task))
-#if($memory)
-  memory $memory$BR##
-#end
-#set ($maxRetries = $helper.getMaxRetries($task))
-#if($maxRetries)
-  maxRetries $maxRetries$BR##
-#end
-  publishDir "$task.getName()", mode: 'copy'
+$helper.printDirectives($task, "  ")
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
 $BR  input:
@@ -95,13 +91,17 @@ $BR  output:
   $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output) 
 #end
 #end
+#if ($helper.getCommand($task) || $helper.getPrivateDeclarations($task).size() > 0)
 $BR  script:
 #foreach($declaration in $helper.getPrivateDeclarations($task))
   $helper.writePrivateDeclaration($declaration)
 #end
+#if ($helper.getCommand($task) )
   """
   $helper.getCommand($task).trim()
   """
+#end
+#end
 }$BR
 #end
 #######################################################################################

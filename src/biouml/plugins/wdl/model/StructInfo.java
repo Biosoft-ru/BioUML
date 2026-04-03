@@ -16,7 +16,7 @@ public class StructInfo
     {
         this.name = name;
     }
-    public Iterable<ExpressionInfo> getExpressions()
+    public List<ExpressionInfo> getExpressions()
     {
         return expressions;
     }

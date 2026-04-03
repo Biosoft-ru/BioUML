@@ -9,7 +9,7 @@
 #####################################MACROS############################################
 #######################################################################################
 #macro(comma $list)
-#if( $foreach.count < $list.size() ),#end
+#if( $velocityCount < $list.size() ),#end
 #end
 #######################################################################################
 #macro(struct $struct)
@@ -34,8 +34,13 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #end
 #######################################################################################
 #macro(call $call)
-#set ( $diagramAlias = $helper.getExternalDiagramAlias($call) ) 
-  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) #if( $helper.getAlias($call) ) as $helper.getAlias($call)#end {
+#set ( $diagramAlias = $helper.getExternalDiagramAlias($call) )
+#if(  !($helper.getTaskRef($call).equals($helper.getAlias($call))) )
+  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) as $helper.getAlias($call) {
+#else
+  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) {
+#end
+##  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) #if( $helper.getAlias($call) ) as $helper.getAlias($call)#end {
 #set ( $inputs = $helper.getOrderedInputs($call) )
 #if ( $inputs.size()> 0 )
      input: #foreach( $input in $inputs ) $helper.getCallInput($input)#comma($inputs)#end
@@ -99,7 +104,7 @@ task $task.getName() {
   }$BR
 #end
 #foreach( $declaration in $helper.getBeforeCommand($task) )
-  $declaration.toString()
+  $declaration.getType() $declaration.getName() = $declaration.getExpression()
 #end
   command <<<
      $helper.getCommand($task).trim()
@@ -125,8 +130,13 @@ task $task.getName() {
 #######################################################################################
 ###################################WORKFLOW############################################
 #######################################################################################
-workflow $helper.getMainWorkflowName() {
-#set ( $externalParameters = $helper.getExternalParameters() )
+#foreach ( $workflow in $helper.getWorkflows() )
+#if ( $workflow.getName().isEmpty() )
+workflow $helper.getName() {
+#else
+workflow $workflow.getName() {
+#end
+#set ( $externalParameters = $helper.getExternalParameters($workflow) )
 #if ( $externalParameters.size() > 0 )
   input {
 #foreach( $externalParameter in $externalParameters )
@@ -134,7 +144,7 @@ workflow $helper.getMainWorkflowName() {
 #end
   }$BR
 #end
-#set ( $meta = $helper.getMeta($diagram) )
+#set ( $meta = $helper.getMeta($workflow) )
 #if ( $meta.size() > 0 )
   meta {
 #foreach($prop in $meta.entrySet())
@@ -142,7 +152,7 @@ workflow $helper.getMainWorkflowName() {
 #end
   }$BR
 #end
-#set ( $parmeters_meta = $helper.getParametersMeta($diagram) )
+#set ( $parmeters_meta = $helper.getParametersMeta($workflow) )
 #if ( $parmeters_meta.size() > 0 )
   parameters_meta {
 #foreach( $prop in $parmeters_meta.entrySet() )
@@ -150,7 +160,7 @@ workflow $helper.getMainWorkflowName() {
 #end
   }$BR
 #end
-#set( $ordered = $helper.orderCalls($diagram) )
+#set( $ordered = $helper.orderCalls($workflow) )
 #foreach( $n in $ordered )
 #if ( $helper.isCycle($n) )#scatter($n)
 #elseif ( $helper.isCall($n) )#call($n)
@@ -158,7 +168,7 @@ workflow $helper.getMainWorkflowName() {
 #elseif ( $helper.isConditional($n) )#conditional($n)
 #end 
 #end
-#set ( $externalOutputs = $helper.getExternalOutputs() )
+#set ( $externalOutputs = $helper.getExternalOutputs($workflow) )
 #if ( $externalOutputs.size() > 0 )
   output {
 #foreach( $externalOutput in $externalOutputs )
@@ -167,3 +177,4 @@ workflow $helper.getMainWorkflowName() {
   }
 #end
 }
+#end

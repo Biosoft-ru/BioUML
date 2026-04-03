@@ -34,6 +34,11 @@ public class WorkflowInfo extends ExecutableInfo implements Iterable<Object>
         steps.addObject( object );
     }
     
+    public ContainerInfo getSteps()
+    {
+        return steps;
+    }
+    
     public int size()
     {
         return steps.size();

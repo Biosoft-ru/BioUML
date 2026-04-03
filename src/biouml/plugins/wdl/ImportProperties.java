@@ -9,6 +9,7 @@ public class ImportProperties extends Option
     DataElementPath source;
     private String sourceName;
     private String alias;
+    private String name;
 
     public ImportProperties()
     {
@@ -46,4 +47,15 @@ public class ImportProperties extends Option
     {
         this.alias = alias;
     }
+    
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
 }

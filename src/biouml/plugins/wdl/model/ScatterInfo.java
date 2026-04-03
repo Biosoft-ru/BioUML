@@ -1,9 +1,23 @@
 package biouml.plugins.wdl.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ScatterInfo extends ContainerInfo
 {
-    private String variable;
+    private String variable; //TODO: refactor expression info into declaration info
     private String expression;
+    private Set<String> arguments = new HashSet<>();
+
+    public Set<String> getArguments()
+    {
+        return arguments;
+    }
+
+    public void setArguments(Set<String> arguments)
+    {
+        this.arguments = arguments;
+    }
 
     public String getVariable()
     {
@@ -18,7 +32,7 @@ public class ScatterInfo extends ContainerInfo
     {
         return expression;
     }
-    
+
     public void setExpression(String expression)
     {
         this.expression = expression;

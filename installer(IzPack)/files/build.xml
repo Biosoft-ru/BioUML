@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<project name="BioUML installation" default="install" basedir=".">
+	<target name="install">
+		<copy todir="${InstallPath}">
+			<fileset dir="${InstallPath}/launch" includes="*.bat"/>
+			<filterset begintoken="::" endtoken="::">
+				<filter token="IZPACK_JAVA_HOME" value="set JAVA_HOME=${JDKPath}" />
+			</filterset>
+			<filterchain>
+				<fixcrlf eol="crlf"/>
+			</filterchain>
+		</copy>
+		<copy todir="${InstallPath}">
+			<fileset dir="${InstallPath}/launch" includes="*.sh"/>
+			<filterset begintoken="#" endtoken="#">
+				<filter token="IZPACK_JAVA_HOME" value="JAVA_HOME=${JDKPath}" />
+			</filterset>
+			<filterchain>
+				<fixcrlf eol="lf"/>
+			</filterchain>
+		</copy>
+		<delete dir="${InstallPath}/launch"/>
+	</target>
+</project>
+

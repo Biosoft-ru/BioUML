@@ -1,17 +1,30 @@
 package biouml.plugins.wdl.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ConditionalInfo
 {
     private LinkedHashMap<String, ContainerInfo> ifBlocks = new LinkedHashMap<>();
+    private Map<String, Set<String>> conditionArguments = new HashMap<>();
+    
     private ContainerInfo elseBlock = new ContainerInfo();
 
-    public void addCondition(String expression)
+    public void addCondition(String expression, Set<String> arguments)
     {
+        if (ifBlocks.containsKey( expression ))
+            return;
         ifBlocks.put( expression, new ContainerInfo() );
+        conditionArguments.put( expression, arguments );
+    }
+    
+    public Set<String> getArguments(String condition)
+    {
+        return conditionArguments.get( condition );
     }
 
     public List<String> getConditions()
@@ -29,9 +42,9 @@ public class ConditionalInfo
         return !elseBlock.isEmpty();
     }
 
-    public Iterable<Object> getElse()
+    public ContainerInfo getElse()
     {
-        return elseBlock.getObjects();
+        return elseBlock;
     }
 
     public void add(String condition, Object object)
@@ -39,8 +52,8 @@ public class ConditionalInfo
         ifBlocks.computeIfAbsent( condition, k -> new ContainerInfo() ).addObject( object );
     }
     
-    public Iterable<Object> get(String condition)
+    public ContainerInfo get(String condition)
     {
-        return ifBlocks.get( condition ).getObjects();
+        return ifBlocks.get( condition );
     }
 }

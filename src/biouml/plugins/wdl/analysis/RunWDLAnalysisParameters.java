@@ -2,16 +2,12 @@ package biouml.plugins.wdl.analysis;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.StringReader;
-
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
-import biouml.plugins.wdl.parser.AstStart;
-import biouml.plugins.wdl.parser.WDLParser;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 
@@ -96,8 +92,7 @@ public class RunWDLAnalysisParameters extends AbstractAnalysisParameters impleme
 
     public void reloadParameters(String wdl) throws Exception
     {
-        AstStart start = new WDLParser().parse( new StringReader( wdl ) );
-        Diagram diagram = new WDLImporter().generateDiagram( start, null, "analysisDiagram" );
+        Diagram diagram = new WDLImporter().generateDiagram( wdl, "analysisDiagram" , null);
         settings.initParameters( diagram );
         firePropertyChange( "*", null, null );
     }

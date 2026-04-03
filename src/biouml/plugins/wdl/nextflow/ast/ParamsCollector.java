@@ -17,7 +17,7 @@ public class ParamsCollector extends NextflowVisitor
     }
     
     @Override
-    public void doVisit(Expression expression)
+    public boolean doVisit(Expression expression)
     {
         if( expression instanceof PropertyExpression )
         {
@@ -31,6 +31,7 @@ public class ParamsCollector extends NextflowVisitor
                 }
             }
         }
+        return true;
     }
     
     public Set<String> getParameters(Expression expression)

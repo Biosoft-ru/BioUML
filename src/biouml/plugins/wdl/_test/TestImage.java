@@ -37,13 +37,8 @@ public class TestImage
 
     public static void main(String ... args) throws Exception
     {
-        WDLParser parser = new WDLParser();
-        String wdl = ApplicationUtils.readAsString( new File( path ) );
-        wdl = wdl.replace( "<<<", "{" ).replace( ">>>", "}" );
-        AstStart start = parser.parse( new StringReader( wdl ) );
         WDLImporter importer = new WDLImporter();
-        diagram = importer.generateDiagram( start, null, name );
-
+        diagram = importer.generateDiagram(  new File( path ) , name, null );
         WDLGenerator generator = new WDLGenerator();
         String s = generator.generate( diagram );
         System.out.println( "Rexported WDL: " );

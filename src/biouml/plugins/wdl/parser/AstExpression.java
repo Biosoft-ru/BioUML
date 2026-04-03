@@ -4,6 +4,8 @@ package biouml.plugins.wdl.parser;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AstExpression extends SimpleNode
 {
@@ -30,6 +32,14 @@ public class AstExpression extends SimpleNode
         if (node instanceof AstSubSymbol)
         {
             result.add( node.toString() );
+            for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+            {
+                Node child = node.jjtGetChild( i );
+                for( int j = 0; j < child.jjtGetNumChildren(); j++ )
+                {
+                    result.addAll( getArguments( child.jjtGetChild( j ) ) );
+                }
+            }
             return result;
         }
         else if (node instanceof AstSymbol)
@@ -45,11 +55,29 @@ public class AstExpression extends SimpleNode
         {
             result.add( node.toString() );
         }
+        else if (node instanceof AstText)
+        {
+            String text = ((AstText)node).getText();
+            result.addAll( extractExpressions(text) );
+        }
         
         for( int i = 0; i < node.jjtGetNumChildren(); i++ )
         {
             Node child = node.jjtGetChild( i );
             result.addAll(getArguments(child));     
+        }
+
+        return result;
+    }
+    
+    public static Set<String> extractExpressions(String text) {
+        Set<String> result = new HashSet<>();
+
+        Pattern pattern = Pattern.compile("~\\{([^}]*)\\}");
+        Matcher matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            result.add(matcher.group(1));
         }
 
         return result;

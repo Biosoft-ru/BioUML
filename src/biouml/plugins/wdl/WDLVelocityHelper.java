@@ -2,8 +2,10 @@ package biouml.plugins.wdl;
 
 import java.util.List;
 
+import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.diagram.WDLConstants;
 
 public class WDLVelocityHelper extends WorkflowVelocityHelper
 {
@@ -32,7 +34,10 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     
     public String getVersion()
     {
-        return WorkflowUtil.getVersion( diagram );
+        String version =  diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
+        if (version == null)
+            version = "1.2";
+        return version;
     }
 
     public String getCallInput(Node inputNode)
@@ -47,6 +52,13 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     public List<ImportProperties> getImports()
     {
         return WorkflowUtil.getImports( diagram );
+    }
+    
+    public List<Compartment> getWorkflows()
+    {
+        List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
+        result.add( diagram );
+        return result;
     }
 
 }

@@ -31,12 +31,20 @@ public class NextFlowFormatter
 {
     private static String INDENT = "  ";
     private boolean addQuote = true;
+    private boolean transformToWDL = true;
+
+    public void setTransformGString(boolean transform)
+    {
+        this.transformToWDL = transform;
+    }
 
     public String format(Expression expression, boolean addQuote)
     {
+        boolean oldQuote = this.addQuote;
         this.addQuote = addQuote;
         StringBuilder sb = new StringBuilder();
         format( expression, sb );
+        this.addQuote = oldQuote;
         return sb.toString();
     }
 
@@ -144,7 +152,15 @@ public class NextFlowFormatter
 
     private void formatArgumentList(ArgumentListExpression argumentExpression, StringBuilder sb)
     {
-        format( sb, StreamEx.of( argumentExpression.getExpressions() ).map( arg -> format( arg, true ) ).joining( ", " ) );
+        format( sb, StreamEx.of( argumentExpression.getExpressions() ).filter( expr -> ! ( expr instanceof MapExpression ) )
+                .map( arg -> format( arg, true ) ).joining( ", " ) );
+        String maps = StreamEx.of( argumentExpression.getExpressions() ).select( MapExpression.class ).map( arg -> format( arg, true ) )
+                .joining( ", " );
+        if( !maps.isEmpty() )
+        {
+            format( sb, ", " );
+            format( sb, maps );
+        }
     }
 
     private void formatTuple(TupleExpression tupleExpression, StringBuilder sb)
@@ -163,7 +179,7 @@ public class NextFlowFormatter
         for( int i = 0; i < listExpression.getExpressions().size(); i++ )
         {
             format( listExpression.getExpressions().get( i ), sb );
-            if( i < listExpression.getExpressions().size()-1 )
+            if( i < listExpression.getExpressions().size() - 1 )
                 sb.append( "," );
         }
         sb.append( "]" );
@@ -171,12 +187,21 @@ public class NextFlowFormatter
 
     private void formatPropertyExpression(PropertyExpression propertyExpression, StringBuilder sb)
     {
-        format( sb, propertyExpression.getObjectExpression(), ".", propertyExpression.getProperty() );
+        Expression objectExpression = propertyExpression.getObjectExpression();
+        Expression valueExpression = propertyExpression.getProperty();
+        String object;
+        String property;
+        if( objectExpression instanceof ConstantExpression )
+            object = format( objectExpression, true );
+        else
+            object = format( objectExpression, false );
+        format( sb, object, ".", propertyExpression.getProperty() );
+
     }
 
     private void formatTernary(TernaryExpression expr, StringBuilder sb)
     {
-        format( sb, "if (", expr.getBooleanExpression(), ") then ", expr.getTrueExpression(), " else ", expr.getFalseExpression() );
+        format( sb, "(", expr.getBooleanExpression(), ") ? ", expr.getTrueExpression(), " : ", expr.getFalseExpression() );
     }
 
     private void formatConstant(ConstantExpression expression, StringBuilder sb)
@@ -187,6 +212,10 @@ public class NextFlowFormatter
             quote( sb );
             sb.append( value.toString() );
             quote( sb );
+        }
+        else if (value == null)
+        {
+            format( sb, "null" );
         }
         else
         {
@@ -214,26 +243,25 @@ public class NextFlowFormatter
 
     private void formatBinary(BinaryExpression binary, StringBuilder sb)
     {
-        format( sb, binary.getLeftExpression(), " ", binary.getOperation().getText(), " ", binary.getRightExpression() );
+        if( binary.getOperation().getText().equals( "[" ) )
+            format( sb, binary.getLeftExpression(), binary.getOperation().getText(), binary.getRightExpression(), "]" );
+        else
+            format( sb, binary.getLeftExpression(), " ", binary.getOperation().getText(), " ", binary.getRightExpression() );
     }
 
     private void formatGString(GStringExpression gString, StringBuilder sb)
     {
         quote( sb );
         String text = gString.getText();
-        for( Expression expression : gString.getValues() )
+        if( transformToWDL )
         {
-            if( expression instanceof VariableExpression )
-            {
-                String variableName = ( (VariableExpression)expression ).getName();
-                text = text.replace( "$" + variableName, "${" + variableName + "}" );
-            }
-            else
+            for( Expression expression : gString.getValues() )
             {
                 String variableName = format( expression );
-                text = text.replace( "$" + variableName, "${" + variableName + "}" );
+                text = text.replace( "$" + variableName, "~{" + variableName + "}" );
             }
         }
+
         sb.append( text );
         quote( sb );
     }

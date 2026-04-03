@@ -6,7 +6,7 @@ public class ImportInfo
     private String source;
     private String alias;
     private String task;
-
+ 
     public void ImportInfo()
     {
         
@@ -41,6 +41,11 @@ public class ImportInfo
     public String getAlias()
     {
         return alias;
+    }
+    
+    public void setAlias(String alias)
+    {
+        this.alias = alias;
     }
     
     public ScriptInfo getImported()

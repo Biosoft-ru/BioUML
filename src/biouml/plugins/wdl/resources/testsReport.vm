@@ -20,9 +20,14 @@
 #set ($index = 1)
 #foreach($result in $results)
 #set($name = $result.getName())
+#if ($result.getTitle())
+#set ($title = $result.getTitle())
+#else
+#set ($title = $name)
+#end
 <tr>
 <td>$index</td>
-<td><a href="${name}/${name}.html" target="_blank">$result.getTitle()</a></td>
+<td><a href="${name}/${name}.html" target="_blank">$title</a></td>
 <td>$result.getDescription()</a></td>
 <td><a href="${name}/${name}.png" target="_blank">$result.getDiagramGenerated()</a></td>
 <td><a href="${name}/${name}_exported.wdl" target="_blank">$result.getWDLGenerated()</a></td>

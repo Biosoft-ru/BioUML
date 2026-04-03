@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<izpack:antactions
+    version="5.0"
+    xmlns:izpack="http://izpack.org/schema/antactions"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://izpack.org/schema/antactions http://izpack.org/schema/5.0/izpack-antactions-5.0.xsd">
+	<pack name="Core">
+		<antcall order="afterpacks" buildresource="build.xml">
+			<property name="JDKPath" value="$JDKPath"/>
+			<property name="InstallPath" value="$INSTALL_PATH"/>
+			<target name="install"/>
+		</antcall>
+	</pack>
+</izpack:antactions>
