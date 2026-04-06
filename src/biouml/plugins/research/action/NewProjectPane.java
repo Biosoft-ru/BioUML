@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -39,8 +40,10 @@ import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.Repository;
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.generic.TableImplementationRecord;
 import ru.biosoft.exception.ExceptionRegistry;
@@ -56,6 +59,7 @@ public class NewProjectPane extends JPanel
 
     protected JTextField researchName;
     protected JComboBox<SQLInfo> sqlList;
+    protected JLabel sqlLabel;
     protected String driverName;
 
     private final MessageBundle resources = new MessageBundle();
@@ -95,17 +99,21 @@ public class NewProjectPane extends JPanel
         fields.add(new JLabel(genericResources.getResourceString("PN_TABLE_IMPLEMENTATION")), new GridBagConstraints(0, 8, 1, 1, 0.0, 0.0,
                 GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
         preferredImplementation = new JComboBox<>(TableImplementationRecord.getTableImplementations());
-        fields.add(preferredImplementation, new GridBagConstraints(1, 8, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH,
-                new Insets(5, 5, 0, 0), 0, 0));
+        fields.add( preferredImplementation, new GridBagConstraints( 1, 8, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 5, 5, 0, 0 ), 0, 0 ) );
+        preferredImplementation.addItemListener( e -> {
+            String item = e.getItem().toString();
+            updateSqlSelectors( item );
+        } );
 
         driverName = resources.getResourceString("JDBC_DEFAULT_DRIVER");
 
-        fields.add(new JLabel(resources.getResourceString("JDBC_SQL_FIELD")), new GridBagConstraints(0, 9, 1, 1, 0.0, 0.0,
-                GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+        sqlLabel = new JLabel( resources.getResourceString( "JDBC_SQL_FIELD" ) );
+        fields.add( sqlLabel, new GridBagConstraints( 0, 9, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets( 0, 0, 0, 0 ), 0, 0 ) );
         List<SQLInfo> sqlConnections = SQLRegistry.getSQLServersList();
         sqlList = new JComboBox<>(sqlConnections.toArray(new SQLInfo[sqlConnections.size()]));
         fields.add(sqlList, new GridBagConstraints(1, 9, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(5, 5,
                 0, 0), 0, 0));
+        updateSqlSelectors( preferredImplementation.getSelectedItem().toString() );
 
         collections = new TabularPropertyInspector();
         collections.setPreferredSize(new Dimension(450, 100));
@@ -130,6 +138,13 @@ public class NewProjectPane extends JPanel
         }
     }
 
+    private void updateSqlSelectors(String selectedItem)
+    {
+        boolean showSql = selectedItem.equals( "SQL" );
+        sqlLabel.setVisible( showSql );
+        sqlList.setVisible( showSql );
+    }
+
     /**
      * Create new research project with entered parameters
      */
@@ -139,17 +154,7 @@ public class NewProjectPane extends JPanel
         try
         {
             name = researchName.getText();
-            Properties props = new Properties();
-
-            Object sqlConnection = sqlList.getSelectedItem();
-            if( sqlConnection instanceof SQLInfo )
-            {
-                fillSQLProperties(props, (SQLInfo)sqlConnection);
-            }
-            props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, preferredImplementation.getSelectedItem()
-                    .toString());
-
-            ResearchBuilder researchBuilder = new ResearchBuilder(props);
+            
             DataCollection<?> userProjectsParent = CollectionFactoryUtils.getUserProjectsPath().getDataCollection(DataCollection.class);
             ApplicationFrame applicationFrame = Application.getApplicationFrame();
             if( userProjectsParent.contains(name) )
@@ -159,18 +164,49 @@ public class NewProjectPane extends JPanel
                 log.log(Level.SEVERE, resources.getResourceString("NEW_RESEARCH_EXISTS"));
                 return;
             }
-            DataCollection<?> researchDC = researchBuilder.createResearch((Repository)userProjectsParent, name, false);
-            if( researchDC != null )
+            
+            Properties props = new Properties();
+            props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, preferredImplementation.getSelectedItem()
+                    .toString());
+            boolean isFileCollection = props.getProperty( GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY ).equals( "File" );
+            if(isFileCollection)
             {
-                DataElement dataDC = researchDC.get(Module.DATA);
-                if( dataDC instanceof DataCollection )
+                String projectsFolder = userProjectsParent.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
+                File projectFolder = new File( projectsFolder, name );
+                projectFolder.mkdirs();
+                GenericFileDataCollection.initGenericFileDataCollection( userProjectsParent, projectFolder, null );
+    
+                ((Repository) userProjectsParent).updateRepository();
+                DataCollection<?> researchDC = (DataCollection) userProjectsParent.get( name );
+                for ( String subFolderName : getSelectedCollections() )
                 {
-                    for( String subFolderName : getSelectedCollections() )
+                    DataCollectionUtils.createSubCollection( DataElementPath.create( researchDC, subFolderName ) );
+                }
+                
+            }
+            else
+            {
+                Object sqlConnection = sqlList.getSelectedItem();
+                if( sqlConnection instanceof SQLInfo )
+                {
+                    fillSQLProperties(props, (SQLInfo)sqlConnection);
+                }
+                ResearchBuilder researchBuilder = new ResearchBuilder(props);
+                DataCollection<?> researchDC = researchBuilder.createResearch( (Repository) userProjectsParent, name, false );
+                if( researchDC != null )
+                {
+                    DataElement dataDC = researchDC.get( Module.DATA );
+                    if( dataDC instanceof DataCollection )
                     {
-                        DataCollectionUtils.createSubCollection(DataElementPath.create((DataCollection<?>)dataDC, subFolderName));
+                        for ( String subFolderName : getSelectedCollections() )
+                        {
+                            DataCollectionUtils.createSubCollection( DataElementPath.create( (DataCollection<?>) dataDC, subFolderName ) );
+                        }
                     }
                 }
+
             }
+
 
             if(applicationFrame instanceof BioUMLApplication)
             {
