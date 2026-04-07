@@ -478,7 +478,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 String sycledName = WorkflowUtil.getCycleVariable( cycle );
                 if( isCall( otherSource.getCompartment() ) )
                 {
-                    //Special case: we iterate through call output
+                    //Special case: we iterate through call output 
                     String qualified = getCallName( otherSource.getCompartment() ) + "." + getName( otherSource );
                     if( expression.equals( qualified + '[' + sycledName + ']' ) )
                         return "result_" + qualified;
@@ -493,12 +493,31 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 }
             }
         }
+        else if (cycledSources.size() == 2) //special case: we iterate through call result, note: fancy indexing is not allowed
+        {
+            Node input1 = cycledSources.get( 0 );
+            Node input2 = cycledSources.get( 1 );
+            boolean isCallResult1 = isCall( input1.getCompartment() );
+            boolean isCallResult2 = isCall( input2.getCompartment() );
+            if( isCallResult1 != isCallResult2 )
+            {
+                Node callResult = isCallResult1 ? input1 : input2;
+                Compartment cycle = isCallResult1 ? WorkflowUtil.getParentCycle( input2 ) : WorkflowUtil.getParentCycle( input1 );
+                String cycleVariable = WorkflowUtil.getCycleVariable( cycle );
+                String callName = WorkflowUtil.getCallName( callResult.getCompartment() );
+                String qualified = callName + "." + WorkflowUtil.getName( callResult ) + "[" + cycleVariable + "]";
+                if( expression.replace( " ", "" ).equals( qualified ) )
+                    return callName +".out."+ WorkflowUtil.getName( callResult );
+            }
+        }
+        Set<Compartment> calls = new HashSet<Compartment>();
         for( Node cycledSource : cycledSources )
         {
             Compartment cycle = WorkflowUtil.getParentCycle( cycledSource );
             Compartment parent = cycledSource.getCompartment();
             if( isCall( parent ) )
-                expression = replaceCallPrefix( expression, parent );
+                calls.add( parent );
+
             cycleToSources.computeIfAbsent( cycle, k -> new ArrayList<>() ).add( cycledSource );
         }
 
@@ -517,6 +536,21 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
         sb.append( merged.size() == 1 ? "toChannel( " + merged.get( 0 ) + " )"
                 : StreamEx.of( merged ).joining( ", ", "combineAll( [ ", " ] )" ) );
+         
+        for (Compartment call: calls)
+        {
+            for ( Node indexNode: indexNodes)
+            {
+
+                Compartment compartment = indexNode.getCompartment();
+                if( WorkflowUtil.isCall( compartment ) )
+                {
+                    String name = WorkflowUtil.getCallName( compartment );
+                    if( name != null && name.equals( WorkflowUtil.getCallName( call ) ) )
+                        expression = replaceCallPrefix( expression, call );
+                }
+            }
+        }
         String indexes = StreamEx.of( indexNodes ).map( s -> withCallPrefix( s ) ).joining( ", " );
         if( ! ( indexes.equals( expression ) ) )
             sb.append( ".map { " + indexes + " -> " + expression + " }" );
@@ -824,9 +858,15 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             String replacement = "params." + name ;
             if( "File".equals( WorkflowUtil.getType( source ) ) )
                  replacement = "file(" + replacement + ")";
-            expression = expression.replace( name, replacement);
+            expression = replace( expression, name, replacement);
         }
         return expression;
+    }
+    
+    public static String replace(String expr, String toReplace, String replacement)
+    {
+        String regex = "(?<![A-Za-z0-9_.])" + Pattern.quote( toReplace ) + "(?![A-Za-z0-9_.])";
+        return expr.replaceAll( regex, replacement );
     }
 
 
