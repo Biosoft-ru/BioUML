@@ -72,26 +72,13 @@ public class NextFlowPreprocessor
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
                 expression = processMap( expression );
+                expression = processObject(expression);
                 WorkflowUtil.setExpression( node, expression );
             }
         }
         return result;
     }
     
-    
-    String processCallName(Node node, String expression)
-    {
-        for (Node source: WorkflowUtil.getSources( node ))
-        {
-            Compartment parent = source.getCompartment();
-            if (WorkflowUtil.isCall( parent ))
-            {
-                String callName = WorkflowUtil.getCallName( parent );
-                expression = expression.replace( callName+".", "result_"+callName+"." );
-            }
-        }
-        return expression;
-    }
 
     public String preprocess(String s) throws Exception
     {
@@ -154,6 +141,16 @@ public class NextFlowPreprocessor
             return map.replace( "{", "[" ).replace( "}", "]" );
         }
         return map;
+    }
+    
+    public static String processObject(String obj)
+    {
+        String content = obj.trim();
+        if( content.startsWith( "object" ) && content.endsWith( "}" ) )
+        {
+            return obj.replace( "{", "[" ).replace( "}", "]" ).replace( "object", "");
+        }
+        return obj;
     }
 
     public static String processTernary(String ternary)
