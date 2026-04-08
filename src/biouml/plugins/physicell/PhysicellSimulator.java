@@ -20,7 +20,7 @@ public class PhysicellSimulator implements Simulator
     private PhysicellModel model;
     private PhysicellOptions options = new PhysicellOptions();
     private boolean running = false;
-    protected final Logger log = Logger.getLogger( Simulator.class.getName() );
+    protected Logger log = Logger.getLogger( Simulator.class.getName() );
     private PhysicellResultWriter writer = new PhysicellResultWriter();
     private PlotProperties plotProperties;
 

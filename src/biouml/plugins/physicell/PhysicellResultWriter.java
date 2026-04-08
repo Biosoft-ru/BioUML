@@ -44,7 +44,7 @@ public class PhysicellResultWriter
     private PlotProperties plotProperties;
     private SimulationResult result = null;
 
-    protected final Logger log = Logger.getLogger( Simulator.class.getName() );
+    protected Logger log = Logger.getLogger( Simulator.class.getName() );
 
     public void init(PhysicellModel model, PhysicellOptions options, PlotProperties plotProperties) throws Exception
     {
@@ -260,14 +260,14 @@ public class PhysicellResultWriter
         this.textVisualizer = textVisualizer;
     }
 
-    public static void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
+    public void uploadMP4(File f, DataCollection<DataElement> dc, String name) throws Exception
     {
         VideoFileImporter importer = new VideoFileImporter();
         importer.getProperties( dc, f, name ).setResolution( "1280 x 720 (High definition)" );
         importer.doImport( dc, f, name, null, log );
     }
 
-    private static void uploadGeneric(File f, DataCollection<DataElement> dc, String name) throws Exception
+    private void uploadGeneric(File f, DataCollection<DataElement> dc, String name) throws Exception
     {
         FileImporter importer = new FileImporter();
         importer.doImport( dc, f, name, null, log );
@@ -300,7 +300,7 @@ public class PhysicellResultWriter
             resultFolder.put( result );
     }
 
-    public static void shift(DataCollection dc, int xShift, int yShift, int zShift) throws Exception
+    public void shift(DataCollection dc, int xShift, int yShift, int zShift) throws Exception
     {
         DataCollection cells = (DataCollection)dc.get( "Cells" );
         for( Object name : cells.getNameList() )
@@ -340,7 +340,7 @@ public class PhysicellResultWriter
         }
     }
 
-    private static String print(double val)
+    private String print(double val)
     {
         return String.valueOf( Math.round( val * 10 ) / 10 );
     }
