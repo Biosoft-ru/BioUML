@@ -177,7 +177,7 @@ public class PhysicellWebProvider extends WebJSONProviderSupport
         VideoGenerator videoGenerator = (VideoGenerator)WebServicesServlet.getSessionCache().getObject( simulationDe+"_video_generator" );
         File tempVideoFile = (File)WebServicesServlet.getSessionCache().getObject( simulationDe+"_video_file" );
         videoGenerator.finish();
-        PhysicellResultWriter.uploadMP4( tempVideoFile, result.getOptions().getResult().getParentCollection(), result.getOptions().getResult().getName() );
+        new PhysicellResultWriter().uploadMP4( tempVideoFile, result.getOptions().getResult().getParentCollection(), result.getOptions().getResult().getName() );
     }
 
 
