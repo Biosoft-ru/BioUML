@@ -29,7 +29,7 @@ public class PhysicellArchiveImporter implements DataElementImporter
 {
     private static final String EXTENSION = ".pcl";
 
-    protected static final Logger log = Logger.getLogger(PhysicellArchiveImporter.class.getName());
+    protected final Logger log = Logger.getLogger(PhysicellArchiveImporter.class.getName());
 
     private List<ImportedFile> files;
     private File mainFile = null;

@@ -53,7 +53,7 @@ import ru.biosoft.util.TempFiles;
 
 public class PhysicellExporter implements DataElementExporter
 {
-    protected static final Logger log = Logger.getLogger( PhysicellExporter.class.getName() );
+    protected final Logger log = Logger.getLogger( PhysicellExporter.class.getName() );
     private Diagram diagram;
     private Document document;
 

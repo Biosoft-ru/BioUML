@@ -44,7 +44,7 @@ public class PhysicellResultWriter
     private PlotProperties plotProperties;
     private SimulationResult result = null;
 
-    protected static final Logger log = Logger.getLogger( Simulator.class.getName() );
+    protected final Logger log = Logger.getLogger( Simulator.class.getName() );
 
     public void init(PhysicellModel model, PhysicellOptions options, PlotProperties plotProperties) throws Exception
     {
