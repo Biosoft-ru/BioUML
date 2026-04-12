@@ -1533,6 +1533,12 @@ public class CompositeModelPreprocessor extends Preprocessor
                             newReaction.setFormula(newReaction.getFormula() + "*(" + factor + ")");
                     }
                     oldNodesToNew.put(node, newNode);
+                    
+                    SubDiagram parentSubDiagram = SubDiagram.getParentSubDiagram(subDiagram);
+                    String key = parentSubDiagram != null ? parentSubDiagram.getCompleteNameInDiagram() : "";
+                    String oldVariable = ((Equation)node.getRole()).getVariable();
+                    String newVariable = ((Equation)newNode.getRole()).getVariable();
+                    substitutionMap.put(new Pair<>(oldVariable, key), newVariable);
                     //                    reactions.add( newReaction );
                 }
             }
@@ -2184,6 +2190,7 @@ public class CompositeModelPreprocessor extends Preprocessor
      */
     public Map<String, String> getVarPathMapping(String parentSubDiagram)
     {
+    
 //        adjustSubstitutions();
         //first step: we create mapping for current preprocessing step: between paths with 1-level deep and variables in flat model
         //E.g.
@@ -2239,7 +2246,24 @@ public class CompositeModelPreprocessor extends Preprocessor
             }
             return result;
         }
-
+        Map<String, String> reactionMapping = createRateMapping();
         return extendedPathMapping;
+    }
+    
+    private Map<String, String> createRateMapping()
+    {
+        Map<String, String> mapping = new HashMap<>();
+        for (Entry<biouml.model.Node, biouml.model.Node> e: oldNodesToNew.entrySet())
+        {
+            if (e.getKey().getKernel() instanceof Reaction)
+            {
+               Equation eq = (Equation)e.getKey().getRole();
+               String var = eq.getVariable();
+               Equation eq2 = (Equation)e.getValue().getRole();
+               String var2 = eq2.getVariable();
+                mapping.put(var , var );
+            }
+        }
+       return mapping;
     }
 }
