@@ -663,7 +663,9 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
             if( ! ( engine.getEngine() instanceof AgentModelSimulationEngine ) && DiagramUtility.containModules( engine.getDiagram() ) )
             {
                 SubDiagram subDiagram = (SubDiagram)result.findDiagramElement( engine.de.getCompleteNameInDiagram() );
-                new CompositeModelPreprocessor().processCompositeSubDiagram( result, subDiagram );
+                CompositeModelPreprocessor preprocessor = new CompositeModelPreprocessor();
+                preprocessor.setNameStyle( CompositeModelPreprocessor.SBML_STYLE );
+                preprocessor.processCompositeSubDiagram( result, subDiagram );
             }
         }
 

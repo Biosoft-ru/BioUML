@@ -693,6 +693,7 @@ public class CompositeModelPreprocessor extends Preprocessor
     public SubDiagram processCompositeSubDiagram(Diagram compositeDiagram, SubDiagram subDiagram) throws Exception
     {
         CompositeModelPreprocessor preprocessor = new CompositeModelPreprocessor();
+        preprocessor.setNameStyle( this.nameStyle );
         preprocessor.asSubDiagram = true; 
         Diagram innerDiagram = subDiagram.getDiagram();
         innerDiagram.getAttributes().remove(SubDiagram.RELATIVE_SUBDIAGRAM); //we should consider his diagram as a top level for this preprocessing
