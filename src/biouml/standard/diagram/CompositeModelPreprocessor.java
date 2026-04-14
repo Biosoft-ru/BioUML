@@ -707,11 +707,10 @@ public class CompositeModelPreprocessor extends Preprocessor
         
         varPathMapping.putAll(preprocessor.getVarPathMapping(subDiagram.getName()));
 
-        boolean in = false;
-
         //rename variable in all correspondent connections
         for( Edge edge : Util.getEdges(subDiagram) )
         {
+            boolean in = false;
             if( edge.getInput().equals(subDiagram) )
             {
                 in = true;
@@ -755,6 +754,7 @@ public class CompositeModelPreprocessor extends Preprocessor
                     varName = Util.getPortVariable(edge.getOutput());
                     port = connection.getOutputPort();
                 }
+                System.out.println( "Rename variable in connection" +port.getVariableName()+" -> " + varName);
                 port.setVariableName(varName);
                 port.setVariableTitle(varName);
             }
