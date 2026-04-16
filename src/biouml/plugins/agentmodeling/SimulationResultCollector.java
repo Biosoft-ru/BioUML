@@ -1,6 +1,8 @@
 package biouml.plugins.agentmodeling;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -17,14 +19,19 @@ public class SimulationResultCollector extends StatCollector
     private SimulationResult result;
     private String agentName;
     private SimulationAgent agent;
+    private List<String> varNames = new ArrayList<>();
 
     public SimulationResultCollector(String subdiagram, String resultPath, String ... names)
     {
-        this.agentName = subdiagram;
-        DataElementPath path =  DataElementPath.create( resultPath );
-        this.result = new SimulationResult( path.getParentCollection(), path.getName() );
-        result.setVariableMap( new HashMap<String, Integer>() );
         for( String name : names )
+            this.varNames.add( name );
+        varNames.add( "time" );
+        this.agentName = subdiagram;
+        DataElementPath path = DataElementPath.create( resultPath );
+        this.result = new SimulationResult( path.getParentCollection(), path.getName() );
+        result.setDiagramName( "Whatever" );
+        result.setVariableMap( new HashMap<String, Integer>() );
+        for( String name : varNames )
             addVariable( name );
     }
 
@@ -36,8 +43,7 @@ public class SimulationResultCollector extends StatCollector
             if( agent.getName().equals( agentName ) )
             {
                 this.agent = agent;
-                agent.addVariable("time");
-                for (String name: result.getVariables())
+                for( String name : varNames )
                 {
                     agent.addVariable( name );
                 }
