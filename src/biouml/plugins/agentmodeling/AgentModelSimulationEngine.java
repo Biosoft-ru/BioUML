@@ -81,6 +81,8 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
     private HashMap<String, SimulationEngine> nameToEngine;
     private boolean flatSubModels = false;
     private String outputDir = TempFiles.path( "simulation" ).getAbsolutePath();
+    
+    private List<StatCollector> collectors = new ArrayList<>();
 
     @Override
     public void propertyChange(PropertyChangeEvent evt)
@@ -978,9 +980,17 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
                 if( agent instanceof SteadyStateAgent )
                     span.addPoints( calcAdditionalPointsSpan( ( (SteadyStateAgent)agent ) ) );
             }
+
+            if( simulator instanceof Scheduler )
+            {
+                ( (Scheduler)simulator ).clearStatisticsCollector();
+                for( StatCollector collector : this.collectors )
+                    ( (Scheduler)simulator ).addStatisticsCollector( collector );
+            }
+            
             log.info( "Model " + diagram.getName() + ": simulation started." );
             System.out.println( "Model " + diagram.getName() + ": simulation started." );
-
+            
             simulator.start( model, span, getListeners(), jobControl );
         }
         finally
@@ -1126,5 +1136,15 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
         else
             result = (PlotsInfo)plotsObj;
         return result;
+    }
+    
+    public void addCollector(StatCollector collector)
+    {
+        collectors.add( collector );
+    }
+    
+    public void clearCollectors()
+    {
+        collectors.clear();
     }
 }
