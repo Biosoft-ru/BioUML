@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import biouml.plugins.simulation.Span;
 import biouml.standard.simulation.SimulationResult;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataElementPath;
 
 /**
@@ -16,23 +17,33 @@ import ru.biosoft.access.core.DataElementPath;
  */
 public class SimulationResultCollector extends StatCollector
 {
+    private static final String TIME = "time";
     private SimulationResult result;
     private String agentName;
-    private SimulationAgent agent;
+    private ModelAgent agent;
     private List<String> varNames = new ArrayList<>();
-
+    private int timeIndex = -1;
+    private boolean hasTime = false;
+    
+    public SimulationResultCollector(String subdiagram, String resultPath)
+    {
+        this(subdiagram, resultPath, new String[] {});
+    }
+    
     public SimulationResultCollector(String subdiagram, String resultPath, String ... names)
     {
         for( String name : names )
+        {
             this.varNames.add( name );
-        varNames.add( "time" );
+            if (name.equals( TIME ))
+                hasTime = true;
+        }
+   
         this.agentName = subdiagram;
         DataElementPath path = DataElementPath.create( resultPath );
         this.result = new SimulationResult( path.getParentCollection(), path.getName() );
         result.setDiagramName( "Whatever" );
         result.setVariableMap( new HashMap<String, Integer>() );
-        for( String name : varNames )
-            addVariable( name );
     }
 
     @Override
@@ -42,9 +53,23 @@ public class SimulationResultCollector extends StatCollector
         {
             if( agent.getName().equals( agentName ) )
             {
-                this.agent = agent;
-                for( String name : varNames )
+                if (!(agent instanceof ModelAgent))
                 {
+                    throw new Exception( "Only agents with mathematical models allowed for result collector" );
+                }
+                this.agent = (ModelAgent)agent;
+
+                if( varNames.size() == 0 )
+                    varNames = StreamEx.of( this.agent.getEngine().getVarIndexMapping().keySet() ).toList();               
+                else if (!hasTime)
+                    varNames.add( TIME );
+                
+                for( int index = 0; index < varNames.size(); index ++)
+                {
+                    String name = varNames.get( index );
+                    if (name.equals( TIME ))
+                            timeIndex = index;
+                    addVariable( name );
                     agent.addVariable( name );
                 }
             }
@@ -77,7 +102,7 @@ public class SimulationResultCollector extends StatCollector
             double value = agent.getCurrentValue( varName );
             values[index] = value;
         }
-        result.add( time, values );
+        result.add( values[timeIndex], values );
     }
 
     @Override
