@@ -23,7 +23,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.json.JSONArray;
 
 import com.developmentontheedge.log.PatternFormatter;
-import com.developmentontheedge.log.WriterHandler;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
@@ -40,6 +39,7 @@ import biouml.plugins.simulation.SimulationAnalysis;
 import biouml.plugins.simulation.SimulationAnalysisParameters;
 import biouml.plugins.simulation.SimulationEngine;
 import biouml.plugins.simulation.SimulationEngineWrapper;
+import biouml.plugins.simulation.SimulationLogWriterHandler;
 import biouml.plugins.simulation.document.InputParameter;
 import biouml.plugins.simulation.document.InteractiveSimulation;
 import biouml.standard.diagram.DiagramUtility;
@@ -215,12 +215,12 @@ public class SimulationProvider extends WebJSONProviderSupport
             }
         };
 
-        final Handler webLogHandler = new WriterHandler(writer, new PatternFormatter("%4$s - %5$s%n"));
+        final Handler webLogHandler = new SimulationLogWriterHandler( writer, new PatternFormatter( "%4$s - %5$s%n" ) );
         webLogHandler.setLevel(Level.ALL);
 
-        final Logger cat = Logger.getLogger("biouml.plugins.simulation");
-        cat.setLevel( Level.ALL );
-        cat.addHandler(webLogHandler);
+        //        final Logger cat = Logger.getLogger("biouml.plugins.simulation");
+        //        cat.setLevel( Level.ALL );
+        //        cat.addHandler(webLogHandler);
 
         //If simulation engine is from plugin biouml.plugins.simulation, do not add handler to engine since it will be duplicated
         final Logger engineLogger = simulationEngine.getLogger().getLogger();
@@ -244,7 +244,7 @@ public class SimulationProvider extends WebJSONProviderSupport
             public void jobTerminated(JobControlEvent event)
             {
                 log.removeHandler(webLogHandler);
-                cat.removeHandler(webLogHandler);
+                //cat.removeHandler(webLogHandler);
                 engineLogger.removeHandler(webLogHandler);
             }
         });
