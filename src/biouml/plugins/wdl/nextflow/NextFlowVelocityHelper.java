@@ -18,6 +18,7 @@ import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.WorkflowVelocityHelper;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.model.CommandInfo;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import one.util.streamex.StreamEx;
 
@@ -46,7 +47,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     {
         String command = super.getCommand( c );
         if (command  == null)
-            return null;
+            return "";
         command = command.replace( "$", "\\$" );
         command = command.replace( "~{", "${" );
         return command;
@@ -85,6 +86,16 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             default:
                 return "val";
         }
+    }
+    
+    public String getCommandType(Compartment task)
+    {
+        return WorkflowUtil.getCommandType( task );
+    }
+    
+    public boolean commandNeedsQuotes(String type)
+    {
+        return !type.equals( CommandInfo.TYPE_EXEC );
     }
 
     public String getExternalInput(Node n)

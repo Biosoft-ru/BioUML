@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.codehaus.groovy.ast.ASTNode;
-
+import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
+import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.SourceUnit;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
@@ -23,11 +25,13 @@ public class NextflowParser
 {
     public static List<ASTNode> parse(String script, boolean statementsOnly, CompilePhase compilePhase)
     {
+        script =  convertToStrictSyntax(script);
         final String scriptClassName = makeScriptClassName();
         GroovyCodeSource codeSource = new GroovyCodeSource(script, scriptClassName + ".groovy", "/groovy/script");
         CompilationUnit cu = new CompilationUnit(CompilerConfiguration.DEFAULT, codeSource.getCodeSource(),
                 AccessController.doPrivileged((PrivilegedAction<GroovyClassLoader>) GroovyClassLoader::new));
         cu.addPhaseOperation(source -> IncludeTransformer.transformIncludes(source.getAST()), Phases.CONVERSION);
+//        cu.addPhaseOperation(source -> ImportGroovyTansformer.process(source), Phases.PARSING);
         
         cu.addSource(codeSource.getName(), script);
       
@@ -54,4 +58,10 @@ public class NextflowParser
     private static String makeScriptClassName() {
         return "Script" + System.nanoTime();
     }
+ 
+    public static String convertToStrictSyntax(String script) {
+        // Simply remove import statements
+        return script.replaceAll("(?m)^\\s*import\\s+.+$\\n?", "");
+    }
+            
 }

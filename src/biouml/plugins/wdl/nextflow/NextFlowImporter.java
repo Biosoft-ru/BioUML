@@ -274,9 +274,24 @@ public class NextFlowImporter
             }
             else if( isScript( currentLabels ) )
             {
+                String type = getScriptType(currentLabels);
                 String command = nextflowFormatter.format( expression, false );
-                CommandInfo commandInfo = new CommandInfo( command );
-                taskInfo.setCommand( commandInfo );
+                if( type.equals( CommandInfo.TYPE_EXEC ) )
+                {
+                    CommandInfo info = taskInfo.getCommand();
+                    info.setType( type );
+                    String script = info.getScript();
+                    if (script == null)
+                        script = "";
+                    script = script + "\n  " + command;
+                    info.setScript( script );
+                }
+                else
+                {
+                    CommandInfo commandInfo = new CommandInfo( command );
+                    commandInfo.setType( type );
+                    taskInfo.setCommand( commandInfo );
+                }
             }
         }
         return taskInfo;
@@ -436,8 +451,18 @@ public class NextFlowImporter
 
     private static boolean isScript(List<String> labels)
     {
-        return hasAny( labels, "script" );
+        return hasAny( labels, CommandInfo.TYPE_EXEC ) || hasAny(labels, CommandInfo.TYPE_SCRIPT) || hasAny(labels, CommandInfo.TYPE_SHELL);
     }
+    
+    private static String getScriptType(List<String> labels)
+    {
+        if( hasAny( labels, CommandInfo.TYPE_EXEC ) )
+            return CommandInfo.TYPE_EXEC;
+        else if( hasAny( labels, CommandInfo.TYPE_SHELL ) )
+            return CommandInfo.TYPE_SHELL;
+        return CommandInfo.TYPE_SCRIPT;
+    }
+
 
     public List<Statement> findLabeled(List<Statement> statements, String label)
     {
