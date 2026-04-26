@@ -363,6 +363,7 @@ var resourcesRU = {
     dlgCreatePrjTitle : "Создать новый проект",
     dlgCreatePrjCreated : "Проект {name} успешно создан",
     dlgCreatePrjName: "Имя проекта:",
+    dlgCreatePrjType: "Тип проекта:",
     dlgCreatePrjDescription: "Описание:",
     dlgCreatePrjDescriptionPlaceholder: "Введите описание проекта здесь",
 

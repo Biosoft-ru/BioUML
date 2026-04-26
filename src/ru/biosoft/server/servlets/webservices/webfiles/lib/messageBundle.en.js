@@ -251,6 +251,7 @@ var resourcesEN = {
     dlgCreatePrjTitle : "Create new project",
     dlgCreatePrjCreated : "Project {name} successfully created",
     dlgCreatePrjName: "Project name:",
+    dlgCreatePrjType: "Project type:",
     dlgCreatePrjDescription: "Description:",
     dlgCreatePrjDescriptionPlaceholder: "Type project description here",
     

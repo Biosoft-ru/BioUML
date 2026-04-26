@@ -495,6 +495,8 @@ public class ImportProvider extends WebJSONProviderSupport
         if( formatBasic.equals( "Affymetrix CEL file (*.cel)" ) || formatBasic.equals( "Agilent microarray file (*.txt)" )
                 || formatBasic.equals( "Illumina microarray file (*.txt)" ) )
             return OmicsType.Transcriptomics;
+        if( formatBasic.equals( "Illumina expression IDAT (*.idat)" ) )
+            return OmicsType.Epigenomics;
         return null;
     }
 
