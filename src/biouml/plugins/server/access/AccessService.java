@@ -39,7 +39,6 @@ import one.util.streamex.EntryStream;
 import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
-import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.LocalRepository;
 import ru.biosoft.access.biohub.ReferenceType;
 import ru.biosoft.access.biohub.ReferenceTypeRegistry;
@@ -49,9 +48,13 @@ import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementDescriptor;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.core.Index;
 import ru.biosoft.access.core.QuerySystem;
 import ru.biosoft.access.core.SymbolicLinkDataCollection;
+import ru.biosoft.access.file.FileType;
+import ru.biosoft.access.file.FileTypeRegistry;
+import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.DataElementFileTypeDriver;
 import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.access.security.Permission;
@@ -771,27 +774,47 @@ public class AccessService extends AccessProtocol implements Service
             
             try
             {
-            	// try to get original file and transformer for GenericDataCollection
-            	DataElementDescriptor descriptor = de.getOrigin().getDescriptor(de.getName());
-            	if( descriptor != null && 
-            			descriptor.getValue(DataCollectionConfigConstants.FILE_PATH_PROPERTY) != null && 
-            			descriptor.getValue(DataElementFileTypeDriver.TRANSFORMER_CLASS) != null )
-            	{
-            		File file = new File(descriptor.getValue(DataCollectionConfigConstants.FILE_PATH_PROPERTY));
-            		transformerClass = descriptor.getValue(DataElementFileTypeDriver.TRANSFORMER_CLASS);
-            		deleteFile = false;
-            		fileItem = new FileItem(file);
-            	}
-            	
-            	else
-            	{
-                    // see saveAsFile method, it is durty hack
-            		fileItem = saveAsFile(de);
+                if( de.getOrigin() instanceof GenericFileDataCollection )
+                {
+                    GenericFileDataCollection gfdc = (GenericFileDataCollection) de.getOrigin();
+                    fileItem = new FileItem( gfdc.getChildFile( de.getName() ) );
+                    Map<String, Object> fileInfo = gfdc.getFileInfo( de.getName() );
+                    if( fileInfo.get( "transformer" ) != null )
+                    {
+                        transformerClass = (String) fileInfo.get( "transformer" );
+                    }
+                    else if( fileInfo.get( "type" ) != null )
+                    {
+                        String fileType = (String) fileInfo.get( "type" );
+                        FileType ft = FileTypeRegistry.getFileType( fileType );
+                        if( ft != null )
+                            transformerClass = ft.getTransformerClassName();
+                    }
+                    deleteFile = false;
+                }
+                else
+                {
+                    // try to get original file and transformer for GenericDataCollection
+                    DataElementDescriptor descriptor = de.getOrigin().getDescriptor( de.getName() );
+                    if( descriptor != null && descriptor.getValue( DataCollectionConfigConstants.FILE_PATH_PROPERTY ) != null
+                            && descriptor.getValue( DataElementFileTypeDriver.TRANSFORMER_CLASS ) != null )
+                    {
+                        File file = new File( descriptor.getValue( DataCollectionConfigConstants.FILE_PATH_PROPERTY ) );
+                        transformerClass = descriptor.getValue( DataElementFileTypeDriver.TRANSFORMER_CLASS );
+                        deleteFile = false;
+                        fileItem = new FileItem( file );
+                    }
 
-                    // here we make it more obvious
-            		transformerClass = fileItem.getOriginalName();
-            		deleteFile = !fileItem.getOriginalName().isEmpty(); 
-            	}
+                    else
+                    {
+                        // see saveAsFile method, it is durty hack
+                        fileItem = saveAsFile( de );
+
+                        // here we make it more obvious
+                        transformerClass = fileItem.getOriginalName();
+                        deleteFile = !fileItem.getOriginalName().isEmpty();
+                    }
+                }
             
                 if(fileItem.length() > 10L*1024*1024*1024)
                     throw new Exception("Element is too big to transfer");
@@ -1044,11 +1067,12 @@ public class AccessService extends AccessProtocol implements Service
                     Properties properties = new Properties();
 
                     Map<String, String> clonedProperties = descriptor.cloneProperties();
-            		for(java.util.Iterator<String> it = clonedProperties.keySet().iterator(); it.hasNext();)
-            		{
-            			String key = it.next();
-            			properties.put(key, clonedProperties.get(key)); 
-            		}
+                    if( clonedProperties != null )
+                        for ( java.util.Iterator<String> it = clonedProperties.keySet().iterator(); it.hasNext(); )
+                        {
+                            String key = it.next();
+                            properties.put( key, clonedProperties.get( key ) );
+                        }
             		
             		properties.put(DataCollectionConfigConstants.DATA_ELEMENT_CLASS_PROPERTY, descriptor.getType().getName());
             		properties.put(DataCollectionConfigConstants.IS_LEAF, 				    ""+descriptor.isLeaf());
