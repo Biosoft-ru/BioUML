@@ -38,7 +38,16 @@
                 if(!contextToolbarActions[i].multi && nodePaths.length > 1)
                     continue;
                 var allVisible = nodePaths.every(function(path){
-                    return contextToolbarActions[i].isVisible(contextToolbarActions[i].useOriginalPath?path:getTargetPath(path)) === true;
+                    if(!path)
+                        return contextToolbarActions[i].isVisible(contextToolbarActions[i].useOriginalPath?path:getTargetPath(path)) === true;
+                    var dc = getDataCollection(path);
+                    //some actions can be applied to invalid elements (like remove or changeType)
+                    var isValid = dc.isValid();
+                    var actionPath = (contextToolbarActions[i].useOriginalPath || !isValid) ? path : getTargetPath(path);
+                    if(isValid || contextToolbarActions[i].allowInvalid)
+                        return contextToolbarActions[i].isVisible(actionPath) === true;
+                    else
+                        return false; 
                 });
                 var visibleType = contextToolbarActions[i].isVisible();
                 if (allVisible) 
