@@ -6,24 +6,18 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.StringTokenizer;
-
-import one.util.streamex.StreamEx;
-
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
-import ru.biosoft.access.core.AbstractTransformer;
+import one.util.streamex.StreamEx;
+import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.file.FileTypePriority;
-import ru.biosoft.access.file.FileBasedCollection;
 import ru.biosoft.access.core.PriorityTransformer;
-import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.file.AbstractFileTransformer;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableColumn;
@@ -36,7 +30,7 @@ import ru.biosoft.util.TextUtil2;
  * TableDataCollection to FileDataElement transformer (version 2)
  * Compatible with R simple table format.
  */
-public class TableDataFileTransformer2 extends AbstractTransformer<FileDataElement, StandardTableDataCollection> implements PriorityTransformer
+public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardTableDataCollection> implements PriorityTransformer
 {
     protected Logger log = Logger.getLogger(TableDataFileTransformer2.class.getName());
 
@@ -45,22 +39,23 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
     public static final String COLUMNS_TAG = "COLUMNS";
 
     @Override
-    public Class<FileDataElement> getInputType()
-    {
-        return FileDataElement.class;
-    }
-
-    @Override
     public Class<? extends StandardTableDataCollection> getOutputType()
     {
         return StandardTableDataCollection.class;
     }
 
     @Override
-    public FileDataElement transformOutput(StandardTableDataCollection tdc) throws Exception
+    public void save(File output, StandardTableDataCollection tdc) throws Exception
     {
-        FileDataElement fde = new FileDataElement(tdc.getName(), getPrimaryCollection().cast( FileBasedCollection.class ));
-        try(Writer fw = new OutputStreamWriter(new FileOutputStream(fde.getFile()), StandardCharsets.UTF_8))
+        //        // TODO Auto-generated method stub
+        //        
+        //    }
+        //    
+        //    @Override
+        //    public FileDataElement transformOutput(StandardTableDataCollection tdc) throws Exception
+        //    {
+        //FileDataElement fde = new FileDataElement(tdc.getName(), getPrimaryCollection().cast( FileBasedCollection.class ));
+        try (Writer fw = new OutputStreamWriter( new FileOutputStream( output ), StandardCharsets.UTF_8 ))
         {
             fw.write( tdc.columns().map( TableColumn::getName ).joining( "\t" ) );
             fw.write( "\n" );
@@ -75,17 +70,26 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
             log.log(Level.SEVERE, "Can not transform Entry to FileDataElement", t);
         }
 
-        return fde;
+        //        return fde;
     }
 
+    //    @Override
+    //    public StandardTableDataCollection load(File input, String name, DataCollection<StandardTableDataCollection> origin) throws Exception
+    //    {
+    //        // TODO Auto-generated method stub
+    //        return null;
+    //    }
+
     @Override
-    public StandardTableDataCollection transformInput(FileDataElement fileElement) throws Exception
+    //    public StandardTableDataCollection transformInput(FileDataElement fileElement) throws Exception
+    //    {
+    public StandardTableDataCollection load(File input, String name, DataCollection<StandardTableDataCollection> origin) throws Exception
     {
-        StandardTableDataCollection table = new StandardTableDataCollection(getTransformedCollection(), fileElement.getName());
-        try(BufferedReader br = ApplicationUtils.utfReader( fileElement.getFile() ))
+        StandardTableDataCollection table = new StandardTableDataCollection( getTransformedCollection(), name );
+        try (BufferedReader br = ApplicationUtils.utfReader( input ))
         {
             String line;
-            boolean columnCreated = parseInfoFile(fileElement, table);
+            boolean columnCreated = parseInfoFile( input, table );
             int uniqueID = 0;
             DataType[] columnTypes = null;
             while( ( line = br.readLine() ) != null )
@@ -219,10 +223,10 @@ public class TableDataFileTransformer2 extends AbstractTransformer<FileDataEleme
         return DataType.Text;
     }
 
-    protected boolean parseInfoFile(FileDataElement fde, TableDataCollection table) throws Exception
+    protected boolean parseInfoFile(File file, TableDataCollection table) throws Exception
     {
         boolean columnCreated = false;
-        File infoFile = new File(fde.getFile().getAbsolutePath() + ".info");
+        File infoFile = new File( file.getAbsolutePath() + ".info" );
         if( infoFile.exists() )
         {
             try (BufferedReader br = ApplicationUtils.utfReader( infoFile ))
