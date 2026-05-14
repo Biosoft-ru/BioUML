@@ -97,7 +97,10 @@ function DataCollection(completeName)
         if(data.type != QUERY_TYPE_SUCCESS)
         {
             if(_this.size < 0) _this.size = 0;
-            _this.valid = false;
+            if(instanceOf(_this.getClass(), "ru.biosoft.access.core.DataCollection"))
+                _this.valid = false;
+            else
+                _this.valid = true;
             return;
         }
         _this.fillElementInfoByResult(JSON.parse(data.values));
