@@ -411,7 +411,7 @@ var resourcesEN = {
     vpTableFilterTitle: "Filters",
     vpTableFilterButtonApply: "Apply filters",
     vpTableFilterButtonClear: "Remove filters",
-    vpTableFilterButtonExport: "Export filtered table",
+    vpTableFilterButtonExport: "Save filtered table as...",
     vpTableFilterSaveDialogTitle: "Specify name of the export result table",
     
     vpTableDetailsTitle: "Details",

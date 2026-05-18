@@ -7,6 +7,7 @@ import java.util.Properties;
 import biouml.plugins.server.DiagramClientCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.TransformedDataCollection;
+import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 
 /**
@@ -19,6 +20,7 @@ public class ClientDataCollectionResolver
 	protected static Map<String, String> mapping = new HashMap<>();
 	static{
 	    mapping.put(GenericDataCollection.class.getName(),		ClientGenericDataCollection.class.getName()	);
+        mapping.put( GenericFileDataCollection.class.getName(), ClientGenericFileDataCollection.class.getName() );
 	    mapping.put("biouml.model.Module",						ClientModule.class.getName()				);
 	}
 	
@@ -26,6 +28,7 @@ public class ClientDataCollectionResolver
     static
     {
         revertedMapping.put( ClientGenericDataCollection.class.getName(), GenericDataCollection.class.getName() );
+        revertedMapping.put( ClientGenericFileDataCollection.class.getName(), GenericFileDataCollection.class.getName() );
         revertedMapping.put( ClientModule.class.getName(), "biouml.model.Module" );
     }
 

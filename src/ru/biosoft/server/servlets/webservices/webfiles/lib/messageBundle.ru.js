@@ -523,7 +523,7 @@ var resourcesRU = {
     vpTableFilterTitle: "Фильтры",
     vpTableFilterButtonApply: "Применить фильтры",
     vpTableFilterButtonClear: "Удалить фильтры",
-    vpTableFilterButtonExport: "Экспортировать отфильтрованную таблицу",
+    vpTableFilterButtonExport: "Сохранить отфильтрованную таблицу как...",
     vpTableFilterSaveDialogTitle: "Укажите имя экспортируемой таблицы",
 
     vpTableDetailsTitle: "Детали",

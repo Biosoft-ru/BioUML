@@ -13,11 +13,13 @@
 		if(!path || !name) return -1;
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
+        var testDebug = toURI(name);
 		if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || instanceOf(type,'ru.biosoft.table.TableDataCollection') 
         || instanceOf(type,'ru.biosoft.bsa.Track') || instanceOf(type,'ru.biosoft.access.file.FileDataElement')
         || instanceOf(type,'ru.biosoft.bsa.AnnotatedSequence') || instanceOf(type,'biouml.standard.state.State')
         || instanceOf(type,'ru.biosoft.access.ImageElement') || instanceOf(type,'ru.biosoft.access.core.TextDataElement')
-        || instanceOf(type, 'biouml.model.Diagram') || instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')) 
+        || instanceOf(type, 'biouml.model.Diagram') || instanceOf(type,'ru.biosoft.access.html.ZipHtmlDataCollection')
+        || instanceOf(type, 'biouml.plugins.optimization.Optimization')) 
         {
             return true;
         }

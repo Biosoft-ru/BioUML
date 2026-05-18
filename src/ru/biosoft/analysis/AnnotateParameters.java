@@ -6,19 +6,19 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
 import biouml.standard.type.Species;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.repository.IconFactory;
+import ru.biosoft.analysis.editors.AnnotationPropertiesEditor;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.journal.ProjectUtils;
 import ru.biosoft.table.TableDataCollection;
-import ru.biosoft.util.BeanUtil;
 import ru.biosoft.util.PropertyInfo;
 import ru.biosoft.util.TextUtil2;
 
@@ -163,17 +163,10 @@ public class AnnotateParameters extends AbstractAnalysisParameters implements Pr
         DataCollection<?> dataCollection = getAnnotationCollection();
         if( dataCollection == null )
             return;
-        DataElement dataElement = null;
-        try
-        {
-            dataElement = dataCollection.iterator().next();
-        }
-        catch( Exception e )
-        {
-        }
-        if( dataElement == null )
+        PropertyInfo[] allAnnotationColumns = AnnotationPropertiesEditor.getProperties( dataCollection );
+        if( allAnnotationColumns.length == 0 )
             return;
-        PropertyInfo[] annotationColumns = StreamEx.of( BeanUtil.getRecursivePropertiesList( dataElement ) )
+        PropertyInfo[] annotationColumns = Stream.of( allAnnotationColumns )
                 .filter( info -> names.contains( info.getName() ) ).toArray( PropertyInfo[]::new );
         setAnnotationColumns( annotationColumns );
     }
