@@ -733,7 +733,7 @@ public class DiagramUtility
                     {
                         if( type.equals(MainVariableType.INPUT) && !Util.isBus(edge.getInput()) )
                             mainPort = edge.getInput();
-                        else if( !Util.isBus(edge.getOutput()) ) //bus can not be main - it will be removed
+                        else if( type.equals(MainVariableType.OUTPUT) && !Util.isBus(edge.getOutput()) ) //bus can not be main - it will be removed
                             mainPort = edge.getOutput();
                     }
                 }

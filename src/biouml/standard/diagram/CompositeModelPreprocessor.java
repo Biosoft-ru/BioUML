@@ -307,7 +307,7 @@ public class CompositeModelPreprocessor extends Preprocessor
                 }
 
                 String key = subDiagram != null ? subDiagram.getCompleteNameInDiagram() : "";
-                substitutionMap.put(new Pair<>(var.getName(), key), uniqueName);
+                substitutionMap.put(new Pair<>(var.getName(), key), masterVariable);
             }
             dgr.setNotificationEnabled( notif );
         }
@@ -588,11 +588,13 @@ public class CompositeModelPreprocessor extends Preprocessor
                 {
                     mainVariableName = inVariableName;
                     auxVariableName = outVariableName;
+                    initialValue = inOldVariable.getInitialValue();
                 }
                 else
                 {
                     mainVariableName = outVariableName;
                     auxVariableName = inVariableName;
+                    initialValue = outOldVariable.getInitialValue();
                 }
                 String factor = ( (UndirectedConnection)connection ).getConversionFactor();
                 if( !factor.isEmpty() )
@@ -619,13 +621,13 @@ public class CompositeModelPreprocessor extends Preprocessor
                     {
                         mainVariableName = outVariableName;
                         auxVariableName = inVariableName;
-                        initialValue = inOldVariable.getInitialValue();
+                        initialValue = outOldVariable.getInitialValue();
                     }
                     else
                     {
                         mainVariableName = inVariableName;
                         auxVariableName = outVariableName;
-                        initialValue = outOldVariable.getInitialValue();
+                        initialValue = inOldVariable.getInitialValue();
                     }
 
                 }
@@ -1677,7 +1679,11 @@ public class CompositeModelPreprocessor extends Preprocessor
             }
 
             if( newVarName != null )
+            {
+                double initialValue = newVarsToOld.get(main).getInitialValue();
+                newVarsToOld.get( newVarName ).setInitialValue( initialValue );
                 uConnectedInfo.put( main, newVarsToOld.get( newVarName ) );
+            }
         }
 
         for( Entry<String, String> e : toReplace.entrySet() )
@@ -2247,7 +2253,7 @@ public class CompositeModelPreprocessor extends Preprocessor
             }
             return result;
         }
-        Map<String, String> reactionMapping = createRateMapping();
+//        Map<String, String> reactionMapping = createRateMapping();
         return extendedPathMapping;
     }
     
