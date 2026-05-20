@@ -249,6 +249,7 @@ abstract public class OptimizationMethod<T extends OptimizationMethodParameters>
             incPreparedness(stepsNumber);
             log.info("Execution time: " + getWorkTime());
             clearInfo();
+            problem = null;
             
             return optResults;
         }
