@@ -35,12 +35,15 @@ import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPutException;
+import ru.biosoft.util.DPSUtils;
 
 /**
  * Generates WDL diagram on the base of ScriptInfo object
  */
 public class DiagramGenerator
 {
+    private static final String WORKFLOW_NAME = "Workflow name";
+
     protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
 
     //    private boolean doImportDiagram = false;
@@ -103,6 +106,7 @@ public class DiagramGenerator
         }
 
         WorkflowInfo workflow = script.getMainWorkflow( );
+        diagram.getAttributes().add( DPSUtils.createHiddenReadOnly( WORKFLOW_NAME, String.class, workflow.getName() ) );
         createWorkflow( diagram, workflow, true );
 
         createLinks( diagram );
@@ -270,7 +274,7 @@ public class DiagramGenerator
     {
         Diagram imported = new WDLDiagramType().createDiagram( null, importInfo.getImported().getName() );
         Diagram importedDiagram = new DiagramGenerator().generateDiagram( importInfo.getImported(), imported );
-        this.imports.put( importInfo.getImported().getName(), importedDiagram );
+        this.imports.put( importInfo.getAlias(), importedDiagram );
         importedDiagram.getAttributes().add( new DynamicProperty( "SOURCE", String.class, importInfo.getSource() ) );
         if( importInfo.getTask() != null )
         {
@@ -282,12 +286,6 @@ public class DiagramGenerator
                 importedExecutables.put( de.getName(), (Compartment)de );
             }
         }
-        String source = importInfo.getSource();
-        DataCollection dc = diagram.getOrigin();
-        DataElementPath path = dc.getCompletePath();
-        DataElementPath sourcePath = DataElementPath.create( source );
-        DataElementPath newPath =  DataElementPath.create( dc, source );
-        System.out.println( newPath.toString() );
     }
 
     public Node createExternalParameterNode(Compartment parent, ExpressionInfo expressionInfo)
@@ -573,8 +571,11 @@ public class DiagramGenerator
         if( taskСompartment == null )
         {
             taskСompartment = this.importedExecutables.get( name );
-            Diagram importedDiagram =  Diagram.getDiagram( taskСompartment );
-            diagramRef = importedDiagram.getAttributes().getValueAsString( "SOURCE" );
+            if( taskСompartment != null )
+            {
+                Diagram importedDiagram = Diagram.getDiagram( taskСompartment );
+                diagramRef = importedDiagram.getAttributes().getValueAsString( "SOURCE" );
+            }
         }
 
         //        boolean externalDiagram = false;
@@ -590,7 +591,11 @@ public class DiagramGenerator
                 Diagram importedDiagram = imports.get( diagramAlias );
                 diagramRef = importedDiagram.getName();
 
-                if( taskRef.equals( WDLConstants.MAIN_WORKFLOW ) )
+                String mainWorkflowName =  WDLConstants.MAIN_WORKFLOW ;
+                DynamicProperty dp =importedDiagram.getAttributes().getProperty( WORKFLOW_NAME );
+                if (dp != null)
+                    mainWorkflowName = dp.getValue().toString();
+                if( taskRef.equals( mainWorkflowName ) )
                 {
                     taskСompartment = importedDiagram;
                     //                    externalDiagram = true;
@@ -600,7 +605,7 @@ public class DiagramGenerator
                     DiagramElement de = importedDiagram.get( taskRef );
                     if( ! ( de instanceof Compartment ) )
                         throw new Exception( "Can not resolve call " + call.getTaskName() );
-                    taskСompartment = (Compartment)importedDiagram.get( taskRef );
+                    taskСompartment = (Compartment)de;
                 }
             }
         }
