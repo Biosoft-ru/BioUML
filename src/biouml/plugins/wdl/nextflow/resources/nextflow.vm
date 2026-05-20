@@ -92,14 +92,19 @@ $BR  output:
 #end
 #end
 #if ($helper.getCommand($task) || $helper.getPrivateDeclarations($task).size() > 0)
-$BR  script:
+#set( $scriptType = $helper.getCommandType($task) )
+$BR  $scriptType:
 #foreach($declaration in $helper.getPrivateDeclarations($task))
   $helper.writePrivateDeclaration($declaration)
 #end
 #if ($helper.getCommand($task) )
+#if ($helper.commandNeedsQuotes($scriptType))
   """
+#end
   $helper.getCommand($task).trim()
+#if ($helper.commandNeedsQuotes($scriptType))
   """
+#end
 #end
 #end
 }$BR
