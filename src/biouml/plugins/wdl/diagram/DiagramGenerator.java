@@ -401,6 +401,7 @@ public class DiagramGenerator
         Stub kernel = new Stub( null, name, WDLConstants.TASK_TYPE );
         Compartment c = new Compartment( parent, name, kernel );
         WorkflowUtil.setBeforeCommand( c, task.getBeforeCommand().toArray( ExpressionInfo[]::new ) );
+        WorkflowUtil.setCommandType( c, task.getCommand().getType() );
         WorkflowUtil.setCommand( c, task.getCommand().getScript() );
         WorkflowUtil.setRuntime( c, task.getRuntime() );
         c.setTitle( name );

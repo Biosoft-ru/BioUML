@@ -1,5 +1,7 @@
 package biouml.plugins.wdl.nextflow.ast;
 
+import java.util.List;
+
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.BooleanExpression;
@@ -22,6 +24,7 @@ import org.codehaus.groovy.ast.expr.TupleExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.IfStatement;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 
@@ -213,7 +216,7 @@ public class NextFlowFormatter
             sb.append( value.toString() );
             quote( sb );
         }
-        else if (value == null)
+        else if( value == null )
         {
             format( sb, "null" );
         }
@@ -309,30 +312,51 @@ public class NextFlowFormatter
     {
         sb.append( StreamEx.of( closureExpression.getParameters() ).map( p -> p.getName() ).joining( "," ) );
         sb.append( " -> " );
-
         Statement codeStatement = closureExpression.getCode();
-        if( codeStatement instanceof BlockStatement )
-        {
-            for( Statement statement : ( (BlockStatement)codeStatement ).getStatements() )
-            {
-                if( statement instanceof ExpressionStatement )
-                {
-                    br( sb );
-                    indent( sb );
-                    format( ( (ExpressionStatement)statement ).getExpression(), sb );
-                }
-                else if( statement instanceof ReturnStatement )
-                {
-                    br( sb );
-                    indent( sb );
-                    sb.append( "return " );
-                    format( ( (ReturnStatement)statement ).getExpression(), sb );
-                }
-                else
-                {
-                    System.out.println( "" );
-                }
+        formatStatement( sb, codeStatement );
+    }
 
+    private void formatStatement(StringBuilder sb, Statement statement)
+    {
+        if( statement instanceof BlockStatement )
+        {
+            for( Statement insideStatement : ( (BlockStatement)statement ).getStatements() )
+            {
+                formatStatement( sb, insideStatement );
+            }
+        }
+        if( statement instanceof ReturnStatement )
+        {
+            br( sb );
+            indent( sb );
+            sb.append( "return " );
+            format( ( (ReturnStatement)statement ).getExpression(), sb );
+        }
+        else if( statement instanceof ExpressionStatement )
+        {
+            br( sb );
+            indent( sb );
+            format( ( (ExpressionStatement)statement ).getExpression(), sb );
+        }
+        else if( statement instanceof IfStatement )
+        {
+            IfStatement ifStatement = ( (IfStatement)statement );
+            format( sb, "if( ", ifStatement.getBooleanExpression().getExpression(), ") {" );
+            List<Statement> ifStatements = ( (BlockStatement)ifStatement.getIfBlock() ).getStatements();
+            for( Statement statementInside : ifStatements )
+                formatStatement( sb, statementInside );
+            format( sb, "}" );
+            List<Statement> elseStatements = ( (BlockStatement)ifStatement.getElseBlock() ).getStatements();
+            if( !elseStatements.isEmpty() )
+            {
+                br( sb );
+                indent( sb );
+                format( sb, "else {" );
+                for( Statement statementInside : elseStatements )
+                    formatStatement( sb, statementInside );
+                br( sb );
+                indent( sb );
+                format( sb, "}" );
             }
         }
     }

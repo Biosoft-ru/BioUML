@@ -454,6 +454,15 @@ public class WorkflowUtil
         return d.getAttributes().getValueAsString( WDLConstants.VERSION_ATTR );
     }
 
+    public static void setCommandType(Compartment compartment, String type)
+    {
+        compartment.getAttributes().add( new DynamicProperty( WDLConstants.COMMAND_TYPE_ATTR, String.class, type ) );
+    }
+    public static String getCommandType(Compartment c)
+    {
+        return c.getAttributes().getValueAsString( WDLConstants.COMMAND_TYPE_ATTR );
+    }
+    
     public static void setCommand(Compartment compartment, String command)
     {
         compartment.getAttributes().add( new DynamicProperty( WDLConstants.COMMAND_ATTR, String.class, command ) );
@@ -520,6 +529,12 @@ public class WorkflowUtil
     public static Compartment findCall(String taskName, Diagram diagram)
     {
         return diagram.recursiveStream().select( Compartment.class ).filter( c -> isCall( c ) && getCallName( c ).equals( taskName ) )
+                .findAny().orElse( null );
+    }
+    
+    public static Compartment findTask(String taskName, Diagram diagram)
+    {
+        return diagram.recursiveStream().select( Compartment.class ).filter( c -> isTask( c ) && c.getName().equals( taskName ) )
                 .findAny().orElse( null );
     }
 
@@ -812,6 +827,10 @@ public class WorkflowUtil
     //        dp.setValue( newValue );
     //    }
 
+    public static void setAlias(Compartment call, String alias)
+    {
+        call.getAttributes().add( new DynamicProperty(WDLConstants.CALL_NAME_ATTR , String.class, alias) );
+    }
     public static String getAlias(Compartment call)
     {
         DynamicProperty dp = call.getAttributes().getProperty( WDLConstants.CALL_NAME_ATTR );
