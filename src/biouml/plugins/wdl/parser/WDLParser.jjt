@@ -65,18 +65,11 @@ TOKEN :
 < EOL :   ("\n" | "\r"  | "\r\n" ) >
 }
 
-<*> SPECIAL_TOKEN : /* instead of SKIP */
+<*> SKIP :
 {
-  <([" ", "\t"])+>
-| <"#"> { prevLexState = curLexState; }: ML_COMMENT
+  " " | "\t"
+| <"#" (~["\n","\r"])*>
 }
-
-<ML_COMMENT> SPECIAL_TOKEN :
-{
-  < ML_EOL : < EOL > > {SwitchTo(prevLexState);}
-| <~["\n"]>
-}
-
 
 TOKEN : /* STATE SWITCHERS */
 {
@@ -129,7 +122,7 @@ TOKEN : /* STATE SWITCHERS */
 
 | < OUTPUT : "output" >
 
-| < PRIMITIVE_TYPE :  "Boolean" |  "Boolean?" | "File"  | "File?" |
+| < PRIMITIVE_TYPE :  "Boolean" |  "Boolean?" | "File"  | "File?" | "Directory" | "Directory?"|
                       "Float"| "Float?" | "Int" | "Int?" | "String" |  "String?" >
 | < ARRAY : "Array">
 
@@ -214,11 +207,6 @@ TOKEN : /* SPECIAL SYMBOLS */
 < QUESTION_MARK: "?" >
 }
 
-TOKEN : /* RESERVED FOR FUTURE VERSIONS */
-{
- < DIRECTORY: "Directory" >
-}
-
 TOKEN : /* LITERALS */
 {
   < TEXT_STRING : ("\""  ( ~[ "\"", "\n", "\t" ] )* "\"")
@@ -233,7 +221,7 @@ TOKEN : /* IDENTIFIERS */
 {
   < #LETTER : [ "a"-"z", "A"-"Z" ] >
 | < #DIGIT : [ "0"-"9" ] >
-| < SYMBOL : ( < LETTER > | "_" ) ( < LETTER > | < DIGIT > | "_" )* >
+| < SYMBOL :  ( ( < LETTER > | "_" ) ( < LETTER > | < DIGIT > | "_" )* ) >
 | < INTEGER: (<DIGIT>)+>
 | < TRIANGULAR_BRACKET_L : "<" >
 | < TRIANGULAR_BRACKET_R : ">" >
@@ -257,6 +245,7 @@ TOKEN : /* IDENTIFIERS */
 AstStart Start() #Start:
 {}
 {
+    ( <EOL> )*  // <-- Allow leading newlines
     version()
 
     (astElement())+
@@ -277,7 +266,7 @@ void astElement():
 void version() #Version:
 {}
 {
-    < VERSION > < FLOATING_POINT_LITERAL > {this.version = token.image;}
+    < VERSION > (< SYMBOL > | <FLOATING_POINT_LITERAL>){this.version = token.image;}
 }
 
 void task() #Task:
@@ -536,17 +525,19 @@ void call() #Call:
 	        (sepEol())*
 	        (< COLON > #Colon)
 	        (sepEol())* 
-	        equationSymbol()
 	        (
-	        	LOOKAHEAD(3)
-		        (sepEol())*
-		        (< COMMA > #Comma) 
-		        (sepEol())*
-		        equationSymbol()
-	        )*
-	    	(sepEol())*
-	    	(< COMMA > #Comma)?
-	        (sepEol())*
+	            equationSymbol()
+	            (
+	            	LOOKAHEAD(3)
+		            (sepEol())*
+		            (< COMMA > #Comma) 
+		            (sepEol())*
+		            equationSymbol()
+	            )*
+	    	    (sepEol())*
+	    	    (< COMMA > #Comma)?
+	            (sepEol())*
+	        )?
 	    )?
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     )?
@@ -969,8 +960,8 @@ void map() #Map:
 void keyValue() #KeyValue:
 {}
 {
-	primitiveType() {jjtThis.setKey(token.image);}
-	(sepEol())*
+    expression()  // <-- Changed from primitiveType() to expression()
+    (sepEol())*
     (< COLON > #Colon)
     (sepEol())*
     expression()
