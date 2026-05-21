@@ -132,15 +132,6 @@ public class WebOptimizationProvider extends WebJSONProviderSupport
     private static Optimization getOptimization(DataElementPath path)
     {
         Optimization optimization = path.optDataElement(Optimization.class);
-        if( optimization == null )
-        {
-            Object optimizationObj = WebServicesServlet.getSessionCache().getObject(path.toString());
-            if( optimizationObj instanceof Optimization )
-            {
-                optimization = (Optimization)optimizationObj;
-            }
-        }
-        WebServicesServlet.getSessionCache().addObject(path.toString(), optimization, true);
         return optimization;
     }
 
@@ -340,7 +331,7 @@ public class WebOptimizationProvider extends WebJSONProviderSupport
             TaskInfo task = taskManager.addTask( TaskInfo.WORKFLOW, DataElementPath.create( optimization ), jobControl,
                     new JULLoggerAdapter( log ), journal,
                     AnalysisDPSUtils.getParametersAsDynamicPropertySet( optimization.getParameters() ), false, null );
-            task.setTransient("parameters", optimization.getParameters());
+            //task.setTransient("parameters", optimization.getParameters());
             webJob.setTask(task);
 
 
