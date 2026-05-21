@@ -551,14 +551,19 @@ function ComplexOptimizationViewPart()
             queryBioUML("web/optimization/opt_info", {de: _this.optimization.completeName}, 
                 function(data)
                 {
-                    _this.optInfo.html(resources.vpOptimizationInfoObjective
+                    if(_this.optimization.status == "terminated_by_request")
+                        return;
+                    if(data.values.deviation)
+                    {
+                        _this.optInfo.html(resources.vpOptimizationInfoObjective
                         + data.values.deviation + "<br/>"
                         + resources.vpOptimizationInfoPenalty
                         + data.values.penalty + "<br/>"
                         + resources.vpOptimizationInfoEvaluations
                         + data.values.evaluations);
+                    }
                     if(_this.optimization.status == "running")
-                        setTimeout(infoUpdater, 1000);          
+                        setTimeout(infoUpdater, 1000);
                 }
             );
         };
@@ -609,14 +614,61 @@ function ComplexOptimizationViewPart()
             setToolbarButtonEnabled(_this.stopAction,false);
             this.optimization.status = "";
         }
+        else if (status == JobControl.TERMINATED_BY_REQUEST)
+        {
+            _this.progressbar.hide();
+            _this.optimization.status = "terminated_by_request";
+            _this.waitForResults();
+            return;
+        }
         delete this.jobID;
         this.progressbar.hide();
         this.optInfo.hide();
     };
     
+    this.waitForResults = function()
+    {
+        _this.optInfo.html(resources.vpOptimizationWaitForResults);
+        var resultsInfoUpdater = function()
+        {
+            queryBioUML("web/jobcontrol", {jobID: _this.jobID}, 
+            function(data)
+            {
+                if(data.status != JobControl.TERMINATED_BY_REQUEST)
+                    return;
+                if(data.results && data.results.length > 0)
+                {
+                    _this.optInfo.html("");
+                    var refreshPaths = {};
+                    for(var i = 0; i < data.results.length; i++)
+                    {
+                        var path = getElementPath(data.results[i]);
+                        if(!refreshPaths[path])
+                        {
+                            refreshTreeBranch(path, true);
+                            refreshPaths[path] = true;
+                        }
+                    }
+                    setToolbarButtonEnabled(_this.startAction,true);
+                    setToolbarButtonEnabled(_this.stopAction,false);
+                    _this.optInfo.hide();
+                    delete _this.jobID;
+                }
+                else
+                    setTimeout(resultsInfoUpdater, 2000);
+            },
+            function(data){
+                setToolbarButtonEnabled(_this.startAction,true);
+                setToolbarButtonEnabled(_this.stopAction,false);
+                _this.optInfo.hide();
+                delete _this.jobID;
+            });
+        };
+        setTimeout(resultsInfoUpdater, 2000);
+    }
+    
     this.stopOptimization = function()
     {
-        this.optimization.status = "";
         cancelJob(this.jobID);
     };
     //Method tab finished

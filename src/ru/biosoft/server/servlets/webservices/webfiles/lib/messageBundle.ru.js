@@ -629,6 +629,7 @@ var resourcesRU = {
     vpOptVariables: "Переменные",
     vpOptEntities: "Сущности",
     vpOptSimulation: "Симуляция",
+    vpOptimizationWaitForResults: "Оптимизация остановлена, но результаты еще обрабатываются. Пожалуйста, подождите.",
 
     vpExperimentsSaved: "Эксперимент {expname} сохранен",
     
