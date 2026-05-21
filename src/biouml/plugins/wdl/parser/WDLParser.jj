@@ -69,18 +69,11 @@ TOKEN :
 < EOL :   ("\n" | "\r"  | "\r\n" ) >
 }
 
-<*> SPECIAL_TOKEN : /* instead of SKIP */
+<*> SKIP :
 {
-  <([" ", "\t"])+>
-| <"#"> { prevLexState = curLexState; }: ML_COMMENT
+  " " | "\t"
+| <"#" (~["\n","\r"])*>
 }
-
-<ML_COMMENT> SPECIAL_TOKEN :
-{
-  < ML_EOL : < EOL > > {SwitchTo(prevLexState);}
-| <~["\n"]>
-}
-
 
 TOKEN : /* STATE SWITCHERS */
 {
@@ -133,7 +126,7 @@ TOKEN : /* STATE SWITCHERS */
 
 | < OUTPUT : "output" >
 
-| < PRIMITIVE_TYPE :  "Boolean" |  "Boolean?" | "File"  | "File?" |
+| < PRIMITIVE_TYPE :  "Boolean" |  "Boolean?" | "File"  | "File?" | "Directory" | "Directory?"|
                       "Float"| "Float?" | "Int" | "Int?" | "String" |  "String?" >
 | < ARRAY : "Array">
 
@@ -218,11 +211,6 @@ TOKEN : /* SPECIAL SYMBOLS */
 < QUESTION_MARK: "?" >
 }
 
-TOKEN : /* RESERVED FOR FUTURE VERSIONS */
-{
- < DIRECTORY: "Directory" >
-}
-
 TOKEN : /* LITERALS */
 {
   < TEXT_STRING : ("\""  ( ~[ "\"", "\n", "\t" ] )* "\"")
@@ -237,7 +225,7 @@ TOKEN : /* IDENTIFIERS */
 {
   < #LETTER : [ "a"-"z", "A"-"Z" ] >
 | < #DIGIT : [ "0"-"9" ] >
-| < SYMBOL : ( < LETTER > | "_" ) ( < LETTER > | < DIGIT > | "_" )* >
+| < SYMBOL :  ( ( < LETTER > | "_" ) ( < LETTER > | < DIGIT > | "_" )* ) >
 | < INTEGER: (<DIGIT>)+>
 | < TRIANGULAR_BRACKET_L : "<" >
 | < TRIANGULAR_BRACKET_R : ">" >
@@ -268,6 +256,7 @@ AstStart Start()       :
 {/*@bgen(jjtree) Start */
     try {
 /*@egen*/
+    ( <EOL> )*  // <-- Allow leading newlines
     version()
 
     (astElement())+
@@ -322,13 +311,13 @@ void version()         :
 {/*@bgen(jjtree) Version */
     try {
 /*@egen*/
-    < VERSION > < FLOATING_POINT_LITERAL >/*@bgen(jjtree)*/
-                                           {
-                                             jjtree.closeNodeScope(jjtn000, true);
-                                             jjtc000 = false;
-                                             jjtn000.jjtSetLastToken(getToken(0));
-                                           }
-/*@egen*/ {this.version = token.image;}/*@bgen(jjtree)*/
+    < VERSION > (< SYMBOL > | <FLOATING_POINT_LITERAL>)/*@bgen(jjtree)*/
+                                                       {
+                                                         jjtree.closeNodeScope(jjtn000, true);
+                                                         jjtc000 = false;
+                                                         jjtn000.jjtSetLastToken(getToken(0));
+                                                       }
+/*@egen*/{this.version = token.image;}/*@bgen(jjtree)*/
     } finally {
       if (jjtc000) {
         jjtree.closeNodeScope(jjtn000, true);
@@ -1695,47 +1684,49 @@ void call()      :
                  }
 /*@egen*/       )
 	        (sepEol())* 
-	        equationSymbol()
 	        (
-	        	LOOKAHEAD(3)
-		        (sepEol())*
-		        (/*@bgen(jjtree) Comma */
-                         {
-                           AstComma jjtn005 = new AstComma(JJTCOMMA);
-                           boolean jjtc005 = true;
-                           jjtree.openNodeScope(jjtn005);
-                           jjtn005.jjtSetFirstToken(getToken(1));
-                         }
-                         try {
+	            equationSymbol()
+	            (
+	            	LOOKAHEAD(3)
+		            (sepEol())*
+		            (/*@bgen(jjtree) Comma */
+                             {
+                               AstComma jjtn005 = new AstComma(JJTCOMMA);
+                               boolean jjtc005 = true;
+                               jjtree.openNodeScope(jjtn005);
+                               jjtn005.jjtSetFirstToken(getToken(1));
+                             }
+                             try {
 /*@egen*/< COMMA >/*@bgen(jjtree)*/
-                         } finally {
-                           if (jjtc005) {
-                             jjtree.closeNodeScope(jjtn005, true);
-                             jjtn005.jjtSetLastToken(getToken(0));
-                           }
-                         }
+                             } finally {
+                               if (jjtc005) {
+                                 jjtree.closeNodeScope(jjtn005, true);
+                                 jjtn005.jjtSetLastToken(getToken(0));
+                               }
+                             }
 /*@egen*/       ) 
-		        (sepEol())*
-		        equationSymbol()
-	        )*
-	    	(sepEol())*
-	    	(/*@bgen(jjtree) Comma */
-                 {
-                   AstComma jjtn006 = new AstComma(JJTCOMMA);
-                   boolean jjtc006 = true;
-                   jjtree.openNodeScope(jjtn006);
-                   jjtn006.jjtSetFirstToken(getToken(1));
-                 }
-                 try {
+		            (sepEol())*
+		            equationSymbol()
+	            )*
+	    	    (sepEol())*
+	    	    (/*@bgen(jjtree) Comma */
+                     {
+                       AstComma jjtn006 = new AstComma(JJTCOMMA);
+                       boolean jjtc006 = true;
+                       jjtree.openNodeScope(jjtn006);
+                       jjtn006.jjtSetFirstToken(getToken(1));
+                     }
+                     try {
 /*@egen*/< COMMA >/*@bgen(jjtree)*/
-                 } finally {
-                   if (jjtc006) {
-                     jjtree.closeNodeScope(jjtn006, true);
-                     jjtn006.jjtSetLastToken(getToken(0));
-                   }
-                 }
+                     } finally {
+                       if (jjtc006) {
+                         jjtree.closeNodeScope(jjtn006, true);
+                         jjtn006.jjtSetLastToken(getToken(0));
+                       }
+                     }
 /*@egen*/       )?
-	        (sepEol())*
+	            (sepEol())*
+	        )?
 	    )?
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -3826,10 +3817,10 @@ void keyValue()          :
   jjtn000.jjtSetFirstToken(getToken(1));
 /*@egen*/}
 {/*@bgen(jjtree) KeyValue */
-        try {
+    try {
 /*@egen*/
-	primitiveType() {jjtn000.setKey(token.image);}
-	(sepEol())*
+    expression()  // <-- Changed from primitiveType() to expression()
+    (sepEol())*
     (/*@bgen(jjtree) Colon */
      {
        AstColon jjtn001 = new AstColon(JJTCOLON);
@@ -3848,26 +3839,26 @@ void keyValue()          :
 /*@egen*/       )
     (sepEol())*
     expression()/*@bgen(jjtree)*/
-        } catch (Throwable jjte000) {
-          if (jjtc000) {
-            jjtree.clearNodeScope(jjtn000);
-            jjtc000 = false;
-          } else {
-            jjtree.popNode();
-          }
-          if (jjte000 instanceof RuntimeException) {
-            throw (RuntimeException)jjte000;
-          }
-          if (jjte000 instanceof ParseException) {
-            throw (ParseException)jjte000;
-          }
-          throw (Error)jjte000;
-        } finally {
-          if (jjtc000) {
-            jjtree.closeNodeScope(jjtn000, true);
-            jjtn000.jjtSetLastToken(getToken(0));
-          }
-        }
+    } catch (Throwable jjte000) {
+      if (jjtc000) {
+        jjtree.clearNodeScope(jjtn000);
+        jjtc000 = false;
+      } else {
+        jjtree.popNode();
+      }
+      if (jjte000 instanceof RuntimeException) {
+        throw (RuntimeException)jjte000;
+      }
+      if (jjte000 instanceof ParseException) {
+        throw (ParseException)jjte000;
+      }
+      throw (Error)jjte000;
+    } finally {
+      if (jjtc000) {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtn000.jjtSetLastToken(getToken(0));
+      }
+    }
 /*@egen*/
 }
 

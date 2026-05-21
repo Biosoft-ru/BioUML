@@ -16,6 +16,7 @@ import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
+import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.model.CallInfo;
 import biouml.plugins.wdl.model.CommandInfo;
@@ -58,7 +59,13 @@ public class WDLImporter implements DataElementImporter
 {
     private WDLImportProperties properties = null;
     protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
+    private ScriptLoader scriptLoader;
 
+    public void setScriptLoader(ScriptLoader loader)
+    {
+        this.scriptLoader = loader;
+    }
+    
     @Override
     public int accept(DataCollection<?> parent, File file)
     {
@@ -102,6 +109,7 @@ public class WDLImporter implements DataElementImporter
             throw e;
         }
     }
+   
 
     public Diagram generateDiagram(File file, String name, DataCollection dc) throws Exception
     {
@@ -117,10 +125,15 @@ public class WDLImporter implements DataElementImporter
 
     public Diagram generateDiagram(String wdl, Diagram diagram) throws Exception
     {
-        String text = wdl.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
+        ScriptInfo info = readScript( diagram.getName(), wdl );
+        return new DiagramGenerator().generateDiagram( info, diagram );
+    }
+    
+    public ScriptInfo readScript(String name, String text) throws Exception
+    {
+        text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
         AstStart start = new WDLParser().parse( new StringReader( text ) );
-        ScriptInfo scriptInfo = createScriptInfo( start, diagram.getName() );
-        return new DiagramGenerator().generateDiagram( scriptInfo, diagram );
+        return createScriptInfo( start, name );
     }
 
     @Override
@@ -295,9 +308,12 @@ public class WDLImporter implements DataElementImporter
         return outputInfo;
     }
 
-    private static ImportInfo createImport(AstImport ast)
+    private ImportInfo createImport(AstImport ast) throws Exception
     {
-        return new ImportInfo( ast.getAlias(), ast.getSource() );
+        ImportInfo result = new ImportInfo( ast.getAlias(), ast.getSource() );
+        ScriptInfo importedScript = scriptLoader.loadScript(  ast.getSource()  );
+        result.setImported( importedScript );
+        return result;
     }
 
     private static MetaInfo createMetaInfo(String name, AstMeta ast)
@@ -311,7 +327,7 @@ public class WDLImporter implements DataElementImporter
         return meta;
     }
 
-    private static ScriptInfo createScriptInfo(AstStart start, String name)
+    private  ScriptInfo createScriptInfo(AstStart start, String name) throws Exception
     {
         ScriptInfo scriptInfo = new ScriptInfo( name );
         

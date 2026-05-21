@@ -79,7 +79,14 @@ public class WorkflowVelocityHelper
      */
     public String getExpression(Node n)
     {
+        try
+        {
         return WorkflowUtil.getExpression( n );
+        }
+        catch (Exception ex)
+        {
+            return "ERROR " +ex.getMessage();
+        }
     }
 
     /**

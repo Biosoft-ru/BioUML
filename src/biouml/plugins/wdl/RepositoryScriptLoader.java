@@ -3,15 +3,15 @@ package biouml.plugins.wdl;
 import biouml.model.Diagram;
 import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
-import biouml.plugins.wdl.nextflow.NextFlowImporter;
 import ru.biosoft.access.core.DataElementPath;
 
-public class RepositoryScriptLoader implements ScriptLoader
+public class RepositoryScriptLoader extends ScriptLoader
 {
-    DataElementPath rootPath;
+    private DataElementPath rootPath;
     
-    public RepositoryScriptLoader(DataElementPath rootPath)
+    public RepositoryScriptLoader(String type, DataElementPath rootPath)
     {
+        super(type);
         this.rootPath = rootPath;
     }
 
@@ -21,7 +21,7 @@ public class RepositoryScriptLoader implements ScriptLoader
         DataElementPath scriptPath = DataElementPath.create( rootPath.toString(), path );
         Diagram scriptDiagram = scriptPath.getDataElement( Diagram.class );     
         String nextflow = new NextFlowGenerator(  ).generate( scriptDiagram );
-        ScriptInfo importedScript = new NextFlowImporter().parseNextflow( scriptDiagram.getName(), nextflow );
+        ScriptInfo importedScript = this.readScript( scriptDiagram.getName(), nextflow );
         return importedScript;
     }
 }
