@@ -96,7 +96,7 @@ public class NextFlowImporter
         {
             String code = ApplicationUtils.readAsString( nextflowFile );
             NextFlowImporter importer = new NextFlowImporter();
-            importer.scriptLoader = new FileScriptLoader( new File( "C:/Users/Damag/nextflow_work/SNV" ) );
+            importer.scriptLoader = new FileScriptLoader( ScriptLoader.NEXTFLOW_TYPE, new File( "C:/Users/Damag/nextflow_work/SNV" ) );
 
             Diagram diagram = importer.importNextflow( code );
             new WDLLayouter().layout( diagram );
