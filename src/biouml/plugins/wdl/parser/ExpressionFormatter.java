@@ -79,9 +79,11 @@ public class ExpressionFormatter
 
     protected void processText(AstText node)
     {
-        result.append( "\"" );
-        result.append( node.toString() );
-        result.append( "\"" );
+        String content = node.toString();
+        boolean hasQuote = content.contains( "\"" );
+        result.append( hasQuote? "\'": "\"" );
+        result.append( content );
+        result.append( hasQuote? "\'": "\"" );
     }
 
     protected void processContainer(AstContainerElement node)
