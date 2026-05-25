@@ -33,7 +33,6 @@ import biouml.plugins.wdl.model.WorkflowInfo;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.util.DPSUtils;
 
@@ -42,8 +41,6 @@ import ru.biosoft.util.DPSUtils;
  */
 public class DiagramGenerator
 {
-    private static final String WORKFLOW_NAME = "Workflow name";
-
     protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
 
     //    private boolean doImportDiagram = false;
@@ -106,12 +103,12 @@ public class DiagramGenerator
         }
 
         WorkflowInfo workflow = script.getMainWorkflow( );
-        diagram.getAttributes().add( DPSUtils.createHiddenReadOnly( WORKFLOW_NAME, String.class, workflow.getName() ) );
+        diagram.getAttributes().add( DPSUtils.createHiddenReadOnly( WDLConstants.WORKFLOW_NAME, String.class, workflow.getName() ) );
         createWorkflow( diagram, workflow, true );
 
         createLinks( diagram );
         splitInputs( diagram );
-                Util.hideDirectPathes( diagram );
+//                Util.hideDirectPathes( diagram );
         Util.movePortsToEdge( diagram );
 //        addOutputs( diagram );
 
@@ -592,7 +589,7 @@ public class DiagramGenerator
                 diagramRef = importedDiagram.getName();
 
                 String mainWorkflowName =  WDLConstants.MAIN_WORKFLOW ;
-                DynamicProperty dp =importedDiagram.getAttributes().getProperty( WORKFLOW_NAME );
+                DynamicProperty dp =importedDiagram.getAttributes().getProperty( WDLConstants.WORKFLOW_NAME );
                 if (dp != null)
                     mainWorkflowName = dp.getValue().toString();
                 if( taskRef.equals( mainWorkflowName ) )
@@ -631,79 +628,24 @@ public class DiagramGenerator
             WorkflowUtil.setExternalDiagramAlias( c, diagramAlias );
         c.setNotificationEnabled( false );
 
-        int inputs = 0;
-        int outputs = 0;
-
-        Collection<InputInfo> inputsInfo = call.getInputs();
-        Set<String> addedInputs = new HashSet<>();//TODO: refactor this
-        for( InputInfo symbol : inputsInfo )
-        {
-            String inputName = symbol.getName();
-            addedInputs.add( inputName );
-            String expression = symbol.getExpression();
-
-            if( expression == null )
-                expression = inputName;
-
-            Node portNode = addPort( inputName, WDLConstants.INPUT_TYPE, inputs++, c );
-            WorkflowUtil.setArguments( portNode,  symbol.getArguments());
-            WorkflowUtil.setName( portNode, symbol.getName() );
-            WorkflowUtil.setExpression( portNode, symbol.getExpression() );
-
-            if( taskСompartment instanceof Diagram )
-            {
-                for( Node node : WorkflowUtil.getExternalParameters( (Diagram)taskСompartment ) )
-                {
-                    String varName = WorkflowUtil.getName( node );
-                    if( varName.equals( inputName ) )
-                    {
-                        WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
-                        Node inputNode = WorkflowUtil.getTarget( node );
-                        if( inputNode != null )
-                            node = inputNode;
-                        WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
-                        WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
-                        WorkflowUtil.setExpression( portNode, expression );
-                    }
-                }
-            }
-            else
-            {
-                for( Node node : taskСompartment.getNodes() )
-                {
-                    if( WorkflowUtil.isInput( node ) || WorkflowUtil.isExternalParameter( node ) || WorkflowUtil.isExternalOutput( node ) )
-                    {
-                        String varName = WorkflowUtil.getName( node );
-                        if( varName == null )
-                        {
-                            System.out.println( "s" );
-                        }
-                        if( varName.equals( inputName ) )
-                        {
-                            WorkflowUtil.copyExpresion( portNode, node );
-                            WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
-                        }
-                    }
-                }
-            }
-        }
-
+      int inputs = 0;
+      int outputs = 0;
+        
         if( taskСompartment instanceof Diagram )
         {
             for( Node node : WorkflowUtil.getExternalOutputs( (Diagram)taskСompartment ) )
             {
-                Node portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, outputs++, c );
+                Node portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, WorkflowUtil.getPosition( node ), c );
                 WorkflowUtil.copyExpresion( portNode, node );
                 WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
+                outputs++;
             }
             for( Node node : WorkflowUtil.getExternalParameters( (Diagram)taskСompartment ) )
             {
-                if( !addedInputs.contains( WorkflowUtil.getName( node ) ) )
-                {
-                    Node portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
-                    WorkflowUtil.copyExpresion( portNode, node );
-                    WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
-                }
+                Node portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, WorkflowUtil.getPosition( node ), c );
+                WorkflowUtil.copyExpresion( portNode, node );
+                WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
+                inputs++;
             }
         }
         else
@@ -713,16 +655,40 @@ public class DiagramGenerator
                 Node portNode = null;
                 if( WorkflowUtil.isOutput( node ) || WorkflowUtil.isExternalOutput( node ) )
                 {
-                    portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, outputs++, c );
-                    WorkflowUtil.copyExpresion( portNode, node );
+                    portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, WorkflowUtil.getPosition( node ), c );
+                    outputs++;
                 }
-                else if( WorkflowUtil.isInput( node ) && !addedInputs.contains( WorkflowUtil.getName( node ) ) )
+                else if( WorkflowUtil.isInput( node )  )
                 {
-                    portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, inputs++, c );
-                    WorkflowUtil.copyExpresion( portNode, node );
+                    portNode = addPort( node.getName(), WDLConstants.INPUT_TYPE, WorkflowUtil.getPosition( node ), c );
+                    inputs++;
+                }
+                WorkflowUtil.setName( portNode, WorkflowUtil.getName( node ) );
+                WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
+                WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
+                WorkflowUtil.setExpression( portNode, WorkflowUtil.getExpression( node ) );
+            }
+        }
+        
+        Collection<InputInfo> inputsInfo = call.getInputs();
+        for( InputInfo symbol : inputsInfo )
+        {
+            String inputName = symbol.getName();
+            String expression = symbol.getExpression();
+
+            if( expression == null )
+                expression = inputName;
+            
+            for (Node node: c.getNodes())
+            {
+                if ( WorkflowUtil.getName( node ).equals( inputName ) )
+                {
+                    WorkflowUtil.setArguments( node,  symbol.getArguments());
+                    WorkflowUtil.setExpression( node, symbol.getExpression() );
                 }
             }
         }
+      
         int maxPorts = Math.max( inputs, outputs );
         int height = Math.max( 50, 24 * maxPorts + 16 );
         c.setShapeSize( new Dimension( 200, height ) );
