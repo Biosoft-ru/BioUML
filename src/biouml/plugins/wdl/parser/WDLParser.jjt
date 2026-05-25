@@ -394,7 +394,7 @@ void metaMap() #Map:
 void metaKeyValue() #KeyValue:
 {}
 {
-	< SYMBOL > {jjtThis.setKey(token.image);}
+	( < SYMBOL > |  < IN > ) {jjtThis.setKey(token.image);}
 	(sepEol())*
 	(< COLON > #Colon) 
 	(sepEol())*
@@ -509,7 +509,7 @@ void call() #Call:
     (LOOKAHEAD(2)
     subSymbol()
     |
-    (< SYMBOL > #Symbol)
+    symbol()
     {jjtThis.setName(token.image);}) 
     (
         as()
@@ -546,13 +546,13 @@ void call() #Call:
 void subSymbol() #SubSymbol:
 {}
 {
-	<SYMBOL> ( < DOT > < SYMBOL >)+
+	symbol() ( < DOT > symbol() )+
 }
 
 void equationSymbol() #Symbol:
-{}
+{Token name;}
 {
-	< SYMBOL > { jjtThis.setName(token.image); }
+	( name = < SYMBOL > | name = < IN > ) { jjtThis.setName(name.image); }
 	((< EQUAL > #Equal)
 	expression())?
 }
@@ -682,7 +682,7 @@ void declaration(boolean canBeInitialized) #Declaration:
 {
     type() {jjtThis.setType(token.image.replace(" ", ""));}
 
-    (< SYMBOL > { jjtThis.setName(token.image);}	#Symbol)
+    symbol()
     
     
     
@@ -704,7 +704,7 @@ void type():
 }
 {
 	(
-	    ((< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL >)
+	    ((< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL > | < IN >)
 	    #Type)
 	    | arrayType()
 	    | mapType() 
@@ -786,9 +786,9 @@ void expressionInBrackets() #Expression:
 }
 
 void containerElement() #ContainerElement:
-{}
+{Token name;}
 {
-    < SYMBOL > {jjtThis.setContainerName(token.image);}
+    ( name = < SYMBOL > | name = < IN > ) {jjtThis.setContainerName(name.image);}
     < SQUARE_BRACKET_L >
     (sepEol())*
     (
@@ -807,7 +807,7 @@ void subsymbolChain() #SubSymbol:
 void constructor() #Constructor:
 {}
 {
-    (< OBJECT > | < SYMBOL >) {jjtThis.setName(token.image);}
+    (< OBJECT > | < SYMBOL > | < IN >) {jjtThis.setName(token.image);}
     (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (
@@ -825,9 +825,9 @@ void constructor() #Constructor:
 }
 
 void constructorKeyValue() #KeyValue:
-{}
+{Token key;}
 {
-	< SYMBOL > {jjtThis.setKey(token.image);}
+	( key = < SYMBOL > | key = < IN > ) {jjtThis.setKey(key.image);}
 	(sepEol())*
 	(< COLON > #Colon) 
 	(sepEol())*
@@ -864,9 +864,9 @@ void text() #Text:
 }
 
 void function() #Function:
-{}
+{Token name;}
 {
-    (< SYMBOL >){jjtThis.setName(token.image); }
+    ( name = < SYMBOL > | name = < IN > ){jjtThis.setName(name.image); }
     (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
     (
     	LOOKAHEAD(3) (sepEol())*
@@ -889,6 +889,7 @@ void regularFormulaElement() #RegularFormulaElement:
 {
     (
             < SYMBOL > {jjtThis.setVariable(true);}
+            | < IN > {jjtThis.setVariable(true);}
             | < TRUE_OR_FALSE >
             | < STAR >
             | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
@@ -913,10 +914,9 @@ void as() #As:
 
 
 void symbol() #Symbol:
+{Token name;}
 {
-}
-{
-  < SYMBOL > { jjtThis.setName(token.image); }
+  ( name = < SYMBOL > | name = < IN > ) { jjtThis.setName(name.image); }
 }
 
 void array() #Array:
@@ -957,10 +957,37 @@ void map() #Map:
 
 }
 
-void keyValue() #KeyValue:
-{}
+String primitiveKey():
 {
-    expression()  // <-- Changed from primitiveType() to expression()
+    Token key;
+}
+{
+    (
+        key = < TEXT_STRING >
+      | key = < INTEGER >
+      | key = < TRUE_OR_FALSE >
+      | key = < FLOATING_POINT_LITERAL >
+      | key = <SYMBOL>
+      | key = <IN>
+    )
+    {
+        return key.image;
+    }
+}
+
+void keyValue() #KeyValue:
+{
+    String key;
+}
+{
+    (
+        LOOKAHEAD(primitiveKey() (sepEol())* < COLON >)
+        key = primitiveKey()
+        {
+            jjtThis.setKey(key);
+        }
+      | expression()
+    )
     (sepEol())*
     (< COLON > #Colon)
     (sepEol())*

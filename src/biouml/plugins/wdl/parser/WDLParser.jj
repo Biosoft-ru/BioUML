@@ -868,7 +868,7 @@ void metaKeyValue()          :
 {/*@bgen(jjtree) KeyValue */
         try {
 /*@egen*/
-	< SYMBOL > {jjtn000.setKey(token.image);}
+	( < SYMBOL > |  < IN > ) {jjtn000.setKey(token.image);}
 	(sepEol())*
 	(/*@bgen(jjtree) Colon */
          {
@@ -1602,22 +1602,7 @@ void call()      :
     (LOOKAHEAD(2)
     subSymbol()
     |
-    (/*@bgen(jjtree) Symbol */
-     {
-       AstSymbol jjtn001 = new AstSymbol(JJTSYMBOL);
-       boolean jjtc001 = true;
-       jjtree.openNodeScope(jjtn001);
-       jjtn001.jjtSetFirstToken(getToken(1));
-     }
-     try {
-/*@egen*/< SYMBOL >/*@bgen(jjtree)*/
-     } finally {
-       if (jjtc001) {
-         jjtree.closeNodeScope(jjtn001, true);
-         jjtn001.jjtSetLastToken(getToken(0));
-       }
-     }
-/*@egen*/        )
+    symbol()
     {jjtn000.setName(token.image);}) 
     (
         as()
@@ -1627,24 +1612,24 @@ void call()      :
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
     {
-      AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
-      boolean jjtc002 = true;
-      jjtree.openNodeScope(jjtn002);
-      jjtn002.jjtSetFirstToken(getToken(1));
+      AstRegularFormulaElement jjtn001 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+      boolean jjtc001 = true;
+      jjtree.openNodeScope(jjtn001);
+      jjtn001.jjtSetFirstToken(getToken(1));
     }
     try {
 /*@egen*/
     (< BRACE_L >/*@bgen(jjtree)*/
                  {
-                   jjtree.closeNodeScope(jjtn002, true);
-                   jjtc002 = false;
-                   jjtn002.jjtSetLastToken(getToken(0));
+                   jjtree.closeNodeScope(jjtn001, true);
+                   jjtc001 = false;
+                   jjtn001.jjtSetLastToken(getToken(0));
                  }
-/*@egen*/ {jjtn002.setElement(token.image);})/*@bgen(jjtree)*/
+/*@egen*/ {jjtn001.setElement(token.image);})/*@bgen(jjtree)*/
     } finally {
-      if (jjtc002) {
-        jjtree.closeNodeScope(jjtn002, true);
-        jjtn002.jjtSetLastToken(getToken(0));
+      if (jjtc001) {
+        jjtree.closeNodeScope(jjtn001, true);
+        jjtn001.jjtSetLastToken(getToken(0));
       }
     }
 /*@egen*/                       )
@@ -1652,34 +1637,34 @@ void call()      :
 	    (
 	        (/*@bgen(jjtree) Input */
                  {
-                   AstInput jjtn003 = new AstInput(JJTINPUT);
-                   boolean jjtc003 = true;
-                   jjtree.openNodeScope(jjtn003);
-                   jjtn003.jjtSetFirstToken(getToken(1));
+                   AstInput jjtn002 = new AstInput(JJTINPUT);
+                   boolean jjtc002 = true;
+                   jjtree.openNodeScope(jjtn002);
+                   jjtn002.jjtSetFirstToken(getToken(1));
                  }
                  try {
 /*@egen*/< INPUT >/*@bgen(jjtree)*/
                  } finally {
-                   if (jjtc003) {
-                     jjtree.closeNodeScope(jjtn003, true);
-                     jjtn003.jjtSetLastToken(getToken(0));
+                   if (jjtc002) {
+                     jjtree.closeNodeScope(jjtn002, true);
+                     jjtn002.jjtSetLastToken(getToken(0));
                    }
                  }
 /*@egen*/       )
 	        (sepEol())*
 	        (/*@bgen(jjtree) Colon */
                  {
-                   AstColon jjtn004 = new AstColon(JJTCOLON);
-                   boolean jjtc004 = true;
-                   jjtree.openNodeScope(jjtn004);
-                   jjtn004.jjtSetFirstToken(getToken(1));
+                   AstColon jjtn003 = new AstColon(JJTCOLON);
+                   boolean jjtc003 = true;
+                   jjtree.openNodeScope(jjtn003);
+                   jjtn003.jjtSetFirstToken(getToken(1));
                  }
                  try {
 /*@egen*/< COLON >/*@bgen(jjtree)*/
                  } finally {
-                   if (jjtc004) {
-                     jjtree.closeNodeScope(jjtn004, true);
-                     jjtn004.jjtSetLastToken(getToken(0));
+                   if (jjtc003) {
+                     jjtree.closeNodeScope(jjtn003, true);
+                     jjtn003.jjtSetLastToken(getToken(0));
                    }
                  }
 /*@egen*/       )
@@ -1691,17 +1676,17 @@ void call()      :
 		            (sepEol())*
 		            (/*@bgen(jjtree) Comma */
                              {
-                               AstComma jjtn005 = new AstComma(JJTCOMMA);
-                               boolean jjtc005 = true;
-                               jjtree.openNodeScope(jjtn005);
-                               jjtn005.jjtSetFirstToken(getToken(1));
+                               AstComma jjtn004 = new AstComma(JJTCOMMA);
+                               boolean jjtc004 = true;
+                               jjtree.openNodeScope(jjtn004);
+                               jjtn004.jjtSetFirstToken(getToken(1));
                              }
                              try {
 /*@egen*/< COMMA >/*@bgen(jjtree)*/
                              } finally {
-                               if (jjtc005) {
-                                 jjtree.closeNodeScope(jjtn005, true);
-                                 jjtn005.jjtSetLastToken(getToken(0));
+                               if (jjtc004) {
+                                 jjtree.closeNodeScope(jjtn004, true);
+                                 jjtn004.jjtSetLastToken(getToken(0));
                                }
                              }
 /*@egen*/       ) 
@@ -1711,17 +1696,17 @@ void call()      :
 	    	    (sepEol())*
 	    	    (/*@bgen(jjtree) Comma */
                      {
-                       AstComma jjtn006 = new AstComma(JJTCOMMA);
-                       boolean jjtc006 = true;
-                       jjtree.openNodeScope(jjtn006);
-                       jjtn006.jjtSetFirstToken(getToken(1));
+                       AstComma jjtn005 = new AstComma(JJTCOMMA);
+                       boolean jjtc005 = true;
+                       jjtree.openNodeScope(jjtn005);
+                       jjtn005.jjtSetFirstToken(getToken(1));
                      }
                      try {
 /*@egen*/< COMMA >/*@bgen(jjtree)*/
                      } finally {
-                       if (jjtc006) {
-                         jjtree.closeNodeScope(jjtn006, true);
-                         jjtn006.jjtSetLastToken(getToken(0));
+                       if (jjtc005) {
+                         jjtree.closeNodeScope(jjtn005, true);
+                         jjtn005.jjtSetLastToken(getToken(0));
                        }
                      }
 /*@egen*/       )?
@@ -1730,23 +1715,23 @@ void call()      :
 	    )?
     (/*@bgen(jjtree) RegularFormulaElement */
      {
-       AstRegularFormulaElement jjtn007 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
-       boolean jjtc007 = true;
-       jjtree.openNodeScope(jjtn007);
-       jjtn007.jjtSetFirstToken(getToken(1));
+       AstRegularFormulaElement jjtn006 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+       boolean jjtc006 = true;
+       jjtree.openNodeScope(jjtn006);
+       jjtn006.jjtSetFirstToken(getToken(1));
      }
      try {
 /*@egen*/(< BRACE_R >/*@bgen(jjtree)*/
                   {
-                    jjtree.closeNodeScope(jjtn007, true);
-                    jjtc007 = false;
-                    jjtn007.jjtSetLastToken(getToken(0));
+                    jjtree.closeNodeScope(jjtn006, true);
+                    jjtc006 = false;
+                    jjtn006.jjtSetLastToken(getToken(0));
                   }
-/*@egen*/ {jjtn007.setElement(token.image);})/*@bgen(jjtree)*/
+/*@egen*/ {jjtn006.setElement(token.image);})/*@bgen(jjtree)*/
      } finally {
-       if (jjtc007) {
-         jjtree.closeNodeScope(jjtn007, true);
-         jjtn007.jjtSetLastToken(getToken(0));
+       if (jjtc006) {
+         jjtree.closeNodeScope(jjtn006, true);
+         jjtn006.jjtSetLastToken(getToken(0));
        }
      }
 /*@egen*/                       )
@@ -1784,7 +1769,21 @@ void subSymbol()           :
 {/*@bgen(jjtree) SubSymbol */
         try {
 /*@egen*/
-	<SYMBOL> ( < DOT > < SYMBOL >)+/*@bgen(jjtree)*/
+	symbol() ( < DOT > symbol() )+/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -1796,15 +1795,15 @@ void subSymbol()           :
 
 void equationSymbol()        :
 {/*@bgen(jjtree) Symbol */
-  AstSymbol jjtn000 = new AstSymbol(JJTSYMBOL);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
+ AstSymbol jjtn000 = new AstSymbol(JJTSYMBOL);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/Token name;}
 {/*@bgen(jjtree) Symbol */
         try {
 /*@egen*/
-	< SYMBOL > { jjtn000.setName(token.image); }
+	( name = < SYMBOL > | name = < IN > ) { jjtn000.setName(name.image); }
 	((/*@bgen(jjtree) Equal */
           {
             AstEqual jjtn001 = new AstEqual(JJTEQUAL);
@@ -2426,57 +2425,36 @@ void declaration(boolean canBeInitialized)             :
 /*@egen*/
     type() {jjtn000.setType(token.image.replace(" ", ""));}
 
-    (< SYMBOL >/*@bgen(jjtree) Symbol */
-                {
-                  AstSymbol jjtn001 = new AstSymbol(JJTSYMBOL);
-                  boolean jjtc001 = true;
-                  jjtree.openNodeScope(jjtn001);
-                  jjtn001.jjtSetFirstToken(getToken(1));
-                }
-                try {
-/*@egen*//*@bgen(jjtree)*/
-                {
-                  jjtree.closeNodeScope(jjtn001, true);
-                  jjtc001 = false;
-                  jjtn001.jjtSetLastToken(getToken(0));
-                }
-/*@egen*/ { jjtn001.setName(token.image);}/*@bgen(jjtree)*/
-                } finally {
-                  if (jjtc001) {
-                    jjtree.closeNodeScope(jjtn001, true);
-                    jjtn001.jjtSetLastToken(getToken(0));
-                  }
-                }
-/*@egen*/	       )
+    symbol()
     
     
     
     (
     (/*@bgen(jjtree) RegularFormulaElement */
      {
-       AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
-       boolean jjtc002 = true;
-       jjtree.openNodeScope(jjtn002);
-       jjtn002.jjtSetFirstToken(getToken(1));
+       AstRegularFormulaElement jjtn001 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+       boolean jjtc001 = true;
+       jjtree.openNodeScope(jjtn001);
+       jjtn001.jjtSetFirstToken(getToken(1));
      }
      try {
 /*@egen*/(< EQUAL >/*@bgen(jjtree)*/
     {
-      jjtree.closeNodeScope(jjtn002, true);
-      jjtc002 = false;
-      jjtn002.jjtSetLastToken(getToken(0));
+      jjtree.closeNodeScope(jjtn001, true);
+      jjtc001 = false;
+      jjtn001.jjtSetLastToken(getToken(0));
     }
 /*@egen*/ 
     {
     	if (!canBeInitialized)
     		throw new ParseException("Variable can not be initialized at line " + token.beginLine);
-    	jjtn002.setElement(token.image);
+    	jjtn001.setElement(token.image);
     }
     )/*@bgen(jjtree)*/
      } finally {
-       if (jjtc002) {
-         jjtree.closeNodeScope(jjtn002, true);
-         jjtn002.jjtSetLastToken(getToken(0));
+       if (jjtc001) {
+         jjtree.closeNodeScope(jjtn001, true);
+         jjtn001.jjtSetLastToken(getToken(0));
        }
      }
 /*@egen*/                       ) 
@@ -2519,7 +2497,7 @@ void type():
                jjtn001.jjtSetFirstToken(getToken(1));
              }
              try {
-/*@egen*/(< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL >)/*@bgen(jjtree)*/
+/*@egen*/(< PRIMITIVE_TYPE > | < OBJECT_TYPE > | < SYMBOL > | < IN >)/*@bgen(jjtree)*/
              } finally {
                if (jjtc001) {
                  jjtree.closeNodeScope(jjtn001, true);
@@ -3041,15 +3019,15 @@ void expressionInBrackets()            :
 
 void containerElement()                  :
 {/*@bgen(jjtree) ContainerElement */
-  AstContainerElement jjtn000 = new AstContainerElement(JJTCONTAINERELEMENT);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
+ AstContainerElement jjtn000 = new AstContainerElement(JJTCONTAINERELEMENT);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/Token name;}
 {/*@bgen(jjtree) ContainerElement */
     try {
 /*@egen*/
-    < SYMBOL > {jjtn000.setContainerName(token.image);}
+    ( name = < SYMBOL > | name = < IN > ) {jjtn000.setContainerName(name.image);}
     < SQUARE_BRACKET_L >
     (sepEol())*
     (
@@ -3139,7 +3117,7 @@ void constructor()             :
 {/*@bgen(jjtree) Constructor */
     try {
 /*@egen*/
-    (< OBJECT > | < SYMBOL >) {jjtn000.setName(token.image);}
+    (< OBJECT > | < SYMBOL > | < IN >) {jjtn000.setName(token.image);}
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -3236,15 +3214,15 @@ void constructor()             :
 
 void constructorKeyValue()          :
 {/*@bgen(jjtree) KeyValue */
-  AstKeyValue jjtn000 = new AstKeyValue(JJTKEYVALUE);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
+ AstKeyValue jjtn000 = new AstKeyValue(JJTKEYVALUE);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/Token key;}
 {/*@bgen(jjtree) KeyValue */
         try {
 /*@egen*/
-	< SYMBOL > {jjtn000.setKey(token.image);}
+	( key = < SYMBOL > | key = < IN > ) {jjtn000.setKey(key.image);}
 	(sepEol())*
 	(/*@bgen(jjtree) Colon */
          {
@@ -3394,15 +3372,15 @@ void text()      :
 
 void function()          :
 {/*@bgen(jjtree) Function */
-  AstFunction jjtn000 = new AstFunction(JJTFUNCTION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
+ AstFunction jjtn000 = new AstFunction(JJTFUNCTION);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/Token name;}
 {/*@bgen(jjtree) Function */
     try {
 /*@egen*/
-    (< SYMBOL >){jjtn000.setName(token.image); }
+    ( name = < SYMBOL > | name = < IN > ){jjtn000.setName(name.image); }
     (< BRAKET_L >/*@bgen(jjtree) RegularFormulaElement */
                   {
                     AstRegularFormulaElement jjtn001 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
@@ -3510,6 +3488,7 @@ void regularFormulaElement()                       :
 /*@egen*/
     (
             < SYMBOL > {jjtn000.setVariable(true);}
+            | < IN > {jjtn000.setVariable(true);}
             | < TRUE_OR_FALSE >
             | < STAR >
             | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
@@ -3576,22 +3555,21 @@ void as()    :
 
 void symbol()        :
 {/*@bgen(jjtree) Symbol */
-  AstSymbol jjtn000 = new AstSymbol(JJTSYMBOL);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/
-}
+ AstSymbol jjtn000 = new AstSymbol(JJTSYMBOL);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/Token name;}
 {/*@bgen(jjtree) Symbol */
   try {
 /*@egen*/
-  < SYMBOL >/*@bgen(jjtree)*/
-             {
-               jjtree.closeNodeScope(jjtn000, true);
-               jjtc000 = false;
-               jjtn000.jjtSetLastToken(getToken(0));
-             }
-/*@egen*/ { jjtn000.setName(token.image); }/*@bgen(jjtree)*/
+  ( name = < SYMBOL > | name = < IN > )/*@bgen(jjtree)*/
+                                        {
+                                          jjtree.closeNodeScope(jjtn000, true);
+                                          jjtc000 = false;
+                                          jjtn000.jjtSetLastToken(getToken(0));
+                                        }
+/*@egen*/ { jjtn000.setName(name.image); }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -3809,17 +3787,44 @@ void map()     :
 
 }
 
+String primitiveKey():
+{
+    Token key;
+}
+{
+    (
+        key = < TEXT_STRING >
+      | key = < INTEGER >
+      | key = < TRUE_OR_FALSE >
+      | key = < FLOATING_POINT_LITERAL >
+      | key = <SYMBOL>
+      | key = <IN>
+    )
+    {
+        return key.image;
+    }
+}
+
 void keyValue()          :
 {/*@bgen(jjtree) KeyValue */
-  AstKeyValue jjtn000 = new AstKeyValue(JJTKEYVALUE);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
-/*@egen*/}
+    AstKeyValue jjtn000 = new AstKeyValue(JJTKEYVALUE);
+    boolean jjtc000 = true;
+    jjtree.openNodeScope(jjtn000);
+    jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/
+    String key;
+}
 {/*@bgen(jjtree) KeyValue */
     try {
 /*@egen*/
-    expression()  // <-- Changed from primitiveType() to expression()
+    (
+        LOOKAHEAD(primitiveKey() (sepEol())* < COLON >)
+        key = primitiveKey()
+        {
+            jjtn000.setKey(key);
+        }
+      | expression()
+    )
     (sepEol())*
     (/*@bgen(jjtree) Colon */
      {
