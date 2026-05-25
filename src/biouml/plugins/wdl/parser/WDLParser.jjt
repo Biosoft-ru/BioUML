@@ -3,6 +3,7 @@
 ***************************************************************/
 options
 {
+  UNICODE_INPUT = true;
   MULTI = true;
   NODE_DEFAULT_VOID = true;
   STATIC = false;
