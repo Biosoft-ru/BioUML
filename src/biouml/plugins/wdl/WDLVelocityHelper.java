@@ -6,6 +6,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import one.util.streamex.StreamEx;
 
 public class WDLVelocityHelper extends WorkflowVelocityHelper
 {
@@ -32,6 +33,17 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
         return getType( n ) + " " + getName( n );
     }
     
+    public String getWorkflowName(Compartment c)
+    {
+        if( c instanceof Diagram )
+        {
+            String name = diagram.getAttributes().getValueAsString( WDLConstants.WORKFLOW_NAME );
+            if( name != null )
+                return name;
+        }
+        return c.getName();
+    }
+    
     public String getVersion()
     {
         String version =  diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
@@ -40,25 +52,36 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
         return version;
     }
 
-    public String getCallInput(Node inputNode)
+    /**
+     * Returns list of call inputs in order but only ones having expressions
+     */
+    public static List<String> getCallInputs(Compartment c)
     {
-        String name = getName( inputNode );
-        String expression = getExpression( inputNode );
-        if( expression == null )
-            return name;
-        return name + " = " + expression;
+        List<Node> preliminary = WorkflowUtil.getInputs( c );
+        String[] result = new String[preliminary.size()];
+        for( Node node : preliminary )
+        {
+            int position = WorkflowUtil.getPosition( node );
+            String expression = WorkflowUtil.getExpression( node );
+            String name = WorkflowUtil.getName( node );
+            if( position >= 0  && expression != null)
+                result[position] = name + " = " + expression;
+        }
+        return StreamEx.of( result ).nonNull().toList();
     }
-
+    
     public List<ImportProperties> getImports()
     {
         return WorkflowUtil.getImports( diagram );
     }
     
+    /**
+     * Return all compartments which describe workflows including top level diagram
+     */
     public List<Compartment> getWorkflows()
     {
         List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
         result.add( diagram );
         return result;
     }
-
 }
