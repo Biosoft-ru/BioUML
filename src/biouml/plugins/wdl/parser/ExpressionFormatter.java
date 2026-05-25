@@ -32,14 +32,16 @@ public class ExpressionFormatter
             processText( (AstText)node );
         else if( node instanceof AstContainerElement )
             processContainer( (AstContainerElement)node );
-        else if (node instanceof AstSubSymbol)
-            processSubSymbol((AstSubSymbol)node);
-        else if (node instanceof AstTernary)
-            processTernary((AstTernary)node);
-        else if (node instanceof AstMap)
-            processMap((AstMap)node);
-        else if (node instanceof AstConstructor)
-            processConstructor((AstConstructor)node);
+        else if( node instanceof AstSubSymbol )
+            processSubSymbol( (AstSubSymbol)node );
+        else if( node instanceof AstTernary )
+            processTernary( (AstTernary)node );
+        else if( node instanceof AstMap )
+            processMap( (AstMap)node );
+        else if( node instanceof AstConstructor )
+            processConstructor( (AstConstructor)node );
+        else if( node instanceof AstPair )
+            processPair( (AstPair)node );
         else
         {
             result.append( node.toString() );
@@ -49,15 +51,15 @@ public class ExpressionFormatter
     private void processTernary(AstTernary ternary)
     {
         result.append( "if (" );
-        result.append(ternary.getChildren()[0]);
+        result.append( ternary.getChildren()[0] );
         result.append( ")" );
-        for(  int i=1; i<ternary.getChildren().length; i++ )
+        for( int i = 1; i < ternary.getChildren().length; i++ )
         {
             result.append( " " );
             processNode( ternary.jjtGetChild( i ) );
         }
     }
-    
+
     private void processArray(AstArray array)
     {
         for( Node child : array.getChildren() )
@@ -66,15 +68,15 @@ public class ExpressionFormatter
 
     protected void processSubSymbol(AstSubSymbol node)
     {
-        for (int i=0; i< node.jjtGetNumChildren(); i++)
+        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
         {
-            if (i > 0)
+            if( i > 0 )
                 result.append( "." );
-            processNode(node.jjtGetChild( i ));
-            
+            processNode( node.jjtGetChild( i ) );
+
         }
     }
-    
+
     protected void processText(AstText node)
     {
         result.append( "\"" );
@@ -97,21 +99,31 @@ public class ExpressionFormatter
         for( Node child : node.children )
             processNode( child );
     }
-    
+
     private void processMap(AstMap astMap)
     {
         result.append( "{ " );
         Map<String, Object> map = astMap.toMap();
-        result.append(StreamEx.of( map.entrySet() ).map( e->e.getKey()+": "+e.getValue() ).joining(", "));
+        result.append( StreamEx.of( map.entrySet() ).map( e -> e.getKey() + ": " + e.getValue() ).joining( ", " ) );
         result.append( " }" );
     }
-    
+
+    private void processPair(AstPair astPair)
+    {
+        result.append( "( " );
+        AstExpression[] expressions = astPair.toPair();
+        processNode( expressions[0] );
+        result.append( ", " );
+        processNode( expressions[1] );
+        result.append( " )" );
+    }
+
     private void processConstructor(AstConstructor astConstructor)
     {
-        result.append(((AstConstructor)astConstructor).firstToken);
-        for (Node node: astConstructor.getChildren())
+        result.append( ( (AstConstructor)astConstructor ).firstToken );
+        for( Node node : astConstructor.getChildren() )
         {
-            result.append(node.toString());
+            result.append( node.toString() );
         }
     }
 }
