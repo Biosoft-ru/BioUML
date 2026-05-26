@@ -25,68 +25,83 @@ public class AstExpression extends SimpleNode
         return new ExpressionFormatter().format( this );
     }
 
-    private static Set<String> getArguments(Node node)
+    private static class ArgumentsCollector
     {
-        Set<String> result = new HashSet<>();
+        private boolean insideSep = false;
         
-        if (node instanceof AstSubSymbol)
+        public Set<String> getArguments(Node node)
         {
-            result.add( node.toString() );
+            Set<String> result = new HashSet<>();
+
+            if( node instanceof AstSubSymbol )
+            {
+                result.add( node.toString() );
+                for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+                {
+                    Node child = node.jjtGetChild( i );
+                    for( int j = 0; j < child.jjtGetNumChildren(); j++ )
+                    {
+                        result.addAll( getArguments( child.jjtGetChild( j ) ) );
+                    }
+                }
+                return result;
+            }
+            else if( node instanceof AstSymbol )
+            {
+                result.add( node.toString() );
+            }
+            else if( node instanceof AstRegularFormulaElement )
+            {
+                if( node.toString() != null )
+                    result.add( node.toString() );
+            }
+            else if( node instanceof AstContainerElement )
+            {
+                result.add( node.toString() );
+            }
+            else if( node instanceof AstText )
+            {
+                String text = ( (AstText)node ).getText();
+                result.addAll( extractExpressions( text ) );
+            }
+
             for( int i = 0; i < node.jjtGetNumChildren(); i++ )
             {
                 Node child = node.jjtGetChild( i );
-                for( int j = 0; j < child.jjtGetNumChildren(); j++ )
-                {
-                    result.addAll( getArguments( child.jjtGetChild( j ) ) );
-                }
+                result.addAll( getArguments( child ) );
             }
+
             return result;
         }
-        else if (node instanceof AstSymbol)
-        {
-            result.add( node.toString() );
-        }
-        else if (node instanceof AstRegularFormulaElement)
-        {
-            if( node.toString() != null )
-                result.add( node.toString() );
-        }
-        else if( node instanceof AstContainerElement )
-        {
-            result.add( node.toString() );
-        }
-        else if (node instanceof AstText)
-        {
-            String text = ((AstText)node).getText();
-            result.addAll( extractExpressions(text) );
-        }
-        
-        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
-        {
-            Node child = node.jjtGetChild( i );
-            result.addAll(getArguments(child));     
-        }
 
-        return result;
+        public Set<String> extractExpressions(String text)
+        {
+            Set<String> result = new HashSet<>();
+            if (insideSep)
+            {
+                result.add( text.replace( "}", "").trim());
+                insideSep = false;
+                return result;
+            }
+            
+            if (text.replace(" ", "").contains( "${sep=" ))
+                insideSep = true;
+
+            Pattern pattern = Pattern.compile( "~\\{([^}]*)\\}" );
+            Matcher matcher = pattern.matcher( text );
+
+            while( matcher.find() )
+            {
+                result.add( matcher.group( 1 ) );
+            }
+
+            return result;
+        }
     }
     
-    public static Set<String> extractExpressions(String text) {
-        Set<String> result = new HashSet<>();
-
-        Pattern pattern = Pattern.compile("~\\{([^}]*)\\}");
-        Matcher matcher = pattern.matcher(text);
-
-        while (matcher.find()) {
-            result.add(matcher.group(1));
-        }
-
-        return result;
-    }
-
     public Set<String> getArguments()
     {
-        return getArguments( this );
+        return new ArgumentsCollector().getArguments( this );
     }
-
 }
 /* JavaCC - OriginalChecksum=f3499422fb738ba4d5fe3dd32e729150 (do not edit this line) */
