@@ -82,7 +82,7 @@ public class DiagramGenerator
             createImport( diagram, importInfo );
         }
 
-        for( StructInfo structInfo : ScriptUtil.orderStructs( script.getStructs()) )
+        for( StructInfo structInfo : script.getStructs())
         {
             createStruct( diagram, structInfo );
         }
