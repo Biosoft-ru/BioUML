@@ -1,11 +1,16 @@
 package biouml.plugins.wdl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.model.StructInfo;
 import one.util.streamex.StreamEx;
 
 public class WDLVelocityHelper extends WorkflowVelocityHelper
@@ -83,5 +88,44 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
         List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
         result.add( diagram );
         return result;
+    }
+    
+    /**
+     * Returns ordered list of structures so that structure used as types in other structure goes before it
+     */
+    public List<Node> orderStructs()
+    {
+        List<Node> structs = getStructs();
+        List<Node> result = new ArrayList<Node>();
+        Map<String, Node> structsToAdd = StreamEx.of( structs ).toMap( s -> s.getName(), s -> s );
+        while( true )
+        {
+            Node info = findIndependent( structsToAdd );
+            if( info == null )
+                break;
+            result.add( info );
+            structsToAdd.remove( info.getName() );
+        }
+        return result;
+    }
+
+    private Node findIndependent(Map<String, Node> structs)
+    {
+        for( Entry<String, Node> e : structs.entrySet() )
+        {
+            if( getUsedStructs( structs.keySet(), e.getValue() ).isEmpty() )
+            {
+                return e.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Retruns all structures that are used as types inside given structure
+     */
+    public Set<String> getUsedStructs(Set<String> allStructs, Node struct)
+    {
+        return StreamEx.of( getStructMembers( struct ) ).map( expr -> expr.getType() ).filter( s -> allStructs.contains( s ) ).toSet();
     }
 }
