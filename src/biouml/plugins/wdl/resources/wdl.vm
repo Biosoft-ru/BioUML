@@ -71,7 +71,7 @@ version $helper.getVersion()$BR
 #foreach ( $import in $helper.getImports() )
 import "$import.getSourceName()" as $import.getAlias()
 #end
-#foreach ( $struct in $helper.getStructs() )
+#foreach ( $struct in $helper.orderStructs() )
 #struct($struct)
 #end
 #######################################################################################

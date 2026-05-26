@@ -92,7 +92,7 @@ public class ScriptInfo
         structs.add(structInfo);
     }
 
-    public Iterable<StructInfo> getStructs()
+    public List<StructInfo> getStructs()
     {
         return structs;
     }

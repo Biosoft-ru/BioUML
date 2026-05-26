@@ -27,6 +27,7 @@ import biouml.plugins.wdl.model.ImportInfo;
 import biouml.plugins.wdl.model.InputInfo;
 import biouml.plugins.wdl.model.ScatterInfo;
 import biouml.plugins.wdl.model.ScriptInfo;
+import biouml.plugins.wdl.model.ScriptUtil;
 import biouml.plugins.wdl.model.StructInfo;
 import biouml.plugins.wdl.model.TaskInfo;
 import biouml.plugins.wdl.model.WorkflowInfo;
@@ -81,7 +82,7 @@ public class DiagramGenerator
             createImport( diagram, importInfo );
         }
 
-        for( StructInfo structInfo : script.getStructs() )
+        for( StructInfo structInfo : ScriptUtil.orderStructs( script.getStructs()) )
         {
             createStruct( diagram, structInfo );
         }
