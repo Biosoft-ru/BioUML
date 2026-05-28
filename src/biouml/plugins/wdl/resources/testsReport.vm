@@ -17,6 +17,7 @@
 <th align="center" valign="middle">Nextflow generated</th>
 <th align="center" valign="middle">Nextflow executed</th>
 </tr>
+#set ($passed = 0)
 #set ($index = 1)
 #foreach($result in $results)
 #set($name = $result.getName())
@@ -35,9 +36,16 @@
 <td>$result.getWDLValidated()</td>
 <td><a href="${name}/${name}.nf" target="_blank">$result.getNextflowGenerated()</a></td>
 <td>$result.getNextflowExecuted()</td>
+#if ($result.getNextflowExecuted() == "Ok")
+#set($passed = $passed + 1)
+#end
 </tr>
 #set ($index = $index + 1)
 #end
+<tr>
+<td><td><td>
+<td><td><td>
+<td><td><td>$passed</tr>
 </tbody>
 </body>
 </html>
