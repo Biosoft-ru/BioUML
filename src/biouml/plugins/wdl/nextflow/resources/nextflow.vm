@@ -88,7 +88,11 @@ $BR  input:
 #if ($outputs.size() > 0)
 $BR  output:
 #foreach( $output in $outputs )
-  $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output) 
+#if ( $helper.isStdout($output) )
+  stdout emit: $helper.getName($output) 
+#else
+  $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output)
+#end
 #end
 #end
 #if ($helper.getCommand($task) || $helper.getPrivateDeclarations($task).size() > 0)
@@ -112,8 +116,8 @@ $BR  $scriptType:
 #######################################################################################
 ###################################WORKFLOWS###########################################
 #######################################################################################
-#foreach ( $workflow in $helper.getNamedWorkflows() )
-workflow $workflow.getName() {
+#foreach ( $workflow in $helper.getWorkflows() )
+workflow $helper.getWorkflowName($workflow) {
 #set ($externalParameters = $helper.getExternalParameters($workflow))
 #if ($externalParameters.size() > 0)
 $BR  take:
@@ -146,15 +150,6 @@ $BR  main:
 }$BR
 #end
 ################################ENTRY WORKFLOW#########################################
-#set ($calls = $helper.orderCalls($diagram))
-#if( !$calls.isEmpty() )
 workflow {
-#foreach( $n in $calls)
-#if ( $helper.isCycle($n) )#scatterNF($n)
-#elseif( $helper.isCall($n) )#callNF($n)
-#elseif( $helper.isExpression($n) )#expressionNF($n)
-#elseif( $helper.isConditional($n) )#conditionalNF($n)
-#end
-#end 
+$helper.getWorkflowName($diagram) ( #foreach($ep in $externalParameters)$helper.getEntryInput($ep)#comma($externalParameters) #end )
 }
-#end

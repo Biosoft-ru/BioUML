@@ -69,9 +69,15 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.getCalls( c );
     }
     
+    
+    /**
+     * Return all compartments which describe workflows including top level diagram
+     */
     public List<Compartment> getWorkflows()
     {
-        return WorkflowUtil.getWorkflows( diagram );
+        List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
+        result.add( diagram );
+        return result;
     }
 
     /**
@@ -297,5 +303,16 @@ public class WorkflowVelocityHelper
     public ExpressionInfo[] getStructMembers(Node node)
     {
         return WorkflowUtil.getStructMembers( node );
+    }
+        
+    public String getWorkflowName(Compartment c)
+    {
+        if( c instanceof Diagram )
+        {
+            String name = diagram.getAttributes().getValueAsString( WDLConstants.WORKFLOW_NAME );
+            if( name != null )
+                return name;
+        }
+        return c.getName();
     }
 }

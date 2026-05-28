@@ -7,12 +7,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
+
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.model.ExpressionInfo;
+import one.util.streamex.StreamEx;
 
 public class NextFlowPreprocessor
 {
@@ -42,6 +45,20 @@ public class NextFlowPreprocessor
                     WorkflowUtil.addBeforeCommand( task,
                             new ExpressionInfo( WorkflowUtil.getType( input ), name, "getDefault(" + name + ", " + expression + ")" ) );
                 }
+                //                WorkflowUtil.setExpression( input, processWDLFunctions( expression ));
+            }
+
+            for( Node output : WorkflowUtil.getOutputs( task ) )
+            {
+                String expression = WorkflowUtil.getExpression( output );
+                if( expression != null && !expression.isEmpty() )
+                {
+                    if( expression.contains( "stdout()" ) )
+                    {
+                        WorkflowUtil.setExpression( output, expression.replace( "stdout()", "stdout" ) );
+                    }
+                    //                    WorkflowUtil.setExpression( output, processWDLFunctions( expression ));
+                }
             }
 
             String command = WorkflowUtil.getCommand( task );
@@ -58,27 +75,32 @@ public class NextFlowPreprocessor
                 WorkflowUtil.addBeforeCommand( task, dec );
                 command = command.replace( sep, "~{" + name + "_str}" );
             }
+            command = this.processWDLFunctions( command );
+            command = processVariables( command,
+                    StreamEx.of( WorkflowUtil.getInputs( task ) ).map( input -> WorkflowUtil.getName( input ) ).toSet() );
             WorkflowUtil.setCommand( task, command );
         }
 
         for( Node node : result.recursiveStream().select( Node.class ) )
         {
             String expression = WorkflowUtil.getExpression( node );
-            
+
             if( expression != null && !expression.isEmpty() )
             {
-//                expression =processCallName(node, expression);
+                //                expression =processCallName(node, expression);
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
                 expression = processMap( expression );
-                expression = processObject(expression);
+                expression = processPair( expression );
+                expression = processObject( expression );
+                expression = processWDLFunctions( expression );
                 WorkflowUtil.setExpression( node, expression );
             }
         }
         return result;
     }
-    
+
 
     public String preprocess(String s) throws Exception
     {
@@ -129,6 +151,15 @@ public class NextFlowPreprocessor
         return input.replaceAll( regex, "\"$2\"" );
     }
 
+    public static String processPair(String pair)
+    {
+        if( pair.startsWith( "(" ) && pair.endsWith( ")" ) && pair.contains( "," ) )
+        {
+            pair = "[" + pair.substring( 1, pair.lastIndexOf( ")" ) ) + "]";
+        }
+        return pair;
+    }
+
     public static String processMap(String map)
     {
         String content = map.trim();
@@ -136,19 +167,19 @@ public class NextFlowPreprocessor
         {
             return map.replace( "{", "[" ).replace( "}", "]" );
         }
-        else if ( content.startsWith( "[" ) && content.endsWith( "]" ) && content.contains( ":" ) )
+        else if( content.startsWith( "[" ) && content.endsWith( "]" ) && content.contains( ":" ) )
         {
             return map.replace( "{", "[" ).replace( "}", "]" );
         }
         return map;
     }
-    
+
     public static String processObject(String obj)
     {
         String content = obj.trim();
         if( content.startsWith( "object" ) && content.endsWith( "}" ) )
         {
-            return obj.replace( "{", "[" ).replace( "}", "]" ).replace( "object", "");
+            return obj.replace( "{", "[" ).replace( "}", "]" ).replace( "object", "" );
         }
         return obj;
     }
@@ -222,5 +253,67 @@ public class NextFlowPreprocessor
     private static String cleanValue(String value)
     {
         return value.replace( "\"", "" ).replace( "'", "" ).replace( " + ", "" ).replace( "+", "" );
+    }
+
+    public static String processJson(String json)
+    {
+        JSONObject input = new JSONObject( json );
+        JSONObject result = new JSONObject();
+
+        for( String key : input.keySet() )
+        {
+            int dotIndex = key.indexOf( '.' );
+            String newKey = dotIndex >= 0 ? key.substring( dotIndex + 1 ) : key;
+
+            result.put( newKey, input.get( key ) );
+        }
+
+        return result.toString( 2 );
+    }
+
+    private String processVariables(String command, Set<String> candidateVariables)
+    {
+        List<String> buckVariables = extractVariables( command, "$" );
+        for( String variable : buckVariables )
+        {
+            if( !candidateVariables.contains( variable ) )
+            {
+                command = command.replace( "${" + variable + "}", "\\${" + variable + "}" );
+            }
+        }
+        List<String> tildaVariables = extractVariables( command, "~" );
+        for( String variable : tildaVariables )
+        {
+            command = command.replace( "~{" + variable + "}", "${" + variable + "}" );
+        }
+        return command;
+    }
+
+    public static List<String> extractVariables(String text, String prefix)
+    {
+        List<String> result = new ArrayList<>();
+
+        Pattern pattern = Pattern.compile( "\\" + prefix + "\\{([^}]*)\\}" );
+        Matcher matcher = pattern.matcher( text );
+
+        while( matcher.find() )
+        {
+            result.add( matcher.group( 1 ) );
+        }
+
+        return result;
+    }
+
+    private String processWDLFunctions(String s)
+    {
+        if( s == null )
+            return null;
+        if( s.contains( "transpose(" ) )
+            s = s.replace( "transpose(", "transpose_wdl(" );
+        if( s.contains( "cross(" ) )
+            s = s.replace( "cross(", "cross_wdl(" );
+        if( s.contains( "flatten(" ) )
+            s = s.replace( "cross(", "flatten_wdl(" );
+        return s;
     }
 }

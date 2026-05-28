@@ -38,17 +38,6 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
         return getType( n ) + " " + getName( n );
     }
     
-    public String getWorkflowName(Compartment c)
-    {
-        if( c instanceof Diagram )
-        {
-            String name = diagram.getAttributes().getValueAsString( WDLConstants.WORKFLOW_NAME );
-            if( name != null )
-                return name;
-        }
-        return c.getName();
-    }
-    
     public String getVersion()
     {
         String version =  diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
@@ -78,16 +67,6 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     public List<ImportProperties> getImports()
     {
         return WorkflowUtil.getImports( diagram );
-    }
-    
-    /**
-     * Return all compartments which describe workflows including top level diagram
-     */
-    public List<Compartment> getWorkflows()
-    {
-        List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
-        result.add( diagram );
-        return result;
     }
     
     /**
