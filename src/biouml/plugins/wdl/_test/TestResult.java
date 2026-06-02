@@ -3,6 +3,7 @@ package biouml.plugins.wdl._test;
 public class TestResult
 {
     private String name;
+    private String wdlPath;
     private String title = null;
     private String description = "";
     private String wdlGenerated = "Failed";
@@ -11,6 +12,7 @@ public class TestResult
     private String nextflowGenerated = "Failed";
     private String nextflowExecuted = "N/A";
     private String roundTest = "Failed";
+    private String error;
 
     public TestResult(String name)
     {
@@ -22,6 +24,16 @@ public class TestResult
         return name;
     }
     
+    public void setWDLPath(String wdlPath)
+    {
+        this.wdlPath = wdlPath;
+    }
+    public String getWDLPath()
+    {
+        return wdlPath;
+    }
+
+
     public void setTitle(String title)
     {
         this.title = title;
@@ -30,7 +42,7 @@ public class TestResult
     {
         return title;
     }
-    
+
     public void setDescrption(String description)
     {
         this.description = description;
@@ -92,5 +104,15 @@ public class TestResult
     public void setNextflowExecuted(String nextflowExecution)
     {
         this.nextflowExecuted = nextflowExecution;
+    }
+
+    public String getError()
+    {
+        return error;
+    }
+
+    public void setError(String error)
+    {
+        this.error = error;
     }
 }
