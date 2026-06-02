@@ -1,5 +1,6 @@
 package biouml.plugins.wdl.nextflow;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,10 +12,15 @@ import org.json.JSONObject;
 
 import biouml.model.Compartment;
 import biouml.model.Diagram;
+import biouml.model.DiagramElementGroup;
+import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.WorkflowUtil;
+import biouml.plugins.wdl.diagram.ExpressionProperties;
+import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
+import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
 
 public class NextFlowPreprocessor
@@ -61,12 +67,24 @@ public class NextFlowPreprocessor
                 }
             }
 
+            Object beforeCommand = WorkflowUtil.getBeforeCommand( task );
+            if( beforeCommand instanceof ExpressionInfo[] )
+            {
+                for( ExpressionInfo info : (ExpressionInfo[])beforeCommand )
+                {
+                    String expression = info.getExpression();
+                    expression = procesRegexes( expression );
+                    info.setExpression( expression );
+                }
+            }
+
             String command = WorkflowUtil.getCommand( task );
             ConversionResult converted = processIf( command );
             for( ExpressionInfo dec : converted.declarations )
                 WorkflowUtil.addBeforeCommand( task, dec );
 
             command = converted.convertedCommand;
+            command = dedent( command );
             Set<String> seps = findSeps( command );
             for( String sep : seps )
             {
@@ -76,8 +94,12 @@ public class NextFlowPreprocessor
                 command = command.replace( sep, "~{" + name + "_str}" );
             }
             command = this.processWDLFunctions( command );
-            command = processVariables( command,
-                    StreamEx.of( WorkflowUtil.getInputs( task ) ).map( input -> WorkflowUtil.getName( input ) ).toSet() );
+            Set<String> variables = StreamEx.of( WorkflowUtil.getInputs( task ) ).map( input -> WorkflowUtil.getName( input ) ).toSet();
+            variables.addAll(
+                    StreamEx.of( WorkflowUtil.getBeforeCommandExpressions( task ) ).map( expression -> expression.getName() ).toSet() );
+            command = procesRegexes( command );
+            command = processVariables( command, variables );
+
             WorkflowUtil.setCommand( task, command );
         }
 
@@ -88,6 +110,31 @@ public class NextFlowPreprocessor
             if( expression != null && !expression.isEmpty() )
             {
                 //                expression =processCallName(node, expression);
+                Set<String> seps = findSeps( expression );
+                for( String sep : seps )
+                {
+                    String name = getSepName( sep );
+                    ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join(' ')" );
+                    ExpressionProperties properties = new ExpressionProperties();
+                    properties.setVariable(  dec.getName() );
+                    properties.setType( dec.getType() );
+                    properties.setRhs( dec.getExpression() );
+                    DiagramElementGroup deg = properties.createElements( result, new Point( 0, 0 ), null );
+                    Node newNode = (Node)deg.getElement();
+                    Set<String> arguments = new HashSet<>();
+                    arguments.add( name );
+                    WorkflowUtil.setArguments( newNode, arguments );
+                    result.put(newNode );
+                    Set<Node> argNodes = WorkflowUtil.findExpressionNodes( result, name );
+                    for (Node argNode: StreamEx.of(argNodes))
+                    {
+                        Edge edge1 = new Edge( new Stub( null, argNode.getName() + " interact " + newNode.getName(), WDLConstants.LINK_TYPE ), argNode, newNode );
+                        result.put( edge1 );
+                    }
+                    Edge edge2 = new Edge( new Stub( null, newNode.getName() + " interact " + node.getName(), WDLConstants.LINK_TYPE ), newNode, node );
+                    result.put( edge2 );
+                    expression = expression.replace( sep, "~{" + name + "_str}" );
+                }
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
@@ -95,6 +142,7 @@ public class NextFlowPreprocessor
                 expression = processPair( expression );
                 expression = processObject( expression );
                 expression = processWDLFunctions( expression );
+                expression = procesRegexes( expression );
                 WorkflowUtil.setExpression( node, expression );
             }
         }
@@ -109,13 +157,14 @@ public class NextFlowPreprocessor
 
     public static String getSepName(String sep)
     {
-        return sep.substring( 9, sep.length() - 1 ).trim();
+        return sep.substring( sep.lastIndexOf( "\"" ) + 1, sep.length() - 1 ).trim();
     }
 
     public static Set<String> findSeps(String input)
     {
         Set<String> result = new HashSet<>();
-        String regex = "~\\{sep=([\"'])\\s*\\1 ([a-zA-Z_][a-zA-Z0-9_]*)}";
+        String regex = "[~$]\\{sep=([\"'])(.*?)\\1\\s+([a-zA-Z_][a-zA-Z0-9_]*)}";
+        //        String regex = "~\\{sep=([\"'])(.*?)\\1\\s+([a-zA-Z_][a-zA-Z0-9_]*)}";
         Pattern pattern = Pattern.compile( regex );
         Matcher matcher = pattern.matcher( input );
         while( matcher.find() )
@@ -123,6 +172,14 @@ public class NextFlowPreprocessor
             result.add( matcher.group() );
         }
         return result;
+    }
+
+    public static String procesRegexes(String content)
+    {
+        Pattern pattern = Pattern.compile( "\"([^\"]*\\$)\"" );
+        Matcher matcher = pattern.matcher( content );
+
+        return matcher.replaceAll( "'$1'" );
     }
 
     public static String processArrayElements(Diagram diagram, String input)
@@ -276,7 +333,15 @@ public class NextFlowPreprocessor
         List<String> buckVariables = extractVariables( command, "$" );
         for( String variable : buckVariables )
         {
-            if( !candidateVariables.contains( variable ) )
+            if( variable.contains( "(" ) )//this is function
+            {
+                if( !StreamEx.of( NextFlowVelocityHelper.getWDLFunctions() ).toSet()
+                        .contains( variable.substring( 0, variable.indexOf( "_wdl(" ) ) ) )
+                {
+                    command = command.replace( "${" + variable + "}", "\\${" + variable + "}" );
+                }
+            }
+            else if( !candidateVariables.contains( variable ) )
             {
                 command = command.replace( "${" + variable + "}", "\\${" + variable + "}" );
             }
@@ -308,12 +373,69 @@ public class NextFlowPreprocessor
     {
         if( s == null )
             return null;
-        if( s.contains( "transpose(" ) )
-            s = s.replace( "transpose(", "transpose_wdl(" );
-        if( s.contains( "cross(" ) )
-            s = s.replace( "cross(", "cross_wdl(" );
-        if( s.contains( "flatten(" ) )
-            s = s.replace( "cross(", "flatten_wdl(" );
+        for( String function : NextFlowVelocityHelper.getWDLFunctions() )
+        {
+            if( s.contains( function + "(" ) )
+                s = s.replace( function + "(", function + "_wdl(" );
+        }
+        //        if( s.contains( "transpose(" ) )
+        //            s = s.replace( "transpose(", "transpose_wdl(" );
+        //        if( s.contains( "cross(" ) )
+        //            s = s.replace( "cross(", "cross_wdl(" );
+        //        if( s.contains( "flatten(" ) )
+        //            s = s.replace( "cross(", "flatten_wdl(" );
+        //        if( s.contains( "write_map(" ) )
+        //            s = s.replace( "write_map(", "write_map_wdl(" );
         return s;
+    }
+
+    public String dedent(String text)
+    {
+        if( text == null || text.isEmpty() )
+            return text;
+
+        String[] lines = text.split( "\\R", -1 );
+
+        int minIndent = Integer.MAX_VALUE;
+
+        // Find minimal indentation among non-empty lines
+        for( String line : lines )
+        {
+            if( line.trim().isEmpty() )
+                continue;
+
+            int indent = 0;
+            while( indent < line.length() && ( line.charAt( indent ) == ' ' || line.charAt( indent ) == '\t' ) )
+            {
+                indent++;
+            }
+
+            minIndent = Math.min( minIndent, indent );
+        }
+
+        if( minIndent == Integer.MAX_VALUE || minIndent == 0 )
+            return text;
+
+        // Remove common indentation
+        StringBuilder result = new StringBuilder();
+
+        for( int i = 0; i < lines.length; i++ )
+        {
+            String line = lines[i];
+
+            if( line.trim().isEmpty() )
+            {
+                result.append( line );
+            }
+            else
+            {
+                result.append( line.substring( Math.min( minIndent, line.length() ) ) );
+            }
+
+            if( i < lines.length - 1 )
+                result.append( '\n' );
+        }
+
+        return result.toString();
     }
 }

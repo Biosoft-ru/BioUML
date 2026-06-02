@@ -511,6 +511,14 @@ public class WorkflowUtil
     {
         return c.getAttributes().getValue( WDLConstants.BEFORE_COMMAND_ATTR );
     }
+    
+    public static ExpressionInfo[] getBeforeCommandExpressions(Compartment c)
+    {
+        Object obj = getBeforeCommand(c);
+        if (obj instanceof ExpressionInfo[])
+            return (ExpressionInfo[])obj;
+        return new ExpressionInfo[0];
+    }
 
     public static void setTaskRef(Compartment c, String ref)
     {
