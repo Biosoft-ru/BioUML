@@ -284,6 +284,7 @@ public class WDLImporter implements DataElementImporter
         expressionInfo.setName( astDeclaration.getName() );
         expressionInfo.setType( astDeclaration.getType() );
         expressionInfo.setArguments( astDeclaration.getVariables() );
+        expressionInfo.setAST( astDeclaration );
         return expressionInfo;
     }
 
@@ -294,6 +295,7 @@ public class WDLImporter implements DataElementImporter
             inputInfo.setExpression( astDeclaration.getExpression().toString() );
         inputInfo.setName( astDeclaration.getName() );
         inputInfo.setType( astDeclaration.getType() );
+        inputInfo.setAST( astDeclaration );
         return inputInfo;
     }
 
@@ -305,6 +307,7 @@ public class WDLImporter implements DataElementImporter
         outputInfo.setName( astDeclaration.getName() );
         outputInfo.setType( astDeclaration.getType() );
         outputInfo.setArguments( astDeclaration.getVariables() );
+        outputInfo.setAST( astDeclaration );
         return outputInfo;
     }
 
