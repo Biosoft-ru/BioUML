@@ -48,8 +48,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         String command = super.getCommand( c );
         if (command  == null)
             return "";
-        command = command.replace( "$", "\\$" );
-        command = command.replace( "~{", "${" );
+//        command = command.replace( "$", "\\$" );
+//        command = command.replace( "~{", "${" );
         return command;
     }
 
@@ -106,10 +106,14 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         StringBuilder result = new StringBuilder();
         result.append( "params."+getName( n ) );
         String expression = getExpression( n );
+        boolean isOptional = WorkflowUtil.getType( n ).endsWith( "?" );
+
         if( expression != null && !expression.isEmpty() )
         {
             result.append( " = " + expression );
         }
+        else if( isOptional )
+            result.append( " = null" );
         return result.toString();
     }
 
@@ -863,14 +867,14 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     
     private String transformParams(String expression, Node source)
     {
-        if( WorkflowUtil.isExternalParameter( source ) )
-        {
-            String name = source.getName();
-            String replacement = "params." + name ;
-            if( "File".equals( WorkflowUtil.getType( source ) ) )
-                 replacement = "file(" + replacement + ")";
-            expression = replace( expression, name, replacement);
-        }
+//        if( WorkflowUtil.isExternalParameter( source ) )
+//        {
+//            String name = source.getName();
+//            String replacement = "params." + name ;
+//            if( "File".equals( WorkflowUtil.getType( source ) ) )
+//                 replacement = "file(" + replacement + ")";
+//            expression = replace( expression, name, replacement);
+//        }
         return expression;
     }
     
@@ -978,20 +982,23 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     /**
      * Functions that should be imported from biouml_function.nf
      */
-    public String getWDLFunctions()
+    public static String[] getWDLFunctions()
     {
-        return "basename; sub; length; range; read_int; read_string; read_float; numerate; select_first; select_all";
+        return new String[] {"defined", "basename", "sub", "length", "range", "read_int", "read_string", "read_float", "read_boolean",
+                "read_lines", "write_lines", "read_tsv", "write_tsv", "numerate", "select_first", "select_all", "quote", "squote", "sep",
+                "ceil", "floor", "as_map", "keys", "zip", "round", "write_json", "prefix", "suffix", "collect_by_key", "size", "cross",
+                "transpose", "unzip", "contains", "flatten", "write_map"};
     }
 
     public String getFunctions()
     {
         List<String> result = StreamEx.of( getMandatoryFunctions() ).toList();
-        String[] funNames = getWDLFunctions().split( ";" );
+        String[] funNames = getWDLFunctions();
 
         for( String funName : funNames )
         {
             if( isFunctionCalled( funName.trim() ) )
-                result.add( funName );
+                result.add( funName+"_wdl" );
         }
         return StreamEx.of( result ).joining( "; " );
     }
@@ -1146,6 +1153,24 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         if( condition == null )
             return "true";
             return getCallEmit( condition );
+    }
+    
+    public boolean isStdout(Node output)
+    {
+        return getExpression(output).contains( "stdout" );
+    }
+    
+    /**
+     * Generates line for input for entry workflow
+     */
+    public String getEntryInput(Node input)
+    {
+//        boolean isOptional = WorkflowUtil.getType( input ).endsWith( "?" );
+//        if( isOptional )
+//            return "getDefault(params." + getName( input ) + ", " + getExpression( input )+")";
+        if (WorkflowUtil.getType( input ).equals( "File" ))
+            return "file( params." + getName( input ) + ")";
+        return "params." + getName( input );
     }
 
 }

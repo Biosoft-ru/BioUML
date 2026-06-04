@@ -53,7 +53,7 @@
 <th align="center" valign="middle">Generated WDL</th>
 </tr>
 <tr>
-<td><pre><code><object data="${name}.wdl"></object></code></pre><code></td>
+<td><pre><code><object data="${wdlPath}"></object></code></pre><code></td>
 <td><pre><code><object data="${name}_exported.wdl"></object></code></pre><code></td>
 </tr>
 </tbody>

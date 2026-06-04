@@ -365,7 +365,7 @@ public class NextFlowFormatter
     private void quote(StringBuilder sb)
     {
         if( addQuote )
-            sb.append( "\"" );
+            sb.append( "\'" );
     }
 
     private void indent(StringBuilder sb)

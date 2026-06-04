@@ -51,4 +51,6 @@ public class WDLConstants
     public static final String STRUCT_MEMBERS_ATTR = "Struct members";
     public static final String NO_VALUE = "NO_VALUE";
 
+    public static final String WORKFLOW_NAME = "Workflow name";
+
 }

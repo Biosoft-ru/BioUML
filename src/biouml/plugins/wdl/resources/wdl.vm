@@ -41,9 +41,9 @@ ${BR}if ( $helper.findCondition($conditional) ) {
   call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) {
 #end
 ##  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) #if( $helper.getAlias($call) ) as $helper.getAlias($call)#end {
-#set ( $inputs = $helper.getOrderedInputs($call) )
+#set ( $inputs = $helper.getCallInputs($call) )
 #if ( $inputs.size()> 0 )
-     input: #foreach( $input in $inputs ) $helper.getCallInput($input)#comma($inputs)#end
+     input: #foreach( $input in $inputs ) $input#comma($inputs)#end
 #end
   }$BR
 #end
@@ -71,7 +71,7 @@ version $helper.getVersion()$BR
 #foreach ( $import in $helper.getImports() )
 import "$import.getSourceName()" as $import.getAlias()
 #end
-#foreach ( $struct in $helper.getStructs() )
+#foreach ( $struct in $helper.orderStructs() )
 #struct($struct)
 #end
 #######################################################################################
@@ -131,11 +131,7 @@ task $task.getName() {
 ###################################WORKFLOW############################################
 #######################################################################################
 #foreach ( $workflow in $helper.getWorkflows() )
-#if ( $workflow.getName().isEmpty() )
-workflow $helper.getName() {
-#else
-workflow $workflow.getName() {
-#end
+workflow $helper.getWorkflowName($workflow) {
 #set ( $externalParameters = $helper.getExternalParameters($workflow) )
 #if ( $externalParameters.size() > 0 )
   input {

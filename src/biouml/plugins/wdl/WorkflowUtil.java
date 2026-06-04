@@ -203,20 +203,18 @@ public class WorkflowUtil
         return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
     }
 
+    /**
+     * Returns all inputs of given task or call in order of their position excluding all inputs which do not have position
+     */
     public static List<Node> getOrderedInputs(Compartment c)
     {
         List<Node> preliminary = getInputs( c );
         Node[] result = new Node[preliminary.size()];
         for( Node node : preliminary )
         {
-            Object posObj = node.getAttributes().getValue( WDLConstants.POSITION_ATTR );
-            if( posObj instanceof Integer )
-                result[(Integer)posObj] = node;
-        }
-        for( Node n : result )
-        {
-            if( n == null )
-                System.out.println( "" );
+            int position = WorkflowUtil.getPosition( node );
+            if( position >= 0  )
+                result[position] = node;
         }
         return StreamEx.of( result ).nonNull().toList();
     }
@@ -512,6 +510,14 @@ public class WorkflowUtil
     public static Object getBeforeCommand(Compartment c)
     {
         return c.getAttributes().getValue( WDLConstants.BEFORE_COMMAND_ATTR );
+    }
+    
+    public static ExpressionInfo[] getBeforeCommandExpressions(Compartment c)
+    {
+        Object obj = getBeforeCommand(c);
+        if (obj instanceof ExpressionInfo[])
+            return (ExpressionInfo[])obj;
+        return new ExpressionInfo[0];
     }
 
     public static void setTaskRef(Compartment c, String ref)
