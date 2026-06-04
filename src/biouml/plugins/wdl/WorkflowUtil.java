@@ -213,7 +213,7 @@ public class WorkflowUtil
         for( Node node : preliminary )
         {
             int position = WorkflowUtil.getPosition( node );
-            if( position >= 0  )
+            if( position >= 0 )
                 result[position] = node;
         }
         return StreamEx.of( result ).nonNull().toList();
@@ -340,6 +340,27 @@ public class WorkflowUtil
         n.getAttributes()
                 .add( new DynamicProperty( WDLConstants.ARGUMENTS_ATTR, String[].class, StreamEx.of( args ).toArray( String[]::new ) ) );
     }
+
+    public static void setExpressionInfo(Node n, ExpressionInfo info)
+    {
+        n.getAttributes().add( new DynamicProperty(WDLConstants.EXPRESSION_INFO_ATTR, ExpressionInfo.class, info ));
+    }
+    
+    public static ExpressionInfo getExpressionInfo(Node n)
+    {
+        try
+        {
+            Object obj = n.getAttributes().getValue( WDLConstants.EXPRESSION_INFO_ATTR );
+            if( obj instanceof ExpressionInfo )
+                return (ExpressionInfo)obj;
+            return null;
+        }
+        catch( Exception ex )
+        {
+            return null;
+        }
+    }
+
     public static String getExpression(Node n)
     {
         try
@@ -511,11 +532,11 @@ public class WorkflowUtil
     {
         return c.getAttributes().getValue( WDLConstants.BEFORE_COMMAND_ATTR );
     }
-    
+
     public static ExpressionInfo[] getBeforeCommandExpressions(Compartment c)
     {
-        Object obj = getBeforeCommand(c);
-        if (obj instanceof ExpressionInfo[])
+        Object obj = getBeforeCommand( c );
+        if( obj instanceof ExpressionInfo[] )
             return (ExpressionInfo[])obj;
         return new ExpressionInfo[0];
     }
@@ -572,6 +593,11 @@ public class WorkflowUtil
     {
         Object resultName = c.getAttributes().getValue( Util.RESULT_NAME_ATTR );
         return resultName == null ? null : resultName.toString();
+    }
+    
+    public static void setResultName(Compartment c, String resultName)
+    {
+        c.getAttributes().add( new DynamicProperty( Util.RESULT_NAME_ATTR, String.class, resultName ) );
     }
 
     public static List<Node> findSources(String arg, Compartment compartment)
