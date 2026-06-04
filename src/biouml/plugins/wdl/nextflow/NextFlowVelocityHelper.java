@@ -1165,11 +1165,13 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      */
     public String getEntryInput(Node input)
     {
-//        boolean isOptional = WorkflowUtil.getType( input ).endsWith( "?" );
-//        if( isOptional )
-//            return "getDefault(params." + getName( input ) + ", " + getExpression( input )+")";
-        if (WorkflowUtil.getType( input ).equals( "File" ))
+        //        boolean isOptional = WorkflowUtil.getType( input ).endsWith( "?" );
+        //        if( isOptional )
+        //            return "getDefault(params." + getName( input ) + ", " + getExpression( input )+")";
+        if( WorkflowUtil.getType( input ).equals( "File" ) )
             return "file( params." + getName( input ) + ")";
+        if( WorkflowUtil.getType( input ).equals( "Array[File]" ) )
+            return "params." + getName( input ) + ".collect { file(it) }";
         return "params." + getName( input );
     }
 

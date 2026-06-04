@@ -1,6 +1,7 @@
 package biouml.plugins.wdl.nextflow;
 
 import java.awt.Point;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 import biouml.model.Compartment;
+import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.Edge;
@@ -20,6 +22,7 @@ import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.ExpressionProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
+import biouml.plugins.wdl.parser.AstDeclaration;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
 
@@ -39,6 +42,8 @@ public class NextFlowPreprocessor
     public Diagram preprocess(Diagram diagram) throws Exception
     {
         Diagram result = diagram.clone( diagram.getOrigin(), diagram.getName() );
+        processSameTaskCall( result );
+        processConditionals(result);
 
         for( Compartment task : WorkflowUtil.getTasks( result ) )
         {
@@ -72,7 +77,14 @@ public class NextFlowPreprocessor
             {
                 for( ExpressionInfo info : (ExpressionInfo[])beforeCommand )
                 {
-                    String expression = info.getExpression();
+                    String expression = null;
+                    if( info.getAST() != null )
+                    {
+                        AstDeclaration declaration = info.getAST();
+                        expression = new WDLNextflowFormatter().format( declaration.getExpression() );
+                    }
+                    if( expression == null )
+                        expression = info.getExpression();
                     expression = procesRegexes( expression );
                     info.setExpression( expression );
                 }
@@ -105,7 +117,16 @@ public class NextFlowPreprocessor
 
         for( Node node : result.recursiveStream().select( Node.class ) )
         {
-            String expression = WorkflowUtil.getExpression( node );
+            String expression = null;
+            ExpressionInfo info = WorkflowUtil.getExpressionInfo( node );
+            if( info != null && info.getAST() != null )
+            {
+                AstDeclaration declaration = info.getAST();
+                expression = new WDLNextflowFormatter().format( declaration.getExpression() );
+            }
+
+            if( expression == null )
+                expression = WorkflowUtil.getExpression( node );
 
             if( expression != null && !expression.isEmpty() )
             {
@@ -116,7 +137,7 @@ public class NextFlowPreprocessor
                     String name = getSepName( sep );
                     ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join(' ')" );
                     ExpressionProperties properties = new ExpressionProperties();
-                    properties.setVariable(  dec.getName() );
+                    properties.setVariable( dec.getName() );
                     properties.setType( dec.getType() );
                     properties.setRhs( dec.getExpression() );
                     DiagramElementGroup deg = properties.createElements( result, new Point( 0, 0 ), null );
@@ -124,17 +145,21 @@ public class NextFlowPreprocessor
                     Set<String> arguments = new HashSet<>();
                     arguments.add( name );
                     WorkflowUtil.setArguments( newNode, arguments );
-                    result.put(newNode );
+                    result.put( newNode );
                     Set<Node> argNodes = WorkflowUtil.findExpressionNodes( result, name );
-                    for (Node argNode: StreamEx.of(argNodes))
+                    for( Node argNode : StreamEx.of( argNodes ) )
                     {
-                        Edge edge1 = new Edge( new Stub( null, argNode.getName() + " interact " + newNode.getName(), WDLConstants.LINK_TYPE ), argNode, newNode );
+                        Edge edge1 = new Edge(
+                                new Stub( null, argNode.getName() + " interact " + newNode.getName(), WDLConstants.LINK_TYPE ), argNode,
+                                newNode );
                         result.put( edge1 );
                     }
-                    Edge edge2 = new Edge( new Stub( null, newNode.getName() + " interact " + node.getName(), WDLConstants.LINK_TYPE ), newNode, node );
+                    Edge edge2 = new Edge( new Stub( null, newNode.getName() + " interact " + node.getName(), WDLConstants.LINK_TYPE ),
+                            newNode, node );
                     result.put( edge2 );
                     expression = expression.replace( sep, "~{" + name + "_str}" );
                 }
+                //                expression = procesStruct(expression, structs);
                 expression = processArrayElements( result, expression );
                 expression = removeGlobs( expression );
                 expression = processTernary( expression );
@@ -157,7 +182,11 @@ public class NextFlowPreprocessor
 
     public static String getSepName(String sep)
     {
-        return sep.substring( sep.lastIndexOf( "\"" ) + 1, sep.length() - 1 ).trim();
+        if( sep.contains( "\"" ) )
+            return sep.substring( sep.lastIndexOf( "\"" ) + 1, sep.length() - 1 ).trim();
+        else if( sep.contains( "\'" ) )
+            return sep.substring( sep.lastIndexOf( "\'" ) + 1, sep.length() - 1 ).trim();
+        return null;
     }
 
     public static Set<String> findSeps(String input)
@@ -267,6 +296,33 @@ public class NextFlowPreprocessor
         {
             this.declarations = declarations;
             this.convertedCommand = command;
+        }
+    }
+    
+    public static void processConditionals(Diagram diagram)
+    {
+        for (Compartment cycle: diagram.recursiveStream().select( Compartment.class ).filter( c->WorkflowUtil.isConditional( c ) ))
+        {
+            for( Node node : cycle.getNodes() )
+            {
+                if( WorkflowUtil.isExpression( node ) )
+                {
+                    String name = WorkflowUtil.getName( node );
+                    if( name != null )
+                    {
+                        String nodeName = DefaultSemanticController.generateUniqueName( diagram, node.getName() );
+                        Node clone = node.clone( cycle.getCompartment(), nodeName );
+                        WorkflowUtil.setExpressionInfo( clone, null );
+                        WorkflowUtil.setExpression( clone, "null" );
+                        cycle.getCompartment().put( clone );
+                        
+                        Edge edge1 = new Edge(
+                                new Stub( null, clone.getName() + " interact " + node.getName(), WDLConstants.LINK_TYPE ), clone,
+                                node );
+                        cycle.getCompartment().put( edge1 );
+                    }
+                }
+            }
         }
     }
 
@@ -437,5 +493,52 @@ public class NextFlowPreprocessor
         }
 
         return result.toString();
+    }
+
+    private void processSameTaskCall(Diagram diagram)
+    {
+        List<Compartment> calls = StreamEx.of( WorkflowUtil.getWorkflows( diagram ) ).prepend( diagram ).toFlatList( w -> WorkflowUtil.getCalls( w ) );
+
+
+        //process aliases for NOT imported calls
+        for (Compartment call: calls)
+        {
+            String alias = WorkflowUtil.getAlias( call );
+            String taskName = WorkflowUtil.getTaskRef( call );
+
+            if( WorkflowUtil.findTask( taskName, diagram ) != null && !alias.equals( taskName ) )
+            {
+                WorkflowUtil.setAlias( call, taskName );
+                WorkflowUtil.setResultName( call, alias );
+            }
+        }
+        
+        Set<String> repeatedTasks = new HashSet<>();
+        for (Compartment call: calls)
+        {
+            String taskRef = WorkflowUtil.getTaskRef( call );
+            if (repeatedTasks.contains( taskRef ))
+            {
+                Compartment task = WorkflowUtil.findTask( taskRef, diagram );
+                if( task != null )
+                {
+                    Compartment copy = copyTask( task, DefaultSemanticController.generateUniqueName( diagram, taskRef ) );
+                    String newTaskName = WorkflowUtil.getName( copy );
+                    WorkflowUtil.setTaskRef( copy, newTaskName );
+                    WorkflowUtil.setAlias( call, newTaskName );
+                }
+            }
+            repeatedTasks.add(taskRef);//.computeIfAbsent( taskRef, k -> new HashSet<Compartment>() ).add( call );
+        }
+
+
+    }
+
+    private Compartment copyTask(Compartment c, String name)
+    {
+        Compartment c2 = c.clone( c.getCompartment(), name );
+        WorkflowUtil.setName( c2, name );
+        c.getCompartment().put( c2 );
+        return c2;
     }
 }
