@@ -853,7 +853,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 if( result != null )
                     expression = expression.replace( name, result );
                 else 
-                    expression = expression.replace( name, name+".out" );
+                    expression = expression.replace( name+".", name+".out." );
                 //            boolean startBracket = expression.startsWith( "[" );
                 //            expression = expression.substring( expression.indexOf( "." ) + 1 );
                 //            if( startBracket )
