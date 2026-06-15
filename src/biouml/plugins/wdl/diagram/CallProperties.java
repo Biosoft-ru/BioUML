@@ -92,7 +92,7 @@ public class CallProperties extends Option implements InitialElementProperties
         Compartment compartment = new Compartment( parent, name, new Stub( null, name, WDLConstants.CALL_TYPE ) );
         compartment.setNotificationEnabled( false );
 
-        WorkflowUtil.setCallName( compartment, name );
+        WorkflowUtil.setCallName( compartment, taskRef );
         WorkflowUtil.setAlias( compartment, alias );
         WorkflowUtil.setTaskRef( compartment, taskRef );
         
