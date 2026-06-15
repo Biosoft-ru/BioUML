@@ -26,6 +26,9 @@ import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.MetaInfo;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.WDLNextflowFormatter;
+import biouml.plugins.wdl.parser.AstExpression;
+import biouml.plugins.wdl.parser.ExpressionFormatter;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
@@ -360,6 +363,23 @@ public class WorkflowUtil
             return null;
         }
     }
+    
+    public static String parseExpression(Node n, String type)
+    {
+        ExpressionInfo info = getExpressionInfo(n);
+        if (info != null)
+        {
+            AstExpression expression = info.getAST();
+            if (expression != null)
+            {              
+                if (type.equals( "WDL" ))
+                    return new ExpressionFormatter().format( expression );
+                else 
+                    return new WDLNextflowFormatter().format(expression);
+            }
+        }
+        return null;
+    }
 
     public static String getExpression(Node n)
     {
@@ -656,6 +676,11 @@ public class WorkflowUtil
     public static Node findInput(String name, Compartment parent)
     {
         return parent.stream( Node.class ).filter( n -> isInput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
+    }
+    
+    public static Node findOutput(String name, Compartment parent)
+    {
+        return parent.stream( Node.class ).filter( n -> isOutput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
     }
 
     public static List<String> findPossibleArguments(String input)

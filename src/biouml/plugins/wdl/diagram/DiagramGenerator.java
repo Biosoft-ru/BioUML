@@ -667,6 +667,7 @@ public class DiagramGenerator
                 WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
                 WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
                 WorkflowUtil.setExpression( portNode, WorkflowUtil.getExpression( node ) );
+                WorkflowUtil.setExpressionInfo( portNode, WorkflowUtil.getExpressionInfo( node ) );
             }
         }
 
@@ -685,6 +686,7 @@ public class DiagramGenerator
                 {
                     WorkflowUtil.setArguments( node, symbol.getArguments() );
                     WorkflowUtil.setExpression( node, symbol.getExpression() );
+                    WorkflowUtil.setExpressionInfo( node, symbol );
                 }
             }
         }

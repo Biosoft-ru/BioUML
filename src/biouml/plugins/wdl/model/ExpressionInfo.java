@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import biouml.plugins.wdl.parser.AstDeclaration;
+import biouml.plugins.wdl.parser.AstExpression;
 
 public class ExpressionInfo implements Cloneable
 {
@@ -11,20 +12,20 @@ public class ExpressionInfo implements Cloneable
     private String name;
     private String expression;
     private Set<String> arguments = new HashSet<>();
-    private AstDeclaration astDeclaration;
+    private AstExpression astExpression;
     
     public ExpressionInfo()
     {
         
     }
     
-    public void setAST(AstDeclaration astDeclaration)
+    public void setAST(AstExpression astExpression)
     {
-        this.astDeclaration = astDeclaration;
+        this.astExpression = astExpression;
     }
-    public AstDeclaration getAST()
+    public AstExpression getAST()
     {
-        return astDeclaration;
+        return astExpression;
     }
     
     public ExpressionInfo(String type, String name, String expression)
@@ -77,10 +78,10 @@ public class ExpressionInfo implements Cloneable
         result.setName( name );
         result.setExpression( expression );
         result.setType( type );
-        result.setArguments( new HashSet<>(arguments) );
-        
-//        if (astDeclaration != null)
-//        result.setAST( astDeclaration.clone() );
+        result.setArguments( new HashSet<>( arguments ) );
+
+        if( astExpression != null )
+            result.setAST( astExpression );
         return result;
     }
 }

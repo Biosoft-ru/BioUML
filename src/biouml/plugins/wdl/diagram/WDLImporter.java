@@ -249,7 +249,10 @@ public class WDLImporter implements DataElementImporter
             }
             InputInfo input = new InputInfo( null, symbol.getName(), expression );
             if( expr != null )
+            {
                 input.setArguments( expr.getArguments() );
+                input.setAST( expr );
+            }
             callInfo.addInputInfo( input );
         }
         return callInfo;
@@ -284,7 +287,7 @@ public class WDLImporter implements DataElementImporter
         expressionInfo.setName( astDeclaration.getName() );
         expressionInfo.setType( astDeclaration.getType() );
         expressionInfo.setArguments( astDeclaration.getVariables() );
-        expressionInfo.setAST( astDeclaration );
+        expressionInfo.setAST( astDeclaration.getExpression() );
         return expressionInfo;
     }
 
@@ -295,7 +298,7 @@ public class WDLImporter implements DataElementImporter
             inputInfo.setExpression( astDeclaration.getExpression().toString() );
         inputInfo.setName( astDeclaration.getName() );
         inputInfo.setType( astDeclaration.getType() );
-        inputInfo.setAST( astDeclaration );
+        inputInfo.setAST( astDeclaration.getExpression() );
         return inputInfo;
     }
 
@@ -307,7 +310,7 @@ public class WDLImporter implements DataElementImporter
         outputInfo.setName( astDeclaration.getName() );
         outputInfo.setType( astDeclaration.getType() );
         outputInfo.setArguments( astDeclaration.getVariables() );
-        outputInfo.setAST( astDeclaration );
+        outputInfo.setAST( astDeclaration.getExpression() );
         return outputInfo;
     }
 
