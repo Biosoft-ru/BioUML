@@ -149,7 +149,7 @@ function CreateOptimizationDocument (name, callback)
     });
 }
 
-function CreateSequenceDocument (name, callback)
+function CreateSequenceDocument (name, callback, customId)
 {
     var hash = paramHash;
     loadBioUMLModules(["viewpartsBsa","sequence"], function()
@@ -157,7 +157,7 @@ function CreateSequenceDocument (name, callback)
         initBSAViewParts();
     }, function()
     {
-        callback(new SequenceDocument(name, hash.de === name ? hash : {}));
+        callback(new SequenceDocument(name, hash.de === name ? hash : {}, customId));
     });
 }
 
