@@ -88,11 +88,7 @@ $BR  input:
 #if ($outputs.size() > 0)
 $BR  output:
 #foreach( $output in $outputs )
-#if ( $helper.isStdout($output) )
-  stdout emit: $helper.getName($output) 
-#else
   $helper.getType($output) $helper.getExpression($output), emit: $helper.getName($output)
-#end
 #end
 #end
 #if ($helper.getCommand($task) || $helper.getPrivateDeclarations($task).size() > 0)
