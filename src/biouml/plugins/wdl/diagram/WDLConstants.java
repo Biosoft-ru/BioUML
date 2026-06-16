@@ -37,6 +37,7 @@ public class WDLConstants
     public static final String TYPE_ATTR = "TYPE";
     public static final String CALL_NAME_ATTR = "CALL_NAME";
     public static final String EXPRESSION_ATTR = "EXPRESSION";
+    public static final String EXPRESSION_INFO_ATTR = "EXPRESSION_INFO";
     public static final String ARGUMENTS_ATTR = "ARGUMENTS";
     public static final String WDL_VERSION_ATTR = "WDL_VERSION";
     public static final String VERSION_ATTR = "VERSION";

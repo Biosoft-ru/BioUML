@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-def basename(path, suffix = null) {
+def basename_wdl(path, suffix = null) {
     def name = new File(path.toString()).getName()
 
     if (suffix != null && name.endsWith(suffix))
@@ -9,11 +9,11 @@ def basename(path, suffix = null) {
     return name
 }
 
-def sub(input, pattern, replacement) {
-    return input.replaceAll(pattern, replacement)
+def sub_wdl(input, pattern, replacement) {
+    return input.toString().replaceAll(pattern, replacement)
 }
 
-def ceil(val) {
+def ceil_wdl(val) {
 	return Math.ceil(val)
 }
 
@@ -61,32 +61,32 @@ def toChannel(arr)
         return arr
 }
 
-def select_first(arr)
+def select_first_wdl(arr)
 {
 	return arr.find { it != null && it != "NO_VALUE" }
 }
 
-def select_all(array) {
+def select_all_wdl(array) {
     return array.findAll { it != null && it != "NO_VALUE"}
 }
 
-def defined(val) {
+def defined_wdl(val) {
     return val != null
 }
 
-def read_string(filePath) {
+def read_string_wdl(filePath) {
     return new File(filePath).text.trim()
 }
 
-def read_int(filePath) {
+def read_int_wdl(filePath) {
     return new File(filePath).text.trim() as Integer
 }
 
-def read_float(filePath) {
+def read_float_wdl(filePath) {
     return new File(filePath).text.trim() as Float
 }
 
-def read_boolean(filePath) {
+def read_boolean_wdl(filePath) {
     def text = new File(filePath).text.trim()
 
     if (text == 'true')
@@ -124,21 +124,21 @@ def wdl_to_string(value) {
     return value.toString()
 }
 
-def quote(values) {
+def quote_wdl(values) {
     values.collect {
         def s = wdl_to_string(it)
         s == null ? null : "\"${s}\""
     }
 }
 
-def squote(values) {
+def squote_wdl(values) {
     values.collect {
         def s = wdl_to_string(it)
         s == null ? null : "\'${s}\'"
     }
 }
 
-def sep(delimiter, values) {
+def sep_wdl(delimiter, values) {
     values.collect { wdl_to_string(it) }
           .join(delimiter)
 }
@@ -147,7 +147,7 @@ def sep(delimiter, values) {
 // as_pairs(Map[K,V]) -> Array[Pair[K,V]]
 // WDL: {"a":1,"b":2} -> [["a",1],["b",2]]
 // ------------------------------------
-def as_pairs(map) {
+def as_pairs_wdl(map) {
     map.collect { key, value -> [key, value] }
 }
 
@@ -155,7 +155,7 @@ def as_pairs(map) {
 // as_map(Array[Pair[K,V]]) -> Map[K,V]
 // WDL: [["a",1],["b",2]] -> {"a":1,"b":2}
 // ------------------------------------
-def as_map(pairs) {
+def as_map_wdl(pairs) {
     pairs.collectEntries { pair ->
         [(pair[0]): pair[1]]
     }
@@ -164,7 +164,7 @@ def as_map(pairs) {
 // ------------------------------------
 // keys(Map[K,V]) -> Array[K]
 // ------------------------------------
-def keys(map) {
+def keys_wdl(map) {
     map.keySet().toList()
 }
 
@@ -172,7 +172,7 @@ def keys(map) {
 // zip(Array[X], Array[Y]) -> Array[Pair[X,Y]]
 // WDL requires equal length
 // ------------------------------------
-def zip(a, b) {
+def zip_wdl(a, b) {
     if (a.size() != b.size()) {
         throw new IllegalArgumentException(
             "zip(): arrays must have equal size " +
@@ -189,7 +189,7 @@ def zip(a, b) {
 // round(Float) -> Int
 // WDL rounds halves away from zero
 // ------------------------------------
-def round(value) {
+def round_wdl(value) {
     if (value >= 0)
         return Math.floor(value + 0.5d) as Integer
     else
@@ -200,13 +200,13 @@ def round(value) {
 // write_json(X) -> File
 // Writes JSON and returns path
 // ------------------------------------
-def write_json(value, fileName) {
+def write_json_wdl(value, fileName) {
     def file = new File(fileName)
     file.text = JsonOutput.prettyPrint(JsonOutput.toJson(value))
     return file.path
 }
 
-def write_json(value) {
+def write_json_wdl(value) {
     def file = File.createTempFile("wdl_", ".json")
 
     file.text = JsonOutput.prettyPrint(
@@ -216,25 +216,44 @@ def write_json(value) {
     return file.path
 }
 
-def prefix(prefixValue, values) {
+def write_map_wdl(map)
+{
+    def file = File.createTempFile("map_", ".tsv")
+
+    file.text = map.collect { key, value ->
+        "${key}\t${value}"
+    }.join('\n')
+
+    return file
+}
+
+def prefix_wdl(prefixValue, values) {
     values.collect {
         def s = wdl_to_string(it)
         s == null ? null : "${prefixValue}${s}"
     }
 }
 
-def suffix(suffixValue, values) {
+def suffix_wdl(suffixValue, values) {
     values.collect {
         def s = wdl_to_string(it)
         s == null ? null : "${s}${suffixValue}"
     }
 }
 
-def read_lines(filePath) {
-    return new File(filePath).readLines()
+def read_lines_wdl(filePath) {
+    if (filePath instanceof groovyx.gpars.dataflow.DataflowReadChannel) {
+        return filePath.map { f -> read_lines_wdl(f) }
+    }
+
+    if (filePath instanceof groovyx.gpars.dataflow.DataflowVariable) {
+        return read_lines_wdl(filePath.val)
+    }
+
+    return filePath.readLines()
 }
 
-def write_lines(value) {
+def write_lines_wdl(value) {
     def file = File.createTempFile("wdl_", ".txt")
 
     file.text = value
@@ -245,7 +264,7 @@ def write_lines(value) {
 }
 
 
-def collect_by_key(pairs) {
+def collect_by_key_wdl(pairs) {
     def result = [:].withDefault { [] }
 
     pairs.each { pair ->
@@ -255,7 +274,7 @@ def collect_by_key(pairs) {
     return result
 }
 
-def size(value, unit = 'B') {
+def size_wdl(value, unit = 'B') {
     double bytes
 
     if (value instanceof Collection) {
@@ -291,7 +310,7 @@ def size(value, unit = 'B') {
     }
  }
 
- def read_tsv(filePath) {
+ def read_tsv_wdl(filePath) {
     def file = new File(filePath.toString())
 
     if (!file.exists())
@@ -302,7 +321,7 @@ def size(value, unit = 'B') {
     }
 }
 
-def write_tsv(value, fileName) {
+def write_tsv_wdl(value, fileName) {
     def file = new File(fileName)
 
     file.text = value.collect { row -> row.collect { cell -> wdl_to_string(cell) }.join('\t') }.join('\n') + '\n'
@@ -310,7 +329,7 @@ def write_tsv(value, fileName) {
     return file.path
 }
 
-def write_tsv(value) {
+def write_tsv_wdl(value) {
     def file = File.createTempFile("wdl_", ".tsv")
 
     file.text = value.collect { row -> row.collect { cell -> wdl_to_string(cell) }.join('\t')}.join('\n') + '\n'
@@ -347,14 +366,14 @@ def transpose_wdl(array) {
     return result
 }
 
-def contains(array, value) {
+def contains_wdl(array, value) {
     if (array == null)
         return false
 
     return array.contains(value)
 }
 
-def unzip(array) {
+def unzip_wdl(array) {
     if (array == null || array.isEmpty()) {
         return [[], []]
     }

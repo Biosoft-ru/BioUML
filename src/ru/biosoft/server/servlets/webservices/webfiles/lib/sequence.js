@@ -53,7 +53,7 @@ function SequenceDocument(completeName, paramHash, customId)
     this.zoomSelection = false;
     this.enabledTracks = {};
     this.defaultIndexedTracks = [];
-    this.tabId = customId != undefined? customId : allocateDocumentId("sequence_"+this.completeName);
+    this.tabId = customId != undefined? allocateDocumentId(customId) : allocateDocumentId("sequence_"+this.completeName);
     
     function parsePosition(pos)
     {
@@ -989,7 +989,9 @@ function SequenceDocument(completeName, paramHash, customId)
         {
             if (pane.labelDiv) 
             {
-                pane.labelDiv.css('top', pane.viewPane.offset().top - _this.tracksDiv.offset().top).css("max-height", pane.viewPane.height() + "px");
+                pane.viewPane.css("height", Math.max(pane.viewPane.height(), pane.labelDiv.height()) + "px");
+                pane.labelDiv.css('top', pane.viewPane.offset().top - _this.tracksDiv.offset().top);
+                //.css("max-height", pane.viewPane.height() + "px");
             }
         });
     };
@@ -1115,9 +1117,13 @@ function SequenceDocument(completeName, paramHash, customId)
         pane.track = track;
         pane.updateTrackLabel = function(label)
         {
-            var span = this.labelDiv.children().eq(0);
-            fitElement(span, label, true, _this.trackLabelsDiv.width()-60);
-            span.attr("title", label);
+            var div = this.labelDiv.children().eq(0);
+            //fitElement(span, label, true, _this.trackLabelsDiv.width()-60);
+            div.css("max-width", _this.trackLabelsDiv.width()-50)
+            .css("white-space", "normal")
+            .css("text-align", "right");
+            fitDivOrSplit(div, _this.labelDiv, label ,_this.trackLabelsDiv.width()-60);
+            div.attr("title", label);
         };
         this.panes[track.id] = pane;
 	
@@ -1128,10 +1134,12 @@ function SequenceDocument(completeName, paramHash, customId)
         new ResizeObserver(resizeHandler).observe(pane.viewPane[0]);
         
 	pane.labelDiv = $('<div class="trackLabel"></div>')
-            .append('<span/>')
+            .append('<div/>')
             .css("max-width", this.trackLabelsDiv.width() - 20 + "px")
             .css("top", "-200px")
             .css("white-space", "nowrap")
+            .css("display","flex")
+            .css("align-items", "center")
             .attr("id", "label_"+track.id);
         pane.waiterDiv = $('<div class="trackWaiter">&nbsp;</div>').hide();
         pane.updateTrackLabel(track.displayName);

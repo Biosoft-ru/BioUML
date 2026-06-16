@@ -26,6 +26,9 @@ import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.MetaInfo;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.WDLNextflowFormatter;
+import biouml.plugins.wdl.parser.AstExpression;
+import biouml.plugins.wdl.parser.ExpressionFormatter;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
@@ -213,7 +216,7 @@ public class WorkflowUtil
         for( Node node : preliminary )
         {
             int position = WorkflowUtil.getPosition( node );
-            if( position >= 0  )
+            if( position >= 0 )
                 result[position] = node;
         }
         return StreamEx.of( result ).nonNull().toList();
@@ -340,6 +343,44 @@ public class WorkflowUtil
         n.getAttributes()
                 .add( new DynamicProperty( WDLConstants.ARGUMENTS_ATTR, String[].class, StreamEx.of( args ).toArray( String[]::new ) ) );
     }
+
+    public static void setExpressionInfo(Node n, ExpressionInfo info)
+    {
+        n.getAttributes().add( new DynamicProperty(WDLConstants.EXPRESSION_INFO_ATTR, ExpressionInfo.class, info ));
+    }
+    
+    public static ExpressionInfo getExpressionInfo(Node n)
+    {
+        try
+        {
+            Object obj = n.getAttributes().getValue( WDLConstants.EXPRESSION_INFO_ATTR );
+            if( obj instanceof ExpressionInfo )
+                return (ExpressionInfo)obj;
+            return null;
+        }
+        catch( Exception ex )
+        {
+            return null;
+        }
+    }
+    
+    public static String parseExpression(Node n, String type)
+    {
+        ExpressionInfo info = getExpressionInfo(n);
+        if (info != null)
+        {
+            AstExpression expression = info.getAST();
+            if (expression != null)
+            {              
+                if (type.equals( "WDL" ))
+                    return new ExpressionFormatter().format( expression );
+                else 
+                    return new WDLNextflowFormatter().format(expression);
+            }
+        }
+        return null;
+    }
+
     public static String getExpression(Node n)
     {
         try
@@ -511,11 +552,11 @@ public class WorkflowUtil
     {
         return c.getAttributes().getValue( WDLConstants.BEFORE_COMMAND_ATTR );
     }
-    
+
     public static ExpressionInfo[] getBeforeCommandExpressions(Compartment c)
     {
-        Object obj = getBeforeCommand(c);
-        if (obj instanceof ExpressionInfo[])
+        Object obj = getBeforeCommand( c );
+        if( obj instanceof ExpressionInfo[] )
             return (ExpressionInfo[])obj;
         return new ExpressionInfo[0];
     }
@@ -572,6 +613,11 @@ public class WorkflowUtil
     {
         Object resultName = c.getAttributes().getValue( Util.RESULT_NAME_ATTR );
         return resultName == null ? null : resultName.toString();
+    }
+    
+    public static void setResultName(Compartment c, String resultName)
+    {
+        c.getAttributes().add( new DynamicProperty( Util.RESULT_NAME_ATTR, String.class, resultName ) );
     }
 
     public static List<Node> findSources(String arg, Compartment compartment)
@@ -630,6 +676,11 @@ public class WorkflowUtil
     public static Node findInput(String name, Compartment parent)
     {
         return parent.stream( Node.class ).filter( n -> isInput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
+    }
+    
+    public static Node findOutput(String name, Compartment parent)
+    {
+        return parent.stream( Node.class ).filter( n -> isOutput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
     }
 
     public static List<String> findPossibleArguments(String input)

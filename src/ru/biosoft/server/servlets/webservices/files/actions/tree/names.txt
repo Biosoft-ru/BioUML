@@ -7,6 +7,7 @@ openExternalURL.json
 openDiagram.json
 openTreeTable.json
 openGenomeBrowser.json
+openGenomeBrowserAdditional.json
 openSequence.json
 openTable.json
 openText.json
