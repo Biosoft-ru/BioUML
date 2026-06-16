@@ -4,6 +4,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,6 +34,7 @@ import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import one.util.streamex.StreamEx;
+import ru.biosoft.access.ClassLoading;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.SqlDataInfo;
 import ru.biosoft.access.core.AbstractDataCollection;
@@ -80,6 +82,7 @@ public class SqlTrack extends AbstractDataCollection<AnnotatedSequence> implemen
     public static final String LABEL_PROPERTY = "label";
     public static final PropertyDescriptor PROFILE_PD = StaticDescriptor.create("profile");
     public static final String MAX_SITE_LENGTH_PROPERTY = "maxSiteLength";
+    public static final String VIEW_BUILDER="viewBuilder";
 
     protected String id;
     protected String tableId;
@@ -257,9 +260,23 @@ public class SqlTrack extends AbstractDataCollection<AnnotatedSequence> implemen
         String maxLengthPropStr = properties.getProperty( MAX_SITE_LENGTH_PROPERTY );
         if(maxLengthPropStr != null)
             maxSiteLength = Integer.parseInt( maxLengthPropStr );
+        
+        initViewBuilder(properties);
     }
 
-    @Override
+    private void initViewBuilder(Properties properties) {
+    	String viewBuilderClass = properties.getProperty(VIEW_BUILDER);
+    	if(viewBuilderClass == null)
+    		return;
+    	try {
+    		Class<?> clazz = ClassLoading.loadClass(viewBuilderClass);
+			viewBuilder = (TrackViewBuilder) clazz.getDeclaredConstructor().newInstance();
+		} catch (Exception e) {
+			log.log(Level.WARNING, "Can not load view builder: " + viewBuilderClass, e);
+		}
+	}
+
+	@Override
     public boolean isAcceptable(Class<? extends DataElement> clazz)
     {
         // Remove "mutable" check, for registerInputChild(AnnotatedSequence.class) to work
