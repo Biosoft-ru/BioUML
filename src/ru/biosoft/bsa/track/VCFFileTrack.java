@@ -41,7 +41,7 @@ public class VCFFileTrack extends FileTrack
     }
 
     @Override
-    protected void readFromFile(File file, DataCollection<Site> sites)
+    protected void readFromFile(File file, DataCollection<Site> sites) throws Exception
     {
         Map<String, String> formatTypeMap = new HashMap<>();
         Map<String, String> infoTypeMap = new HashMap<>();
@@ -71,10 +71,6 @@ public class VCFFileTrack extends FileTrack
                 sites.put(site);
             }
             sites.getInfo().getProperties().putAll(properties);
-        }
-        catch (Exception e)
-        {
-            log.log(Level.SEVERE, "Can not create VCF track from file", e);
         }
     }
 }

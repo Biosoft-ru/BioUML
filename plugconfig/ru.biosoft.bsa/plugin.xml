@@ -153,6 +153,12 @@
         description="ru/biosoft/bsa/analysis/resources/BEDFormat.html"
      />
      <import 
+        format="BEDGraph format (*.bedGraph)"
+        suffix="bedGraph"
+        importer="ru.biosoft.bsa.importer.BedGraphTrackImporter"
+        description=""
+     />
+     <import 
         format="Interval format (*.interval)"
         suffix="interval"
         importer="ru.biosoft.bsa.importer.IntervalTrackImporter"
@@ -998,6 +1004,8 @@
   <extension point="ru.biosoft.access.transformer">
     <transformer name="BedFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.BedTrack" transformerClass="ru.biosoft.bsa.transformer.BedFileTransformer" />
+    <transformer name="BedGraphFile" inputClass="ru.biosoft.access.file.FileDataElement" 
+      outputClass="ru.biosoft.bsa.track.BedGraphFileTrack" transformerClass="ru.biosoft.bsa.transformer.BedGraphFileTransformer" />
     <transformer name="GFFFile" inputClass="ru.biosoft.access.file.FileDataElement" 
       outputClass="ru.biosoft.bsa.track.GFFTrack" transformerClass="ru.biosoft.bsa.transformer.GFFFileTransformer" />
     <transformer name="FastaFile" inputClass="ru.biosoft.access.file.FileDataElement" 
@@ -1038,6 +1046,7 @@
     <fileType name="Wiggle track" extensions="wig" transformerClass="ru.biosoft.bsa.transformer.WiggleFileTransformer" priority="20" description="Wiggle track file"/>
     <fileType name="VCF track" extensions="vcf" transformerClass="ru.biosoft.bsa.transformer.VCFFileTransformer" priority="20" description="VCF track file"/>
     <fileType name="BigBed track" extensions="bb;bigBed" transformerClass="ru.biosoft.bsa.transformer.BigBedFileTransformer" priority="20" description="BigBed track file"/>
+    <fileType name="BedGraph track" extensions="bg;bedGraph" transformerClass="ru.biosoft.bsa.transformer.BedGraphFileTransformer" priority="20" description="BedGraph track file"/>
     <fileType name="BigWig track" extensions="bw;bigWig" transformerClass="ru.biosoft.bsa.transformer.BigWigFileTransformer" priority="20" description="BigWig track file"/>
     <fileType name="BCF track" extensions="bcf" transformerClass="ru.biosoft.bsa.transformer.BCFFileTransformer" priority="20" description="BCF track file"/>
     <fileType name="GenBank track" extensions="gb" transformerClass="ru.biosoft.bsa.transformer.GenbankFileTransformer" priority="20" description="BCF track file"/>

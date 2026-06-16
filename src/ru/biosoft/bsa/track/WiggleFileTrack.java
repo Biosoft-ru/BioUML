@@ -16,6 +16,8 @@ import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.importer.WiggleTrackImporter;
 import ru.biosoft.bsa.importer.WiggleTrackImporter.WiggleState;
+import ru.biosoft.bsa.track.big.BigWigTrackViewBuilder;
+import ru.biosoft.bsa.view.TrackViewBuilder;
 
 public class WiggleFileTrack extends FileTrack
 {
@@ -23,10 +25,11 @@ public class WiggleFileTrack extends FileTrack
     public WiggleFileTrack(DataCollection<?> parent, Properties properties) throws IOException
     {
         super(parent, properties);
+        viewBuilder = new BigWigTrackViewBuilder();
     }
 
     @Override
-    protected void readFromFile(File trackFile, DataCollection<Site> sites)
+    protected void readFromFile(File trackFile, DataCollection<Site> sites) throws Exception
     {
         WiggleState ws = new WiggleState();
         Properties properties = new Properties();
@@ -51,10 +54,5 @@ public class WiggleFileTrack extends FileTrack
             }
             sites.getInfo().getProperties().putAll( properties );
         }
-        catch (Exception e)
-        {
-            //TODO: print exception
-        }
     }
-
 }

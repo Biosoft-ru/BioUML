@@ -136,7 +136,7 @@ public abstract class TrackImporter implements DataElementImporter
     private final Map<String, Sequence> sequenceCache = new HashMap<>();
     private DataCollection<AnnotatedSequence> seqBase;
 
-    private Sequence getSequence(String name)
+    protected Sequence getSequence(String name)
     {
         Sequence result = sequenceCache.get(name);
         if(result != null)

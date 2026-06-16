@@ -94,7 +94,7 @@ public class BedTrack extends FileTrack implements WritableTrack
     }
 
     @Override
-    protected void readFromFile(File file, DataCollection<Site> sites)
+    protected void readFromFile(File file, DataCollection<Site> sites) throws Exception
     {
         int i = 1;
         try ( FileInputStream is = new FileInputStream( file );
@@ -121,12 +121,6 @@ public class BedTrack extends FileTrack implements WritableTrack
                 i++;
             }
         }
-
-        catch (Exception e)
-        {
-            //TODO:
-        }
-
     }
 
     private boolean isComment(String line)
