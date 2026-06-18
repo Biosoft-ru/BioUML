@@ -26,7 +26,7 @@ import biouml.standard.type.DiagramInfo;
 import biouml.standard.type.Stub;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import ru.biosoft.access.FileDataElement;
+import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.graphics.CompositeView;
