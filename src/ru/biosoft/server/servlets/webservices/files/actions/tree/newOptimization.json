@@ -2,7 +2,7 @@
  * Create new optimization document action
  */
 {
-    id: "open_new_optimization",
+    id: "new_optimization",
     label: "New optimization",
 	icon: "icons/optimization.gif",
     visible: "function(completePath)
