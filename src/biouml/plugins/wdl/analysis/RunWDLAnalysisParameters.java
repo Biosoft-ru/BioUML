@@ -58,6 +58,12 @@ public class RunWDLAnalysisParameters extends AbstractAnalysisParameters impleme
         DataElementPath oldValue = this.wdlPath;
         this.wdlPath = wdlPath;
         firePropertyChange( "wdlPath", oldValue, wdlPath );
+        Diagram diagram = wdlPath.optDataElement(Diagram.class);
+        if(diagram != null)
+        {
+        	settings.initParameters( diagram );
+            firePropertyChange( "*", null, null );
+        }
     }
 
     @PropertyName ( "Parameters Json" )
