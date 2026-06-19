@@ -15,15 +15,12 @@
         
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
-        console.log(type + ' type in new optimization for ' + path);
         if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') ) 
         {
-            console.log('Folder colection in new optimization for ' + path);
             return true;
         }
         if(instanceOf(getDataCollection(completePath).getChildClass(),'biouml.plugins.optimization.Optimization'))
         {
-            console.log('Child class Optimization in new optimization for ' + path);
             return true;    
         }
         return -1;
