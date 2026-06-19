@@ -40,6 +40,7 @@ import biouml.standard.type.Stub;
 import biouml.standard.type.Type;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
+import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -99,87 +100,46 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
                     int cellularModelCount = BrainUtils.getCellularModelNodes(diagram).size();
                     int receptorModelCount = BrainUtils.getReceptorModelNodes(diagram).size();
                     
-                    if (regionalModelCount == 1 && connectivityMatrixCount == 1 
-                    		&& cellularModelCount == 1 && receptorModelCount == 1) 
+                    log.log(Level.INFO, "BrainGenerateMultilevelModel: starting multilevel model generation.");
+                	
+                	BrainRegionalModel regionalModel = BrainUtils.getRegionalModelNodes(diagram).get(0).getRole(BrainRegionalModel.class);
+                	regionalModel.getRegionalModelProperties().setPortsFlag(true);
+                	Diagram regionalDiagram = BrainRegionalModelDeployer.deployBrainRegionalModel(diagram, "Regional_diagram");
+                	CollectionFactoryUtils.save(regionalDiagram);
+                	
+                	int regionCount = BrainUtils.getConnectivityMatrix(diagram).length;
+                	setSameEpileptogenicityIndex(regionalDiagram, regionCount, -2.3);
+                	
+                    List<Integer> epileptogenicZoneNodesNumbers = new ArrayList<Integer>();
+                    if (regionCount == 2)
                     {
-                    	log.log(Level.INFO, "BrainGenerateMultilevelModel: starting multilevel model generation.");
-                    	
-                    	BrainRegionalModel regionalModel = BrainUtils.getRegionalModelNodes(diagram).get(0).getRole(BrainRegionalModel.class);
-                    	regionalModel.getRegionalModelProperties().setPortsFlag(true);
-                    	//Diagram regionalDiagram = BrainRegionalForMultilevelModelDeployer.deployBrainRegionalForMultilevelModel(diagram, "Regional diagram");
-                    	Diagram regionalDiagram = BrainRegionalModelDeployer.deployBrainRegionalModel(diagram, "Regional_diagram");
-                    	CollectionFactoryUtils.save(regionalDiagram);
-                    	
-                    	int regionCount = BrainUtils.getConnectivityMatrix(diagram).length;
-                    	setSameEpileptogenicityIndex(regionalDiagram, regionCount, -2.3);
-                    	
-                        List<Integer> epileptogenicZoneNodesNumbers = new ArrayList<Integer>();
-                        if (regionCount == 2)
-                        {
-                        	epileptogenicZoneNodesNumbers.add(1);
-                        }
-                        else if (regionCount == 28)
-                        {
-                         	epileptogenicZoneNodesNumbers.addAll(Arrays.asList(23, 24, 25));
-                        }
-                        else if (regionCount == 84)
-                        {
-                        	epileptogenicZoneNodesNumbers.add(64);
-                        	
-                        	//epileptogenicZoneNodesNumbers.add(61);
-                        }
-                    	
-                    	BrainCellularModel cellularModel = BrainUtils.getCellularModelNodes(diagram).get(0).getRole(BrainCellularModel.class);
-                       	String cellularModelType = cellularModel.getCellularModelType();
-                    	if (!(cellularModelType.equals(BrainType.TYPE_CELLULAR_EPILEPTOR2)
-                    			|| cellularModelType.equals(BrainType.TYPE_CELLULAR_EPILEPTOR2_WITH_OXYGEN))) 
-                    	{
-                    		log.log(Level.WARNING, "BrainGenerateMultilevelModel: cellular model should be Epileptor-2 or Epileptor-2 with oxygen dynamics.");
-                    		return;
-                    	}
-                    	cellularModel.getCellularModelProperties().setPortsFlag(true);
-                    	
-                    	Diagram cellularEpileptogenicDiagram = BrainCellularModelDeployer.deployBrainCellularModel(diagram, "Cellular_diagram_EZ");
-            			BrainUtils.setInitialValue(cellularEpileptogenicDiagram, "epileptogenicity_flag", 1.0);
-            			BrainUtils.setInitialValue(cellularEpileptogenicDiagram, "A_exc", 14.0);
-            			BrainUtils.setInitialValue(cellularEpileptogenicDiagram, "tau_K", 100.0);
-                        BrainUtils.createPort("time_start", "time_start", Type.TYPE_INPUT_CONNECTION_PORT,
-                        		cellularEpileptogenicDiagram, new Point(650, 0));
-            			CollectionFactoryUtils.save(cellularEpileptogenicDiagram);
-                    	
-                    	Diagram cellularHealthyDiagram = BrainCellularModelDeployer.deployBrainCellularModel(diagram, "Cellular_diagram_HZ");
-            			BrainUtils.setInitialValue(cellularHealthyDiagram, "epileptogenicity_flag", 0.0);
-            			BrainUtils.setInitialValue(cellularHealthyDiagram, "A_exc", 0.0);
-            			BrainUtils.setInitialValue(cellularHealthyDiagram, "tau_K", 2.5);
-                    	BrainUtils.setInitialValue(cellularHealthyDiagram, "time_start", Double.MAX_VALUE);
-                    	CollectionFactoryUtils.save(cellularHealthyDiagram);
-            			
-                    	BrainReceptorModel receptorModel = BrainUtils.getReceptorModelNodes(diagram).get(0).getRole(BrainReceptorModel.class);
-                    	receptorModel.getReceptorModelProperties().setPortsFlag(true);
-                    	
-                    	Diagram receptorEpileptogenicDiagram = BrainReceptorModelDeployer.deployBrainReceptorModel(diagram, "Receptor_diagram_EZ");
-                    	BrainUtils.setInitialValue(receptorEpileptogenicDiagram, "epileptogenicity_flag", 1.0);
-                    	CollectionFactoryUtils.save(receptorEpileptogenicDiagram);
-                    	
-                    	Diagram receptorHealthyDiagram = BrainReceptorModelDeployer.deployBrainReceptorModel(diagram, "Receptor_diagram_HZ");
-                    	BrainUtils.setInitialValue(receptorHealthyDiagram, "epileptogenicity_flag", 0.0);
-                    	CollectionFactoryUtils.save(receptorHealthyDiagram);
-                    	
-                    	//initAndSaveRosslerEpileptor2CompositeModel(regionalDiagram, cellularDiagram, regionCount, diagram.getOrigin());
-                    	initAndSaveEpileptorEpileptor2AmpaAgentModel(regionalDiagram, 
-                    			cellularEpileptogenicDiagram, cellularHealthyDiagram,
-                    			receptorEpileptogenicDiagram, receptorHealthyDiagram,
-                    			regionCount, epileptogenicZoneNodesNumbers, diagram.getOrigin());
-                    	
-                    	log.log(Level.INFO, "BrainGenerateMultilevelModel: multilevel model generation is completed.");
-                    	return;
+                    	epileptogenicZoneNodesNumbers.add(1);
                     }
-                    else 
+                    else if (regionCount == 28)
                     {
-                    	log.log(Level.WARNING, "BrainGenerateMultilevelModel: please, provide 1 receprot model, 1 cellular model, 1 regional model"
-                    			+ " and 1 connectivity matrix for multilevel model generation.");
-                    	return;
-                    }         
+                     	epileptogenicZoneNodesNumbers.addAll(Arrays.asList(23, 24, 25));
+                    }
+                    else if (regionCount == 84)
+                    {
+                    	epileptogenicZoneNodesNumbers.add(64);
+                    	
+                    	//epileptogenicZoneNodesNumbers.add(61);
+                    }
+                    
+                    Diagram cellularDiagram = (Diagram)CollectionFactory.getDataCollection(diagram.getOrigin().getCompletePath().toString() + "/Neuronal_activity_modular_model");
+                    
+                	BrainReceptorModel receptorModel = BrainUtils.getReceptorModelNodes(diagram).get(0).getRole(BrainReceptorModel.class);
+                	receptorModel.getReceptorModelProperties().setPortsFlag(true);
+                	
+                	Diagram receptorDiagram = BrainReceptorModelDeployer.deployBrainReceptorModel(diagram, "Receptor_diagram");
+                	CollectionFactoryUtils.save(receptorDiagram);
+                    
+                    log.log(Level.INFO, "BrainGenerateMultilevelModel: created submodels");
+                    
+                	initAndSaveEpileptorAedAmpaAgentModel(regionalDiagram, cellularDiagram, receptorDiagram,
+                			regionCount, epileptogenicZoneNodesNumbers, diagram.getOrigin());
+                	
+                	log.log(Level.INFO, "BrainGenerateMultilevelModel: all done");       
                 }
                 catch(Exception e)
                 {
@@ -187,6 +147,109 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
                 }
             }
         };
+    	
+//        return new AbstractJobControl(log)
+//        {
+//            @Override
+//            protected void doRun() throws JobControlException
+//            {
+//                try
+//                {
+//                    Diagram diagram = (Diagram)model;
+//                 
+//                    int regionalModelCount = BrainUtils.getRegionalModelNodes(diagram).size();
+//                    int connectivityMatrixCount = BrainUtils.getConnectivityMatrixNodes(diagram).size();
+//                    int cellularModelCount = BrainUtils.getCellularModelNodes(diagram).size();
+//                    int receptorModelCount = BrainUtils.getReceptorModelNodes(diagram).size();
+//                    
+//                    if (regionalModelCount == 1 && connectivityMatrixCount == 1 
+//                    		&& cellularModelCount == 1 && receptorModelCount == 1) 
+//                    {
+//                    	log.log(Level.INFO, "BrainGenerateMultilevelModel: starting multilevel model generation.");
+//                    	
+//                    	BrainRegionalModel regionalModel = BrainUtils.getRegionalModelNodes(diagram).get(0).getRole(BrainRegionalModel.class);
+//                    	regionalModel.getRegionalModelProperties().setPortsFlag(true);
+//                    	//Diagram regionalDiagram = BrainRegionalForMultilevelModelDeployer.deployBrainRegionalForMultilevelModel(diagram, "Regional diagram");
+//                    	Diagram regionalDiagram = BrainRegionalModelDeployer.deployBrainRegionalModel(diagram, "Regional_diagram");
+//                    	CollectionFactoryUtils.save(regionalDiagram);
+//                    	
+//                    	int regionCount = BrainUtils.getConnectivityMatrix(diagram).length;
+//                    	setSameEpileptogenicityIndex(regionalDiagram, regionCount, -2.3);
+//                    	
+//                        List<Integer> epileptogenicZoneNodesNumbers = new ArrayList<Integer>();
+//                        if (regionCount == 2)
+//                        {
+//                        	epileptogenicZoneNodesNumbers.add(1);
+//                        }
+//                        else if (regionCount == 28)
+//                        {
+//                         	epileptogenicZoneNodesNumbers.addAll(Arrays.asList(23, 24, 25));
+//                        }
+//                        else if (regionCount == 84)
+//                        {
+//                        	epileptogenicZoneNodesNumbers.add(64);
+//                        	
+//                        	//epileptogenicZoneNodesNumbers.add(61);
+//                        }
+//                    	
+//                    	BrainCellularModel cellularModel = BrainUtils.getCellularModelNodes(diagram).get(0).getRole(BrainCellularModel.class);
+//                       	String cellularModelType = cellularModel.getCellularModelType();
+//                    	if (!(cellularModelType.equals(BrainType.TYPE_CELLULAR_EPILEPTOR2)
+//                    			|| cellularModelType.equals(BrainType.TYPE_CELLULAR_EPILEPTOR2_WITH_OXYGEN))) 
+//                    	{
+//                    		log.log(Level.WARNING, "BrainGenerateMultilevelModel: cellular model should be Epileptor-2 or Epileptor-2 with oxygen dynamics.");
+//                    		return;
+//                    	}
+//                    	cellularModel.getCellularModelProperties().setPortsFlag(true);
+//                    	
+//                    	Diagram cellularEpileptogenicDiagram = BrainCellularModelDeployer.deployBrainCellularModel(diagram, "Cellular_diagram_EZ");
+//            			BrainUtils.setInitialValue(cellularEpileptogenicDiagram, "epileptogenicity_flag", 1.0);
+//            			BrainUtils.setInitialValue(cellularEpileptogenicDiagram, "A_exc", 14.0);
+//            			BrainUtils.setInitialValue(cellularEpileptogenicDiagram, "tau_K", 100.0);
+//                        BrainUtils.createPort("time_start", "time_start", Type.TYPE_INPUT_CONNECTION_PORT,
+//                        		cellularEpileptogenicDiagram, new Point(650, 0));
+//            			CollectionFactoryUtils.save(cellularEpileptogenicDiagram);
+//                    	
+//                    	Diagram cellularHealthyDiagram = BrainCellularModelDeployer.deployBrainCellularModel(diagram, "Cellular_diagram_HZ");
+//            			BrainUtils.setInitialValue(cellularHealthyDiagram, "epileptogenicity_flag", 0.0);
+//            			BrainUtils.setInitialValue(cellularHealthyDiagram, "A_exc", 0.0);
+//            			BrainUtils.setInitialValue(cellularHealthyDiagram, "tau_K", 2.5);
+//                    	BrainUtils.setInitialValue(cellularHealthyDiagram, "time_start", Double.MAX_VALUE);
+//                    	CollectionFactoryUtils.save(cellularHealthyDiagram);
+//            			
+//                    	BrainReceptorModel receptorModel = BrainUtils.getReceptorModelNodes(diagram).get(0).getRole(BrainReceptorModel.class);
+//                    	receptorModel.getReceptorModelProperties().setPortsFlag(true);
+//                    	
+//                    	Diagram receptorEpileptogenicDiagram = BrainReceptorModelDeployer.deployBrainReceptorModel(diagram, "Receptor_diagram_EZ");
+//                    	BrainUtils.setInitialValue(receptorEpileptogenicDiagram, "epileptogenicity_flag", 1.0);
+//                    	CollectionFactoryUtils.save(receptorEpileptogenicDiagram);
+//                    	
+//                    	Diagram receptorHealthyDiagram = BrainReceptorModelDeployer.deployBrainReceptorModel(diagram, "Receptor_diagram_HZ");
+//                    	BrainUtils.setInitialValue(receptorHealthyDiagram, "epileptogenicity_flag", 0.0);
+//                    	CollectionFactoryUtils.save(receptorHealthyDiagram);
+//                    	
+//                    	//initAndSaveRosslerEpileptor2CompositeModel(regionalDiagram, cellularDiagram, regionCount, diagram.getOrigin());
+//                    	initAndSaveEpileptorEpileptor2AmpaAgentModel(regionalDiagram, 
+//                    			cellularEpileptogenicDiagram, cellularHealthyDiagram,
+//                    			receptorEpileptogenicDiagram, receptorHealthyDiagram,
+//                    			regionCount, epileptogenicZoneNodesNumbers, diagram.getOrigin());
+//                    	
+//                    	log.log(Level.INFO, "BrainGenerateMultilevelModel: multilevel model generation is completed.");
+//                    	return;
+//                    }
+//                    else 
+//                    {
+//                    	log.log(Level.WARNING, "BrainGenerateMultilevelModel: please, provide 1 receprot model, 1 cellular model, 1 regional model"
+//                    			+ " and 1 connectivity matrix for multilevel model generation.");
+//                    	return;
+//                    }         
+//                }
+//                catch(Exception e)
+//                {
+//                    throw new JobControlException(e);
+//                }
+//            }
+//        };
     }
     
     /*
@@ -199,6 +262,155 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
          	String x0i = "x0_" + String.valueOf(i);
          	BrainUtils.setInitialValue(regionalDiagram, x0i, epileptogenicityIndex);
          }
+    }
+    
+    /*
+     * method creates agent model for Epileptor + Modular Model of Neuronal Activity (AED) + AMPA multilevel model, 
+     * which includes a separate cellular model for each region in the regional model
+     * and separete AMPA-receptor model for each cellular model.
+     * 
+     * multilevel model and all of the submodels are saved to the origin.
+     */
+    public static Diagram initAndSaveEpileptorAedAmpaAgentModel(Diagram regionalDiagram, 
+    		Diagram cellularDiagram,
+    		Diagram receptorDiagram,
+    		int nRegion, List<Integer> epileptogenicZoneNodesNumbers, DataCollection<?> origin) throws Exception
+    {    	
+    	String agentDiagramName = "Brain_multilevel_agent_model";
+    	DiagramType agentDiagramType = new AgentModelDiagramType();
+    	Diagram agentDiagram = agentDiagramType.createDiagram(origin, agentDiagramName, new DiagramInfo(agentDiagramName));
+    	PathwaySimulationDiagramViewOptions compDiagramViewOptions = (PathwaySimulationDiagramViewOptions)agentDiagram.getViewOptions();
+    	compDiagramViewOptions.setNodeTitleFont(new ColorFont("Arial", Font.PLAIN, 16, Color.black));
+    	compDiagramViewOptions.setPortTitleFont(new ColorFont("Arial", Font.PLAIN, 16, Color.black));
+    	compDiagramViewOptions.setCompartmentTitleFont(new ColorFont("Arial", Font.BOLD, 20, Color.black));
+    	CollectionFactoryUtils.save(agentDiagram);
+    	
+    	DiagramViewBuilder builder = agentDiagram.getType().getDiagramViewBuilder();
+    	
+    	int xLocalOffset = 50;
+    	int xGroupOffset = 80;
+    	int yLocalOffset = 40;
+    	int xDiagramOffset = 400;
+    	int yDiagramOffset = 200;
+    	
+    	Point point = new Point(0,0);
+    	 
+        BrainUtils.createNote("Info: N = " + String.valueOf(nRegion), new Dimension(100, 25), agentDiagram, point);
+        point.translate(0, yLocalOffset * 2);
+        
+        point.translate(xDiagramOffset, 0);
+        
+    	List<SubDiagram> receptorSubDiagrams = new ArrayList<SubDiagram>();
+    	List<SubDiagram> cellularSubDiagrams = new ArrayList<SubDiagram>();
+    	
+        int yPos = point.y;
+    	SubDiagram nextReceptorSubDiagram = null;
+    	for (int i = 0; i < nRegion; i++)
+    	{
+    		nextReceptorSubDiagram = new SubDiagram(agentDiagram, receptorDiagram, "Receptor_diagram_" + (i + 1));
+//     		if (epileptogenicZoneNodesNumbers.contains(i + 1))
+//     		{
+//     			BrainUtils.setInitialValue(agentDiagram, "Receptor_diagram_" + (i + 1) + "/epileptogenicity_flag", 1.0);
+//     		}
+//     		else
+//     		{
+//     			BrainUtils.setInitialValue(agentDiagram, "Receptor_diagram_" + (i + 1) + "/epileptogenicity_flag", 0.0);
+//     		}
+    		nextReceptorSubDiagram.setLocation(new Point(point.x, yPos));
+    		layoutReceptor(nextReceptorSubDiagram, i + 1);
+    		yPos += nextReceptorSubDiagram.getShapeSize().height + yDiagramOffset / 2;
+    		agentDiagram.put(nextReceptorSubDiagram);
+    		receptorSubDiagrams.add(nextReceptorSubDiagram);
+    	}
+    	point.translate(nextReceptorSubDiagram.getShapeSize().width + xDiagramOffset, 0);
+    	
+    	yPos = point.y;
+     	SubDiagram nextCellularSubDiagram = null;
+     	for (int i = 0; i < nRegion; i++)
+     	{
+     		nextCellularSubDiagram = new SubDiagram(agentDiagram, cellularDiagram, "Cellular_diagram_" + (i + 1));
+     		nextCellularSubDiagram.setLocation(new Point(point.x, yPos));
+     		layoutCellular(nextCellularSubDiagram, i + 1);
+     		yPos += nextCellularSubDiagram.getShapeSize().height + yDiagramOffset / 2;
+     		agentDiagram.put(nextCellularSubDiagram);
+     		cellularSubDiagrams.add(nextCellularSubDiagram);
+     	}
+     	point.translate(nextCellularSubDiagram.getShapeSize().width + xDiagramOffset, 0);
+     	
+    	SubDiagram regionalSubDiagram = new SubDiagram(agentDiagram, regionalDiagram, regionalDiagram.getName());
+    	regionalSubDiagram.setLocation(point);
+    	layoutRegional(regionalSubDiagram, nRegion);
+    	agentDiagram.put(regionalSubDiagram);
+
+    	
+    	AgentModelSimulationEngine agentEngine = new AgentModelSimulationEngine();
+    	agentEngine.setDiagram(agentDiagram);
+    	agentEngine.setInitialTime(0.0);
+    	double simTimeMax = 30000.0;
+    	agentEngine.setCompletionTime(simTimeMax);
+    	agentEngine.setTimeIncrement(1.0);
+    	//agentEngine.setTimeIncrement(0.01);
+    	
+    	//JavaSdeSimulationEngine mainEngine = new JavaSdeSimulationEngine();
+    	JavaSimulationEngine mainEngine = new JavaSimulationEngine();
+    	agentEngine.setMainEngine(mainEngine);
+    	//EulerStochastic mainSolver = new EulerStochastic();
+    	JVodeSolver mainSolver = new JVodeSolver();
+    	mainEngine.setSolver(mainSolver);
+    	//ESOptions mainOptions = mainSolver.getOptions();
+    	//mainOptions.setInitialStep(0.01);
+    	
+    	for(AgentSimulationEngineWrapper ase : agentEngine.getEngines())
+        {    		
+    		if (ase.getDiagram().getName().contains(regionalDiagram.getName()))
+    		{
+    			JavaSdeSimulationEngine regionalEngine = new JavaSdeSimulationEngine();
+    		    ase.setEngine(regionalEngine);
+    			EulerStochastic regionalSolver = new EulerStochastic();
+    			ESOptions regionalOptions = regionalSolver.getOptions();
+    			regionalOptions.setInitialStep(0.005);
+    			//regionalOptions.setEventLocation(false); // there is no events in regional model
+    			ase.setSolver(regionalSolver);
+    	        ase.setCompletionTime(simTimeMax);
+    	        ase.setTimeIncrement(1.0);
+    	        ase.setTimeScale(1.0);
+    	        
+    	        // write the solver options in the submodel diagram.
+    	        DiagramUtility.setPreferredEngine(ase.getDiagram(), regionalEngine);
+    	        ase.getDiagram().save();
+    		}
+    		else if (ase.getDiagram().getName().contains(cellularDiagram.getName()))
+    		{
+    			JavaSdeSimulationEngine cellularEngine = new JavaSdeSimulationEngine();
+    			ase.setEngine(cellularEngine);
+    			EulerStochastic cellularSolver = new EulerStochastic();
+    			ESOptions cellularOptions = cellularSolver.getOptions();
+    			//cellularOptions.setInitialStep(0.001);
+    			cellularOptions.setInitialStep(1E-6);
+    			ase.setSolver(cellularSolver);
+    			ase.setCompletionTime(simTimeMax / 50.0);
+    			ase.setTimeIncrement(0.01);
+    			ase.setTimeScale(50.0);
+    		}
+    		else if (ase.getDiagram().getName().contains(receptorDiagram.getName()))
+    		{
+    			JavaSimulationEngine receptorEngine = new JavaSimulationEngine();
+    			ase.setEngine(receptorEngine);
+    			JVodeSolver receptorSolver = new JVodeSolver();
+    			ase.setSolver(receptorSolver);
+    			ase.setCompletionTime(simTimeMax / 50.0);
+    			ase.setTimeIncrement(1.0);
+    			ase.setTimeScale(50.0);
+    		}
+        }
+        agentDiagram.getAttributes()
+                .add( DPSUtils.createHiddenReadOnlyTransient(DiagramXmlConstants.SIMULATION_OPTIONS, SimulationEngine.class, agentEngine));
+        
+        setPlotsEpileptorEpileptor2AmpaAgentModel(agentDiagram, regionalSubDiagram, cellularSubDiagrams, receptorSubDiagrams, 
+        		nRegion, epileptogenicZoneNodesNumbers);
+        
+    	CollectionFactoryUtils.save(agentDiagram);
+    	return agentDiagram;
     }
     
     /*
@@ -277,7 +489,7 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
     		//nextReceptorSubDiagram.setShapeSize(receptorDiagramShape);
     		nextReceptorSubDiagram.setLocation(new Point(point.x, yPos));
     		//BrainUtils.alignPorts(nextReceptorSubDiagram);
-    		layoutReceptor(nextReceptorSubDiagram, i + 1);
+    		layoutReceptorOld(nextReceptorSubDiagram, i + 1);
     		yPos += nextReceptorSubDiagram.getShapeSize().height + yDiagramOffset / 2;
     		agentDiagram.put(nextReceptorSubDiagram);
     		receptorSubDiagrams.add(nextReceptorSubDiagram);
@@ -302,7 +514,7 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
      		//nextCellularSubDiagram.setShapeSize(cellularDiagramShape);
      		nextCellularSubDiagram.setLocation(new Point(point.x, yPos));
      		//BrainUtils.alignPorts(nextCellularSubDiagram);
-     		layoutCellular(nextCellularSubDiagram, i + 1, isEpileptogenic);
+     		layoutCellularOld(nextCellularSubDiagram, i + 1, isEpileptogenic);
      		yPos += nextCellularSubDiagram.getShapeSize().height + yDiagramOffset / 2;
      		agentDiagram.put(nextCellularSubDiagram);
      		cellularSubDiagrams.add(nextCellularSubDiagram);
@@ -313,7 +525,7 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
     	//regionalSubDiagram.setShapeSize(regionalDiagramShape);
     	regionalSubDiagram.setLocation(point);
     	//BrainUtils.alignPorts(regionalSubDiagram);
-    	layoutRegional(regionalSubDiagram, nRegion);
+    	layoutRegionalOld(regionalSubDiagram, nRegion);
     	agentDiagram.put(regionalSubDiagram);
 
     	
@@ -641,6 +853,51 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
         Diagram compDiagram = (Diagram)receptorSubDiagram.getOrigin();
         DiagramViewBuilder builder = compDiagram.getType().getDiagramViewBuilder();
         
+        Node stateCellPort = BrainUtils.findInputPortByTitle(receptorSubDiagram, "state_cell");
+    	movePortToSide(stateCellPort, receptorSubDiagram, Side.LEFT, builder);
+    	subDiagramHeight += 3 * builder.getNodeBounds(stateCellPort).height;
+    	subDiagramWidth += builder.getNodeBounds(stateCellPort).width;
+    	
+        Node kAmpaPort = BrainUtils.findOutputPortByTitle(receptorSubDiagram, "k_AMPA");
+    	movePortToSide(kAmpaPort, receptorSubDiagram, Side.RIGHT, builder);
+    	subDiagramWidth += builder.getNodeBounds(kAmpaPort).width;
+    	
+    	receptorSubDiagram.setShapeSize(new Dimension(
+        		Math.max(subDiagramWidth + 2 * xBorderOffset, 400), 
+        		Math.max(subDiagramHeight + 2 * yBorderOffset, 60))
+    		);
+        
+        int yPos = receptorSubDiagram.getLocation().y + receptorSubDiagram.getShapeSize().height / 2 - builder.getNodeBounds(stateCellPort).height / 2;
+        movePortToSide(stateCellPort, receptorSubDiagram, Side.LEFT, builder);
+        stateCellPort.setLocation(stateCellPort.getLocation().x, yPos);
+        Node srBus = BrainUtils.createBus(stateCellPort.getTitle() + "_" + compNumber, Color.green, compDiagram, new Point(stateCellPort.getLocation().x - xBusOffset, stateCellPort.getLocation().y));
+        srBus.setLocation(srBus.getLocation().x - builder.getNodeBounds(srBus).width, srBus.getLocation().y);
+        BrainUtils.alignCenterY(compDiagram, stateCellPort, srBus);
+        DiagramUtility.createConnection(compDiagram, srBus, stateCellPort, true);
+       
+        yPos = receptorSubDiagram.getLocation().y + receptorSubDiagram.getShapeSize().height / 2 - builder.getNodeBounds(kAmpaPort).height / 2;
+        movePortToSide(kAmpaPort, receptorSubDiagram, Side.RIGHT, builder);
+        kAmpaPort.setLocation(kAmpaPort.getLocation().x, yPos);
+        Node sfBus = BrainUtils.createBus(kAmpaPort.getTitle() + "_" + compNumber, Color.orange, compDiagram, new Point(kAmpaPort.getLocation().x + builder.getNodeBounds(kAmpaPort).width + xBusOffset, kAmpaPort.getLocation().y));
+        sfBus.setLocation(sfBus.getLocation().x, sfBus.getLocation().y);
+        BrainUtils.alignCenterY(compDiagram, kAmpaPort, sfBus);
+        DiagramUtility.createConnection(compDiagram, kAmpaPort, sfBus, true);
+    }
+    
+    public static void layoutReceptorOld(SubDiagram receptorSubDiagram, int compNumber) throws Exception 
+    {
+        int xBorderOffset = 5;
+        int yBorderOffset = 5;
+         
+        int subDiagramWidth = 0;
+        int subDiagramHeight = 0;
+        
+        int xBusOffset = 30;
+        int yBusOffset = 30;
+
+        Diagram compDiagram = (Diagram)receptorSubDiagram.getOrigin();
+        DiagramViewBuilder builder = compDiagram.getType().getDiagramViewBuilder();
+        
         Node srPort = BrainUtils.findInputPortByTitle(receptorSubDiagram, "SR");
     	movePortToSide(srPort, receptorSubDiagram, Side.LEFT, builder);
     	subDiagramHeight += 3 * builder.getNodeBounds(srPort).height;
@@ -672,7 +929,127 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
         DiagramUtility.createConnection(compDiagram, sfPort, sfBus, true);
     }
     
-    public static void layoutCellular(SubDiagram cellularSubDiagram, int compNumber, boolean isEpileptogenic) throws Exception 
+    public static void layoutCellular(SubDiagram cellularSubDiagram, int compNumber) throws Exception 
+    {
+        int xBorderOffset = 5;
+        int yBorderOffset = 5;
+         
+        int subDiagramWidth = 0;
+        int subDiagramHeight = 0;
+        
+        int xBusOffset = 30;
+        int yBusOffset = 30;
+
+        Diagram compDiagram = (Diagram)cellularSubDiagram.getOrigin();
+        DiagramViewBuilder builder = compDiagram.getType().getDiagramViewBuilder();
+         
+//        Node kAmpaPort = BrainUtils.findInputPortByTitle(cellularSubDiagram, "k_AMPA");
+//    	movePortToSide(kAmpaPort, cellularSubDiagram, Side.LEFT, builder);
+//    	
+//    	Node iECPort = BrainUtils.findInputPortByTitle(cellularSubDiagram, "I_EC");
+//    	movePortToSide(iECPort, cellularSubDiagram, Side.LEFT, builder);
+//    	
+//        Node stateRegionPort = BrainUtils.findInputPortByTitle(cellularSubDiagram, "state_region");
+//    	movePortToSide(stateRegionPort, cellularSubDiagram, Side.LEFT, builder);
+//    	
+//    	subDiagramWidth += Math.max(builder.getNodeBounds(kAmpaPort).width, Math.max(builder.getNodeBounds(iECPort).width, builder.getNodeBounds(stateRegionPort).width));
+         
+        List<Node> leftPorts = new ArrayList<>();
+        double leftPortsOffsetMultiplier = 1.5;
+        List<String> leftBusNames = new ArrayList<>();
+        for (String entity : new String[]{"k_AMPA", "I_EC", "state_region"})
+        {
+            Node port = BrainUtils.findInputPortByTitle(cellularSubDiagram, entity);
+            movePortToSide(port, cellularSubDiagram, Side.LEFT, builder);
+            leftPorts.add(port);
+            subDiagramHeight += leftPortsOffsetMultiplier * builder.getNodeBounds(port).height;
+            
+            String mapped;
+            switch (entity) 
+            {
+                case "k_AMPA": 
+                	mapped = "k_AMPA";
+                	break;
+                case "I_EC":
+                	mapped = "LFP";     
+                	break;
+                case "state_region": 
+                	mapped = "state_region";     
+                	break;
+                default:        
+                	mapped = entity;
+            }
+            String busName = mapped + "_" + compNumber;
+            leftBusNames.add(busName);
+        }
+        subDiagramWidth += builder.getNodeBounds(leftPorts.get(0)).width;
+    	
+        List<Node> rightPorts = new ArrayList<>();
+        double rightPortsOffsetMultiplier = 1.5;
+        List<String> rightBusNames = new ArrayList<>();
+        for (String entity : new String[]{"FR_norm", "state_cell"})
+        {
+            Node port = BrainUtils.findOutputPortByTitle(cellularSubDiagram, entity);
+            movePortToSide(port, cellularSubDiagram, Side.RIGHT, builder);
+            rightPorts.add(port);
+            //subDiagramHeight += rightPortsOffsetMultiplier * builder.getNodeBounds(port).height;
+            
+            String mapped;
+            switch (entity) 
+            {
+                case "FR_norm": 
+                	mapped = "u_exc";
+                	break;
+                case "state_cell": 
+                	mapped = "state_cell";     
+                	break;
+                default:        
+                	mapped = entity;
+            }
+            String busName = mapped + "_" + compNumber;
+            rightBusNames.add(busName);
+        }
+        subDiagramWidth += builder.getNodeBounds(rightPorts.get(0)).width;
+        
+        cellularSubDiagram.setShapeSize(new Dimension(
+	        		Math.max(2 * subDiagramWidth + 2 * xBorderOffset, 400), 
+	        		subDiagramHeight + 2 * yBorderOffset)
+        		);
+//        
+//        int yPos = cellularSubDiagram.getLocation().y + cellularSubDiagram.getShapeSize().height * 1 / 4 - builder.getNodeBounds(kAmpaPort).height / 2;
+//        movePortToSide(kAmpaPort, cellularSubDiagram, Side.LEFT, builder);
+//        kAmpaPort.setLocation(kAmpaPort.getLocation().x, yPos);
+//        Node sfBus = BrainUtils.createBus(kAmpaPort.getTitle() + "_" + compNumber, Color.orange, compDiagram, new Point(kAmpaPort.getLocation().x - xBusOffset, kAmpaPort.getLocation().y));
+//        sfBus.setLocation(sfBus.getLocation().x - builder.getNodeBounds(sfBus).width, sfBus.getLocation().y);
+//        BrainUtils.alignCenterY(compDiagram, kAmpaPort, sfBus);
+//        DiagramUtility.createConnection(compDiagram, sfBus, kAmpaPort, true);
+//        
+//        yPos = cellularSubDiagram.getLocation().y + cellularSubDiagram.getShapeSize().height * 2 / 4 - builder.getNodeBounds(stateRegionPort).height / 2;
+//        movePortToSide(iECPort, cellularSubDiagram, Side.LEFT, builder);
+//        iECPort.setLocation(iECPort.getLocation().x, yPos);
+//        Node iECBus = BrainUtils.createBus(iECPort.getTitle() + "_" + compNumber, Color.blue, compDiagram, new Point(iECPort.getLocation().x - xBusOffset, iECPort.getLocation().y));
+//        iECBus.setLocation(iECBus.getLocation().x - builder.getNodeBounds(iECBus).width, iECBus.getLocation().y);
+//        BrainUtils.alignCenterY(compDiagram, stateRegionPort, iECBus);
+//        DiagramUtility.createConnection(compDiagram, iECBus, stateRegionPort, true);
+//       
+//        yPos = cellularSubDiagram.getLocation().y + cellularSubDiagram.getShapeSize().height * 3 / 4 - builder.getNodeBounds(stateRegionPort).height / 2;
+//        movePortToSide(stateRegionPort, cellularSubDiagram, Side.LEFT, builder);
+//        stateRegionPort.setLocation(stateRegionPort.getLocation().x, yPos);
+//        Node stateRegionBus = BrainUtils.createBus(stateRegionPort.getTitle() + "_" + compNumber, Color.blue, compDiagram, new Point(stateRegionPort.getLocation().x - xBusOffset, stateRegionPort.getLocation().y));
+//        stateRegionBus.setLocation(stateRegionBus.getLocation().x - builder.getNodeBounds(stateRegionBus).width, stateRegionBus.getLocation().y);
+//        BrainUtils.alignCenterY(compDiagram, stateRegionPort, stateRegionBus);
+//        DiagramUtility.createConnection(compDiagram, stateRegionBus, stateRegionPort, true);
+
+        int yPos = cellularSubDiagram.getLocation().y + yBorderOffset;
+        
+        layoutPortsWithBuses(cellularSubDiagram, compDiagram, leftPorts, leftBusNames, ConnectionDirection.BUS_TO_PORT, Side.LEFT,
+        		new Point(leftPorts.get(0).getLocation().x, yPos), Color.blue, xBusOffset, yBusOffset, leftPortsOffsetMultiplier);
+        
+        layoutPortsWithBuses(cellularSubDiagram, compDiagram, rightPorts, rightBusNames, ConnectionDirection.PORT_TO_BUS, Side.RIGHT,
+        		new Point(rightPorts.get(0).getLocation().x, yPos), Color.green, xBusOffset, yBusOffset, rightPortsOffsetMultiplier);
+    }
+    
+    public static void layoutCellularOld(SubDiagram cellularSubDiagram, int compNumber, boolean isEpileptogenic) throws Exception 
     {
         int xBorderOffset = 5;
         int yBorderOffset = 5;
@@ -769,6 +1146,84 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
     }
     
     public static void layoutRegional(SubDiagram regionalSubDiagram, int nRegion) throws Exception 
+    {
+        int xBorderOffset = 5;
+        int yBorderOffset = 5;
+         
+        int subDiagramWidth = 0;
+        int subDiagramHeight = 0;
+        
+        int xBusOffset = 30;
+        int yBusOffset = 30;
+
+        Diagram compDiagram = (Diagram)regionalSubDiagram.getOrigin();
+        DiagramViewBuilder builder = compDiagram.getType().getDiagramViewBuilder();
+         
+        List<Node> leftPorts = new ArrayList<>();
+        double leftPortsOffsetMultiplier = 1.0;
+        List<String> leftBusNames = new ArrayList<>();
+        for (int i = 0; i < nRegion; i++)
+        {
+            for (String entity : new String[]{"u_exc", "W"})
+            {
+            	String portTitle = entity + "_" + (i + 1);
+                Node port = BrainUtils.findInputPortByTitle(regionalSubDiagram, portTitle);
+                movePortToSide(port, regionalSubDiagram, Side.LEFT, builder);
+                leftPorts.add(port);
+                subDiagramHeight += leftPortsOffsetMultiplier * builder.getNodeBounds(port).height;
+                
+                String mapped;
+                switch (entity) 
+                {
+                    case "u_exc": 
+                    	mapped = "u_exc";
+                    	break;
+                    case "W": 
+                    	mapped = "k_AMPA";     
+                    	break;
+                    default:        
+                    	mapped = entity;
+                }
+                String busName = mapped + "_" + (i + 1);
+                leftBusNames.add(busName);
+            }
+        }
+         
+        List<Node> rightPorts = new ArrayList<>();
+        double rightPortsOffsetMultiplier = 1.0;
+        List<String> rightBusNames = new ArrayList<>();
+        for (int i = 0; i < nRegion; i++)
+        {
+            for (String entity : new String[]{"LFP", "state_region"})
+            {
+            	String portTitle = entity + "_" + (i + 1);
+                Node port = BrainUtils.findOutputPortByTitle(regionalSubDiagram, portTitle);
+                movePortToSide(port, regionalSubDiagram, Side.RIGHT, builder);
+                rightPorts.add(port);
+                
+                String busName = port.getTitle();
+                rightBusNames.add(busName);
+            }
+        }
+        
+        subDiagramWidth += builder.getNodeBounds(leftPorts.get(0)).width;
+        subDiagramWidth += builder.getNodeBounds(rightPorts.get(0)).width;
+        
+        regionalSubDiagram.setShapeSize(new Dimension(
+	        		Math.max(subDiagramWidth + 2 * xBorderOffset, 500), 
+	        		subDiagramHeight + 2 * yBorderOffset)
+        		);
+        
+        int yPos = regionalSubDiagram.getLocation().y + yBorderOffset;
+        layoutPortsWithBuses(regionalSubDiagram, compDiagram, leftPorts, leftBusNames, ConnectionDirection.BUS_TO_PORT, Side.LEFT,
+        		new Point(leftPorts.get(0).getLocation().x, yPos), Color.black, xBusOffset, yBusOffset, leftPortsOffsetMultiplier);
+
+        yPos = regionalSubDiagram.getLocation().y + yBorderOffset;
+        layoutPortsWithBuses(regionalSubDiagram, compDiagram, rightPorts, rightBusNames, ConnectionDirection.PORT_TO_BUS, Side.RIGHT,
+        		new Point(rightPorts.get(0).getLocation().x, yPos), Color.blue, xBusOffset, yBusOffset, rightPortsOffsetMultiplier);
+    }
+    
+    public static void layoutRegionalOld(SubDiagram regionalSubDiagram, int nRegion) throws Exception 
     {
         int xBorderOffset = 5;
         int yBorderOffset = 5;
