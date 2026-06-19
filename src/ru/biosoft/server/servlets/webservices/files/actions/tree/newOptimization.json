@@ -2,7 +2,7 @@
  * Create new optimization document action
  */
 {
-    id: "open_new_optimization",
+    id: "new_optimization",
     label: "New optimization",
 	icon: "icons/optimization.gif",
     visible: "function(completePath)
@@ -15,9 +15,16 @@
         
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
-        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || instanceOf(getDataCollection(completePath).getChildClass(),'biouml.plugins.optimization.Optimization')) 
+        console.log(type + ' type in new optimization for ' + path);
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') ) 
         {
+            console.log('Folder colection in new optimization for ' + path);
             return true;
+        }
+        if(instanceOf(getDataCollection(completePath).getChildClass(),'biouml.plugins.optimization.Optimization'))
+        {
+            console.log('Child class Optimization in new optimization for ' + path);
+            return true;    
         }
         return -1;
     }",
