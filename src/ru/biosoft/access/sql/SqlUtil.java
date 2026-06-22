@@ -494,20 +494,22 @@ public class SqlUtil
     }
     
     /**
-     * Returns disk size of the table in bytes
+     * Returns actual disk file size of the table in bytes.
+     * DATA_LENGTH + INDEX_LENGTH + DATA_FREE covers both InnoDB (.ibd file size) and MyISAM (.MYD + .MYI).
+     * DATA_FREE is 0 for MyISAM, so the sum works for all engines.
      */
     public static long getTableSize(Connection connection, String tableName) throws BiosoftSQLException
     {
-        String query = "SELECT DATA_LENGTH, INDEX_LENGTH from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=DATABASE() and TABLE_NAME=" + quoteString(tableName);
-        try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(query))
+        String tablesQuery = "SELECT DATA_LENGTH, INDEX_LENGTH, DATA_FREE from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=DATABASE() and TABLE_NAME=" + quoteString(tableName);
+        try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(tablesQuery))
         {
             if(!rs.next())
                 return 0;
-            return rs.getLong(1)+rs.getLong(2);
+            return rs.getLong(1) + rs.getLong(2) + rs.getLong(3);
         }
         catch(SQLException e)
         {
-            throw new BiosoftSQLException(connection, query, e);
+            throw new BiosoftSQLException(connection, tablesQuery, e);
         }
     }
     
