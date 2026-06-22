@@ -118,7 +118,6 @@
                         <!-- ******************************* -->
 
                         <!--exclude>**/biouml/model/_test/TestCompartment.java</exclude-->
-                        <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReadWriteTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoViewTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReaderTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoEdgesTest.java</exclude>
@@ -446,10 +445,7 @@
                         <exclude>**/biouml/model/_test/AttributeViewTest.java</exclude>
                         <exclude>**/biouml/workbench/_test/ViewEditorPaneTest.java</exclude>
 
-                        <!-- Unexpectedly started to fail. Investigate -->   
-                        <exclude>**/biouml/model/util/_test/DiagramXmlReaderTest.java</exclude>
-
-                        <!-- These are very long -->   
+                        <!-- These are very long -->
                         <exclude>**/biouml/plugins/sbml/_test/SbmlBiomodelsUploadTest.java</exclude>
                         <exclude>**/biouml/plugins/sbml/biomodels/_test/DownloadBiomodelsTest.java</exclude>
                         <exclude>**/biouml/plugins/pharm/_test/TestPopulationSampling2D.java</exclude>
