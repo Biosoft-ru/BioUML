@@ -272,7 +272,7 @@ public abstract class TableDataCollectionUtils
 
             if( key != null )
             {
-                addRow(result, key, rowBuffer);
+                addRow(result, key, rowBuffer, true);
             }
         }
 
@@ -286,7 +286,7 @@ public abstract class TableDataCollectionUtils
             {
                 setBufferToNulls(rowBuffer);
                 setLeftJoinData(rowBuffer, key, t1, t1AllColumns);
-                addRow(result, key, rowBuffer);
+                addRow(result, key, rowBuffer, true);
             }
         }
 
@@ -300,10 +300,11 @@ public abstract class TableDataCollectionUtils
             {
                 setBufferToNulls(rowBuffer);
                 setRightJoinData(rowBuffer, key, t2, t2AllColumns, t1Columns.length);
-                addRow(result, key, rowBuffer);
+                addRow(result, key, rowBuffer, true);
             }
         }
 
+        result.finalizeAddition();
         return result;
     }
 
