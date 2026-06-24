@@ -568,6 +568,23 @@ public class TaskManager implements JobControlListener
         }
     }
 
+    /**
+     * Get the TaskInfo for the task running on the current thread.
+     * Uses TaskThreadTracker for thread-local lookup.
+     * @return the current task, or null if no task is running on this thread
+     */
+    public TaskInfo getCurrentTaskForThread()
+    {
+        try
+        {
+            return biouml.plugins.servermonitor.TaskThreadTracker.getCurrentTask();
+        }
+        catch( Exception e )
+        {
+            return null;
+        }
+    }
+
     //
     // Listener support
     //

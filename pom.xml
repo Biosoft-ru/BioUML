@@ -57,6 +57,7 @@
         <module>plugconfig/biouml.plugins.sbgn</module>
         <module>plugconfig/biouml.plugins.sbml</module>
         <module>plugconfig/biouml.plugins.server</module>
+        <module>plugconfig/biouml.plugins.servermonitor</module>
         <module>plugconfig/biouml.plugins.simulation</module>
         <module>plugconfig/biouml.plugins.state</module>
         <module>plugconfig/biouml.plugins.stochastic</module>
