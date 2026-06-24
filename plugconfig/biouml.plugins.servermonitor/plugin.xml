@@ -1,0 +1,9 @@
+<plugin>
+    <extension-point name="Server Monitor" id="serverMonitor"/>
+
+    <extension id="serverMonitorService" point="biouml.plugins.servermonitor">
+        <service class="biouml.plugins.servermonitor.ServerMonitorPlugin"
+                 id="monitor"
+                 name="Server Monitor Service"/>
+    </extension>
+</plugin>
