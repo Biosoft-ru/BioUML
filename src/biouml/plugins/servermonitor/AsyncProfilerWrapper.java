@@ -13,6 +13,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.logging.Level;
@@ -197,8 +198,33 @@ public class AsyncProfilerWrapper {
             command.add(threadIdStr);
         }
 
-        Process process = executeCommand(command);
+        ProcessBuilder pb = new ProcessBuilder(command);
+        // Set LD_LIBRARY_PATH to include the profiler's lib directory
+        String profilerDir = new File(profilerPath).getParent();
+        String libPath = profilerDir + "/lib";
+        Map<String, String> env = pb.environment();
+        String existingLibPath = env.get("LD_LIBRARY_PATH");
+        if (existingLibPath != null) {
+            env.put("LD_LIBRARY_PATH", libPath + ":" + existingLibPath);
+        } else {
+            env.put("LD_LIBRARY_PATH", libPath);
+        }
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        // Capture stderr for debugging
+        StringBuilder stderr = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stderr.append(line).append("\n");
+            }
+        }
+
         int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            log.log(Level.WARNING, "AsyncProfilerWrapper: profiler exited with code " + exitCode + ". stderr: " + stderr);
+        }
         return exitCode == 0;
     }
 
