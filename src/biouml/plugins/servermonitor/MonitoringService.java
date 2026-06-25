@@ -202,6 +202,97 @@ public class MonitoringService {
     }
 
     /**
+     * Force immediate profiling of a specific task.
+     * @param taskId the task name to profile
+     * @return ProfilerResult, or null if task not found
+     */
+    public ProfilerResult profileNow(String taskId) {
+        // Find the task in tracked tasks
+        List<TaskInfo> trackedTasks = TaskThreadTracker.getAllTrackedTasks();
+        TaskInfo targetTask = null;
+        for (TaskInfo ti : trackedTasks) {
+            if (ti.getName().equals(taskId)) {
+                targetTask = ti;
+                break;
+            }
+        }
+
+        if (targetTask == null) {
+            // Try to get from TaskManager if admin access is available
+            try {
+                List<TaskInfo> allTasks = TaskManager.getInstance().getAllRunningTasks();
+                for (TaskInfo ti : allTasks) {
+                    if (ti.getName().equals(taskId)) {
+                        targetTask = ti;
+                        TaskThreadTracker.refreshMapping(allTasks);
+                        break;
+                    }
+                }
+            } catch (SecurityException e) {
+                // No admin access, can't find task
+            }
+        }
+
+        if (targetTask == null) {
+            return new ProfilerResult("Task not found: " + taskId);
+        }
+
+        // Profile the task
+        profileTask(targetTask);
+
+        // Return the result from activeProfiles
+        ProfilerResult result = activeProfiles.get(targetTask.getName());
+        if (result != null) {
+            return result;
+        }
+
+        // If profiling is still in progress or failed silently
+        return new ProfilerResult("Profiling initiated for task: " + taskId);
+    }
+
+    /**
+     * Force immediate profiling of all running tasks.
+     * @return list of ProfilerResults
+     */
+    public List<ProfilerResult> profileNowAll() {
+        List<ProfilerResult> results = new ArrayList<>();
+
+        // Get all running tasks
+        List<TaskInfo> runningTasks;
+        try {
+            runningTasks = TaskManager.getInstance().getAllRunningTasks();
+        } catch (SecurityException e) {
+            runningTasks = TaskThreadTracker.getAllTrackedTasks();
+        }
+
+        if (runningTasks.isEmpty()) {
+            results.add(new ProfilerResult("No running tasks found"));
+            return results;
+        }
+
+        // Refresh thread mapping
+        TaskThreadTracker.refreshMapping(runningTasks);
+
+        // Profile each task
+        for (TaskInfo taskInfo : runningTasks) {
+            if (activeProfiles.containsKey(taskInfo.getName())) {
+                // Already profiling this task
+                results.add(new ProfilerResult("Already profiling: " + taskInfo.getName()));
+                continue;
+            }
+            profileTask(taskInfo);
+            ProfilerResult result = activeProfiles.get(taskInfo.getName());
+            if (result != null) {
+                results.add(result);
+            } else {
+                results.add(new ProfilerResult("Profiling initiated: " + taskInfo.getName()));
+            }
+        }
+
+        return results;
+    }
+
+    /**
      * Check for periodic profiling of random/sample tasks.
      * Falls back to TaskThreadTracker if admin access is not available.
      */
