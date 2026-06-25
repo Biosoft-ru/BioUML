@@ -122,9 +122,10 @@ public class AsyncProfilerWrapper {
 
         long startTime = System.currentTimeMillis();
         int duration = config.getProfileDuration();
-        String htmlOutputPath = buildOutputPath("html");
-        String collapsedOutputPath = buildOutputPath("collapsed");
-        String flatProfilePath = buildOutputPath("txt");
+        String baseName = buildBaseName();
+        String htmlOutputPath = buildOutputPath(baseName, "html");
+        String collapsedOutputPath = buildOutputPath(baseName, "collapsed");
+        String flatProfilePath = buildOutputPath(baseName, "txt");
 
         try {
             // Run 1: HTML flamegraph (primary, human-readable)
@@ -454,17 +455,24 @@ public class AsyncProfilerWrapper {
     }
 
     /**
-     * Build an output file path for the profile.
+     * Build an output file path for the profile using a shared base name.
+     * @param baseName the base name (e.g., "profile_123456")
+     * @param format the file extension (html, collapsed, txt)
      */
-    private String buildOutputPath(String format) {
+    private String buildOutputPath(String baseName, String format) {
         File dir = new File(config.getProfilerDir());
         if (!dir.exists()) {
             dir.mkdirs();
         }
+        return dir.getAbsolutePath() + "/" + baseName + "." + format;
+    }
 
+    /**
+     * Build a base name for the profile output files.
+     */
+    private String buildBaseName() {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String safeName = "profile_" + timestamp;
-        return dir.getAbsolutePath() + "/" + safeName + "." + format;
+        return "profile_" + timestamp;
     }
 
     /**
