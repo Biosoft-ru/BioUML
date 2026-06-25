@@ -183,7 +183,6 @@ public class MonitoringService {
         long[] ids = threadIds.stream().mapToLong(Long::longValue).toArray();
 
         if (ids.length > 0) {
-            String outputPath = buildProfilePath(taskInfo.getName(), "html");
             ProfilerResult result = profiler.start(ids, "html");
 
             if (result.isSuccess()) {
