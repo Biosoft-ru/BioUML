@@ -95,6 +95,22 @@ public class TaskThreadTracker {
     }
 
     /**
+     * Get all unique tasks currently tracked (no admin access needed).
+     * @return list of unique TaskInfo objects
+     */
+    public static List<TaskInfo> getAllTrackedTasks() {
+        Map<Long, TaskInfo> all = getAllTaskThreads();
+        // Deduplicate by task name
+        Map<String, TaskInfo> unique = new HashMap<>();
+        for (TaskInfo ti : all.values()) {
+            if (ti != null) {
+                unique.putIfAbsent(ti.getName(), ti);
+            }
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    /**
      * Fallback: find threads by name matching "Task: " prefix.
      * @param tasks list of running tasks to match against
      * @return map of threadId to matching TaskInfo

@@ -115,18 +115,23 @@ public class MonitoringService {
 
     /**
      * Check for tasks exceeding the slow threshold.
+     * Falls back to TaskThreadTracker if admin access is not available.
      */
     private void checkSlowTasks() {
         long thresholdMillis = config.getSlowTaskThreshold() * 1000L;
         long now = System.currentTimeMillis();
 
         List<TaskInfo> runningTasks;
+        boolean hasAdminAccess = false;
         try {
             runningTasks = TaskManager.getInstance().getAllRunningTasks();
+            hasAdminAccess = true;
         } catch (SecurityException e) {
-            log.log(Level.WARNING, "Monitoring service: no permission to get running tasks", e);
-            return;
+            log.info("Monitoring service: admin access not available, using TaskThreadTracker");
+            runningTasks = TaskThreadTracker.getAllTrackedTasks();
         }
+
+        if (runningTasks.isEmpty()) return;
 
         List<String> currentSlow = new ArrayList<>();
 
@@ -146,7 +151,9 @@ public class MonitoringService {
         slowTaskIds = currentSlow;
 
         // Refresh thread mapping
-        TaskThreadTracker.refreshMapping(runningTasks);
+        if (hasAdminAccess) {
+            TaskThreadTracker.refreshMapping(runningTasks);
+        }
     }
 
     /**
@@ -167,7 +174,7 @@ public class MonitoringService {
             try {
                 runningTasks = TaskManager.getInstance().getAllRunningTasks();
             } catch (SecurityException e) {
-                return;
+                runningTasks = TaskThreadTracker.getAllTrackedTasks();
             }
             TaskThreadTracker.refreshMapping(runningTasks);
             threadIds = TaskThreadTracker.getTaskThreads(taskInfo.getName());
@@ -196,6 +203,7 @@ public class MonitoringService {
 
     /**
      * Check for periodic profiling of random/sample tasks.
+     * Falls back to TaskThreadTracker if admin access is not available.
      */
     private void checkPeriodicProfiling() {
         long periodicInterval = config.getPeriodicInterval() * 1000L;
@@ -210,7 +218,7 @@ public class MonitoringService {
         try {
             runningTasks = TaskManager.getInstance().getAllRunningTasks();
         } catch (SecurityException e) {
-            return;
+            runningTasks = TaskThreadTracker.getAllTrackedTasks();
         }
 
         if (runningTasks.isEmpty()) return;
