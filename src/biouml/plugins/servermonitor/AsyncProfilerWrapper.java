@@ -1,6 +1,7 @@
 package biouml.plugins.servermonitor;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -360,37 +362,85 @@ public class AsyncProfilerWrapper {
     }
 
     /**
-     * Extract a tar.gz archive.
+     * Extract a tar.gz archive using pure Java (no external tar command needed).
      */
     private void extractTarball(File tarball, File destDir) throws IOException {
-        // Use ProcessBuilder to call tar
-        List<String> command = new ArrayList<>();
-        command.add("tar");
-        command.add("-xzf");
-        command.add(tarball.getAbsolutePath());
-        command.add("-C");
-        command.add(destDir.getAbsolutePath());
-
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-        int exitCode;
-        try {
-            exitCode = process.waitFor();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("tar extraction interrupted", e);
+        log.info("AsyncProfilerWrapper: extracting tarball with pure Java extractor");
+        try (InputStream fis = Files.newInputStream(tarball.toPath());
+             GZIPInputStream gzis = new GZIPInputStream(fis)) {
+            extractTar(gzis, destDir);
         }
+    }
 
-        if (exitCode != 0) {
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append('\n');
+    /**
+     * Extract a tar archive from the given stream.
+     * Each tar entry is 512 bytes. File names are null-terminated in the first 100 bytes.
+     * File size is in octal in bytes 124-135. Data follows, padded to 512-byte blocks.
+     */
+    private void extractTar(InputStream in, File destDir) throws IOException {
+        byte[] header = new byte[512];
+        int read;
+
+        while ((read = in.read(header)) >= 0) {
+            // End of archive marker: two consecutive 512-byte blocks of zeros
+            boolean allZero = true;
+            for (int i = 0; i < 512; i++) {
+                if (header[i] != 0) { allZero = false; break; }
             }
-            throw new IOException("tar extraction failed with exit code " + exitCode + ": " + output);
+            if (allZero) break;
+
+            if (read < 512) break;
+
+            // Parse file name (bytes 0-99, null-terminated)
+            int nameEnd = 0;
+            while (nameEnd < 100 && header[nameEnd] != 0) nameEnd++;
+            String name = new String(header, 0, nameEnd);
+            if (name.isEmpty()) continue;
+
+            // Parse size (bytes 124-135, octal)
+            long size = 0;
+            for (int i = 124; i < 136; i++) {
+                byte b = header[i];
+                if (b == 0 || b == ' ') break;
+                if (b >= '0' && b <= '9') {
+                    size = size * 8 + (b - '0');
+                }
+            }
+
+            // Parse type flag (byte 156): '0' = file, '5' = directory, '' = file
+            char typeFlag = (header[156] == 0) ? '0' : (char) header[156];
+
+            File outFile = new File(destDir, name);
+            File parent = outFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+
+            if (typeFlag == '5') {
+                // Directory entry
+                outFile.mkdirs();
+            } else {
+                // File entry — read size bytes
+                try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                    long remaining = size;
+                    byte[] buf = new byte[Math.min((int) Math.min(remaining, 8192), 8192)];
+                    while (remaining > 0) {
+                        int toRead = (int) Math.min(remaining, buf.length);
+                        int n = in.read(buf, 0, toRead);
+                        if (n <= 0) break;
+                        fos.write(buf, 0, n);
+                        remaining -= n;
+                    }
+                }
+            }
+
+            // Skip remaining data in this entry (padded to 512-byte boundary)
+            long dataBytes = (size + 511) / 512 * 512;
+            while (dataBytes > 0) {
+                long skipped = in.skip(dataBytes);
+                if (skipped <= 0) break;
+                dataBytes -= skipped;
+            }
         }
     }
 
