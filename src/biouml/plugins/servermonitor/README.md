@@ -75,7 +75,9 @@ GET /biouml/support/profile?action=profileNow&taskId=<taskName>
 GET /biouml/support/profile?action=profileNow
 ```
 
-Forces immediate profiling of a specific task (by `taskId`) or all running tasks (if `taskId` is omitted).
+Forces immediate profiling of a specific task (by `taskId`) or the entire JVM process (if `taskId` is omitted).
+
+When profiling the entire JVM, async-profiler attaches to the JVM process (PID 1 in Docker) and profiles all threads.
 
 **Response for single task:**
 ```json
@@ -90,25 +92,16 @@ Forces immediate profiling of a specific task (by `taskId`) or all running tasks
 }
 ```
 
-**Response for all tasks:**
+**Response for entire JVM:**
 ```json
 {
   "type": "ok",
   "value": {
-    "profiles": [
-      {
-        "taskId": "task-1",
-        "success": true,
-        "outputPath": "/path/to/profile_123456.html",
-        "duration": 30000,
-        "threadCount": 2
-      },
-      {
-        "taskId": "task-2",
-        "success": false,
-        "error": "No threads found"
-      }
-    ]
+    "taskId": "jvm",
+    "outputPath": "/path/to/profile_123456.html",
+    "duration": 30000,
+    "threadCount": 0,
+    "description": "Entire JVM process profiled (all threads)"
   }
 }
 ```

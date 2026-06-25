@@ -1798,8 +1798,8 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
     /**
-     * Force immediate profiling of a specific task or all running tasks.
-     * Parameters: taskId (optional) - if omitted, profiles all running tasks.
+     * Force immediate profiling of a specific task or the entire JVM.
+     * Parameters: taskId (optional) - if omitted, profiles the entire JVM process.
      */
     protected JSONObject profileNow(Map params) throws Exception
     {
@@ -1835,29 +1835,19 @@ public class SupportServlet extends AbstractJSONServlet
             }
             else
             {
-                // Profile all running tasks
-                List<biouml.plugins.servermonitor.ProfilerResult> results = monitor.profileNowAll();
-                JSONArray array = new JSONArray();
-                for (biouml.plugins.servermonitor.ProfilerResult r : results)
+                // Profile the entire JVM process (all threads)
+                biouml.plugins.servermonitor.ProfilerResult result = monitor.profileNow(null);
+                if (!result.isSuccess())
                 {
-                    JSONObject item = new JSONObject();
-                    item.put("taskId", r.getOutputPath() != null ? r.getOutputPath().split("/")[r.getOutputPath().split("/").length - 1].split("_")[0] : "unknown");
-                    item.put("success", r.isSuccess());
-                    if (r.isSuccess())
-                    {
-                        item.put("outputPath", r.getOutputPath());
-                        item.put("duration", r.getDuration());
-                        item.put("threadCount", r.getThreadCount());
-                    }
-                    else
-                    {
-                        item.put("error", r.getError());
-                    }
-                    array.put(item);
+                    return errorResponse("Profiling failed: " + result.getError());
                 }
-                JSONObject wrapper = new JSONObject();
-                wrapper.put("profiles", array);
-                return complexOkResponse(wrapper);
+                JSONObject resp = new JSONObject();
+                resp.put("taskId", "jvm");
+                resp.put("outputPath", result.getOutputPath());
+                resp.put("duration", result.getDuration());
+                resp.put("threadCount", result.getThreadCount());
+                resp.put("description", "Entire JVM process profiled (all threads)");
+                return complexOkResponse(resp);
             }
         }
         catch (Exception e)

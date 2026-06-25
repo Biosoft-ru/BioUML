@@ -202,52 +202,82 @@ public class MonitoringService {
     }
 
     /**
-     * Force immediate profiling of a specific task.
-     * @param taskId the task name to profile
-     * @return ProfilerResult, or null if task not found
+     * Force immediate profiling of a specific task or the entire JVM.
+     * @param taskId the task name to profile, or null/empty to profile the entire JVM
+     * @return ProfilerResult
      */
     public ProfilerResult profileNow(String taskId) {
-        // Find the task in tracked tasks
-        List<TaskInfo> trackedTasks = TaskThreadTracker.getAllTrackedTasks();
-        TaskInfo targetTask = null;
-        for (TaskInfo ti : trackedTasks) {
-            if (ti.getName().equals(taskId)) {
-                targetTask = ti;
-                break;
-            }
-        }
-
-        if (targetTask == null) {
-            // Try to get from TaskManager if admin access is available
-            try {
-                List<TaskInfo> allTasks = TaskManager.getInstance().getAllRunningTasks();
-                for (TaskInfo ti : allTasks) {
-                    if (ti.getName().equals(taskId)) {
-                        targetTask = ti;
-                        TaskThreadTracker.refreshMapping(allTasks);
-                        break;
-                    }
+        // If taskId is provided, try to find and profile the specific task
+        if (taskId != null && !taskId.isEmpty()) {
+            // Find the task in tracked tasks
+            List<TaskInfo> trackedTasks = TaskThreadTracker.getAllTrackedTasks();
+            TaskInfo targetTask = null;
+            for (TaskInfo ti : trackedTasks) {
+                if (ti.getName().equals(taskId)) {
+                    targetTask = ti;
+                    break;
                 }
-            } catch (SecurityException e) {
-                // No admin access, can't find task
             }
+
+            if (targetTask == null) {
+                // Try to get from TaskManager if admin access is available
+                try {
+                    List<TaskInfo> allTasks = TaskManager.getInstance().getAllRunningTasks();
+                    for (TaskInfo ti : allTasks) {
+                        if (ti.getName().equals(taskId)) {
+                            targetTask = ti;
+                            TaskThreadTracker.refreshMapping(allTasks);
+                            break;
+                        }
+                    }
+                } catch (SecurityException e) {
+                    // No admin access, can't find task
+                }
+            }
+
+            if (targetTask == null) {
+                return new ProfilerResult("Task not found: " + taskId);
+            }
+
+            // Profile the task
+            profileTask(targetTask);
+
+            // Return the result from activeProfiles
+            ProfilerResult result = activeProfiles.get(targetTask.getName());
+            if (result != null) {
+                return result;
+            }
+
+            // If profiling is still in progress or failed silently
+            return new ProfilerResult("Profiling initiated for task: " + taskId);
         }
 
-        if (targetTask == null) {
-            return new ProfilerResult("Task not found: " + taskId);
+        // No taskId provided - profile the entire JVM process
+        return profileJvm();
+    }
+
+    /**
+     * Profile the entire JVM process (all threads).
+     * @return ProfilerResult
+     */
+    private ProfilerResult profileJvm() {
+        // Check max concurrent profiles
+        if (activeProfiles.size() >= 1) {
+            log.warning("Max concurrent profiles reached, skipping JVM profiling");
+            return new ProfilerResult("Max concurrent profiles reached");
         }
 
-        // Profile the task
-        profileTask(targetTask);
+        String outputPath = buildProfilePath("jvm", "html");
+        ProfilerResult result = profiler.start(new long[0], "html");
 
-        // Return the result from activeProfiles
-        ProfilerResult result = activeProfiles.get(targetTask.getName());
-        if (result != null) {
-            return result;
+        if (result.isSuccess()) {
+            activeProfiles.put("jvm", result);
+            log.info("Started profiling JVM (all threads): " + result.getOutputPath());
+        } else {
+            log.warning("JVM profiling failed: " + result.getError());
         }
 
-        // If profiling is still in progress or failed silently
-        return new ProfilerResult("Profiling initiated for task: " + taskId);
+        return result;
     }
 
     /**
