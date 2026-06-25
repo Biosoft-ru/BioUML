@@ -217,6 +217,11 @@ public class SupportServlet extends AbstractJSONServlet
                 log.log(Level.SEVERE, localAddress, e);
                 result = errorResponse(e.getMessage());
             }
+            catch( LinkageError e )
+            {
+                log.log(Level.SEVERE, localAddress, e);
+                result = errorResponse("Plugin not available: " + e.getMessage());
+            }
 
             OutputStreamWriter ow = new OutputStreamWriter(out, "UTF8");
             result.write(ow);
