@@ -408,13 +408,23 @@ public class AsyncProfilerWrapper {
             }
             if (name.isEmpty()) continue;
 
-            // Parse size (bytes 124-135, octal, null-terminated)
-            long size = 0;
-            for (int i = 124; i < 136; i++) {
-                byte b = header[i];
-                if (b == 0 || b == ' ') break;
-                if (b >= '0' && b <= '7') {
-                    size = size * 8 + (b - '0');
+            // Parse size (bytes 124-135)
+            // GNU tar base256: first byte is 0x80, size in bytes 125-131
+            long size;
+            if (header[124] == (byte) 0x80) {
+                size = 0;
+                for (int i = 125; i < 132; i++) {
+                    size = (size << 8) | (header[i] & 0xFF);
+                }
+            } else {
+                // Octal, null-terminated
+                size = 0;
+                for (int i = 124; i < 136; i++) {
+                    byte b = header[i];
+                    if (b == 0 || b == ' ') break;
+                    if (b >= '0' && b <= '7') {
+                        size = size * 8 + (b - '0');
+                    }
                 }
             }
 
