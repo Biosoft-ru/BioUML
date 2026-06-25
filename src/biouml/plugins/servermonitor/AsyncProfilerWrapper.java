@@ -376,13 +376,15 @@ public class AsyncProfilerWrapper {
 
     /**
      * Extract a tar archive from the given stream.
-     * Handles GNU tar long name entries (type 'L' = 76) and standard POSIX entries.
+     * Handles GNU tar, POSIX pax, and standard POSIX formats.
      */
     private void extractTar(InputStream in, File destDir) throws IOException {
         byte[] header = new byte[512];
         int read;
         int entryCount = 0;
         String pendingLongName = null;
+        long pendingPaxSize = -1;
+        String pendingPaxPath = null;
 
         while ((read = in.read(header)) >= 0) {
             // End of archive marker: two consecutive 512-byte blocks of zeros
@@ -419,10 +421,8 @@ public class AsyncProfilerWrapper {
             // Parse type flag (byte 156): '0' = file, '5' = directory, 'L' = long name, '' = file
             char typeFlag = (header[156] == 0) ? '0' : (char) header[156];
 
-            // GNU tar long name entry: the name field contains the full path,
-            // and the next entry is the actual file/dir with a relative name
+            // GNU tar long name entry
             if (typeFlag == 'L') {
-                // Read the long name data
                 byte[] longNameBytes = new byte[(int) size];
                 int offset = 0;
                 while (offset < size) {
@@ -430,7 +430,6 @@ public class AsyncProfilerWrapper {
                     if (n <= 0) break;
                     offset += n;
                 }
-                // Skip padding
                 long dataBytes = (size + 511) / 512 * 512;
                 while (dataBytes > 0) {
                     long skipped = in.skip(dataBytes);
@@ -438,7 +437,6 @@ public class AsyncProfilerWrapper {
                     dataBytes -= skipped;
                 }
                 pendingLongName = new String(longNameBytes, 0, offset);
-                // Strip leading ./ or /
                 while (pendingLongName.startsWith("./") || pendingLongName.startsWith("/")) {
                     pendingLongName = pendingLongName.substring(1);
                 }
@@ -446,12 +444,59 @@ public class AsyncProfilerWrapper {
                 continue;
             }
 
-            // Apply pending long name if present
-            String finalName = (pendingLongName != null) ? pendingLongName : name;
+            // Pax format extended attribute entry
+            if (typeFlag == 'x' || typeFlag == 'g') {
+                // Read pax header data
+                byte[] paxData = new byte[(int) size];
+                int offset = 0;
+                while (offset < size) {
+                    int n = in.read(paxData, offset, (int) Math.min(size - offset, 8192));
+                    if (n <= 0) break;
+                    offset += n;
+                }
+                long dataBytes = (size + 511) / 512 * 512;
+                while (dataBytes > 0) {
+                    long skipped = in.skip(dataBytes);
+                    if (skipped <= 0) break;
+                    dataBytes -= skipped;
+                }
+                String paxStr = new String(paxData, 0, offset);
+                // Parse key=value pairs
+                for (String line : paxStr.split("\n")) {
+                    int eqIdx = line.indexOf('=');
+                    if (eqIdx <= 0) continue;
+                    String key = line.substring(0, eqIdx);
+                    String val = line.substring(eqIdx + 1);
+                    if ("path".equals(key)) {
+                        pendingPaxPath = val;
+                    } else if ("size".equals(key)) {
+                        try {
+                            pendingPaxSize = Long.parseLong(val);
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
+                    }
+                }
+                log.fine("AsyncProfilerWrapper: pax entry: " + paxStr);
+                continue;
+            }
+
+            // Apply pending pax attributes
+            String finalName = pendingPaxPath != null ? pendingPaxPath :
+                               (pendingLongName != null ? pendingLongName : name);
+            if (finalName.isEmpty()) continue;
+            while (finalName.startsWith("./") || finalName.startsWith("/")) {
+                finalName = finalName.substring(1);
+            }
+            if (finalName.isEmpty()) continue;
+
+            long finalSize = (pendingPaxSize >= 0) ? pendingPaxSize : size;
+            pendingPaxSize = -1;
+            pendingPaxPath = null;
             pendingLongName = null;
 
             entryCount++;
-            log.fine("AsyncProfilerWrapper: entry #" + entryCount + " name=" + finalName + " size=" + size + " type=" + typeFlag);
+            log.fine("AsyncProfilerWrapper: entry #" + entryCount + " name=" + finalName + " size=" + finalSize + " type=" + typeFlag);
 
             File outFile = new File(destDir, finalName);
             File parent = outFile.getParentFile();
@@ -460,13 +505,11 @@ public class AsyncProfilerWrapper {
             }
 
             if (typeFlag == '5') {
-                // Directory entry
                 outFile.mkdirs();
                 log.fine("AsyncProfilerWrapper: extracted dir: " + outFile.getPath());
             } else {
-                // File entry — read size bytes
                 try (FileOutputStream fos = new FileOutputStream(outFile)) {
-                    long remaining = size;
+                    long remaining = finalSize;
                     byte[] buf = new byte[Math.min((int) Math.min(remaining, 8192), 8192)];
                     while (remaining > 0) {
                         int toRead = (int) Math.min(remaining, buf.length);
@@ -476,11 +519,11 @@ public class AsyncProfilerWrapper {
                         remaining -= n;
                     }
                 }
-                log.fine("AsyncProfilerWrapper: extracted file: " + outFile.getPath() + " (" + size + " bytes)");
+                log.fine("AsyncProfilerWrapper: extracted file: " + outFile.getPath() + " (" + finalSize + " bytes)");
             }
 
             // Skip remaining data in this entry (padded to 512-byte boundary)
-            long dataBytes = (size + 511) / 512 * 512;
+            long dataBytes = (finalSize + 511) / 512 * 512;
             while (dataBytes > 0) {
                 long skipped = in.skip(dataBytes);
                 if (skipped <= 0) break;
