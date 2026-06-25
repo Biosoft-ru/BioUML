@@ -190,13 +190,14 @@ public class AsyncProfilerWrapper {
         command.add(outputPath);
         command.add("-e");
         command.add("cpu");
-        command.add("-j");
-        command.add(String.valueOf(jvmPid));
 
         if (!threadIdStr.isEmpty()) {
             command.add("-t");
             command.add(threadIdStr);
         }
+
+        // PID is a positional argument at the end (not -j)
+        command.add(String.valueOf(jvmPid));
 
         ProcessBuilder pb = new ProcessBuilder(command);
         // Set LD_LIBRARY_PATH to include the profiler's lib directory
@@ -257,11 +258,21 @@ public class AsyncProfilerWrapper {
         try {
             List<String> command = new ArrayList<>();
             command.add(profilerPath);
-            command.add("-p");
-            command.add(String.valueOf(jvmPid));
             command.add("stop");
+            command.add(String.valueOf(jvmPid));
 
-            Process process = executeCommand(command);
+            ProcessBuilder pb = new ProcessBuilder(command);
+            String profilerDir = new File(profilerPath).getParent();
+            String libPath = profilerDir + "/lib";
+            Map<String, String> env = pb.environment();
+            String existingLibPath = env.get("LD_LIBRARY_PATH");
+            if (existingLibPath != null) {
+                env.put("LD_LIBRARY_PATH", libPath + ":" + existingLibPath);
+            } else {
+                env.put("LD_LIBRARY_PATH", libPath);
+            }
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
             process.waitFor();
             log.info("AsyncProfilerWrapper: profiling stopped");
         } catch (IOException | InterruptedException e) {
