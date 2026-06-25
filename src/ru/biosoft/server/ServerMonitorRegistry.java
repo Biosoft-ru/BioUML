@@ -10,7 +10,6 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 
 import com.developmentontheedge.application.Application;
 
-import biouml.plugins.servermonitor.ServerMonitorPlugin;
 import ru.biosoft.access.ClassLoading;
 
 /**
@@ -55,10 +54,7 @@ public class ServerMonitorRegistry
                     Method m = type.getMethod("init", new Class[] { Properties.class });
                     m.invoke(service, new Object[] { new Properties() });
 
-                    if (service instanceof ServerMonitorPlugin)
-                    {
-                        log.info("ServerMonitorRegistry: initialized " + className);
-                    }
+                    log.info("ServerMonitorRegistry: initialized " + className);
                 }
             }
             catch (Throwable t)

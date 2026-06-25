@@ -30,6 +30,8 @@ public class AsyncProfilerWrapper {
     private static final String PROFILER_VERSION = "v3.0";
     private static final String PROFILER_URL = "https://github.com/async-profiler/async-profiler/releases/download/"
             + PROFILER_VERSION + "/async-profiler-3.0-linux-x64.tar.gz";
+    // Directory name inside the tarball (no 'v' prefix)
+    private static final String PROFILER_DIR_NAME = "async-profiler-3.0";
 
     private final ServerMonitorConfig config;
     private String profilerPath;
@@ -318,7 +320,7 @@ public class AsyncProfilerWrapper {
             tarball.delete();
 
             // Find profiler.sh (tarball extracts to async-profiler-3.0/ regardless of tag prefix)
-            File profilerSh = new File(dir, "async-profiler-3.0/profiler.sh");
+            File profilerSh = new File(dir, PROFILER_DIR_NAME + "/profiler.sh");
             if (!profilerSh.exists()) {
                 // Try alternate extraction location
                 profilerSh = new File(dir, "profiler.sh");
@@ -397,6 +399,12 @@ public class AsyncProfilerWrapper {
             String name = new String(header, 0, nameEnd);
             if (name.isEmpty()) continue;
 
+            // Sanitize: strip leading ./ or /
+            while (name.startsWith("./") || name.startsWith("/")) {
+                name = name.substring(1);
+            }
+            if (name.isEmpty()) continue;
+
             // Parse size (bytes 124-135, octal)
             long size = 0;
             for (int i = 124; i < 136; i++) {
@@ -419,6 +427,7 @@ public class AsyncProfilerWrapper {
             if (typeFlag == '5') {
                 // Directory entry
                 outFile.mkdirs();
+                log.fine("AsyncProfilerWrapper: extracted dir: " + outFile.getPath());
             } else {
                 // File entry — read size bytes
                 try (FileOutputStream fos = new FileOutputStream(outFile)) {
@@ -432,6 +441,7 @@ public class AsyncProfilerWrapper {
                         remaining -= n;
                     }
                 }
+                log.fine("AsyncProfilerWrapper: extracted file: " + outFile.getPath() + " (" + size + " bytes)");
             }
 
             // Skip remaining data in this entry (padded to 512-byte boundary)
