@@ -28,7 +28,7 @@ Edit `preferences_server.xml` or use the API `setConfig` action:
 
 ## API Endpoints
 
-All endpoints require admin authentication via `login` and `password` parameters.
+All endpoints require admin authentication via `user` and `pass` parameters.
 
 ### List profiles
 
@@ -172,7 +172,7 @@ Copy the resulting JAR into the server's classpath (where the other BioUML jars 
 Check the API status endpoint:
 
 ```bash
-curl "https://<server>/biouml/support/profile?action=status&login=<ADMIN>&password=<PASS>"
+curl "https://<server>/biouml/support/profile?action=status&user=<ADMIN>&pass=<PASS>"
 ```
 
 Expected response (JSON):
@@ -189,17 +189,17 @@ If `profilerAvailable` is `false`, check:
 
 **a) List profiles** (should be empty initially):
 ```bash
-curl "https://<server>/biouml/support/profile?action=list&login=<ADMIN>&password=<PASS>"
+curl "https://<server>/biouml/support/profile?action=list&user=<ADMIN>&pass=<PASS>"
 ```
 
 **b) Check current config**:
 ```bash
-curl "https://<server>/biouml/support/profile?action=config&login=<ADMIN>&password=<PASS>"
+curl "https://<server>/biouml/support/profile?action=config&user=<ADMIN>&pass=<PASS>"
 ```
 
 **c) Adjust threshold** (make it shorter to trigger faster for testing):
 ```bash
-curl -X POST "https://<server>/biouml/support/profile?action=setConfig&login=<ADMIN>&password=<PASS>" \
+curl -X POST "https://<server>/biouml/support/profile?action=setConfig&user=<ADMIN>&pass=<PASS>" \
   -d 'config={"slowTaskThreshold": 30, "checkInterval": 10}'
 ```
 
@@ -209,16 +209,16 @@ curl -X POST "https://<server>/biouml/support/profile?action=setConfig&login=<AD
 
 **f) Get the profile**:
 ```bash
-curl "https://<server>/biouml/support/profile?action=list&login=<ADMIN>&password=<PASS>"
+curl "https://<server>/biouml/support/profile?action=list&user=<ADMIN>&pass=<PASS>"
 ```
 Note the profile ID from the list, then:
 ```bash
-curl "https://<server>/biouml/support/profile?action=summary&login=<ADMIN>&password=<PASS>&id=<PROFILE_ID>"
+curl "https://<server>/biouml/support/profile?action=summary&user=<ADMIN>&pass=<PASS>&id=<PROFILE_ID>"
 ```
 
 **g) Periodic profiling** — enable it to profile all running tasks on a schedule:
 ```bash
-curl -X POST "https://<server>/biouml/support/profile?action=setConfig&login=<ADMIN>&password=<PASS>" \
+curl -X POST "https://<server>/biouml/support/profile?action=setConfig&user=<ADMIN>&pass=<PASS>" \
   -d 'config={"periodicInterval": 600, "periodicMode": "all"}'
 ```
 
