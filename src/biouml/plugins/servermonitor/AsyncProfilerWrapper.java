@@ -376,13 +376,13 @@ public class AsyncProfilerWrapper {
 
     /**
      * Extract a tar archive from the given stream.
-     * Each tar entry is 512 bytes. File names are null-terminated in the first 100 bytes.
-     * File size is in octal in bytes 124-135. Data follows, padded to 512-byte blocks.
+     * Handles GNU tar long name entries (type 'L' = 76) and standard POSIX entries.
      */
     private void extractTar(InputStream in, File destDir) throws IOException {
         byte[] header = new byte[512];
         int read;
         int entryCount = 0;
+        String pendingLongName = null;
 
         while ((read = in.read(header)) >= 0) {
             // End of archive marker: two consecutive 512-byte blocks of zeros
@@ -416,13 +416,44 @@ public class AsyncProfilerWrapper {
                 }
             }
 
-            // Parse type flag (byte 156): '0' = file, '5' = directory, '' = file
+            // Parse type flag (byte 156): '0' = file, '5' = directory, 'L' = long name, '' = file
             char typeFlag = (header[156] == 0) ? '0' : (char) header[156];
 
-            entryCount++;
-            log.fine("AsyncProfilerWrapper: entry #" + entryCount + " name=" + name + " size=" + size + " type=" + typeFlag);
+            // GNU tar long name entry: the name field contains the full path,
+            // and the next entry is the actual file/dir with a relative name
+            if (typeFlag == 'L') {
+                // Read the long name data
+                byte[] longNameBytes = new byte[(int) size];
+                int offset = 0;
+                while (offset < size) {
+                    int n = in.read(longNameBytes, offset, (int) Math.min(size - offset, 8192));
+                    if (n <= 0) break;
+                    offset += n;
+                }
+                // Skip padding
+                long dataBytes = (size + 511) / 512 * 512;
+                while (dataBytes > 0) {
+                    long skipped = in.skip(dataBytes);
+                    if (skipped <= 0) break;
+                    dataBytes -= skipped;
+                }
+                pendingLongName = new String(longNameBytes, 0, offset);
+                // Strip leading ./ or /
+                while (pendingLongName.startsWith("./") || pendingLongName.startsWith("/")) {
+                    pendingLongName = pendingLongName.substring(1);
+                }
+                log.fine("AsyncProfilerWrapper: long name entry: " + pendingLongName);
+                continue;
+            }
 
-            File outFile = new File(destDir, name);
+            // Apply pending long name if present
+            String finalName = (pendingLongName != null) ? pendingLongName : name;
+            pendingLongName = null;
+
+            entryCount++;
+            log.fine("AsyncProfilerWrapper: entry #" + entryCount + " name=" + finalName + " size=" + size + " type=" + typeFlag);
+
+            File outFile = new File(destDir, finalName);
             File parent = outFile.getParentFile();
             if (parent != null && !parent.exists()) {
                 parent.mkdirs();
