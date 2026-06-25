@@ -1514,7 +1514,9 @@ public class SupportServlet extends AbstractJSONServlet
         }
 
         // Prevent path traversal
-        if (!profileFile.getCanonicalPath().startsWith(config.getProfilerDir()))
+        String profileCanonical = profileFile.getCanonicalPath();
+        String dirCanonical = new File(config.getProfilerDir()).getCanonicalPath();
+        if (!profileCanonical.startsWith(dirCanonical))
         {
             return errorResponse("Invalid profile path");
         }
