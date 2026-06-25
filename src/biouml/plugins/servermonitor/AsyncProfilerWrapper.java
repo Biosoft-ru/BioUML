@@ -25,9 +25,9 @@ public class AsyncProfilerWrapper {
     private static final Logger log = Logger.getLogger(AsyncProfilerWrapper.class.getName());
 
     // async-profiler release URL for Linux x64
-    private static final String PROFILER_VERSION = "3.0";
+    private static final String PROFILER_VERSION = "v3.0";
     private static final String PROFILER_URL = "https://github.com/async-profiler/async-profiler/releases/download/"
-            + PROFILER_VERSION + "/async-profiler-" + PROFILER_VERSION + "-linux-x64.tar.gz";
+            + PROFILER_VERSION + "/async-profiler-3.0-linux-x64.tar.gz";
 
     private final ServerMonitorConfig config;
     private String profilerPath;
@@ -315,8 +315,8 @@ public class AsyncProfilerWrapper {
             // Clean up tarball
             tarball.delete();
 
-            // Find profiler.sh
-            File profilerSh = new File(dir, "async-profiler-" + PROFILER_VERSION + "/profiler.sh");
+            // Find profiler.sh (tarball extracts to async-profiler-3.0/ regardless of tag prefix)
+            File profilerSh = new File(dir, "async-profiler-3.0/profiler.sh");
             if (!profilerSh.exists()) {
                 // Try alternate extraction location
                 profilerSh = new File(dir, "profiler.sh");
