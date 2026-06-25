@@ -28,6 +28,8 @@ Edit `preferences_server.xml` or use the API `setConfig` action:
 
 ## API Endpoints
 
+All endpoints require admin authentication via `login` and `password` parameters.
+
 ### List profiles
 
 ```
@@ -136,6 +138,97 @@ The plugin consists of:
 - **TaskThreadTracker**: Thread-to-task mapping for profiler targeting
 - **MonitoringService**: Background daemon thread with periodic checks
 - **ServerMonitorPlugin**: Plugin lifecycle (init/stop)
+
+## Testing
+
+### Prerequisites on the test server
+
+1. **Java 21** running (BioUML server)
+2. **Internet access** — the plugin auto-downloads async-profiler from GitHub on first `init()`, unless installed manually
+3. **ptrace permissions** — async-profiler needs `ptrace` access to attach to Java threads. Check with:
+   ```bash
+   cat /proc/sys/kernel/yama/ptrace_scope
+   ```
+   (0 = allowed, 1 = restricted)
+
+### Build
+
+```sh
+mvn package -DskipTests -pl plugconfig/biouml.plugins.servermonitor -am
+```
+
+Or build all plugins:
+
+```sh
+ant plugin.servermonitor
+```
+
+### Deploy
+
+Copy the resulting JAR into the server's classpath (where the other BioUML jars live), then restart the server.
+
+### Verify the plugin loaded
+
+Check the API status endpoint:
+
+```bash
+curl "https://<server>/biouml/support/profile?action=status&login=<ADMIN>&password=<PASS>"
+```
+
+Expected response (JSON):
+```json
+{"running": true, "profilerAvailable": true, "slowTasks": 0, "activeProfiles": 0, "lastCheck": "..."}
+```
+
+If `profilerAvailable` is `false`, check:
+- async-profiler downloaded successfully (look at server logs)
+- The binary is executable (`chmod +x`)
+- ptrace is allowed
+
+### Test the workflow
+
+**a) List profiles** (should be empty initially):
+```bash
+curl "https://<server>/biouml/support/profile?action=list&login=<ADMIN>&password=<PASS>"
+```
+
+**b) Check current config**:
+```bash
+curl "https://<server>/biouml/support/profile?action=config&login=<ADMIN>&password=<PASS>"
+```
+
+**c) Adjust threshold** (make it shorter to trigger faster for testing):
+```bash
+curl -X POST "https://<server>/biouml/support/profile?action=setConfig&login=<ADMIN>&password=<PASS>" \
+  -d 'config={"slowTaskThreshold": 30, "checkInterval": 10}'
+```
+
+**d) Trigger a slow task** — run something computationally heavy in BioUML that takes longer than the threshold. The monitoring daemon will detect it and auto-profile.
+
+**e) Check status again** — should show `activeProfiles: 1` while profiling, then `slowTasks: 1` after.
+
+**f) Get the profile**:
+```bash
+curl "https://<server>/biouml/support/profile?action=list&login=<ADMIN>&password=<PASS>"
+```
+Note the profile ID from the list, then:
+```bash
+curl "https://<server>/biouml/support/profile?action=summary&login=<ADMIN>&password=<PASS>&id=<PROFILE_ID>"
+```
+
+**g) Periodic profiling** — enable it to profile all running tasks on a schedule:
+```bash
+curl -X POST "https://<server>/biouml/support/profile?action=setConfig&login=<ADMIN>&password=<PASS>" \
+  -d 'config={"periodicInterval": 600, "periodicMode": "all"}'
+```
+
+### Things to watch for
+
+- **Server logs** — the plugin logs at INFO level; look for "Server Monitor started", "profiler initialized", "slow task detected", etc.
+- **`./profiling/` directory** — profile files (HTML + JSON) land here on the server
+- **`./profiler/profiler.sh`** — the async-profiler binary, auto-downloaded on first run
+- **Admin auth** — all endpoints require admin login; make sure your test credentials have admin rights
+- **Concurrent limit** — only 1 profile at a time; if multiple slow tasks exist, they queue
 
 ## Troubleshooting
 
