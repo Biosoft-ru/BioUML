@@ -277,6 +277,7 @@ public class AsyncProfilerWrapper {
 
         // Check common locations
         String[] commonPaths = {
+            "./profiling/async-profiler-3.0-linux-x64/bin/profiler.sh",
             "./profiler/profiler.sh",
             "./profiler/bin/profiler.sh",
             "/usr/local/bin/profiler.sh",
@@ -321,11 +322,14 @@ public class AsyncProfilerWrapper {
             // Clean up tarball
             tarball.delete();
 
-            // Find profiler.sh (tarball extracts to async-profiler-3.0/ regardless of tag prefix)
-            File profilerSh = new File(dir, PROFILER_DIR_NAME + "/profiler.sh");
+            // Find profiler.sh (tarball extracts to async-profiler-3.0-linux-x64/bin/)
+            File profilerSh = new File(dir, PROFILER_DIR_NAME + "/bin/profiler.sh");
             if (!profilerSh.exists()) {
-                // Try alternate extraction location
-                profilerSh = new File(dir, "profiler.sh");
+                // Try alternate extraction locations
+                profilerSh = new File(dir, PROFILER_DIR_NAME + "/profiler.sh");
+                if (!profilerSh.exists()) {
+                    profilerSh = new File(dir, "profiler.sh");
+                }
             }
 
             if (profilerSh.exists()) {
