@@ -87,7 +87,20 @@ Get or set monitoring configuration parameters.
 
 ## Installation
 
-### 1. Install async-profiler
+### 1. Build and deploy the plugin JAR
+
+Build the plugin JAR using Ant:
+
+```bash
+cd src
+ant plugin.servermonitor
+```
+
+The JAR is produced in `target/` (or the project's plugin output directory). Copy it to the server's `plugins/` folder alongside the other BioUML plugin JARs, then restart the server.
+
+The plugin is automatically included in `ant plugin.all` and `mvn package`.
+
+### 2. Install async-profiler
 
 The plugin will auto-download async-profiler on first run if not found. To install manually:
 
@@ -154,18 +167,20 @@ The plugin consists of:
 ### Build
 
 ```sh
-mvn package -DskipTests -pl plugconfig/biouml.plugins.servermonitor -am
+cd src
+ant plugin.servermonitor
 ```
 
 Or build all plugins:
 
 ```sh
-ant plugin.servermonitor
+cd src
+ant plugin.all
 ```
 
 ### Deploy
 
-Copy the resulting JAR into the server's classpath (where the other BioUML jars live), then restart the server.
+Copy the resulting JAR to the server's `plugins/` folder (alongside the other BioUML plugin JARs), then restart the server.
 
 ### Verify the plugin loaded
 
