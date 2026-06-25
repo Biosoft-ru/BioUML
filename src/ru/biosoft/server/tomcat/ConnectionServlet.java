@@ -67,6 +67,17 @@ public abstract class ConnectionServlet extends HttpServlet
             log.log(Level.SEVERE, "Cannot initialize extensionServletMap for " + getClass(), t);
             extensionServletMap = Collections.emptyMap();
         }
+
+        try
+        {
+            Class<?> monitorRegistry = services.getClassLoader().loadClass( "ru.biosoft.server.ServerMonitorRegistry" );
+            Method init = monitorRegistry.getMethod( "init", new Class[] {} );
+            init.invoke( null );
+        }
+        catch( Throwable t )
+        {
+            log.log(Level.WARNING, "Cannot initialize ServerMonitorRegistry for " + getClass(), t);
+        }
     }
     
     @Override
