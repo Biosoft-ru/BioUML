@@ -1413,6 +1413,7 @@ public class SupportServlet extends AbstractJSONServlet
                 case "status":  return getMonitorStatus(params);
                 case "config":  return getMonitorConfig(params);
                 case "setConfig": return setMonitorConfig(params);
+                case "profileNow": return profileNow(params);
                 default:        return errorResponse("Unknown action: " + action);
             }
         }
@@ -1794,6 +1795,75 @@ public class SupportServlet extends AbstractJSONServlet
         if (cfg.has("logLevel")) config.set("logLevel", cfg.getString("logLevel"));
 
         return simpleOkResponse();
+    }
+
+    /**
+     * Force immediate profiling of a specific task or all running tasks.
+     * Parameters: taskId (optional) - if omitted, profiles all running tasks.
+     */
+    protected JSONObject profileNow(Map params) throws Exception
+    {
+        try
+        {
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            if (plugin == null || plugin.getMonitoringService() == null)
+            {
+                return errorResponse("Monitoring service not available");
+            }
+
+            biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
+            String taskId = getStringParameter(params, "taskId");
+
+            if (taskId != null && !taskId.isEmpty())
+            {
+                // Profile a specific task
+                biouml.plugins.servermonitor.ProfilerResult result = monitor.profileNow(taskId);
+                if (result == null)
+                {
+                    return errorResponse("Task not found or no threads tracked for: " + taskId);
+                }
+                if (!result.isSuccess())
+                {
+                    return errorResponse("Profiling failed: " + result.getError());
+                }
+                JSONObject resp = new JSONObject();
+                resp.put("taskId", taskId);
+                resp.put("outputPath", result.getOutputPath());
+                resp.put("duration", result.getDuration());
+                resp.put("threadCount", result.getThreadCount());
+                return complexOkResponse(resp);
+            }
+            else
+            {
+                // Profile all running tasks
+                List<biouml.plugins.servermonitor.ProfilerResult> results = monitor.profileNowAll();
+                JSONArray array = new JSONArray();
+                for (biouml.plugins.servermonitor.ProfilerResult r : results)
+                {
+                    JSONObject item = new JSONObject();
+                    item.put("taskId", r.getOutputPath() != null ? r.getOutputPath().split("/")[r.getOutputPath().split("/").length - 1].split("_")[0] : "unknown");
+                    item.put("success", r.isSuccess());
+                    if (r.isSuccess())
+                    {
+                        item.put("outputPath", r.getOutputPath());
+                        item.put("duration", r.getDuration());
+                        item.put("threadCount", r.getThreadCount());
+                    }
+                    else
+                    {
+                        item.put("error", r.getError());
+                    }
+                    array.put(item);
+                }
+                JSONObject wrapper = new JSONObject();
+                wrapper.put("profiles", array);
+                return complexOkResponse(wrapper);
+            }
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
     }
 
     //

@@ -68,6 +68,51 @@ GET /biouml/support/profile?action=stop
 
 Stops all active profiling sessions.
 
+### Force immediate profiling
+
+```
+GET /biouml/support/profile?action=profileNow&taskId=<taskName>
+GET /biouml/support/profile?action=profileNow
+```
+
+Forces immediate profiling of a specific task (by `taskId`) or all running tasks (if `taskId` is omitted).
+
+**Response for single task:**
+```json
+{
+  "type": "ok",
+  "value": {
+    "taskId": "my-task",
+    "outputPath": "/path/to/profile_123456.html",
+    "duration": 30000,
+    "threadCount": 3
+  }
+}
+```
+
+**Response for all tasks:**
+```json
+{
+  "type": "ok",
+  "value": {
+    "profiles": [
+      {
+        "taskId": "task-1",
+        "success": true,
+        "outputPath": "/path/to/profile_123456.html",
+        "duration": 30000,
+        "threadCount": 2
+      },
+      {
+        "taskId": "task-2",
+        "success": false,
+        "error": "No threads found"
+      }
+    ]
+  }
+}
+```
+
 ### Monitor status
 
 ```
