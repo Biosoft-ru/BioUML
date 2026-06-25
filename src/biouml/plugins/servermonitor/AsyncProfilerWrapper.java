@@ -30,8 +30,8 @@ public class AsyncProfilerWrapper {
     private static final String PROFILER_VERSION = "v3.0";
     private static final String PROFILER_URL = "https://github.com/async-profiler/async-profiler/releases/download/"
             + PROFILER_VERSION + "/async-profiler-3.0-linux-x64.tar.gz";
-    // Directory name inside the tarball (no 'v' prefix)
-    private static final String PROFILER_DIR_NAME = "async-profiler-3.0";
+    // Directory name inside the tarball (matches tarball name minus .tar.gz)
+    private static final String PROFILER_DIR_NAME = "async-profiler-3.0-linux-x64";
 
     private final ServerMonitorConfig config;
     private String profilerPath;
@@ -382,6 +382,7 @@ public class AsyncProfilerWrapper {
     private void extractTar(InputStream in, File destDir) throws IOException {
         byte[] header = new byte[512];
         int read;
+        int entryCount = 0;
 
         while ((read = in.read(header)) >= 0) {
             // End of archive marker: two consecutive 512-byte blocks of zeros
@@ -405,18 +406,21 @@ public class AsyncProfilerWrapper {
             }
             if (name.isEmpty()) continue;
 
-            // Parse size (bytes 124-135, octal)
+            // Parse size (bytes 124-135, octal, null-terminated)
             long size = 0;
             for (int i = 124; i < 136; i++) {
                 byte b = header[i];
                 if (b == 0 || b == ' ') break;
-                if (b >= '0' && b <= '9') {
+                if (b >= '0' && b <= '7') {
                     size = size * 8 + (b - '0');
                 }
             }
 
             // Parse type flag (byte 156): '0' = file, '5' = directory, '' = file
             char typeFlag = (header[156] == 0) ? '0' : (char) header[156];
+
+            entryCount++;
+            log.fine("AsyncProfilerWrapper: entry #" + entryCount + " name=" + name + " size=" + size + " type=" + typeFlag);
 
             File outFile = new File(destDir, name);
             File parent = outFile.getParentFile();
@@ -452,6 +456,7 @@ public class AsyncProfilerWrapper {
                 dataBytes -= skipped;
             }
         }
+        log.info("AsyncProfilerWrapper: extracted " + entryCount + " entries");
     }
 
     /**
