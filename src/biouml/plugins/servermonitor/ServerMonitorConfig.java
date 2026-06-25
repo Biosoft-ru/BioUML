@@ -42,7 +42,7 @@ public class ServerMonitorConfig {
     // Default values
     public static final int DEFAULT_SLOW_TASK_THRESHOLD = 3600;       // 1 hour
     public static final int DEFAULT_CHECK_INTERVAL = 60;              // 60 seconds
-    public static final String DEFAULT_PROFILER_PATH = "./profiling/async-profiler-3.0-linux-x64/bin/profiler.sh";
+    public static final String DEFAULT_PROFILER_PATH = "./profiling/async-profiler-3.0-linux-x64/bin/asprof";
     public static final String DEFAULT_PROFILER_DIR = "./profiling";
     public static final int DEFAULT_MAX_PROFILES = 50;
     public static final int DEFAULT_PROFILE_DURATION = 30;            // 30 seconds

@@ -18,7 +18,7 @@ Edit `preferences_server.xml` or use the API `setConfig` action:
 |-----------|---------|-------------|
 | slowTaskThreshold | 3600 | Seconds before a task is considered slow |
 | checkInterval | 60 | Seconds between task checks |
-| profilerPath | ./profiling/async-profiler-3.0-linux-x64/bin/profiler.sh | Path to async-profiler binary |
+| profilerPath | ./profiling/async-profiler-3.0-linux-x64/bin/asprof | Path to async-profiler binary |
 | profilerDir | ./profiling | Directory for profile output |
 | maxProfiles | 50 | Maximum number of profiles to keep |
 | profileDuration | 30 | Seconds to profile each task |
@@ -109,7 +109,7 @@ mkdir -p profiling
 cd profiling
 wget https://github.com/async-profiler/async-profiler/releases/download/v3.0/async-profiler-3.0-linux-x64.tar.gz
 tar xzf async-profiler-3.0-linux-x64.tar.gz
-chmod +x async-profiler-3.0-linux-x64/bin/profiler.sh
+chmod +x async-profiler-3.0-linux-x64/bin/asprof
 ```
 
 ### 2. Configure
@@ -120,7 +120,7 @@ Add to `preferences_server.xml` under the `serverMonitor` preference node:
 <serverMonitor>
     <slowTaskThreshold>3600</slowTaskThreshold>
     <checkInterval>60</checkInterval>
-    <profilerPath>./profiling/async-profiler-3.0-linux-x64/bin/profiler.sh</profilerPath>
+    <profilerPath>./profiling/async-profiler-3.0-linux-x64/bin/asprof</profilerPath>
     <profilerDir>./profiling</profilerDir>
     <periodicInterval>1800</periodicInterval>
     <periodicMode>random</periodicMode>

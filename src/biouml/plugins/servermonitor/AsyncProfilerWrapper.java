@@ -277,6 +277,7 @@ public class AsyncProfilerWrapper {
 
         // Check common locations
         String[] commonPaths = {
+            "./profiling/async-profiler-3.0-linux-x64/bin/asprof",
             "./profiling/async-profiler-3.0-linux-x64/bin/profiler.sh",
             "./profiler/profiler.sh",
             "./profiler/bin/profiler.sh",
@@ -322,24 +323,27 @@ public class AsyncProfilerWrapper {
             // Clean up tarball
             tarball.delete();
 
-            // Find profiler.sh (tarball extracts to async-profiler-3.0-linux-x64/bin/)
-            File profilerSh = new File(dir, PROFILER_DIR_NAME + "/bin/profiler.sh");
-            if (!profilerSh.exists()) {
+            // Find profiler binary (tarball extracts to async-profiler-3.0-linux-x64/bin/asprof)
+            File profilerBin = new File(dir, PROFILER_DIR_NAME + "/bin/asprof");
+            if (!profilerBin.exists()) {
                 // Try alternate extraction locations
-                profilerSh = new File(dir, PROFILER_DIR_NAME + "/profiler.sh");
-                if (!profilerSh.exists()) {
-                    profilerSh = new File(dir, "profiler.sh");
+                profilerBin = new File(dir, PROFILER_DIR_NAME + "/bin/profiler.sh");
+                if (!profilerBin.exists()) {
+                    profilerBin = new File(dir, PROFILER_DIR_NAME + "/profiler.sh");
+                    if (!profilerBin.exists()) {
+                        profilerBin = new File(dir, "profiler.sh");
+                    }
                 }
             }
 
-            if (profilerSh.exists()) {
-                profilerSh.setExecutable(true);
-                profilerPath = profilerSh.getAbsolutePath();
+            if (profilerBin.exists()) {
+                profilerBin.setExecutable(true);
+                profilerPath = profilerBin.getAbsolutePath();
                 profilerAvailable = true;
                 log.info("AsyncProfilerWrapper: profiler downloaded to " + profilerPath);
                 return true;
             } else {
-                log.warning("AsyncProfilerWrapper: profiler.sh not found after extraction");
+                log.warning("AsyncProfilerWrapper: profiler binary not found after extraction");
                 return false;
             }
         } catch (IOException e) {
