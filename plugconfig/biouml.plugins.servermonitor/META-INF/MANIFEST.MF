@@ -18,5 +18,6 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.server,
  ru.biosoft.server.servlets,
  ru.biosoft.table,
- ru.biosoft.workbench
+ ru.biosoft.workbench,
+ org.apache.commons.compress
 Export-Package: biouml.plugins.servermonitor
