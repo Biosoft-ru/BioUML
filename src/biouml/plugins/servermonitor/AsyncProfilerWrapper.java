@@ -334,7 +334,7 @@ public class AsyncProfilerWrapper {
     }
 
     /**
-     * Download async-profiler from GitHub releases.
+     * Download async-profiler from GitHub releases with retry logic.
      * @return true if download and extraction succeeded
      */
     private boolean downloadProfiler() {
@@ -349,11 +349,37 @@ public class AsyncProfilerWrapper {
                 }
             }
 
-            // Download tarball
+            // Download tarball with retries
             File tarball = new File(dir, "async-profiler-" + PROFILER_VERSION + "-linux-x64.tar.gz");
-            log.info("AsyncProfilerWrapper: downloading profiler from " + PROFILER_URL);
+            int maxRetries = 3;
+            int retryDelay = 5000; // 5 seconds
+            IOException lastException = null;
 
-            downloadFile(PROFILER_URL, tarball);
+            for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                log.info("AsyncProfilerWrapper: downloading profiler from " + PROFILER_URL + " (attempt " + attempt + "/" + maxRetries + ")");
+                try {
+                    downloadFile(PROFILER_URL, tarball);
+                    break; // Success
+                } catch (IOException e) {
+                    lastException = e;
+                    log.log(Level.WARNING, "AsyncProfilerWrapper: download attempt " + attempt + " failed", e);
+                    if (attempt < maxRetries) {
+                        log.info("AsyncProfilerWrapper: retrying in " + (retryDelay / 1000) + " seconds...");
+                        try {
+                            Thread.sleep(retryDelay);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                        retryDelay *= 2; // Exponential backoff
+                    }
+                }
+            }
+
+            if (lastException != null && !tarball.exists()) {
+                log.log(Level.SEVERE, "AsyncProfilerWrapper: all " + maxRetries + " download attempts failed", lastException);
+                return false;
+            }
 
             // Extract tarball
             extractTarball(tarball, dir);
