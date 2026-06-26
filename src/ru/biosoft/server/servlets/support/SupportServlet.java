@@ -217,6 +217,11 @@ public class SupportServlet extends AbstractJSONServlet
                 log.log(Level.SEVERE, localAddress, e);
                 result = errorResponse(e.getMessage());
             }
+            catch( LinkageError e )
+            {
+                log.log(Level.SEVERE, localAddress, e);
+                result = errorResponse("Plugin not available: " + e.getMessage());
+            }
 
             OutputStreamWriter ow = new OutputStreamWriter(out, "UTF8");
             result.write(ow);
@@ -842,7 +847,7 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
     public enum ProjectType {
-        SQL, FILE
+        SQL, FILE, FILETABLES
     }
     
     public static DataCollection createNewProject( String projectName, String user, boolean reuse, List<String> errors, ProjectType projectType )
@@ -874,6 +879,8 @@ public class SupportServlet extends AbstractJSONServlet
                     return createSQLBasedProject( projectName, userProjectsParent );
                 else if(projectType == ProjectType.FILE)
                     return createFileBasedProject( projectName, userProjectsParent, null );
+                else if( projectType == ProjectType.FILETABLES )
+                    return createSQLBasedProject( projectName, userProjectsParent, "File" );
             }
             else
             {
@@ -953,6 +960,12 @@ public class SupportServlet extends AbstractJSONServlet
 
 
     public static DataCollection createSQLBasedProject(String projectName, DataCollection userProjectsParent) throws Exception
+
+    {
+        return createSQLBasedProject( projectName, userProjectsParent, "SQL" );
+    }
+
+    public static DataCollection createSQLBasedProject(String projectName, DataCollection userProjectsParent, String tableImplementation) throws Exception
     {
         log.log( Level.INFO, "createSQLBasedProject(" + projectName + "): START" );
         long before = System.currentTimeMillis();
@@ -991,7 +1004,7 @@ public class SupportServlet extends AbstractJSONServlet
         props.setProperty(SqlDataCollection.JDBC_URL_PROPERTY, jdbcUrl);
         props.setProperty(SqlDataCollection.JDBC_USER_PROPERTY, dbUser);
         props.setProperty(SqlDataCollection.JDBC_PASSWORD_PROPERTY, dbPassword);
-        props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, "SQL");
+        props.setProperty( GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, tableImplementation );
 
         try
         { 
@@ -1437,7 +1450,7 @@ public class SupportServlet extends AbstractJSONServlet
             if (!profileDir.exists()) return arrayOkResponse(array);
 
             File[] files = profileDir.listFiles((dir, name) ->
-                    name.endsWith(".html") || name.endsWith(".txt") || name.endsWith(".collapsed"));
+                    name.endsWith(".html") || name.endsWith(".txt") || name.endsWith(".collapsed") || name.endsWith(".tree"));
 
             if (files == null) return arrayOkResponse(array);
 
@@ -1489,11 +1502,24 @@ public class SupportServlet extends AbstractJSONServlet
         if (id == null) return errorResponse("Missing 'id' parameter");
 
         String format = getStringParameter(params, "format");
-        if (format == null) format = "html";
+        if (format == null) format = "tree";
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
-        File profileFile = new File(config.getProfilerDir(), sanitizeFileName(id));
+        File profileDir = new File(config.getProfilerDir());
+
+        File profileFile;
+        String resolvedId = id;
+
+        if ("latest".equalsIgnoreCase(id)) {
+            profileFile = findLatestProfile(profileDir, format);
+            if (profileFile == null) {
+                return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
+            }
+            resolvedId = "latest." + format;
+        } else {
+            profileFile = new File(profileDir, sanitizeFileName(id));
+        }
 
         if (!profileFile.exists() || !profileFile.canRead())
         {
@@ -1501,22 +1527,25 @@ public class SupportServlet extends AbstractJSONServlet
         }
 
         // Prevent path traversal
-        if (!profileFile.getCanonicalPath().startsWith(config.getProfilerDir()))
+        String profileCanonical = profileFile.getCanonicalPath();
+        String dirCanonical = profileDir.getCanonicalPath();
+        if (!profileCanonical.startsWith(dirCanonical))
         {
             return errorResponse("Invalid profile path");
         }
 
         byte[] content = Files.readAllBytes(profileFile.toPath());
         String mimeType = "text/plain";
-        if (id.endsWith(".html")) mimeType = "text/html";
-        else if (id.endsWith(".collapsed")) mimeType = "text/plain";
-        else if (id.endsWith(".txt")) mimeType = "text/plain";
+        if (profileFile.getName().endsWith(".html")) mimeType = "text/html";
+        else if (profileFile.getName().endsWith(".tree")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".collapsed")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".txt")) mimeType = "text/plain";
 
         // Return base64-encoded content
         String base64Content = java.util.Base64.getEncoder().encodeToString(content);
 
         JSONObject result = new JSONObject();
-        result.put("id", id);
+        result.put("id", resolvedId);
         result.put("mimeType", mimeType);
         result.put("size", content.length);
         result.put("content", base64Content);
@@ -1524,8 +1553,31 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
     /**
+     * Find the most recent profile file matching the requested format.
+     * Supports: tree (default), html, collapsed, txt.
+     */
+    private File findLatestProfile(File profileDir, String format) {
+        File[] files = profileDir.listFiles();
+        if (files == null || files.length == 0) return null;
+
+        String extension = "." + format;
+        File latest = null;
+        long latestTime = 0;
+
+        for (File f : files) {
+            if (!f.isFile() || !f.canRead()) continue;
+            String name = f.getName().toLowerCase();
+            if (name.endsWith(extension) && f.lastModified() > latestTime) {
+                latest = f;
+                latestTime = f.lastModified();
+            }
+        }
+        return latest;
+    }
+
+    /**
      * Get a text-based profile summary optimized for AI agent consumption.
-     * Returns a structured text report with task metadata, flat profile, and collapsed stacks.
+     * Returns a structured text report with task metadata, tree profile, and extra formats.
      * This format is designed to be easily parsed by AI agents to suggest code changes.
      */
     protected JSONObject getProfileSummary(Map params) throws Exception
@@ -1535,16 +1587,24 @@ public class SupportServlet extends AbstractJSONServlet
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
-        String profileDir = config.getProfilerDir();
+        File profileDir = new File(config.getProfilerDir());
 
-        // Find the profile file (strip extension if present)
-        String baseName = id;
-        if (baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
-            baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+        String baseName;
+        if ("latest".equalsIgnoreCase(id)) {
+            File latestTree = findLatestProfile(profileDir, "tree");
+            if (latestTree == null) {
+                return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
+            }
+            baseName = latestTree.getName().replaceFirst("\\.tree$", "");
+        } else {
+            baseName = id;
+            if (baseName.endsWith(".tree") || baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
+                baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+            }
         }
 
         // Find matching files
-        File htmlFile = new File(profileDir, sanitizeFileName(id));
+        File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
         File txtFile = new File(profileDir, sanitizeFileName(baseName + ".txt"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
@@ -1577,6 +1637,28 @@ public class SupportServlet extends AbstractJSONServlet
             }
         } else {
             summary.append("Metadata unavailable\n");
+        }
+        summary.append("\n");
+
+        // Tree profile (hierarchical call chains with CPU time)
+        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
+        if (treeFile.exists() && treeFile.canRead()) {
+            try {
+                String treeText = readFileContent(treeFile);
+                // Show top 100 lines of the tree profile
+                String[] lines = treeText.split("\n");
+                int limit = Math.min(100, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 100) {
+                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Tree profile not available\n");
         }
         summary.append("\n");
 
@@ -1642,7 +1724,7 @@ public class SupportServlet extends AbstractJSONServlet
         // AI agent instructions
         summary.append("--- Instructions for AI Agent ---\n");
         summary.append("To suggest code improvements based on this profile:\n");
-        summary.append("1. Focus on functions with the highest CPU time in the Flat Profile section\n");
+        summary.append("1. Focus on functions with the highest CPU time in the Tree Profile section\n");
         summary.append("2. Look for hot call chains in the Collapsed Stacks section\n");
         summary.append("3. Identify functions that appear frequently in top stack traces\n");
         summary.append("4. Suggest optimizations for the top 5-10 hot functions\n");

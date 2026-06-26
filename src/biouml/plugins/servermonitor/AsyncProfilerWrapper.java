@@ -79,9 +79,9 @@ public class AsyncProfilerWrapper {
 
     /**
      * Start profiling specified threads.
-     * Generates both HTML flamegraph (human-readable) and collapsed stacks (AI-agent-friendly).
+     * Generates tree format (primary) plus optional extra formats.
      * @param threadIds thread IDs to profile
-     * @param format primary output format (html, txt, collapsed)
+     * @param format primary output format (tree, html, collapsed, txt)
      * @return ProfilerResult with output paths and timing
      */
     public ProfilerResult start(long[] threadIds, String format) {
@@ -91,8 +91,8 @@ public class AsyncProfilerWrapper {
     /**
      * Start profiling specified threads with control over secondary output generation.
      * @param threadIds thread IDs to profile
-     * @param format primary output format (html, txt, collapsed)
-     * @param generateSecondary whether to also generate collapsed stacks for AI agent use
+     * @param format primary output format (tree, html, collapsed, txt)
+     * @param generateSecondary whether to also generate extra formats for AI agent use
      * @return ProfilerResult with output paths and timing
      */
     public ProfilerResult start(long[] threadIds, String format, boolean generateSecondary) {
@@ -123,41 +123,52 @@ public class AsyncProfilerWrapper {
         long startTime = System.currentTimeMillis();
         int duration = config.getProfileDuration();
         String baseName = buildBaseName();
-        String htmlOutputPath = buildOutputPath(baseName, "html");
-        String collapsedOutputPath = buildOutputPath(baseName, "collapsed");
-        String flatProfilePath = buildOutputPath(baseName, "txt");
+
+        // Map format name to asprof -o value and file extension
+        String primaryFormat, primaryExt;
+        if ("collapsed".equals(format)) {
+            primaryFormat = "collapsed";
+            primaryExt = "collapsed";
+        } else if ("txt".equals(format)) {
+            primaryFormat = "flat";
+            primaryExt = "txt";
+        } else if ("html".equals(format)) {
+            primaryFormat = "flamegraph";
+            primaryExt = "html";
+        } else {
+            // Default: tree format
+            primaryFormat = "tree";
+            primaryExt = "tree";
+        }
+
+        String primaryPath = buildOutputPath(baseName, primaryExt);
 
         try {
-            // Run 1: HTML flamegraph (primary, human-readable)
-            String primaryPath = htmlOutputPath;
-            String primaryFormat = "flamegraph";
-            if ("collapsed".equals(format)) {
-                primaryPath = collapsedOutputPath;
-                primaryFormat = "collapsed";
-            } else if ("txt".equals(format)) {
-                primaryPath = flatProfilePath;
-                primaryFormat = "flat";
-            }
-
+            // Run 1: Primary format
             boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath, primaryFormat);
 
-            // Run 2: Generate secondary format for AI agent use
-            String secondaryPath = null;
-            String flatText = null;
+            // Run 2: Generate extra formats for AI agent use
+            String[] extraPaths = null;
             if (generateSecondary && primaryOk) {
-                if (!"collapsed".equals(format)) {
-                    // Generate collapsed stacks for AI agent
-                    secondaryPath = collapsedOutputPath;
-                    runProfiler(jvmPid, threadIdStr, duration, collapsedOutputPath, "collapsed");
-                }
-                if (!"txt".equals(format)) {
-                    // Generate flat profile for AI agent
-                    runProfiler(jvmPid, threadIdStr, duration, flatProfilePath, "flat");
-                    // Read flat profile text
-                    try {
-                        flatText = readFileContent(new File(flatProfilePath));
-                    } catch (IOException e) {
-                        log.log(Level.WARNING, "Error reading flat profile", e);
+                String extra = config.getExtraFormats();
+                if (extra != null && !extra.trim().isEmpty()) {
+                    String[] formats = extra.split(",");
+                    List<String> paths = new ArrayList<>();
+                    for (String f : formats) {
+                        f = f.trim();
+                        if (f.isEmpty()) continue;
+                        // Skip if it's the same as primary
+                        if (f.equals(primaryFormat) || f.equals(primaryExt)) continue;
+                        String ext = f;
+                        if ("flat".equals(f)) ext = "txt";
+                        else if ("flamegraph".equals(f)) ext = "html";
+                        else if ("tree".equals(f)) ext = "tree";
+                        String extraPath = buildOutputPath(baseName, ext);
+                        runProfiler(jvmPid, threadIdStr, duration, extraPath, f);
+                        paths.add(extraPath);
+                    }
+                    if (!paths.isEmpty()) {
+                        extraPaths = paths.toArray(new String[0]);
                     }
                 }
             }
@@ -168,8 +179,8 @@ public class AsyncProfilerWrapper {
                 activeProfileOutputPath = primaryPath;
                 String[] tidStrs = threadIdStr.isEmpty() ? new String[0] : threadIdStr.split(",");
                 return new ProfilerResult(primaryPath, startTime, endTime,
-                        tidStrs.length, tidStrs, format,
-                        secondaryPath, flatText);
+                        tidStrs.length, tidStrs, primaryExt,
+                        extraPaths);
             } else {
                 return new ProfilerResult("Profiler exited with code " + (primaryOk ? 0 : 1));
             }
