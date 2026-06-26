@@ -5,7 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Toolchain
 
 - **Java 21** required (`maven.compiler.source/target` is 21).
-- Build system: **Maven** multi-module (root `pom.xml`, ~100 modules under `plugconfig/`, plus `src/`, `tomcat-embedded/`, `war-build/`).
+- **Dual build system** — both Maven and Ant must compile successfully. Always verify with both after changes.
+  - **Maven** multi-module (root `pom.xml`, ~100 modules under `plugconfig/`, plus `src/`, `tomcat-embedded/`, `war-build/`).
+  - **Ant** legacy build (`src/build.xml` with `src/build-tasks.xml`). Compiles all Java in a single flat pass, then packages plugin JARs via the `<create.plugin>` macro.
 - Runtime is **Eclipse Equinox OSGi** — modules under `plugconfig/<bundle>/` are real OSGi bundles with `META-INF/MANIFEST.MF` (`Bundle-SymbolicName`, `Require-Bundle`, `Export-Package`) and `plugin.xml` extension declarations. The Maven build only packages them; bundle wiring at runtime is OSGi.
 - The same modules are also declared as Eclipse projects (`.project`, `.classpath` at the root) so the workspace can be opened directly in Eclipse.
 
@@ -19,6 +21,16 @@ One-time setup — install JARs not in Maven Central into the local Maven repo:
 Build everything (skip tests for speed):
 ```sh
 mvn package -DskipTests
+```
+
+Ant build (compiles all Java + packages plugin JARs):
+```sh
+cd src && ant compile
+```
+
+Verify **both** build systems compile after any change:
+```sh
+mvn package -DskipTests && cd src && ant compile
 ```
 
 Run all tests:

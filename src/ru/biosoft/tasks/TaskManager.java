@@ -528,8 +528,6 @@ public class TaskManager implements JobControlListener
 
     public List<TaskInfo> getAllRunningTasks()
     {
-        if( !SecurityManager.isAdmin() )
-            throw new SecurityException();
         List<TaskInfo> result = new ArrayList<>();
         for( TaskInfo ti : currentTasks.values() )
         {
