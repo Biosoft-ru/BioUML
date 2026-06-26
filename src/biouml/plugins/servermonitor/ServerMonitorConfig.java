@@ -53,7 +53,7 @@ public class ServerMonitorConfig {
     public static final String DEFAULT_PERIODIC_MODE = "random";
     public static final int DEFAULT_MAX_PROFILE_AGE = 604800;         // 7 days
     public static final String DEFAULT_LOG_LEVEL = "INFO";
-    public static final String DEFAULT_EXTRA_FORMATS = "tree";
+    public static final String DEFAULT_EXTRA_FORMATS = "";
 
     // Config values
     private int slowTaskThreshold = DEFAULT_SLOW_TASK_THRESHOLD;
