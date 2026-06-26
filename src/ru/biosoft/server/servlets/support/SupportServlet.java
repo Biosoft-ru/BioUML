@@ -1450,7 +1450,7 @@ public class SupportServlet extends AbstractJSONServlet
             if (!profileDir.exists()) return arrayOkResponse(array);
 
             File[] files = profileDir.listFiles((dir, name) ->
-                    name.endsWith(".html") || name.endsWith(".txt") || name.endsWith(".collapsed") || name.endsWith(".tree"));
+                    name.endsWith(".flamegraph") || name.endsWith(".flat") || name.endsWith(".collapsed") || name.endsWith(".tree") || name.endsWith(".traces") || name.endsWith(".jfr"));
 
             if (files == null) return arrayOkResponse(array);
 
@@ -1536,10 +1536,12 @@ public class SupportServlet extends AbstractJSONServlet
 
         byte[] content = Files.readAllBytes(profileFile.toPath());
         String mimeType = "text/plain";
-        if (profileFile.getName().endsWith(".html")) mimeType = "text/html";
+        if (profileFile.getName().endsWith(".flamegraph")) mimeType = "text/html";
         else if (profileFile.getName().endsWith(".tree")) mimeType = "text/plain";
         else if (profileFile.getName().endsWith(".collapsed")) mimeType = "text/plain";
-        else if (profileFile.getName().endsWith(".txt")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".flat")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".traces")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".jfr")) mimeType = "application/octet-stream";
 
         // Return base64-encoded content
         String base64Content = java.util.Base64.getEncoder().encodeToString(content);
@@ -1598,7 +1600,7 @@ public class SupportServlet extends AbstractJSONServlet
             baseName = latestTree.getName().replaceFirst("\\.tree$", "");
         } else {
             baseName = id;
-            if (baseName.endsWith(".tree") || baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
+            if (baseName.endsWith(".tree") || baseName.endsWith(".flamegraph") || baseName.endsWith(".collapsed") || baseName.endsWith(".flat")) {
                 baseName = baseName.substring(0, baseName.lastIndexOf('.'));
             }
         }
@@ -1606,7 +1608,7 @@ public class SupportServlet extends AbstractJSONServlet
         // Find matching files
         File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
-        File txtFile = new File(profileDir, sanitizeFileName(baseName + ".txt"));
+        File flatFile = new File(profileDir, sanitizeFileName(baseName + ".flat"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
 
         // Build the summary text
@@ -1664,9 +1666,9 @@ public class SupportServlet extends AbstractJSONServlet
 
         // Flat profile (top functions by CPU time)
         summary.append("--- Flat Profile (Top Functions by CPU Time) ---\n");
-        if (txtFile.exists() && txtFile.canRead()) {
+        if (flatFile.exists() && flatFile.canRead()) {
             try {
-                String flatText = readFileContent(txtFile);
+                String flatText = readFileContent(flatFile);
                 // Show top 50 lines of the flat profile
                 String[] lines = flatText.split("\n");
                 int limit = Math.min(50, lines.length);

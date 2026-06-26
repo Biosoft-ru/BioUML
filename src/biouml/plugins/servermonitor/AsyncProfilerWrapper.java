@@ -81,7 +81,7 @@ public class AsyncProfilerWrapper {
      * Start profiling specified threads.
      * Generates tree format (primary) plus optional extra formats.
      * @param threadIds thread IDs to profile
-     * @param format primary output format (tree, html, collapsed, txt)
+     * @param format primary output format (tree, flamegraph, collapsed, flat, traces, jfr)
      * @return ProfilerResult with output paths and timing
      */
     public ProfilerResult start(long[] threadIds, String format) {
@@ -91,7 +91,7 @@ public class AsyncProfilerWrapper {
     /**
      * Start profiling specified threads with control over secondary output generation.
      * @param threadIds thread IDs to profile
-     * @param format primary output format (tree, html, collapsed, txt)
+     * @param format primary output format (tree, flamegraph, collapsed, flat, traces, jfr)
      * @param generateSecondary whether to also generate extra formats for AI agent use
      * @return ProfilerResult with output paths and timing
      */
@@ -124,28 +124,12 @@ public class AsyncProfilerWrapper {
         int duration = config.getProfileDuration();
         String baseName = buildBaseName();
 
-        // Map format name to asprof -o value and file extension
-        String primaryFormat, primaryExt;
-        if ("collapsed".equals(format)) {
-            primaryFormat = "collapsed";
-            primaryExt = "collapsed";
-        } else if ("txt".equals(format)) {
-            primaryFormat = "flat";
-            primaryExt = "txt";
-        } else if ("html".equals(format)) {
-            primaryFormat = "flamegraph";
-            primaryExt = "html";
-        } else {
-            // Default: tree format
-            primaryFormat = "tree";
-            primaryExt = "tree";
-        }
-
-        String primaryPath = buildOutputPath(baseName, primaryExt);
+        // Format name is used directly as both -o value and file extension
+        String primaryPath = buildOutputPath(baseName, format);
 
         try {
             // Run 1: Primary format
-            boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath, primaryFormat);
+            boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath, format);
 
             // Run 2: Generate extra formats for AI agent use
             String[] extraPaths = null;
@@ -158,12 +142,8 @@ public class AsyncProfilerWrapper {
                         f = f.trim();
                         if (f.isEmpty()) continue;
                         // Skip if it's the same as primary
-                        if (f.equals(primaryFormat) || f.equals(primaryExt)) continue;
-                        String ext = f;
-                        if ("flat".equals(f)) ext = "txt";
-                        else if ("flamegraph".equals(f)) ext = "html";
-                        else if ("tree".equals(f)) ext = "tree";
-                        String extraPath = buildOutputPath(baseName, ext);
+                        if (f.equals(format)) continue;
+                        String extraPath = buildOutputPath(baseName, f);
                         runProfiler(jvmPid, threadIdStr, duration, extraPath, f);
                         paths.add(extraPath);
                     }
@@ -179,7 +159,7 @@ public class AsyncProfilerWrapper {
                 activeProfileOutputPath = primaryPath;
                 String[] tidStrs = threadIdStr.isEmpty() ? new String[0] : threadIdStr.split(",");
                 return new ProfilerResult(primaryPath, startTime, endTime,
-                        tidStrs.length, tidStrs, primaryExt,
+                        tidStrs.length, tidStrs, format,
                         extraPaths);
             } else {
                 return new ProfilerResult("Profiler exited with code " + (primaryOk ? 0 : 1));
