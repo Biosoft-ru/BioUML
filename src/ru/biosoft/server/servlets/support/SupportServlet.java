@@ -2,12 +2,16 @@ package ru.biosoft.server.servlets.support;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,6 +29,7 @@ import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import biouml.plugins.servermonitor.ServerMonitorConfig;
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.application.ApplicationUtils;
 
@@ -99,6 +104,7 @@ public class SupportServlet extends AbstractJSONServlet
     public static final String GET_PROJECT_SIZE = "getProjectSize";
     public static final String SET_PROJECT_TITLE = "setProjectTitle";
     public static final String GET_ALL_PROJECTS_SIZE = "getAllProjectsSize";
+    public static final String PROFILE = "profile";
 
 
     @Override
@@ -197,6 +203,10 @@ public class SupportServlet extends AbstractJSONServlet
                 {
                     result = getAllProjectsSize( params );
                 }
+                else if( localAddress.endsWith( PROFILE ) )
+                {
+                    result = handleProfile( params );
+                }
                 else
                 {
                     result = errorResponse("unknown request command");
@@ -206,6 +216,11 @@ public class SupportServlet extends AbstractJSONServlet
             {
                 log.log(Level.SEVERE, localAddress, e);
                 result = errorResponse(e.getMessage());
+            }
+            catch( LinkageError e )
+            {
+                log.log(Level.SEVERE, localAddress, e);
+                result = errorResponse("Plugin not available: " + e.getMessage());
             }
 
             OutputStreamWriter ow = new OutputStreamWriter(out, "UTF8");
@@ -1369,5 +1384,574 @@ public class SupportServlet extends AbstractJSONServlet
                 formattedSize.contains( "Mb" ) ? "" : "(" + totalSize / ( 1024 * 1024 ) + " Mb)" );
         sizeObj.put( "sizeTotal", newFormattedSize );
         return complexOkResponse( sizeObj );
+    }
+
+    //
+    // Profile API endpoints
+    //
+
+    /**
+     * Handle profiling-related API calls.
+     * Sub-commands: list, get, stop, status, config, setConfig
+     */
+    protected JSONObject handleProfile(Map params) throws Exception
+    {
+        try
+        {
+            login(params);
+            checkAdmin();
+
+            String action = getStringParameter(params, "action");
+            if (action == null) action = "status";
+
+            switch (action)
+            {
+                case "list":    return listProfiles(params);
+                case "get":     return getProfile(params);
+                case "summary": return getProfileSummary(params);
+                case "stop":    return stopProfiling(params);
+                case "status":  return getMonitorStatus(params);
+                case "config":  return getMonitorConfig(params);
+                case "setConfig": return setMonitorConfig(params);
+                case "profileNow": return profileNow(params);
+                default:        return errorResponse("Unknown action: " + action);
+            }
+        }
+        finally
+        {
+            SecurityManager.commonLogout();
+        }
+    }
+
+    /**
+     * List available profile files.
+     */
+    protected JSONObject listProfiles(Map params) throws Exception
+    {
+        try
+        {
+            // Get monitoring service from ServerMonitorPlugin
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            if (plugin == null)
+            {
+                return arrayOkResponse(new JSONArray());
+            }
+
+            biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
+            if (monitor == null)
+            {
+                return arrayOkResponse(new JSONArray());
+            }
+
+            ServerMonitorConfig config = monitor.getConfig();
+            File profileDir = new File(config.getProfilerDir());
+            JSONArray array = new JSONArray();
+
+            if (!profileDir.exists()) return arrayOkResponse(array);
+
+            File[] files = profileDir.listFiles((dir, name) ->
+                    name.endsWith(".flamegraph") || name.endsWith(".flat") || name.endsWith(".collapsed") || name.endsWith(".tree") || name.endsWith(".traces") || name.endsWith(".jfr"));
+
+            if (files == null) return arrayOkResponse(array);
+
+            Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
+
+            for (File f : files)
+            {
+                JSONObject profile = new JSONObject();
+                profile.put("id", f.getName());
+                profile.put("path", f.getAbsolutePath());
+                profile.put("size", f.length());
+                profile.put("timestamp", f.lastModified());
+                profile.put("format", getFileExtension(f.getName()));
+
+                // Try to load metadata JSON
+                File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
+                if (metaFile.exists())
+                {
+                    try
+                    {
+                        String meta = readFileContent(metaFile);
+                        profile.put("metadata", new JSONObject(meta));
+                    }
+                    catch (Exception e)
+                    {
+                        // Skip malformed metadata
+                    }
+                }
+
+                array.put(profile);
+            }
+
+            return arrayOkResponse(array);
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Get a specific profile file.
+     * Supports format parameter: html (default), collapsed, txt.
+     * Returns JSON with base64-encoded content and metadata.
+     */
+    protected JSONObject getProfile(Map params) throws Exception
+    {
+        String id = getStringParameter(params, "id");
+        if (id == null) return errorResponse("Missing 'id' parameter");
+
+        String format = getStringParameter(params, "format");
+        if (format == null) format = "traces";
+
+        ServerMonitorConfig config = ServerMonitorConfig.load(
+                com.developmentontheedge.application.Application.getPreferences());
+        File profileDir = new File(config.getProfilerDir());
+
+        File profileFile;
+        String resolvedId = id;
+
+        if ("latest".equalsIgnoreCase(id)) {
+            profileFile = findLatestProfile(profileDir, format);
+            if (profileFile == null) {
+                return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
+            }
+            resolvedId = "latest." + format;
+        } else {
+            profileFile = new File(profileDir, sanitizeFileName(id));
+        }
+
+        if (!profileFile.exists() || !profileFile.canRead())
+        {
+            return errorResponse("Profile not found: " + id);
+        }
+
+        // Prevent path traversal
+        String profileCanonical = profileFile.getCanonicalPath();
+        String dirCanonical = profileDir.getCanonicalPath();
+        if (!profileCanonical.startsWith(dirCanonical))
+        {
+            return errorResponse("Invalid profile path");
+        }
+
+        byte[] content = Files.readAllBytes(profileFile.toPath());
+        String mimeType = "text/plain";
+        if (profileFile.getName().endsWith(".flamegraph")) mimeType = "text/html";
+        else if (profileFile.getName().endsWith(".tree")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".collapsed")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".flat")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".traces")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".jfr")) mimeType = "application/octet-stream";
+
+        // Return base64-encoded content
+        String base64Content = java.util.Base64.getEncoder().encodeToString(content);
+
+        JSONObject result = new JSONObject();
+        result.put("id", resolvedId);
+        result.put("mimeType", mimeType);
+        result.put("size", content.length);
+        result.put("content", base64Content);
+        return complexOkResponse(result);
+    }
+
+    /**
+     * Find the most recent profile file matching the requested format.
+     * Supports: tree (default), html, collapsed, txt.
+     */
+    private File findLatestProfile(File profileDir, String format) {
+        File[] files = profileDir.listFiles();
+        if (files == null || files.length == 0) return null;
+
+        String extension = "." + format;
+        File latest = null;
+        long latestTime = 0;
+
+        for (File f : files) {
+            if (!f.isFile() || !f.canRead()) continue;
+            String name = f.getName().toLowerCase();
+            if (name.endsWith(extension) && f.lastModified() > latestTime) {
+                latest = f;
+                latestTime = f.lastModified();
+            }
+        }
+        return latest;
+    }
+
+    /**
+     * Get a text-based profile summary optimized for AI agent consumption.
+     * Returns a structured text report with task metadata, tree profile, and extra formats.
+     * This format is designed to be easily parsed by AI agents to suggest code changes.
+     */
+    protected JSONObject getProfileSummary(Map params) throws Exception
+    {
+        String id = getStringParameter(params, "id");
+        if (id == null) return errorResponse("Missing 'id' parameter");
+
+        ServerMonitorConfig config = ServerMonitorConfig.load(
+                com.developmentontheedge.application.Application.getPreferences());
+        File profileDir = new File(config.getProfilerDir());
+
+        String baseName;
+        if ("latest".equalsIgnoreCase(id)) {
+            File latestCollapsed = findLatestProfile(profileDir, "collapsed");
+            if (latestCollapsed == null) {
+                return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
+            }
+            baseName = latestCollapsed.getName().replaceFirst("\\.collapsed$", "");
+        } else {
+            baseName = id;
+            if (baseName.endsWith(".collapsed") || baseName.endsWith(".flamegraph") || baseName.endsWith(".tree") || baseName.endsWith(".traces")) {
+                baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+            }
+        }
+
+        // Find matching files
+        File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
+        File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
+        File tracesFile = new File(profileDir, sanitizeFileName(baseName + ".traces"));
+        File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
+
+        // Build the summary text
+        StringBuilder summary = new StringBuilder();
+        summary.append("=== BioUML Profile Summary ===\n");
+        summary.append("Generated: ").append(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z").format(new Date())).append("\n\n");
+
+        // Task metadata
+        summary.append("--- Task Metadata ---\n");
+        if (metaFile.exists()) {
+            try {
+                String metaContent = readFileContent(metaFile);
+                JSONObject meta = new JSONObject(metaContent);
+                summary.append("Task ID: ").append(meta.optString("taskId", "N/A")).append("\n");
+                summary.append("User: ").append(meta.optString("username", "N/A")).append("\n");
+                summary.append("Type: ").append(meta.optString("taskType", "N/A")).append("\n");
+                summary.append("Source: ").append(meta.optString("source", "N/A")).append("\n");
+                long start = meta.optLong("startTime", 0);
+                long end = meta.optLong("endTime", 0);
+                if (start > 0) {
+                    summary.append("Started: ").append(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z").format(new Date(start))).append("\n");
+                }
+                if (end > 0) {
+                    summary.append("Duration: ").append((end - start) / 1000).append(" seconds\n");
+                }
+            } catch (Exception e) {
+                summary.append("Metadata unavailable\n");
+            }
+        } else {
+            summary.append("Metadata unavailable\n");
+        }
+        summary.append("\n");
+
+        // Collapsed stacks (primary output — call chains sorted by sample count)
+        summary.append("--- Collapsed Stacks (Top 100 by Sample Count) ---\n");
+        if (collapsedFile.exists() && collapsedFile.canRead()) {
+            try {
+                String collapsedText = readFileContent(collapsedFile);
+                // Sort by sample count (descending) and show top 100
+                String[] lines = collapsedText.split("\n");
+                java.util.List<String> sortedLines = new java.util.ArrayList<>();
+                for (String line : lines) {
+                    if (!line.trim().isEmpty() && !line.startsWith("#")) {
+                        sortedLines.add(line);
+                    }
+                }
+                sortedLines.sort((a, b) -> {
+                    try {
+                        int countA = Integer.parseInt(a.substring(a.lastIndexOf(' ') + 1));
+                        int countB = Integer.parseInt(b.substring(b.lastIndexOf(' ') + 1));
+                        return Integer.compare(countB, countA);
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                });
+                int limit = Math.min(100, sortedLines.size());
+                for (int i = 0; i < limit; i++) {
+                    summary.append(sortedLines.get(i)).append("\n");
+                }
+                if (sortedLines.size() > 100) {
+                    summary.append("... (").append(sortedLines.size() - 100).append(" more stack traces)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Collapsed stacks unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Collapsed stacks not available\n");
+        }
+        summary.append("\n");
+
+        // Tree profile (hierarchical call chains with CPU time)
+        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
+        if (treeFile.exists() && treeFile.canRead()) {
+            try {
+                String treeText = readFileContent(treeFile);
+                // Show top 100 lines of the tree profile
+                String[] lines = treeText.split("\n");
+                int limit = Math.min(100, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 100) {
+                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Tree profile not available\n");
+        }
+        summary.append("\n");
+
+        // Traces (secondary format — call chains with sample counts)
+        summary.append("--- Traces (Call Chains by Sample Count) ---\n");
+        if (tracesFile.exists() && tracesFile.canRead()) {
+            try {
+                String tracesText = readFileContent(tracesFile);
+                // Show top 50 lines of the traces
+                String[] lines = tracesText.split("\n");
+                int limit = Math.min(50, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 50) {
+                    summary.append("... (").append(lines.length - 50).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Traces unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Traces not available\n");
+        }
+        summary.append("\n");
+
+        // AI agent instructions
+        summary.append("--- Instructions for AI Agent ---\n");
+        summary.append("To suggest code improvements based on this profile:\n");
+        summary.append("1. Focus on functions with the highest sample counts in the Traces section\n");
+        summary.append("2. Look for hot call chains in the Tree Profile and Collapsed Stacks sections\n");
+        summary.append("3. Identify functions that appear frequently in top stack traces\n");
+        summary.append("4. Suggest optimizations for the top 5-10 hot functions\n");
+        summary.append("5. Consider: caching, algorithmic improvements, reducing allocations, avoiding synchronization\n");
+        summary.append("6. Reference specific file:line if identifiable from stack traces\n");
+
+        JSONObject result = new JSONObject();
+        result.put("id", id);
+        result.put("format", "text/markdown");
+        result.put("content", summary.toString());
+        return complexOkResponse(result);
+    }
+
+    /**
+     * Stop active profiling.
+     */
+    protected JSONObject stopProfiling(Map params) throws Exception
+    {
+        try
+        {
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            if (plugin == null || plugin.getMonitoringService() == null)
+            {
+                return errorResponse("Monitoring service not available");
+            }
+
+            biouml.plugins.servermonitor.AsyncProfilerWrapper profiler =
+                    new biouml.plugins.servermonitor.AsyncProfilerWrapper(
+                            plugin.getMonitoringService().getConfig());
+            profiler.stop();
+
+            // Clear active profiles
+            plugin.getMonitoringService().getActiveProfiles().clear();
+
+            return simpleOkResponse();
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Get monitoring service status.
+     */
+    protected JSONObject getMonitorStatus(Map params) throws Exception
+    {
+        try
+        {
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            JSONObject status = new JSONObject();
+
+            if (plugin == null || plugin.getMonitoringService() == null)
+            {
+                status.put("running", false);
+                status.put("error", "Monitoring service not initialized");
+            }
+            else
+            {
+                biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
+                status.put("running", monitor.isRunning());
+                status.put("profilerAvailable", monitor.isProfilerAvailable());
+                status.put("slowTaskCount", monitor.getSlowTaskCount());
+                status.put("slowTasks", new JSONArray(monitor.getSlowTaskIds()));
+                status.put("activeProfiles", monitor.getActiveProfiles().keySet().size());
+                status.put("lastCheck", monitor.getLastCheckTime());
+            }
+
+            return arrayOkResponse(new JSONArray().put(status));
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Get monitoring configuration.
+     */
+    protected JSONObject getMonitorConfig(Map params) throws Exception
+    {
+        try
+        {
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            if (plugin == null || plugin.getMonitoringService() == null)
+            {
+                return errorResponse("Monitoring service not available");
+            }
+
+            ServerMonitorConfig config = plugin.getMonitoringService().getConfig();
+            JSONObject cfg = new JSONObject();
+            cfg.put("slowTaskThreshold", config.getSlowTaskThreshold());
+            cfg.put("checkInterval", config.getCheckInterval());
+            cfg.put("profilerPath", config.getProfilerPath());
+            cfg.put("profilerDir", config.getProfilerDir());
+            cfg.put("maxProfiles", config.getMaxProfiles());
+            cfg.put("profileDuration", config.getProfileDuration());
+            cfg.put("periodicInterval", config.getPeriodicInterval());
+            cfg.put("periodicMode", config.getPeriodicMode());
+            cfg.put("maxProfileAge", config.getMaxProfileAge());
+            cfg.put("logLevel", config.getLogLevel());
+
+            return arrayOkResponse(new JSONArray().put(cfg));
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Set monitoring configuration.
+     */
+    protected JSONObject setMonitorConfig(Map params) throws Exception
+    {
+        String configJson = getStringParameter(params, "config");
+        if (configJson == null) return errorResponse("Missing 'config' parameter");
+
+        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+        if (plugin == null || plugin.getMonitoringService() == null)
+        {
+            return errorResponse("Monitoring service not available");
+        }
+
+        ServerMonitorConfig config = plugin.getMonitoringService().getConfig();
+        JSONObject cfg = new JSONObject(configJson);
+
+        if (cfg.has("slowTaskThreshold")) config.set("slowTaskThreshold", cfg.getInt("slowTaskThreshold"));
+        if (cfg.has("checkInterval")) config.set("checkInterval", cfg.getInt("checkInterval"));
+        if (cfg.has("profilerPath")) config.set("profilerPath", cfg.getString("profilerPath"));
+        if (cfg.has("profilerDir")) config.set("profilerDir", cfg.getString("profilerDir"));
+        if (cfg.has("maxProfiles")) config.set("maxProfiles", cfg.getInt("maxProfiles"));
+        if (cfg.has("profileDuration")) config.set("profileDuration", cfg.getInt("profileDuration"));
+        if (cfg.has("periodicInterval")) config.set("periodicInterval", cfg.getInt("periodicInterval"));
+        if (cfg.has("periodicMode")) config.set("periodicMode", cfg.getString("periodicMode"));
+        if (cfg.has("maxProfileAge")) config.set("maxProfileAge", cfg.getInt("maxProfileAge"));
+        if (cfg.has("logLevel")) config.set("logLevel", cfg.getString("logLevel"));
+
+        return simpleOkResponse();
+    }
+
+    /**
+     * Force immediate profiling of a specific task or the entire JVM.
+     * Parameters: taskId (optional) - if omitted, profiles the entire JVM process.
+     */
+    protected JSONObject profileNow(Map params) throws Exception
+    {
+        try
+        {
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            if (plugin == null || plugin.getMonitoringService() == null)
+            {
+                return errorResponse("Monitoring service not available");
+            }
+
+            biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
+            String taskId = getStringParameter(params, "taskId");
+
+            if (taskId != null && !taskId.isEmpty())
+            {
+                // Profile a specific task
+                biouml.plugins.servermonitor.ProfilerResult result = monitor.profileNow(taskId);
+                if (result == null)
+                {
+                    return errorResponse("Task not found or no threads tracked for: " + taskId);
+                }
+                if (!result.isSuccess())
+                {
+                    return errorResponse("Profiling failed: " + result.getError());
+                }
+                JSONObject resp = new JSONObject();
+                resp.put("taskId", taskId);
+                resp.put("outputPath", result.getOutputPath());
+                resp.put("duration", result.getDuration());
+                resp.put("threadCount", result.getThreadCount());
+                return complexOkResponse(resp);
+            }
+            else
+            {
+                // Profile the entire JVM process (all threads)
+                biouml.plugins.servermonitor.ProfilerResult result = monitor.profileNow(null);
+                if (!result.isSuccess())
+                {
+                    return errorResponse("Profiling failed: " + result.getError());
+                }
+                JSONObject resp = new JSONObject();
+                resp.put("taskId", "jvm");
+                resp.put("outputPath", result.getOutputPath());
+                resp.put("duration", result.getDuration());
+                resp.put("threadCount", result.getThreadCount());
+                resp.put("description", "Entire JVM process profiled (all threads)");
+                return complexOkResponse(resp);
+            }
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
+    }
+
+    //
+    // Helper methods for profile API
+    //
+
+    private biouml.plugins.servermonitor.ServerMonitorPlugin getServerMonitorPlugin()
+    {
+        // The plugin is initialized by ServerMonitorPlugin.init() which creates the service
+        // We access it through the singleton reference
+        return biouml.plugins.servermonitor.ServerMonitorPlugin.getInstance();
+    }
+
+    private String getFileExtension(String filename)
+    {
+        int dot = filename.lastIndexOf('.');
+        return dot > 0 ? filename.substring(dot + 1) : "unknown";
+    }
+
+    private String readFileContent(File file) throws IOException
+    {
+        return new String(Files.readAllBytes(file.toPath()), "UTF-8");
+    }
+
+    private String sanitizeFileName(String name)
+    {
+        // Replace all non-alphanumeric characters (except ., _, -) with underscore
+        return name.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 }

@@ -325,6 +325,7 @@
         plugin.lucene,
         plugin.helpgen,
         plugin.server,
+        plugin.servermonitor,
         plugin.tomcat,
         plugin.biosoft.math,
         plugin.cellml,
@@ -943,7 +944,11 @@
     <target name="plugin.node" depends="compile">
         <create.plugin plugin="biouml.plugins.node" source="biouml/plugins/node"/>
     </target>
-    
+
+    <target name="plugin.servermonitor" depends="compile">
+        <create.plugin plugin="biouml.plugins.servermonitor" source="biouml/plugins/servermonitor"/>
+    </target>
+
     <target name="plugin.perfectosape" depends="local_settings,compile">
         <create.plugin plugin="biouml.plugins.perfectosape" source="biouml/plugins/perfectosape"/>
     </target>
