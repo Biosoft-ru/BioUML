@@ -231,19 +231,6 @@ public class AsyncProfilerWrapper {
     }
 
     /**
-     * Start profiling with a specific task ID (convenience method).
-     * Uses TaskThreadTracker to find thread IDs for the task.
-     * @param taskId the task name
-     * @return ProfilerResult
-     */
-    public ProfilerResult start(String taskId) {
-        // Look up thread IDs from TaskThreadTracker
-        java.util.Set<Long> threadIds = TaskThreadTracker.getTaskThreads(taskId);
-        long[] ids = threadIds.stream().mapToLong(Long::longValue).toArray();
-        return start(ids, "html");
-    }
-
-    /**
      * Stop the current profiling session.
      */
     public void stop() {
