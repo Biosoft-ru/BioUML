@@ -54,8 +54,9 @@ GET /biouml/support/profile?action=summary&id=<filename>
 
 Returns a text-based profile summary optimized for AI agent consumption. The response includes:
 - Task metadata (ID, user, type, source, duration)
-- Flat profile (top functions by CPU time)
-- Collapsed stacks (top 100 call chains by sample count, sorted)
+- Collapsed stacks (primary output, top 100 call chains by sample count, sorted)
+- Tree profile (hierarchical call chains with CPU time)
+- Traces (secondary format, top 50 call chains)
 - Instructions for AI agents on how to analyze the profile
 
 This format is designed to be easily parsed by AI agents to suggest code changes.

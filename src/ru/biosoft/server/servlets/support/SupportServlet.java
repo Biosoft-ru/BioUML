@@ -1593,22 +1593,22 @@ public class SupportServlet extends AbstractJSONServlet
 
         String baseName;
         if ("latest".equalsIgnoreCase(id)) {
-            File latestTraces = findLatestProfile(profileDir, "traces");
-            if (latestTraces == null) {
+            File latestCollapsed = findLatestProfile(profileDir, "collapsed");
+            if (latestCollapsed == null) {
                 return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
             }
-            baseName = latestTraces.getName().replaceFirst("\\.traces$", "");
+            baseName = latestCollapsed.getName().replaceFirst("\\.collapsed$", "");
         } else {
             baseName = id;
-            if (baseName.endsWith(".traces") || baseName.endsWith(".flamegraph") || baseName.endsWith(".collapsed") || baseName.endsWith(".tree")) {
+            if (baseName.endsWith(".collapsed") || baseName.endsWith(".flamegraph") || baseName.endsWith(".tree") || baseName.endsWith(".traces")) {
                 baseName = baseName.substring(0, baseName.lastIndexOf('.'));
             }
         }
 
         // Find matching files
-        File tracesFile = new File(profileDir, sanitizeFileName(baseName + ".traces"));
-        File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
+        File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
+        File tracesFile = new File(profileDir, sanitizeFileName(baseName + ".traces"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
 
         // Build the summary text
@@ -1642,51 +1642,7 @@ public class SupportServlet extends AbstractJSONServlet
         }
         summary.append("\n");
 
-        // Traces (call chains with sample counts)
-        summary.append("--- Traces (Call Chains by Sample Count) ---\n");
-        if (tracesFile.exists() && tracesFile.canRead()) {
-            try {
-                String tracesText = readFileContent(tracesFile);
-                // Show top 50 lines of the traces
-                String[] lines = tracesText.split("\n");
-                int limit = Math.min(50, lines.length);
-                for (int i = 0; i < limit; i++) {
-                    summary.append(lines[i]).append("\n");
-                }
-                if (lines.length > 50) {
-                    summary.append("... (").append(lines.length - 50).append(" more lines)\n");
-                }
-            } catch (Exception e) {
-                summary.append("Traces unavailable: ").append(e.getMessage()).append("\n");
-            }
-        } else {
-            summary.append("Traces not available\n");
-        }
-        summary.append("\n");
-
-        // Tree profile (hierarchical call chains with CPU time)
-        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
-        if (treeFile.exists() && treeFile.canRead()) {
-            try {
-                String treeText = readFileContent(treeFile);
-                // Show top 100 lines of the tree profile
-                String[] lines = treeText.split("\n");
-                int limit = Math.min(100, lines.length);
-                for (int i = 0; i < limit; i++) {
-                    summary.append(lines[i]).append("\n");
-                }
-                if (lines.length > 100) {
-                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
-                }
-            } catch (Exception e) {
-                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
-            }
-        } else {
-            summary.append("Tree profile not available\n");
-        }
-        summary.append("\n");
-
-        // Collapsed stacks (AI-agent-friendly call chains)
+        // Collapsed stacks (primary output — call chains sorted by sample count)
         summary.append("--- Collapsed Stacks (Top 100 by Sample Count) ---\n");
         if (collapsedFile.exists() && collapsedFile.canRead()) {
             try {
@@ -1720,6 +1676,50 @@ public class SupportServlet extends AbstractJSONServlet
             }
         } else {
             summary.append("Collapsed stacks not available\n");
+        }
+        summary.append("\n");
+
+        // Tree profile (hierarchical call chains with CPU time)
+        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
+        if (treeFile.exists() && treeFile.canRead()) {
+            try {
+                String treeText = readFileContent(treeFile);
+                // Show top 100 lines of the tree profile
+                String[] lines = treeText.split("\n");
+                int limit = Math.min(100, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 100) {
+                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Tree profile not available\n");
+        }
+        summary.append("\n");
+
+        // Traces (secondary format — call chains with sample counts)
+        summary.append("--- Traces (Call Chains by Sample Count) ---\n");
+        if (tracesFile.exists() && tracesFile.canRead()) {
+            try {
+                String tracesText = readFileContent(tracesFile);
+                // Show top 50 lines of the traces
+                String[] lines = tracesText.split("\n");
+                int limit = Math.min(50, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 50) {
+                    summary.append("... (").append(lines.length - 50).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Traces unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Traces not available\n");
         }
         summary.append("\n");
 
