@@ -130,13 +130,16 @@ public class AsyncProfilerWrapper {
         try {
             // Run 1: HTML flamegraph (primary, human-readable)
             String primaryPath = htmlOutputPath;
+            String primaryFormat = "flamegraph";
             if ("collapsed".equals(format)) {
                 primaryPath = collapsedOutputPath;
+                primaryFormat = "collapsed";
             } else if ("txt".equals(format)) {
                 primaryPath = flatProfilePath;
+                primaryFormat = "flat";
             }
 
-            boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath);
+            boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath, primaryFormat);
 
             // Run 2: Generate secondary format for AI agent use
             String secondaryPath = null;
@@ -145,11 +148,11 @@ public class AsyncProfilerWrapper {
                 if (!"collapsed".equals(format)) {
                     // Generate collapsed stacks for AI agent
                     secondaryPath = collapsedOutputPath;
-                    runProfiler(jvmPid, threadIdStr, duration, collapsedOutputPath);
+                    runProfiler(jvmPid, threadIdStr, duration, collapsedOutputPath, "collapsed");
                 }
                 if (!"txt".equals(format)) {
                     // Generate flat profile for AI agent
-                    runProfiler(jvmPid, threadIdStr, duration, flatProfilePath);
+                    runProfiler(jvmPid, threadIdStr, duration, flatProfilePath, "flat");
                     // Read flat profile text
                     try {
                         flatText = readFileContent(new File(flatProfilePath));
@@ -181,7 +184,7 @@ public class AsyncProfilerWrapper {
      * Run a single profiler invocation.
      * @return true if profiler exited successfully
      */
-    private boolean runProfiler(long jvmPid, String threadIdStr, int duration, String outputPath)
+    private boolean runProfiler(long jvmPid, String threadIdStr, int duration, String outputPath, String outputFormat)
             throws IOException, InterruptedException {
         List<String> command = new ArrayList<>();
         command.add(profilerPath);
@@ -191,6 +194,8 @@ public class AsyncProfilerWrapper {
         command.add(outputPath);
         command.add("-e");
         command.add("cpu");
+        command.add("-o");
+        command.add(outputFormat);
 
         if (!threadIdStr.isEmpty()) {
             command.add("-t");
