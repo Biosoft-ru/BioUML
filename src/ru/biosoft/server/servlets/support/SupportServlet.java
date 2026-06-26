@@ -1502,7 +1502,7 @@ public class SupportServlet extends AbstractJSONServlet
         if (id == null) return errorResponse("Missing 'id' parameter");
 
         String format = getStringParameter(params, "format");
-        if (format == null) format = "tree";
+        if (format == null) format = "flat";
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
@@ -1593,22 +1593,22 @@ public class SupportServlet extends AbstractJSONServlet
 
         String baseName;
         if ("latest".equalsIgnoreCase(id)) {
-            File latestTree = findLatestProfile(profileDir, "tree");
-            if (latestTree == null) {
+            File latestFlat = findLatestProfile(profileDir, "flat");
+            if (latestFlat == null) {
                 return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
             }
-            baseName = latestTree.getName().replaceFirst("\\.tree$", "");
+            baseName = latestFlat.getName().replaceFirst("\\.flat$", "");
         } else {
             baseName = id;
-            if (baseName.endsWith(".tree") || baseName.endsWith(".flamegraph") || baseName.endsWith(".collapsed") || baseName.endsWith(".flat")) {
+            if (baseName.endsWith(".flat") || baseName.endsWith(".flamegraph") || baseName.endsWith(".collapsed") || baseName.endsWith(".tree")) {
                 baseName = baseName.substring(0, baseName.lastIndexOf('.'));
             }
         }
 
         // Find matching files
+        File flatFile = new File(profileDir, sanitizeFileName(baseName + ".flat"));
         File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
-        File flatFile = new File(profileDir, sanitizeFileName(baseName + ".flat"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
 
         // Build the summary text
@@ -1642,28 +1642,6 @@ public class SupportServlet extends AbstractJSONServlet
         }
         summary.append("\n");
 
-        // Tree profile (hierarchical call chains with CPU time)
-        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
-        if (treeFile.exists() && treeFile.canRead()) {
-            try {
-                String treeText = readFileContent(treeFile);
-                // Show top 100 lines of the tree profile
-                String[] lines = treeText.split("\n");
-                int limit = Math.min(100, lines.length);
-                for (int i = 0; i < limit; i++) {
-                    summary.append(lines[i]).append("\n");
-                }
-                if (lines.length > 100) {
-                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
-                }
-            } catch (Exception e) {
-                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
-            }
-        } else {
-            summary.append("Tree profile not available\n");
-        }
-        summary.append("\n");
-
         // Flat profile (top functions by CPU time)
         summary.append("--- Flat Profile (Top Functions by CPU Time) ---\n");
         if (flatFile.exists() && flatFile.canRead()) {
@@ -1683,6 +1661,28 @@ public class SupportServlet extends AbstractJSONServlet
             }
         } else {
             summary.append("Flat profile not available\n");
+        }
+        summary.append("\n");
+
+        // Tree profile (hierarchical call chains with CPU time)
+        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
+        if (treeFile.exists() && treeFile.canRead()) {
+            try {
+                String treeText = readFileContent(treeFile);
+                // Show top 100 lines of the tree profile
+                String[] lines = treeText.split("\n");
+                int limit = Math.min(100, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 100) {
+                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Tree profile not available\n");
         }
         summary.append("\n");
 
@@ -1726,8 +1726,8 @@ public class SupportServlet extends AbstractJSONServlet
         // AI agent instructions
         summary.append("--- Instructions for AI Agent ---\n");
         summary.append("To suggest code improvements based on this profile:\n");
-        summary.append("1. Focus on functions with the highest CPU time in the Tree Profile section\n");
-        summary.append("2. Look for hot call chains in the Collapsed Stacks section\n");
+        summary.append("1. Focus on functions with the highest CPU time in the Flat Profile section\n");
+        summary.append("2. Look for hot call chains in the Tree Profile and Collapsed Stacks sections\n");
         summary.append("3. Identify functions that appear frequently in top stack traces\n");
         summary.append("4. Suggest optimizations for the top 5-10 hot functions\n");
         summary.append("5. Consider: caching, algorithmic improvements, reducing allocations, avoiding synchronization\n");
