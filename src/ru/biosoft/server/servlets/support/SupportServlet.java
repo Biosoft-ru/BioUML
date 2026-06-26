@@ -1506,7 +1506,20 @@ public class SupportServlet extends AbstractJSONServlet
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
-        File profileFile = new File(config.getProfilerDir(), sanitizeFileName(id));
+        File profileDir = new File(config.getProfilerDir());
+
+        File profileFile;
+        String resolvedId = id;
+
+        if ("latest".equalsIgnoreCase(id)) {
+            profileFile = findLatestProfile(profileDir, format);
+            if (profileFile == null) {
+                return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
+            }
+            resolvedId = "latest." + format;
+        } else {
+            profileFile = new File(profileDir, sanitizeFileName(id));
+        }
 
         if (!profileFile.exists() || !profileFile.canRead())
         {
@@ -1515,7 +1528,7 @@ public class SupportServlet extends AbstractJSONServlet
 
         // Prevent path traversal
         String profileCanonical = profileFile.getCanonicalPath();
-        String dirCanonical = new File(config.getProfilerDir()).getCanonicalPath();
+        String dirCanonical = profileDir.getCanonicalPath();
         if (!profileCanonical.startsWith(dirCanonical))
         {
             return errorResponse("Invalid profile path");
@@ -1523,19 +1536,42 @@ public class SupportServlet extends AbstractJSONServlet
 
         byte[] content = Files.readAllBytes(profileFile.toPath());
         String mimeType = "text/plain";
-        if (id.endsWith(".html")) mimeType = "text/html";
-        else if (id.endsWith(".collapsed")) mimeType = "text/plain";
-        else if (id.endsWith(".txt")) mimeType = "text/plain";
+        if (profileFile.getName().endsWith(".html")) mimeType = "text/html";
+        else if (profileFile.getName().endsWith(".collapsed")) mimeType = "text/plain";
+        else if (profileFile.getName().endsWith(".txt")) mimeType = "text/plain";
 
         // Return base64-encoded content
         String base64Content = java.util.Base64.getEncoder().encodeToString(content);
 
         JSONObject result = new JSONObject();
-        result.put("id", id);
+        result.put("id", resolvedId);
         result.put("mimeType", mimeType);
         result.put("size", content.length);
         result.put("content", base64Content);
         return complexOkResponse(result);
+    }
+
+    /**
+     * Find the most recent profile file matching the requested format.
+     * Supports: html, collapsed, txt.
+     */
+    private File findLatestProfile(File profileDir, String format) {
+        File[] files = profileDir.listFiles();
+        if (files == null || files.length == 0) return null;
+
+        String extension = "." + format;
+        File latest = null;
+        long latestTime = 0;
+
+        for (File f : files) {
+            if (!f.isFile() || !f.canRead()) continue;
+            String name = f.getName().toLowerCase();
+            if (name.endsWith(extension) && f.lastModified() > latestTime) {
+                latest = f;
+                latestTime = f.lastModified();
+            }
+        }
+        return latest;
     }
 
     /**
@@ -1550,16 +1586,24 @@ public class SupportServlet extends AbstractJSONServlet
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
-        String profileDir = config.getProfilerDir();
+        File profileDir = new File(config.getProfilerDir());
 
-        // Find the profile file (strip extension if present)
-        String baseName = id;
-        if (baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
-            baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+        String baseName;
+        if ("latest".equalsIgnoreCase(id)) {
+            File latestHtml = findLatestProfile(profileDir, "html");
+            if (latestHtml == null) {
+                return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
+            }
+            baseName = latestHtml.getName().replaceFirst("\\.html$", "");
+        } else {
+            baseName = id;
+            if (baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
+                baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+            }
         }
 
         // Find matching files
-        File htmlFile = new File(profileDir, sanitizeFileName(id));
+        File htmlFile = new File(profileDir, sanitizeFileName(baseName + ".html"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
         File txtFile = new File(profileDir, sanitizeFileName(baseName + ".txt"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
