@@ -219,8 +219,7 @@ public class MonitoringService {
             return new ProfilerResult("Max concurrent profiles reached");
         }
 
-        String outputPath = buildProfilePath("jvm", "html");
-        ProfilerResult result = profiler.start(new long[0], "html");
+        ProfilerResult result = profiler.start(new long[0], "tree");
 
         if (result.isSuccess()) {
             activeProfiles.put("jvm", result);

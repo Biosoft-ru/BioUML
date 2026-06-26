@@ -3,7 +3,7 @@ package biouml.plugins.servermonitor;
 /**
  * Result of an async-profiler profiling session.
  * Contains the output path, timing, and success/failure status.
- * Also carries AI-friendly output (collapsed stacks + flat profile).
+ * Also carries extra format output paths for AI agent consumption.
  */
 public class ProfilerResult {
 
@@ -16,9 +16,8 @@ public class ProfilerResult {
     private final String error;
     private final boolean success;
 
-    // AI-friendly output
-    private final String collapsedOutputPath;
-    private final String flatProfileText;
+    // Extra format output paths (e.g., collapsed, flat, traces)
+    private final String[] extraPaths;
 
     /**
      * Create a successful profiling result.
@@ -27,27 +26,26 @@ public class ProfilerResult {
      * @param endTime profiling end time (millis)
      * @param threadCount number of threads profiled
      * @param threadIds thread IDs as strings
-     * @param format output format (html, txt, collapsed)
+     * @param format output format (tree, html, txt, collapsed)
      */
     public ProfilerResult(String outputPath, long startTime, long endTime,
                           int threadCount, String[] threadIds, String format) {
-        this(outputPath, startTime, endTime, threadCount, threadIds, format, null, null);
+        this(outputPath, startTime, endTime, threadCount, threadIds, format, null);
     }
 
     /**
-     * Create a successful profiling result with AI-friendly output.
+     * Create a successful profiling result with extra format paths.
      * @param outputPath path to the profile output file
      * @param startTime profiling start time (millis)
      * @param endTime profiling end time (millis)
      * @param threadCount number of threads profiled
      * @param threadIds thread IDs as strings
-     * @param format output format (html, txt, collapsed)
-     * @param collapsedOutputPath path to the collapsed stacks file (AI-friendly)
-     * @param flatProfileText text of the flat profile (AI-friendly)
+     * @param format output format (tree, html, txt, collapsed)
+     * @param extraPaths additional output file paths (e.g., collapsed, flat)
      */
     public ProfilerResult(String outputPath, long startTime, long endTime,
                           int threadCount, String[] threadIds, String format,
-                          String collapsedOutputPath, String flatProfileText) {
+                          String[] extraPaths) {
         this.outputPath = outputPath;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -56,8 +54,7 @@ public class ProfilerResult {
         this.format = format;
         this.error = null;
         this.success = true;
-        this.collapsedOutputPath = collapsedOutputPath;
-        this.flatProfileText = flatProfileText;
+        this.extraPaths = extraPaths;
     }
 
     /**
@@ -73,8 +70,7 @@ public class ProfilerResult {
         this.format = null;
         this.error = error;
         this.success = false;
-        this.collapsedOutputPath = null;
-        this.flatProfileText = null;
+        this.extraPaths = null;
     }
 
     public String getOutputPath() {
@@ -114,17 +110,17 @@ public class ProfilerResult {
     }
 
     /**
-     * Get the path to the collapsed stacks file (AI-friendly format).
+     * Get extra format output paths (e.g., collapsed, flat, traces).
      */
-    public String getCollapsedOutputPath() {
-        return collapsedOutputPath;
+    public String[] getExtraPaths() {
+        return extraPaths;
     }
 
     /**
-     * Get the flat profile text (AI-friendly format).
+     * Get the path to the first extra format file, or null if none.
      */
-    public String getFlatProfileText() {
-        return flatProfileText;
+    public String getFirstExtraPath() {
+        return (extraPaths != null && extraPaths.length > 0) ? extraPaths[0] : null;
     }
 
     @Override
@@ -132,7 +128,7 @@ public class ProfilerResult {
         if (success) {
             return "ProfilerResult{outputPath='" + outputPath + "', duration=" + getDuration() +
                     "ms, threads=" + threadCount + ", format='" + format +
-                    (collapsedOutputPath != null ? ", collapsed='" + collapsedOutputPath + "'" : "") +
+                    (extraPaths != null && extraPaths.length > 0 ? ", extra=" + extraPaths.length : "") +
                     '}';
         } else {
             return "ProfilerResult{error='" + error + "'}";

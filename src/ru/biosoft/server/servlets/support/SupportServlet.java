@@ -1450,7 +1450,7 @@ public class SupportServlet extends AbstractJSONServlet
             if (!profileDir.exists()) return arrayOkResponse(array);
 
             File[] files = profileDir.listFiles((dir, name) ->
-                    name.endsWith(".html") || name.endsWith(".txt") || name.endsWith(".collapsed"));
+                    name.endsWith(".html") || name.endsWith(".txt") || name.endsWith(".collapsed") || name.endsWith(".tree"));
 
             if (files == null) return arrayOkResponse(array);
 
@@ -1502,7 +1502,7 @@ public class SupportServlet extends AbstractJSONServlet
         if (id == null) return errorResponse("Missing 'id' parameter");
 
         String format = getStringParameter(params, "format");
-        if (format == null) format = "html";
+        if (format == null) format = "tree";
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
@@ -1537,6 +1537,7 @@ public class SupportServlet extends AbstractJSONServlet
         byte[] content = Files.readAllBytes(profileFile.toPath());
         String mimeType = "text/plain";
         if (profileFile.getName().endsWith(".html")) mimeType = "text/html";
+        else if (profileFile.getName().endsWith(".tree")) mimeType = "text/plain";
         else if (profileFile.getName().endsWith(".collapsed")) mimeType = "text/plain";
         else if (profileFile.getName().endsWith(".txt")) mimeType = "text/plain";
 
@@ -1553,7 +1554,7 @@ public class SupportServlet extends AbstractJSONServlet
 
     /**
      * Find the most recent profile file matching the requested format.
-     * Supports: html, collapsed, txt.
+     * Supports: tree (default), html, collapsed, txt.
      */
     private File findLatestProfile(File profileDir, String format) {
         File[] files = profileDir.listFiles();
@@ -1576,7 +1577,7 @@ public class SupportServlet extends AbstractJSONServlet
 
     /**
      * Get a text-based profile summary optimized for AI agent consumption.
-     * Returns a structured text report with task metadata, flat profile, and collapsed stacks.
+     * Returns a structured text report with task metadata, tree profile, and extra formats.
      * This format is designed to be easily parsed by AI agents to suggest code changes.
      */
     protected JSONObject getProfileSummary(Map params) throws Exception
@@ -1590,20 +1591,20 @@ public class SupportServlet extends AbstractJSONServlet
 
         String baseName;
         if ("latest".equalsIgnoreCase(id)) {
-            File latestHtml = findLatestProfile(profileDir, "html");
-            if (latestHtml == null) {
+            File latestTree = findLatestProfile(profileDir, "tree");
+            if (latestTree == null) {
                 return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
             }
-            baseName = latestHtml.getName().replaceFirst("\\.html$", "");
+            baseName = latestTree.getName().replaceFirst("\\.tree$", "");
         } else {
             baseName = id;
-            if (baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
+            if (baseName.endsWith(".tree") || baseName.endsWith(".html") || baseName.endsWith(".collapsed") || baseName.endsWith(".txt")) {
                 baseName = baseName.substring(0, baseName.lastIndexOf('.'));
             }
         }
 
         // Find matching files
-        File htmlFile = new File(profileDir, sanitizeFileName(baseName + ".html"));
+        File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
         File txtFile = new File(profileDir, sanitizeFileName(baseName + ".txt"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
@@ -1636,6 +1637,28 @@ public class SupportServlet extends AbstractJSONServlet
             }
         } else {
             summary.append("Metadata unavailable\n");
+        }
+        summary.append("\n");
+
+        // Tree profile (hierarchical call chains with CPU time)
+        summary.append("--- Tree Profile (Hierarchical Call Chains) ---\n");
+        if (treeFile.exists() && treeFile.canRead()) {
+            try {
+                String treeText = readFileContent(treeFile);
+                // Show top 100 lines of the tree profile
+                String[] lines = treeText.split("\n");
+                int limit = Math.min(100, lines.length);
+                for (int i = 0; i < limit; i++) {
+                    summary.append(lines[i]).append("\n");
+                }
+                if (lines.length > 100) {
+                    summary.append("... (").append(lines.length - 100).append(" more lines)\n");
+                }
+            } catch (Exception e) {
+                summary.append("Tree profile unavailable: ").append(e.getMessage()).append("\n");
+            }
+        } else {
+            summary.append("Tree profile not available\n");
         }
         summary.append("\n");
 
@@ -1701,7 +1724,7 @@ public class SupportServlet extends AbstractJSONServlet
         // AI agent instructions
         summary.append("--- Instructions for AI Agent ---\n");
         summary.append("To suggest code improvements based on this profile:\n");
-        summary.append("1. Focus on functions with the highest CPU time in the Flat Profile section\n");
+        summary.append("1. Focus on functions with the highest CPU time in the Tree Profile section\n");
         summary.append("2. Look for hot call chains in the Collapsed Stacks section\n");
         summary.append("3. Identify functions that appear frequently in top stack traces\n");
         summary.append("4. Suggest optimizations for the top 5-10 hot functions\n");
