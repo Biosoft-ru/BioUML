@@ -341,7 +341,12 @@ public class MonitoringService {
             runningTasks = TaskThreadTracker.getAllTrackedTasks();
         }
 
-        if (runningTasks.isEmpty()) return;
+        if (runningTasks.isEmpty()) {
+            // No running tasks - profile the entire JVM to capture idle CPU usage
+            log.fine("AsyncProfilerWrapper: no running tasks, profiling JVM");
+            profileJvm();
+            return;
+        }
 
         String mode = config.getPeriodicMode();
         if ("random".equals(mode)) {
