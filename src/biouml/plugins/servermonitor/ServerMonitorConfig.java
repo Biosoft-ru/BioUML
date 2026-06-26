@@ -39,6 +39,9 @@ public class ServerMonitorConfig {
     // --- Logging ---
     public static final String LOG_LEVEL = "logLevel";
 
+    // --- Extra output formats ---
+    public static final String EXTRA_FORMATS = "extraFormats";
+
     // Default values
     public static final int DEFAULT_SLOW_TASK_THRESHOLD = 3600;       // 1 hour
     public static final int DEFAULT_CHECK_INTERVAL = 60;              // 60 seconds
@@ -50,6 +53,7 @@ public class ServerMonitorConfig {
     public static final String DEFAULT_PERIODIC_MODE = "random";
     public static final int DEFAULT_MAX_PROFILE_AGE = 604800;         // 7 days
     public static final String DEFAULT_LOG_LEVEL = "INFO";
+    public static final String DEFAULT_EXTRA_FORMATS = "";
 
     // Config values
     private int slowTaskThreshold = DEFAULT_SLOW_TASK_THRESHOLD;
@@ -62,6 +66,7 @@ public class ServerMonitorConfig {
     private String periodicMode = DEFAULT_PERIODIC_MODE;
     private int maxProfileAge = DEFAULT_MAX_PROFILE_AGE;
     private String logLevel = DEFAULT_LOG_LEVEL;
+    private String extraFormats = DEFAULT_EXTRA_FORMATS;
 
     /**
      * Load configuration from BioUML preferences.
@@ -108,6 +113,8 @@ public class ServerMonitorConfig {
                     config.maxProfileAge = toInt(value, DEFAULT_MAX_PROFILE_AGE);
                 } else if (LOG_LEVEL.equals(key)) {
                     config.logLevel = toString(value, DEFAULT_LOG_LEVEL);
+                } else if (EXTRA_FORMATS.equals(key)) {
+                    config.extraFormats = toString(value, DEFAULT_EXTRA_FORMATS);
                 }
             }
         } catch (Exception e) {
@@ -145,6 +152,7 @@ public class ServerMonitorConfig {
             config.periodicMode = getStringProp(props, PERIODIC_MODE, DEFAULT_PERIODIC_MODE);
             config.maxProfileAge = getIntProp(props, MAX_PROFILE_AGE, DEFAULT_MAX_PROFILE_AGE);
             config.logLevel = getStringProp(props, LOG_LEVEL, DEFAULT_LOG_LEVEL);
+            config.extraFormats = getStringProp(props, EXTRA_FORMATS, DEFAULT_EXTRA_FORMATS);
         } catch (Exception e) {
             log.log(Level.WARNING, "Error loading config from file: " + path, e);
         }
@@ -169,6 +177,7 @@ public class ServerMonitorConfig {
             case PERIODIC_MODE: return periodicMode;
             case MAX_PROFILE_AGE: return String.valueOf(maxProfileAge);
             case LOG_LEVEL: return logLevel;
+            case EXTRA_FORMATS: return extraFormats;
             default: return null;
         }
     }
@@ -211,6 +220,9 @@ public class ServerMonitorConfig {
                 break;
             case LOG_LEVEL:
                 logLevel = toString(value, DEFAULT_LOG_LEVEL);
+                break;
+            case EXTRA_FORMATS:
+                extraFormats = toString(value, DEFAULT_EXTRA_FORMATS);
                 break;
         }
     }
@@ -255,6 +267,10 @@ public class ServerMonitorConfig {
 
     public String getLogLevel() {
         return logLevel;
+    }
+
+    public String getExtraFormats() {
+        return extraFormats;
     }
 
     // --- Utility methods ---
@@ -305,6 +321,7 @@ public class ServerMonitorConfig {
                 ", periodicMode='" + periodicMode + '\'' +
                 ", maxProfileAge=" + maxProfileAge +
                 ", logLevel='" + logLevel + '\'' +
+                ", extraFormats='" + extraFormats + '\'' +
                 '}';
     }
 }
