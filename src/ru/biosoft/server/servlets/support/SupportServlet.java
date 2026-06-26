@@ -1502,7 +1502,7 @@ public class SupportServlet extends AbstractJSONServlet
         if (id == null) return errorResponse("Missing 'id' parameter");
 
         String format = getStringParameter(params, "format");
-        if (format == null) format = "flat";
+        if (format == null) format = "traces";
 
         ServerMonitorConfig config = ServerMonitorConfig.load(
                 com.developmentontheedge.application.Application.getPreferences());
@@ -1593,20 +1593,20 @@ public class SupportServlet extends AbstractJSONServlet
 
         String baseName;
         if ("latest".equalsIgnoreCase(id)) {
-            File latestFlat = findLatestProfile(profileDir, "flat");
-            if (latestFlat == null) {
+            File latestTraces = findLatestProfile(profileDir, "traces");
+            if (latestTraces == null) {
                 return errorResponse("No profile files found in " + profileDir.getAbsolutePath());
             }
-            baseName = latestFlat.getName().replaceFirst("\\.flat$", "");
+            baseName = latestTraces.getName().replaceFirst("\\.traces$", "");
         } else {
             baseName = id;
-            if (baseName.endsWith(".flat") || baseName.endsWith(".flamegraph") || baseName.endsWith(".collapsed") || baseName.endsWith(".tree")) {
+            if (baseName.endsWith(".traces") || baseName.endsWith(".flamegraph") || baseName.endsWith(".collapsed") || baseName.endsWith(".tree")) {
                 baseName = baseName.substring(0, baseName.lastIndexOf('.'));
             }
         }
 
         // Find matching files
-        File flatFile = new File(profileDir, sanitizeFileName(baseName + ".flat"));
+        File tracesFile = new File(profileDir, sanitizeFileName(baseName + ".traces"));
         File treeFile = new File(profileDir, sanitizeFileName(baseName + ".tree"));
         File collapsedFile = new File(profileDir, sanitizeFileName(baseName + ".collapsed"));
         File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
@@ -1642,13 +1642,13 @@ public class SupportServlet extends AbstractJSONServlet
         }
         summary.append("\n");
 
-        // Flat profile (top functions by CPU time)
-        summary.append("--- Flat Profile (Top Functions by CPU Time) ---\n");
-        if (flatFile.exists() && flatFile.canRead()) {
+        // Traces (call chains with sample counts)
+        summary.append("--- Traces (Call Chains by Sample Count) ---\n");
+        if (tracesFile.exists() && tracesFile.canRead()) {
             try {
-                String flatText = readFileContent(flatFile);
-                // Show top 50 lines of the flat profile
-                String[] lines = flatText.split("\n");
+                String tracesText = readFileContent(tracesFile);
+                // Show top 50 lines of the traces
+                String[] lines = tracesText.split("\n");
                 int limit = Math.min(50, lines.length);
                 for (int i = 0; i < limit; i++) {
                     summary.append(lines[i]).append("\n");
@@ -1657,10 +1657,10 @@ public class SupportServlet extends AbstractJSONServlet
                     summary.append("... (").append(lines.length - 50).append(" more lines)\n");
                 }
             } catch (Exception e) {
-                summary.append("Flat profile unavailable: ").append(e.getMessage()).append("\n");
+                summary.append("Traces unavailable: ").append(e.getMessage()).append("\n");
             }
         } else {
-            summary.append("Flat profile not available\n");
+            summary.append("Traces not available\n");
         }
         summary.append("\n");
 
@@ -1726,7 +1726,7 @@ public class SupportServlet extends AbstractJSONServlet
         // AI agent instructions
         summary.append("--- Instructions for AI Agent ---\n");
         summary.append("To suggest code improvements based on this profile:\n");
-        summary.append("1. Focus on functions with the highest CPU time in the Flat Profile section\n");
+        summary.append("1. Focus on functions with the highest sample counts in the Traces section\n");
         summary.append("2. Look for hot call chains in the Tree Profile and Collapsed Stacks sections\n");
         summary.append("3. Identify functions that appear frequently in top stack traces\n");
         summary.append("4. Suggest optimizations for the top 5-10 hot functions\n");
