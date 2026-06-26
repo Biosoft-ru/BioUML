@@ -115,22 +115,12 @@ public class MonitoringService {
 
     /**
      * Check for tasks exceeding the slow threshold.
-     * Falls back to TaskThreadTracker if admin access is not available.
      */
     private void checkSlowTasks() {
         long thresholdMillis = config.getSlowTaskThreshold() * 1000L;
         long now = System.currentTimeMillis();
 
-        List<TaskInfo> runningTasks;
-        boolean hasAdminAccess = false;
-        try {
-            runningTasks = TaskManager.getInstance().getAllRunningTasks();
-            hasAdminAccess = true;
-        } catch (SecurityException e) {
-            log.info("Monitoring service: admin access not available, using TaskThreadTracker");
-            runningTasks = TaskThreadTracker.getAllTrackedTasks();
-        }
-
+        List<TaskInfo> runningTasks = TaskManager.getInstance().getAllRunningTasks();
         if (runningTasks.isEmpty()) return;
 
         List<String> currentSlow = new ArrayList<>();
@@ -151,9 +141,7 @@ public class MonitoringService {
         slowTaskIds = currentSlow;
 
         // Refresh thread mapping
-        if (hasAdminAccess) {
-            TaskThreadTracker.refreshMapping(runningTasks);
-        }
+        TaskThreadTracker.refreshMapping(runningTasks);
     }
 
     /**
@@ -169,13 +157,8 @@ public class MonitoringService {
         // Get thread IDs for this task
         Set<Long> threadIds = TaskThreadTracker.getTaskThreads(taskInfo.getName());
         if (threadIds.isEmpty()) {
-            // Fallback: try name matching
-            List<TaskInfo> runningTasks;
-            try {
-                runningTasks = TaskManager.getInstance().getAllRunningTasks();
-            } catch (SecurityException e) {
-                runningTasks = TaskThreadTracker.getAllTrackedTasks();
-            }
+            // Refresh mapping from TaskManager and retry
+            List<TaskInfo> runningTasks = TaskManager.getInstance().getAllRunningTasks();
             TaskThreadTracker.refreshMapping(runningTasks);
             threadIds = TaskThreadTracker.getTaskThreads(taskInfo.getName());
         }
@@ -219,18 +202,14 @@ public class MonitoringService {
             }
 
             if (targetTask == null) {
-                // Try to get from TaskManager if admin access is available
-                try {
-                    List<TaskInfo> allTasks = TaskManager.getInstance().getAllRunningTasks();
-                    for (TaskInfo ti : allTasks) {
-                        if (ti.getName().equals(taskId)) {
-                            targetTask = ti;
-                            TaskThreadTracker.refreshMapping(allTasks);
-                            break;
-                        }
+                // Try to get from TaskManager
+                List<TaskInfo> allTasks = TaskManager.getInstance().getAllRunningTasks();
+                for (TaskInfo ti : allTasks) {
+                    if (ti.getName().equals(taskId)) {
+                        targetTask = ti;
+                        TaskThreadTracker.refreshMapping(allTasks);
+                        break;
                     }
-                } catch (SecurityException e) {
-                    // No admin access, can't find task
                 }
             }
 
@@ -287,12 +266,7 @@ public class MonitoringService {
         List<ProfilerResult> results = new ArrayList<>();
 
         // Get all running tasks
-        List<TaskInfo> runningTasks;
-        try {
-            runningTasks = TaskManager.getInstance().getAllRunningTasks();
-        } catch (SecurityException e) {
-            runningTasks = TaskThreadTracker.getAllTrackedTasks();
-        }
+        List<TaskInfo> runningTasks = TaskManager.getInstance().getAllRunningTasks();
 
         if (runningTasks.isEmpty()) {
             results.add(new ProfilerResult("No running tasks found"));
@@ -323,7 +297,6 @@ public class MonitoringService {
 
     /**
      * Check for periodic profiling of random/sample tasks.
-     * Falls back to TaskThreadTracker if admin access is not available.
      */
     private void checkPeriodicProfiling() {
         long periodicInterval = config.getPeriodicInterval() * 1000L;
@@ -334,12 +307,7 @@ public class MonitoringService {
 
         lastPeriodicTime = now;
 
-        List<TaskInfo> runningTasks;
-        try {
-            runningTasks = TaskManager.getInstance().getAllRunningTasks();
-        } catch (SecurityException e) {
-            runningTasks = TaskThreadTracker.getAllTrackedTasks();
-        }
+        List<TaskInfo> runningTasks = TaskManager.getInstance().getAllRunningTasks();
 
         if (runningTasks.isEmpty()) {
             // No running tasks - profile the entire JVM to capture idle CPU usage
