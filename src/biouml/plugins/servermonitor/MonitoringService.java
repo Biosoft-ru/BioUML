@@ -227,6 +227,11 @@ public class MonitoringService {
 
             // Save metadata JSON
             saveProfileMetadata(triggeredTask, result);
+
+            // Profiler.start() runs synchronously and blocks until the duration expires.
+            // Once it returns the profiler process has exited, so remove "jvm" from
+            // activeProfiles to allow the next periodic check to start a new profile.
+            activeProfiles.remove("jvm");
         } else {
             log.warning("JVM profiling failed: " + result.getError());
         }
