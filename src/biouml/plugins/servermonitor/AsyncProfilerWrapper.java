@@ -158,9 +158,14 @@ public class AsyncProfilerWrapper {
             if (primaryOk && new File(primaryPath).exists()) {
                 activeProfileOutputPath = primaryPath;
                 String[] tidStrs = threadIdStr.isEmpty() ? new String[0] : threadIdStr.split(",");
-                return new ProfilerResult(primaryPath, startTime, endTime,
+                ProfilerResult profResult = new ProfilerResult(primaryPath, startTime, endTime,
                         tidStrs.length, tidStrs, format,
                         extraPaths);
+                // Profiler runs synchronously — once we return the process has exited.
+                // Clear the path so getProfileStatus() reports "stopped" instead of
+                // incorrectly reporting "profiling" after the session ends.
+                activeProfileOutputPath = null;
+                return profResult;
             } else {
                 return new ProfilerResult("Profiler exited with code " + (primaryOk ? 0 : 1));
             }
