@@ -1461,22 +1461,54 @@ public class SupportServlet extends AbstractJSONServlet
                 JSONObject profile = new JSONObject();
                 profile.put("id", f.getName());
                 profile.put("path", f.getAbsolutePath());
-                profile.put("size", f.length());
+                long fileSize = f.length();
+                profile.put("size", fileSize);
                 profile.put("timestamp", f.lastModified());
                 profile.put("format", getFileExtension(f.getName()));
 
-                // Try to load metadata JSON
-                File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
-                if (metaFile.exists())
+                // Debug: log zero-size files for investigation
+                if (fileSize == 0)
                 {
-                    try
+                    File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
+                    String metaInfo = "no metadata";
+                    if (metaFile.exists())
                     {
-                        String meta = readFileContent(metaFile);
-                        profile.put("metadata", new JSONObject(meta));
+                        try
+                        {
+                            String meta = readFileContent(metaFile);
+                            JSONObject metaObj = new JSONObject(meta);
+                            metaInfo = "duration=" + metaObj.optLong("duration", -1)
+                                    + " startTime=" + metaObj.optLong("startTime", -1)
+                                    + " endTime=" + metaObj.optLong("endTime", -1);
+                            profile.put("metadata", metaObj);
+                        }
+                        catch (Exception e)
+                        {
+                            metaInfo = "malformed metadata: " + e.getMessage();
+                        }
                     }
-                    catch (Exception e)
+                    log.log(Level.WARNING,
+                            "listProfiles: zero-size file detected — path=" + f.getAbsolutePath()
+                                    + " lastModified=" + f.lastModified()
+                                    + " exists=" + f.exists()
+                                    + " canRead=" + f.canRead()
+                                    + " metadata=" + metaInfo);
+                }
+                else
+                {
+                    // Try to load metadata JSON
+                    File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
+                    if (metaFile.exists())
                     {
-                        // Skip malformed metadata
+                        try
+                        {
+                            String meta = readFileContent(metaFile);
+                            profile.put("metadata", new JSONObject(meta));
+                        }
+                        catch (Exception e)
+                        {
+                            // Skip malformed metadata
+                        }
                     }
                 }
 
