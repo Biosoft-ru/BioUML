@@ -209,6 +209,7 @@ public class MonitoringService {
 
     /**
      * Profile the entire JVM process (all threads).
+     * Retries up to 3 times if a zero-size profile file is detected.
      * @param triggeredTask the task name that triggered profiling, or null
      * @return ProfilerResult
      */
@@ -219,27 +220,45 @@ public class MonitoringService {
             return new ProfilerResult("Max concurrent profiles reached");
         }
 
-        ProfilerResult result = profiler.start(new long[0], "collapsed");
+        ProfilerResult result = null;
+        int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            result = profiler.start(new long[0], "collapsed");
 
-        if (result.isSuccess()) {
-            // Debug: check for zero-size profile files immediately after profiling
-            if (checkZeroSizeProfile(result, triggeredTask)) {
-                // A zero-size file was found — treat as failure
-                return new ProfilerResult("Profile file is empty (0 bytes): " + result.getOutputPath());
+            if (!result.isSuccess()) {
+                log.warning("JVM profiling failed: " + result.getError());
+                break;
             }
 
-            activeProfiles.put("jvm", result);
-            log.info("Started profiling JVM (all threads): " + result.getOutputPath());
+            // Check for zero-size profile files immediately after profiling
+            if (!checkZeroSizeProfile(result, triggeredTask)) {
+                // Success — non-zero profile file
+                activeProfiles.put("jvm", result);
+                log.info("Started profiling JVM (all threads): " + result.getOutputPath());
 
-            // Save metadata JSON
-            saveProfileMetadata(triggeredTask, result);
+                // Save metadata JSON
+                saveProfileMetadata(triggeredTask, result);
 
-            // Profiler.start() runs synchronously and blocks until the duration expires.
-            // Once it returns the profiler process has exited, so remove "jvm" from
-            // activeProfiles to allow the next periodic check to start a new profile.
-            activeProfiles.remove("jvm");
-        } else {
-            log.warning("JVM profiling failed: " + result.getError());
+                // Profiler.start() runs synchronously and blocks until the duration expires.
+                // Once it returns the profiler process has exited, so remove "jvm" from
+                // activeProfiles to allow the next periodic check to start a new profile.
+                activeProfiles.remove("jvm");
+                return result;
+            }
+
+            // Zero-size file detected — retry
+            if (attempt < maxRetries) {
+                log.info("Zero-size profile detected on attempt " + attempt + " (" + result.getOutputPath() +
+                        "), retrying (" + (attempt + 1) + "/" + maxRetries + ")...");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            } else {
+                log.warning("JVM profiling produced zero-size file after " + maxRetries + " attempts: " + result.getOutputPath());
+            }
         }
 
         return result;
