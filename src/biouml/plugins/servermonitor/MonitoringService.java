@@ -222,6 +222,12 @@ public class MonitoringService {
         ProfilerResult result = profiler.start(new long[0], "collapsed");
 
         if (result.isSuccess()) {
+            // Debug: check for zero-size profile files immediately after profiling
+            if (checkZeroSizeProfile(result, triggeredTask)) {
+                // A zero-size file was found — treat as failure
+                return new ProfilerResult("Profile file is empty (0 bytes): " + result.getOutputPath());
+            }
+
             activeProfiles.put("jvm", result);
             log.info("Started profiling JVM (all threads): " + result.getOutputPath());
 
@@ -318,6 +324,57 @@ public class MonitoringService {
         }
     }
 
+    /**
+     * Check for zero-size profile files and log debug info if found.
+     * @return true if any zero-size file was detected
+     */
+    private boolean checkZeroSizeProfile(ProfilerResult result, String triggeredTask) {
+        boolean foundZeroSize = false;
+
+        // Check primary output file
+        foundZeroSize |= checkSingleFile(result.getOutputPath(), triggeredTask, result.getDuration());
+
+        // Check extra format files
+        if (result.getExtraPaths() != null) {
+            for (String extraPath : result.getExtraPaths()) {
+                foundZeroSize |= checkSingleFile(extraPath, triggeredTask, result.getDuration());
+            }
+        }
+
+        return foundZeroSize;
+    }
+
+    /**
+     * Check a single profile file for zero size and log debug info.
+     * @return true if the file is zero-size
+     */
+    private boolean checkSingleFile(String filePath, String triggeredTask, long duration) {
+        File profileFile = new File(filePath);
+        if (profileFile.exists() && profileFile.length() == 0) {
+            File metaFile = new File(filePath.replace("." + getExtension(filePath), ".json"));
+            String metaInfo = "no metadata";
+            if (metaFile.exists()) {
+                try {
+                    readFileMetadata(metaFile);
+                    metaInfo = "exists";
+                } catch (Exception e) {
+                    metaInfo = "malformed: " + e.getMessage();
+                }
+            }
+            log.log(Level.WARNING,
+                    "profileJvm: zero-size profile file detected — path=" + filePath
+                            + " size=" + profileFile.length()
+                            + " lastModified=" + profileFile.lastModified()
+                            + " exists=" + profileFile.exists()
+                            + " canRead=" + profileFile.canRead()
+                            + " metadata=" + metaInfo
+                            + " triggeredBy=" + triggeredTask
+                            + " duration=" + duration + "ms");
+            return true;
+        }
+        return false;
+    }
+
     private String getExtension(String path) {
         int dot = path.lastIndexOf('.');
         return dot > 0 ? path.substring(dot + 1) : "";
@@ -326,6 +383,23 @@ public class MonitoringService {
     private String escapeJson(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+    }
+
+    /**
+     * Read raw file content as a string (for metadata inspection).
+     */
+    private String readFileMetadata(File file) throws IOException {
+        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file));
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
+        } finally {
+            reader.close();
+        }
     }
 
     // --- Status getters for API ---

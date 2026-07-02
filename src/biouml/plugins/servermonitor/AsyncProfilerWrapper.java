@@ -227,8 +227,22 @@ public class AsyncProfilerWrapper {
         int exitCode = process.waitFor();
         if (exitCode != 0) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: profiler exited with code " + exitCode + ". stderr: " + stderr);
+            return false;
         }
-        return exitCode == 0;
+
+        // Verify the output file was actually created
+        File outputFile = new File(outputPath);
+        if (!outputFile.exists()) {
+            log.log(Level.WARNING,
+                    "AsyncProfilerWrapper: profiler exited successfully (code " + exitCode + ") "
+                            + "but output file was not created — path=" + outputPath
+                            + " exists=" + outputFile.exists()
+                            + " canWrite=" + outputFile.getParentFile().canWrite()
+                            + " parentExists=" + outputFile.getParentFile().exists());
+            return false;
+        }
+
+        return true;
     }
 
     /**
