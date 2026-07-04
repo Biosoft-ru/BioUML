@@ -266,6 +266,7 @@ public class MonitoringService {
 
     /**
      * Clean up old profiles based on age and count limits.
+     * Skips directories (e.g., the async-profiler installation) to avoid deleting the profiler binary.
      */
     private void cleanupOldProfiles() {
         long maxAgeMillis = config.getMaxProfileAge() * 1000L;
@@ -277,8 +278,12 @@ public class MonitoringService {
         File[] files = profileDir.listFiles();
         if (files == null) return;
 
-        // Age-based cleanup
+        // Age-based cleanup (skip directories like the async-profiler installation)
         for (File f : files) {
+            if (f.isDirectory()) {
+                log.fine("Skipping directory during cleanup: " + f.getName());
+                continue;
+            }
             if (now - f.lastModified() > maxAgeMillis) {
                 try {
                     f.delete();
@@ -289,17 +294,27 @@ public class MonitoringService {
             }
         }
 
-        // Count-based cleanup
+        // Count-based cleanup (skip directories to protect the profiler installation)
         files = profileDir.listFiles();
         if (files != null && files.length > config.getMaxProfiles()) {
-            Arrays.sort(files, Comparator.comparingLong(File::lastModified));
-            int toDelete = files.length - config.getMaxProfiles();
-            for (int i = 0; i < toDelete; i++) {
-                try {
-                    files[i].delete();
-                    log.info("Cleaned excess profile: " + files[i].getName());
-                } catch (Exception e) {
-                    log.log(Level.WARNING, "Error deleting excess profile: " + files[i].getName(), e);
+            // Filter to only profile files (exclude directories like async-profiler-*)
+            List<File> profileFiles = new ArrayList<>();
+            for (File f : files) {
+                if (!f.isDirectory()) {
+                    profileFiles.add(f);
+                }
+            }
+            if (profileFiles.size() > config.getMaxProfiles()) {
+                profileFiles.sort(Comparator.comparingLong(File::lastModified));
+                int toDelete = profileFiles.size() - config.getMaxProfiles();
+                for (int i = 0; i < toDelete; i++) {
+                    File f = profileFiles.get(i);
+                    try {
+                        f.delete();
+                        log.info("Cleaned excess profile: " + f.getName());
+                    } catch (Exception e) {
+                        log.log(Level.WARNING, "Error deleting excess profile: " + f.getName(), e);
+                    }
                 }
             }
         }
