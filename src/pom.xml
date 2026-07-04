@@ -189,7 +189,6 @@
 	                <exclude>**/biouml/plugins/pharm/_test/TestExamples.java</exclude>
 	                <exclude>**/biouml/plugins/pharm/_test/TestSensitivityComplex.java</exclude>
 
-	                <exclude>**/biouml/plugins/simulation/ode/_test/JVodeDirectTest.java</exclude>
 
 	                <exclude>**/biouml/plugins/sbml/_test/SbmlWriterTest.java</exclude>
 	                <exclude>**/biouml/plugins/sbml/_test/TestSbmlImportExport.java</exclude>
