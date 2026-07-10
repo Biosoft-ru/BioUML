@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
+import ru.biosoft.access.FileImporter;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementImporter;
 
@@ -24,7 +25,12 @@ public class SimulationResultImporter implements DataElementImporter
     {        
         if( parent == null || !parent.isMutable() || !DataCollectionUtils.isAcceptable( parent, getResultType() ) )
             return ACCEPT_UNSUPPORTED;
-        return (file == null) ? ACCEPT_HIGH_PRIORITY : ACCEPT_LOW_PRIORITY;
+        if( file == null )
+            return ACCEPT_HIGH_PRIORITY;
+        if( FileImporter.isTextFile( file ) )
+            return ACCEPT_BELOW_MEDIUM_PRIORITY;
+        else
+            return ACCEPT_LOWEST_PRIORITY;
     }
 
     @Override
