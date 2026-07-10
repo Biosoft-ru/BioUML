@@ -1,6 +1,7 @@
 package biouml.plugins.wdl.analysis;
 
 import biouml.model.Diagram;
+import ru.biosoft.access.core.TextDataElement;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
@@ -16,8 +17,8 @@ public class RunWDLAnalysisParametersBeanInfo extends BeanInfoEx2<RunWDLAnalysis
     {
         property( "outputPath" ).outputElement( GenericDataCollection.class ).add();
         property( "wdlPath" ).inputElement( Diagram.class ).add();
-        add( "useJson");
-        addHidden( "jsonPath", "isNotUseJson");
+        property( "useJson" ).structureChanging().add();
+        property( "jsonPath" ).inputElement( TextDataElement.class ).hidden( "isNotUseJson" ).add();
         addHidden( "parameters", "isUseJson");
     }
 }
