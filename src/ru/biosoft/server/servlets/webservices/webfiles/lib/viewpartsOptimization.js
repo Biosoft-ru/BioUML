@@ -419,6 +419,9 @@ function ComplexOptimizationViewPart()
         
         this.saveAction = createToolbarButton(resources.vpModelButtonSave, "save.gif", this.saveActionClick);
         toolbarBlock.append(this.saveAction);
+        
+        this.refreshAction = createToolbarButton(resources.vpOptimizationRefreshDiagram, "convert.gif", this.refreshActionClick);
+        toolbarBlock.append(this.refreshAction);
     };
     
 
@@ -1569,6 +1572,17 @@ function ComplexOptimizationViewPart()
                 setTableSelectedRowIds(this.tableObj[type], this.optimization.selectedParameters[type]);
         }
     };
+    
+    this.refreshActionClick = function()
+    {
+        var dataParams = {
+            "de": _this.optimization.completeName
+        };
+        queryBioUML("web/optimization/refresh", dataParams, function()
+        {
+            _this.diagramChanged();
+        });
+    }
     
     
     

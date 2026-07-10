@@ -630,6 +630,7 @@ var resourcesRU = {
     vpOptEntities: "Сущности",
     vpOptSimulation: "Симуляция",
     vpOptimizationWaitForResults: "Оптимизация остановлена, но результаты еще обрабатываются. Пожалуйста, подождите.",
+    vpOptimizationRefreshDiagram: "Обновить модель из диаграммы",
 
     vpExperimentsSaved: "Эксперимент {expname} сохранен",
     

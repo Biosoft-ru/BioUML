@@ -486,6 +486,8 @@ vpOptConstraints: "Constraints"
 vpOptVariables: "Variables"
 vpOptEntities: "Entities"
 vpOptSimulation: "Simulation"
+vpOptimizationRefreshDiagram: "Refresh diagram model"
+
 
 vpExperimentsSaved: "Experiment {expname} saved"
 

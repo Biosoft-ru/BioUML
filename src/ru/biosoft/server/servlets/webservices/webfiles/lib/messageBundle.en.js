@@ -518,6 +518,7 @@ var resourcesEN = {
     vpOptEntities: "Entities",
     vpOptSimulation: "Simulation",
     vpOptimizationWaitForResults: "Optimization is terminated, but results are still processing and will be ready soon. Please, wait.",
+    vpOptimizationRefreshDiagram: "Refresh diagram model",
 
     vpExperimentsSaved: "Experiment {expname} saved",
         
