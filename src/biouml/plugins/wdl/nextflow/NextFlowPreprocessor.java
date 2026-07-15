@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
+import com.developmentontheedge.beans.DynamicProperty;
+
 import biouml.model.Compartment;
 import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
@@ -19,11 +21,13 @@ import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.diagram.CallProperties;
+import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.ExpressionProperties;
 import biouml.plugins.wdl.diagram.InputProperties;
 import biouml.plugins.wdl.diagram.OutputProperties;
 import biouml.plugins.wdl.diagram.TaskProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
+import biouml.plugins.wdl.diagram.WorkflowOutputProperties;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.parser.AstExpression;
 import biouml.plugins.wdl.parser.AstFunction;
@@ -35,10 +39,18 @@ import one.util.streamex.StreamEx;
 
 public class NextFlowPreprocessor
 {
+    private String versionWDL = "1.2";
     private WorkflowSettings settings;
+    private String publishDir = "";
+    
     public void NextFlowPreprocessor()
     {
 
+    }
+    
+    public void setPublishDir(String publishDir)
+    {
+        this.publishDir = publishDir;
     }
 
     public void setExportPath(WorkflowSettings settings)
@@ -59,12 +71,18 @@ public class NextFlowPreprocessor
     public Diagram preprocess(Diagram diagram) throws Exception
     {
         Diagram result = diagram.clone( diagram.getOrigin(), diagram.getName() );
+        versionWDL = diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
+        result.getAttributes().add( new DynamicProperty( WDLConstants.WDL_VERSION_ATTR,String.class, versionWDL) );
         processSameTaskCall( result );
         processConditionals( result );
         wrapProcesses( result );
-
+        processEmptyOutput(result);
+        
         for( Compartment task : WorkflowUtil.getTasks( result ) )
         {
+            WorkflowUtil.setRuntimeProperty( task, "publishDir",
+                    "\""+ publishDir + "/" + task.getName() + "\", mode: 'copy', overwrite: true" );
+            
             for( Node input : WorkflowUtil.getInputs( task ) )
             {
                 String expression = WorkflowUtil.getExpression( input );
@@ -139,7 +157,7 @@ public class NextFlowPreprocessor
                     }
                     if( expression == null )
                         expression = info.getExpression();
-                    expression = procesRegexes( expression );
+                    expression = processExpression( expression, diagram );
                     info.setExpression( expression );
                 }
             }
@@ -160,16 +178,19 @@ public class NextFlowPreprocessor
             for( String sep : seps )
             {
                 String name = getSepName( sep );
-                ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join(' ')" );
+                String del = getSepDelimiter(sep);
+                ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join('"+del+"')" );
                 WorkflowUtil.addBeforeCommand( task, dec );
                 command = command.replace( sep, "~{" + name + "_str}" );
             }
-            command = this.processWDLFunctions( command );
+            command = this.processWDLFunctions( command , true);
             Set<String> variables = StreamEx.of( WorkflowUtil.getInputs( task ) ).map( input -> WorkflowUtil.getName( input ) ).toSet();
             variables.addAll(
                     StreamEx.of( WorkflowUtil.getBeforeCommandExpressions( task ) ).map( expression -> expression.getName() ).toSet() );
             command = procesRegexes( command );
+            command = escapeSingleBuck( command );
             command = processVariables( command, variables );
+            command = removeEscape(command);
 
             WorkflowUtil.setCommand( task, command );
         }
@@ -192,44 +213,59 @@ public class NextFlowPreprocessor
                 Set<String> seps = findSeps( expression );
                 for( String sep : seps )
                 {
-                    String name = getSepName( sep );
-                    ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join(' ')" );
-                    ExpressionProperties properties = new ExpressionProperties();
-                    properties.setVariable( dec.getName() );
-                    properties.setType( dec.getType() );
-                    properties.setRhs( dec.getExpression() );
-                    DiagramElementGroup deg = properties.createElements( result, new Point( 0, 0 ), null );
-                    Node newNode = (Node)deg.getElement();
-                    Set<String> arguments = new HashSet<>();
-                    arguments.add( name );
-                    WorkflowUtil.setArguments( newNode, arguments );
-                    result.put( newNode );
-                    Set<Node> argNodes = WorkflowUtil.findExpressionNodes( result, name );
-                    for( Node argNode : StreamEx.of( argNodes ) )
+                    if( versionWDL.equals( "1.0" ) )
                     {
-                        Edge edge1 = new Edge(
-                                new Stub( null, argNode.getName() + " interact " + newNode.getName(), WDLConstants.LINK_TYPE ), argNode,
-                                newNode );
-                        result.put( edge1 );
+                        String name = getSepName( sep );
+                        expression = expression.replace( "\""+sep+"\"", "stringify_wdl(" + name + ")" );
                     }
-                    Edge edge2 = new Edge( new Stub( null, newNode.getName() + " interact " + node.getName(), WDLConstants.LINK_TYPE ),
-                            newNode, node );
-                    result.put( edge2 );
-                    expression = expression.replace( sep, "~{" + name + "_str}" );
+                    else
+                    {
+                        String name = getSepName( sep );
+                        String del = getSepDelimiter( sep );
+                        ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", name + ".join('" + del + "')" );
+                        ExpressionProperties properties = new ExpressionProperties();
+                        properties.setVariable( dec.getName() );
+                        properties.setType( dec.getType() );
+                        properties.setRhs( dec.getExpression() );
+                        DiagramElementGroup deg = properties.createElements( result, new Point( 0, 0 ), null );
+                        Node newNode = (Node)deg.getElement();
+                        Set<String> arguments = new HashSet<>();
+                        arguments.add( name );
+                        WorkflowUtil.setArguments( newNode, arguments );
+                        result.put( newNode );
+                        Set<Node> argNodes = WorkflowUtil.findExpressionNodes( result, name );
+                        for( Node argNode : StreamEx.of( argNodes ) )
+                        {
+                            Edge edge1 = new Edge(
+                                    new Stub( null, argNode.getName() + " interact " + newNode.getName(), WDLConstants.LINK_TYPE ), argNode,
+                                    newNode );
+                            result.put( edge1 );
+                        }
+                        Edge edge2 = new Edge( new Stub( null, newNode.getName() + " interact " + node.getName(), WDLConstants.LINK_TYPE ),
+                                newNode, node );
+                        result.put( edge2 );
+                        expression = expression.replace( sep, "~{" + name + "_str}" );
+                    }
                 }
-                //                expression = procesStruct(expression, structs);
-                expression = processArrayElements( result, expression );
-                expression = removeGlobs( expression );
-                expression = processTernary( expression );
-                expression = processMap( expression );
-                expression = processPair( expression );
-                expression = processObject( expression );
-                expression = processWDLFunctions( expression );
-                expression = procesRegexes( expression );
+                expression = processExpression( expression, diagram );
                 WorkflowUtil.setExpression( node, expression );
             }
         }
         return result;
+    }
+    
+    private String processExpression(String expression, Diagram diagram)
+    {
+        //                expression = procesStruct(expression, structs);
+        expression = processArrayElements( diagram, expression );
+        expression = removeGlobs( expression );
+        expression = processTernary( expression );
+        expression = processMap( expression );
+        expression = processPair( expression );
+        expression = processObject( expression );
+        expression = processWDLFunctions( expression, false );
+        expression = procesRegexes( expression );
+        return expression;
     }
 
 
@@ -244,6 +280,21 @@ public class NextFlowPreprocessor
             return sep.substring( sep.lastIndexOf( "\"" ) + 1, sep.length() - 1 ).trim();
         else if( sep.contains( "\'" ) )
             return sep.substring( sep.lastIndexOf( "\'" ) + 1, sep.length() - 1 ).trim();
+        return null;
+    }
+    
+    public static String getSepDelimiter(String sep)
+    {
+        if( sep.contains( "\"" ) )
+        {
+            String del = sep.substring( sep.indexOf( "\"" ) + 1);
+            return del.substring( 0, del.indexOf( "\"" ));
+        }
+        else if( sep.contains( "\'" ) )
+        {
+            String del = sep.substring( sep.indexOf( "\'" ) + 1);
+            return del.substring( 0, del.indexOf( "\'" ));
+        }
         return null;
     }
 
@@ -434,11 +485,23 @@ public class NextFlowPreprocessor
         {
             int dotIndex = key.indexOf( '.' );
             String newKey = dotIndex >= 0 ? key.substring( dotIndex + 1 ) : key;
-
-            result.put( newKey, input.get( key ) );
+//            String value = input.getString( key );
+//            if (value.startsWith( "tests/" ))
+//                value = value.replace( "tests/", "results/" );
+            result.put( newKey, input.get(key) );
         }
 
         return result.toString( 2 );
+    }
+    
+    private String escapeSingleBuck(String str)
+    {
+        return str.replaceAll("\\$(?!\\{)", "\\\\\\$");
+    }
+    
+    private String removeEscape(String str)
+    {
+        return str.replace("^\\#", "^#");
     }
 
     private String processVariables(String command, Set<String> candidateVariables)
@@ -446,10 +509,14 @@ public class NextFlowPreprocessor
         List<String> buckVariables = extractVariables( command, "$" );
         for( String variable : buckVariables )
         {
+            String original = variable;
             if( variable.contains( "(" ) )//this is function
             {
-                if( !StreamEx.of( NextFlowVelocityHelper.getWDLFunctions() ).toSet()
-                        .contains( variable.substring( 0, variable.indexOf( "_wdl(" ) ) ) )
+                if (original.contains( "_wdl(" ) )
+                    original = original.substring( 0, original.indexOf( "_wdl(" ) );
+                else if( original.contains( "_groovy(" ) )
+                    original = original.substring( 0, original.indexOf( "_groovy(" ) );
+                if( !StreamEx.of( NextFlowVelocityHelper.getWDLFunctions() ).toSet().contains( original ) )
                 {
                     command = command.replace( "${" + variable + "}", "\\${" + variable + "}" );
                 }
@@ -494,7 +561,7 @@ public class NextFlowPreprocessor
 
     private String processStdErr(String text)
     {
-        return "{" + System.lineSeparator() + text + System.lineSeparator() + "}  > stderr.txt";
+        return "{" + System.lineSeparator() + text + System.lineSeparator() + "}  2> stderr.txt";
     }
 
     private String processEcho(String text)
@@ -502,14 +569,15 @@ public class NextFlowPreprocessor
         return "{" + System.lineSeparator() + text + System.lineSeparator() + "} > stdout.txt";
     }
 
-    private String processWDLFunctions(String s)
+    private String processWDLFunctions(String s, boolean inCommand)
     {
         if( s == null )
             return null;
         for( String function : NextFlowVelocityHelper.getWDLFunctions() )
         {
+            String replacement = NextFlowVelocityHelper.toNextflowFunction( function, inCommand );
             if( s.contains( function + "(" ) )
-                s = s.replace( function + "(", function + "_wdl(" );
+                s = s.replace( function + "(", replacement + "(" );
         }
         return s;
     }
@@ -594,7 +662,7 @@ public class NextFlowPreprocessor
                 {
                     Compartment copy = copyTask( task, DefaultSemanticController.generateUniqueName( diagram, taskRef ) );
                     String newTaskName = WorkflowUtil.getName( copy );
-                    WorkflowUtil.setTaskRef( copy, newTaskName );
+                    WorkflowUtil.setTaskRef( call, newTaskName );
                     WorkflowUtil.setAlias( call, newTaskName );
                 }
             }
@@ -604,10 +672,26 @@ public class NextFlowPreprocessor
 
     private Compartment copyTask(Compartment c, String name)
     {
+        try {
         Compartment c2 = c.clone( c.getCompartment(), name );
+        
+        for (Node n: c.getNodes())
+        {
+            String nodeName = WorkflowUtil.getName( n );
+            Node copyNode = WorkflowUtil.findNode( c, nodeName );
+            ExpressionInfo info = WorkflowUtil.getExpressionInfo( n );
+            WorkflowUtil.setExpressionInfo( copyNode, info.clone() );
+        }
+        
         WorkflowUtil.setName( c2, name );
         c.getCompartment().put( c2 );
         return c2;
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     private static void wrapProcesses(Diagram diagram) throws Exception
@@ -631,6 +715,8 @@ public class NextFlowPreprocessor
                     AstExpression expression = (AstExpression)replaceFunction( info.getAST(), diagram, c, node );
                     info.setExpression( expression.toString() );
                     info.setAST( expression );
+                    
+                    WorkflowUtil.setExpressionInfo( taskOutput, info.clone() );
                     //                    for( int j = 0; j < declaration.jjtGetNumChildren(); j++ )
                     //                    {
                     //                        biouml.plugins.wdl.parser.Node child = declaration.jjtGetChild( j );
@@ -715,35 +801,39 @@ public class NextFlowPreprocessor
 
     private static void createWrapper2(Diagram diagram, Compartment call, String function, Node from) throws Exception
     {
-        String inputName = WorkflowUtil.getCallName( call )+"."+WorkflowUtil.getName( from );
-        String expression = inputName+".map { f -> "+function+"(f) }";    
+        String inputName = WorkflowUtil.getCallName( call ) + "." + WorkflowUtil.getName( from );
+        String resultName = WorkflowUtil.getResultName( call );
+        if (resultName != null)
+            inputName = resultName +"."+ WorkflowUtil.getName( from );
+        String expression = inputName + ".map { f -> " + function + "(f) }";
         ExpressionProperties properties = new ExpressionProperties();
+        String wrappedName = WorkflowUtil.getCallName( call )+"_"+  WorkflowUtil.getName( from ) + "_wrapped";
         properties.setRhs( expression );
-        properties.setName( WorkflowUtil.getName( from )+"_wrapped" );        
-        properties.setVariable(  WorkflowUtil.getName( from )+"_wrapped" );
-       DiagramElementGroup group = properties.createElements( call.getCompartment(), new Point(), null );
-       Node expressionNode = (Node)group.getElement();
-       call.getCompartment().put( expressionNode );
+        properties.setName( wrappedName);
+        properties.setVariable( wrappedName );
+        DiagramElementGroup group = properties.createElements( call.getCompartment(), new Point(), null );
+        Node expressionNode = (Node)group.getElement();
+        call.getCompartment().put( expressionNode );
 
-       for( Node node : from.edges().filter( e -> e.getInput().equals( from ) ).map( e -> e.getOtherEnd( from ) ) )
-       {
-           createLink( expressionNode, node );
-           String nextExpression = WorkflowUtil.getExpression( node );
-           nextExpression = nextExpression.replace( inputName, WorkflowUtil.getName( from ) + "_wrapped" );
-           //           String name = WorkflowUtil.getName( from );
-           WorkflowUtil.setExpression( node, nextExpression );
-           AstExpression dec = new ExpressionParser().parseExpression( nextExpression );
-           WorkflowUtil.getExpressionInfo( node ).setAST( dec );
-       }
-       
-       for (Edge e: from.edges().toList())
-       {
-           e.getOrigin().remove( e.getName() );
-           from.removeEdge( e );
-           e.getOtherEnd( from ).removeEdge( e );
-       }
+        for( Node node : from.edges().filter( e -> e.getInput().equals( from ) ).map( e -> e.getOtherEnd( from ) ) )
+        {
+            createLink( expressionNode, node );
+            String nextExpression = WorkflowUtil.getExpression( node );
+            nextExpression = nextExpression.replace( inputName, wrappedName );
+            //           String name = WorkflowUtil.getName( from );
+            WorkflowUtil.setExpression( node, nextExpression );
+            AstExpression dec = new ExpressionParser().parseExpression( nextExpression );
+            WorkflowUtil.getExpressionInfo( node ).setAST( dec );
+        }
 
-       createLink(from, expressionNode);
+        for( Edge e : from.edges().toList() )
+        {
+            e.getOrigin().remove( e.getName() );
+            from.removeEdge( e );
+            e.getOtherEnd( from ).removeEdge( e );
+        }
+
+        createLink( from, expressionNode );
     }
 
     private static Compartment createWrapper(Diagram diagram, Compartment call, String function, Node from) throws Exception
@@ -813,6 +903,18 @@ public class NextFlowPreprocessor
         diagram.put( c );
         return c;
     }
+    
+    private static void processEmptyOutput(Diagram diagram)
+    {
+        String version =  diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
+        boolean isWDL10 = version.equals( "1.0" );
+        List<Node> globalOutputs = WorkflowUtil.getExternalOutputs( diagram );
+        if (globalOutputs.isEmpty() && isWDL10)
+        { 
+           diagram.getAttributes().add( new DynamicProperty( "autoOutputs", Boolean.class, true) );
+           DiagramGenerator.addOutputs( diagram );
+        }
+    }
 
     private static AstFunction findNeedWrapper(Node output)
     {
@@ -850,7 +952,7 @@ public class NextFlowPreprocessor
     }
 
     private static Set<String> needsWrapper = Set.of( "read_string", "read_int", "read_float", "read_boolean", "read_lines", "read_tsv",
-            "read_map", "read_json" );
+            "read_map", "read_json" , "size");
 
     private static Edge createLink(Node from, Node to)
     {
