@@ -79,6 +79,7 @@ $helper.getExternalInput($externalParameter)
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
 $helper.printDirectives($task, "  ")
+stageInMode 'copy'
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
 $BR  input:
@@ -148,4 +149,5 @@ $BR  main:
 ################################ENTRY WORKFLOW#########################################
 workflow {
 $helper.getWorkflowName($diagram) ( #foreach($ep in $externalParameters)$helper.getEntryInput($ep)#comma($externalParameters) #end )
+$helper.generateWorkflowPublish( $diagram )
 }
