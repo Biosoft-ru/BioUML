@@ -1,6 +1,7 @@
 package biouml.plugins.wdl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +20,7 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     {
         super( diagram );
     }
- 
+
     @Override
     public String getDeclaration(Node n)
     {
@@ -37,11 +38,11 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
             return "??";
         return getType( n ) + " " + getName( n );
     }
-    
+
     public String getVersion()
     {
-        String version =  diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
-        if (version == null)
+        String version = diagram.getAttributes().getValueAsString( WDLConstants.WDL_VERSION_ATTR );
+        if( version == null )
             version = "1.2";
         return version;
     }
@@ -58,17 +59,17 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
             int position = WorkflowUtil.getPosition( node );
             String expression = WorkflowUtil.getExpression( node );
             String name = WorkflowUtil.getName( node );
-            if( position >= 0  && expression != null)
+            if( position >= 0 && expression != null )
                 result[position] = name + " = " + expression;
         }
         return StreamEx.of( result ).nonNull().toList();
     }
-    
+
     public List<ImportProperties> getImports()
     {
         return WorkflowUtil.getImports( diagram );
     }
-    
+
     /**
      * Returns ordered list of structures so that structure used as types in other structure goes before it
      */
@@ -106,5 +107,25 @@ public class WDLVelocityHelper extends WorkflowVelocityHelper
     public Set<String> getUsedStructs(Set<String> allStructs, Node struct)
     {
         return StreamEx.of( getStructMembers( struct ) ).map( expr -> expr.getType() ).filter( s -> allStructs.contains( s ) ).toSet();
+    }
+
+    public Map<String, String> getRuntime(Compartment c)
+    {
+        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> runtime = WorkflowUtil.getRuntime( c );
+        for( Entry<String, String> entry : runtime.entrySet() )
+        {
+            String wdlName = toWDLRuntimeName( entry.getKey() );
+            if( wdlName != null )
+                result.put( wdlName, entry.getValue() );
+        }
+        return result;
+    }
+
+    public String toWDLRuntimeName(String runtime)
+    {
+        if( runtime.equals( "publishDir" ) )
+            return null;
+        return runtime;
     }
 }
