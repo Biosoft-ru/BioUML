@@ -16,8 +16,10 @@
 <th align="center" valign="middle">WDL validated</th>
 <th align="center" valign="middle">Nextflow generated</th>
 <th align="center" valign="middle">Nextflow executed</th>
+<th align="center" valign="middle">Nextflow checked</th>
 </tr>
-#set ($passed = 0)
+#set ($executed = 0)
+#set ($checked = 0)
 #set ($index = 1)
 #foreach($result in $results)
 #set($name = $result.getName())
@@ -36,16 +38,18 @@
 <td>$result.getWDLValidated()</td>
 <td><a href="${name}/${name}.nf" target="_blank">$result.getNextflowGenerated()</a></td>
 <td>$result.getNextflowExecuted()</td>
+<td>$result.getNextflowChecked()</td>
 #if ($result.getNextflowExecuted() == "Ok")
-#set($passed = $passed + 1)
+#set($executed = $executed + 1)
+#end
+#if ($result.getNextflowChecked() == "Ok")
+#set($checked = $checked + 1)
 #end
 </tr>
 #set ($index = $index + 1)
 #end
 <tr>
-<td><td><td>
-<td><td><td>
-<td><td><td>$passed</tr>
+<td><td><td><td><td><td><td><td><td>$executed<td>$checked</tr>
 </tbody>
 </body>
 </html>

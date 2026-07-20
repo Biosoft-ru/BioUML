@@ -9,7 +9,8 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     private static String TEMPLATE_PATH = "resources/nextflow.vm";
     private static String TEMPLATE_NAME = "Nextflow template";
     private boolean isEntryWorkflow = true;
-
+    private String publishDir = "";
+    
     public NextFlowGenerator()
     {
         this.isEntryWorkflow = true;
@@ -18,6 +19,11 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     public NextFlowGenerator(boolean isEntryWorkflow)
     {
         this.isEntryWorkflow = isEntryWorkflow;
+    }
+    
+    public void setPublishDir(String publishDir)
+    {
+        this.publishDir = publishDir;
     }
 
     @Override
@@ -41,6 +47,8 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     @Override
     public Diagram preprocess(Diagram diagram) throws Exception
     {
-        return new NextFlowPreprocessor().preprocess( diagram );
+        NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
+        preprocessor.setPublishDir( publishDir );
+        return preprocessor.preprocess( diagram );
     }
 }

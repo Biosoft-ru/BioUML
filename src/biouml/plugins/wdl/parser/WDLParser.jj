@@ -195,6 +195,8 @@ TOKEN : /* STATE SWITCHERS */
 
 | < COLON : ":">
 
+| < EQ : "==" >
+
 | < EQUAL : "=" >
 
 | < PLUS : "+">
@@ -2897,6 +2899,7 @@ void expression()            :
     | pair()
     | LOOKAHEAD(5) containerElement()
     | LOOKAHEAD(5)function()
+    | eq()
     | (/*@bgen(jjtree) None */
        {
          AstNone jjtn001 = new AstNone(JJTNONE);
@@ -2929,6 +2932,36 @@ void expression()            :
         throw (ParseException)jjte000;
       }
       throw (Error)jjte000;
+    } finally {
+      if (jjtc000) {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtn000.jjtSetLastToken(getToken(0));
+      }
+    }
+/*@egen*/
+}
+
+void eq()                       :
+{/*@bgen(jjtree) RegularFormulaElement */
+  AstRegularFormulaElement jjtn000 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/
+}
+{/*@bgen(jjtree) RegularFormulaElement */
+    try {
+/*@egen*/
+    < EQ >/*@bgen(jjtree)*/
+    {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtc000 = false;
+      jjtn000.jjtSetLastToken(getToken(0));
+    }
+/*@egen*/
+    {
+        jjtn000.setElement("==");
+    }/*@bgen(jjtree)*/
     } finally {
       if (jjtc000) {
         jjtree.closeNodeScope(jjtn000, true);
@@ -3343,25 +3376,32 @@ void alias()       :
 }
 
 
-void text()      :
+void text()       :
 {/*@bgen(jjtree) Text */
-  AstText jjtn000 = new AstText(JJTTEXT);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
+    AstText jjtn000 = new AstText(JJTTEXT);
+    boolean jjtc000 = true;
+    jjtree.openNodeScope(jjtn000);
+    jjtn000.jjtSetFirstToken(getToken(1));
 /*@egen*/
+    Token value;
 }
 {/*@bgen(jjtree) Text */
     try {
 /*@egen*/
-    < TEXT_STRING >/*@bgen(jjtree)*/
+    value = <TEXT_STRING>/*@bgen(jjtree)*/
     {
       jjtree.closeNodeScope(jjtn000, true);
       jjtc000 = false;
       jjtn000.jjtSetLastToken(getToken(0));
     }
 /*@egen*/
-    {jjtn000.setText(token.image.substring(1, token.image.length() - 1));}/*@bgen(jjtree)*/
+    {
+        String image = value.image;
+
+        jjtn000.setText(
+            image.substring(1, image.length() - 1)
+        );
+    }/*@bgen(jjtree)*/
     } finally {
       if (jjtc000) {
         jjtree.closeNodeScope(jjtn000, true);
@@ -3476,35 +3516,45 @@ void function()          :
 
 }
 
+
 void regularFormulaElement()                       :
 {/*@bgen(jjtree) RegularFormulaElement */
-  AstRegularFormulaElement jjtn000 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtn000.jjtSetFirstToken(getToken(1));
+    AstRegularFormulaElement jjtn000 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+    boolean jjtc000 = true;
+    jjtree.openNodeScope(jjtn000);
+    jjtn000.jjtSetFirstToken(getToken(1));
 /*@egen*/
+    Token t;
 }
 {/*@bgen(jjtree) RegularFormulaElement */
     try {
 /*@egen*/
     (
-            < SYMBOL > {jjtn000.setVariable(true);}
-            | < IN > {jjtn000.setVariable(true);}
-            | < TRUE_OR_FALSE >
-            | < STAR >
-            | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
-            | < NOT > | < EQUAL >
-            | < PLUS > | < MINUS > | <AND> | <OR>
-            | < FLOATING_POINT_LITERAL > {jjtn000.setNumber(true);}
-            | < INTEGER > {jjtn000.setNumber(true);}
-
+            t = < SYMBOL > {jjtn000.setVariable(true);}
+            | t = < IN > {jjtn000.setVariable(true);}
+            | t = < TRUE_OR_FALSE >
+            | t = < STAR >
+            | t = < OPERATOR >
+            | t = < TRIANGULAR_BRACKET_L >
+            | t = < TRIANGULAR_BRACKET_R >
+            | t = < NOT >
+            | t = < EQUAL >
+            | t = < PLUS >
+            | t = < MINUS >
+            | t = < AND >
+            | t = < OR >
+            | t = < FLOATING_POINT_LITERAL > {jjtn000.setNumber(true);}
+            | t = < INTEGER > {jjtn000.setNumber(true);}
     )/*@bgen(jjtree)*/
-     {
-       jjtree.closeNodeScope(jjtn000, true);
-       jjtc000 = false;
-       jjtn000.jjtSetLastToken(getToken(0));
-     }
-/*@egen*/{jjtn000.setElement(token.image);}/*@bgen(jjtree)*/
+    {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtc000 = false;
+      jjtn000.jjtSetLastToken(getToken(0));
+    }
+/*@egen*/
+    {
+        jjtn000.setElement(t.image);
+    }/*@bgen(jjtree)*/
     } finally {
       if (jjtc000) {
         jjtree.closeNodeScope(jjtn000, true);
@@ -3513,8 +3563,6 @@ void regularFormulaElement()                       :
     }
 /*@egen*/
 }
-
-
 
 
 void as()    :
