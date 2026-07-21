@@ -64,6 +64,9 @@
         <module>plugconfig/biouml.plugins.test</module>
         <module>plugconfig/biouml.plugins.uniprot</module>
         <module>plugconfig/biouml.plugins.wdl</module>
+        <module>plugconfig/biouml.plugins.gtrd</module>
+        <module>plugconfig/biouml.plugins.gtex</module>
+        <module>plugconfig/biouml.plugins.machinelearning</module>
 
         <module>plugconfig/biouml.splash</module>
         <module>plugconfig/biouml.workbench</module>
