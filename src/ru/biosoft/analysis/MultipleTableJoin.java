@@ -319,11 +319,12 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
                         }
                     }
                 }
-                TableDataCollectionUtils.addRow(result, key, rowBuffer);
+                TableDataCollectionUtils.addRow(result, key, rowBuffer, true);
             }
             i++;
             jobControl.setPreparedness(2 + i * 95 / keys.length);
         }
+        result.finalizeAddition();
         ReferenceTypeRegistry.setCollectionReferenceType(result, ReferenceTypeRegistry.detectReferenceType(keys));
         return result;
     }

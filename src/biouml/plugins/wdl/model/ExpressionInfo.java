@@ -5,6 +5,7 @@ import java.util.Set;
 
 import biouml.plugins.wdl.parser.AstDeclaration;
 import biouml.plugins.wdl.parser.AstExpression;
+import biouml.plugins.wdl.parser.ExpressionParser;
 
 public class ExpressionInfo implements Cloneable
 {
@@ -13,12 +14,12 @@ public class ExpressionInfo implements Cloneable
     private String expression;
     private Set<String> arguments = new HashSet<>();
     private AstExpression astExpression;
-    
+
     public ExpressionInfo()
     {
-        
+
     }
-    
+
     public void setAST(AstExpression astExpression)
     {
         this.astExpression = astExpression;
@@ -27,14 +28,14 @@ public class ExpressionInfo implements Cloneable
     {
         return astExpression;
     }
-    
+
     public ExpressionInfo(String type, String name, String expression)
     {
         this.type = type;
         this.name = name;
         this.expression = expression;
     }
-    
+
     public String getType()
     {
         return type;
@@ -61,27 +62,38 @@ public class ExpressionInfo implements Cloneable
     {
         return expression;
     }
-    
+
     public void setArguments(Set<String> arguments)
     {
         this.arguments = arguments;
     }
-    
+
     public Set<String> getArguments()
     {
         return arguments;
     }
-    
+
     public ExpressionInfo clone()
     {
         ExpressionInfo result = new ExpressionInfo();
         result.setName( name );
         result.setExpression( expression );
         result.setType( type );
-        result.setArguments( new HashSet<>( arguments ) );
+        if( arguments != null )
+            result.setArguments( new HashSet<>( arguments ) );
 
-        if( astExpression != null )
-            result.setAST( astExpression );
+        try
+        {
+            if( expression != null )
+            {
+                AstExpression ast = new ExpressionParser().parseExpression( expression );
+                result.setAST( ast );
+            }
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
         return result;
     }
 }

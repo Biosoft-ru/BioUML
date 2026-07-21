@@ -14,6 +14,7 @@ public class TaskInfo extends ExecutableInfo
     public TaskInfo(String name)
     {
         super(name);
+        this.runtime.put( "publishDir", "\""+name+"\", mode: 'copy', overwrite: true");
     }
     
     public String getMetaProperty(String name)

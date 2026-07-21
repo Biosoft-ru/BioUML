@@ -908,6 +908,16 @@ public class WebOptimizationProvider extends WebJSONProviderSupport
             sendOptimizationInfo(getOptimization(arguments), response);
             return;
         }
+        else if( action.equals( "refresh" ) )
+        {
+            Optimization optimization = getOptimization( arguments );
+            Diagram diagram = optimization.getDiagram();
+            DataElementPath diagramPath = diagram.getCompletePath();
+            Diagram newDiagram = diagramPath.getDataElement( Diagram.class );
+            optimization.getParameters().setDiagram( newDiagram );
+            response.sendString( "ok" );
+            return;
+        }
         else if( action.equals("experiments") )
         {
             String what = arguments.get("what");

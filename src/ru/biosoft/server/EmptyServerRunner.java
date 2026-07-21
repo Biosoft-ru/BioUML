@@ -106,6 +106,7 @@ public class EmptyServerRunner implements IApplication
                 }
             }
             ServletRegistry.initServlets(commandLineArgs);
+            ServerMonitorRegistry.init();
 
             System.getProperties().put("BioUML.Server.ServiceRegistry", ServiceRegistry.class);
             System.getProperties().put("BioUML.Server.Request", Request.class);

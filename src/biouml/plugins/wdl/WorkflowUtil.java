@@ -492,6 +492,8 @@ public class WorkflowUtil
             setType( n, getType( from ) );
         if( getExpression( n ) == null )
             setExpression( n, getExpression( from ) );
+        if( getExpressionInfo( n ) == null )
+            setExpressionInfo( n, getExpressionInfo( from ) );
     }
 
     public static void setName(Node n, String name)
@@ -722,6 +724,11 @@ public class WorkflowUtil
         return c;
     }
 
+    public static Node findNode(Compartment c, String name)
+    {
+       return c.recursiveStream().select( Node.class ).filter( n->name.equals(getName(n) )).findAny().orElse( null );
+    }
+    
     public static Set<Node> findExpressionNodes(Compartment c, String name)
     {
         return c.recursiveStream().select( Node.class )
@@ -1068,5 +1075,12 @@ public class WorkflowUtil
             parent = parent.getCompartment();
         }
         return false;
+    }
+    
+    public static void setRuntimeProperty(Compartment process, String name, String property)
+    {
+        Map<String, String> runTime = WorkflowUtil.getRuntime( process );
+        runTime.put( name, property );
+        WorkflowUtil.setRuntime( process, runTime );
     }
 }

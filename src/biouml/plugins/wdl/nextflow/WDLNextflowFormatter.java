@@ -12,6 +12,7 @@ import biouml.plugins.wdl.parser.AstMap;
 import biouml.plugins.wdl.parser.AstPair;
 import biouml.plugins.wdl.parser.AstRegularFormulaElement;
 import biouml.plugins.wdl.parser.AstSubSymbol;
+import biouml.plugins.wdl.parser.AstSymbol;
 import biouml.plugins.wdl.parser.AstTernary;
 import biouml.plugins.wdl.parser.AstText;
 import biouml.plugins.wdl.parser.ExpressionFormatter;
@@ -91,8 +92,23 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     private void processArray(AstArray array)
     {
+        boolean hasChannel = containsChannel( array );
+        if( hasChannel )
+            result.append( "toArray(" );
         for( Node child : array.getChildren() )
             processNode( child );
+        if( hasChannel )
+            result.append( ")" );
+    }
+    
+    private boolean containsChannel(SimpleNode node)
+    {
+        for (Node child: node.getChildren())
+        {
+            if (child instanceof AstSubSymbol || child instanceof AstSymbol || child instanceof AstExpression)
+                return true;
+        }
+        return false;
     }
 
     protected void processSubSymbol(AstSubSymbol node)
@@ -150,18 +166,18 @@ public class WDLNextflowFormatter extends ExpressionFormatter
     {
         result.append( "{ " );
         Map<String, Object> map = astMap.toMap();
-        result.append( StreamEx.of( map.entrySet() ).map( e -> e.getKey() + ": " + e.getValue() ).joining( ", " ) );
+        result.append( StreamEx.of( map.entrySet() ).map( e -> "("+ e.getKey() + ") : " + e.getValue() ).joining( ", " ) );
         result.append( " }" );
     }
 
     private void processPair(AstPair astPair)
     {
-        result.append( "[ " );
+        result.append( "pair( " );
         AstExpression[] expressions = astPair.toPair();
         processNode( expressions[0] );
         result.append( ", " );
         processNode( expressions[1] );
-        result.append( " ]" );
+        result.append( " )" );
     }
 
     private void processFormulaElement(AstRegularFormulaElement formulaElement)

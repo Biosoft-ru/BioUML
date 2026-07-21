@@ -58,7 +58,10 @@ public class FileImporter implements DataElementImporter
             {
                 return file.getName().toLowerCase().endsWith(suffix) ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_LOW_PRIORITY;
             }
-            return file.getName().toLowerCase().endsWith(".pdf") ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_LOW_PRIORITY;
+            if( file.getName().toLowerCase().endsWith( ".pdf" ) )
+                return ACCEPT_HIGHEST_PRIORITY;
+            //If file is not detected by other importers, treat as Generic file 
+            return ACCEPT_BELOW_MEDIUM_PRIORITY;
         }
         return ACCEPT_UNSUPPORTED;
     }

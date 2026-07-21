@@ -10,12 +10,17 @@ import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
+import ru.biosoft.util.bean.JSONBean;
 
-public class RunWDLAnalysisParameters extends AbstractAnalysisParameters implements PropertyChangeListener
+public class RunWDLAnalysisParameters extends AbstractAnalysisParameters implements PropertyChangeListener, JSONBean
 {
     private DataElementPath wdlPath;
     private WorkflowSettings settings = new WorkflowSettings();
 
+    public RunWDLAnalysisParameters()
+    {
+        settings.setParent( this );
+    }
     public WorkflowSettings getSettings()
     {
         return settings;
@@ -62,6 +67,7 @@ public class RunWDLAnalysisParameters extends AbstractAnalysisParameters impleme
         if(diagram != null)
         {
         	settings.initParameters( diagram );
+            settings.setParent( this );
             firePropertyChange( "*", null, null );
         }
     }

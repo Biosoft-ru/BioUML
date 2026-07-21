@@ -99,53 +99,55 @@ public interface WDLParserConstants {
   /** RegularExpression Id. */
   int COLON = 47;
   /** RegularExpression Id. */
-  int EQUAL = 48;
+  int EQ = 48;
   /** RegularExpression Id. */
-  int PLUS = 49;
+  int EQUAL = 49;
   /** RegularExpression Id. */
-  int MINUS = 50;
+  int PLUS = 50;
   /** RegularExpression Id. */
-  int SEMICOLON = 51;
+  int MINUS = 51;
   /** RegularExpression Id. */
-  int COMMA = 52;
+  int SEMICOLON = 52;
   /** RegularExpression Id. */
-  int QUESTION_MARK = 53;
+  int COMMA = 53;
   /** RegularExpression Id. */
-  int TEXT_STRING = 54;
+  int QUESTION_MARK = 54;
   /** RegularExpression Id. */
-  int OCTAL_ESCAPE = 55;
+  int TEXT_STRING = 55;
   /** RegularExpression Id. */
-  int HEX_ESCAPE = 56;
+  int OCTAL_ESCAPE = 56;
   /** RegularExpression Id. */
-  int UNICODE = 57;
+  int HEX_ESCAPE = 57;
   /** RegularExpression Id. */
-  int LETTER = 58;
+  int UNICODE = 58;
   /** RegularExpression Id. */
-  int DIGIT = 59;
+  int LETTER = 59;
   /** RegularExpression Id. */
-  int SYMBOL = 60;
+  int DIGIT = 60;
   /** RegularExpression Id. */
-  int INTEGER = 61;
+  int SYMBOL = 61;
   /** RegularExpression Id. */
-  int TRIANGULAR_BRACKET_L = 62;
+  int INTEGER = 62;
   /** RegularExpression Id. */
-  int TRIANGULAR_BRACKET_R = 63;
+  int TRIANGULAR_BRACKET_L = 63;
   /** RegularExpression Id. */
-  int SQUARE_BRACKET_L = 64;
+  int TRIANGULAR_BRACKET_R = 64;
   /** RegularExpression Id. */
-  int SQUARE_BRACKET_R = 65;
+  int SQUARE_BRACKET_L = 65;
   /** RegularExpression Id. */
-  int OPERATOR = 66;
+  int SQUARE_BRACKET_R = 66;
   /** RegularExpression Id. */
-  int STAR = 67;
+  int OPERATOR = 67;
   /** RegularExpression Id. */
-  int EXPONENT = 68;
+  int STAR = 68;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 69;
+  int EXPONENT = 69;
   /** RegularExpression Id. */
-  int BRACE_L = 70;
+  int FLOATING_POINT_LITERAL = 70;
   /** RegularExpression Id. */
-  int BRACE_R = 71;
+  int BRACE_L = 71;
+  /** RegularExpression Id. */
+  int BRACE_R = 72;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -204,6 +206,7 @@ public interface WDLParserConstants {
     "\"(\"",
     "\")\"",
     "\":\"",
+    "\"==\"",
     "\"=\"",
     "\"+\"",
     "\"-\"",

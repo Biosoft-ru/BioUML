@@ -64,7 +64,6 @@ public class DiagramGenerator
         diagram.getAttributes().remove( WDLConstants.META_ATTR );
         diagram.getAttributes().remove( WDLConstants.PARAMETER_META_ATTR );
 
-
         for( String attr : script.getAttributeNames() )
         {
             Object value = script.getAttribute( attr );
@@ -228,7 +227,7 @@ public class DiagramGenerator
         return newNode;
     }
 
-    public void addOutputs(Diagram diagram)
+    public static void addOutputs(Diagram diagram)
     {
         for( Node node : diagram.recursiveStream().select( Node.class )
                 .filter( n -> ( n.getEdges().length == 0 && WorkflowUtil.isOutput( n ) && WorkflowUtil.isCall( n.getCompartment() ) ) ) )
@@ -236,14 +235,14 @@ public class DiagramGenerator
 
             if( ! ( WorkflowUtil.getEnclosingdWorkflow( node ) instanceof Diagram ) )
                 return;
-            String expression = WorkflowUtil.getName( node );
+            String expression = WorkflowUtil.getCallName( node.getCompartment() ) +"."+ WorkflowUtil.getName( node );
             ExpressionInfo expressionInfo = new ExpressionInfo();
             if( expression == null )
             {
                 System.out.println( "Error" );
             }
             expressionInfo.setExpression( expression );
-            expressionInfo.setName( expression );
+            expressionInfo.setName( WorkflowUtil.getName( node ) );
             expressionInfo.setType( null );
             Node output = createOutputNode( diagram, expressionInfo );
             createLink( node, output );
@@ -374,7 +373,7 @@ public class DiagramGenerator
     }
 
 
-    public Node createOutputNode(Compartment parent, ExpressionInfo expressionInfo)
+    public static Node createOutputNode(Compartment parent, ExpressionInfo expressionInfo)
     {
         String name = expressionInfo.getName();
         if( name == null )
@@ -667,7 +666,7 @@ public class DiagramGenerator
                 WorkflowUtil.setType( portNode, WorkflowUtil.getType( node ) );
                 WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
                 WorkflowUtil.setExpression( portNode, WorkflowUtil.getExpression( node ) );
-                WorkflowUtil.setExpressionInfo( portNode, WorkflowUtil.getExpressionInfo( node ) );
+                WorkflowUtil.setExpressionInfo( portNode, WorkflowUtil.getExpressionInfo( node ).clone());
             }
         }
 

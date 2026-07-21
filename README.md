@@ -4,16 +4,30 @@
 
 Ensure that you have at least Java 21
 
+BioUML uses a **dual build system** (Maven + Ant). Both must compile successfully.
+
 Manually install JARs missing in Maven Central
 
 ```sh
 ./install_all_old_jars.sh 
 ```
 
-Now build BioUML
+**Maven** (modern, multi-module):
 
 ```sh
 mvn package -DskipTests
+```
+
+**Ant** (legacy):
+
+```sh
+cd src && ant compile
+```
+
+Verify both after any change:
+
+```sh
+mvn package -DskipTests && cd src && ant compile
 ```
 
 # To Run
