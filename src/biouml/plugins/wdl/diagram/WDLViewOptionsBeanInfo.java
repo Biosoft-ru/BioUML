@@ -15,7 +15,7 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
     protected void initProperties() throws Exception
     {
         add("autoLayout");
-        add("showTasks");
+        //add("showTasks");
         add("callBrush");
         add("callPen");
         add("taskBrush");

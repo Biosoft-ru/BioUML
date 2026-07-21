@@ -2,43 +2,41 @@ package biouml.plugins.gtrd.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.developmentontheedge.application.ApplicationUtils;
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
 
 import biouml.plugins.ensembl.tabletype.UniprotProteinTableType;
 import gnu.trove.list.array.TDoubleArrayList;
+import ru.biosoft.access.DataCollectionUtils;
+import ru.biosoft.access.file.FileDataElement;
+import ru.biosoft.access.biohub.ReferenceTypeRegistry;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.file.FileDataElement;
 import ru.biosoft.access.core.FolderCollection;
-import ru.biosoft.access.core.TransformedDataCollection;
-import ru.biosoft.access.biohub.ReferenceTypeRegistry;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.BindingElement;
 import ru.biosoft.bsa.Nucleotide15LetterAlphabet;
 import ru.biosoft.bsa.PValueCutoff;
 import ru.biosoft.bsa.SiteModel;
-import ru.biosoft.bsa.SiteModelCollection;
 import ru.biosoft.bsa.TranscriptionFactor;
 import ru.biosoft.bsa.analysis.CustomWeightsModel;
 import ru.biosoft.bsa.analysis.FrequencyMatrix;
 import ru.biosoft.bsa.analysis.WeightMatrixCollection;
 import ru.biosoft.bsa.transformer.SiteModelTransformer;
 import ru.biosoft.bsa.transformer.TranscriptionFactorTransformer;
-import ru.biosoft.table.ColumnModel;
-import ru.biosoft.table.RowDataElement;
-import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Parameters>
@@ -51,30 +49,55 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
     @Override
     public Object justAnalyzeAndPut() throws Exception
     {
-        TableDataCollection uniprotTable = parameters.getUniprotMatchingTable().getDataElement( TableDataCollection.class );
-        if(!parameters.getResultingFactorCollection().exists())
-            TranscriptionFactorTransformer.createCollection( parameters.getResultingFactorCollection() );
-        DataCollection<TranscriptionFactor> factors = parameters.getResultingFactorCollection().getDataCollection( TranscriptionFactor.class );
-        for(String uniprotName : uniprotTable.getNameList())
+
+    	if(!parameters.getOutPath().exists())
+    	{
+    		DataCollectionUtils.createFoldersForPath(parameters.getOutPath());
+    		DataCollectionUtils.createSubCollection(parameters.getOutPath());
+    	}
+    	DataElementPath factorsPath = parameters.getOutPath().getChildPath("factors");
+    	
+        if(!factorsPath.exists())
+            TranscriptionFactorTransformer.createCollection( factorsPath );
+        DataCollection<TranscriptionFactor> factors = factorsPath.getDataCollection( TranscriptionFactor.class );
+        
+        Map<String,List<TranscriptionFactor>> matrixNameToFactor = new HashMap<>();
+        Map<String,String> organisms = new HashMap<>();//Homo sapiens->HUMAN
+
+		FileDataElement jsonMetadata = parameters.getJsonMetadataPath().getDataElement(FileDataElement.class);
+		
+		try (BufferedReader reader = new BufferedReader(new FileReader(jsonMetadata.getFile()))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				JsonObject json = Json.parse(line).asObject();
+				String matrixName = json.get("name").asString();
+				JsonObject speciesJson = json.get("masterlist_info").asObject().get("species").asObject();
+				for (String speciesName : speciesJson.names()) {
+					String latinName = getLatinName(speciesName);
+					organisms.put(latinName, speciesName);
+					JsonObject organismInfo = speciesJson.get(speciesName).asObject();
+					String uniprotId = organismInfo.getString("uniprot_ac", null);
+					String uniprotName = organismInfo.getString("uniprot_id", null);
+					if (uniprotId == null || uniprotName == null)
+						throw new IllegalArgumentException(line);
+					TranscriptionFactor tf = new TranscriptionFactor(uniprotId, factors, uniprotName,
+							ReferenceTypeRegistry.getReferenceType(UniprotProteinTableType.class), latinName);
+					factors.put(tf);
+					matrixNameToFactor.computeIfAbsent(matrixName, k -> new ArrayList<>()).add(tf);
+				}
+			}
+		}        
+        Map<String, DataCollection<FrequencyMatrix>> matrixLibForOrganism = new HashMap<>();
+        for(String latinName : organisms.keySet())
         {
-            String uniprotId = (String)uniprotTable.get( uniprotName ).getValues()[0];
-            String speciesName = null;
-            if(uniprotName.endsWith( "_HUMAN" ))
-                speciesName = "Homo sapiens";
-            else if(uniprotName.endsWith( "_MOUSE" ))
-                speciesName = "Mus musculus";
-            else if(uniprotName.endsWith( "_RAT" ))
-                speciesName = "Rattus norvegicus";
-            else
-                throw new Exception("Unknown specie for " + uniprotName);
-            TranscriptionFactor tf = new TranscriptionFactor( uniprotId, factors, uniprotName, ReferenceTypeRegistry.getReferenceType( UniprotProteinTableType.class ), speciesName );
-            factors.put( tf );
+        	String commonName = organisms.get(latinName);
+        	DataElementPath matrixPath = parameters.getOutPath().getChildPath("PCM_" + commonName);
+        	if(matrixPath.exists())
+        		matrixPath.remove();
+        	WeightMatrixCollection.createMatrixLibrary( matrixPath, log );
+        	DataCollection<FrequencyMatrix> library = matrixPath.getDataCollection(FrequencyMatrix.class);
+        	matrixLibForOrganism.put(latinName, library);
         }
-        
-        
-        if(!parameters.getResultingMatrixCollection().exists())
-            WeightMatrixCollection.createMatrixLibrary( parameters.getResultingMatrixCollection(), log );
-        DataCollection<FrequencyMatrix> library = parameters.getResultingMatrixCollection().getDataCollection( FrequencyMatrix.class );
         
         File inputFile = parameters.getPcmFlatFile().getDataElement( FileDataElement.class ).getFile();
         
@@ -87,10 +110,7 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
                 if(!header.startsWith( ">" ))
                     throw new Exception("Illegal line: " + line);
                 String id = header.substring( 1 );
-                int idx = id.indexOf( '.' );
-                if(idx < 0)
-                    throw new Exception("Illegal matrix id: " + id);
-                String uniprotName = id.substring( 0, idx );
+                
                 List<double[]> counts = new ArrayList<>();
                 while((line = reader.readLine()) != null && !line.startsWith( ">" ))
                 {
@@ -103,32 +123,41 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
                     counts.add( row );
                 }
 
-
+                List<TranscriptionFactor> tfList = matrixNameToFactor.get(id);
                 
-                if( !uniprotTable.contains( uniprotName ) )
+                if( tfList == null )
                 {
-                    log.warning( "No matching for " + uniprotName );
+                    log.warning( "No uniprot matching for " + id );
                     continue;
                 }
-                String uniprotId = (String)uniprotTable.get( uniprotName ).getValues()[0];
-                TranscriptionFactor factor = factors.get( uniprotId );
-                BindingElement bindingElement = new BindingElement( uniprotName, Collections.singletonList( factor ) );
                 
-                FrequencyMatrix pcm = new FrequencyMatrix( library, id, Nucleotide15LetterAlphabet.getInstance(), bindingElement, counts.toArray( new double[counts.size()][] ), false );
-                library.put( pcm );
+                for(TranscriptionFactor factor : tfList)
+                {
+                	String uniprotId = factor.getName();
+                	String uniprotName = factor.getDisplayName();
+                	BindingElement bindingElement = new BindingElement( uniprotName, Collections.singletonList( factor ) );
+                	String latinName = factor.getSpeciesName();
+                	DataCollection<FrequencyMatrix> library = matrixLibForOrganism.get(latinName);
+                	FrequencyMatrix pcm = new FrequencyMatrix( library, id, Nucleotide15LetterAlphabet.getInstance(), bindingElement, counts.toArray( new double[counts.size()][] ), false );
+                    library.put( pcm );
+                }
+               
             }
         }
-        parameters.getResultingMatrixCollection().save( library );
+      
         
-        TableDataCollection thresholdsTable = parameters.getThresholdsTable().getDataElement( TableDataCollection.class );
+        Map<String, DataCollection<SiteModel>> profileByOrganism = new HashMap<>();
+        for(String latinName : organisms.keySet())
+        {
+        	String commonName = organisms.get(latinName);
+        	DataElementPath profilePath = parameters.getOutPath().getChildPath("PWM_"+commonName);
+            if(profilePath.exists())
+                profilePath.remove();
+            DataCollection<SiteModel> profile = SiteModelTransformer.createCollection(profilePath);
+            profileByOrganism.put(latinName, profile);
+            
+        }
         
-        
-        DataElementPath profilePath = parameters.getResultingSiteModelCollection();
-        if(profilePath.exists())
-            profilePath.remove();
-        
-        DataCollection<SiteModel> profile = SiteModelTransformer.createCollection(profilePath);
-
         inputFile = parameters.getPwmFlatFile().getDataElement(FileDataElement.class).getFile();
         try(BufferedReader reader = ApplicationUtils.asciiReader( inputFile ))
         {
@@ -153,43 +182,67 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
                         row[i] = Double.parseDouble( fields[i] );
                     weights.add( row );
                 }
-                FrequencyMatrix pcm = library.get( id );
-                if(pcm == null)
-                    throw new Exception("PCM for " + id + " not found");
-                
-                Map<String, String> thresholdTemplates = new HashMap<>();
-                ColumnModel columnModel = thresholdsTable.getColumnModel();
-                for(int i = 0; i < columnModel.getColumnCount(); i++)
-                {
-                    String name = columnModel.getColumn( i ).getName();
-                    RowDataElement row = thresholdsTable.get( id );
-                    if(row == null)
-                        throw new Exception("No thresholds for " + id);
-                    String value = row.getValueAsString( name );
-                    thresholdTemplates.put( name, value );
-                }
-                SiteModel pwm = new CustomWeightsModel( id, profile, pcm, 0, weights.toArray( new double[weights.size()][] ) );
-                pwm.setThresholdTemplates( thresholdTemplates );
-                pwm.setThresholdTemplate( columnModel.getColumn( 0 ).getName() );
                 
                 DataElementPath thresholdsFolder = parameters.getThresholdsFolder();
-                if(thresholdsFolder != null)
+                File file = thresholdsFolder.getChildPath( id + ".thr" ).getDataElement( FileDataElement.class ).getFile();
+                PValueCutoff pvalueCutoff = loadThresholds(file);
+                
+                Map<String, String> thresholdTemplates = new LinkedHashMap<>();
+				String[] predefinedPvals = { "0.001", "0.0005", "0.0001" };
+				for (String pval : predefinedPvals) {
+					double cutoff = pvalueCutoff.getCutoff(Double.parseDouble(pval));
+					thresholdTemplates.put(pval, String.valueOf(cutoff));
+				}
+                
+                
+                List<TranscriptionFactor> tfList = matrixNameToFactor.get(id);
+                
+                if( tfList == null )
                 {
-                    File file = thresholdsFolder.getChildPath( id + ".thr" ).getDataElement( FileDataElement.class ).getFile();
-                    PValueCutoff pvalueCutoff = loadThresholds(file);
-                    pwm.setPValueCutoff( pvalueCutoff );
+                    log.warning( "No uniprot matching for " + id );
+                    continue;
                 }
                 
-                profile.put( pwm );
+                for(TranscriptionFactor factor : tfList)
+                {
+                	String latinName = factor.getSpeciesName();
+                	
+                	DataCollection<FrequencyMatrix> library = matrixLibForOrganism.get(latinName);
+                	DataCollection<SiteModel> profile = profileByOrganism.get(latinName);
+                	
+                	FrequencyMatrix pcm = library.get( id );
+                    if(pcm == null)
+                        throw new Exception("PCM for " + id + " not found");
+                    
+                    SiteModel pwm = new CustomWeightsModel( id, profile, pcm, 0, weights.toArray( new double[weights.size()][] ) );
+                    pwm.setPValueCutoff( pvalueCutoff );
+                    pwm.setThresholdTemplates( thresholdTemplates );
+                    pwm.setThresholdTemplate( thresholdTemplates.keySet().iterator().next() );
+                    profile.put( pwm );
+                }
+              
             }
         }
         
-        profilePath.save( profile );
+        for(DataCollection<FrequencyMatrix> lib : matrixLibForOrganism.values())
+        	lib.getCompletePath().save(lib);
         
-        return new Object[] {library, profile};
+        for(DataCollection<SiteModel> profile : profileByOrganism.values())
+        	profile.getCompletePath().save(profile);
+        
+        
+        return new Object[] {parameters.getOutPath().getDataCollection()};
     }
 
-    private PValueCutoff loadThresholds(File file) throws IOException
+    private String getLatinName(String speciesName) {
+    	if(speciesName.equals("HUMAN"))
+    		return "Homo sapiens";
+    	if(speciesName.equals("MOUSE"))
+    		return "Mus musculus";
+    	throw new IllegalArgumentException(speciesName);
+    }
+
+	private PValueCutoff loadThresholds(File file) throws IOException
     {
         TDoubleArrayList cutoffs = new TDoubleArrayList();
         TDoubleArrayList pvalues = new TDoubleArrayList();
@@ -215,12 +268,9 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
     {
         DataElementPath pcmFlatFile;
         DataElementPath pwmFlatFile;
-        DataElementPath thresholdsTable;
-        DataElementPath uniprotMatchingTable;
-        DataElementPath resultingMatrixCollection;
-        DataElementPath resultingSiteModelCollection;
-        DataElementPath resultingFactorCollection;
         DataElementPath thresholdsFolder;
+        DataElementPath jsonMetadataPath;
+        DataElementPath outPath;
         
         @PropertyName("PCM flat file")
         @PropertyDescription("Position count matrix flat file")
@@ -248,19 +298,7 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
             firePropertyChange( "pwmFlatFile", oldValue, pwmFlatFile );
         }
 
-        @PropertyName("Thresholds table")
-        @PropertyDescription("Table with model thresholds")
-        public DataElementPath getThresholdsTable()
-        {
-            return thresholdsTable;
-        }
-        public void setThresholdsTable(DataElementPath thresholdsTable)
-        {
-            DataElementPath oldValue = this.thresholdsTable;
-            this.thresholdsTable = thresholdsTable;
-            firePropertyChange( "thresholdsTable", oldValue, thresholdsTable );
-        }
-        
+       
         @PropertyName("Thresholds folder")
         public DataElementPath getThresholdsFolder()
         {
@@ -273,57 +311,26 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
             firePropertyChange( "thresholdsFolder", oldValue, thresholdsFolder );
         }
         
-        @PropertyName("Uniprot matching table")
-        @PropertyDescription("Table witih ID corresponding to uniprot name and first columnt corresponding to uniprot id")
-        public DataElementPath getUniprotMatchingTable()
-        {
-            return uniprotMatchingTable;
-        }
-        public void setUniprotMatchingTable(DataElementPath uniprotMatchingTable)
-        {
-            DataElementPath oldValue = this.uniprotMatchingTable;
-            this.uniprotMatchingTable = uniprotMatchingTable;
-            firePropertyChange( "uniprotMatchingTable", oldValue, uniprotMatchingTable );
-        }
         
-        @PropertyName("Resulting matrix collection")
-        @PropertyDescription("Path to resulting matrix collection")
-        public DataElementPath getResultingMatrixCollection()
-        {
-            return resultingMatrixCollection;
-        }
-        
-        public void setResultingMatrixCollection(DataElementPath resultingMatrixCollection)
-        {
-            DataElementPath oldValue = this.resultingMatrixCollection;
-            this.resultingMatrixCollection = resultingMatrixCollection;
-            firePropertyChange( "resultingMatrixCollection", oldValue, resultingMatrixCollection );
-        }
-        
-        @PropertyName("Resulitng site model collection")
-        @PropertyDescription("Path to resulting site model collection")
-        public DataElementPath getResultingSiteModelCollection()
-        {
-            return resultingSiteModelCollection;
-        }
-        public void setResultingSiteModelCollection(DataElementPath resultingSiteModelCollection)
-        {
-            DataElementPath oldValue = this.resultingSiteModelCollection;
-            this.resultingSiteModelCollection = resultingSiteModelCollection;
-            firePropertyChange( "resultingSiteModelCollection", oldValue, resultingSiteModelCollection );
-        }
-        
-        @PropertyName("Resulting factor collection")
-        public DataElementPath getResultingFactorCollection()
-        {
-            return resultingFactorCollection;
-        }
-        public void setResultingFactorCollection(DataElementPath resultingFactorCollection)
-        {
-            DataElementPath oldValue = this.resultingFactorCollection;
-            this.resultingFactorCollection = resultingFactorCollection;
-            firePropertyChange( "resultingFactorCollection", oldValue, resultingFactorCollection );
-        }
+        @PropertyName("Json metadata")
+        public DataElementPath getJsonMetadataPath() {
+			return jsonMetadataPath;
+		}
+		public void setJsonMetadataPath(DataElementPath jsonMetadataPath) {
+		    DataElementPath oldValue = this.jsonMetadataPath;
+		    this.jsonMetadataPath = jsonMetadataPath;
+            firePropertyChange( "jsonMetadataPath", oldValue, jsonMetadataPath );
+		}
+		public DataElementPath getOutPath() {
+			return outPath;
+		}
+		public void setOutPath(DataElementPath outPath) {
+			DataElementPath oldValue = this.outPath;
+			this.outPath = outPath;
+            firePropertyChange( "outPath", oldValue, outPath );
+		}
+		
+		
         
     }
     
@@ -339,12 +346,9 @@ public class ImportHocomoco extends AnalysisMethodSupport<ImportHocomoco.Paramet
         {
             property( "pcmFlatFile" ).inputElement( FileDataElement.class ).add();
             property( "pwmFlatFile" ).inputElement( FileDataElement.class ).add();
-            property( "thresholdsTable" ).inputElement( TableDataCollection.class ).add();
             property( "thresholdsFolder" ).inputElement( FolderCollection.class ).add();
-            property( "uniprotMatchingTable" ).inputElement( TableDataCollection.class ).add();
-            property( "resultingMatrixCollection" ).outputElement( WeightMatrixCollection.class ).add();
-            property( "resultingSiteModelCollection" ).outputElement( SiteModelCollection.class ).add();
-            property( "resultingFactorCollection" ).outputElement( TransformedDataCollection.class ).add();
+            property( "jsonMetadataPath" ).inputElement(FileDataElement.class).add(); 
+            property( "outPath" ).outputElement( FolderCollection.class ).add();
         }
     }
 }

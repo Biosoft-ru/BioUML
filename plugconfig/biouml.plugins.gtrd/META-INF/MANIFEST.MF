@@ -30,6 +30,7 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.treetable,
  ru.biosoft.workbench.editors,
  org.eclipse.equinox.app,
+ com.eclipsesource.json,
  json
 Export-Package: biouml.plugins.gtrd,
  biouml.plugins.gtrd.access,
