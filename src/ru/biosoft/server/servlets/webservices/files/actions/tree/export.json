@@ -25,12 +25,21 @@
         }
         return -1;
     }",
-    action: "function(completePath)
+    multiAction: "function(completePaths)
     {
 	    $.chainclude(
 		    {
 		        'lib/export.js':function(){
-					exportElement(completePath, 'Element');
+                    if(!completePaths || completePaths.length === 0) return;
+                    if(completePaths.length === 1)
+                    {
+                        exportElement(completePaths[0], 'Element');
+                        return;
+                    }
+                    _.each(completePaths, function(completePath)
+                    {
+                        exportElement(completePath, 'Element');
+                    });
 		        }
 		    }
 	    );
