@@ -30,8 +30,10 @@ public class SensitivityAnalysisParameters extends SteadyStateAnalysisParameters
     {
         for (VariableSet var: targetVariables)
         {
+            String[] names = var.getVariableNames();
             var.setEngine(getEngineWrapper().getEngine());
             var.setDiagram(this.getDiagram());
+            var.setVariableNames( names );
         }
         this.targetVariables = targetVariables;
     }
@@ -46,8 +48,10 @@ public class SensitivityAnalysisParameters extends SteadyStateAnalysisParameters
     {
         for (VariableSet var: inputVariables)
         {
+            String[] names = var.getVariableNames();
             var.setEngine(getEngineWrapper().getEngine());
             var.setDiagram(this.getDiagram());
+            var.setVariableNames( names );
         }
         this.inputVariables = inputVariables;
     }
