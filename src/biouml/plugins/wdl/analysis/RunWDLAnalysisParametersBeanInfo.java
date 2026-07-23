@@ -17,6 +17,7 @@ public class RunWDLAnalysisParametersBeanInfo extends BeanInfoEx2<RunWDLAnalysis
     {
         property( "outputPath" ).outputElement( GenericDataCollection.class ).add();
         property( "wdlPath" ).inputElement( Diagram.class ).add();
+        add( "useDocker" );
         property( "useJson" ).structureChanging().add();
         property( "jsonPath" ).inputElement( TextDataElement.class ).hidden( "isNotUseJson" ).add();
         addHidden( "parameters", "isUseJson");

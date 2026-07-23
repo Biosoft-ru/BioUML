@@ -102,6 +102,19 @@ public class RunWDLAnalysisParameters extends AbstractAnalysisParameters impleme
         firePropertyChange( "useJson", oldValue, useJson );
     }
 
+    @PropertyName("Run in docker")
+    public boolean isUseDocker()
+    {
+        return settings.isUseDocker();
+    }
+
+    public void setUseDocker(boolean useDocker)
+    {
+        boolean oldValue = settings.isUseDocker();
+        settings.setUseDocker( useDocker );
+        firePropertyChange( "useDocker", oldValue, useDocker );
+    }
+
     public void reloadParameters(String wdl) throws Exception
     {
         Diagram diagram = new WDLImporter().generateDiagram( wdl, "analysisDiagram" , null);

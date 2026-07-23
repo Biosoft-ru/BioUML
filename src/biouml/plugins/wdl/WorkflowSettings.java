@@ -27,6 +27,7 @@ public class WorkflowSettings extends Option
 {
     private DataElementPath outputPath;
     private boolean useJson = false;
+    private boolean useDocker = false;
     private DataElementPath json;
     private DynamicPropertySet parameters = new DynamicPropertySetSupport();
 
@@ -245,5 +246,18 @@ public class WorkflowSettings extends Option
         Object oldValue = this.executionType;
         this.executionType = executionType;
         firePropertyChange( "executionType", oldValue, executionType );
+    }
+
+    @PropertyName("Run in docker")
+    public boolean isUseDocker()
+    {
+        return useDocker;
+    }
+
+    public void setUseDocker(boolean useDocker)
+    {
+        boolean oldValue = this.useDocker;
+        this.useDocker = useDocker;
+        firePropertyChange( "useDocker", oldValue, this.useDocker );
     }
 }
