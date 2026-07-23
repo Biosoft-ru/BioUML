@@ -161,23 +161,23 @@ def read_int_wdl(filePath) {
     return new File(filePath).text.trim() as Integer
 }
 
-def read_lines_groovy(filePath) {
+def read_lines_bash(filePath) {
     return "\$(cat ${filePath})"
 }
 
-def read_int_groovy(filePath) {
+def read_int_bash(filePath) {
     return "\$(cat ${filePath} | tr -d '\\r\\n')"
 }
 
-def read_string_groovy(filePath) {
+def read_string_bash(filePath) {
     return "\$(cat ${filePath})"
 }
 
-def read_float_groovy(filePath) {
+def read_float_bash(filePath) {
     return "\$(cat ${filePath} | tr -d '\\r\\n')"
 }
 
-def read_boolean_groovy(filePath) {
+def read_boolean_bash(filePath) {
     return "\$(cat ${filePath} | tr -d '\\r\\n')"
 }
 
@@ -455,6 +455,16 @@ def write_lines_wdl(value) {
     return file.path
 }
 
+def write_lines_bash(List<String> lines, String fileName)
+{
+    String content = lines.join('\n') + '\n'
+
+    String escapedContent = content.replace("'", "'\"'\"'")
+    String escapedFileName = fileName.replace("'", "'\"'\"'")
+
+    return "printf '%s' '${escapedContent}' > '${escapedFileName}'"
+}
+
 
 def collect_by_key_wdl(pairs) {
     def result = [:].withDefault { [] }
@@ -469,7 +479,7 @@ def collect_by_key_wdl(pairs) {
     return result
 }
 
-def size_wdl2(value, unit = 'B') {
+def size_wdl(value, unit = 'B') {
     double bytes
 
     if (value instanceof Collection) {
@@ -482,22 +492,22 @@ def size_wdl2(value, unit = 'B') {
     switch (unit) {
         case 'B':
             return bytes
-        case 'KB':
+        case 'K':
             return bytes / 1_000d
-        case 'MB':
+        case 'M':
             return bytes / 1_000_000d
-        case 'GB':
+        case 'G':
             return bytes / 1_000_000_000d
-        case 'TB':
+        case 'T':
             return bytes / 1_000_000_000_000d
 
-        case 'KiB':
+        case 'Ki':
             return bytes / 1024d
-        case 'MiB':
+        case 'Mi':
             return bytes / (1024d * 1024d)
-        case 'GiB':
+        case 'Gi':
             return bytes / (1024d * 1024d * 1024d)
-        case 'TiB':
+        case 'Ti':
             return bytes / (1024d * 1024d * 1024d * 1024d)
 
         default:
@@ -505,7 +515,7 @@ def size_wdl2(value, unit = 'B') {
     }
  }
  
-def size_wdl(pathExpr, unit = 'B')
+def size_bash(pathExpr, unit = 'B')
 {
     def divisor
 
@@ -514,22 +524,22 @@ def size_wdl(pathExpr, unit = 'B')
         case 'B':
             divisor = '1'
             break
-        case 'KB':
+        case 'K':
             divisor = '1000'
             break
-        case 'MB':
+        case 'M':
             divisor = '1000000'
             break
-        case 'GB':
+        case 'G':
             divisor = '1000000000'
             break
-        case 'KiB':
+        case 'Ki':
             divisor = '1024'
             break
-        case 'MiB':
+        case 'Mi':
             divisor = '1024*1024'
             break
-        case 'GiB':
+        case 'Gi':
             divisor = '1024*1024*1024'
             break
         default:

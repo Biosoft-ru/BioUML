@@ -36,6 +36,18 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         super( diagram );
         this.isEntryScript = isEntryScript;
     }
+    
+    public String getShortDeclaration(Node n)
+    {
+        if( n == null )
+            return "??";
+        String result = getType( n ) + " " + getName( n );
+        if (getType(n).equals( "path" ))
+//            result = result+ ", name: '"+ getName( n )+"'";
+            result = result+ ", name: '"+ getName( n )+"/*'";
+        return result;
+    }
+
 
     public Node getCallByOutput(Node node)
     {
@@ -59,7 +71,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         String expression = super.getExpression( n );
         if( expression == null )
             return null;
-        expression = expression.replace( "~{", "${" );
+//        expression = expression.replace( "~{", "${" );
         return expression;
     }
 
@@ -77,8 +89,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         switch( wdlType )
         {
             case "File":
+            case "File?":
             case "Array[File]":
+            case "Array[File]?":
             case "Directory":
+            case "Directory?":
                 return "path";
             case "tuple":
                 return "tuple";
@@ -850,7 +865,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 String name = getCallName( source.getCompartment() );
 
                 if( result != null )
-                    expression = expression.replace( name, result );
+                    expression = expression.replace( name + ".", result  + ".");
                 else
                     expression = expression.replace( name + ".", name + ".out." );
                 //            boolean startBracket = expression.startsWith( "[" );
@@ -994,12 +1009,12 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public static String toNextflowFunction(String name, boolean inCommand)
     {
-        if( inCommand && groovyFunctions.contains( name ) )
-            return name + "_groovy";
+        if( inCommand && bashFunctions.contains( name ) )
+            return name + "_bash";
         return name + "_wdl";
     }
 
-    public static Set<String> groovyFunctions = Set.of( "read_int", "read_string", "read_float", "read_boolean", "read_lines" );
+    public static Set<String> bashFunctions = Set.of( "read_int", "read_string", "read_float", "read_boolean", "read_lines", "read_tsv", "size" );//, "write_lines");
 
     public String getFunctions()
     {
@@ -1012,8 +1027,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 result.add( funName + "_wdl" );
             if( isFunctionCalledInCommand( funName.trim() ) )
             {
-                if( groovyFunctions.contains( funName.trim() ) )
-                    result.add( funName + "_groovy" );
+                if( bashFunctions.contains( funName.trim() ) )
+                    result.add( funName + "_bash" );
                 else
                     result.add( funName + "_wdl" );
             }
@@ -1238,6 +1253,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         }
 
         return sb.toString();
+    }
+    
+    public boolean isOptional(Node node)
+    {
+        return super.getType( node ).endsWith( "?" );
     }
 
 }

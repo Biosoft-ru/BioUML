@@ -29,6 +29,7 @@ import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.model.StructInfo;
 import biouml.plugins.wdl.model.TaskInfo;
 import biouml.plugins.wdl.model.WorkflowInfo;
+import biouml.plugins.wdl.parser.ExpressionParser;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
@@ -230,9 +231,16 @@ public class DiagramGenerator
     public static void addOutputs(Diagram diagram)
     {
         for( Node node : diagram.recursiveStream().select( Node.class )
-                .filter( n -> ( n.getEdges().length == 0 && WorkflowUtil.isOutput( n ) && WorkflowUtil.isCall( n.getCompartment() ) ) ) )
+                .filter( n -> (  WorkflowUtil.isOutput( n ) && WorkflowUtil.isCall( n.getCompartment() ) ) ) )
         {
-
+            boolean hasOutput = false;
+            for (Edge e: node.edges())
+            {
+                if (WorkflowUtil.isExternalOutput(  e.getOtherEnd( node )))
+                        hasOutput = true;
+            }
+            if (hasOutput)
+                continue;
             if( ! ( WorkflowUtil.getEnclosingdWorkflow( node ) instanceof Diagram ) )
                 return;
             String expression = WorkflowUtil.getCallName( node.getCompartment() ) +"."+ WorkflowUtil.getName( node );
@@ -343,12 +351,15 @@ public class DiagramGenerator
         }
     }
 
-    public Node createConditionNode(Compartment parent, String expression)
+    public Node createConditionNode(Compartment parent, String expression) throws Exception
     {
         String name = WDLSemanticController.uniqName( parent, "condition" );
         Node node = createNode( parent, name, WDLConstants.CONDITION_TYPE );
         WorkflowUtil.setExpression( node, expression );
-
+        ExpressionInfo info = new ExpressionInfo();
+        info.setExpression( expression );
+        info.setAST( new ExpressionParser().parseExpression( expression ) );
+        WorkflowUtil.setExpressionInfo( node, info );
         node.setTitle( name );
         node.setShapeSize( new Dimension( 80, 60 ) );
         parent.put( node );
