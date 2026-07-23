@@ -25,7 +25,8 @@ import one.util.streamex.StreamEx;
 public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 {
     private boolean isEntryScript = true;
-
+    private boolean publishOutput = false;
+    
     public NextFlowVelocityHelper(Diagram diagram)
     {
         super( diagram );
@@ -1223,6 +1224,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return "params." + getName( input );
     }
 
+    public void setPublishOutput(boolean publishOutput)
+    {
+        this.publishOutput = publishOutput;
+    }
+    
     public String generateWorkflowPublish(Diagram diagram)
     {
         String workflowName = getWorkflowName( diagram );

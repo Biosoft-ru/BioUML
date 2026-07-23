@@ -203,6 +203,8 @@ public class WorkflowUtil
 
     public static List<Node> getInputs(Compartment c)
     {
+        if (c instanceof Diagram)
+            return getExternalParameters(c);
         return c.stream( Node.class ).filter( n -> isInput( n ) ).toList();
     }
 
@@ -224,6 +226,8 @@ public class WorkflowUtil
 
     public static List<Node> getOutputs(Compartment c)
     {
+        if (c instanceof Diagram)
+            return getExternalOutputs(c);
         return c.stream( Node.class ).filter( n -> isOutput( n ) ).sorted( new PositionComparator() ).toList();
     }
 
@@ -420,7 +424,10 @@ public class WorkflowUtil
 
     public static String getCallName(Node n)
     {
-        return n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
+        String callName =  n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
+        if (callName.contains("."))
+            callName = callName.substring(callName.lastIndexOf(".")+1);
+        return callName;
     }
 
     public static Node findConditionNode(Compartment conditional)

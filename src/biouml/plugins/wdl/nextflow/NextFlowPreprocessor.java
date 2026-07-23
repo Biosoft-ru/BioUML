@@ -1190,7 +1190,9 @@ public class NextFlowPreprocessor
         {
             if( node instanceof AstFunction )
             {
-//                String name = ( (AstFunction)node ).toString();
+                String name = ( (AstFunction)node ).toString();
+                if (name.equals("glob")) //exclusion
+                    continue;
 //                if( needsWrapper.contains( name ) )
 //                {
                     return (AstFunction)node;
