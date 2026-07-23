@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +45,7 @@ public class NextFlowRunner
 	private static final String BIOUML_FUNCTIONS_NF = "resources/biouml_function.nf";
 	private static final Logger log = Logger.getLogger(NextFlowRunner.class.getName());
 
-	public static File generateFunctions(String outputDir) throws IOException
+    public static File generateFunctions(String outputDir) throws IOException
 	{
 		InputStream inputStream = NextFlowRunner.class.getResourceAsStream(BIOUML_FUNCTIONS_NF);
 		File result = new File(outputDir, "biouml_function.nf");
@@ -52,21 +53,43 @@ public class NextFlowRunner
 		return result;
 	}
 
+    public static String runNextFlowByDiagram(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl) throws Exception
+    {
+        if( settings.getOutputPath() == null )
+            throw new InvalidParameterException( "Output path not specified" );
+        DataCollectionUtils.createSubCollection( settings.getOutputPath() );
+
+        new File( outputDir ).mkdirs();
+
+        File json = settings.generateParametersJSON( outputDir );
+        settings.exportCollections( outputDir );
+        exportIncludes( diagram, outputDir );
+
+        if( nextFlowScript == null )
+            nextFlowScript = new NextFlowGenerator().generate( diagram );
+        GeneSpaceContext context = new GeneSpaceContext( null, null, null, Paths.get( outputDir ) );
+
+        runNextFlow( diagram.getName(), diagram.getName(), Collections.emptyMap(), nextFlowScript, useWsl, settings.isUseDocker(), null, context, json.getName() );
+        importResults( diagram, settings, outputDir );
+        return "";
+    }
+
     public static void runNextFlow(String id, String name, Map<String, Object> parameters, String nextFlowScript,
-			boolean useWsl, boolean useDocker, String towerAddress, GeneSpaceContext context) throws Exception
+            boolean useWsl, boolean useDocker, String towerAddress, GeneSpaceContext context, String jsonFile) throws Exception
 	{
         File outputDir = context.getOutputDir().toFile();
         outputDir.mkdirs();
         File config = generateConfig( name, parameters, outputDir, useDocker, context );
+        generateFunctions( context.getOutputDir().toString() );
 
 		File f = new File(outputDir, name + ".nf");
 		ApplicationUtils.writeString(f, nextFlowScript);
 
         ProcessBuilder pb = null;
         if( useDocker )
-            pb = getNextflowDockerProcessBuilder( f.getName(), config.getName(), id, towerAddress, context );
+            pb = getNextflowDockerProcessBuilder( f.getName(), config.getName(), id, towerAddress, context, jsonFile );
         else
-            pb = getNextflowLocalProcessBuilder( f.getName(), config.getName(), id, towerAddress, context, useWsl );
+            pb = getNextflowLocalProcessBuilder( f.getName(), config.getName(), id, towerAddress, context, useWsl, jsonFile );
 
         log.log( Level.INFO, "COMMAND: " + StreamEx.of( pb.command() ).joining( " " ) );
 		System.out.println("COMMAND: " + StreamEx.of(pb.command()).joining(" "));
@@ -78,20 +101,45 @@ public class NextFlowRunner
      * Run nextflow as local process in Windows or Unix
      */
     private static ProcessBuilder getNextflowLocalProcessBuilder(String nextFlowScriptName, String nextFlowConfig, String id, String towerAddress, GeneSpaceContext context,
-            boolean useWsl)
+            boolean useWsl, String jsonFile)
     {
 
         String parent = context.getOutputDir().toAbsolutePath().toString().replace( "\\", "/" );
-        String command = "export TOWER_WORKFLOW_ID=" + id + " ; export TOWER_ACCESS_TOKEN=zzz ; nextflow " + nextFlowScriptName + " -c " + nextFlowConfig;
+        List<String> cmd = new ArrayList<>();
         if( towerAddress != null )
-            command += " -with-tower \'" + towerAddress + "\'";
+        {
+            cmd.add( "export" );
+            cmd.add( "TOWER_WORKFLOW_ID=" + id );
+            cmd.add( "export" );
+            cmd.add( "TOWER_ACCESS_TOKEN=zzz" );
+        }
+        cmd.add( "nextflow" );
+        cmd.add( "run" );
+        cmd.add( nextFlowScriptName );
+        cmd.add( "-c" );
+        cmd.add( nextFlowConfig );
 
-        List<String> baseCommand;
+        if( towerAddress != null )
+        {
+            cmd.add( "-with-tower" );
+            cmd.add( "\'" + towerAddress + "\'" );
+        }
+
+        if( jsonFile != null )
+        {
+            cmd.add( "-params-file" );
+            cmd.add( jsonFile );
+        }
+
+        List<String> baseCommand = new ArrayList<>();
 
         if( useWsl )
-            baseCommand = List.of( "wsl", "--cd", parent, "bash", "-c", command );
-        else
-            baseCommand = List.of( "bash", "-c", "cd " + parent + " && " + command );
+        {
+            baseCommand.add( "wsl" );
+            baseCommand.add( "--cd" );
+            baseCommand.add( parent );
+        }
+        baseCommand.addAll( cmd );
 
         ProcessBuilder pb = new ProcessBuilder( baseCommand );
         if( !useWsl )
@@ -148,7 +196,8 @@ public class NextFlowRunner
      * All inputs/results/used items should be descendants of one of the 4 folders above. 
      */
     private static ProcessBuilder getNextflowDockerProcessBuilder(String nextFlowScriptName, String nextFlowConfig, String id,
-			String towerAddress, GeneSpaceContext context) {
+            String towerAddress, GeneSpaceContext context, String jsonFile)
+    {
 
 		String containerName = "nf-" + id;
         String workDir = context.getOutputDir().toString();//"/nf-work";
@@ -169,7 +218,6 @@ public class NextFlowRunner
             cmd.add( "TOWER_WORKFLOW_ID=" + id );
             cmd.add( "-e" );
             cmd.add( "TOWER_ACCESS_TOKEN=zzz" );
-
         }
 
         cmd.add( "-v" );
@@ -210,6 +258,12 @@ public class NextFlowRunner
         {
             cmd.add( "-with-tower" );
             cmd.add( "\'" + towerAddress + "\'" );
+        }
+
+        if( jsonFile != null )
+        {
+            cmd.add( "-params-file" );
+            cmd.add( workDir + "/" + jsonFile );
         }
 
 		ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -348,162 +402,9 @@ public class NextFlowRunner
 
     private static Path resolvePath(Path original, GeneSpaceContext context, boolean useDocker)
     {
-        //        if( !useDocker )
-        //            return Path.of( "/" ).resolve( original );
-        //
-        //        if( context.getProjectsDir() != null )
-        //        {
-        //            Path prj = context.getProjectsDir();
-        //            if( original.startsWith( prj ) )
-        //            {
-        //                Path relative = prj.relativize( original );
-        //                return Path.of( "/projects" ).resolve( relative );
-        //            }
-        //        }
-        //
-        //        if( context.getGenomeDir() != null )
-        //        {
-        //            Path path = context.getGenomeDir();
-        //            if( original.startsWith( path ) )
-        //            {
-        //                Path relative = path.relativize( original );
-        //                return Path.of( "/references" ).resolve( relative );
-        //            }
-        //        }
-        //
-        //        if( context.getWorkflowsDir() != null )
-        //        {
-        //            Path path = context.getWorkflowsDir();
-        //            if( original.startsWith( path ) )
-        //            {
-        //                Path relative = path.relativize( original );
-        //                return Path.of( "/workflows" ).resolve( relative );
-        //            }
-        //        }
-        //        if( context.getOutputDir() != null )
-        //        {
-        //            Path path = context.getOutputDir();
-        //            if( original.startsWith( path ) )
-        //            {
-        //                Path relative = path.relativize( original );
-        //                return Path.of( "/nf-work" ).resolve( relative );
-        //            }
-        //        }
         return Path.of( "/" ).resolve( original );
     }
 
-	public static String runNextFlow(Diagram diagram, String nextFlowScript, WorkflowSettings settings, String outputDir, boolean useWsl)
-			throws Exception
-	{
-		if( settings.getOutputPath() == null )
-			throw new InvalidParameterException("Output path not specified");
-
-		new File(outputDir).mkdirs();
-		DataCollectionUtils.createSubCollection(settings.getOutputPath());
-
-		File config = new File(outputDir, "nextflow.config");
-		ApplicationUtils.writeString(config, "docker.enabled = true");
-
-		File json = settings.generateParametersJSON(outputDir);
-
-		settings.exportCollections(outputDir);
-
-		generateFunctions(outputDir);
-
-		exportIncludes(diagram, outputDir);
-
-		if( nextFlowScript == null )
-			nextFlowScript = new NextFlowGenerator().generate(diagram);
-		NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
-		nextFlowScript = preprocessor.preprocess(nextFlowScript);
-
-		String name = diagram.getName();
-		File f = new File(outputDir, name + ".nf");
-		ApplicationUtils.writeString(f, nextFlowScript);
-
-		ProcessBuilder builder;
-		if( useWsl )
-		{
-			String parent = new File(outputDir).getAbsolutePath().replace("\\", "/");
-			builder = new ProcessBuilder("wsl", "--cd", parent, "nextflow", f.getName(), "-c", "nextflow.config", "-params-file",
-					json.getName());
-		}
-		else
-		{
-			builder = new ProcessBuilder("nextflow", f.getName(), "-c", "nextflow.config", "-params-file", json.getName());
-			builder.directory(new File(outputDir));
-		}
-
-		System.out.println("COMMAND: " + StreamEx.of(builder.command()).joining(" "));
-		Process process = builder.start();
-
-		new Thread(new Runnable()
-		{
-			public void run()
-			{
-				BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				String line = null;
-
-				try
-				{
-					while( ( line = input.readLine() ) != null )
-						log.info(line);
-				}
-				catch( IOException e )
-				{
-					e.printStackTrace();
-				}
-				//                
-				//for some reason cwl-runner outputs everything into error stream
-				BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-				line = null;
-
-				try
-				{
-					while( ( line = err.readLine() ) != null )
-						log.info(line);
-				}
-				catch( IOException e )
-				{
-					e.printStackTrace();
-				}
-			}
-		}).start();
-
-		process.waitFor();
-		importResults(diagram, settings, outputDir);
-		return "";
-		//        StreamGobbler inputReader = new StreamGobbler( process.getInputStream(), true );
-		//        StreamGobbler errorReader = new StreamGobbler( process.getErrorStream(), true );
-		//        process.waitFor();
-		//
-		//        if( process.exitValue() == 0 )
-		//        {
-		//            String logString = "";
-		//            String outStr = inputReader.getData();
-		//            if( !outStr.isEmpty() )
-		//            {
-		//                logString += outStr;
-		//                log.info( outStr );
-		//            }
-		//            //for some reason cwl-runner outputs everything into error stream
-		//            String errorStr = errorReader.getData();
-		//            if( !errorStr.isEmpty() )
-		//            {
-		//                logString += errorStr;
-		//                log.info( errorStr );
-		//            }
-		//            importResults( diagram, settings, outputDir );
-		//            return logString;
-		//        }
-		//        else
-		//        {
-		//            String errorStr = errorReader.getData();
-		//            log.info( errorStr );
-		//            throw new Exception( "Nextflow executed with error: " + errorStr );
-		//        }
-
-	}
 
 	public static void importResults(Diagram diagram, WorkflowSettings settings, String outputDir) throws Exception
 	{

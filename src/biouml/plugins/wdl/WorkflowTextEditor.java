@@ -337,7 +337,7 @@ public class WorkflowTextEditor extends EditorPartSupport
             {
                 //                CWLRunner.runNextFlow( diagram, WorkflowTextEditor.this.getCWL(), settings, outputDir,
                 //                      System.getProperty( "os.name" ).startsWith( "Windows" ) );
-                NextFlowRunner.runNextFlow( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
+                NextFlowRunner.runNextFlowByDiagram( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
                         System.getProperty( "os.name" ).startsWith( "Windows" ) );
             }
             catch( Exception ex )

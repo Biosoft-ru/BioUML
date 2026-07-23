@@ -32,7 +32,7 @@ public class RunWDLAnalysis extends AnalysisMethodSupport<RunWDLAnalysisParamete
         WorkflowSettings settings = parameters.getSettings();
         settings.setOutputPath( outPath );
         String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
-        NextFlowRunner.runNextFlow( diagram, nextFlow, settings, outputDir, isWindows );
+        NextFlowRunner.runNextFlowByDiagram( diagram, nextFlow, settings, outputDir, isWindows );
 
         log.info( "WDL Analysis finished" );
         return new Object[0];
