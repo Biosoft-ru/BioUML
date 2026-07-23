@@ -70,7 +70,7 @@ public class NextFlowPreprocessor
         return node instanceof AstExpression && node.jjtGetNumChildren() == 1 && isFunction( node.jjtGetChild( 0 ), name );
     }
 
-    private boolean isFunction(biouml.plugins.wdl.parser.Node node, String name)
+    public static boolean isFunction(biouml.plugins.wdl.parser.Node node, String name)
     {
         return node instanceof AstFunction && ( (AstFunction)node ).toString().equals( name );
     }
@@ -88,8 +88,11 @@ public class NextFlowPreprocessor
 
         for( Compartment task : WorkflowUtil.getTasks( result ) )
         {
-            WorkflowUtil.setRuntimeProperty( task, "publishDir",
-                    "\"" + publishDir + "/" + task.getName() + "\", mode: 'copy', overwrite: true" );
+            if( publishDir.isEmpty() )
+                WorkflowUtil.setRuntimeProperty( task, "publishDir", "\"" + task.getName() + "\", mode: 'copy', overwrite: true" );
+            else
+                WorkflowUtil.setRuntimeProperty( task, "publishDir",
+                        "\"" + publishDir + "/" + task.getName() + "\", mode: 'copy', overwrite: true" );
 
             for( Node input : WorkflowUtil.getInputs( task ) )
             {
@@ -851,6 +854,24 @@ public class NextFlowPreprocessor
             biouml.plugins.wdl.parser.Node child = expression.jjtGetChild( j );
             findArguments( child, arguments );
         }
+    }
+    
+    public static void findFunction(biouml.plugins.wdl.parser.Node expression, String name, List<AstFunction> result)
+    {
+        if (isFunction(expression, name))
+        {
+            
+        }
+        for( int j = 0; j < expression.jjtGetNumChildren(); j++ )
+        {
+            biouml.plugins.wdl.parser.Node child = expression.jjtGetChild( j );
+            findFunction( child, name, result );
+        }
+    }
+    
+    private void processGlob(biouml.plugins.wdl.parser.Node expression)
+    {
+//        expression
     }
 
     private static List<String> replaceFunction(String funName, biouml.plugins.wdl.parser.Node expression, Diagram diagram, Compartment call, Node from)
