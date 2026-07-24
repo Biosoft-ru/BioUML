@@ -29,12 +29,29 @@
 	  />
    </extension>
    
+   <extension point="ru.biosoft.access.scriptType">
+        <scriptType type="WDL" title="WDL script" product="WDL" class="biouml.plugins.wdl.analysis.WDLScript" lexer="com.Ostermiller.Syntax.Lexer.JavaScriptLexer" />
+   </extension>
+  
+   <extension id="entry transformer" point="ru.biosoft.access.transformer"> 
+        <transformer name="WDL script" inputClass="ru.biosoft.access.FileDataElement"
+        outputClass="biouml.plugins.wdl.analysis.WDLScript" transformerClass="biouml.plugins.wdl.analysis.WDLScriptTransformer"/>
+    </extension>
+        
    <extension point="ru.biosoft.access.beans">
     <provider class="biouml.plugins.wdl.web.WDLSettingsBeanProvider" prefix="wdlsettings"/>
   </extension>
   
   <extension id="ModelAnalysis" point="ru.biosoft.analysiscore.method"> 
       <analysisClass class="biouml.plugins.wdl.analysis.RunWDLAnalysis" group="Workflow utils" name="Run WDL analysis"  description="Executes WDL"/> 
+  </extension>
+  
+  <extension id="ModelAnalysisCromwell" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.wdl.analysis.RunWDLAnalysisCromwell" group="Workflow utils" name="Run WDL analysis with Cromwell"  description="Executes WDL with Cromwell"/> 
+  </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="WDL Script" extensions="wdl" transformerClass="biouml.plugins.wdl.analysis.WDLScriptTransformer" priority="20" description="WDL script file"/>
   </extension>
 </plugin>
 
