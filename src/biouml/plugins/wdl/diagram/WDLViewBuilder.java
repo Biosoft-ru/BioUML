@@ -14,6 +14,8 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import com.developmentontheedge.application.ApplicationUtils;
+
 import biouml.model.Compartment;
 import biouml.model.DefaultDiagramViewBuilder;
 import biouml.model.Diagram;
@@ -507,5 +509,26 @@ public class WDLViewBuilder extends DefaultDiagramViewBuilder
             return new InOutFinder( false, getNodeBounds( node ) );
         return super.getPortFinder( node );
     }
-
+    
+    public int calculateCallWidth(Compartment compartment, DiagramViewOptions options)
+    {
+        View text = new ComplexTextView( StringEscapeUtils.escapeHtml4( compartment.getTitle() ), options.getCompartmentTitleFont(),
+                options.getFontRegistry(), ComplexTextView.TEXT_ALIGN_CENTER, 30, ApplicationUtils.getGraphics());
+        int maxInputWidth = 0;
+        int maxOutputWidth = 0;
+        int textLength = text.getBounds().width;
+        
+        for ( Node node: WorkflowUtil.getInputs( compartment ))
+        {
+            maxInputWidth = Math.max(maxInputWidth, getNodeBounds( node ).width);
+        }
+        
+        for ( Node node: WorkflowUtil.getOutputs( compartment ))
+        {
+            maxOutputWidth = Math.max(maxOutputWidth, getNodeBounds( node ).width);
+        }
+        
+        return textLength + maxInputWidth + maxOutputWidth + 20;
+    }
+   
 }
