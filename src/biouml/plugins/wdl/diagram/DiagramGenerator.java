@@ -621,7 +621,7 @@ public class DiagramGenerator
         String title = name;
         String alias = call.getAlias();
         if( alias != null )
-            title = alias;
+            title = alias.substring( alias.lastIndexOf( "." )+1 );
 
         name = DefaultSemanticController.generateUniqueName( diagram, "Call_" + name );
         Stub kernel = new Stub( null, name, WDLConstants.CALL_TYPE );
@@ -703,7 +703,7 @@ public class DiagramGenerator
 
         int maxPorts = Math.max( inputs, outputs );
         int height = Math.max( 50, 24 * maxPorts + 16 );
-        int width = new WDLViewBuilder().calculateCallWidth( taskСompartment , diagram.getViewOptions());
+        int width = new WDLViewBuilder().calculateCallWidth( c , diagram.getViewOptions());
         c.setShapeSize( new Dimension( width, height ) );
         c.getAttributes().add( new DynamicProperty( "innerNodesPortFinder", Boolean.class, true ) );
         String resultName = call.getResultName();
