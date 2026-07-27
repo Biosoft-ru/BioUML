@@ -1220,8 +1220,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         //        boolean isOptional = WorkflowUtil.getType( input ).endsWith( "?" );
         //        if( isOptional )
         //            return "getDefault(params." + getName( input ) + ", " + getExpression( input )+")";
-        if( WorkflowUtil.getType( input ).equals( "File" ) || WorkflowUtil.getType( input ).equals( "File?" ) )
+        if(  WorkflowUtil.getType( input ).equals( "File?" ) )
             return "fileOrNull( params." + getName( input ) + ")";
+        else if (WorkflowUtil.getType( input ).equals( "File" ) )
+            return  "file( params." + getName( input ) + ")";
         if( WorkflowUtil.getType( input ).equals( "Array[File]" ) )
             return "params." + getName( input ) + ".collect { file(it) }";
         if( WorkflowUtil.getType( input ).endsWith( "?" ) )
