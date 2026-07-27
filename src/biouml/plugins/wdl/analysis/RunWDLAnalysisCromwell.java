@@ -75,7 +75,8 @@ public class RunWDLAnalysisCromwell extends AnalysisMethodSupport<RunWDLAnalysis
             for ( IncludePath iPath : parameters.getIncludes() )
             {
                 DataElementPath folder = iPath.getPath();
-                List<DataElementPath> wdlFiles = findWDLFiles( folder, iPath.recursive );
+                List<DataElementPath> wdlFiles = new ArrayList<>();
+                findWDLFiles( folder, iPath.recursive, wdlFiles );
                 for ( DataElementPath p : wdlFiles )
                 {
                     String scriptContent = p.getDataElement( WDLScript.class ).getContent();
@@ -225,9 +226,8 @@ public class RunWDLAnalysisCromwell extends AnalysisMethodSupport<RunWDLAnalysis
 
 
 
-    private static List<DataElementPath> findWDLFiles(DataElementPath folder, boolean recursive)
+    private static void findWDLFiles(DataElementPath folder, boolean recursive, List<DataElementPath> result)
     {
-        List<DataElementPath> result = new ArrayList<>();
         for ( DataElementPath child : folder.getChildrenArray() )
         {
             DataElement de = child.optDataElement();
@@ -237,10 +237,9 @@ public class RunWDLAnalysisCromwell extends AnalysisMethodSupport<RunWDLAnalysis
             }
             else if( de instanceof FolderCollection && recursive )
             {
-                result.addAll( findWDLFiles( child, recursive ) );
+                findWDLFiles( child, recursive, result );
             }
         }
-        return result;
     }
 
     public static class IncludePath extends OptionEx
