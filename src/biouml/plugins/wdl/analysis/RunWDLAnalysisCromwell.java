@@ -353,7 +353,7 @@ public class RunWDLAnalysisCromwell extends AnalysisMethodSupport<RunWDLAnalysis
                     importer.setScriptLoader( new FileScriptLoader( ScriptLoader.WDL_TYPE, file.getParentFile() ) );
                     Diagram diagram = null;
                     ScriptInfo info = importer.readScript( wdlPath.getName(), originalWDL );
-                    diagram = new DiagramGenerator().generateDiagram( info, new WDLDiagramType().createDiagram( null, wdlPath.getName() ) );
+                    diagram = new DiagramGenerator().generateDiagram( info, new WDLDiagramType().createDiagram( null, wdlPath.getName() ), null );
 
                     if( diagram != null )
                     {
