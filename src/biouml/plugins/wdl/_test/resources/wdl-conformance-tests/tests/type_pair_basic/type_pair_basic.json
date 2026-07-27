@@ -1,0 +1,13 @@
+{
+  "typePairWorkflow.test_pair": {
+    "left": 23,
+    "right": "twenty-three"
+  },
+  "typePairWorkflow.test_pair_pair": {
+    "left": "a",
+    "right": {
+      "left": "a.bam",
+      "right": "a.bai"
+    }
+  }
+}
