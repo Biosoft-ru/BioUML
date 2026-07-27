@@ -100,6 +100,7 @@ public class WorkflowTextEditor extends EditorPartSupport
 
         wdlGenerator = new WDLGenerator();
         nextFlowGenerator = new NextFlowGenerator();
+        nextFlowGenerator.setPublishOutput( false );
         cwlGenerator = new CWLGenerator();
         wdlImporter = new WDLImporter();
     }
