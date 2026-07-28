@@ -136,22 +136,24 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
     protected void parseValuesLine(String line, TableDataCollection table, int uniqueIndex, DataType[] columnTypes)
     {
         String key = null;
-        String[] tokens = line.split("\\t");
+        StringTokenizer tokenizer = new StringTokenizer(line, "\t");
+        int tokenCount = tokenizer.countTokens();
         int delta = 0;
-        if( tokens.length == table.getColumnModel().getColumnCount() )
+        if( tokenCount == table.getColumnModel().getColumnCount() )
         {
             key = String.valueOf(uniqueIndex);
         }
         else
         {
-            key = tokens[0];
+            key = tokenizer.nextToken();
             delta = 1;
         }
         Object[] values = new Object[table.getColumnModel().getColumnCount()];
-        for( int i = delta; i < tokens.length; i++ )
+        int i = delta;
+        while( tokenizer.hasMoreTokens() )
         {
-            String columnStrValue = tokens[i].trim();
-            if( !columnStrValue.trim().equals("NA") )
+            String columnStrValue = tokenizer.nextToken().trim();
+            if( !columnStrValue.equals("NA") )
             {
                 Object columnValue = null;
                 TableColumn col = table.getColumnModel().getColumn(i - delta);
@@ -292,7 +294,7 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
         }
         else if( COLUMNS_TAG.equals(tag) )
         {
-            String paramsArray[] = value.toString().split("\\n");
+            String paramsArray[] = value.toString().split("\n");
             if( paramsArray != null && paramsArray.length > 0 )
             {
                 for( String param : paramsArray )

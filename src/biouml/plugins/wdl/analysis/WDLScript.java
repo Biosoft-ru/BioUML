@@ -75,7 +75,7 @@ public class WDLScript extends ScriptDataElement implements ImageElement
             importer.setScriptLoader( new FileScriptLoader( ScriptLoader.WDL_TYPE, file.getParentFile() ) );
             Diagram diagram = null;
             ScriptInfo info = importer.readScript( getName(), originalWDL );
-            diagram = new DiagramGenerator().generateDiagram( info, new WDLDiagramType().createDiagram( null, getName() ) );
+            diagram = new DiagramGenerator().generateDiagram( info, new WDLDiagramType().createDiagram( null, getName() ), null );
             new WDLLayouter().layout( diagram );
             //Diagram diagram = transformer.transformInput( fde );
             View view = WebDiagramsProvider.createView( diagram );

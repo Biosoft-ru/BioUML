@@ -198,6 +198,7 @@ public class NextFlowPreprocessor
             Map<String, String> variables = StreamEx.of( WorkflowUtil.getInputs( task ) ).toMap( input -> WorkflowUtil.getName( input), input-> WorkflowUtil.getType( input ) );
             variables.putAll(
                     StreamEx.of( WorkflowUtil.getBeforeCommandExpressions( task ) ).toMap( expression -> expression.getName(), expression -> expression.getType() ));
+            command = doubleBackslashesOutsidePlaceholders(command);
             command = procesRegexes( command );
             command = escapeSingleBuck( command );
             command = processVariables( command, variables, true );
@@ -1245,4 +1246,129 @@ public class NextFlowPreprocessor
         return edge;
     }
 
+    public static String doubleBackslashesOutsidePlaceholders(String input)
+    {
+        if (input == null || input.isEmpty())
+            return input;
+
+        StringBuilder result = new StringBuilder(input.length() * 2);
+
+        int index = 0;
+
+        while (index < input.length())
+        {
+            if (isPlaceholderStart(input, index))
+            {
+                int end = findPlaceholderEnd(input, index);
+
+                if (end < 0)
+                {
+                    result.append(input, index, input.length());
+                    break;
+                }
+
+                result.append(input, index, end + 1);
+                index = end + 1;
+                continue;
+            }
+
+            char current = input.charAt(index);
+
+            if (current == '\\')
+            {
+                result.append("\\\\");
+            }
+            else
+            {
+                result.append(current);
+            }
+
+            index++;
+        }
+
+        return result.toString();
+    }
+
+    private static boolean isPlaceholderStart(String text, int index)
+    {
+        if (index + 1 >= text.length())
+        {
+            return false;
+        }
+
+        char first = text.charAt(index);
+        char second = text.charAt(index + 1);
+
+        return (first == '$' || first == '~') && second == '{';
+    }
+
+    private static int findPlaceholderEnd(String text, int start)
+    {
+        // `${` или `~{` уже обнаружены.
+        int depth = 1;
+
+        boolean insideSingleQuotedString = false;
+        boolean insideDoubleQuotedString = false;
+        boolean escaped = false;
+
+        // Начинаем после `${` или `~{`, то есть с start + 2.
+        for (int index = start + 2; index < text.length(); index++)
+        {
+            char current = text.charAt(index);
+
+            if (insideSingleQuotedString || insideDoubleQuotedString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                    continue;
+                }
+
+                if (current == '\\')
+                {
+                    escaped = true;
+                    continue;
+                }
+
+                if (insideSingleQuotedString && current == '\'')
+                {
+                    insideSingleQuotedString = false;
+                }
+                else if (insideDoubleQuotedString && current == '"')
+                {
+                    insideDoubleQuotedString = false;
+                }
+
+                continue;
+            }
+
+            if (current == '\'')
+            {
+                insideSingleQuotedString = true;
+                continue;
+            }
+
+            if (current == '"')
+            {
+                insideDoubleQuotedString = true;
+                continue;
+            }
+
+            if (current == '{')
+            {
+                depth++;
+            }
+            else if (current == '}')
+            {
+                depth--;
+
+                if (depth == 0)
+                {
+                    return index;
+                }
+            }
+        }
+
+        return -1;
+    }
 }

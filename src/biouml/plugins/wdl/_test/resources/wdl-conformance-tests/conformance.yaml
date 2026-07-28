@@ -1,0 +1,1261 @@
+- description: |
+    Standard Lib: Basic test for stdout()
+  tags: ["stdout", "standard_library"]
+  versions: ["draft-2", "1.0"]
+  id: stdout
+  inputs:
+    dir: tests/basic_stdout
+    wdl: basic_stdout.wdl
+    json: basic_stdout.json
+  outputs:
+    stdoutWorkflow.check_this:
+      type: File
+      value: {md5sum: "91d69f7c47b6e7d5e4d81fab67f7f304"}
+- description: |
+    Standard Lib: Basic test for stderr()
+  tags: ["stderr", "standard_library"]
+  versions: ["draft-2", "1.0"]
+  id: stderr
+  inputs:
+    dir: tests/basic_stderr
+    wdl: basic_stderr.wdl
+    json: basic_stderr.json
+  outputs:
+    stderrWorkflow.check_this:
+      type: File
+      value: {md5sum: "2332021c3feef276abe077f34276abfe"}
+- description: |
+    Standard Lib: Basic test for quote()
+  tags: ["quote", "standard_library"]
+  versions: ["1.1"]
+  id: quote
+  inputs:
+    dir: tests/basic_quote
+    wdl: basic_quote.wdl
+    json: basic_quote.json
+  outputs:
+    quoteWorkflow.str_output:
+      type: Array[String]
+      value: ['"value1"', '"value2"', '"value3"']
+    quoteWorkflow.int_output:
+      type: Array[String]
+      value: ['"1"', '"2"', '"-3"']
+    quoteWorkflow.float_output:
+      type: Array[String]
+      value: ['"1.234000"', '"-0.543000"', '"-13.300000"']
+    quoteWorkflow.bool_output:
+      type: Array[String]
+      value: ['"true"', '"false"', '"true"']
+    quoteWorkflow.file_output:
+      type: File
+      value: {regex: '.*(basic_quote\.wdl)\s.*(basic_quote\.json)\s.*(run\.py)\s?'}
+- description: |
+    Standard Lib: Basic test for squote()
+  tags: ["squote", "standard_library"]
+  versions: ["1.1"]
+  id: squote
+  inputs:
+    dir: tests/basic_squote
+    wdl: basic_squote.wdl
+    json: basic_squote.json
+  outputs:
+    squoteWorkflow.str_output:
+      type: Array[String]
+      value: ["'value1'", "'value2'", "'value3'"]
+    squoteWorkflow.int_output:
+      type: Array[String]
+      value: ["'1'", "'2'", "'-3'"]
+    squoteWorkflow.float_output:
+      type: Array[String]
+      value: ["'1.234000'", "'-0.543000'", "'-13.300000'"]
+    squoteWorkflow.bool_output:
+      type: Array[String]
+      value: ["'true'", "'false'", "'true'"]
+    squoteWorkflow.file_output:
+      type: File
+      value: {regex: '.*(basic_quote\.wdl)\s.*(basic_quote\.json)\s.*(run\.py)\s?'}
+- description: |
+    Standard Lib: Basic test for sep()
+  tags: ["sep", "standard_library"]
+  versions: ["1.1"]
+  id: sep
+  inputs:
+    dir: tests/basic_sep
+    wdl: basic_sep.wdl
+    json: basic_sep.json
+  outputs:
+    sepWorkflow.str_output:
+      type: String
+      value: "a - b - c"
+- description: |
+    Standard Lib: Basic test for prefix()
+  tags: ["prefix", "standard_library"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: prefix
+  inputs:
+    dir: tests/basic_prefix
+    wdl: basic_prefix.wdl
+    json: basic_prefix.json
+  outputs:
+    prefixWorkflow.str_output:
+      type: Array[String]
+      value: ["-e value1", "-e value2", "-e value3"]
+- description: |
+    Standard Lib: Basic test for select_first()
+  tags: ["select_first", "standard_library"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: select_first
+  inputs:
+    dir: tests/basic_select_first
+    wdl: basic_select_first.wdl
+    json: basic_select_first.json
+  outputs:
+    selectFirstWorkflow.int_output:
+      type: Int
+      value: 5
+    selectFirstWorkflow.str_output:
+      type: String
+      value: "value1"
+    selectFirstWorkflow.bool_output:
+      type: "Boolean"
+      value: true
+    selectFirstWorkflow.float_output:
+      type: "Float"
+      value: 999.9999999
+    selectFirstWorkflow.file_output:
+      type: File
+      value: {md5sum: "e0f9a741134edfdf960fc2e647dbc52a"}
+- description: |
+    Standard Lib: Basic test for select_all()
+  tags: ["select_all", "standard_library"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: select_all
+  inputs:
+    dir: tests/basic_select_all
+    wdl: basic_select_all.wdl
+    json: basic_select_all.json
+  outputs:
+    selectAllWorkflow.int_output:
+      type: "Array[Int]"
+      value: [4, 5]
+    selectAllWorkflow.float_output:
+      type: "Array[Float]"
+      value: [1.2345]
+    selectAllWorkflow.str_output:
+      type: Array[String]
+      value: ["value1", "value3"]
+    selectAllWorkflow.bool_output:
+      type: "Array[Boolean]"
+      value: [true, false]
+    selectAllWorkflow.file_output:
+      type: "Array[File]"
+      value: [md5sum: "c4b90e142a9ba0270f8137244caa246c"]
+- description: |
+    Standard Lib: Basic test for suffix()
+  tags: ["suffix", "standard_library"]
+  versions: ["1.1"]
+  id: suffix
+  inputs:
+    dir: tests/basic_suffix
+    wdl: basic_suffix.wdl
+    json: basic_suffix.json
+  outputs:
+    suffixWorkflow.str_output:
+      type: Array[String]
+      value: ["value1.txt", "value2.txt", "value3.txt"]
+- description: |
+    Standard Lib: Basic test for defined()
+  tags: ["defined", "standard_library"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: defined
+  inputs:
+    dir: tests/basic_defined
+    wdl: basic_defined.wdl
+    json: basic_defined.json
+  outputs:
+    definedWorkflow.bool_output:
+      type: "Boolean"
+      value: true
+    definedWorkflow.bool_output_none:
+      type: "Boolean"
+      value: false
+- description: |
+    Standard Lib: Basic test for basename()
+  tags: ["basename", "standard_library"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: basename
+  inputs:
+    dir: tests/basic_basename
+    wdl: basic_basename.wdl
+    json: basic_basename.json
+  outputs:
+    basenameWorkflow.str_output:
+      type: String
+      value: "file.txt"
+    basenameWorkflow.str_output_removed:
+      type: String
+      value: "file"
+    basenameWorkflow.str_output_file:
+      type: String
+      value: "basic_basename.json"
+    basenameWorkflow.str_output_file_removed:
+      type: String
+      value: "basic_basename"
+- description: |
+    Basic failure test, with invalid arguments
+  tags: ["bad_args", "fail", "standard_library"]
+  versions: ["1.0", "1.1"]
+  id: bad_args
+  inputs:
+    dir: tests/basic_fail
+    wdl: basic_fail.wdl
+    json: basic_fail.json
+  fail: true
+  outputs: {}
+- description: |
+    Basic ceil() test
+  tags: ["ceil", "standard_library"]
+  versions: ["draft-2", "1.0"]
+  id: ceil
+  inputs:
+    dir: tests/basic_ceil
+    wdl: basic_ceil.wdl
+    json: basic_ceil.json
+  outputs:
+    ceilWorkflow.int_output:
+      type: Int
+      value: 12
+- description: |
+    Basic test for compound type pair
+  tags: ["pair", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: pair
+  inputs:
+    dir: tests/basic_pair
+    wdl: basic_pair.wdl
+    json: basic_pair.json
+  outputs:
+    pairWorkflow.pair_output:
+      type: Pair[Int, Int]
+      value: {left: 2, right: 4}
+- description: |
+    Basic test for compound type map
+  tags: ["map", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: map
+  inputs:
+    dir: tests/basic_map
+    wdl: basic_map.wdl
+    json: basic_map.json
+  outputs:
+    mapWorkflow.map_output:
+      type: Map[Int, Int]
+      value: {"1": 2, "3": 4}
+- description: |
+    Basic test for compound type array of pair
+  tags: ["array_pair", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: array_pair
+  inputs:
+    dir: tests/basic_array_pair
+    wdl: basic_array_pair.wdl
+    json: basic_array_pair.json
+  outputs:
+    arrayPairWorkflow.pair_output:
+      type: Array[Pair[Int,Int]]
+      value: [{left: 2, right: 4}]
+- description: |
+    Basic object test (deprecated and removed in 1.1)
+    MiniWDL and toil-wdl-runner do not support Objects, so this will fail if ran by them
+  tags: ["object", "semantics"]
+  versions: ["1.0"]
+  id: object
+  inputs:
+    dir: tests/basic_object
+    wdl: basic_object.wdl
+    json: basic_object.json
+  outputs:
+    objectWorkflow.obj_output:
+      type: {b: String, a: Int, f: File}
+      value: {"b": "hello", "a": 10, "f": {md5sum: "18b73c749956b3a1ec402b71f731e9fc"}}
+- description: |
+    Basic struct test
+  tags: ["struct", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: struct
+  inputs:
+    dir: tests/basic_struct
+    wdl: basic_struct.wdl
+    json: basic_struct.json
+  outputs:
+    structWorkflow.struct_output:
+      type: {sample_string: String, sample_index: Int}
+      value: {"sample_string": "hello", "sample_index": 10}
+- description: |
+    Basic nested struct test
+  tags: ["nested_struct", "semantics"]
+  versions: ["1.1"]
+  id: nested_struct
+  inputs:
+    dir: tests/basic_nested_struct
+    wdl: basic_nested_struct.wdl
+    json: basic_nested_struct.json
+  outputs:
+    structWorkflow.struct_output:
+      type: {sample_struct: {sample_int: Int, sample_string: String}, sample_int: Int}
+      value: {"sample_struct": {"sample_string": "Hello", "sample_int": 20}, "sample_int": 10}
+- description: |
+    Parser: expression placeholders in strings in 1.1
+  tags: ["string_placeholders", "parser"]
+  versions: ["1.1"]
+  id: string_placeholders
+  inputs:
+    dir: tests/string_placeholders_1.1
+    wdl: string_placeholders_1.1.wdl
+    json: empty.json
+  "outputs":
+    placeholderWorkflow.ones:
+      type: Array[String]
+      value: ["1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"]
+- description: |
+    Parser: expression placeholders in strings in conditional expressions in 1.1
+  tags: ["string_placeholders_in_conditionals_1.1", "parser"]
+  versions: ["1.1"]
+  id: string_placeholders_conditionals_1_1
+  inputs:
+    dir: tests/string_placeholders_in_conditionals_1.1
+    wdl: string_placeholders_in_conditionals_1.1.wdl
+    json: empty.json
+  "outputs":
+    placeholderWorkflow.result:
+      type: String
+      value: "yep"
+- description: |
+    Parser: expression placeholders in strings in conditional expressions in 1.0, Cromwell style
+    Fails with MiniWDL and toil-wdl-runner
+  tags: ["string_placeholders_in_conditionals_1.0", "parser"]
+  versions: ["1.0"]
+  id: string_placeholders_conditionals_1_0
+  inputs:
+    dir: tests/string_placeholders_in_conditionals_1.0
+    wdl: string_placeholders_in_conditionals_1.0.wdl
+    json: empty.json
+  "outputs":
+    placeholderWorkflow.result:
+      type: String
+      value: "cromwell"
+- description: |
+    Semantics: passing a null optional value as an input to a task does not override a default value with null
+  tags: ["null_optional_vs_default", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: null_optional_vs_default
+  inputs:
+    dir: tests/null_optional_vs_default_1.0
+    wdl: null_optional_vs_default_1.0.wdl
+    json: empty.json
+  "outputs":
+    overrideWorkflow.result:
+      type: Int
+      value: 1
+- description: |
+    Semantics: passing a null optional value as an input to a workflow that calls subworkflows does not override a default value with null
+  tags: ["null_input_through_workflows_1.0", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: null_optional_vs_default_subworkflows
+  inputs:
+    dir: tests/null_input_through_workflows_1.0
+    wdl: null_input_through_workflows_1.0.wdl
+    json: empty.json
+  "outputs":
+    nullInput.result:
+      type: Int
+      value: 1
+- description: |
+    Semantics: passing a non-null optional value as an input to a workflow that calls subworkflows brings it through
+  tags: ["non_null_input_through_workflows_1.0", "semantics"]
+  versions: ["1.0", "1.1"]
+  id: non_null_optional_subworkflows
+  inputs:
+    dir: tests/null_input_through_workflows_1.0
+    wdl: null_input_through_workflows_1.0.wdl
+    json: nonnull_input.json
+  "outputs":
+    nullInput.result:
+      type: Int
+      value: 10
+- description: |
+    Semantics: An empty output in the top-level workflow should output all called task outputs instead in WDL v1.0 only
+  tags: ["empty_output", "semantics"]
+  versions: ["1.0"]
+  id: empty_output
+  inputs:
+    dir: tests/empty_output
+    wdl: empty_output.wdl
+    json: empty_output_input.json
+  outputs:
+    emptyOutputWorkflow.task_with_output.int_output:
+      type: Int
+      value: 1
+# tests from toil's original wdl tests
+# some of these tests depend on write_json(), and cromwell and miniwdl perform write_json() differently
+# miniwdl inserts whitespace in between elements when writing json and cromwell does not
+- description: |
+    Legacy test for type_pair_basic
+  tags: ["type_pair", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: type_pair
+  inputs:
+    dir: tests/type_pair_basic
+    wdl: type_pair_basic.wdl
+    json: type_pair_basic.json
+  outputs:
+    typePairWorkflow.left_pair_output:
+      type: Int
+      value: 23
+    typePairWorkflow.right_pair_output:
+      type: String
+      value: "twenty-three"
+    typePairWorkflow.nested_pair_output:
+      type: String
+      value: "a.bai"
+    typePairWorkflow.full_pair_output:
+      type: Pair[Int, String]
+      value: {left: 23, right: "twenty-three"}
+- description: |
+    Legacy test for type_pair_with_files
+  tags: ["type_pair", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: type_pair_files
+  inputs:
+    dir: tests/type_pair_with_files
+    wdl: type_pair_with_files.wdl
+    json: type_pair_with_files.json
+  outputs:
+    typePairWorkflow.the_output:
+      type: File
+      value: {regex: '\[\[\"A Whale of a Tale\.\"\],\s?\[\"true\"].\s?\[\"11\"\]\]'}
+- description: |
+    Legacy test for v1_spec_declaration
+  tags: ["declaration", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: v1_spec_declaration
+  inputs:
+    dir: tests/v1_spec_declaration
+    wdl: v1_spec_declaration.wdl
+    json: v1_spec.json
+  outputs:
+    wf.x_value:
+      type: String
+      value: "Hello, x!"
+    wf.y_value:
+      type: String
+      value: "Hello, y!"
+    wf.z_the_output:
+      type: File
+      value: {md5sum: '5f2c4e74d1e58614b094b31790315324'}
+- description: |
+    Legacy test for sub_as_input
+  tags: ["sub", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: sub
+  inputs:
+    dir: tests/sub_as_input
+    wdl: sub_as_input.wdl
+    json: sub.json
+  outputs:
+    subWorkflow.the_output:
+      type: File
+      value: {regex: 'test\.csv'}
+- description: |
+    Legacy test for sub_as_input_with_file
+  tags: ["sub", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: sub_file
+  inputs:
+    dir: tests/sub_as_input_with_file
+    wdl: sub_as_input_with_file.wdl
+    json: sub.json
+  outputs:
+    subWorkflow.the_output:
+      type: File
+      value: {regex: 'test\.csv'}
+- description: |
+    Legacy test for size_as_command
+  tags: ["size", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: size_command
+  inputs:
+    dir: tests/size_as_command
+    wdl: size_as_command.wdl
+    json: size.json
+  outputs:
+    sizeWorkflow.the_output:
+      type: File
+      value: {regex: '19(\.0+)$'}
+- description: |
+    Legacy test for size_as_output
+    Cromwell appears to not support nonbinary units with size()
+  tags: ["size", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: size_output
+  inputs:
+    dir: tests/size_as_output
+    wdl: size_as_output.wdl
+    json: empty.json
+  outputs:
+    sizeWorkflow.the_output:
+      type: File
+      value: {regex: '22\.0+ 0\.0220* 0\.021484(375)?'}
+    sizeWorkflow.created_file_size:
+      type: Float
+      value: 22.0
+    sizeWorkflow.created_file_size_in_KB:
+      type: Float
+      value: 0.022
+    sizeWorkflow.created_file_size_in_KiB:
+      type: Float
+      value: 0.021484375
+- description: |
+    Legacy test for ceil_as_input
+  tags: ["ceil", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: ceil_old
+  inputs:
+    dir: tests/ceil_as_input
+    wdl: ceil_as_input.wdl
+    json: ceil.json
+  outputs:
+    ceilWorkflow.the_ceiling:
+      type: File
+      value: {regex: '12(\.0+)?$'}
+- description: |
+    Legacy test for ceil_as_command
+  tags: ["ceil", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: ceil_command
+  inputs:
+    dir: tests/ceil_as_command
+    wdl: ceil_as_command.wdl
+    json: ceil.json
+  outputs:
+    ceilWorkflow.the_ceiling:
+      type: File
+      value: {md5sum: '2737b49252e2a4c0fe4c342e92b13285'}
+- description: |
+    Legacy test for floor_as_input
+  tags: ["floor", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: floor
+  inputs:
+    dir: tests/floor_as_input
+    wdl: floor_as_input.wdl
+    json: floor.json
+  outputs:
+    floorWorkflow.the_flooring:
+      type: File
+      value: {regex: '11(\.0+)?$'}
+- description: |
+    Legacy test for floor_as_command
+  tags: ["floor", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: floor_command
+  inputs:
+    dir: tests/floor_as_command
+    wdl: floor_as_command.wdl
+    json: floor.json
+  outputs:
+    floorWorkflow.the_flooring:
+      type: File
+      value: {md5sum: '166d77ac1b46a1ec38aa35ab7e628ab5'}
+- description: |
+    Legacy test for round_as_input
+  tags: ["round", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: round
+  inputs:
+    dir: tests/round_as_input
+    wdl: round_as_input.wdl
+    json: round.json
+  outputs:
+    roundWorkflow.the_rounding:
+      type: File
+      value: {regex: '11(\.0+)?$'}
+- description: |
+    Legacy test for round_as_command
+  tags: ["round", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: round_command
+  inputs:
+    dir: tests/round_as_command
+    wdl: round_as_command.wdl
+    json: round.json
+  outputs:
+    roundWorkflow.the_rounding:
+      type: File
+      value: {md5sum: '166d77ac1b46a1ec38aa35ab7e628ab5'}
+- description: |
+    Legacy test for stdout_as_output
+  tags: ["stdout", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: stdout_output
+  inputs:
+    dir: tests/stdout_as_output
+    wdl: stdout_as_output.wdl
+    json: stdout.json
+  outputs:
+    stdoutWorkflow.the_output:
+      type: File
+      value: {md5sum: '91d69f7c47b6e7d5e4d81fab67f7f304'}
+    stdoutWorkflow.check_this:
+      type: File
+      value: {md5sum: '91d69f7c47b6e7d5e4d81fab67f7f304'}
+- description: |
+    Legacy test for stderr_as_output
+  tags: ["stderr", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: stderr_output
+  inputs:
+    dir: tests/stderr_as_output
+    wdl: stderr_as_output.wdl
+    json: stderr.json
+  outputs:
+    stderrWorkflow.the_output:
+      type: File
+      value: {md5sum: '2332021c3feef276abe077f34276abfe'}
+    stderrWorkflow.check_this:
+      type: File
+      value: {md5sum: '2332021c3feef276abe077f34276abfe'}
+- description: |
+    Legacy test for read_lines_as_output
+  tags: ["read_lines", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_lines
+  inputs:
+    dir: tests/read_lines_as_output
+    wdl: read_lines_as_output.wdl
+    json: read_lines.json
+  outputs:
+    readLinesWorkflow.the_output:
+      type: File
+      value: {md5sum: '0cf95c7bec0f04798b2e95d762e2210e'}
+    readLinesWorkflow.out_array:
+      type: Array[String]
+      value: ["line 1", "\t\tline 2 with tabs", " line 3", "", "line 5"]
+- description: |
+    Legacy test for read_tsv_as_output
+  tags: ["read_tsv", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_tsv
+  inputs:
+    dir: tests/read_tsv_as_output
+    wdl: read_tsv_as_output.wdl
+    json: read_tsv.json
+  outputs:
+    readTsvWorkflow.the_output:
+      type: File
+      value: {md5sum: '577e5fb9bb016c922798424a3c82e742'}
+    readTsvWorkflow.out_tsv:
+      type: Array[Array[String]]
+      value: [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]
+- description: |
+    Legacy test for read_json_as_output
+  tags: ["read_json", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_json
+  inputs:
+    dir: tests/read_json_as_output
+    wdl: read_json_as_output.wdl
+    json: read_json.json
+  outputs:
+    readJsonWorkflow.the_output:
+      type: File
+      value: {regex: '{\"key1\":\s?\"value1\",\s?\"key2\":\s?\"value2\"}'}
+    readJsonWorkflow.out_json:
+      type: Map[String, String]
+      value: {"key1": "value1", "key2": "value2"}
+- description: |
+    Legacy test for read_map_as_output
+  tags: ["read_map", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_map
+  inputs:
+    dir: tests/read_map_as_output
+    wdl: read_map_as_output.wdl
+    json: read_map.json
+  outputs:
+    readMapWorkflow.the_output:
+      type: File
+      value: {regex: 'key1\s+value1\s+key2\s+value2'}
+    readMapWorkflow.out_map:
+      type: Map[String, String]
+      value: {"key1": "value1", "key2": "value2"}
+- description: |
+    Legacy test for read_int_as_command
+  tags: ["read_int", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_int
+  inputs:
+    dir: tests/read_int_as_command
+    wdl: read_int_as_command.wdl
+    json: read_int.json
+  outputs:
+    readIntWorkflow.the_output:
+      type: File
+      value: {md5sum: '166d77ac1b46a1ec38aa35ab7e628ab5'}
+- description: |
+    Legacy test for read_string_as_command
+  tags: ["read_string", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_string
+  inputs:
+    dir: tests/read_string_as_command
+    wdl: read_string_as_command.wdl
+    json: read_string.json
+  outputs:
+    readStringWorkflow.the_output:
+      type: File
+      value: {md5sum: '91d69f7c47b6e7d5e4d81fab67f7f304'}
+- description: |
+    Legacy test for read_float_as_command
+  tags: ["read_float", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_float
+  inputs:
+    dir: tests/read_float_as_command
+    wdl: read_float_as_command.wdl
+    json: read_float.json
+  outputs:
+    readFloatWorkflow.the_output:
+      type: File
+      value: {regex: '11\.23450*$'}
+- description: |
+    Legacy test for read_boolean_as_command
+  tags: ["read_boolean", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: read_boolean
+  inputs:
+    dir: tests/read_boolean_as_command
+    wdl: read_boolean_as_command.wdl
+    json: read_boolean.json
+  outputs:
+    readBooleanWorkflow.the_output:
+      type: File
+      value: {md5sum: '74d9a83219cabaab06a69fd318873f33'}
+- description: |
+    Legacy test for write_tsv_as_command
+  tags: ["write_tsv", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: write_tsv
+  inputs:
+    dir: tests/write_tsv_as_command
+    wdl: write_tsv_as_command.wdl
+    json: write_tsv.json
+  outputs:
+    writeTsvWorkflow.the_output:
+      type: File
+      value: {md5sum: '23754c24ac7327768d56aa9909fb8473'}
+- description: |
+    Legacy test for write_json_as_command
+  tags: ["write_json", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: write_json
+  inputs:
+    dir: tests/write_json_as_command
+    wdl: write_json_as_command.wdl
+    json: write_json.json
+  outputs:
+    writeJsonWorkflow.the_output:
+      type: File
+      value: {regex: '{\"key1\":\s?\"value1\",\s?\"key2\":\s?\"value2\"}'}
+- description: |
+    Legacy test for write_map_as_command
+  tags: ["write_map", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: write_map
+  inputs:
+    dir: tests/write_map_as_command
+    wdl: write_map_as_command.wdl
+    json: write_map.json
+  outputs:
+    writeMapWorkflow.the_output:
+      type: File
+      value: {regex: 'key1\s+value1\nkey2\s+value2'}
+- description: |
+    Legacy test for range_as_input
+  tags: ["range", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: range
+  inputs:
+    dir: tests/range_as_input
+    wdl: range_as_input.wdl
+    json: range.json
+  outputs:
+    rangeWorkflow.the_output:
+      type: File
+      value: {md5sum: '4ae1ec070a2217ff003b2ea3631531ac'}
+- description: |
+    Legacy test for range_as_input, fail
+  tags: ["range", "legacy", "fail"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: range_fail
+  inputs:
+    dir: tests/range_as_input
+    wdl: range_as_input.wdl
+    json: range_invalid.json
+  fail: true
+  outputs: {}
+- description: |
+    Legacy test for range_as_input, range=0
+  tags: ["range", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: range_0
+  inputs:
+    dir: tests/range_as_input
+    wdl: range_as_input.wdl
+    json: range_0.json
+  outputs:
+    rangeWorkflow.the_output:
+      type: File
+      value: {regex: '\s?'}
+- description: |
+    Legacy test for write_lines_as_command
+  tags: ["write_lines", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: write_lines
+  inputs:
+    dir: tests/write_lines_as_command
+    wdl: write_lines_as_command.wdl
+    json: write_lines.json
+  outputs:
+    writeLinesWorkflow.the_output:
+      type: File
+      value: {md5sum: '67c62663b722611ba87041eb05870eb9'}
+- description: |
+    Legacy test for transpose_as_input
+  tags: ["transpose", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: transpose
+  inputs:
+    dir: tests/transpose_as_input
+    wdl: transpose_as_input.wdl
+    json: transpose.json
+  outputs:
+    transposeWorkflow.the_output:
+      type: File
+      value: {md5sum: '7c72caeae4ed3a94a1c5c3f856466ebd'}
+- description: |
+    Legacy test for length_as_input
+  tags: ["length", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: length
+  inputs:
+    dir: tests/length_as_input
+    wdl: length_as_input.wdl
+    json: length.json
+  outputs:
+    lengthWorkflow.the_output:
+      type: File
+      value: {md5sum: '6d7fce9fee471194aa8b5b6e47267f03'}
+- description: |
+    Legacy test for length_as_input_with_map, fail
+  tags: ["length", "legacy", "fail"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: length_map
+  inputs:
+    dir: tests/length_as_input_with_map
+    wdl: length_as_input_with_map.wdl
+    json: length.json
+  fail: true
+  outputs: {}
+- description: |
+    Legacy test for length_as_input, fail
+  tags: ["length", "legacy", "fail"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: length_fail
+  inputs:
+    dir: tests/length_as_input
+    wdl: length_as_input.wdl
+    json: length_invalid.json
+  fail: true
+  outputs: {}
+- description: |
+    Legacy test for zip_as_input
+  tags: ["zip", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: zip
+  inputs:
+    dir: tests/zip_as_input
+    wdl: zip_as_input.wdl
+    json: zip.json
+  outputs:
+    zipWorkflow.the_output:
+      type: File
+      value: {regex: '\[((({\"left)|(\"right))\":(\s?)([1-3],(\s?)|(\"[abc])\"},?(\s?))){6}\]'}
+- description: |
+    Legacy test for cross_as_input
+  tags: ["cross", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: cross
+  inputs:
+    dir: tests/cross_as_input
+    wdl: cross_as_input.wdl
+    json: cross.json
+  outputs:
+    crossWorkflow.the_output:
+      type: File
+      value: {regex: '\[{\"left\":(\s?)1,\1\"right\":\1\"a\"},\1{\"left\":(\1)1,\1\"right\":\1\"b\"},\1{\"left\":(\1)2,\1\"right\":\1\"a\"},\1{\"left\":(\1)2,\1\"right\":\1\"b\"},\1{\"left\":(\1)3,\1\"right\":\1\"a\"},\1{\"left\":(\1)3,\1\"right\":\1\"b\"}\]'}
+- description: |
+    Legacy test for flatten_as_input
+  tags: ["flatten", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: flatten
+  inputs:
+    dir: tests/flatten_as_input
+    wdl: flatten_as_input.wdl
+    json: flatten.json
+  outputs:
+    flattenWorkflow.the_output:
+      type: File
+      value: {md5sum: '6564a95855125852aca9934ef00ab87d'}
+- description: |
+    Legacy test for as_pairs_as_input
+  tags: ["as_pairs", "legacy"]
+  versions: ["1.1"]
+  id: as_pairs
+  inputs:
+    dir: tests/as_pairs_as_input
+    wdl: as_pairs_as_input.wdl
+    json: as_pairs.json
+  outputs:
+    asPairsWorkflow.the_output:
+      type: File
+      value: {md5sum: 'e9f8872409ecc6ef06c505caa58265b6'}
+- description: |
+    Legacy test for as_map_as_input
+    It looks like MiniWDL does not have the function as_map()
+  tags: ["as_map", "legacy"]
+  versions: ["1.1"]
+  id: as_map
+  inputs:
+    dir: tests/as_map_as_input
+    wdl: as_map_as_input.wdl
+    json: as_map.json
+  outputs:
+    asMapWorkflow.the_output:
+      type: File
+      value: {md5sum: 'f2ac4e62ad3171bd856c5d70160f1052'}
+- description: |
+    Legacy test for keys_as_input
+  tags: ["keys", "legacy"]
+  versions: ["1.1"]
+  id: keys
+  inputs:
+    dir: tests/keys_as_input
+    wdl: keys_as_input.wdl
+    json: keys.json
+  outputs:
+    keysWorkflow.the_output:
+      type: File
+      value: {md5sum: '3a63b1c5da9cd4c9227c9d1ab4d67449'}
+- description: |
+    Legacy test for collect_by_key_as_input
+  tags: ["collect_by_key", "legacy"]
+  versions: ["1.1"]
+  id: collect
+  inputs:
+    dir: tests/collect_by_key_as_input
+    wdl: collect_by_key_as_input.wdl
+    json: collect_by_key.json
+  outputs:
+    collectByKeyWorkflow.the_output:
+      type: File
+      value: {md5sum: 'cf373525532455655c9bc226c91f5842'}
+- description: |
+    MiniWDL self test
+  tags: ["self_test", "legacy"]
+  versions: ["1.0", "1.1"]
+  id: miniwdl_self_test
+  inputs:
+    dir: tests/miniwdl_self_test
+    wdl: miniwdl_self_test.wdl
+    json: miniwdl_self_test_inputs.json
+  outputs:
+    hello_caller.messages:
+      type: Array[String]
+      value: ['Hello, Alyssa P. Hacker!', 'Hello, Ben Bitdiddle!']
+    hello_caller.message_files:
+      type: Array[File]
+      value: [{md5sum: '112b774308dee425a0858f81f7f1637b'}, {md5sum: '1f5b27033872fd4f6b695df3520d9daa'}]
+- description: |
+    MD5 test
+  tags: ["md5", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: md5
+  inputs:
+    dir: tests/md5sum
+    wdl: md5sum.wdl
+    json: md5sum.json
+  outputs:
+    ga4ghMd5.value:
+      type: File
+      value: {md5sum: '24b6378740d9662c8f464364b10a133a'}
+- description: |
+    MD5 test with an empty file
+  tags: ["md5_empty", "legacy"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: md5_empty
+  inputs:
+    dir: tests/md5sum
+    wdl: md5sum.wdl
+    json: md5sum_empty.json
+  outputs:
+    ga4ghMd5.value:
+      type: File
+      value: {md5sum: '227bc609651f929e367c3b2b79e09d5b'}
+- description: |
+    Test that sibling files are kept in the same directory when downloaded
+  versions: ["1.0", "1.1"]
+  id: sibling
+  tags: ["sibling_files", "behavior"]
+  inputs:
+    dir: tests/sibling_files
+    wdl: sibling_files.wdl
+    json: sibling_files.json
+  outputs:
+    wf.result1:
+      type: Boolean
+      value: True
+    wf.result2:
+      type: Boolean
+      value: True
+    wf.result3:
+      type: Boolean
+      value: True
+    wf.result4:
+      type: Boolean
+      value: True
+    wf.result5:
+      type: Boolean
+      value: True
+- description: |
+    Test that output files with the same name can be kept straight
+  versions: ["1.0", "1.1"]
+  id: samename
+  tags: ["sibling_files", "output", "behavior"]
+  inputs:
+    dir: tests/output_collision
+    wdl: output_collision.wdl
+    json: output_collision.json
+  outputs:
+    wf.file11:
+      type: File
+      value: {regex: '^A$'}
+    wf.file12:
+      type: File
+      value: {regex: '^A$'}
+    wf.file21:
+      type: File
+      value: {regex: '^B$'}
+    wf.file22:
+      type: File
+      value: {regex: '^B$'}
+- description: |
+    Test that symlinks to input files can be used as output files
+  versions: ["draft-2", "1.0", "1.1"]
+  id: symlink_output
+  tags: ["symlinks", "behavior"]
+  inputs:
+    dir: tests/symlink_output
+    wdl: symlink_output.wdl
+    json: symlink_output.json
+  outputs:
+    wf.outfile:
+      type: File
+      value: {regex: '^A$'}
+- description: |
+    Test that files with special characters in their names are supported
+  versions: ["draft-2", "1.0", "1.1"]
+  id: special_character_files
+  tags: ["special_characters", "behavior"]
+  inputs:
+    dir: tests/special_character_files
+    wdl: special_character_files.wdl
+    json: special_character_files.json
+  outputs:
+    wf.success:
+      type: Boolean
+      value: True
+- description: | # See <https://github.com/chanzuckerberg/miniwdl/issues/674>
+    Test that placeholder substitutions don't break command dedenting
+  versions: ["draft-2", "1.0", "1.1"]
+  id: dedent
+  tags: ["dedent", "behavior"]
+  inputs:
+    dir: tests/dedent
+    wdl: dedent.wdl
+    json: dedent.json
+  outputs:
+    wf.lines:
+      type: Array[String]
+      value: ["a", "b", "c"]
+- description: | # toil-wdl-runner currently fails this
+    Test that passing a file generated with write_lines() into another task succeeds
+  versions: ["draft-2", "1.0", "1.1"]
+  id: write_lines_task
+  tags: ["write_lines_as_input", "behavior"]
+  inputs:
+    dir: tests/write_lines_as_call_input
+    wdl: call.wdl
+    json: call.json
+  outputs:
+    wf.out:
+      type: String
+      value: "file"
+- description: |
+    Test that sibling files with colliding basenames with different directories are arranged properly when accessed
+  versions: ["1.0", "1.1"]
+  tags: ["sibling_files_dir_collision", "behavior"]
+  id: sibling_collision
+  inputs:
+    dir: tests/sibling_files
+    wdl: sibling_files_dir_collision.wdl
+    json: sibling_files.json
+  outputs:
+    wf.result1:
+      type: Boolean
+      value: True
+- description: |
+    Test that array cannot coerce to a string. WDL 1.1 does not allow compound types to coerce into a string. This should return a TypeError.
+  versions: ["1.1"]
+  tags: ["array_coerce","behavior"]
+  id: array_coerce
+  inputs:
+    dir: tests/array_coerce
+    wdl: array_coerce.wdl
+    json: empty.json
+  fail: true
+  outputs: {}
+- description: |
+     Test for externally overriding task inputs being disallowed
+  tags: ["input", "behavior"]
+  versions: ["1.1"]
+  id: input_override
+  inputs:
+    dir: tests/input_override
+    wdl: input_override.wdl
+    json: input_override.json
+  fail: true
+  outputs: {}
+- description: |
+     Test for glob order
+  tags: ["behavior", "glob"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: glob_order
+  inputs:
+    dir: tests/glob_order
+    wdl: glob_order.wdl
+    json: glob_order.json
+  outputs:
+    globOrder.result:
+      type: Array[File]
+      value: [{regex: '^1$'}, {regex: '^2$'}, {regex: '^3$'}]
+- description: |
+     Test for glob expression support
+  tags: ["behavior", "glob"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: glob_logic
+  inputs:
+    dir: tests/glob_logic
+    wdl: glob_logic.wdl
+    json: glob_logic.json
+  outputs:
+    globLogic.result:
+      type: Array[File]
+      value: [{regex: '^yum$'}]
+- description: |
+     Test for globs depending on other globs
+  tags: ["behavior", "glob"]
+  versions: ["draft-2", "1.0", "1.1"]
+  id: glob_recursion
+  inputs:
+    dir: tests/glob_recursion
+    wdl: glob_recursion.wdl
+    json: glob_recursion.json
+  outputs:
+    globRecursion.result:
+      type: Array[File]
+      value: [{regex: '^yum$'}]
+- description: |
+    Test that outputs from conditionals and scatters are promoted to workflow outputs when no output section is used 
+  versions: ["1.0"]
+  id: nested_call_output
+  tags: ["behavior"]
+  inputs:
+    dir: tests/nested_call_output
+    wdl: nested_call_output.wdl
+    json: nested_call_output.json
+  outputs:
+    wf.make_file.outfile:
+      type: File
+      value: {regex: '^toplevel$'}
+    wf.make_file_if.outfile:
+      type: File
+      value: {regex: '^if$'}
+    wf.make_file_deep.outfile:
+      type: Array[File?]
+      value: [null, {regex: '^scatter2$'}, null]
+    wf.make_file_deeper.outfile:
+      type: Array[File?]
+      value: [{regex: '^otherscatter1$'}, null, null]
+- description: |
+    Basic test for Directory
+  versions: ["1.2", "development"]
+  id: basic_directory
+  tags: ["sibling_directories", "behavior"]
+  inputs:
+    dir: tests/basic_directory
+    wdl: basic_directory.wdl
+    json: basic_directory.json
+  outputs:
+    directoryWorkflow.out_dir:
+      type: Directory
+      value:
+        listing:
+          - type: File
+            basename: a.txt
+          - type: Directory
+            basename: subdir
+            listing:
+              - type: File
+                basename: b.txt
+    directoryWorkflow.out_log:
+      type: File
+      value: {regex: "testdir/\n.*testdir/a.txt\n.*testdir/subdir\n.*testdir/subdir/b.txt"}
+- description: |
+    Test that sibling directories are kept in the same directory when downloaded, and siblings of their files are in the right place
+  versions: ["1.2", "development"]
+  id: sibling_directories
+  tags: ["sibling_directories", "behavior"]
+  inputs:
+    dir: tests/sibling_directories
+    wdl: sibling_directories.wdl
+    json: sibling_directories.json
+  outputs:
+    wf.result1:
+      type: Boolean
+      value: True
+    wf.result2:
+      type: Boolean
+      value: True
+    wf.result3:
+      type: Boolean
+      value: True
+    wf.result4:
+      type: Boolean
+      value: True
+    wf.result5:
+      type: Boolean
+      value: True
+    wf.result6:
+      type: Boolean
+      value: True

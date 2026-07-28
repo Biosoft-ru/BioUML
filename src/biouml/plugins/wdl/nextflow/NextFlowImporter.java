@@ -127,7 +127,7 @@ public class NextFlowImporter
     public Diagram importNextflow(String nextflow, Diagram diagram) throws Exception
     {
         parseNextflow( diagram.getName(), nextflow );
-        new DiagramGenerator().generateDiagram( scriptInfo, diagram );
+        new DiagramGenerator().generateDiagram( scriptInfo, diagram, null );
         return diagram;
     }
 

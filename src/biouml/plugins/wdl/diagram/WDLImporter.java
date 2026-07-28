@@ -16,6 +16,7 @@ import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
+import biouml.plugins.wdl.FileScriptLoader;
 import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.model.CallInfo;
@@ -92,12 +93,15 @@ public class WDLImporter implements DataElementImporter
         try (FileInputStream in = new FileInputStream( file );
                 InputStreamReader reader = new InputStreamReader( in, StandardCharsets.UTF_8 ))
         {
+            
+            if (this.scriptLoader == null)
+                scriptLoader = new FileScriptLoader( ScriptLoader.WDL_TYPE, file.getParentFile() );
             Diagram diagram = generateDiagram( file, name, parent );
 
             if( jobControl != null )
                 jobControl.functionFinished();
 
-            new WDLLayouter().layout( diagram );
+
             CollectionFactoryUtils.save( diagram );
 
             return diagram;
@@ -114,7 +118,8 @@ public class WDLImporter implements DataElementImporter
     public Diagram generateDiagram(File file, String name, DataCollection dc) throws Exception
     {
         String text = ApplicationUtils.readAsString( file );
-        return generateDiagram( text, name, dc );
+        ScriptInfo info = readScript( name, text );
+        return new DiagramGenerator().generateDiagram( info, name, dc );
     }
 
     public Diagram generateDiagram(String wdl, String name, DataCollection dc) throws Exception
@@ -126,7 +131,7 @@ public class WDLImporter implements DataElementImporter
     public Diagram generateDiagram(String wdl, Diagram diagram) throws Exception
     {
         ScriptInfo info = readScript( diagram.getName(), wdl );
-        return new DiagramGenerator().generateDiagram( info, diagram );
+        return new DiagramGenerator().generateDiagram( info, diagram, diagram.getOrigin() );
     }
     
     public ScriptInfo readScript(String name, String text) throws Exception
