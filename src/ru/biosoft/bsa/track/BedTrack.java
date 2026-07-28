@@ -24,23 +24,12 @@ import ru.biosoft.exception.LoggedException;
 
 public class BedTrack extends FileTrack implements WritableTrack
 {
-    private File file;
     private BufferedWriter writer;
     private int nextId = 1;
 
     public BedTrack(DataCollection<?> origin, Properties properties) throws IOException
     {
         super( origin, properties );
-    }
-
-    //    public BedTrack(DataCollection<?> origin, String name, File file)
-    //    {
-    //        super(origin, name, file);
-    //    }
-
-    public File getFile()
-    {
-        return file;
     }
 
     @Override
