@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# fetch_profile.sh — Fetch the latest profiler summary from the BioUML server.
+# fetch_profile.sh — Fetch the latest profiler summary from a BioUML server.
 # Reads MONITORING_USER and MONITORING_PASS from .env at the current working directory.
 # Output: profile summary text to stdout.
 #
 # Usage: run from the repo root (or set MONITORING_USER/PASS env vars)
-#   bash .claude/skills/profiler-review/scripts/fetch_profile.sh
+#   bash .claude/skills/profiler-review/scripts/fetch_profile.sh https://biouml2test.biouml.org
 
 set -euo pipefail
 
@@ -20,8 +20,12 @@ if [[ -z "${MONITORING_USER:-}" || -z "${MONITORING_PASS:-}" ]]; then
   exit 1
 fi
 
-SERVER_URL="https://biouml2test.biouml.org/biouml/support/profile"
-QUERY_URL="${SERVER_URL}?action=summary&id=latest&user=${MONITORING_USER}&pass=${MONITORING_PASS}"
+# Server URL: first argument, or default to test server
+SERVER_URL="${1:-https://biouml2test.biouml.org}"
+# Strip trailing slash if present
+SERVER_URL="${SERVER_URL%/}"
+
+QUERY_URL="${SERVER_URL}/biouml/support/profile?action=summary&id=latest&user=${MONITORING_USER}&pass=${MONITORING_PASS}"
 
 echo "Fetching profile from: ${QUERY_URL}"
 echo ""

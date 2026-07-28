@@ -1,6 +1,7 @@
 ---
 name: profiler-review
 description: This skill should be used when the user asks to "review profiler results", "analyze CPU profile", "optimize hot code", "check server performance", "run profiler review", "/profiler-review", or wants to improve BioUML code based on async-profiler output from the server monitoring plugin. Triggers on any request to fetch, analyze, or optimize based on server-side profiling data.
+argument-hint: <Type server URL>
 version: 1.0.0
 ---
 
@@ -15,23 +16,33 @@ This skill fetches the latest profiler summary from a remote BioUML server, anal
 ## Prerequisites
 
 - `.env` file at repo root with `MONITORING_USER` and `MONITORING_PASS`
-- Access to the BioUML test server at `https://biouml2test.biouml.org`
 - Git configured with GitHub access (via `gh` CLI or remote)
 - Dual build system: both Maven and Ant must compile after changes
+
+## Usage
+
+Accepts a server URL as an argument. If not provided, defaults to the test server.
+
+```bash
+/profiler-review https://biouml2test.biouml.org
+/profiler-review https://ict.biouml.org
+```
 
 ## Workflow
 
 ### Step 1: Fetch Profile Summary
 
-Run the helper script to fetch the latest profile from the server:
+Determine the server URL: use the argument provided by the user, or default to `https://biouml2test.biouml.org`.
+
+Run the helper script with the server URL:
 
 ```bash
-bash .claude/skills/profiler-review/scripts/fetch_profile.sh
+bash .claude/skills/profiler-review/scripts/fetch_profile.sh https://biouml2test.biouml.org
 ```
 
 The script reads credentials from `.env` and calls:
 ```
-https://biouml2test.biouml.org/biouml/support/profile?action=summary&id=latest&user=$MONITORING_USER&pass=$MONITORING_PASS
+<SERVER_URL>/biouml/support/profile?action=summary&id=latest&user=$MONITORING_USER&pass=$MONITORING_PASS
 ```
 
 Save the output to a temporary file for analysis.
@@ -112,7 +123,7 @@ git commit -m "perf(profiler): optimize hot paths identified by async-profiler
 Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin profiler-optimize/<short-description>
 gh pr create --title "perf(profiler): optimize hot paths from async-profiler" \
-  --body "Optimizations based on async-profiler summary from biouml2test.biouml.org.
+  --body "Optimizations based on async-profiler summary from ${SERVER_URL}.
 
 ## Profile Summary
 - Duration: <from profile>
