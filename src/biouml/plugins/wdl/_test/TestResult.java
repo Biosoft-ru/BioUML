@@ -11,6 +11,7 @@ public class TestResult
     private String diagramGenerated = "Failed";
     private String nextflowGenerated = "Failed";
     private String nextflowExecuted = "N/A";
+    private String nextflowChecked = "N/A";
     private String roundTest = "Failed";
     private String error;
 
@@ -104,6 +105,15 @@ public class TestResult
     public void setNextflowExecuted(String nextflowExecution)
     {
         this.nextflowExecuted = nextflowExecution;
+    }
+
+    public String getNextflowChecked()
+    {
+        return nextflowChecked;
+    }
+    public void setNextflowChecked(String nextflowChecked)
+    {
+        this.nextflowChecked = nextflowChecked;
     }
 
     public String getError()
