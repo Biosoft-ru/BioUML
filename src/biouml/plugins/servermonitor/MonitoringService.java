@@ -34,6 +34,7 @@ public class MonitoringService {
     private volatile List<String> slowTaskIds = new ArrayList<>();
     private final Map<String, ProfilerResult> activeProfiles = new ConcurrentHashMap<>();
     private final Random random = new Random();
+    private volatile boolean firstLoopIteration = true;
 
     public MonitoringService(ServerMonitorConfig config) {
         this.config = config;
@@ -101,6 +102,11 @@ public class MonitoringService {
 
                 lastCheckTime = System.currentTimeMillis();
 
+                // After the first loop iteration, clear the startup guard so
+                // periodic profiling respects the configured interval from
+                // the next cycle onward.
+                firstLoopIteration = false;
+
                 long interval = config.getCheckInterval() * 1000L;
                 Thread.sleep(Math.max(interval, 1000));
             } catch (InterruptedException e) {
@@ -167,6 +173,11 @@ public class MonitoringService {
      * Check for periodic profiling of the JVM.
      */
     private void checkPeriodicProfiling() {
+        // Skip periodic profiling on the very first loop iteration (server startup).
+        // During startup there are no user tasks, so profiling would only capture
+        // the plugin-loading / OSGi bootstrap phase, which is not useful.
+        if (firstLoopIteration) return;
+
         long periodicInterval = config.getPeriodicInterval() * 1000L;
         long now = System.currentTimeMillis();
 
@@ -226,14 +237,17 @@ public class MonitoringService {
             result = profiler.start(new long[0], "collapsed");
 
             if (!result.isSuccess()) {
-                log.warning("JVM profiling failed: " + result.getError());
+                log.warning("JVM profiling failed: " + result.getError() +
+                        " (profiler available=" + profiler.isAvailable() + ")");
+                // Do NOT add to activeProfiles — a failed attempt should not
+                // block future profiling.  The slot stays free so the next
+                // periodic check can retry.
                 break;
             }
 
             // Check for zero-size profile files immediately after profiling
             if (!checkZeroSizeProfile(result, triggeredTask)) {
                 // Success — non-zero profile file
-                activeProfiles.put("jvm", result);
                 log.info("Started profiling JVM (all threads): " + result.getOutputPath());
 
                 // Save metadata JSON
