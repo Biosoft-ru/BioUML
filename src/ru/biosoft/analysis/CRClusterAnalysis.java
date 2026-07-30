@@ -119,6 +119,24 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             ysum = new double[length];
             ysum2 = new double[length];
         }
+
+        Cluster(Cluster other)
+        {
+            geneID = new ArrayDeque<>(other.geneID);
+            ysum = other.ysum.clone();
+            ysum2 = other.ysum2.clone();
+        }
+    }
+
+    /**
+     * Stores a copy of the current clustering as the best one found so far. The sampler keeps mutating
+     * the clusters afterwards, so storing references instead of copies would lose part of the genes.
+     */
+    private void storeClustering(List<Cluster> target)
+    {
+        target.clear();
+        for( Cluster cluster : clusters )
+            target.add(new Cluster(cluster));
     }
 
     @Override
@@ -412,7 +430,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                         double val = expre[geneIDIter][k + start];
                         if( !Double.isNaN(val) )
                         {
-                            double newVal = 2 * average[geneIDIter] + val;
+                            // the inverted value is what the cluster sums were built from, so subtract exactly it
+                            double newVal = 2 * average[geneIDIter] - val;
                             ysum[k] = sum1[k] - newVal;
                             ysum2[k] = sum2[k] - newVal * newVal;
                         }
@@ -549,8 +568,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
     {
         double maxLogLike = loglikelihood(length, priorbeta0, priora, priorb);
         //initialize finalClust by the current contents on allClusts
-        finalClust.clear();
-        finalClust.addAll(clusters);
+        storeClustering(finalClust);
         System.arraycopy(shift, 0, finalShift, 0, genesNumber);
         if( invert )
         {
@@ -569,8 +587,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 if( loglike > maxLogLike )
                 {
                     maxLogLike = loglike;
-                    finalClust.clear();
-                    finalClust.addAll(clusters);
+                    storeClustering(finalClust);
                     System.arraycopy(shift, 0, finalShift, 0, genesNumber);
                     if( invert )
                     {
@@ -708,8 +725,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( genePlace == cluster )//found cluster
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                       
                         for( int j = 0; j < length; j++ )
                         {
@@ -753,8 +770,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( genePlace == cluster )//found the cluster the gene was in before operation
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                         if( ( outcome != ( count + 1 ) ) || ( oldstart != newshift ) || ( oldsign != newsign ) )//move from one cluster to another
                         {
                             change = true;
@@ -877,8 +894,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( geneCluster == cluster )//found cluster
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                         oldstart = shift[geneID];
                         for(int j = 0; j < length; j++ )
                         {
@@ -923,8 +940,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( geneCluster == cluster )//found the cluster the gene was in before operation
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                         oldstart = shift[geneID];
                         if( ( outcome != ( count + 1 ) ) || ( oldstart != newshift ) )//move from one cluster to another
                         {
