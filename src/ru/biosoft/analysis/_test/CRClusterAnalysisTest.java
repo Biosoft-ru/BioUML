@@ -55,6 +55,7 @@ public class CRClusterAnalysisTest extends AbstractBioUMLTest
         suite.addTest(new CRClusterAnalysisTest("testCutoffAboveOneRejectsEverything"));
         suite.addTest(new CRClusterAnalysisTest("testOutputTableStructure"));
         suite.addTest(new CRClusterAnalysisTest("testInversionMergesMirroredProfiles"));
+        suite.addTest(new CRClusterAnalysisTest("testNoGeneIsSilentlyDropped"));
         suite.addTest(new CRClusterAnalysisTest("testSingleLogLikelihood"));
         suite.addTest(new CRClusterAnalysisTest("testValidateParameters"));
         return suite;
@@ -166,11 +167,8 @@ public class CRClusterAnalysisTest extends AbstractBioUMLTest
 
     /**
      * With inversion allowed a profile and its mirror image are equivalent, so mirrored profiles that
-     * would otherwise form two clusters must be merged into one.
-     *
-     * Note: cluster membership is deliberately not compared to the input groups here - in inversion mode
-     * the implementation currently loses part of the genes (they are reported neither as clustered nor as
-     * filtered out), so only the number of resulting clusters is checked.
+     * are split in two clusters without inversion must be merged into a single one - with every gene
+     * still reported, and with the Sign column marking exactly one of the two mirrored halves.
      */
     public void testInversionMergesMirroredProfiles() throws Exception
     {
@@ -186,11 +184,56 @@ public class CRClusterAnalysisTest extends AbstractBioUMLTest
         }
 
         TableDataCollection withoutInversion = analyze("mirror", data, false, -1.0);
-        assertEquals("Without inversion mirrored profiles must be separated", 2, countClusters(withoutInversion));
+        assertEquals("All genes must be assigned to a cluster", 2 * GROUP_SIZE, withoutInversion.getSize());
+        assertPartition(withoutInversion, 2);
 
         TableDataCollection withInversion = analyze("mirrorInverted", data, true, -1.0);
-        assertTrue("Result must not be empty", withInversion.getSize() > 0);
+        assertEquals("All genes must be assigned to a cluster", 2 * GROUP_SIZE, withInversion.getSize());
         assertEquals("With inversion mirrored profiles must be merged", 1, countClusters(withInversion));
+
+        String directSign = signOf(withInversion, 0);
+        String mirroredSign = signOf(withInversion, GROUP_SIZE);
+        assertFalse("Mirrored halves must get opposite signs, both are '" + directSign + "'", directSign.equals(mirroredSign));
+        for( int i = 0; i < 2 * GROUP_SIZE; i++ )
+        {
+            assertEquals("Sign of " + geneName(i), i < GROUP_SIZE ? directSign : mirroredSign, signOf(withInversion, i));
+            // a NaN probability passes no cutoff, so it would silently drop the gene from the output
+            double probability = (Double)TableDataCollectionUtils.getRowValues(withInversion, geneName(i))[1];
+            assertFalse(geneName(i) + ": probability must not be NaN", Double.isNaN(probability));
+            assertTrue(geneName(i) + ": probability " + probability + " is out of [0, 1]", probability >= 0 && probability <= 1);
+        }
+    }
+
+    /**
+     * Overlapping groups keep the sampler moving genes between clusters instead of settling down. However
+     * it wanders, every gene must end up in exactly one reported cluster: a gene that is neither clustered
+     * nor rejected by the cutoff is lost without any diagnostics. The true partition is not asserted here -
+     * with overlapping groups it is not identifiable - only that nothing disappears.
+     *
+     * Repeated, because the loss used to happen in under 10% of the runs.
+     */
+    public void testNoGeneIsSilentlyDropped() throws Exception
+    {
+        int geneCount = 2 * GROUP_SIZE;
+        double[][] data = new double[geneCount][COLUMN_COUNT];
+        for( int i = 0; i < geneCount; i++ )
+            for( int j = 0; j < COLUMN_COUNT; j++ )
+                // the group levels differ by 2, single measurements deviate by up to 2: the groups overlap
+                data[i][j] = ( i < GROUP_SIZE ? 0 : 2 ) + 0.4 * ( ( i * 7 + j * 3 ) % 11 - 5 );
+
+        for( int attempt = 0; attempt < 40; attempt++ )
+        {
+            TableDataCollection result = analyze("overlap" + attempt, data, false, -1.0);
+            for( int i = 0; i < geneCount; i++ )
+                assertTrue("Attempt " + attempt + ": " + geneName(i) + " is neither clustered nor filtered out", result.getNameList()
+                        .contains(geneName(i)));
+            assertEquals("Attempt " + attempt + ": number of reported genes", geneCount, result.getSize());
+        }
+    }
+
+    private String signOf(TableDataCollection result, int gene) throws Exception
+    {
+        return (String)TableDataCollectionUtils.getRowValues(result, geneName(gene))[2];
     }
 
     /**
