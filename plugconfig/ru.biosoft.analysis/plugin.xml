@@ -365,6 +365,12 @@
       <analysisClass class="ru.biosoft.analysis.DotPlotAnalysis" group="Plots and charts" name="Dot plot"  shortDescription="" description="Dot plot" /> 
   </extension>
   
+  <extension id="Extended dot plot" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="ru.biosoft.analysis.CirclePlotAnalysis" group="Plots and charts" name="Extended dot plot"  
+      shortDescription="" 
+      description="Generates a dotplot using the R ggplot2 library, with customizable dot sizes, sort order, color mapping column, image dimensions, and resolution." /> 
+  </extension>
+  
   <extension id="Genes table type" point="ru.biosoft.access.referenceType">
   	<type typeClass="ru.biosoft.analysis.type.GeneTableType"/>
   	<type typeClass="ru.biosoft.analysis.type.TranscriptTableType"/>
