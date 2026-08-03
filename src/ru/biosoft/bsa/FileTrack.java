@@ -19,7 +19,7 @@ import ru.biosoft.bsa.view.TrackViewBuilder;
 
 public abstract class FileTrack extends AbstractDataCollection<DataElement> implements Track
 {
-    private File file;
+    protected File file;
     private VectorDataCollection<Site> sites;
     private boolean isInitialized = false;
     private TrackOptions trackOptions;
@@ -35,9 +35,6 @@ public abstract class FileTrack extends AbstractDataCollection<DataElement> impl
         }
         else
             file = DataCollectionUtils.getChildFile(origin, getName());
-
-        if( !file.exists() )
-            throw new FileNotFoundException("File " + file.getAbsolutePath() + " not found in track constructor");
 
         trackOptions = new TrackOptions(this, properties);
     }

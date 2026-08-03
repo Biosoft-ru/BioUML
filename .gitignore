@@ -28,3 +28,10 @@ luceneIndex
 
 data/test/biouml/plugins/brain/diagrams/Test brain diagram
 data/test/biouml/plugins/brain/tables/test_1
+
+# Claude Code
+.claude/memory/*.jsonl
+.claude/settings.local.json.*
+
+# Secrets
+.env

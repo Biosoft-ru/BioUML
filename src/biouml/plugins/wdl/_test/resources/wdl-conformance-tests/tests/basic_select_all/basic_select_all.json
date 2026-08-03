@@ -1,0 +1,11 @@
+{
+    "selectAllWorkflow.maybe_int2": 4,
+    "selectAllWorkflow.maybe_int3": 5,
+    "selectAllWorkflow.maybe_string1": "value1",
+    "selectAllWorkflow.maybe_string3": "value3",
+    "selectAllWorkflow.maybe_float3": 1.2345,
+    "selectAllWorkflow.maybe_bool1": true,
+    "selectAllWorkflow.maybe_bool2": false,
+    "selectAllWorkflow.maybe_file2": "tests/basic_select_all/basic_select_all.wdl"
+
+}

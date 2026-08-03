@@ -858,6 +858,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     {
         String expression = getExpression( node );
         List<Node> sources = getSources( node );
+        Set<String> replaced = new HashSet<>();
         for( Node source : sources )
         {
             if( source != null && isCall( source.getCompartment() ) )
@@ -865,6 +866,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 String result = getResultName( source.getCompartment() );
                 String name = getCallName( source.getCompartment() );
 
+                if (replaced.contains( name ))
+                        continue;
+                
+                replaced.add( name );
                 if( result != null )
                     expression = expression.replace( name + ".", result  + ".");
                 else
@@ -1215,8 +1220,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         //        boolean isOptional = WorkflowUtil.getType( input ).endsWith( "?" );
         //        if( isOptional )
         //            return "getDefault(params." + getName( input ) + ", " + getExpression( input )+")";
-        if( WorkflowUtil.getType( input ).equals( "File" ) || WorkflowUtil.getType( input ).equals( "File?" ) )
+        if(  WorkflowUtil.getType( input ).equals( "File?" ) )
             return "fileOrNull( params." + getName( input ) + ")";
+        else if (WorkflowUtil.getType( input ).equals( "File" ) )
+            return  "file( params." + getName( input ) + ")";
         if( WorkflowUtil.getType( input ).equals( "Array[File]" ) )
             return "params." + getName( input ) + ".collect { file(it) }";
         if( WorkflowUtil.getType( input ).endsWith( "?" ) )
@@ -1231,6 +1238,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     
     public String generateWorkflowPublish(Diagram diagram)
     {
+        if( !publishOutput )
+            return "";
         String workflowName = getWorkflowName( diagram );
         StringBuilder sb = new StringBuilder();
 

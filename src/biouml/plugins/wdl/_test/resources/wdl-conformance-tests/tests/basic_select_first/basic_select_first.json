@@ -1,0 +1,15 @@
+{
+    "selectFirstWorkflow.maybe_five" : 5,
+    "selectFirstWorkflow.maybe_six" : 6,
+
+    "selectFirstWorkflow.maybe_string1" : "value1",
+    "selectFirstWorkflow.maybe_string2" : "value2",
+
+    "selectFirstWorkflow.maybe_int3" : 999.9999999,
+
+    "selectFirstWorkflow.maybe_true1" : true,
+    "selectFirstWorkflow.maybe_true2" : false,
+    "selectFirstWorkflow.maybe_true3" : false,
+
+    "selectFirstWorkflow.maybe_file2" : "tests/basic_select_first/basic_select_first.json"
+}

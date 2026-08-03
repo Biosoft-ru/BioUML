@@ -32,6 +32,7 @@ import biouml.plugins.wdl.model.WorkflowInfo;
 import biouml.plugins.wdl.parser.ExpressionParser;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
+import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.util.DPSUtils;
@@ -50,13 +51,22 @@ public class DiagramGenerator
     private Map<String, Compartment> workflows = new HashMap<>();
     private int externalPosition = 0;
 
-    public Diagram generateDiagram(ScriptInfo script, DataCollection dc, String name) throws Exception
+    public Diagram generateDiagram(ScriptInfo script, String name, DataCollection dc) throws Exception
     {
         Diagram result = new WDLDiagramType().createDiagram( dc, name );
-        return generateDiagram( script, result );
+        generateDiagram( script, result, dc );
+        
+        if (dc != null)
+        {
+            for( Diagram diagram : imports.values() )
+            {
+                CollectionFactoryUtils.save( diagram );
+            }
+        }
+        return result;
     }
 
-    public Diagram generateDiagram(ScriptInfo script, Diagram diagram) throws Exception
+    public Diagram generateDiagram(ScriptInfo script, Diagram diagram, DataCollection dc) throws Exception
     {
         diagram.clear();
         diagram.getAttributes().remove( WDLConstants.IMPORTS_ATTR );
@@ -77,7 +87,7 @@ public class DiagramGenerator
 
         for( ImportInfo importInfo : script.getImports() )
         {
-            createImport( diagram, importInfo );
+            createImport( dc, importInfo );
         }
 
         for( StructInfo structInfo : script.getStructs() )
@@ -111,7 +121,10 @@ public class DiagramGenerator
         Util.movePortsToEdge( diagram );
         //        addOutputs( diagram );
 
-        diagram.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isTask( n ) ).forEach( n -> n.setVisible( false ) );
+        new WDLLayouter().layout( diagram );
+        
+        if( diagram.recursiveStream().select( Node.class ).anyMatch( n -> WorkflowUtil.isTask( n ) ) )
+            diagram.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isTask( n ) ).forEach( n -> n.setVisible( false ) );
         return diagram;
     }
 
@@ -273,10 +286,10 @@ public class DiagramGenerator
         return node;
     }
 
-    public void createImport(Diagram diagram, ImportInfo importInfo) throws Exception
+    public void createImport(DataCollection dc, ImportInfo importInfo) throws Exception
     {
-        Diagram imported = new WDLDiagramType().createDiagram( null, importInfo.getImported().getName() );
-        Diagram importedDiagram = new DiagramGenerator().generateDiagram( importInfo.getImported(), imported );
+        Diagram imported = new WDLDiagramType().createDiagram( dc, importInfo.getImported().getName() );
+        Diagram importedDiagram = new DiagramGenerator().generateDiagram( importInfo.getImported(), imported, dc );
         this.imports.put( importInfo.getAlias(), importedDiagram );
         importedDiagram.getAttributes().add( new DynamicProperty( "SOURCE", String.class, importInfo.getSource() ) );
         if( importInfo.getTask() != null )
@@ -621,7 +634,7 @@ public class DiagramGenerator
         String title = name;
         String alias = call.getAlias();
         if( alias != null )
-            title = alias;
+            title = alias.substring( alias.lastIndexOf( "." )+1 );
 
         name = DefaultSemanticController.generateUniqueName( diagram, "Call_" + name );
         Stub kernel = new Stub( null, name, WDLConstants.CALL_TYPE );
@@ -645,7 +658,10 @@ public class DiagramGenerator
         {
             for( Node node : WorkflowUtil.getExternalOutputs( (Diagram)taskСompartment ) )
             {
-                Node portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, WorkflowUtil.getPosition( node ), c );
+                int position = WorkflowUtil.getPosition( node );
+                if (position == -1)
+                    position = outputs;
+                Node portNode = addPort( node.getName(), WDLConstants.OUTPUT_TYPE, position, c );
                 WorkflowUtil.copyExpresion( portNode, node );
                 WorkflowUtil.setPosition( portNode, WorkflowUtil.getPosition( node ) );
                 outputs++;
@@ -703,7 +719,7 @@ public class DiagramGenerator
 
         int maxPorts = Math.max( inputs, outputs );
         int height = Math.max( 50, 24 * maxPorts + 16 );
-        int width = new WDLViewBuilder().calculateCallWidth( taskСompartment , diagram.getViewOptions());
+        int width = new WDLViewBuilder().calculateCallWidth( c , diagram.getViewOptions());
         c.setShapeSize( new Dimension( width, height ) );
         c.getAttributes().add( new DynamicProperty( "innerNodesPortFinder", Boolean.class, true ) );
         String resultName = call.getResultName();

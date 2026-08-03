@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
-import java.util.Vector;
 
 import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.StreamEx;
@@ -26,7 +25,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
     public static final int FACTOR_0 = 1;
     public static final int MAX_LENGTH = 150;
 
-    Vector<Cluster> clusters;
+    List<Cluster> clusters;
     Cluster[] member;
     boolean[] sign;
     double[] average;
@@ -112,8 +111,32 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
     private static class Cluster
     {
         Deque<Integer> geneID = new ArrayDeque<>();
-        Vector<Double> ysum = new Vector<>();
-        Vector<Double> ysum2 = new Vector<>();
+        double[] ysum;
+        double[] ysum2;
+
+        Cluster(int length)
+        {
+            ysum = new double[length];
+            ysum2 = new double[length];
+        }
+
+        Cluster(Cluster other)
+        {
+            geneID = new ArrayDeque<>(other.geneID);
+            ysum = other.ysum.clone();
+            ysum2 = other.ysum2.clone();
+        }
+    }
+
+    /**
+     * Stores a copy of the current clustering as the best one found so far. The sampler keeps mutating
+     * the clusters afterwards, so storing references instead of copies would lose part of the genes.
+     */
+    private void storeClustering(List<Cluster> target)
+    {
+        target.clear();
+        for( Cluster cluster : clusters )
+            target.add(new Cluster(cluster));
     }
 
     @Override
@@ -140,7 +163,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         int[] midShift = new int[genesNumber];
         boolean[] finalSign = new boolean[genesNumber];
         boolean[] midSign = new boolean[genesNumber];
-        clusters = new Vector<>();
+        clusters = new ArrayList<>();
         member = new Cluster[genesNumber];
         shift = new int[genesNumber];
         sign = new boolean[genesNumber];
@@ -212,37 +235,33 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         log.info("Start clustering.");
         for(int j = 0; j < initialClustersNumber; j++ )
         {
-            Cluster tempClust = new Cluster();
+            Cluster tempClust = new Cluster(length);
             tempClust.geneID.add(j);
             for(int k = 0; k < length; k++ )//column
             {
                 double val = expre[j][k];
                 if( !Double.isNaN(val) )
                 {
-                    tempClust.ysum.add(val);
-                    tempClust.ysum2.add(val * val);
+                    tempClust.ysum[k] = val;
+                    tempClust.ysum2[k] = val * val;
                 }
-                else
-                {
-                    tempClust.ysum.add(0.0);
-                    tempClust.ysum2.add(0.0);
-                }
+                // else: already 0.0 by default
             }
             clusters.add(tempClust);
         }
 
-        Cluster cluster = clusters.firstElement();
+        Cluster cluster = clusters.get(0);
         // sequentially add the remaining genes one by one to these clusters.
         for(int j = initialClustersNumber; j < genesNumber; j++ )
         {
             if( ( j % initialClustersNumber ) == 0 )// set allClusts pointer to the beginning
-                cluster = clusters.firstElement();
+                cluster = clusters.get(0);
             else
             {
                 //add genes to existing clusters
                 int index = clusters.indexOf(cluster);
                 index++;
-                cluster = clusters.elementAt(index);
+                cluster = clusters.get(index);
             }
             cluster.geneID.add(j);
             for(int k = 0; k < length; k++ )
@@ -250,8 +269,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 double val = expre[j][k];
                 if( !Double.isNaN(val) )
                 {
-                    cluster.ysum.set(k, cluster.ysum.get(k) + val);
-                     cluster.ysum2.set(k, cluster.ysum2.get(k) + val * val);
+                    cluster.ysum[k] += val;
+                     cluster.ysum2[k] += val * val;
                 }
             }
         }
@@ -303,9 +322,9 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         int order;
 
         //  initial shift position is in the middle
-        Vector<Integer>[] geneList = new Vector[updatedClustNumber];
+        List<List<Integer>> geneList = new ArrayList<>(updatedClustNumber);
         for( int i = 0; i < updatedClustNumber; i++ )
-            geneList[i] = new Vector<>();
+            geneList.add(new ArrayList<>());
         member = new Cluster[row];
         shift = new int[row];
         //  initial shift position is in the middle
@@ -317,35 +336,32 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         for( int j = 0; j < row; j++ )
         {
             initialClust = (int) (  Math.random() * updatedClustNumber );
-            geneList[initialClust].add(j);
+            geneList.get(initialClust).add(j);
         }
         for( int j = 0; j < updatedClustNumber; j++ )
         {
-            int size = geneList[j].size();
-            Cluster tempClust = new Cluster();
-            for( int m = 0; m < length; m++ )
-            {
-                tempClust.ysum.add(0.0);
-                tempClust.ysum2.add(0.0);
-            }
+            List<Integer> list = geneList.get(j);
+            int size = list.size();
+            Cluster tempClust = new Cluster(length);
+            // ysum/ysum2 are already 0.0 by default
             for( int k = 0; k < size; k++ )
             {
-                order = geneList[j].get(k);
+                order = list.get(k);
                 tempClust.geneID.add(order);
                 for( int m = 0; m < length; m++ )
                 {
                     double val = expre[order][m];
                     if( !Double.isNaN(val) )
                     {
-                        tempClust.ysum.set(m, tempClust.ysum.get(m) + val);
-                        tempClust.ysum2.set(m, tempClust.ysum2.get(m) + val * val);
+                        tempClust.ysum[m] += val;
+                        tempClust.ysum2[m] += val * val;
                     }
                 }
             }
             clusters.add(tempClust);
         }
         for( int j = 0; j < updatedClustNumber; j++ )
-            geneList[j].clear();
+            geneList.get(j).clear();
         // assign members
         for( Cluster cluster : clusters )
         {
@@ -399,8 +415,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         {
             for( int k = 0; k < length; k++ )
             {
-                sum1[k] = finalCluster.ysum.get(k);
-                sum2[k] = finalCluster.ysum2.get(k);
+                sum1[k] = finalCluster.ysum[k];
+                sum2[k] = finalCluster.ysum2[k];
             }
             int nsize = finalCluster.geneID.size();
 
@@ -414,7 +430,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                         double val = expre[geneIDIter][k + start];
                         if( !Double.isNaN(val) )
                         {
-                            double newVal = 2 * average[geneIDIter] + val;
+                            // the inverted value is what the cluster sums were built from, so subtract exactly it
+                            double newVal = 2 * average[geneIDIter] - val;
                             ysum[k] = sum1[k] - newVal;
                             ysum2[k] = sum2[k] - newVal * newVal;
                         }
@@ -462,8 +479,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                     {
                         for( int k = 0; k < length; k++ )
                         {
-                            ysum[k] = cluster.ysum.get(k);
-                            ysum2[k] = cluster.ysum2.get(k);
+                            ysum[k] = cluster.ysum[k];
+                            ysum2[k] = cluster.ysum2[k];
                         }
                         int nsizenew = cluster.geneID.size() + 1;
                         for( int k = 0; k < maxShift + 1; k++ )//(2*maxShift + 1)
@@ -506,7 +523,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             {
 
                 double loglike = Stat.logGamma(0.5 * nsize + priora) - 0.5 * Math.log((double)nsize + 1)
-                        - singleloglikelihood(priora, priorb, finalCluster.ysum2.get(j), finalCluster.ysum.get(j), priorbeta0, nsize);
+                        - singleloglikelihood(priora, priorb, finalCluster.ysum2[j], finalCluster.ysum[j], priorbeta0, nsize);
                 togetherloglike += loglike;
                 for( int geneID : finalCluster.geneID )
                 {
@@ -529,19 +546,21 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
 
     double loglikelihood(int length, double priorbeta0, double priora, double priorb)//column
     {
+        // Precompute constant logGamma(priora) — called every iteration but value never changes
+        double logGammaPriora = Stat.logGamma(priora);
         double loglikesum = 0;
         for( Cluster cluster : clusters )
         {
             double dsize = cluster.geneID.size();
             for( int j = 0; j < length; j++ )
             {
-                loglikesum -= singleloglikelihood(priora, priorb, cluster.ysum2.get(j), cluster.ysum.get(j), priorbeta0, dsize);
+                loglikesum -= singleloglikelihood(priora, priorb, cluster.ysum2[j], cluster.ysum[j], priorbeta0, dsize);
             }
             loglikesum += length
                     * ( -0.5 * dsize * Math.log(2 * Math.PI) + Stat.logGamma(0.5 * dsize + priora) - 0.5 * Math.log(dsize + 1) );
         }
         // the next term appears in every column of every cluster.
-        return loglikesum + clusters.size() * length * ( priora * Math.log(priorb) - Stat.logGamma(priora) );
+        return loglikesum + clusters.size() * length * ( priora * Math.log(priorb) - logGammaPriora );
     }
 
     double clust(int genesNumber, int length, int maxShift, List<Cluster> finalClust, int[] finalShift, boolean[] finalSign, double priorbeta0,
@@ -549,8 +568,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
     {
         double maxLogLike = loglikelihood(length, priorbeta0, priora, priorb);
         //initialize finalClust by the current contents on allClusts
-        finalClust.clear();
-        finalClust.addAll(clusters);
+        storeClustering(finalClust);
         System.arraycopy(shift, 0, finalShift, 0, genesNumber);
         if( invert )
         {
@@ -569,8 +587,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 if( loglike > maxLogLike )
                 {
                     maxLogLike = loglike;
-                    finalClust.clear();
-                    finalClust.addAll(clusters);
+                    storeClustering(finalClust);
                     System.arraycopy(shift, 0, finalShift, 0, genesNumber);
                     if( invert )
                     {
@@ -607,7 +624,11 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         double[] ysum = new double[length];
         double[] ysum2 = new double[length];
         int nsize;
-        Vector<Double> ratioVec = new Vector<>();
+        // Pre-allocate ratio array to avoid Vector synchronization & Double boxing
+        // Size: (maxShift+1) * clusters.size() * 2 (bayesratio + bayesratioinvert per cluster)
+        int ratioSize = ( maxShift + 1 ) * clusters.size() * 2;
+        double[] ratioVec = new double[ratioSize];
+        int ri = 0;
         boolean change = false;
         int start;
         boolean newsign;
@@ -625,8 +646,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         {
             for( int j = 0; j < length; j++ )
             {
-                ysum[j] = cluster.ysum.get(j);
-                ysum2[j] = cluster.ysum2.get(j);
+                ysum[j] = cluster.ysum[j];
+                ysum2[j] = cluster.ysum2[j];
             }
             nsize = cluster.geneID.size();
             if( genePlace == cluster )//cluster contain this gene
@@ -673,11 +694,11 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             }
             for( int j = 0; j < ( maxShift + 1 ); j++ )
             {
-                ratioVec.add(Math.exp(bayesratio(geneID, j, length, ysum, ysum2, nsize, priorbeta0, priora, priorb)));//.push_back(ratio);
+                ratioVec[ri++] = Math.exp(bayesratio(geneID, j, length, ysum, ysum2, nsize, priorbeta0, priora, priorb));
             }
             for( int j = 0; j < ( maxShift + 1 ); j++ )
             {
-                ratioVec.add(Math.exp(bayesratioinvert(geneID, j, length, ysum, ysum2, nsize, priorbeta0, priora, priorb)));//.push_back(ratio);
+                ratioVec[ri++] = Math.exp(bayesratioinvert(geneID, j, length, ysum, ysum2, nsize, priorbeta0, priora, priorb));
             }
         }
         if( maxShift == 0 )
@@ -694,7 +715,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             newsign = result.outsign;
             newshift = result.newshift;
         }
-        ratioVec.clear();
+        
         if( outcome == 0 )//new cluster is forming
         {
             //remove gene from previous cluster
@@ -704,16 +725,16 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( genePlace == cluster )//found cluster
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                       
                         for( int j = 0; j < length; j++ )
                         {
                             double val = ( sign[geneID] ) ? expre[geneID][j + oldstart] : 2 * average[geneID] - expre[geneID][j + oldstart];
                             if( !Double.isNaN(val) )// test if it is missing, added 12/11/05
                             {
-                                cluster.ysum.set(j, cluster.ysum.get(j) - val);
-                                cluster.ysum2.set(j, cluster.ysum2.get(j) - val * val);
+                                cluster.ysum[j] -= val;
+                                cluster.ysum2[j] -= val * val;
                             }
                         }
                         break;
@@ -721,20 +742,16 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 }
             }
             //create a new cluster that contain this gene only.
-            Cluster tempClust2 = new Cluster();
+            Cluster tempClust2 = new Cluster(length);
             tempClust2.geneID.add(geneID);
+            // ysum/ysum2 are already 0.0 by default
             for( int j = 0; j < length; j++ )
             {
                 double val = expre[geneID][j];
                 if( !Double.isNaN(val) )
                 {
-                    tempClust2.ysum.add(val);
-                    tempClust2.ysum2.add(val * val);
-                }
-                else
-                {
-                    tempClust2.ysum.add(0.0);
-                    tempClust2.ysum2.add(0.0);
+                    tempClust2.ysum[j] = val;
+                    tempClust2.ysum2[j] = val * val;
                 }
             }
             clusters.add(tempClust2);
@@ -753,8 +770,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( genePlace == cluster )//found the cluster the gene was in before operation
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                         if( ( outcome != ( count + 1 ) ) || ( oldstart != newshift ) || ( oldsign != newsign ) )//move from one cluster to another
                         {
                             change = true;
@@ -766,8 +783,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
 
                                 if( !Double.isNaN(val) )
                                 {
-                                    cluster.ysum.set(j, cluster.ysum.get(j) - val);
-                                    cluster.ysum2.set(j, cluster.ysum2.get(j) - val * val);
+                                    cluster.ysum[j] -= val;
+                                    cluster.ysum2[j] -= val * val;
                                 }
                             }
                         }
@@ -792,8 +809,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
 
                             if( !Double.isNaN(val) )
                             {
-                                cluster.ysum.set(j, cluster.ysum.get(j) + val);
-                                cluster.ysum2.set(j, cluster.ysum2.get(j) + val * val);
+                                cluster.ysum[j] += val;
+                                cluster.ysum2[j] += val * val;
                             }
                         }
                         member[geneID] = cluster;
@@ -814,7 +831,11 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         int count = 0;
         double[] ysum = new double[length];
         double[] ysum2 = new double[length];
-        Vector<Double> ratioVec = new Vector<>();
+        // Pre-allocate ratio array to avoid Vector synchronization & Double boxing
+        // Size: (maxShift+1) * clusters.size() (bayesratio only, no invert)
+        int ratioSize = ( maxShift + 1 ) * clusters.size();
+        double[] ratioVec = new double[ratioSize];
+        int ri = 0;
         boolean change = false;
         Cluster geneCluster = member[geneID];
 
@@ -825,8 +846,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         {
             for(int j = 0; j < length; j++ )
             {
-                ysum[j] = cluster.ysum.get(j);
-                ysum2[j] = cluster.ysum2.get(j);
+                ysum[j] = cluster.ysum[j];
+                ysum2[j] = cluster.ysum2[j];
             }
             int nsize = cluster.geneID.size();
             boolean self = ( geneCluster == cluster );
@@ -847,7 +868,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 nsize++;
             for(int j = 0; j < ( maxShift + 1 ); j++ )
             {
-                ratioVec.add(Math.exp(bayesratio(geneID, j, length, ysum, ysum2, nsize, priorbeta0, priora, priorb)));
+                ratioVec[ri++] = Math.exp(bayesratio(geneID, j, length, ysum, ysum2, nsize, priorbeta0, priora, priorb));
             }
         }
         if( maxShift == 0 )
@@ -862,7 +883,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             outcome = result.outcome;
             newshift = result.newshift;
         }
-        ratioVec.clear();
+        
         if( outcome == 0 )//new cluster is forming
         {
             //remove gene from previous cluster
@@ -873,16 +894,16 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( geneCluster == cluster )//found cluster
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                         oldstart = shift[geneID];
                         for(int j = 0; j < length; j++ )
                         {
                             double val = expre[geneID][j + oldstart];
                             if( !Double.isNaN(val) )
                             {
-                                cluster.ysum.set(j, cluster.ysum.get(j) - val);
-                                cluster.ysum2.set(j, cluster.ysum2.get(j) - val * val);
+                                cluster.ysum[j] -= val;
+                                cluster.ysum2[j] -= val * val;
                             }
                         }
                         break;
@@ -892,20 +913,16 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 }
             }
             //create a new cluster that contain this gene only.
-            Cluster tempClust3 = new Cluster();
+            Cluster tempClust3 = new Cluster(length);
             tempClust3.geneID.add(geneID);
+            // ysum/ysum2 are already 0.0 by default
             for(int j = 0; j < length; j++ )
             {
                 double val = expre[geneID][j];
                 if( !Double.isNaN(val) )
                 {
-                    tempClust3.ysum.add(val);
-                    tempClust3.ysum2.add(val * val);
-                }
-                else
-                {
-                    tempClust3.ysum.add(0.0);
-                    tempClust3.ysum2.add(0.0);
+                    tempClust3.ysum[j] = val;
+                    tempClust3.ysum2[j] = val * val;
                 }
             }
             clusters.add(tempClust3);
@@ -923,8 +940,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 {
                     if( geneCluster == cluster )//found the cluster the gene was in before operation
                     {
-                        if( cluster.geneID.size() > 0 )
-                            cluster.geneID.pop();
+                        // remove this very gene, not just whichever one happens to be first in the deque
+                        cluster.geneID.remove(Integer.valueOf(geneID));
                         oldstart = shift[geneID];
                         if( ( outcome != ( count + 1 ) ) || ( oldstart != newshift ) )//move from one cluster to another
                         {
@@ -934,8 +951,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                                 double val = expre[geneID][j + oldstart];
                                 if( !Double.isNaN(val) )// test if it is missing, added 12/11/05
                                 {
-                                    cluster.ysum.set(j, cluster.ysum.get(j) - val);
-                                    cluster.ysum2.set(j, cluster.ysum2.get(j) - val * val);
+                                    cluster.ysum[j] -= val;
+                                    cluster.ysum2[j] -= val * val;
                                 }
 
                             }
@@ -960,8 +977,8 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                             double val = expre[geneID][j + newshift];
                             if( !Double.isNaN(val) )
                             {
-                                cluster.ysum.set(j, cluster.ysum.get(j) + val);
-                                cluster.ysum2.set(j, cluster.ysum2.get(j) + val * val);
+                                cluster.ysum[j] += val;
+                                cluster.ysum2[j] += val * val;
                             }
                         }
                         member[geneID] = cluster;
@@ -975,19 +992,19 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         }
     }
 
-    int singleCompare(Vector<Double> ratioVec)
+    int singleCompare(double[] ratioVec)
     {
-        int n = ratioVec.size();
+        int n = ratioVec.length;
         double sum = 0;
         for( int j = 0; j < n; j++ )
-            sum += ratioVec.get(j);
+            sum += ratioVec[j];
         double compare = Math.random() * sum;
         if( FACTOR_0 > compare )
             return 0;
         double partialsum = FACTOR_0;
         for( int j = 0; j < n; j++ )
         {
-            partialsum += ratioVec.get(j);
+            partialsum += ratioVec[j];
             if( partialsum > compare )
                 return j + 1;
         }
@@ -995,17 +1012,19 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         return 0;
     }
 
-    OutcomeResult singleCompareInvert(Vector<Double> ratioVec, boolean outsign, boolean invert)
+    OutcomeResult singleCompareInvert(double[] ratioVec, boolean outsign, boolean invert)
     {
-        int number = ratioVec.size();
-        double sum = DoubleStreamEx.of( ratioVec ).sum();
+        int number = ratioVec.length;
+        double sum = 0;
+        for( int j = 0; j < number; j++ )
+            sum += ratioVec[j];
         double compare = Math.random() * sum;
         if( FACTOR_0 > compare )
             return new OutcomeResult(0, outsign, 0);
         double partialsum = FACTOR_0;
         for( int j = 0; j < number; j++ )
         {
-            partialsum += ratioVec.get(j);
+            partialsum += ratioVec[j];
             if( partialsum > compare )
             {
                 outsign = j % 2 == 0;
@@ -1016,14 +1035,16 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         return new OutcomeResult(0, outsign, 0);
     }
 
-    OutcomeResult compare(Vector<Double> ratioVec, int maxShift, int shift)
+    OutcomeResult compare(double[] ratioVec, int maxShift, int shift)
     {
-        int number = ratioVec.size();
+        int number = ratioVec.length;
         if( number % ( maxShift + 1 ) != 0 )
         {
             log.info("ratio vector size problem.");
         }
-        double sum = FACTOR_0 + DoubleStreamEx.of( ratioVec ).sum();
+        double sum = FACTOR_0;
+        for( int j = 0; j < number; j++ )
+            sum += ratioVec[j];
         double compare = Math.random() * sum;
         if( FACTOR_0 > compare )
         {
@@ -1033,7 +1054,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         double partialsum = FACTOR_0;
         for( int j = 0; j < number; j++ )
         {
-            partialsum = partialsum + ratioVec.get(j);
+            partialsum += ratioVec[j];
             if( partialsum > compare )
             {
                 int decide = j / ( maxShift + 1 );
@@ -1045,16 +1066,16 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         return new OutcomeResult(0, false, shift);
     }
 
-    OutcomeResult compareInvert(Vector<Double> ratioVec, int maxShift, int shift, boolean outsign, boolean invert)
+    OutcomeResult compareInvert(double[] ratioVec, int maxShift, int shift, boolean outsign, boolean invert)
     {
-        int number = ratioVec.size();
+        int number = ratioVec.length;
         if( number % ( ( maxShift + 1 ) * 2 ) != 0 )
         {
             log.info("ratio vector size problem.");
         }
         double sum = FACTOR_0;
         for( int j = 0; j < number; j++ )
-            sum += ratioVec.get(j);
+            sum += ratioVec[j];
         double compare = Math.random() * sum;
         if( FACTOR_0 > compare )
         {
@@ -1063,7 +1084,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
         double partialsum = FACTOR_0;
         for( int j = 0; j < number; j++ )
         {
-            partialsum = partialsum + ratioVec.get(j);
+            partialsum += ratioVec[j];
             if( partialsum > compare )
             {
                 int decide = j / ( ( maxShift + 1 ) * 2 );
@@ -1080,6 +1101,11 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
     double bayesratio(int geneID, int shift, int length, double[] ysum, double[] ysum2, int nsize, double priorbeta0, double priora,
             double priorb)
     {
+        // Precompute constant logGamma values — same for every j in the loop
+        double logGammaPriora = Stat.logGamma(priora);
+        double logGammaPrioraHalf = Stat.logGamma(priora + 0.5);
+        double logGammaPrioraPlusNsizeMinus1 = Stat.logGamma(priora + 0.5 * ( nsize - 1 ));
+
         double[] ysumnew = new double[length];
         double[] ysum2new = new double[length];
         for( int j = 0; j < length; j++ )
@@ -1106,9 +1132,9 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 double part2 = singleloglikelihood(priora, priorb, ysum2[j], ysum[j], priorbeta0, nsize - 1);
                 double part3 = ( priora + 0.5 ) * Math.log(priorb + 0.5 * ( val - priorbeta0 ) * ( val - priorbeta0 ));
                 double part4 = 0.5 * Math.log(2.0 * nsize / ( nsize + 1 ));
-                double part5 = priora * Math.log(priorb) - Stat.logGamma(priora);
-                double part6 = Stat.logGamma(priora + 0.5 * nsize) - Stat.logGamma(priora + 0.5)
-                        - Stat.logGamma(priora + 0.5 * ( nsize - 1 ));
+                double part5 = priora * Math.log(priorb) - logGammaPriora;
+                double part6 = Stat.logGamma(priora + 0.5 * nsize) - logGammaPrioraHalf
+                        - logGammaPrioraPlusNsizeMinus1;
                 logsum = logsum + part2 + part3 - part1 + part4 - part5 + part6;
             }
         }
@@ -1118,6 +1144,11 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
     double bayesratioinvert(int geneID, int shift, int length, double[] ysum, double[] ysum2, int nsize, double priorbeta0, double priora,
             double priorb)
     {
+        // Precompute constant logGamma values — same for every j in the loop
+        double logGammaPriora = Stat.logGamma(priora);
+        double logGammaPrioraHalf = Stat.logGamma(priora + 0.5);
+        double logGammaPrioraPlusNsizeMinus1 = Stat.logGamma(priora + 0.5 * ( nsize - 1 ));
+
         double[] ysumnew = new double[length];
         double[] ysum2new = new double[length];
         double[] invexpre = new double[length];
@@ -1147,8 +1178,9 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 part2 = singleloglikelihood(priora, priorb, ysum2[j], ysum[j], priorbeta0, nsize - 1);
                 part3 = ( priora + 0.5 ) * Math.log(priorb + 0.5 * ( invexpre[j] - priorbeta0 ) * ( invexpre[j] - priorbeta0 ));
                 part4 = 0.5 * Math.log(2.0 * nsize / ( nsize + 1 ));
-                part5 = priora * Math.log(priorb) - Stat.logGamma(priora);
-                part6 = Stat.logGamma(priora + 0.5 * nsize) - Stat.logGamma(priora + 0.5) - Stat.logGamma(priora + 0.5 * ( nsize - 1 ));
+                part5 = priora * Math.log(priorb) - logGammaPriora;
+                part6 = Stat.logGamma(priora + 0.5 * nsize) - logGammaPrioraHalf
+                        - logGammaPrioraPlusNsizeMinus1;
                 logsum = logsum + part2 + part3 - part1 + part4 - part5 + part6;
             }
         }
@@ -1183,7 +1215,7 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
             String key = table.getName(i);
             Object[] inputValues = TableDataCollectionUtils.getRowValues(table, key, columnNames);
             String inverted = sign[i] ? "+" : "-";
-            Vector<Object> row = new Vector<>();
+            List<Object> row = new ArrayList<>();
             row.add(clusterAssignments[i]);
             row.add(proba[i]);
             if( shiftAllowed )
