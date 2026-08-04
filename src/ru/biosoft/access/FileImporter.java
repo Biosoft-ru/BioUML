@@ -28,6 +28,7 @@ import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.access.support.FileImageTransformer;
 import ru.biosoft.jobcontrol.FunctionJobControl;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.util.OptionEx;
 
@@ -124,6 +125,8 @@ public class FileImporter implements DataElementImporter
             }
         }
         name = name.replaceAll("\\/", "");
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        name = TextUtil2.toASCII(name);
         if( parent.contains(name) )
         {
             parent.remove(name);
