@@ -20,7 +20,10 @@ import ru.biosoft.jobcontrol.FunctionJobControl;
 public class EulerStochastic extends EulerSimple
 {
 	private static final double TIME_STEP_ERROR = 1E-9;
-	protected SimpleEventDetector eventDetector;  
+	protected SimpleEventDetector eventDetector;
+	// Reusable scratch arrays to avoid per-step allocation (profile: integrationStep + dy_dt ~17% of CPU)
+	private double[] dydtStochasticScratch;
+	private double[] dydtDeterministicScratch;  
 	
     @Override
     public SimulatorInfo getInfo()
@@ -98,6 +101,9 @@ public class EulerStochastic extends EulerSimple
         nextSpanIndex = 1;
         locateEvent = options.getEventLocation();
         eventDetector = locateEvent ? new SimpleEventDetector(odeModel, this) : null;
+        // Pre-allocate scratch arrays for derivatives (profile: eliminates per-step allocation)
+        dydtStochasticScratch = new double[n];
+        dydtDeterministicScratch = new double[n];
     }
     
     @Override
@@ -178,23 +184,37 @@ public class EulerStochastic extends EulerSimple
 
     @Override
     public void integrationStep(double[] xNew, double[] xOld, double tOld, double h) throws Exception
-    {   
+    {
         SdeModel sdeModel = (SdeModel)odeModel;
-        
-        double[] dydt_stochastic = sdeModel.dy_dt_stochastic(tOld, xOld);
-        double[] dydt_deterministic = sdeModel.dy_dt_deterministic(tOld, xOld);
-        
-        for( int i = 0; i < n; i++ ) 
+
+        // Reuse scratch arrays to avoid per-step allocation (profile: ~17% of CPU in integrationStep + dy_dt)
+        if (dydtStochasticScratch == null || dydtStochasticScratch.length != n)
         {
-        	xNew[i] = xOld[i] + dydt_deterministic[i] * h + dydt_stochastic[i] * Math.sqrt(h);
+            dydtStochasticScratch = new double[n];
+        }
+        if (dydtDeterministicScratch == null || dydtDeterministicScratch.length != n)
+        {
+            dydtDeterministicScratch = new double[n];
+        }
+        sdeModel.dy_dt_deterministic(tOld, xOld, dydtDeterministicScratch);
+        sdeModel.dy_dt_stochastic(tOld, xOld, dydtStochasticScratch);
+
+        for( int i = 0; i < n; i++ )
+        {
+            xNew[i] = xOld[i] + dydtDeterministicScratch[i] * h + dydtStochasticScratch[i] * Math.sqrt(h);
         }
     }
     
+    @SuppressWarnings("unchecked")
     private void updateStochasticValuesArrays()
     {
         SdeModel sdeModel = (SdeModel)odeModel;
-        
-        sdeModel.stochasticValuesPreviousMapping = new HashMap<>(sdeModel.stochasticValuesCurrentMapping);
+
+        // Swap mappings instead of copying to avoid HashMap allocation per step
+        // (profile: updateStochasticValuesArrays called every step, HashMap allocation is significant)
+        java.util.Map<Integer, Double> temp = sdeModel.stochasticValuesPreviousMapping;
+        sdeModel.stochasticValuesPreviousMapping = sdeModel.stochasticValuesCurrentMapping;
+        sdeModel.stochasticValuesCurrentMapping = temp;
         sdeModel.stochasticValuesCurrentMapping.clear();
         sdeModel.stochasticValuesPreviousTime = t;
     }

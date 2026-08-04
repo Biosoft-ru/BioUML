@@ -137,6 +137,10 @@ public abstract class SdeModel extends JavaLargeModel
         return null;
     }
     
+    /**
+     * Calculate stochastic derivatives. Generated model classes override this method.
+     * For allocation-free usage in solvers, see {@link #dy_dt_stochastic(double, double[], double[])}.
+     */
     public double[] dy_dt_stochastic(double time, double[] x) throws Exception
     {
         // default calculation should be overridden in template if model contains stochastic
@@ -148,11 +152,46 @@ public abstract class SdeModel extends JavaLargeModel
         }
         return dydt_stochastic;
     }
+
+    /**
+     * Calculate stochastic derivatives, writing into a pre-allocated output array.
+     * Generated model classes should override this method for allocation-free computation.
+     * Default implementation delegates to {@link #dy_dt_stochastic(double, double[])} (allocates).
+     * @param output pre-allocated array; must be at least getY().length elements.
+     */
+    public double[] dy_dt_stochastic(double time, double[] x, double[] output) throws Exception
+    {
+        // Default: delegate to the two-arg version (may allocate). Generated models should override this.
+        double[] result = dy_dt_stochastic(time, x);
+        if (output != null && result.length <= output.length)
+        {
+            System.arraycopy(result, 0, output, 0, result.length);
+            return output;
+        }
+        return result;
+    }
     
     public double[] dy_dt_deterministic(double time, double[] x) throws Exception
     {
         // default calculation should be overridden in template if model contains stochastic
         return super.dy_dt(time, x);
+    }
+
+    /**
+     * Calculate deterministic derivatives, writing into a pre-allocated output array.
+     * Generated model classes should override this method for allocation-free computation.
+     * Default implementation delegates to {@link #dy_dt_deterministic(double, double[])}.
+     * @param output pre-allocated array; must be at least getY().length elements.
+     */
+    public double[] dy_dt_deterministic(double time, double[] x, double[] output) throws Exception
+    {
+        double[] result = dy_dt_deterministic(time, x);
+        if (output != null && result.length <= output.length)
+        {
+            System.arraycopy(result, 0, output, 0, result.length);
+            return output;
+        }
+        return result;
     }
     
      /**
