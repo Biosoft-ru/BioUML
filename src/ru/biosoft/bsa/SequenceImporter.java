@@ -33,6 +33,7 @@ import ru.biosoft.bsa.transformer.FastaTransformer;
 import ru.biosoft.bsa.transformer.FastqTransformer;
 import ru.biosoft.bsa.transformer.GenbankTransformer;
 import ru.biosoft.jobcontrol.FunctionJobControl;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class SequenceImporter implements DataElementImporter
@@ -82,6 +83,8 @@ public class SequenceImporter implements DataElementImporter
         }
         if( elementName == null )
             elementName = file.getName().replaceFirst(".+\\.\\w{1,5}$", "");
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        elementName = TextUtil2.toASCII(elementName);
         parent.getCompletePath().getDataCollection().remove(elementName);
 
         DataElement result = createElement( parent, elementName, file, format, importerProperties );
