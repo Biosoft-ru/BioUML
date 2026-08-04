@@ -184,6 +184,7 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     {
         simulationResultHistory.clear();
         simulationResultTimes.clear();
+        resetFirstPartCache();
     }
 
     public double[] getTimes()
@@ -202,16 +203,36 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
             .filterKeys( t -> t == time ).values().findFirst().orElse( null );
     }
     
+    // Cache for binary search to avoid re-scanning from end on every delay() call
+    private int firstPartCacheIndex = -1;
+    private double firstPartCacheTime = Double.NaN;
+
     private int firstPart(double t)
     {
-        int i = simulationResultTimes.size() - 1;
-        for( ; i >= 0; )//simulationResultTimes.size(); )
+        // Use cached result if time hasn't changed significantly
+        if (Double.compare(firstPartCacheTime, t) == 0 && firstPartCacheIndex >= 0)
+            return firstPartCacheIndex;
+
+        // Binary search since simulationResultTimes is sorted ascending
+        int lo = 0, hi = simulationResultTimes.size() - 1;
+        while (lo <= hi)
         {
-            if( t > simulationResultTimes.get(i).doubleValue() )
-                break;
-            i--;
+            int mid = (lo + hi) >>> 1;
+            if (simulationResultTimes.get(mid).doubleValue() < t)
+                lo = mid + 1;
+            else
+                hi = mid - 1;
         }
-        return i + 1;
+        firstPartCacheIndex = lo;
+        firstPartCacheTime = t;
+        return lo;
+    }
+
+    /** Reset the cache when history is cleared or modified. */
+    protected void resetFirstPartCache()
+    {
+        firstPartCacheIndex = -1;
+        firstPartCacheTime = Double.NaN;
     }
     
     private double interpolate(double t1, double t2, double x1, double x2, double t)
@@ -257,6 +278,7 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     {
         this.simulationResultHistory.clear();
         this.simulationResultTimes.clear();
+        resetFirstPartCache();
         CONSTRAINTS__VIOLATED = 0;
         initialValues = getInitialValues();
         isInit = true;
@@ -278,6 +300,7 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
         this.initialValues = Arrays.copyOf(initialValues, initialValues.length);
         this.simulationResultHistory.clear();
         this.simulationResultTimes.clear();
+        resetFirstPartCache();
         this.x_values = Arrays.copyOf(initialValues, initialValues.length);
         Field[] fields = this.getClass().getDeclaredFields();
 
