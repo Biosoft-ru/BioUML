@@ -93,6 +93,12 @@
         <parameter name="numSelected" value="1"/>
      </dynamicAction>
   </extension>
+  
+  <extension id="Enrichment DOSE" point="ru.biosoft.analysiscore.method"> 
+      <analysisClass class="biouml.plugins.enrichment.EnrichmentDOSEAnalysis" group="Gene set analysis" name="Enrichment analysis with R"
+        shortDescription="Find enriched categories in the ranked set of genes wit hR library DOSE."
+        description="biouml/plugins/enrichment/resources/enrichment.html" js="enrichment.enrichment"/> 
+  </extension>
 
   <extension id="JS-Enrichment" point="ru.biosoft.plugins.javascript.hostObject"> 
     <hostObject name="enrichment" class="biouml.plugins.enrichment.JavaScriptEnrichment" >
