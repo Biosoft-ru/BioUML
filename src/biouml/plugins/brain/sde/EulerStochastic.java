@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.Options;
-import biouml.plugins.simulation.SimulationEngineLogger;
 import biouml.plugins.simulation.SimulatorInfo;
 import biouml.plugins.simulation.SimulatorSupport;
 import biouml.plugins.simulation.Span;
@@ -20,8 +19,8 @@ import ru.biosoft.jobcontrol.FunctionJobControl;
 public class EulerStochastic extends EulerSimple
 {
 	private static final double TIME_STEP_ERROR = 1E-9;
-	protected SimpleEventDetector eventDetector;  
-	
+	protected SimpleEventDetector eventDetector;
+
     @Override
     public SimulatorInfo getInfo()
     {
@@ -46,7 +45,7 @@ public class EulerStochastic extends EulerSimple
     {
         return (eventDetector != null) ? eventDetector.getEventInfo() : null;
     }
-    
+
     @Override
     protected void fireSolutionUpdate(double t, double[] x) throws Exception
     {
@@ -55,7 +54,7 @@ public class EulerStochastic extends EulerSimple
             double[] y = odeModel.extendResult(t, x.clone());
 
             odeModel.updateHistory(t);
-            
+
             updateStochasticValuesArrays();
 
             if( resultListeners != null )
@@ -65,7 +64,7 @@ public class EulerStochastic extends EulerSimple
             }
         }
     }
-    
+
     @Override
     public void init(Model model, double[] initialValues, Span tspan, ResultListener[] listeners, FunctionJobControl jobControl)
             throws Exception
@@ -73,33 +72,35 @@ public class EulerStochastic extends EulerSimple
         if(!(model instanceof SdeModel))
         {
             throw new IllegalArgumentException("Wrong model class" + model.getClass() + ". Only SdeModel class allowed for solver "
-                    + this.getClass()); 
+                    + this.getClass());
         }
-        
+
         odeModel = (SdeModel)model;
         if(!odeModel.isInit())
         {
             odeModel.init();
         }
         resultListeners = listeners;
-        
+
         if(odeModel.hasFastOde() && this.preprocessFastReactions)
         {
             initialValues = preprocessFastReactions();
         }
-        
+
         span = tspan;
         t = span.getTimeStart();
         tFinal = span.getTimeFinal();
         h = options.getInitialStep();
-        n = initialValues.length; 
+        n = initialValues.length;
         x = StdMet.copyArray(initialValues);
+        // Pre-allocate xOld once — avoids per-step allocation in the hot while loop (profiler hot path)
+        xOld = new double[n];
         profile.init(x, t);
         nextSpanIndex = 1;
         locateEvent = options.getEventLocation();
         eventDetector = locateEvent ? new SimpleEventDetector(odeModel, this) : null;
     }
-    
+
     @Override
     public boolean doStep() throws Exception
     {
@@ -112,35 +113,36 @@ public class EulerStochastic extends EulerSimple
 
         if (terminated || jobControl != null && jobControl.getStatus() == FunctionJobControl.TERMINATED_BY_REQUEST)
             return false;
-                
+
         double nextSpanPoint = span.getTime(nextSpanIndex);
-        
-        SimulationEngineLogger log = new SimulationEngineLogger(biouml.plugins.simulation.java.MessageBundle.class.getName(), getClass());
-        
+
+        // Removed dead-code SimulationEngineLogger allocation (was created every doStep() but never used)
+        // Pre-allocated xOld in init() — reused via System.arraycopy in the while loop below
+
         while (t < nextSpanPoint)
         {
-            // store current values
-            xOld = StdMet.copyArray(x);
+            // Reuse pre-allocated xOld via arraycopy instead of allocating a new array each step
+            System.arraycopy(x, 0, xOld, 0, n);
             tOld = t;
 
             h = Math.min(h, nextSpanPoint - t); // restrict step size, so we won't get beyond span point
-            
+
             ((SdeModel)odeModel).stochasticValuesCurrentTime = t + h;
             integrationStep(x, xOld, t, h); // perform step and save calculated values in the x array.
             t += h;
 
             boolean eventDetected = locateEvent ? eventDetector.detectEvent(xOld, tOld, x, t) : false;
-            
+
             if (t < nextSpanPoint)
             {
                 updateStochasticValuesArrays();
             }
-            
+
             //if (locateEvent && eventDetector.detectEvent(xOld, tOld, x, t)) // check if an event happened in new grid node
             if (eventDetected)
             {
                 eventAtSpanPoint = Math.abs(nextSpanPoint - eventDetector.getEventTime()) < TIME_STEP_ERROR; // check if an event happened on a plot point
-                
+
                 if(!eventAtSpanPoint)
                 {
                     profile.setTime(eventDetector.getEventTime());
@@ -148,7 +150,7 @@ public class EulerStochastic extends EulerSimple
                 else
                 {
                     profile.setTime(nextSpanPoint);
-                }             
+                }
                 profile.setStep(h * eventDetector.getTheta());
                 profile.setX(eventDetector.getEventX());
                 h = options.getInitialStep();
@@ -156,7 +158,7 @@ public class EulerStochastic extends EulerSimple
             }
 
             // check if no incorrect arithmetic operations were made
-            if (options.isDetectIncorrectNumbers() && SimulatorSupport.checkNaNs(x)) 
+            if (options.isDetectIncorrectNumbers() && SimulatorSupport.checkNaNs(x))
             {
                 profile.setStep(h);
                 profile.setTime(t);
@@ -165,7 +167,7 @@ public class EulerStochastic extends EulerSimple
                 return false;
             }
         }
-        
+
         // update information after step
         nextSpanIndex++;
         fireSolutionUpdate(t, x);
@@ -178,22 +180,25 @@ public class EulerStochastic extends EulerSimple
 
     @Override
     public void integrationStep(double[] xNew, double[] xOld, double tOld, double h) throws Exception
-    {   
+    {
         SdeModel sdeModel = (SdeModel)odeModel;
-        
+
         double[] dydt_stochastic = sdeModel.dy_dt_stochastic(tOld, xOld);
         double[] dydt_deterministic = sdeModel.dy_dt_deterministic(tOld, xOld);
-        
-        for( int i = 0; i < n; i++ ) 
+
+        // Hoist Math.sqrt(h) out of the inner loop — h is constant across all variables
+        double sqrtH = Math.sqrt(h);
+
+        for( int i = 0; i < n; i++ )
         {
-        	xNew[i] = xOld[i] + dydt_deterministic[i] * h + dydt_stochastic[i] * Math.sqrt(h);
+        	xNew[i] = xOld[i] + dydt_deterministic[i] * h + dydt_stochastic[i] * sqrtH;
         }
     }
-    
+
     private void updateStochasticValuesArrays()
     {
         SdeModel sdeModel = (SdeModel)odeModel;
-        
+
         sdeModel.stochasticValuesPreviousMapping = new HashMap<>(sdeModel.stochasticValuesCurrentMapping);
         sdeModel.stochasticValuesCurrentMapping.clear();
         sdeModel.stochasticValuesPreviousTime = t;
