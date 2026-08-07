@@ -2,7 +2,6 @@ package biouml.plugins.wdl.diagram;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.util.HashMap;
 
 import ru.biosoft.graphics.editor.ViewEditorPane;
 import ru.biosoft.util.DPSUtils;
@@ -92,7 +91,6 @@ public class CallProperties extends Option implements InitialElementProperties
         Compartment compartment = new Compartment( parent, name, new Stub( null, name, WDLConstants.CALL_TYPE ) );
         compartment.setNotificationEnabled( false );
 
-        WorkflowUtil.setCallName( compartment, taskRef );
         WorkflowUtil.setAlias( compartment, alias );
         WorkflowUtil.setTaskRef( compartment, taskRef );
         
