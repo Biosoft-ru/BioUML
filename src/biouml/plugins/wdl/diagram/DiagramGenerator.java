@@ -32,7 +32,6 @@ import biouml.plugins.wdl.model.WorkflowInfo;
 import biouml.plugins.wdl.parser.ExpressionParser;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
-import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPutException;
 import ru.biosoft.util.DPSUtils;
@@ -45,28 +44,20 @@ public class DiagramGenerator
     protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
 
     //    private boolean doImportDiagram = false;
+    private Map<String, Diagram> allimports = new HashMap<>();
     private Map<String, Diagram> imports = new HashMap<>();
     private Map<String, Compartment> importedExecutables = new HashMap<>();
     private Map<String, Compartment> tasks = new HashMap<>();
     private Map<String, Compartment> workflows = new HashMap<>();
     private int externalPosition = 0;
 
-    public Diagram generateDiagram(ScriptInfo script, String name, DataCollection dc) throws Exception
+    public Diagram generateDiagram(ScriptInfo script, DataCollection dc, String name) throws Exception
     {
         Diagram result = new WDLDiagramType().createDiagram( dc, name );
-        generateDiagram( script, result, dc );
-        
-        if (dc != null)
-        {
-            for( Diagram diagram : imports.values() )
-            {
-                CollectionFactoryUtils.save( diagram );
-            }
-        }
-        return result;
+        return generateDiagram( script, result );
     }
 
-    public Diagram generateDiagram(ScriptInfo script, Diagram diagram, DataCollection dc) throws Exception
+    public Diagram generateDiagram(ScriptInfo script, Diagram diagram) throws Exception
     {
         diagram.clear();
         diagram.getAttributes().remove( WDLConstants.IMPORTS_ATTR );
@@ -87,7 +78,7 @@ public class DiagramGenerator
 
         for( ImportInfo importInfo : script.getImports() )
         {
-            createImport( dc, importInfo );
+            createImport( diagram, importInfo );
         }
 
         for( StructInfo structInfo : script.getStructs() )
@@ -120,11 +111,13 @@ public class DiagramGenerator
         //                Util.hideDirectPathes( diagram );
         Util.movePortsToEdge( diagram );
         //        addOutputs( diagram );
-
+ 
         new WDLLayouter().layout( diagram );
-        
-        if( diagram.recursiveStream().select( Node.class ).anyMatch( n -> WorkflowUtil.isTask( n ) ) )
-            diagram.recursiveStream().select( Node.class ).filter( n -> WorkflowUtil.isTask( n ) ).forEach( n -> n.setVisible( false ) );
+
+        if( !WorkflowUtil.hasOnlyTasks(diagram) )
+            diagram.recursiveStream().select(Node.class).filter(n -> WorkflowUtil.isTask(n)).forEach(n -> n.setVisible(false));
+
+        this.allimports.put(diagram.getName(), diagram);
         return diagram;
     }
 
@@ -286,10 +279,11 @@ public class DiagramGenerator
         return node;
     }
 
-    public void createImport(DataCollection dc, ImportInfo importInfo) throws Exception
+    public void createImport(Diagram diagram, ImportInfo importInfo) throws Exception
     {
-        Diagram imported = new WDLDiagramType().createDiagram( dc, importInfo.getImported().getName() );
-        Diagram importedDiagram = new DiagramGenerator().generateDiagram( importInfo.getImported(), imported, dc );
+        DiagramGenerator generator = new DiagramGenerator();
+        Diagram importedDiagram = generator.generateDiagram( importInfo.getImported(), null, importInfo.getImported().getName() );
+        this.allimports.putAll(generator.getAllImports());
         this.imports.put( importInfo.getAlias(), importedDiagram );
         importedDiagram.getAttributes().add( new DynamicProperty( "SOURCE", String.class, importInfo.getSource() ) );
         if( importInfo.getTask() != null )
@@ -581,74 +575,52 @@ public class DiagramGenerator
     public Compartment createCallNode(Compartment parent, CallInfo call) throws Exception
     {
         Diagram diagram = Diagram.getDiagram( parent );
-        String name = call.getTaskName();
-        Compartment taskСompartment = tasks.get( name );
-        String taskRef = name;
+        String taskRef = call.getTaskName();
+        String source = call.getSource();
+        String alias = call.getAlias();
+        Compartment taskСompartment = null;
         String diagramRef = null;
-        String diagramAlias = null;
-        if( taskСompartment == null )
-            taskСompartment = this.workflows.get( name );
-        if( taskСompartment == null )
+        if( source == null )
         {
-            taskСompartment = this.importedExecutables.get( name );
-            if( taskСompartment != null )
-            {
-                Diagram importedDiagram = Diagram.getDiagram( taskСompartment );
-                diagramRef = importedDiagram.getAttributes().getValueAsString( "SOURCE" );
-            }
-        }
-
-        //        boolean externalDiagram = false;
-        if( taskСompartment == null )
-        {
-            taskRef = name;
-            if( name.contains( "." ) )
-            {
-                String[] parts = name.split( "\\." );
-                diagramAlias = parts[0];
-                name = parts[1];//name.replace( ".", "_" );
-                taskRef = parts[1];
-                Diagram importedDiagram = imports.get( diagramAlias );
-                diagramRef = importedDiagram.getName();
-
-                String mainWorkflowName = WDLConstants.MAIN_WORKFLOW;
-                DynamicProperty dp = importedDiagram.getAttributes().getProperty( WDLConstants.WORKFLOW_NAME );
-                if( dp != null )
-                    mainWorkflowName = dp.getValue().toString();
-                if( taskRef.equals( mainWorkflowName ) )
-                {
-                    taskСompartment = importedDiagram;
-                    //                    externalDiagram = true;
-                }
-                else
-                {
-                    DiagramElement de = importedDiagram.get( taskRef );
-                    if( ! ( de instanceof Compartment ) )
-                        throw new Exception( "Can not resolve call " + call.getTaskName() );
-                    taskСompartment = (Compartment)de;
-                }
-            }
+            taskСompartment = tasks.get(taskRef);
+            if( taskСompartment == null )
+                taskСompartment = this.workflows.get(taskRef);
         }
         else
-            taskRef = taskСompartment.getName();
-        String title = name;
-        String alias = call.getAlias();
-        if( alias != null )
-            title = alias.substring( alias.lastIndexOf( "." )+1 );
+        {
+            Diagram importedDiagram = imports.get(source);
+            diagramRef = importedDiagram.getName();
+            String mainWorkflowName = WDLConstants.MAIN_WORKFLOW;
+            DynamicProperty dp = importedDiagram.getAttributes().getProperty(WDLConstants.WORKFLOW_NAME);
+            if( dp != null )
+                mainWorkflowName = dp.getValue().toString();
+            if( taskRef.equals(mainWorkflowName) )
+            {
+                taskСompartment = importedDiagram;
+            }
+            else
+            {
+                DiagramElement de = importedDiagram.get(taskRef);
+                if( ! ( de instanceof Compartment ) )
+                    throw new Exception("Can not resolve call " + call.getTaskName());
+                taskСompartment = (Compartment)de;
+            }
+        }
 
-        name = DefaultSemanticController.generateUniqueName( diagram, "Call_" + name );
-        Stub kernel = new Stub( null, name, WDLConstants.CALL_TYPE );
+        String title = alias != null? alias: taskRef;
+        String nodeName = DefaultSemanticController.generateUniqueName( diagram, "Call_" + title );
+        Stub kernel = new Stub( null, nodeName, WDLConstants.CALL_TYPE );
 
-        Compartment c = new Compartment( parent, name, kernel );
+        Compartment c = new Compartment( parent, nodeName, kernel );
         c.setShapeSize( new Dimension( 200, 0 ) );
         c.setTitle( title );
         WorkflowUtil.setTaskRef( c, taskRef );
-        WorkflowUtil.setCallName( c, title );
+        WorkflowUtil.setAlias(c, alias);
 
         if( diagramRef != null )
             WorkflowUtil.setDiagramRef( c, diagramRef );
-        if( diagramAlias != null )
-            WorkflowUtil.setExternalDiagramAlias( c, diagramAlias );
+        if( source != null )
+            WorkflowUtil.setExternalDiagramAlias( c, source );
         c.setNotificationEnabled( false );
 
         int inputs = 0;
@@ -785,5 +757,9 @@ public class DiagramGenerator
         e.getCompartment().put( e );
         return e;
     }
-
+    
+    public Map<String, Diagram> getAllImports()
+    {
+        return this.allimports;
+    }
 }
