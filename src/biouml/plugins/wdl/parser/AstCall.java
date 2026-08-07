@@ -34,7 +34,19 @@ public class AstCall extends SimpleNode
         {
             if( node instanceof AstSubSymbol )
             {
-                return ( (AstSubSymbol)node ).firstToken + "." + ( (AstSubSymbol)node ).lastToken;
+                return  ( (AstSubSymbol)node ).lastToken.toString();
+            }
+        }
+        return null;
+    }
+    
+    public String getSource()
+    {
+        for( Node node : children )
+        {
+            if( node instanceof AstSubSymbol )
+            {
+                return  ( (AstSubSymbol)node ).firstToken.toString();
             }
         }
         return null;
