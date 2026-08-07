@@ -6,11 +6,6 @@ public class ImportInfo
     private String source;
     private String alias;
     private String task;
- 
-    public void ImportInfo()
-    {
-        
-    }
     
     public ImportInfo(String alias, String source)
     {
