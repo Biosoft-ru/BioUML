@@ -27,7 +27,7 @@ public class FileScriptLoader extends ScriptLoader
 
         String script = ApplicationUtils.readAsString( resultFile );
         String name = resultFile.getName();
-        name = name.substring( 0, name.indexOf( "." ) );
+        name = name.substring( 0, name.lastIndexOf( ".wdl" ) );
         ScriptInfo importedScript = this.readScript( name, script );
         return importedScript;
     }
