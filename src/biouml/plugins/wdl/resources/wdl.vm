@@ -9,7 +9,7 @@
 #####################################MACROS############################################
 #######################################################################################
 #macro(comma $list)
-#if( $velocityCount < $list.size() ),#end
+#if($velocityCount < $list.size()),#end
 #end
 #######################################################################################
 #macro(struct $struct)
@@ -35,12 +35,11 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 #######################################################################################
 #macro(call $call)
 #set ( $diagramAlias = $helper.getExternalDiagramAlias($call) )
-#if(  !($helper.getTaskRef($call).equals($helper.getAlias($call))) )
+#if(  $helper.getAlias($call) )
   call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) as $helper.getAlias($call) {
 #else
   call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) {
 #end
-##  call #if( $diagramAlias )$diagramAlias.#end$helper.getTaskRef($call) #if( $helper.getAlias($call) ) as $helper.getAlias($call)#end {
 #set ( $inputs = $helper.getCallInputs($call) )
 #if ( $inputs.size()> 0 )
      input: #foreach( $input in $inputs ) $input#comma($inputs)#end
@@ -69,7 +68,7 @@ ${BR}if ( $helper.findCondition($conditional) ) {
 version $helper.getVersion()$BR
 #######################################################################################
 #foreach ( $import in $helper.getImports() )
-import "$import.getSourceName()" as $import.getAlias()
+import "$import.getSourceName()" as $import.getSourceAlias()
 #end
 #foreach ( $struct in $helper.orderStructs() )
 #struct($struct)
