@@ -26,23 +26,27 @@ import biouml.standard.simulation.ResultListener;
 
 public class EventLoopSimulator extends SimulatorSupport
 {
-    private SimulatorSupport solver = new JVodeSolver(); //inner solver to actually perform problem solving   
+    private SimulatorSupport solver = new JVodeSolver(); //inner solver to actually perform problem solving
     private boolean modelHasEvents = true;
     private double curTime;
     private double restTime;
     private double[] x;
-    private Uniform uniform = new Uniform( new MersenneTwister( new Date() ) ); //random numbers generator. Used to choose one of several events with the same priority 
-    
+    private Uniform uniform = new Uniform( new MersenneTwister( new Date() ) ); //random numbers generator
+
+    // Pre-allocate reusable buffers to avoid per-step allocation in the hot path (profiler hot path)
+    private ArrayList<Integer> pendingEventsBuffer;
+    private ArrayList<Integer> switchedOffEventsBuffer;
+    private HashSet<Integer> candidateEventsBuffer;
+
     public EventLoopSimulator()
     {
-        
     }
-    
+
     public EventLoopSimulator(SimulatorSupport solver)
     {
         setSolver(solver);
     }
-    
+
     public Simulator getSolver()
     {
         return solver;
@@ -51,13 +55,13 @@ public class EventLoopSimulator extends SimulatorSupport
     {
         this.solver = (SimulatorSupport)solver;
     }
-    
+
     @Override
     public SimulatorInfo getInfo()
     {
         return solver.getInfo();
     }
-    
+
     @Override
     public void setStatisticsMode(String mode)
     {
@@ -129,15 +133,20 @@ public class EventLoopSimulator extends SimulatorSupport
 
         if( curTime == 0 )
             checkInitialEvents( curTime, initialValues );
+
+        // Initialize reusable buffers
+        pendingEventsBuffer = new ArrayList<>();
+        switchedOffEventsBuffer = new ArrayList<>();
+        candidateEventsBuffer = new HashSet<>();
     }
-    
+
     @Override
     public void start(Model model, double[] initialValues, Span timeSpan, ResultListener[] listeners, FunctionJobControl jobControl)
             throws Exception
     {
         setStarted();
         super.start(model, initialValues, timeSpan, listeners, jobControl);
-        
+
     }
 
     @Override
@@ -167,25 +176,23 @@ public class EventLoopSimulator extends SimulatorSupport
         int[] triggeredEvents = solver.getEvents();
         if( triggeredEvents != null )
         {
-            //list of events waiting to be executed, it may contain several
-            //inclusions of the same event in the case when it was triggered
-            //more then once during other events execution
-            ArrayList<Integer> pendingEvents = new ArrayList<>();
+            // Reuse pre-allocated buffer instead of allocating a new ArrayList each step (profiler hot path)
+            pendingEventsBuffer.clear();
             for( int i = 0; i < triggeredEvents.length; i++ )
             {
                 if( triggeredEvents[i] == 1 )
-                    pendingEvents.add(i);
+                    pendingEventsBuffer.add(i);
             }
-            if( !pendingEvents.isEmpty() )
+            if( !pendingEventsBuffer.isEmpty() )
             {
-                executeEvents(pendingEvents);
+                executeEvents(pendingEventsBuffer);
                 recalculateSpan();
-                solver.init(odeModel, x, span, resultListeners, jobControl); //TODO: do not init solver, use more simple procedure
+                solver.init(odeModel, x, span, resultListeners, jobControl);
                 odeModel.updateHistory(curTime);
                 solver.setFireInitialValues(false);
                 solver.getProfile().setX(x);
             }
-            
+
             if (odeModel.isConstraintViolated())
             {
                 log.info("Constraints were violated, simulation halted");
@@ -194,7 +201,8 @@ public class EventLoopSimulator extends SimulatorSupport
         }
         return restTime > 0;
     }
-    
+
+
     //if we met event than recreate span
     private void recalculateSpan()
     {
@@ -240,14 +248,15 @@ public class EventLoopSimulator extends SimulatorSupport
      */
     private void executeEvents(List<Integer> pendingEvents) throws Exception
     {
-        ArrayList<Integer> switchedOffEvents = new ArrayList<>();
+        // Reuse pre-allocated buffer instead of allocating a new ArrayList each call
+        switchedOffEventsBuffer.clear();
 
         while( !pendingEvents.isEmpty() )
         {
             double[] eventsBeforeFiring = odeModel.checkEvent(curTime, x);
 
             outStatistics("Triggered events: "+ IntStreamEx.of(pendingEvents).joining(","));
-            
+
             //chose event with the most priority
             Integer eventToFire = chooseEvent(pendingEvents);
             outStatistics("Fire event: "+ eventToFire);
@@ -263,14 +272,13 @@ public class EventLoopSimulator extends SimulatorSupport
 
             double[] eventsAfterFiring = odeModel.checkEvent(curTime, x);
 
-            switchedOffEvents.clear();
             for( int i = 0; i < eventsAfterFiring.length; i++ )
             {
                 //event is not persistent and it was switched off  by current event
                 if( !odeModel.isEventTriggerPersistent(i) && eventsAfterFiring[i] < eventsBeforeFiring[i] )
                 {
                     outStatistics("Event was switched off: " + i);
-                    switchedOffEvents.add(i);
+                    switchedOffEventsBuffer.add(i);
 
                 }
                 //event was triggered by current event
@@ -281,11 +289,11 @@ public class EventLoopSimulator extends SimulatorSupport
                 }
             }
 
-            for( Integer switchedOff : switchedOffEvents )
+            for( Integer switchedOff : switchedOffEventsBuffer )
                 ( (JavaBaseModel)odeModel ).removeDelayedEvent( switchedOff );
 
             //we should remove all inclusions of triggered off event from pending events
-            pendingEvents.removeAll(switchedOffEvents);
+            pendingEvents.removeAll(switchedOffEventsBuffer);
             //event should not be executed twice
             pendingEvents.remove(eventToFire);
         }
@@ -308,28 +316,33 @@ public class EventLoopSimulator extends SimulatorSupport
 
         for( int i : pendingEvents )
             maxVal = Math.max(maxVal, priorities[i]);
-        
-        HashSet<Integer> candidadeEvents = new HashSet<>();
+
+        // Reuse pre-allocated buffer instead of allocating a new HashSet each call
+        candidateEventsBuffer.clear();
 
         for( int i : pendingEvents )
         {
             if( priorities[i] == maxVal )
-                candidadeEvents.add(i);
+                candidateEventsBuffer.add(i);
         }
-        return getRandom(candidadeEvents);
+        return getRandom(candidateEventsBuffer);
     }
 
     private Integer getRandom(HashSet<Integer> objects)
     {
         int size = objects.size();
-        Integer[] array = objects.toArray(new Integer[size]);
         if( size == 1 )
-            return array[0];
+        {
+            // Avoid toArray() allocation for single-element set
+            for (Integer val : objects) return val;
+        }
+        Integer[] array = objects.toArray(new Integer[size]);
         Arrays.sort(array);
         int index = uniform.nextIntFromTo(0, objects.size() - 1);
         return array[index];
     }
-    
+
+
     @Override
     public void setInitialValues(double[] x0) throws Exception
     {
@@ -337,7 +350,7 @@ public class EventLoopSimulator extends SimulatorSupport
         {
             solver.setInitialValues(x0);
             this.x = odeModel.getY().clone();
-            return;    
+            return;
         }
         double[] before = odeModel.checkEvent( curTime, x );
         solver.setInitialValues( x0 );
@@ -348,7 +361,7 @@ public class EventLoopSimulator extends SimulatorSupport
 
 
     /**
-     * Execute all events that are triggered at time t2, but not triggered at t1 
+     * Execute all events that are triggered at time t2, but not triggered at t1
      */
     private void executeEvents(double t1, double[] e1, double t2, double[] e2) throws Exception
     {
@@ -362,20 +375,20 @@ public class EventLoopSimulator extends SimulatorSupport
         {
             executeEvents( pendingEvents );
             recalculateSpan();
-            solver.init( odeModel, x, span, resultListeners, jobControl ); //TODO: do not init solver, use more simple procedure
+            solver.init( odeModel, x, span, resultListeners, jobControl );
             odeModel.updateHistory( curTime );
             solver.setFireInitialValues( false );
             solver.getProfile().setX( x );
         }
     }
-    
+
     @Override
     public void setStarted()
     {
         solver.setStarted();
         terminated = false;
     }
-    
+
     @Override
     public void setPresimulateFastReactions(boolean preprocess)
     {
