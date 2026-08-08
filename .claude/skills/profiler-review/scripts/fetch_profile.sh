@@ -4,13 +4,17 @@
 #
 # Usage:
 #   # List recent profiles (JSON output, filtered by age and size)
-#   bash fetch_profile.sh list https://biouml2test.biouml.org
+#   bash fetch_profile.sh list <server_url>
 #
 #   # Get raw profile content by ID
-#   bash fetch_profile.sh get <profile_id> https://biouml2test.biouml.org
+#   bash fetch_profile.sh get <profile_id> <server_url>
 #
 #   # Get profile summary (legacy, single latest profile)
-#   bash fetch_profile.sh summary https://biouml2test.biouml.org
+#   bash fetch_profile.sh summary <server_url>
+#
+# Server URL can also be passed via PROFILE_SERVER_URL env var:
+#   export PROFILE_SERVER_URL=https://ict.biouml.org
+#   bash fetch_profile.sh list
 #
 # List action filters: last 24 hours, size > 1000 bytes.
 # Output format: JSON array of profile objects (list) or raw text (get/summary).
@@ -29,10 +33,19 @@ if [[ -z "${MONITORING_USER:-}" || -z "${MONITORING_PASS:-}" ]]; then
   exit 1
 fi
 
-# Server URL: last argument, or default to test server
-SERVER_URL="${@: -1}"
-# Strip trailing slash if present
+# Server URL: last argument, fall back to PROFILE_SERVER_URL env var
+SERVER_URL="${PROFILE_SERVER_URL:-}"
+if [[ $# -gt 0 ]]; then
+  SERVER_URL="${@: -1}"
+fi
 SERVER_URL="${SERVER_URL%/}"
+
+if [[ -z "$SERVER_URL" ]]; then
+  echo "ERROR: server URL is required" >&2
+  echo "Usage: $0 <action> <server_url>" >&2
+  echo "  or:   PROFILE_SERVER_URL=<url> $0 <action>" >&2
+  exit 1
+fi
 
 ACTION="${1:-summary}"
 shift
