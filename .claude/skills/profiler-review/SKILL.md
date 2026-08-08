@@ -21,7 +21,7 @@ This skill fetches **all recent profiler reports** (last 24 hours, >1000 bytes) 
 
 ## Usage
 
-Accepts a server URL as an argument. If not provided, defaults to the test server.
+Accepts a server URL as an argument. Required — no default.
 
 ```bash
 /profiler-review https://biouml2test.biouml.org
@@ -32,12 +32,16 @@ Accepts a server URL as an argument. If not provided, defaults to the test serve
 
 ### Step 1: Fetch Recent Profile Reports
 
-Determine the server URL: use the argument provided by the user, or default to `https://biouml2test.biouml.org`.
+Set the server URL as an environment variable (required — must be provided as skill argument):
+
+```bash
+export PROFILE_SERVER_URL="<server_url>"
+```
 
 **List recent profiles** — fetch the report list filtered by age (24h) and size (>1000 bytes):
 
 ```bash
-bash .claude/skills/profiler-review/scripts/fetch_profile.sh list https://biouml2test.biouml.org
+bash .claude/skills/profiler-review/scripts/fetch_profile.sh list "$PROFILE_SERVER_URL"
 ```
 
 This returns a JSON array of profile objects, each with:
@@ -51,7 +55,7 @@ This returns a JSON array of profile objects, each with:
 **Fetch each profile's content** — for every profile in the list, download the raw profile data:
 
 ```bash
-bash .claude/skills/profiler-review/scripts/fetch_profile.sh get <profile_id> https://biouml2test.biouml.org
+bash .claude/skills/profiler-review/scripts/fetch_profile.sh get <profile_id> "$PROFILE_SERVER_URL"
 ```
 
 Save each profile's content to a separate temporary file (e.g., `profile_1.collapsed`, `profile_2.tree`). If a profile ID has multiple format files (`.collapsed`, `.tree`, `.traces`), fetch all of them.
@@ -137,7 +141,7 @@ git commit -m "perf(profiler): optimize hot paths identified by async-profiler
 Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin profiler-optimize/<short-description>
 gh pr create --title "perf(profiler): optimize hot paths from async-profiler" \
-  --body "Optimizations based on async-profiler analysis from ${SERVER_URL}.
+  --body "Optimizations based on async-profiler analysis from $PROFILE_SERVER_URL.
 
 ## Profiles Analyzed
 - Number of reports: <count>
