@@ -26,6 +26,11 @@ public class JournalRegistry
     private static String currentJournalName = null;
     private static boolean useJournal = true;
 
+    // Cache for journal names to avoid repeated iteration over journal lists
+    private static volatile String[] cachedJournalNames = null;
+    private static volatile long journalNamesCacheTime = 0;
+    private static final long JOURNAL_NAMES_CACHE_TTL = 60_000; // 1 minute cache TTL
+
     /**
      * Special journal with empty functionality
      */
@@ -134,12 +139,24 @@ public class JournalRegistry
      */
     public static String[] getJournalNames()
     {
+        // Fast path: return cached result if still valid
+        long now = System.currentTimeMillis();
+        String[] cached = cachedJournalNames;
+        if( cached != null && (now - journalNamesCacheTime) < JOURNAL_NAMES_CACHE_TTL )
+        {
+            return cached;
+        }
+
+        // Slow path: recompute and cache
         List<String> result = new ArrayList<>();
         for( JournalList jl : journalLists )
         {
             result.addAll(jl.getNameList());
         }
-        return result.toArray(new String[result.size()]);
+        String[] names = result.toArray(new String[result.size()]);
+        cachedJournalNames = names;
+        journalNamesCacheTime = now;
+        return names;
     }
 
     public static Journal getJournalByPath(DataElementPath path)

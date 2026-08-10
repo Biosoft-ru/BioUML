@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -35,6 +36,9 @@ public class NetworkRepository extends FilteredDataCollection<DataCollection<?>>
 {
     public static final String PRODUCT_PROPERTY_PREFIX = "product.";
     private Map<String, Pattern> products;
+
+    // Cache for filtered name lists per session to avoid repeated permission checks
+    private final Map<String, List<String>> filteredNamesCache = new ConcurrentHashMap<>();
     
     public NetworkRepository(DataCollection<?> parent, Properties properties) throws Exception
     {
@@ -114,6 +118,12 @@ public class NetworkRepository extends FilteredDataCollection<DataCollection<?>>
     @Override
     protected List<String> getFilteredNames()
     {
+        // Check session-based cache first to avoid repeated permission checks
+        String sessionId = SecurityManager.getSession();
+        List<String> cached = filteredNamesCache.get(sessionId);
+        if( cached != null )
+            return cached;
+
         List<String> filteredNameList = new ArrayList<>();
         Filter filter = getFilter();
         for(DataCollection<?> dc : primaryCollection)
@@ -123,6 +133,8 @@ public class NetworkRepository extends FilteredDataCollection<DataCollection<?>>
                 filteredNameList.add(dc.getName());
             }
         }
+        // Cache the result for this session
+        filteredNamesCache.put(sessionId, filteredNameList);
         return filteredNameList;
     }
 
