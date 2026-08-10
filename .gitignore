@@ -33,6 +33,8 @@ data/test/biouml/plugins/brain/tables/test_1
 .claude/memory/*.jsonl
 .claude/settings.local.json.*
 
+data_resources/profiler_analysis/*
+
 # Secrets
 .env
 .env-*
