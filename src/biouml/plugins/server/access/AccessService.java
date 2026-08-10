@@ -1152,8 +1152,16 @@ public class AccessService extends AccessProtocol implements Service
      */
     protected void sendCheckProtected(ServiceRequest request) throws Exception
     {
-        DataCollection<?> dc = request.getDataCollection();
-        byte status = dc == null ? 0 : (byte)DataCollectionUtils.getProtectionStatus(DataElementPath.create(dc));
+        String dcName = request.get(Connection.KEY_DC);
+        byte status = 0;
+        if( dcName != null && !dcName.isEmpty() )
+        {
+            // Avoid loading the full data collection just to check protection status.
+            // getDataCollection() triggers a permission check (remote HTTPS call) which is
+            // unnecessary overhead when we only need the protection property (profile-identified).
+            DataElementPath path = DataElementPath.create(dcName);
+            status = (byte)DataCollectionUtils.getProtectionStatus(path);
+        }
         request.getSessionConnection().send(new byte[] {status}, Connection.FORMAT_SIMPLE);
     }
 

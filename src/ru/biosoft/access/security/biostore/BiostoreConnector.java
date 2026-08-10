@@ -32,20 +32,38 @@ public class BiostoreConnector
     protected Map<String, String> sessionCookies = new HashMap<>();
 
     protected String serverLink;
-    
+    /** Pre-computed URL to avoid repeated parsing on every request. */
+    protected transient java.net.URL baseUrl;
+
     protected String serverKey;
-    
+
     public static final String BIOSTORE_DEFAULT_URL = "https://bio-store.org/biostore";
 
     public BiostoreConnector(String serverLink)
     {
         this.serverLink = serverLink;
+        try
+        {
+            this.baseUrl = new java.net.URL(serverLink);
+        }
+        catch( java.net.MalformedURLException e )
+        {
+            throw new IllegalArgumentException("Invalid server URL: " + serverLink, e);
+        }
     }
 
     public BiostoreConnector(String serverLink, String serverKey)
     {
         this.serverLink = serverLink;
         this.serverKey = serverKey;
+        try
+        {
+            this.baseUrl = new java.net.URL(serverLink);
+        }
+        catch( java.net.MalformedURLException e )
+        {
+            throw new IllegalArgumentException("Invalid server URL: " + serverLink, e);
+        }
     }
 
     /**
@@ -90,13 +108,15 @@ public class BiostoreConnector
                 log.info( "Removing project via '" + serverLink + "', params =\n" + urlParameters );
             }
 
-            HttpURLConnection urlc = (HttpURLConnection)new URL( serverLink ).openConnection();
+            HttpURLConnection urlc = (HttpURLConnection)baseUrl.openConnection();
             urlc.setRequestMethod( "POST" );
 
             urlc.setUseCaches(false); // Don't look at possibly cached data
-            final int TIMEOUT_TEN_MINUTES = 10*60*1000;
-            urlc.setConnectTimeout( TIMEOUT_TEN_MINUTES );
-            urlc.setReadTimeout( TIMEOUT_TEN_MINUTES );
+            // 30-second timeout — permission checks are fast; 10-min timeout wastes resources
+            // and can exhaust connection pools under concurrent load (profile-identified hot path)
+            final int TIMEOUT_MS = 30*1000;
+            urlc.setConnectTimeout( TIMEOUT_MS );
+            urlc.setReadTimeout( TIMEOUT_MS );
             String oldCookies = username == null ? null : sessionCookies.get(username);
             if( oldCookies != null )
             {
