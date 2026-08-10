@@ -1536,9 +1536,19 @@ public class SupportServlet extends AbstractJSONServlet
         String format = getStringParameter(params, "format");
         if (format == null) format = "traces";
 
-        ServerMonitorConfig config = ServerMonitorConfig.load(
-                com.developmentontheedge.application.Application.getPreferences());
-        File profileDir = new File(config.getProfilerDir());
+        // Use cached config from monitoring service to avoid expensive
+        // XML parsing / database connection on every profile fetch
+        ServerMonitorConfig config;
+        File profileDir;
+        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+        if (plugin != null && plugin.getMonitoringService() != null) {
+            config = plugin.getMonitoringService().getConfig();
+            profileDir = new File(config.getProfilerDir());
+        } else {
+            config = ServerMonitorConfig.load(
+                    com.developmentontheedge.application.Application.getPreferences());
+            profileDir = new File(config.getProfilerDir());
+        }
 
         File profileFile;
         String resolvedId = id;
@@ -1619,9 +1629,19 @@ public class SupportServlet extends AbstractJSONServlet
         String id = getStringParameter(params, "id");
         if (id == null) return errorResponse("Missing 'id' parameter");
 
-        ServerMonitorConfig config = ServerMonitorConfig.load(
-                com.developmentontheedge.application.Application.getPreferences());
-        File profileDir = new File(config.getProfilerDir());
+        // Use cached config from monitoring service to avoid expensive
+        // XML parsing / database connection on every profile summary request
+        ServerMonitorConfig config;
+        File profileDir;
+        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+        if (plugin != null && plugin.getMonitoringService() != null) {
+            config = plugin.getMonitoringService().getConfig();
+            profileDir = new File(config.getProfilerDir());
+        } else {
+            config = ServerMonitorConfig.load(
+                    com.developmentontheedge.application.Application.getPreferences());
+            profileDir = new File(config.getProfilerDir());
+        }
 
         String baseName;
         if ("latest".equalsIgnoreCase(id)) {
