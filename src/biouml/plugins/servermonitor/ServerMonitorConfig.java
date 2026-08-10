@@ -57,6 +57,40 @@ public class ServerMonitorConfig {
 
     // Config values
     private int slowTaskThreshold = DEFAULT_SLOW_TASK_THRESHOLD;
+
+    // --- Cached singleton instance (loaded once, reused) ---
+    private static volatile ServerMonitorConfig cachedInstance;
+    private static final Object cacheLock = new Object();
+
+    /**
+     * Load or return cached configuration. The result is cached globally
+     * to avoid re-parsing preferences (which triggers expensive SAXParser
+     * instantiation) on every call. Call {@link #invalidateCache()} if
+     * the underlying preferences may have changed.
+     */
+    public static ServerMonitorConfig loadCached(Preferences prefs) {
+        ServerMonitorConfig result = cachedInstance;
+        if (result != null) {
+            return result;
+        }
+        synchronized (cacheLock) {
+            result = cachedInstance;
+            if (result == null) {
+                cachedInstance = result = load(prefs);
+            }
+            return result;
+        }
+    }
+
+    /**
+     * Invalidate the cached configuration so the next call to
+     * {@link #loadCached(Preferences)} will re-parse preferences.
+     */
+    public static void invalidateCache() {
+        synchronized (cacheLock) {
+            cachedInstance = null;
+        }
+    }
     private int checkInterval = DEFAULT_CHECK_INTERVAL;
     private String profilerPath = DEFAULT_PROFILER_PATH;
     private String profilerDir = DEFAULT_PROFILER_DIR;

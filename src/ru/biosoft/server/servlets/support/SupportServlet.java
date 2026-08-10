@@ -1536,7 +1536,8 @@ public class SupportServlet extends AbstractJSONServlet
         String format = getStringParameter(params, "format");
         if (format == null) format = "traces";
 
-        ServerMonitorConfig config = ServerMonitorConfig.load(
+        // Use cached config to avoid re-parsing preferences (expensive SAXParser chain)
+        ServerMonitorConfig config = ServerMonitorConfig.loadCached(
                 com.developmentontheedge.application.Application.getPreferences());
         File profileDir = new File(config.getProfilerDir());
 
@@ -1619,7 +1620,8 @@ public class SupportServlet extends AbstractJSONServlet
         String id = getStringParameter(params, "id");
         if (id == null) return errorResponse("Missing 'id' parameter");
 
-        ServerMonitorConfig config = ServerMonitorConfig.load(
+        // Use cached config to avoid re-parsing preferences (expensive SAXParser chain)
+        ServerMonitorConfig config = ServerMonitorConfig.loadCached(
                 com.developmentontheedge.application.Application.getPreferences());
         File profileDir = new File(config.getProfilerDir());
 

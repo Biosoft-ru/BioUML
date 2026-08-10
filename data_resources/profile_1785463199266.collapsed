@@ -1,0 +1,6 @@
+Fetching profile 'profile_1785463199266.collapsed' from: https://biouml2test.biouml.org/biouml/support/profile?action=get&id=profile_1785463199266.collapsed&user=anna@developmentontheedge.com&pass=:token:62e63796-9cfc-41b5-be91-b9ebb21da098
+
+start_thread;thread_native_entry;Thread::call_run;JavaThread::thread_main_inner;CompileBroker::compiler_thread_loop;CompileBroker::invoke_compiler_on_method;C2Compiler::compile_method;Compile::Compile;Compile::Code_Gen;PhaseChaitin::Register_Allocate;PhaseChaitin::Select;PhaseIFG::re_insert;IndexSetIterator::advance_and_next 1
+start_thread;thread_native_entry;Thread::call_run;JavaThread::thread_main_inner;CompileBroker::compiler_thread_loop;CompileBroker::invoke_compiler_on_method;C2Compiler::compile_method;Compile::Compile;Compile::Optimize;Compile::final_graph_reshaping;Compile::final_graph_reshaping_walk 1
+start_thread;thread_native_entry;Thread::call_run;ConcurrentGCThread::run;G1ConcurrentRefineThread::run_service;G1PrimaryConcurrentRefineThread::do_refinement_step;G1ConcurrentRefine::adjust_threads_periodically;G1Policy::revise_young_list_target_length;G1Policy::calculate_young_desired_length;G1Policy::calculate_desired_eden_length_before_young_only 1
+start_thread;thread_native_entry;Thread::call_run;WatcherThread::run;Monitor::wait_without_safepoint_check 1
