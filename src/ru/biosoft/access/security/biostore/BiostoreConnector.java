@@ -112,11 +112,11 @@ public class BiostoreConnector
             urlc.setRequestMethod( "POST" );
 
             urlc.setUseCaches(false); // Don't look at possibly cached data
-            // 30-second timeout — permission checks are fast; 10-min timeout wastes resources
-            // and can exhaust connection pools under concurrent load (profile-identified hot path)
-            final int TIMEOUT_MS = 30*1000;
-            urlc.setConnectTimeout( TIMEOUT_MS );
-            urlc.setReadTimeout( TIMEOUT_MS );
+
+            final int TIMEOUT_TEN_MINUTES = 10*60*1000;
+            urlc.setConnectTimeout( TIMEOUT_TEN_MINUTES );
+            urlc.setReadTimeout( TIMEOUT_TEN_MINUTES );
+
             String oldCookies = username == null ? null : sessionCookies.get(username);
             if( oldCookies != null )
             {

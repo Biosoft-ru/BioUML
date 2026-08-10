@@ -35,3 +35,4 @@ data/test/biouml/plugins/brain/tables/test_1
 
 # Secrets
 .env
+.env-*
