@@ -317,6 +317,7 @@ public class SemanticSimulatorTest extends SimulatorTest
         for( int i = 0; i < levels.length; i++ )
         {
             String modelPath = testDirectory + testName + "-sbml-" + levels[i] + ".xml";
+            this.sbmlLevel = levels[i];
             File sbmlModelFile = new File(modelPath);
             if( sbmlModelFile.exists() )
                 return sbmlModelFile;
