@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -153,7 +154,7 @@ public class SemanticSimulatorTest extends SimulatorTest
     {
         try
         {
-            setPreferences();
+//            setPreferences();
             ApplicationUtils.removeDir(new File(outDirectory));
 
             //            testAgentBased("l3v1");
@@ -273,7 +274,7 @@ public class SemanticSimulatorTest extends SimulatorTest
         engine.setOutputDir(javaOutDirectory);
         engine.setSrcDir(srcDirectory);
         engine.setNeedToShowPlot(false);
-
+        engine.setLogLevel( Level.OFF );
         if( engine instanceof JavaSimulationEngine )
             ( (JavaSimulationEngine)engine ).setTemplateType(JavaSimulationEngine.TEMPLATE_LARGE_ONLY);
 
