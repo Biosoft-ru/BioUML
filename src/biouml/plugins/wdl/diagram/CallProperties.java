@@ -11,26 +11,23 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
-import biouml.model.InitialElementProperties;
+import biouml.model.InitialElementPropertiesSupport;
 import biouml.model.Node;
 import biouml.model.SemanticController;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
 
-import com.developmentontheedge.beans.Option;
-
 @SuppressWarnings ( "serial" )
 @PropertyName ( "Call properties" )
 @PropertyDescription ( "Call properties." )
-public class CallProperties extends Option implements InitialElementProperties
+public class CallProperties extends InitialElementPropertiesSupport
 {
     protected String name = "call_1";
     protected String alias = "call_1";
-
-
     protected String taskRef = "";
     protected String[] availableTasks = new String[0];
+    
     public CallProperties(Diagram diagram)
     {
         availableTasks = StreamEx.of( WorkflowUtil.getTasks( diagram ) ).map( task -> task.getName() ).toArray( String[]::new );
@@ -81,10 +78,10 @@ public class CallProperties extends Option implements InitialElementProperties
     }
 
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
-            throw new Exception( "Empty task name!" );
+            throw new Exception( "Empty call name!" );
         Diagram diagram = Diagram.getDiagram( parent );
         
         String name = WDLSemanticController.uniqName( parent, this.name );
@@ -118,5 +115,4 @@ public class CallProperties extends Option implements InitialElementProperties
 
         return new DiagramElementGroup( compartment );
     }
-
 }

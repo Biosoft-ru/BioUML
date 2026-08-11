@@ -24,29 +24,23 @@ public class OutputProperties extends ExpressionProperties
     }
 
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
             throw new Exception( "Empty task output name!" );
-
         String name = WDLSemanticController.uniqName( parent, this.name );
         Node node = new Node( parent, name, new Stub( null, name, WDLConstants.OUTPUT_TYPE ) );
         node.setNotificationEnabled( false );
-
         WorkflowUtil.setName( node, getVariable() );
         WorkflowUtil.setType( node, getType() );
         WorkflowUtil.setExpression( node, getRhs() );
-//        node.setShapeSize( new Dimension( 200, 50 ) );
-
         int position = WorkflowUtil.getOutputs( parent ).size();
-        WorkflowUtil.setPosition( node, position );
-        
+        WorkflowUtil.setPosition( node, position );      
         node.setNotificationEnabled( true );
         Diagram diagram = Diagram.getDiagram(parent);
         SemanticController controller = diagram.getType().getSemanticController();
         if( !controller.canAccept(parent, node) )
             return new DiagramElementGroup();
-
         return new DiagramElementGroup( node );
     }
 }

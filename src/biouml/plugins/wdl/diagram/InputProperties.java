@@ -24,7 +24,7 @@ public class InputProperties extends ExpressionProperties
     }
 
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
             throw new Exception( "Empty task input name!" );
@@ -32,15 +32,12 @@ public class InputProperties extends ExpressionProperties
         String name = WDLSemanticController.uniqName( parent, this.name );
         Node node = new Node( parent, name, new Stub( null, name, WDLConstants.INPUT_TYPE ) );
         node.setNotificationEnabled( false );
-
         WorkflowUtil.setName( node, getVariable() );
         WorkflowUtil.setType( node, getType() );
         WorkflowUtil.setExpression( node, getRhs() );
-//        node.setShapeSize( new Dimension( 200, 50 ) );
-
         int position = WorkflowUtil.getInputs( parent ).size();
         WorkflowUtil.setPosition( node, position );
-        
+       
         node.setNotificationEnabled( true );
         Diagram diagram = Diagram.getDiagram(parent);
         SemanticController controller = diagram.getType().getSemanticController();

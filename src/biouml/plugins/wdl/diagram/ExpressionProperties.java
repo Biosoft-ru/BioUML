@@ -9,6 +9,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
 import biouml.model.InitialElementProperties;
+import biouml.model.InitialElementPropertiesSupport;
 import biouml.model.Node;
 import biouml.model.SemanticController;
 import biouml.plugins.wdl.WorkflowUtil;
@@ -18,7 +19,7 @@ import com.developmentontheedge.beans.Option;
 @SuppressWarnings ( "serial" )
 @PropertyName ( "Expression properties" )
 @PropertyDescription ( "Expression properties." )
-public class ExpressionProperties extends Option implements InitialElementProperties
+public class ExpressionProperties extends InitialElementPropertiesSupport
 {
     protected String name = "expression_1";
     private String variable = "";
@@ -77,26 +78,21 @@ public class ExpressionProperties extends Option implements InitialElementProper
     }
 
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
-            throw new Exception( "Empty task name!" );
-
+            throw new Exception( "Empty expression name!" );
         String name = WDLSemanticController.uniqName( parent, this.name );
         Node node = new Node( parent, name, new Stub( null, name, WDLConstants.EXPRESSION_TYPE ) );
         node.setNotificationEnabled( false );
-
         WorkflowUtil.setName( node, this.variable );
         WorkflowUtil.setType( node, this.type );
         WorkflowUtil.setExpression( node, this.rhs );
-//        node.setShapeSize( new Dimension( 200, 50 ) );
-
         node.setNotificationEnabled( true );
         Diagram diagram = Diagram.getDiagram(parent);
         SemanticController controller = diagram.getType().getSemanticController();
         if( !controller.canAccept(parent, node) )
             return new DiagramElementGroup();
-
         return new DiagramElementGroup( node );
     }
 }

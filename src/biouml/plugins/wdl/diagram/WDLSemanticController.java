@@ -46,7 +46,7 @@ public class WDLSemanticController extends DefaultSemanticController
                 {
                     PropertiesDialog dialog = new PropertiesDialog( Application.getApplicationFrame(), "New element", properties );
                     if( dialog.doModal() )
-                        return ( (InitialElementProperties)properties ).createElements( parent, pt, viewEditor );
+                         ( (InitialElementProperties)properties ).createElements( parent, pt, viewEditor );
                     return DiagramElementGroup.EMPTY_EG;
                 }
             }

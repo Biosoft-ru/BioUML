@@ -10,16 +10,15 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
-import biouml.model.InitialElementProperties;
+import biouml.model.InitialElementPropertiesSupport;
 import biouml.model.Node;
 import biouml.model.SemanticController;
 import biouml.standard.type.Stub;
-import com.developmentontheedge.beans.Option;
 
 @SuppressWarnings ( "serial" )
 @PropertyName ( "Conditional block properties" )
 @PropertyDescription ( "Conditional block properties." )
-public class ConditionalProperties extends Option implements InitialElementProperties
+public class ConditionalProperties extends InitialElementPropertiesSupport
 {
     protected String name = "conditional_1";
 
@@ -43,7 +42,7 @@ public class ConditionalProperties extends Option implements InitialElementPrope
     }
 
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
             throw new Exception( "Empty conditional block name!" );
