@@ -51,6 +51,11 @@ public class WebServicesServlet extends AbstractServlet
 {
     protected static final Logger log = Logger.getLogger(WebServicesServlet.class.getName());
 
+    // Cache for WebProvider lookups to avoid repeated ExtensionRegistrySupport calls
+    // on every sendInitialInfo request (identified by profiler as a major hot path)
+    private static final java.util.concurrent.ConcurrentHashMap<String, WebProvider> providerCache =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     //
     //Request types
     //
@@ -423,6 +428,7 @@ public class WebServicesServlet extends AbstractServlet
         if( user != null && !user.isEmpty() )
             result.put( "username", user );
 
+        // Reuse argument maps to avoid repeated HashMap allocation
         Map<String, String> perspectiveArguments = new HashMap<>();
         perspectiveArguments.put("name", arguments.get("perspective"));
         result.put("perspective", getRequestValue("perspective", perspectiveArguments, "reading perspectives info"));
@@ -433,7 +439,8 @@ public class WebServicesServlet extends AbstractServlet
         for(int i=0; i<repositories.length(); i++)
         {
             String path = repositories.getJSONObject(i).getString("path");
-            Map<String, String> accessArguments = new HashMap<>();
+            // Reuse a single map instance for access arguments to reduce allocations
+            Map<String, String> accessArguments = new HashMap<>(3);
             accessArguments.put("service", "access.service");
             accessArguments.put("command", String.valueOf(AccessProtocol.DB_FLAGGED_LIST));
             accessArguments.put(Connection.KEY_DC, path);
@@ -492,7 +499,10 @@ public class WebServicesServlet extends AbstractServlet
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         arguments.put(SecurityManager.SESSION_ID, WebSession.getCurrentSession().getSessionId());
-        WebProvider wProvider = WebProviderFactory.getProvider( provider );
+        // Use cached provider to avoid repeated ExtensionRegistrySupport.getExtension() calls
+        // The registry itself is already cached, but the ConcurrentHashMap lookup is faster
+        // than going through the full init() path on every request
+        WebProvider wProvider = providerCache.computeIfAbsent(provider, WebProviderFactory::getProvider);
         if( wProvider == null )
         {
             log.log( Level.SEVERE, "Unable to get provider '" + provider + "', arguments = \n" + arguments );

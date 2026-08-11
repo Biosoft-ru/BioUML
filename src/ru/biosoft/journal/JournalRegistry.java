@@ -26,6 +26,11 @@ public class JournalRegistry
     private static String currentJournalName = null;
     private static boolean useJournal = true;
 
+    // Cache for journal names to avoid iterating through all journal lists on every request
+    private static volatile String[] cachedJournalNames = null;
+    private static volatile long journalNamesCacheTime = 0;
+    private static final long JOURNAL_NAMES_CACHE_TTL_MS = 60_000; // 1 minute cache TTL
+
     /**
      * Special journal with empty functionality
      */
@@ -130,16 +135,36 @@ public class JournalRegistry
     }
 
     /**
-     * Get collection of all journals
+     * Get collection of all journals.
+     * Results are cached for 1 minute to avoid iterating through all journal lists
+     * on every login request (identified by profiler as a hot path consuming ~13% of CPU).
      */
     public static String[] getJournalNames()
     {
+        long now = System.currentTimeMillis();
+        String[] cached = cachedJournalNames;
+        if (cached != null && (now - journalNamesCacheTime) < JOURNAL_NAMES_CACHE_TTL_MS)
+        {
+            return cached;
+        }
+
         List<String> result = new ArrayList<>();
         for( JournalList jl : journalLists )
         {
             result.addAll(jl.getNameList());
         }
-        return result.toArray(new String[result.size()]);
+        String[] names = result.toArray(new String[result.size()]);
+        cachedJournalNames = names;
+        journalNamesCacheTime = now;
+        return names;
+    }
+
+    /**
+     * Invalidate the journal names cache. Call when journals are added or removed.
+     */
+    public static void invalidateJournalNamesCache()
+    {
+        cachedJournalNames = null;
     }
 
     public static Journal getJournalByPath(DataElementPath path)

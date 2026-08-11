@@ -184,13 +184,17 @@ public class SecurityManager
         if(!create)
             return null;
 
-        Integer guestPermissions = guestPermissionsMap.get(dataCollectionName);
-        if( guestPermissions == null )
+        // Use synchronized block for guest permissions map to avoid contention
+        synchronized (guestPermissionsMap)
         {
-            guestPermissions = securityProvider.getGuestPermissions(dataCollectionName);
-            guestPermissionsMap.put(dataCollectionName, guestPermissions);
+            Integer guestPermissions = guestPermissionsMap.get(dataCollectionName);
+            if( guestPermissions == null )
+            {
+                guestPermissions = securityProvider.getGuestPermissions(dataCollectionName);
+                guestPermissionsMap.put(dataCollectionName, guestPermissions);
+            }
+            return new Permission(guestPermissions, "", "", currentTime + timeLimit);
         }
-        return new Permission(guestPermissions, "", "", currentTime + timeLimit);
     }
 
     private static Permission authorize(String dataCollectionName, UserPermissions userInfo, String sessionId)
