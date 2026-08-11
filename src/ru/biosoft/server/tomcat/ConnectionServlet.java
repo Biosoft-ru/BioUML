@@ -49,6 +49,13 @@ public abstract class ConnectionServlet extends HttpServlet
     protected Class<?> services;
     private Map extensionServletMap;
 
+    // Cached reflection objects to avoid repeated getMethod calls per request
+    // Note: responseClass/processRequest method are service-specific (different class loaders)
+    // and cannot be cached across requests.
+    private volatile Method cachedRequestGetService;
+    private volatile Method cachedServicesGetService;
+    private volatile Method cachedRequestGetCommand;
+
     public ConnectionServlet()
     {
 
@@ -198,6 +205,51 @@ public abstract class ConnectionServlet extends HttpServlet
         executeQueryWithExtensionServlet(req, resp);
     }
 
+    private Method getCachedRequestGetService() throws NoSuchMethodException
+    {
+        Method m = cachedRequestGetService;
+        if( m == null )
+        {
+            synchronized( this )
+            {
+                if( cachedRequestGetService == null )
+                    cachedRequestGetService = request.getMethod( "getService", new Class[] {Map.class} );
+                m = cachedRequestGetService;
+            }
+        }
+        return m;
+    }
+
+    private Method getCachedServicesGetService() throws NoSuchMethodException
+    {
+        Method m = cachedServicesGetService;
+        if( m == null )
+        {
+            synchronized( this )
+            {
+                if( cachedServicesGetService == null )
+                    cachedServicesGetService = services.getMethod( "getService", new Class[] {String.class} );
+                m = cachedServicesGetService;
+            }
+        }
+        return m;
+    }
+
+    private Method getCachedRequestGetCommand() throws NoSuchMethodException
+    {
+        Method m = cachedRequestGetCommand;
+        if( m == null )
+        {
+            synchronized( this )
+            {
+                if( cachedRequestGetCommand == null )
+                    cachedRequestGetCommand = request.getMethod( "getCommand", new Class[] {Map.class} );
+                m = cachedRequestGetCommand;
+            }
+        }
+        return m;
+    }
+
     protected void stub(OutputStream os)
     {
         try
@@ -214,11 +266,12 @@ public abstract class ConnectionServlet extends HttpServlet
     {
         try
         {
-            Method m = request.getMethod("getService", new Class[] {Map.class});
+            // Use cached reflection objects to avoid repeated getMethod calls
+            Method m = getCachedRequestGetService();
             Object serviceName = m.invoke(null, new Object[] {arguments});
-            m = services.getMethod("getService", new Class[] {String.class});
+            m = getCachedServicesGetService();
             Object service = m.invoke(null, new Object[] {serviceName});
-            m = request.getMethod("getCommand", new Class[] {Map.class});
+            m = getCachedRequestGetCommand();
             Object command = m.invoke(null, new Object[] {arguments});
 
             if( service != null && command != null )
@@ -226,10 +279,12 @@ public abstract class ConnectionServlet extends HttpServlet
                 long startTime = System.currentTimeMillis();
 
                 Class<?> responseClass = service.getClass().getClassLoader().loadClass(Response.class.getName());
-                Constructor<?> responseConstructor = responseClass.getConstructor(new Class[] {OutputStream.class, String.class});
-                Object response = responseConstructor.newInstance(new Object[] {os, url});
-                m = service.getClass().getMethod("processRequest", new Class[] {Integer.class, Map.class, responseClass});
-                m.invoke(service, new Object[] {command, arguments, response});
+                // responseClass and processRequest method are service-specific (different class loaders),
+                // so they cannot be cached across requests
+                Constructor<?> responseConstructor = responseClass.getConstructor( new Class[] {OutputStream.class, String.class} );
+                Object response = responseConstructor.newInstance( new Object[] {os, url} );
+                m = service.getClass().getMethod( "processRequest", new Class[] {Integer.class, Map.class, responseClass} );
+                m.invoke( service, new Object[] {command, arguments, response} );
 
                 //code for printing statistic
                 //long endTime = System.currentTimeMillis();
