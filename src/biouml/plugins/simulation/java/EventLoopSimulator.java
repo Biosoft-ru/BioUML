@@ -248,9 +248,6 @@ public class EventLoopSimulator extends SimulatorSupport
      */
     private void executeEvents(List<Integer> pendingEvents) throws Exception
     {
-        // Reuse pre-allocated buffer instead of allocating a new ArrayList each call
-        switchedOffEventsBuffer.clear();
-
         while( !pendingEvents.isEmpty() )
         {
             double[] eventsBeforeFiring = odeModel.checkEvent(curTime, x);
@@ -271,7 +268,7 @@ public class EventLoopSimulator extends SimulatorSupport
                 return;
 
             double[] eventsAfterFiring = odeModel.checkEvent(curTime, x);
-
+            switchedOffEventsBuffer.clear();
             for( int i = 0; i < eventsAfterFiring.length; i++ )
             {
                 //event is not persistent and it was switched off  by current event
