@@ -30,6 +30,13 @@ Accepts a server URL as an argument. Required — no default.
 
 ## Workflow
 
+### Step 0: Fix the server URL for the rest of this run
+
+​```bash
+export PROFILE_SERVER_URL="$ARGUMENTS"
+echo "Using server: $PROFILE_SERVER_URL"
+​```
+
 ### Step 1: Fetch Recent Profile Reports
 
 **IMPORTANT: Use the server URL the user provided as the skill argument.** Do NOT use any URL from the Usage examples above.
