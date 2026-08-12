@@ -33,6 +33,7 @@ import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl._test.TestNextflow.WorkflowTestResults.WorkflowTestResult;
 import biouml.plugins.wdl.diagram.DiagramGenerator;
+import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.model.ScriptInfo;
 
@@ -50,7 +51,7 @@ public class TestNextflow
     private File yamlFile = null;
     private int limit = 800; //number of tests to execute
     //stdout_as_output
-    private String selected = null;//"type_pair_files";//"null_optional_vs_default_subworkflows" - publish dir ext workflow;
+    private String selected = null;//"basic_directory";//"type_pair_files";//"null_optional_vs_default_subworkflows" - publish dir ext workflow;
     File suiteDir = null;
     public static void main(String ... args) throws Exception
     {
@@ -384,7 +385,7 @@ public class TestNextflow
                 WDLImporter importer = new WDLImporter();
                 importer.setScriptLoader( new FileScriptLoader( ScriptLoader.WDL_TYPE, testDir ) );
                 ScriptInfo info = importer.readScript( name, originalWDL );               
-                diagram = new DiagramGenerator().generateDiagram( info, null, id );
+                diagram = new DiagramGenerator().generateDiagram( info, new WDLDiagramType().createDiagram( null, id ), null );
                 //                diagram = TestUtil.generateDiagram( name, originalWDL );
             }
             catch( Exception ex )
@@ -549,7 +550,7 @@ public class TestNextflow
         boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
         try
         {
-            NextFlowRunner.generateFunctions( resultDir.getCanonicalPath() );
+            NextFlowRunner.generateFunctions( resultDir );
 
             for( String imported : imports )
             {

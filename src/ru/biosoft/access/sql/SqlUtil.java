@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 import one.util.streamex.StreamEx;
 
 import ru.biosoft.access.exception.BiosoftSQLException;
-import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.util.ReadAheadIterator;
 import ru.biosoft.util.TextUtil2;
 
@@ -501,9 +500,6 @@ public class SqlUtil
      */
     public static long getTableSize(Connection connection, String tableName) throws BiosoftSQLException
     {
-        long size = getInnoDBTableSize( connection, tableName );
-        if( size > 0 )
-            return size;
         String tablesQuery = "SELECT DATA_LENGTH, INDEX_LENGTH, DATA_FREE from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=DATABASE() and TABLE_NAME=" + quoteString(tableName);
         try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(tablesQuery))
         {
@@ -517,42 +513,6 @@ public class SqlUtil
         }
     }
     
-    private static long getInnoDBTableSize(Connection connection, String tableName)
-    {
-        Connection adminConnection = GlobalDatabaseManager.getDatabaseConnection();
-        String dbName = null;
-        try
-        {
-            dbName = connection.getCatalog();
-        }
-        catch (SQLException e)
-        {
-            return -1;
-        }
-        String sizeQuery = "SELECT ALLOCATED_SIZE FROM INFORMATION_SCHEMA.INNODB_TABLESPACES WHERE NAME=CONCAT('" + dbName + "','/'," + quoteString( tableName ) + ")";
-        try (Statement st = adminConnection.createStatement(); ResultSet rs = st.executeQuery( sizeQuery ))
-        {
-            if( !rs.next() )
-                return -1;
-            return rs.getLong( 1 );
-        }
-        catch (SQLException e)
-        {
-            String sizeQueryOld = "SELECT ALLOCATED_SIZE FROM INFORMATION_SCHEMA.INNODB_SYS_TABLESPACES WHERE NAME=CONCAT('" + dbName + "','/'," + quoteString( tableName ) + ")";
-            try (Statement st2 = adminConnection.createStatement(); ResultSet rs2 = st2.executeQuery( sizeQueryOld ))
-            {
-                if( !rs2.next() )
-                    return -1;
-                return rs2.getLong( 1 );
-            }
-            catch (SQLException e2)
-            {
-
-            }
-        }
-        return -1;
-    }
-
     public static long getAvgRowLength(Connection connection, String tableName) throws BiosoftSQLException
     {
         String query = "SELECT AVG_ROW_LENGTH from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=DATABASE() and TABLE_NAME=" + quoteString(tableName);

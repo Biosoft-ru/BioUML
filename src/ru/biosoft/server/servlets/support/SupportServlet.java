@@ -1461,54 +1461,22 @@ public class SupportServlet extends AbstractJSONServlet
                 JSONObject profile = new JSONObject();
                 profile.put("id", f.getName());
                 profile.put("path", f.getAbsolutePath());
-                long fileSize = f.length();
-                profile.put("size", fileSize);
+                profile.put("size", f.length());
                 profile.put("timestamp", f.lastModified());
                 profile.put("format", getFileExtension(f.getName()));
 
-                // Debug: log zero-size files for investigation
-                if (fileSize == 0)
+                // Try to load metadata JSON
+                File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
+                if (metaFile.exists())
                 {
-                    File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
-                    String metaInfo = "no metadata";
-                    if (metaFile.exists())
+                    try
                     {
-                        try
-                        {
-                            String meta = readFileContent(metaFile);
-                            JSONObject metaObj = new JSONObject(meta);
-                            metaInfo = "duration=" + metaObj.optLong("duration", -1)
-                                    + " startTime=" + metaObj.optLong("startTime", -1)
-                                    + " endTime=" + metaObj.optLong("endTime", -1);
-                            profile.put("metadata", metaObj);
-                        }
-                        catch (Exception e)
-                        {
-                            metaInfo = "malformed metadata: " + e.getMessage();
-                        }
+                        String meta = readFileContent(metaFile);
+                        profile.put("metadata", new JSONObject(meta));
                     }
-                    log.log(Level.WARNING,
-                            "listProfiles: zero-size file detected — path=" + f.getAbsolutePath()
-                                    + " lastModified=" + f.lastModified()
-                                    + " exists=" + f.exists()
-                                    + " canRead=" + f.canRead()
-                                    + " metadata=" + metaInfo);
-                }
-                else
-                {
-                    // Try to load metadata JSON
-                    File metaFile = new File(f.getAbsolutePath().replace("." + getFileExtension(f.getName()), ".json"));
-                    if (metaFile.exists())
+                    catch (Exception e)
                     {
-                        try
-                        {
-                            String meta = readFileContent(metaFile);
-                            profile.put("metadata", new JSONObject(meta));
-                        }
-                        catch (Exception e)
-                        {
-                            // Skip malformed metadata
-                        }
+                        // Skip malformed metadata
                     }
                 }
 
@@ -1536,19 +1504,9 @@ public class SupportServlet extends AbstractJSONServlet
         String format = getStringParameter(params, "format");
         if (format == null) format = "traces";
 
-        // Use cached config from monitoring service to avoid expensive
-        // XML parsing / database connection on every profile fetch
-        ServerMonitorConfig config;
-        File profileDir;
-        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
-        if (plugin != null && plugin.getMonitoringService() != null) {
-            config = plugin.getMonitoringService().getConfig();
-            profileDir = new File(config.getProfilerDir());
-        } else {
-            config = ServerMonitorConfig.load(
-                    com.developmentontheedge.application.Application.getPreferences());
-            profileDir = new File(config.getProfilerDir());
-        }
+        ServerMonitorConfig config = ServerMonitorConfig.load(
+                com.developmentontheedge.application.Application.getPreferences());
+        File profileDir = new File(config.getProfilerDir());
 
         File profileFile;
         String resolvedId = id;
@@ -1629,19 +1587,9 @@ public class SupportServlet extends AbstractJSONServlet
         String id = getStringParameter(params, "id");
         if (id == null) return errorResponse("Missing 'id' parameter");
 
-        // Use cached config from monitoring service to avoid expensive
-        // XML parsing / database connection on every profile summary request
-        ServerMonitorConfig config;
-        File profileDir;
-        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
-        if (plugin != null && plugin.getMonitoringService() != null) {
-            config = plugin.getMonitoringService().getConfig();
-            profileDir = new File(config.getProfilerDir());
-        } else {
-            config = ServerMonitorConfig.load(
-                    com.developmentontheedge.application.Application.getPreferences());
-            profileDir = new File(config.getProfilerDir());
-        }
+        ServerMonitorConfig config = ServerMonitorConfig.load(
+                com.developmentontheedge.application.Application.getPreferences());
+        File profileDir = new File(config.getProfilerDir());
 
         String baseName;
         if ("latest".equalsIgnoreCase(id)) {
