@@ -112,6 +112,7 @@ public class SemanticSimulatorTest extends SimulatorTest
     protected double completionTime = 0;
     protected double timeIncrement = 0;
 
+    protected boolean highest = false;
     protected String sbmlLevel;
     protected String testURL;
 
@@ -278,6 +279,8 @@ public class SemanticSimulatorTest extends SimulatorTest
         if( engine instanceof JavaSimulationEngine )
             ( (JavaSimulationEngine)engine ).setTemplateType(JavaSimulationEngine.TEMPLATE_LARGE_ONLY);
 
+        highest = sbmlLevel.equals("highest");
+            
         this.sbmlLevel = sbmlLevel;
         List<String> testList = SemanticTestListParser.parseTestList(new File(testDirectory + testListName));
         for( String testName : testList )
@@ -339,13 +342,13 @@ public class SemanticSimulatorTest extends SimulatorTest
         {
             zero = DEFAULT_ZERO_SEMANTIC;
 
-            File sbmlModelFile = ( sbmlLevel.equals("highest") ) ? findHighestLevel(testName)
+            File sbmlModelFile = ( highest ) ? findHighestLevel(testName)
                     : new File(testDirectory + testName + "-sbml-" + sbmlLevel + ".xml");
 
             if( sbmlModelFile == null || !sbmlModelFile.exists() )
             {
                 logger.warn("SBML model " + testName + " for level " + sbmlLevel + " was not found");
-                System.out.println("SBML model " + testName + " was not found");
+                System.out.println("SBML model " + testName + " for level " + sbmlLevel + " was not found");
                 logger.simulationCompleted();
                 saveSimulationResults(testDirectory, testName, logger);
                 return;
