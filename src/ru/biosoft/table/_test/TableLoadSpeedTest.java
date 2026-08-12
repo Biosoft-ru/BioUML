@@ -36,6 +36,12 @@ public class TableLoadSpeedTest extends TestCase
         return suite;
     }
 
+    @Override
+    protected void tearDown() throws Exception
+    {
+        CollectionFactory.unregisterAllRoot();
+    }
+
     public static void main(String[] args) throws Exception
     {
         junit.textui.TestRunner.run(suite());

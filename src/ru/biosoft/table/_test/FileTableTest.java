@@ -29,6 +29,12 @@ public class FileTableTest extends TestCase
         return suite;
     }
 
+    @Override
+    protected void tearDown() throws Exception
+    {
+        CollectionFactory.unregisterAllRoot();
+    }
+
     public void testLoadTable() throws Exception
     {
         CollectionFactory.createRepository(repositoryPath);
