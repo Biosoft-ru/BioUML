@@ -39,6 +39,10 @@ public class ClassLoading
 
     private static final Map<String, Bundle> packageToBundle = new ConcurrentHashMap<>();
 
+    // Cache for plugin ID lookup by class name to avoid repeated expensive lookups
+    // Only successful resolutions are cached (null values are not stored)
+    private static final Map<String, String> classNameToPlugin = new ConcurrentHashMap<>();
+
     static {
         initBundles();
         initMovedClasses();
@@ -359,6 +363,12 @@ public class ClassLoading
     {
         // First try plugins which names are package name substring
         Assert.notNull("className", className);
+
+        // Fast path: check the cache for previously resolved class names
+        String cachedPlugin = classNameToPlugin.get( className );
+        if( cachedPlugin != null )
+            return cachedPlugin;
+
         int pos = className.lastIndexOf( '.' );
         if(pos == -1)
         {
@@ -380,7 +390,10 @@ public class ClassLoading
         String packageName = className.substring( 0, pos );
         Bundle b = packageToBundle.get( packageName );
         if(b != null)
+        {
+            classNameToPlugin.put( className, b.getSymbolicName() );
             return b.getSymbolicName();
+        }
         if(SecurityManager.isTestMode()) // no bundles in tests
             return null;
         //TODO: think about better solution.
@@ -396,15 +409,20 @@ public class ClassLoading
         {
             pluginId = pluginId.substring(0, pluginNameEnd);
             if(tryLoad(className, pluginId) != null)
+            {
+                classNameToPlugin.put( className, pluginId );
                 return pluginId;
+            }
         }
         if(className.startsWith("ru.biosoft") && tryLoad(className, "ru.biosoft.workbench") != null)
         {
+            classNameToPlugin.put( className, "ru.biosoft.workbench" );
             return "ru.biosoft.workbench";
         }
         //Then try biouml.workbench plugin
         if(tryLoad(className, "biouml.workbench") != null)
         {
+            classNameToPlugin.put( className, "biouml.workbench" );
             return "biouml.workbench";
         }
         return null;
