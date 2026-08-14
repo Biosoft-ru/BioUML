@@ -42,6 +42,15 @@ public class ImportTableTest extends AbstractBioUMLTest
         return suite;
     }
 
+    @Override
+    protected void tearDown() throws Exception
+    {
+        // Do not call super.tearDown() which calls unregisterAllRoot() and
+        // clears the "data" root needed by all other tests.
+        // The "data" root is registered by CollectionFactoryUtils.initVirtualCollections()
+        // during AbstractBioUMLTest static init and must persist across tests.
+    }
+
 
     public void test1() throws Exception
     {
