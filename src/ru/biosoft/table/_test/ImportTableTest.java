@@ -45,10 +45,11 @@ public class ImportTableTest extends AbstractBioUMLTest
     @Override
     protected void tearDown() throws Exception
     {
-        // Do not call super.tearDown() which calls unregisterAllRoot() and
-        // clears the "data" root needed by all other tests.
-        // The "data" root is registered by CollectionFactoryUtils.initVirtualCollections()
-        // during AbstractBioUMLTest static init and must persist across tests.
+        // Unregister the "data" root created by createRepository() in each test method.
+        // This prevents it from polluting subsequent tests (e.g., FileTableTest) that
+        // also create a "data" root — createRepository() reuses an existing "data" root
+        // instead of creating a fresh one, causing "Element not found" errors.
+        super.tearDown();
     }
 
 
