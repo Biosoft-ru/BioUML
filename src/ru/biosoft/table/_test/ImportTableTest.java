@@ -45,17 +45,35 @@ public class ImportTableTest extends AbstractBioUMLTest
     @Override
     protected void tearDown() throws Exception
     {
-        // Unregister the "data" root created by createRepository() in each test method.
-        // This prevents it from polluting subsequent tests (e.g., FileTableTest) that
-        // also create a "data" root — createRepository() reuses an existing "data" root
-        // instead of creating a fresh one, causing "Element not found" errors.
-        super.tearDown();
+        // Only unregister the "data" root we created, not all roots.
+        // unregisterAllRoot() would also clear virtual roots from static init,
+        // which can corrupt state for subsequent test classes.
+        CollectionFactory.unregisterRoot(
+            CollectionFactory.getDataCollection( "data" )
+        );
     }
 
+
+    /**
+     * Ensures a fresh "data" root for each test by unregistering any stale
+     * "data" root left by a previous test class.  createRepository() reuses
+     * an existing "data" root instead of creating a new one, so we must
+     * guarantee it doesn't exist before calling createRepository().
+     */
+    private void ensureFreshRepository()
+    {
+        if ( CollectionFactory.getDataCollection( "data" ) != null )
+        {
+            CollectionFactory.unregisterRoot(
+                CollectionFactory.getDataCollection( "data" )
+            );
+        }
+    }
 
     public void test1() throws Exception
     {
         TableDataCollection table = new StandardTableDataCollection(null, "test1");
+        ensureFreshRepository();
         CollectionFactory.createRepository(repositoryPath);
         FileDataElement file = (FileDataElement)dePath.getChildPath("test1.csv").optDataElement();
         assertNotNull("Import source not found", file);
@@ -73,6 +91,7 @@ public class ImportTableTest extends AbstractBioUMLTest
     public void test2() throws Exception
     {
         TableDataCollection table = new StandardTableDataCollection( null, "test2" );
+        ensureFreshRepository();
         CollectionFactory.createRepository( repositoryPath );
         FileDataElement file = (FileDataElement)dePath.getChildPath( "test2.csv" ).optDataElement();
         assertNotNull( "Import source not found", file );
@@ -94,6 +113,7 @@ public class ImportTableTest extends AbstractBioUMLTest
     public void testEmptyCells1() throws Exception
     {
         TableDataCollection table = new StandardTableDataCollection( null, "test4" );
+        ensureFreshRepository();
         CollectionFactory.createRepository( repositoryPath );
         FileDataElement file = (FileDataElement)dePath.getChildPath( "test4.csv" ).optDataElement();
         assertNotNull( "Import source not found", file );
@@ -104,6 +124,7 @@ public class ImportTableTest extends AbstractBioUMLTest
     public void testEmptyCells2() throws Exception
     {
         TableDataCollection table = new StandardTableDataCollection( null, "test5" );
+        ensureFreshRepository();
         CollectionFactory.createRepository( repositoryPath );
         FileDataElement file = (FileDataElement)dePath.getChildPath( "test5.csv" ).optDataElement();
         assertNotNull( "Import source not found", file );
@@ -149,6 +170,7 @@ public class ImportTableTest extends AbstractBioUMLTest
     public void testQuotes() throws Exception
     {
         TableDataCollection table = new StandardTableDataCollection( null, "test3" );
+        ensureFreshRepository();
         CollectionFactory.createRepository( repositoryPath );
         FileDataElement file = (FileDataElement)dePath.getChildPath( "test3.csv" ).optDataElement();
         assertNotNull( "Import source not found", file );
