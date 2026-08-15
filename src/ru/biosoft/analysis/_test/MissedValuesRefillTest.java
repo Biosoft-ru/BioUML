@@ -32,12 +32,6 @@ public class MissedValuesRefillTest extends TestCase
         return suite;
     }
 
-    @Override
-    protected void tearDown() throws Exception
-    {
-        CollectionFactory.unregisterAllRoot();
-    }
-
     /**
      * @throws Exception
      */
