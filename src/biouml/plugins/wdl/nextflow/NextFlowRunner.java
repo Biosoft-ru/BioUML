@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -396,6 +397,21 @@ public class NextFlowRunner
 				bw.write("\n");
 				bw.write("params." + e.getKey() + " = " + value + "\n");
 			}
+
+            //TODO: this should be optional, add some flag like 'run as current user' to parameters bean
+            //If flag is true, docker.runOptions = '--user <uid>:<gid>' shoud be set
+            //otherwise - run as root, remove docker.runOptions = '--user..' and add process.containerOptions = '--user root'
+            Path userHome = Paths.get( System.getProperty( "user.home" ) );
+            int uid = (int) Files.getAttribute( userHome, "unix:uid", LinkOption.NOFOLLOW_LINKS );
+            int gid = (int) Files.getAttribute( userHome, "unix:gid", LinkOption.NOFOLLOW_LINKS );
+            bw.write( "docker.runOptions = '--user " + uid + ":" + gid + "'\n" );
+            bw.write( "process.containerOptions = ''\n" );
+            bw.write( "process {\nstageInMode = 'symlink'\n"
+                    + "publishDir {\n"
+                    + "enabled = true\n"
+                    + "mode = 'link'\n"
+                    + "overwrite = true\n"
+                    + "}\n" );
 		}
 		return config;
 	}

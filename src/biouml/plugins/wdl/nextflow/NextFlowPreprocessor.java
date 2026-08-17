@@ -80,10 +80,10 @@ public class NextFlowPreprocessor
         for( Compartment task : WorkflowUtil.getTasks( result ) )
         {
             if( publishDir.isEmpty() )
-                WorkflowUtil.setRuntimeProperty( task, "publishDir", "\"" + task.getName() + "\", mode: 'link', overwrite: true" );
+                WorkflowUtil.setRuntimeProperty( task, "publishDir", "\"" + task.getName() + "\"" );
             else
                 WorkflowUtil.setRuntimeProperty( task, "publishDir",
-                        "\"" + publishDir + "/" + task.getName() + "\", mode: 'link', overwrite: true" );
+                        "\"" + publishDir + "/" + task.getName() + "\"" );
 
             for( Node input : WorkflowUtil.getInputs( task ) )
             {

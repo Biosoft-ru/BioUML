@@ -78,9 +78,7 @@ $helper.getExternalInput($externalParameter)
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
-containerOptions '--user root'
 $helper.printDirectives($task, "  ")
-stageInMode 'symlink'
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
 $BR  input:
