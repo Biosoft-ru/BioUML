@@ -97,6 +97,13 @@ public class OptimizationExperiment extends BaseSupport
     public void setDiagram(Diagram diagram)
     {
         this.diagram = diagram;
+        if( parameterConnections != null )
+        {
+            for ( ParameterConnection pc : parameterConnections )
+            {
+                pc.setDiagram( diagram );
+            }
+        }
     }
 
     @PropertyName ( "Diagram state" )
