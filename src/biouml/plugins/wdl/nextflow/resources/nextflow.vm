@@ -58,7 +58,7 @@ include { $functions } from './biouml_function.nf'
 #end
 #######################################################################################
 #foreach ( $import in $helper.getImports() )
-#if ( $import.getAlias() )
+#if ( $import.getAlias() && !($import.getAlias().isEmpty()) )
 include { $import.getName() as $import.getAlias() } from './${import.getSourceName()}.nf'
 #else
 include { $import.getName() } from './${import.getSourceName()}.nf'
