@@ -29,24 +29,17 @@ public class WorkflowOutputProperties extends ExpressionProperties
     {
         if( name.isEmpty() )
             throw new Exception( "Empty workflow output name!" );
-        Diagram diagram = Diagram.getDiagram(parent);
-        
+        Diagram diagram = Diagram.getDiagram(parent);      
         String name = WDLSemanticController.uniqName( parent, this.name );
         Node node = new Node( parent, name, new Stub( null, name, WDLConstants.WORKFLOW_OUTPUT_TYPE ) );
         node.setNotificationEnabled( false );
-
         WorkflowUtil.setName( node, this.getVariable() );
         WorkflowUtil.setType( node, this.getType() );
         WorkflowUtil.setExpression( node, this.getRhs() );
-        
-//        node.setShapeSize( new Dimension( 200, 50 ) );
-
         node.setNotificationEnabled( true );
-
         SemanticController controller = diagram.getType().getSemanticController();
         if( !controller.canAccept(parent, node) )
             return new DiagramElementGroup();
-
         return new DiagramElementGroup( node );
     }
 }

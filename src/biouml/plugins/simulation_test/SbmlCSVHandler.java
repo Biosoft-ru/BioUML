@@ -134,7 +134,7 @@ public class SbmlCSVHandler
                 if( addTime )
                     pw.println( DoubleStreamEx.of( values ).prepend( times[i] ).joining( "," ) );
                 else
-                    pw.println( StreamEx.of( values ).joining( "," ) );
+                    pw.println( DoubleStreamEx.of( values ).joining( "," ) );
             }
         }
         catch( IOException e )

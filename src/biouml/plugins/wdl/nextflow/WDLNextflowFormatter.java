@@ -125,6 +125,7 @@ public class WDLNextflowFormatter extends ExpressionFormatter
     protected void processText(AstText node)
     {
         String content = node.toString();
+        content = ensureDoubledBackslashes(content);// .content.replace( "\\", "\\\\");
         boolean hasQuote = content.contains( "\"" );
         result.append( hasQuote? "\'": "\"" );
         result.append( content );
@@ -204,5 +205,41 @@ public class WDLNextflowFormatter extends ExpressionFormatter
         {
             processNode( node );
         }
+    }
+    
+    public static String ensureDoubledBackslashes(String input)
+    {
+        if (input == null || input.isEmpty())
+            return input;
+
+        StringBuilder result = new StringBuilder(input.length() * 2);
+
+        int index = 0;
+
+        while (index < input.length())
+        {
+            char current = input.charAt(index);
+
+            if (current != '\\')
+            {
+                result.append(current);
+                index++;
+                continue;
+            }
+
+            if (index + 1 < input.length()
+                && input.charAt(index + 1) == '\\')
+            {
+                result.append("\\\\");
+                index += 2;
+            }
+            else
+            {
+                result.append("\\\\");
+                index++;
+            }
+        }
+
+        return result.toString();
     }
 }

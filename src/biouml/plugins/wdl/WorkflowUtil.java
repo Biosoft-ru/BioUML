@@ -422,12 +422,12 @@ public class WorkflowUtil
         return n.getAttributes().getValueAsString( WDLConstants.TYPE_ATTR );
     }
 
-    public static String getCallName(Node n)
+    public static String getCallName(Compartment n)
     {
-        String callName =  n.getAttributes().getValueAsString( WDLConstants.CALL_NAME_ATTR );
-        if (callName.contains("."))
-            callName = callName.substring(callName.lastIndexOf(".")+1);
-        return callName;
+        String alias = getAlias(n);
+        if (alias != null)
+            return alias;
+        return getTaskRef(n);
     }
 
     public static Node findConditionNode(Compartment conditional)
@@ -462,21 +462,23 @@ public class WorkflowUtil
 
     public static List<ImportProperties> gatherImports(Diagram diagram)
     {
-        Map<String, ImportProperties> result = new HashMap<>();
+        List< ImportProperties> result = new ArrayList<>();
 
         for( Compartment call : diagram.recursiveStream().select( Compartment.class ).filter( n -> isCall( n ) ) )
         {
-            String alias = getExternalDiagramAlias( call );
+            String diagramAlias = getExternalDiagramAlias( call );
             String diagramName = getDiagramRef( call );
             String taskName = getTaskRef( call );
+            String alias = getAlias(call);
             if( diagramName != null )
             {
                 ImportProperties ip = new ImportProperties( diagramName, alias );
                 ip.setName( taskName );
-                result.put( diagramName, ip );
+                ip.setSourceAlias(diagramAlias);
+                result.add( ip );
             }
         }
-        return StreamEx.of( result.values() ).toList();
+        return result;
     }
 
     public static String getName(Node n)
@@ -917,10 +919,10 @@ public class WorkflowUtil
     {
         call.getAttributes().add( new DynamicProperty( WDLConstants.CALL_NAME_ATTR, String.class, alias ) );
     }
-    public static String getAlias(Compartment call)
+    public static String getAlias(Node call)
     {
         DynamicProperty dp = call.getAttributes().getProperty( WDLConstants.CALL_NAME_ATTR );
-        if( dp == null )
+        if( dp == null || dp.getValue() == null)
             return null;
         return dp.getValue().toString();
     }
@@ -1089,5 +1091,10 @@ public class WorkflowUtil
         Map<String, String> runTime = WorkflowUtil.getRuntime( process );
         runTime.put( name, property );
         WorkflowUtil.setRuntime( process, runTime );
+    }
+    
+    public static boolean hasOnlyTasks(Diagram diagram)
+    {
+       return !diagram.stream(Node.class).anyMatch(n -> !isTask(n));
     }
 }

@@ -275,7 +275,7 @@ def squote_wdl(values) {
     }
 }
 
-def sep_wdl(delimiter, values) {
+def sep_wdl2(delimiter, values) {
     values.collect { wdl_to_string(it) }
           .join(delimiter)
 }
@@ -1200,4 +1200,72 @@ private List directoryListing(Path directory)
 private String normalizeJsonPath(Path path)
 {
     return path.toString().replace('\\', '/')
+}
+
+def sep_wdl(separator, values, workDir = null)
+{
+    if (values == null || values == "NO_VALUE")
+    {
+        return ""
+    }
+
+    List items
+
+    if (values instanceof Iterable)
+    {
+        items = values.collect { it }
+    }
+    else if (values.getClass().isArray())
+    {
+        items = values.toList()
+    }
+    else
+    {
+        throw new IllegalArgumentException(
+            "sep_wdl expects an iterable or array, received: " +
+            values.getClass().getName()
+        )
+    }
+
+    String actualSeparator =
+        separator == null ? "" : separator.toString()
+
+    return items.collect { value ->
+        sep_element_wdl(value, workDir)
+    }.join(actualSeparator)
+}
+
+
+def sep_element_wdl(value, workDir = null)
+{
+    if (value == null || value == "NO_VALUE")
+    {
+        return ""
+    }
+
+    String className = value.getClass().getName()
+
+    boolean isFileValue =
+        value instanceof File ||
+        value instanceof java.nio.file.Path ||
+        className == "nextflow.processor.TaskPath" ||
+        className.endsWith(".TaskPath")
+
+    if (isFileValue)
+    {
+        String valuePath = value.toString()
+
+        if (valuePath.startsWith("/"))
+        {
+            return valuePath
+        }
+
+        /*
+         * task.workDir is not yet available here.
+         * $PWD will be expanded by Bash inside the task work directory.
+         */
+        return '$PWD/' + valuePath
+    }
+
+    return stringify_wdl(value)
 }

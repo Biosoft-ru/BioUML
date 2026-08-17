@@ -76,7 +76,8 @@ public class WorkflowVelocityHelper
     public List<Compartment> getWorkflows()
     {
         List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
-        result.add( diagram );
+        if( !WorkflowUtil.hasOnlyTasks(diagram) )
+            result.add(diagram);
         return result;
     }
 

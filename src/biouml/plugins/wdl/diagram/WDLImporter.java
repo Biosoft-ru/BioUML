@@ -16,7 +16,6 @@ import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
-import biouml.plugins.wdl.FileScriptLoader;
 import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.model.CallInfo;
@@ -59,7 +58,8 @@ import ru.biosoft.util.bean.BeanInfoEx2;
 public class WDLImporter implements DataElementImporter
 {
     private WDLImportProperties properties = null;
-    protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
+    protected static final Logger log = Logger.getLogger(WDLImporter.class.getName());
+    
     private ScriptLoader scriptLoader;
 
     public void setScriptLoader(ScriptLoader loader)
@@ -93,15 +93,12 @@ public class WDLImporter implements DataElementImporter
         try (FileInputStream in = new FileInputStream( file );
                 InputStreamReader reader = new InputStreamReader( in, StandardCharsets.UTF_8 ))
         {
-            
-            if (this.scriptLoader == null)
-                scriptLoader = new FileScriptLoader( ScriptLoader.WDL_TYPE, file.getParentFile() );
             Diagram diagram = generateDiagram( file, name, parent );
 
             if( jobControl != null )
                 jobControl.functionFinished();
 
-
+            new WDLLayouter().layout( diagram );
             CollectionFactoryUtils.save( diagram );
 
             return diagram;
@@ -114,12 +111,10 @@ public class WDLImporter implements DataElementImporter
         }
     }
    
-
     public Diagram generateDiagram(File file, String name, DataCollection dc) throws Exception
     {
         String text = ApplicationUtils.readAsString( file );
-        ScriptInfo info = readScript( name, text );
-        return new DiagramGenerator().generateDiagram( info, name, dc );
+        return generateDiagram( text, name, dc );
     }
 
     public Diagram generateDiagram(String wdl, String name, DataCollection dc) throws Exception
@@ -131,12 +126,12 @@ public class WDLImporter implements DataElementImporter
     public Diagram generateDiagram(String wdl, Diagram diagram) throws Exception
     {
         ScriptInfo info = readScript( diagram.getName(), wdl );
-        return new DiagramGenerator().generateDiagram( info, diagram, diagram.getOrigin() );
+        return new DiagramGenerator().generateDiagram( info, diagram );
     }
     
     public ScriptInfo readScript(String name, String text) throws Exception
     {
-        text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
+        text = processContent(text);
         AstStart start = new WDLParser().parse( new StringReader( text ) );
         return createScriptInfo( start, name );
     }
@@ -236,8 +231,9 @@ public class WDLImporter implements DataElementImporter
     private static CallInfo createCallInfo(AstCall astCall)
     {
         CallInfo callInfo = new CallInfo();
-        callInfo.setTaskName( astCall.getName() );
-        callInfo.setAlias( astCall.getAlias() == null ? astCall.getName() : astCall.getAlias() );
+        callInfo.setTaskName(astCall.getName());
+        callInfo.setSource(astCall.getSource());
+        callInfo.setAlias(astCall.getAlias());
 
         for( AstSymbol symbol : astCall.getInputs() )
         {
@@ -471,5 +467,12 @@ public class WDLImporter implements DataElementImporter
         for( AstDeclaration declaration : struct.getDeclarations() )
             structInfo.addExpressions( createExpressionInfo( declaration ) );
         return structInfo;
+    }
+
+    public static String processContent(String wdlFileContent)
+    {
+        if( wdlFileContent == null )
+            return null;
+        return wdlFileContent.replace( "<<<", "{" ).replace( ">>>", "}" );
     }
 }

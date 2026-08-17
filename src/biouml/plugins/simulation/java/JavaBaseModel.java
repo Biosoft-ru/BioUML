@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Random;
 
 import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulationEngine;
@@ -204,14 +203,23 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     
     private int firstPart(double t)
     {
-        int i = simulationResultTimes.size() - 1;
-        for( ; i >= 0; )//simulationResultTimes.size(); )
+        int low = 0;
+        int high = simulationResultTimes.size();
+        while (low < high)
         {
-            if( t > simulationResultTimes.get(i).doubleValue() )
-                break;
-            i--;
+            int middle = low + (high - low) / 2;
+            double middleTime = simulationResultTimes.get(middle);
+
+            if (middleTime < t)
+            {
+                low = middle + 1;
+            }
+            else
+            {
+                high = middle;
+            }
         }
-        return i + 1;
+        return low;
     }
     
     private double interpolate(double t1, double t2, double x1, double x2, double t)

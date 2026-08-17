@@ -1,0 +1,12 @@
+CATEGORY All
+TESTS 00001-01823
+END
+TESTS 01786-01823
+END
+TESTS 00001-01786
+END
+TESTS 01786-01823
+END
+//TEST 01787 was excluded as it has error (see https://groups.google.com/g/sbml-discuss/c/89tIsijqxwk)
+//TESTS 01167 and 01168 also have errors but I was able to fix them
+//TESTS 01788-01823

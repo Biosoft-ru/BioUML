@@ -25,8 +25,8 @@ import one.util.streamex.StreamEx;
 public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 {
     private boolean isEntryScript = true;
-    private boolean publishOutput = false;
-    
+   private boolean publishOutput = false;
+   
     public NextFlowVelocityHelper(Diagram diagram)
     {
         super( diagram );
@@ -43,9 +43,14 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         if( n == null )
             return "??";
         String result = getType( n ) + " " + getName( n );
-        if (getType(n).equals( "path" ))
-//            result = result+ ", name: '"+ getName( n )+"'";
-            result = result+ ", name: '"+ getName( n )+"/*'";
+
+        if( getType( n ).equals( "path" ) )
+        {
+            if( WorkflowUtil.getType( n ).contains( "Array" ) ) //WDL type
+                result = result + ", stageAs: 'inputs/file??/*'";
+            else
+                result = result + ", stageAs: 'inputs/*'";
+        }
         return result;
     }
 
@@ -61,8 +66,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         String command = super.getCommand( c );
         if( command == null )
             return "";
-        //        command = command.replace( "$", "\\$" );
-        //        command = command.replace( "~{", "${" );
         return command;
     }
 
@@ -72,7 +75,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         String expression = super.getExpression( n );
         if( expression == null )
             return null;
-//        expression = expression.replace( "~{", "${" );
         return expression;
     }
 
@@ -121,16 +123,21 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             return "??";
 
         StringBuilder result = new StringBuilder();
-        result.append( "params." + getName( n ) );
+        result.append( "params." + getName( n ) + " = " );
         String expression = getExpression( n );
-        boolean isOptional = WorkflowUtil.getType( n ).endsWith( "?" );
 
+        boolean isArray = WorkflowUtil.getType( n ).startsWith( "Array" );
+        boolean isFile = WorkflowUtil.getType( n ).contains( "File" );
         if( expression != null && !expression.isEmpty() )
         {
-            result.append( " = " + expression );
+            result.append( expression );
         }
-        else 
-            result.append( " = \"NO_VALUE\"" );
+        else if( isArray && isFile)
+        {
+            result.append( "[]" );
+        }
+        else
+            result.append( "\"NO_VALUE\"" );
         return result.toString();
     }
 
@@ -147,11 +154,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         Node source = WorkflowUtil.getSource( cycleVarNode );
         if( source == null )
             return null;
-        String name = getName( source );
-        name = transformParams( name, source );
-        //        if (WorkflowUtil.isExternalParameter( source )) //TODO: maybe transform to params. elsewhere
-        //            name = "params."+name;
-        return name;
+        return getName( source );
     }
 
     public String createChannelName(String input)
@@ -245,7 +248,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 if( inputs.size() == 0 )
                     continue;
                 result.append( "\n    " );
-                result.append( WorkflowUtil.getCallName( n ) + "_input: tuple(" );
+                result.append( WorkflowUtil.getCallName( (Compartment)n ) + "_input: tuple(" );
                 result.append( StreamEx.of( inputs ).map( input -> WorkflowUtil.getExpression( input ) ).joining( ", " ) );
                 result.append( ")" );
             }
@@ -517,8 +520,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 {
                     if( expression.equals( getName( otherSource ) + '[' + sycledName + ']' ) )
                     {
-                        String name = transformParams( getName( otherSource ), otherSource );
-                        return "toChannel(" + name + ")";
+                        return "toChannel(" + getName( otherSource ) + ")";
                     }
                 }
             }
@@ -776,11 +778,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             else if( expression.contains( "[" ) )
                 sb.append( getName( input ) + " = " + expression.substring( 0, expression.indexOf( "[" ) ) );
             else
-            {
                 sb.append( ".map{" + cycleVar + " -> " + expression + "}" );
-            }
-            //            if( ! ( cycleVar.equals( expression ) ) )
-            //                sb.append( ".map{" + cycleVar + " -> " + expression + "}" );
             sb.append( "\n" );
         }
         return sb.toString();
@@ -789,6 +787,9 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String getCallInputName(Node input)
     {
         Compartment call = input.getCompartment();
+        String type = WorkflowUtil.getType( input );
+        boolean isArray = type.startsWith( "Array" );
+        boolean isFile = type.contains( "File" ) || type.contains( "Directory" );
         if( !isInsideCycle( call ) || WorkflowUtil.isCallResult( input ) )
         {
             String result = getCallEmit( input );
@@ -806,9 +807,13 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             }
 
             if( result == null || result.isEmpty() )
-                result = "\"" + WDLConstants.NO_VALUE + "\"";
-
-            if( result.startsWith( "[" ) && result.endsWith( "]" ) )
+            {
+                if( isArray || isFile )
+                    result = "[]";
+                else
+                    result = "\"" + WDLConstants.NO_VALUE + "\"";
+            }
+            else if( result.startsWith( "[" ) && result.endsWith( "]" ) )
                 result = result.substring( 1, result.length() - 1 );
 
             if( isInsideCycle( call ) )//TODO: probably move to preproccessing
@@ -823,20 +828,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         }
         else
         {
-            //            List<Compartment> cycles = WorkflowUtil.getParentCycles( call );
-            //            if( cycles.size() > 1 )
-            //            {
-            //            int pos = WorkflowUtil.getPosition( input );
-            //            String/ cycleName = WorkflowUtil.getCycleName( cycles.get( 0 ) ); //split_inputs.add_inputs.map { it[0] },
-            //            return cycleName + "_mapping." + WorkflowUtil.getCallName( call ) + "_input.map { it[" + pos + "] }";
-            //            }
-
-            //            Compartment cycle = call.getCompartment();
-            //            String cycleVar = getCycleVariable( cycle );
-            //            if( isArray( cycleVar, input ) )
-            //                return getName( input );//getExpression(input).replaceAll("\\[\\s*"+cycleVar+"\\s*\\]", "");//getName( input ) + "_ch";
-            //            else
-            //            {
             String result = getCallEmit( input );
             if( result == null )
                 result = getExpression( input );
@@ -845,7 +836,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             if( result.startsWith( "[" ) && result.endsWith( "]" ) )
                 result = result.substring( 1, result.length() - 1 );
             return result;
-            //            }
         }
     }
 
@@ -874,27 +864,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                     expression = expression.replace( name + ".", result  + ".");
                 else
                     expression = expression.replace( name + ".", name + ".out." );
-                //            boolean startBracket = expression.startsWith( "[" );
-                //            expression = expression.substring( expression.indexOf( "." ) + 1 );
-                //            if( startBracket )
-                //                result = "[" + result;
-                //            return result + "." + expression;
             }
-            expression = transformParams( expression, source );
         }
-        return expression;
-    }
-
-    private String transformParams(String expression, Node source)
-    {
-        //        if( WorkflowUtil.isExternalParameter( source ) )
-        //        {
-        //            String name = source.getName();
-        //            String replacement = "params." + name ;
-        //            if( "File".equals( WorkflowUtil.getType( source ) ) )
-        //                 replacement = "file(" + replacement + ")";
-        //            expression = replace( expression, name, replacement);
-        //        }
         return expression;
     }
 
@@ -936,7 +907,9 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             String[] parts = option.split( "#" );
             if( parts[0].equals( name ) )
             {
-                return substituteVariables( parts[1], process );
+                if (name.equals( "publishDir" ))
+                        return parts[1];
+                return "{"+ substituteVariables( parts[1], process ) +"}";//substituteVariables( parts[1], process );
             }
         }
         return null;
@@ -951,13 +924,14 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             String variableExpression = WorkflowUtil.findExpression( variable, process );
             if( variableExpression != null )
             {
-                replacements.put( "~{" + variable + "}", variableExpression );
+                replacements.put( "~{" + variable + "}", "${" + variableExpression + "}" );
             }
         }
         for( Entry<String, String> e : replacements.entrySet() )
         {
             expression = expression.replace( e.getKey(), e.getValue() );
         }
+//        expression = ("{ " + expression + " }");
         return expression;
     }
 
@@ -1000,10 +974,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String[] getMandatoryFunctions()
     {
         return new String[] {"toChannel", "get", "getDefault", "combineAll", "saveOutput", "fileOrNull", "orNull", "pair", "range",
-                "stringify_wdl", "toArray"};
+                "stringify_wdl", "toArray", "sep_wdl"};
     }
+    
     /**
-     * Functions that should be imported from biouml_function.nf
+     * Functions that should be imported from genespace_function.nf
      */
     public static String[] getWDLFunctions()
     {
@@ -1052,10 +1027,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
         for( Compartment compartment : diagram.recursiveStream().select( Compartment.class ).filter( c -> WorkflowUtil.isTask( c ) ) )
         {
-            //            String command = WorkflowUtil.getCommand( compartment );
-            //            if( command != null && command.contains( funName ) )
-            //                return true;
-
             Object before = WorkflowUtil.getBeforeCommand( compartment );
             if( before instanceof ExpressionInfo[] )
             {
@@ -1126,17 +1097,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     {
         return input.edges().map( e -> e.getInput() ).anyMatch( n -> WorkflowUtil.isCycleVariable( n ) );
     }
-
-    //    public String getExternalParamaterName(Node input)
-    //    {
-    //        String result = "params." + getName( input );
-    //        if( "File".equals( WorkflowUtil.getType( input ) ) )
-    //            return "file(" + result + ")";
-    //        //        else if( WorkflowUtil.getType( input ).contains( "Array" ) )
-    //        //            return "toChannel(" + result + ").flatten()";
-    //        else
-    //            return result;
-    //    }
 
     public boolean isNotEmpty()
     {
@@ -1217,9 +1177,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      */
     public String getEntryInput(Node input)
     {
-        //        boolean isOptional = WorkflowUtil.getType( input ).endsWith( "?" );
-        //        if( isOptional )
-        //            return "getDefault(params." + getName( input ) + ", " + getExpression( input )+")";
         if(  WorkflowUtil.getType( input ).equals( "File?" ) )
             return "fileOrNull( params." + getName( input ) + ")";
         else if (WorkflowUtil.getType( input ).equals( "File" ) )
@@ -1230,12 +1187,12 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             return "orNull( params." + getName( input ) + ")";
         return "params." + getName( input );
     }
-
+    
     public void setPublishOutput(boolean publishOutput)
     {
         this.publishOutput = publishOutput;
     }
-    
+
     public String generateWorkflowPublish(Diagram diagram)
     {
         if( !publishOutput )

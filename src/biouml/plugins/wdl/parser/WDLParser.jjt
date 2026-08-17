@@ -191,8 +191,6 @@ TOKEN : /* STATE SWITCHERS */
 
 | < COLON : ":">
 
-| < EQ : "==" >
-
 | < EQUAL : "=" >
 
 | < PLUS : "+">
@@ -773,20 +771,9 @@ void expression() #Expression:
     | pair()
     | LOOKAHEAD(5) containerElement()
     | LOOKAHEAD(5)function()
-    | eq()
     | (< NONE > #None)
     | regularFormulaElement()
     | ternary())+
-}
-
-void eq() #RegularFormulaElement:
-{
-}
-{
-    < EQ >
-    {
-        jjtThis.setElement("==");
-    }
 }
 
 void expressionInBrackets() #Expression:
@@ -869,19 +856,12 @@ void alias() #Alias:
 }
 
 
-void text() #Text :
+void text() #Text:
 {
-    Token value;
 }
 {
-    value = <TEXT_STRING>
-    {
-        String image = value.image;
-
-        jjtThis.setText(
-            image.substring(1, image.length() - 1)
-        );
-    }
+    < TEXT_STRING >
+    {jjtThis.setText(token.image.substring(1, token.image.length() - 1));}
 }
 
 void function() #Function:
@@ -904,33 +884,25 @@ void function() #Function:
 
 }
 
-
 void regularFormulaElement() #RegularFormulaElement:
 {
-    Token t;
 }
 {
     (
-            t = < SYMBOL > {jjtThis.setVariable(true);}
-            | t = < IN > {jjtThis.setVariable(true);}
-            | t = < TRUE_OR_FALSE >
-            | t = < STAR >
-            | t = < OPERATOR >
-            | t = < TRIANGULAR_BRACKET_L >
-            | t = < TRIANGULAR_BRACKET_R >
-            | t = < NOT >
-            | t = < EQUAL >
-            | t = < PLUS >
-            | t = < MINUS >
-            | t = < AND >
-            | t = < OR >
-            | t = < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
-            | t = < INTEGER > {jjtThis.setNumber(true);}
-    )
-    {
-        jjtThis.setElement(t.image);
-    }
+            < SYMBOL > {jjtThis.setVariable(true);}
+            | < IN > {jjtThis.setVariable(true);}
+            | < TRUE_OR_FALSE >
+            | < STAR >
+            | < OPERATOR > |  < TRIANGULAR_BRACKET_L > | < TRIANGULAR_BRACKET_R >
+            | < NOT > | < EQUAL >
+            | < PLUS > | < MINUS > | <AND> | <OR>
+            | < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
+            | < INTEGER > {jjtThis.setNumber(true);}
+
+    ){jjtThis.setElement(token.image);}
 }
+
+
 
 
 void as() #As:

@@ -10,17 +10,16 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
-import biouml.model.InitialElementProperties;
+import biouml.model.InitialElementPropertiesSupport;
 import biouml.model.Node;
 import biouml.model.SemanticController;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.standard.type.Stub;
-import com.developmentontheedge.beans.Option;
 
 @SuppressWarnings ( "serial" )
 @PropertyName ( "Cycle properties" )
 @PropertyDescription ( "Cycle properties." )
-public class CycleProperties extends Option implements InitialElementProperties
+public class CycleProperties extends InitialElementPropertiesSupport
 {
     protected String name = "cycle_1";
     protected String variable = "i";
@@ -59,7 +58,7 @@ public class CycleProperties extends Option implements InitialElementProperties
     }
 
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
             throw new Exception( "Empty conditional block name!" );

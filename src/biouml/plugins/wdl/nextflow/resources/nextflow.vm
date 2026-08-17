@@ -59,9 +59,9 @@ include { $functions } from './biouml_function.nf'
 #######################################################################################
 #foreach ( $import in $helper.getImports() )
 #if ( $import.getAlias() )
-include ( $import.getName() as $import.getAlias() ) from '$import.getSourceName()'
+include { $import.getName() as $import.getAlias() } from './${import.getSourceName()}.nf'
 #else
-include ( $import.getName() ) from '$import.getSourceName()'
+include { $import.getName() } from './${import.getSourceName()}.nf'
 #end
 #end
 ##foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
@@ -78,8 +78,9 @@ $helper.getExternalInput($externalParameter)
 #######################################################################################
 #foreach( $task in $helper.getTasks())
 process $task.getName() {
+containerOptions '--user root'
 $helper.printDirectives($task, "  ")
-stageInMode 'link'
+stageInMode 'symlink'
 #set ($inputs = $helper.getOrderedInputs($task))
 #if ($inputs.size() > 0)
 $BR  input:
@@ -147,7 +148,9 @@ $BR  main:
 }$BR
 #end
 ################################ENTRY WORKFLOW#########################################
+#if ( $helper.getWorkflows().size() > 0 )
 workflow {
 $helper.getWorkflowName($diagram) ( #foreach($ep in $externalParameters)$helper.getEntryInput($ep)#comma($externalParameters) #end )
 $helper.generateWorkflowPublish( $diagram )
 }
+#end
