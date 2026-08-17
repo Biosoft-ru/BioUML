@@ -125,7 +125,7 @@ function ComplexOptimizationViewPart()
         for(var i = 0; i < types.length; i++)
         {
             var type = types[i];
-            this.diagramSelector[type] = $('<select id="modelparams_selector_'+type+'"></select>').css('margin-bottom', '5px');
+            this.diagramSelector[type] = $('<select id="modelparams_opt_selector_'+type+'"></select>').css('margin-bottom', '5px');
             this.containers[type].append(this.diagramSelector[type]);
             this.diagramSelector[type].hide();
             this.table[type] = $('<div>'+resources.vpModelParametersLoading.replace("{type}", type)+'</div>');
@@ -178,6 +178,11 @@ function ComplexOptimizationViewPart()
                 this.table['variables'].empty();// = $('<div>'+resources.vpModelParametersLoading.replace("{type}", 'variables')+'</div>');
                 this.table['experiments'].empty();// = $('<div>'+resources.vpModelParametersLoading.replace("{type}", 'connections')+'</div>');
                 this.tableChanged = {};
+            }
+            else
+            {
+                this.initSelector('entities');
+                this.initSelector('variables');
             }
         }
     };
@@ -1389,6 +1394,14 @@ function ComplexOptimizationViewPart()
             }
         });
     };
+    
+    this.initSelector = function(type)
+    {
+        this.diagramSelector[type].unbind('change');
+        this.diagramSelector[type].change(function() {
+            _this.loadVarTable(type);
+        });
+    }
 
     
     this.diagramChanged = function()
