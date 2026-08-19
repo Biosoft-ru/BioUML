@@ -3,7 +3,6 @@ package biouml.plugins.wdl;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.io.StringReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,8 +37,6 @@ import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowImporter;
 import biouml.plugins.wdl.nextflow.NextFlowRunner;
-import biouml.plugins.wdl.parser.AstStart;
-import biouml.plugins.wdl.parser.WDLParser;
 import ru.biosoft.gui.Document;
 import ru.biosoft.gui.EditorPartSupport;
 import ru.biosoft.util.TempFiles;
@@ -103,6 +100,7 @@ public class WorkflowTextEditor extends EditorPartSupport
 
         wdlGenerator = new WDLGenerator();
         nextFlowGenerator = new NextFlowGenerator();
+        nextFlowGenerator.setPublishOutput( false );
         cwlGenerator = new CWLGenerator();
         wdlImporter = new WDLImporter();
     }
@@ -340,7 +338,7 @@ public class WorkflowTextEditor extends EditorPartSupport
             {
                 //                CWLRunner.runNextFlow( diagram, WorkflowTextEditor.this.getCWL(), settings, outputDir,
                 //                      System.getProperty( "os.name" ).startsWith( "Windows" ) );
-                NextFlowRunner.runNextFlow( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
+                NextFlowRunner.runNextFlowByDiagram( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
                         System.getProperty( "os.name" ).startsWith( "Windows" ) );
             }
             catch( Exception ex )
@@ -366,7 +364,9 @@ public class WorkflowTextEditor extends EditorPartSupport
             {
                 if( tabbedPane.getSelectedIndex() == NEXTFLOW_TAB_INDEX )
                 {
-                    new NextFlowImporter().importNextflow( getNextFlow(), diagram );
+                    NextFlowImporter importer = new NextFlowImporter();
+                    importer.setScriptLoader( new RepositoryScriptLoader( ScriptLoader.NEXTFLOW_TYPE,  diagram.getOrigin().getCompletePath() ) );
+                    importer.importNextflow( getNextFlow(), diagram );
                     reloadCWL();
                     reloadWDL();
                     new WDLLayouter().layout( diagram );
@@ -385,10 +385,7 @@ public class WorkflowTextEditor extends EditorPartSupport
                 }
                 else
                 {
-                    String text = getWDL();
-                    text = text.replace( "<<<", "{" ).replace( ">>>", "}" );//TODO: fix parsing <<< >>>
-                    AstStart start = new WDLParser().parse( new StringReader( text ) );
-                    diagram = wdlImporter.generateDiagram( start, diagram );
+                    diagram = wdlImporter.generateDiagram( getWDL(), diagram );
                     new WDLLayouter().layout( diagram );
                     setDiagram( diagram );
                     reloadNextflow();

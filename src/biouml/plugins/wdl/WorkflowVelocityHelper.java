@@ -68,13 +68,32 @@ public class WorkflowVelocityHelper
     {
         return WorkflowUtil.getCalls( c );
     }
+    
+    
+    /**
+     * Return all compartments which describe workflows including top level diagram
+     */
+    public List<Compartment> getWorkflows()
+    {
+        List<Compartment> result =  WorkflowUtil.getWorkflows( diagram );
+        if( !WorkflowUtil.hasOnlyTasks(diagram) )
+            result.add(diagram);
+        return result;
+    }
 
     /**
      * @return formula for given node if there is any
      */
     public String getExpression(Node n)
     {
+        try
+        {
         return WorkflowUtil.getExpression( n );
+        }
+        catch (Exception ex)
+        {
+            return "ERROR " +ex.getMessage();
+        }
     }
 
     /**
@@ -159,12 +178,22 @@ public class WorkflowVelocityHelper
     
     public List<Node> getExternalParameters()
     {
-        return WorkflowUtil.getExternalParameters( diagram );
+        return getExternalParameters( diagram );
+    }
+    
+    public List<Node> getExternalParameters(Compartment c)
+    {
+        return WorkflowUtil.getExternalParameters( c );
+    }
+    
+    public List<Node> getExternalOutputs(Compartment c)
+    {
+        return WorkflowUtil.getExternalOutputs( c );
     }
 
     public List<Node> getExternalOutputs()
     {
-        return WorkflowUtil.getExternalOutputs( diagram );
+        return getExternalOutputs( diagram );
     }
     
     public String getTaskRef(Compartment c)
@@ -275,5 +304,16 @@ public class WorkflowVelocityHelper
     public ExpressionInfo[] getStructMembers(Node node)
     {
         return WorkflowUtil.getStructMembers( node );
+    }
+        
+    public String getWorkflowName(Compartment c)
+    {
+        if( c instanceof Diagram )
+        {
+            String name = diagram.getAttributes().getValueAsString( WDLConstants.WORKFLOW_NAME );
+            if( name != null )
+                return name;
+        }
+        return c.getName();
     }
 }

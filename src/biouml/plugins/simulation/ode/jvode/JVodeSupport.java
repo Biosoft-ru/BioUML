@@ -98,9 +98,7 @@ public abstract class JVodeSupport
     public void setInitialValues(double[] x0, double t0) throws Exception
     {
         y = Arrays.copyOf(x0, n);
-        for( int j = 0; j <= qMax; j++ )
-            z[j] = new double[n];
-        z[0] = Arrays.copyOf(x0, n);
+        // z array is allocated in start() on first step — skip here to avoid double-allocation
         tn = t0;
         time = t0;
         f.extendResult(t0, x0);
@@ -285,9 +283,7 @@ public abstract class JVodeSupport
         temp = new double[n];
         ftemp = new double[n];
 
-        for( int j = 0; j <= qMax; j++ )
-            z[j] = new double[n];
-        VectorUtils.copy(y, z[0]);
+        // z array is allocated in start() on first step — skip here to avoid double-allocation
 
         // Set step parameters
         q = 1;

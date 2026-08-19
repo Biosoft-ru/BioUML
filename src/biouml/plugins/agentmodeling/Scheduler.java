@@ -38,12 +38,15 @@ public class Scheduler implements Simulator
 
     private List<StatCollector> collectors = new ArrayList<>();
 
+    private List<StatCollector> additionalCollectors = new ArrayList<>();
+    
     private static final double SPAN_STEP_ERROR = 1E-9;
     
     private final SimulatorProfile profile = new SimulatorProfile();
     
     private boolean saveResult = true;
     
+//    private ResultCollector resultCollector
     /**
      * Time frame at which scheduler remembers messages from agents.
      * Must be equal to the smallest previousTime of all Agents.
@@ -73,8 +76,10 @@ public class Scheduler implements Simulator
         this.memorizedTime = 0;
         this.profile.init(x0, span.getTimeStart( ));
        
+        collectors.clear();
+        collectors.addAll( additionalCollectors );
         if (saveResult)
-            addStatisticsCollector( new ResultCollector( listeners, tspan, this.model ) );
+            collectors.add( new ResultCollector( listeners, tspan, this.model ) );
 
         for( StatCollector collector : collectors )
             collector.init( span, this.model );
@@ -274,12 +279,12 @@ public class Scheduler implements Simulator
 
     public void addStatisticsCollector(StatCollector collector)
     {
-        collectors.add( collector );
+        additionalCollectors.add( collector );
     }
     
     public void clearStatisticsCollector()
     {
-        collectors.clear();
+        additionalCollectors.clear();
     }
 
     private void execute(SimulationAgent agent) throws Exception

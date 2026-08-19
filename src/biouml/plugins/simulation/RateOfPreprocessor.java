@@ -2,6 +2,7 @@ package biouml.plugins.simulation;
 
 import java.awt.Point;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -44,15 +45,17 @@ public class RateOfPreprocessor extends Preprocessor
     @Override
     public Diagram preprocess(Diagram diagram) throws Exception
     {
-        EModel emodel = diagram.getRole(EModel.class);
-        for( Entry<String, List<Equation>> entry : EModelHelper.findDefiningEquations(emodel).entrySet() )
+        EModel emodel = diagram.getRole( EModel.class );
+        Map<String, List<Equation>> equations = EModelHelper.findDefiningEquations( emodel );
+        for( Entry<String, List<Equation>> entry : equations.entrySet() )
         {
-            List<Equation> rateEqs = StreamEx.of(entry.getValue())
-                    .filter(eq -> Equation.TYPE_RATE.equals(eq.getType()) || Equation.TYPE_RATE_BY_RULE.equals(eq.getType())).toList();
+            List<Equation> rateEqs = StreamEx.of( entry.getValue() )
+                    .filter( eq -> Equation.TYPE_RATE.equals( eq.getType() ) || Equation.TYPE_RATE_BY_RULE.equals( eq.getType() ) )
+                    .toList();
 
             if( rateEqs.isEmpty() )
                 continue;
-            String varName = generateRateName(entry.getKey());
+            String varName = generateRateName( entry.getKey());
             emodel.declareVariable(varName, 0.0);
             DynamicPropertySet rateOfAttrs = emodel.getVariable(varName).getAttributes();
             rateOfAttrs.add(new DynamicProperty("isRate", boolean.class, true));
@@ -84,9 +87,18 @@ public class RateOfPreprocessor extends Preprocessor
 
                     if( ( (VariableRole)var ).getQuantityType() == VariableRole.CONCENTRATION_TYPE )
                     {
-                        Role role = ( (VariableRole)var ).getDiagramElement().getCompartment().getRole();
-                        if( role instanceof VariableRole )
-                            formula = "(" + formula + ")/" + ( (VariableRole)role ).getName();
+                        Role parentRole = ( (VariableRole)var ).getDiagramElement().getCompartment().getRole();
+                        if( parentRole instanceof VariableRole )
+                        {
+                            String parentName = ( (VariableRole)parentRole ).getName();
+                            formula = "(" + formula + ")/" + parentName;
+
+                            if( equations.containsKey( parentName ) )
+                            {
+                                String parentEquation = equations.get( parentName ).get( 0 ).getFormula();
+                                formula = formula + " -" + var.getName() + " / " + parentName + " * " + parentEquation;
+                            }
+                        }
                     }
                 }
             }

@@ -15,9 +15,13 @@
         
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
-        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || instanceOf(getDataCollection(completePath).getChildClass(),'biouml.plugins.optimization.Optimization')) 
+        if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') ) 
         {
             return true;
+        }
+        if(instanceOf(getDataCollection(completePath).getChildClass(),'biouml.plugins.optimization.Optimization'))
+        {
+            return true;    
         }
         return -1;
     }",

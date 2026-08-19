@@ -36,28 +36,44 @@ public class StochasticPreprocessor extends Preprocessor
             EModel eModel = diagram.getRole(EModel.class);
             Formatter formatter = new LinearFormatter();
             List<ExpressionOwner> expressionOwners = getExpressionOwners(diagram);
-            for( ExpressionOwner owner : expressionOwners )
+            for (ExpressionOwner owner : expressionOwners)
             {
+                // skip auto-generated RATE_OF_* equations to avoid double stochastic preprocessing
+                if (owner instanceof Equation)
+                {
+                	Equation eq = (Equation)owner;
+                	
+                    String var = eq.getVariable();
+                    if (var != null && var.startsWith("RATE_OF_"))
+                    {
+                        continue;
+                    }
+                }
+            	
                 String[] oldExpressions = owner.getExpressions();
                 String[] newExpressions = new String[oldExpressions.length];
 
                 boolean changedAny = false;
 
-                for( int i = 0; i < oldExpressions.length; i++ )
+                for (int i = 0; i < oldExpressions.length; i++)
                 {
                     AstStart start = eModel.readMath(oldExpressions[i], owner.getRole());
-                    if( start == null )
-                        continue;
+                    if (start == null)
+                    {
+                    	continue;
+                    }
                     boolean changed = process(start, diagram);
                     changedAny |= changed;
-                    newExpressions[i] = ( changed ) ? formatter.format(start)[1] : oldExpressions[i];
+                    newExpressions[i] = (changed) ? formatter.format(start)[1] : oldExpressions[i];
                 }
-                if( changedAny )
-                    owner.setExpressions(newExpressions);
+                if (changedAny)
+                {
+                	owner.setExpressions(newExpressions);
+                }
             }
             return diagram;
         }
-        catch( Exception ex )
+        catch (Exception ex)
         {
             log.log(Level.SEVERE, "Error during static model preprocessing " + ex);
         }

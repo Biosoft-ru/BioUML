@@ -18,7 +18,7 @@ public class ConcurrentFileBuffer extends FileBuffer
 {
     private final File file;
     private final int chunkSize;
-    private final Map<Integer, Reference<byte[]>> chunks = new ConcurrentHashMap<>();
+    private final Map<Integer, byte[]> chunks = new HashMapSoftValues();
     
     public ConcurrentFileBuffer(File file, int chunkSize)
     {
@@ -39,23 +39,15 @@ public class ConcurrentFileBuffer extends FileBuffer
 
     private byte[] getChunk(int i) throws IOException
     {
-        Reference<byte[]> ref = chunks.get(i);
-        byte[] chunk = ref == null ? null : ref.get();
-        if(chunk == null)
-        {
-            synchronized(chunks)
-            {
-                ref = chunks.get(i);
-                chunk = ref == null ? null : ref.get();
-                if(chunk == null)
-                {
-                    chunk = readChunk(i);
-                    chunks.putIfAbsent( i, new WeakReference<>( chunk ) );
-                }
-            }
-        }
-        return chunk;
-    }
+		return chunks.computeIfAbsent(i, _i -> {
+			try {
+				return readChunk(i);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+	}
 
     private byte[] readChunk(int i) throws IOException
     {

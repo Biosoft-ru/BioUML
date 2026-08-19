@@ -79,24 +79,24 @@ public class AstTask extends AstScope
         return new HashMap<String, String>();
     }
 
-    public AstInput getInput()
+    public List<AstDeclaration> getInput()
     {
         for( Node node : children )
         {
             if( node instanceof AstInput )
-                return (AstInput)node;
+                return ((AstInput)node).getDeclarations();
         }
-        return null;
+        return new ArrayList<AstDeclaration>();
     }
 
-    public AstOutput getOutput()
+    public List<AstDeclaration>  getOutput()
     {
         for( Node node : children )
         {
             if( node instanceof AstOutput )
-                return (AstOutput)node;
+                return ((AstOutput)node).getDeclarations();
         }
-        return null;
+        return new ArrayList<AstDeclaration>();
     }
 
 }

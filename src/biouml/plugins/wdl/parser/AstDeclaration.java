@@ -2,6 +2,8 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=false,TRACK_TOKENS=true,NODE_PREFIX=Ast,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package biouml.plugins.wdl.parser;
 
+import java.util.Set;
+
 public class AstDeclaration extends SimpleNode
 {
     private String type;
@@ -77,6 +79,14 @@ public class AstDeclaration extends SimpleNode
             if( child instanceof AstExpression )
                 return (AstExpression)child;
         }
+        return null;
+    }
+
+    public Set<String> getVariables()
+    {
+        AstExpression expression = getExpression();
+        if( expression != null )
+            return expression.getArguments();
         return null;
     }
 }

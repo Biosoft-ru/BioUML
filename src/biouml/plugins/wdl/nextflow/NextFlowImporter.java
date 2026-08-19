@@ -1,14 +1,12 @@
 package biouml.plugins.wdl.nextflow;
 
-//
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.ast.builder.AstBuilder;
+
+import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.MapEntryExpression;
 import org.codehaus.groovy.ast.expr.MapExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
@@ -16,29 +14,44 @@ import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.IfStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.control.CompilePhase;
 
 import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.model.Diagram;
 import biouml.model.util.DiagramImageGenerator;
+import biouml.plugins.wdl.FileScriptLoader;
+import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
+import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.model.CallInfo;
 import biouml.plugins.wdl.model.CommandInfo;
+import biouml.plugins.wdl.model.ConditionalInfo;
+import biouml.plugins.wdl.model.ContainerInfo;
+import biouml.plugins.wdl.model.ExecutableInfo;
 import biouml.plugins.wdl.model.ExpressionInfo;
+import biouml.plugins.wdl.model.ImportInfo;
 import biouml.plugins.wdl.model.InputInfo;
 import biouml.plugins.wdl.model.OutputInfo;
 import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.model.TaskInfo;
 import biouml.plugins.wdl.model.WorkflowInfo;
+import biouml.plugins.wdl.nextflow.ast.ArgumentsCollector;
+import biouml.plugins.wdl.nextflow.ast.NextFlowFormatter;
+import biouml.plugins.wdl.nextflow.ast.NextflowParser;
+import biouml.plugins.wdl.nextflow.ast.ParamsCollector;
 import one.util.streamex.StreamEx;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -47,19 +60,46 @@ import javax.imageio.stream.ImageOutputStream;
 
 public class NextFlowImporter
 {
+    private static final String NEXTFLOW_ENABLE_DSL = "nextflow.enable.dsl";
+    private ScriptLoader scriptLoader = null;
+    private NextFlowFormatter nextflowFormatter = new NextFlowFormatter();
+
     static File workDir = new File( "C:/Users/Damag/nextflow_work" );
-    static File imageFile = new File( workDir, "two_steps.png" );
+    //    static File nextflowFile = new File(
+    //            "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/nextflow/simple_if.nf" );
+    //            static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/two_steps.nf" );
 
-    private static ScriptInfo scriptInfo;
+    //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/ifelse.nf" );
 
+    //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/multiple_workflow.nf" );
+    //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/nextflow_tests/fromPath.nf" );
+    //        static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/sc analysis/main.nf" );
+    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/SNV/main.nf" );
+    //            static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/metagenomics/main.nf" );
+    //    static File nextflowFile = new File( "C:/Users/Damag/nextflow_work/tuples.nf" );
+    static File imageFile = new File( workDir, "snv.png" );
+
+    private ScriptInfo scriptInfo;
+
+    private Map<String, ExecutableInfo> importedExecutables = new HashMap<>();
+    private Map<String, ScriptInfo> importedScripts = new HashMap<>();
+
+    private Set<String> params = new HashSet<>();
+
+    public void setScriptLoader(ScriptLoader loader)
+    {
+        this.scriptLoader = loader;
+    }
     public static void main(String[] args) throws Exception
     {
         try
         {
-            File workDir = new File( "C:/Users/Damag/nextflow_work/two_steps.nf" );
-            String code = ApplicationUtils.readAsString( workDir );
+            String code = ApplicationUtils.readAsString( nextflowFile );
+            NextFlowImporter importer = new NextFlowImporter();
+            importer.scriptLoader = new FileScriptLoader( ScriptLoader.NEXTFLOW_TYPE, new File( "C:/Users/Damag/nextflow_work/SNV" ) );
 
-            Diagram diagram = new NextFlowImporter().importNextflow( code );
+            Diagram diagram = importer.importNextflow( code );
+            new WDLLayouter().layout( diagram );
 
             BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
             ImageWriter writer = ImageIO.getImageWritersBySuffix( "png" ).next();
@@ -86,27 +126,27 @@ public class NextFlowImporter
 
     public Diagram importNextflow(String nextflow, Diagram diagram) throws Exception
     {
-        parseNextflow( nextflow );
-        new DiagramGenerator().generateDiagram( scriptInfo, diagram );
+        parseNextflow( diagram.getName(), nextflow );
+        new DiagramGenerator().generateDiagram( scriptInfo, diagram, null );
         return diagram;
     }
-    
+
     public Diagram importNextflow(String nextflow) throws Exception
     {
         Diagram diagram = new WDLDiagramType().createDiagram( null, "test" );
-        importNextflow(nextflow, diagram );
+        importNextflow( nextflow, diagram );
         return diagram;
     }
 
-    public ScriptInfo parseNextflow(String nextflow) throws Exception
+    public ScriptInfo parseNextflow(String name, String nextflow) throws Exception
     {
-        scriptInfo = new ScriptInfo();
-        AstBuilder builder = new AstBuilder();
-        List<ASTNode> nodes = builder.buildFromString( CompilePhase.SEMANTIC_ANALYSIS, false, nextflow );
-
-        for( BinaryExpression param : getParams( nodes ) )
+        nextflow = nextflow.replace( "\\\r\n", "\r\n" );
+        scriptInfo = new ScriptInfo( name );
+        List<ASTNode> nodes = NextflowParser.parse( nextflow, false, CompilePhase.SEMANTIC_ANALYSIS );
+        for( MethodCallExpression include : getIncludes( nodes ) )
         {
-
+            ImportInfo importInfo = parseInclude( include );
+            scriptInfo.addImport( importInfo );
         }
         for( MethodCallExpression process : getProcesses( nodes ) )
         {
@@ -116,18 +156,97 @@ public class NextFlowImporter
         for( MethodCallExpression workflow : getWorkflows( nodes ) )
         {
             WorkflowInfo workflowInfo = parseWorkflow( workflow );
-            scriptInfo.addWorkflow( workflowInfo );
+            if( workflowInfo.getName().isEmpty() )
+                scriptInfo.setMainWorkflow( workflowInfo );
+            else
+                scriptInfo.addWorkflow( workflowInfo );
+        }
+        for( String param : getParams( nodes ) )
+        {
+            InputInfo inputInfo = parseParam( param );
+            scriptInfo.addInput( inputInfo );
+        }
+        WorkflowInfo main = scriptInfo.getMainWorkflow();
+        for( Expression declaration : getDeclarations( nodes ) )
+        {
+            Expression left = ( (BinaryExpression)declaration ).getLeftExpression();
+            Expression right = ( (BinaryExpression)declaration ).getRightExpression();
+            String variable = nextflowFormatter.format( left );
+            if( variable.equals( NEXTFLOW_ENABLE_DSL ) || variable.startsWith( "params." ) )
+                continue;
+            ExpressionInfo info = parseDeclaration( right );
+            info.setName( variable );
+            main.addObject( info );
         }
         return scriptInfo;
+    }
+
+
+    public InputInfo parseParam(String param) throws Exception
+    {
+        InputInfo inputInfo = new InputInfo();
+        inputInfo.setName( param );
+        return inputInfo;
+    }
+
+    public ImportInfo parseInclude(MethodCallExpression includeExpression) throws Exception
+    {
+        ImportInfo importInfo = new ImportInfo( null, null );
+        importInfo.setTask( null );
+        String task = null;
+        String path = null;
+        String alias = null;
+        Expression objectExpression = includeExpression.getObjectExpression();
+        if( objectExpression instanceof MethodCallExpression )
+        {
+            MethodCallExpression method = (MethodCallExpression)objectExpression;
+            List<Statement> statements2 = getStatements( method );
+            for( Statement statement : statements2 )
+            {
+                if( statement instanceof ExpressionStatement )
+                {
+                    Expression expr = ( (ExpressionStatement)statement ).getExpression();
+                    if( expr instanceof VariableExpression )
+                    {
+                        task = ( (VariableExpression)expr ).getName();
+                    }
+                }
+            }
+        }
+
+        Expression argumentsExpression = includeExpression.getArguments();
+        if( argumentsExpression instanceof ArgumentListExpression )
+        {
+            for( Expression argumentExpression : (ArgumentListExpression)argumentsExpression )
+            {
+                if( argumentExpression instanceof ConstantExpression )
+                {
+                    path = ( (ConstantExpression)argumentExpression ).getValue().toString();
+                }
+            }
+        }
+
+        ScriptInfo importedScript = scriptLoader.loadScript( path );
+        this.importedScripts.put( path, importedScript );
+        ExecutableInfo imported = importedScript.getTask( task );
+        if( imported == null )
+            imported = importedScript.getWorkflow( task );
+        this.importedExecutables.put( task, imported );
+        importInfo.setImported( importedScript );
+        importInfo.setTask( task );
+        importInfo.setSource( path );
+        importInfo.setAlias( alias );
+        return importInfo;
     }
 
     public TaskInfo parseProcess(MethodCallExpression processExpression) throws Exception
     {
         String name = getWorkflowName( processExpression );
         TaskInfo taskInfo = new TaskInfo( name );
-        List<Statement> steps = getSteps( processExpression );
+        List<Statement> statements = getStatements( processExpression );
         List<String> currentLabels = null;
-        for( Statement step : steps )
+        int outIndex = 0;
+        for( Statement step : statements )
         {
             List<String> labels = step.getStatementLabels();
             if( labels != null )
@@ -142,41 +261,58 @@ public class NextFlowImporter
             {
                 MethodCallExpression methodCall = (MethodCallExpression)expression;
                 String methodName = getMethodName( methodCall );
-                boolean inout = methodName.equals( "val" ) || methodName.equals( "path" );
+                boolean inout = methodName.equals( "val" ) || methodName.equals( "path" ) || methodName.equals( "tuple" );
                 if( inout && isInput( currentLabels ) )
                     parseInput( methodCall, taskInfo );
                 else if( inout && isOutput( currentLabels ) )
-                    parseOutput( methodCall, taskInfo );
+                {
+                    parseOutput( methodCall, taskInfo, "out" + outIndex );
+                    outIndex++;
+                }
                 else if( !inout )
                     parseDirective( methodCall, taskInfo );
             }
-            else if( isScript( currentLabels ) && expression instanceof GStringExpression )
+            else if( isScript( currentLabels ) )
             {
-                String command = ( (GStringExpression)expression ).getText();
-                List<Expression> variables = ( (GStringExpression)expression ).getValues();
-                for( Expression variable : variables )
+                String type = getScriptType(currentLabels);
+                String command = nextflowFormatter.format( expression, false );
+                if( type.equals( CommandInfo.TYPE_EXEC ) )
                 {
-                    String variableName = ( (VariableExpression)variable ).getName();
-                    command = command.replace( "$" + variableName, "~{" + variableName + "}" );
+                    CommandInfo info = taskInfo.getCommand();
+                    info.setType( type );
+                    String script = info.getScript();
+                    if (script == null)
+                        script = "";
+                    script = script + "\n  " + command;
+                    info.setScript( script );
                 }
-                CommandInfo commandInfo = new CommandInfo( command );
-                taskInfo.setCommand( commandInfo );
+                else
+                {
+                    CommandInfo commandInfo = new CommandInfo( command );
+                    commandInfo.setType( type );
+                    taskInfo.setCommand( commandInfo );
+                }
             }
         }
         return taskInfo;
     }
 
-    private OutputInfo parseOutput(MethodCallExpression expression, TaskInfo taskInfo)
+    private void parseOutput(MethodCallExpression expression, TaskInfo taskInfo, String emitName)
     {
-        String outputName = null;
-        String outputExpression = null;
+        String outputName = emitName;
         String outputType = getMethodName( expression );
         Expression arguments = expression.getArguments();
+
+        List<String> args = new ArrayList<>();
         for( Expression argumentExpression : ( (ArgumentListExpression)arguments ).getExpressions() )
         {
             if( argumentExpression instanceof ConstantExpression )
             {
-                outputExpression = ( (ConstantExpression)argumentExpression ).getValue().toString();
+                args.add( nextflowFormatter.format( argumentExpression, true ) );
+            }
+            else if( argumentExpression instanceof VariableExpression )
+            {
+                args.add( nextflowFormatter.format( argumentExpression, false ) );
             }
             else if( argumentExpression instanceof MapExpression )
             {
@@ -184,79 +320,109 @@ public class NextFlowImporter
                 for( MapEntryExpression entry : mapping.getMapEntryExpressions() )
                 {
                     Expression key = entry.getKeyExpression();
-                    Expression value = entry.getValueExpression();
                     if( key instanceof ConstantExpression && ( (ConstantExpression)key ).getValue().equals( "emit" ) )
                     {
-                        outputName = value.getText();
+                        outputName = entry.getValueExpression().getText();
+                    }
+                    else
+                    {
+                        System.out.println( "ERROR: Unknown modificator for output " + nextflowFormatter.format( key ) );
                     }
                 }
             }
+            else
+            {
+                args.add( nextflowFormatter.format( argumentExpression, true ) );
+            }
         }
-        OutputInfo outputInfo = new OutputInfo();
+
+        ExpressionInfo outputInfo = new ExpressionInfo();
         outputInfo.setName( outputName );
-        outputInfo.setExpression( outputExpression );
+        outputInfo.setExpression( StreamEx.of( args ).joining( ", " ) );
         outputInfo.setType( outputType );
-        taskInfo.addOutputInfo( outputInfo );
-        return outputInfo;
+        taskInfo.addOutput( outputInfo );
     }
 
     private void parseDirective(MethodCallExpression methodExpression, TaskInfo taskInfo)
     {
-        String key = null;
-        String value = null;
-
-        Expression methodNameExpression = methodExpression.getMethod();
-        if( methodNameExpression instanceof ConstantExpression )
-        {
-            key = ( (ConstantExpression)methodNameExpression ).getValue().toString();
-        }
-        Expression argumentExpressions = methodExpression.getArguments();
-        for( Expression argumentExpression : ( (ArgumentListExpression)argumentExpressions ).getExpressions() )
-        {
-            if( argumentExpression instanceof ConstantExpression )
-            {
-                String variableName = ( (ConstantExpression)argumentExpression ).getValue().toString();
-                value = variableName;
-            }
-        }
+        nextflowFormatter.setTransformGString( false );
+        String key = nextflowFormatter.format( methodExpression.getMethod() );
+        String value = nextflowFormatter.format( methodExpression.getArguments() );
         if( key != null && value != null )
-            taskInfo.setMetaProperty( key, value );
+            taskInfo.setRuntime( getBioUMLName( key ), value );
+        nextflowFormatter.setTransformGString( true );
     }
 
-    private InputInfo parseInput(MethodCallExpression expression, TaskInfo taskInfo)
+    private static String getBioUMLName(String directive)
+    {
+        if( directive.equals( "container" ) )
+            return "docker";
+        return directive;
+    }
+
+    private void parseInput(MethodCallExpression expression, TaskInfo taskInfo)
     {
         String inputName = null;
         String inputType = getMethodName( expression );
-        Expression argumentExpressions = expression.getArguments();
-        for( Expression argumentExpression : ( (ArgumentListExpression)argumentExpressions ).getExpressions() )
+        if( inputType.equals( "tuple" ) )
         {
-            if( argumentExpression instanceof VariableExpression )
+            InputInfo inputInfo = new InputInfo();
+            inputInfo.setName( nextflowFormatter.format( expression.getArguments() ) );
+            inputInfo.setType( inputType );
+            taskInfo.addInput( inputInfo );
+        }
+        else
+        {
+            Expression argumentExpressions = expression.getArguments();
+            for( Expression argumentExpression : ( (ArgumentListExpression)argumentExpressions ).getExpressions() )
             {
-                inputName = ( (VariableExpression)argumentExpression ).getName();
+                if( argumentExpression instanceof VariableExpression )
+                {
+                    inputName = ( (VariableExpression)argumentExpression ).getName();
+                    InputInfo inputInfo = new InputInfo();
+                    inputInfo.setName( inputName );
+                    inputInfo.setType( inputType );
+                    taskInfo.addInput( inputInfo );
+                }
+                else if( argumentExpression instanceof MethodCallExpression )
+                {
+                    parseInput( (MethodCallExpression)argumentExpression, taskInfo );
+                }
             }
         }
-        InputInfo inputInfo = new InputInfo();
-        inputInfo.setName( inputName );
-        inputInfo.setType( inputType );
-        taskInfo.addInputInfo( inputInfo );
-        return inputInfo;
     }
 
     public WorkflowInfo parseWorkflow(MethodCallExpression workflow) throws Exception
     {
         String name = getWorkflowName( workflow );
-        WorkflowInfo info = new WorkflowInfo( name );
-        List<Statement> steps = getSteps( workflow );
+        WorkflowInfo workflowInfo = new WorkflowInfo( name );
+        List<Statement> statements = getStatements( workflow );
 
-        List<String> currentLabels = null;
-        for( Statement step : steps )
+        if( name.isEmpty() )
         {
-            List<String> labels = step.getStatementLabels();
-            if( labels != null )
-                currentLabels = labels;
-            parseStep( step, currentLabels, info );
+            for( Statement step : statements )
+            {
+                parseStep( step, workflowInfo.getSteps(), workflowInfo );
+            }
         }
-        return info;
+        else
+        {
+            for( Statement take : findLabeled( statements, "take" ) )
+            {
+                parseTake( take, workflowInfo );
+            }
+
+            for( Statement emit : findLabeled( statements, "emit" ) )
+            {
+                parseEmit( emit, workflowInfo );
+            }
+
+            for( Statement step : findLabeled( statements, "main" ) )
+            {
+                parseStep( step, workflowInfo.getSteps(), workflowInfo );
+            }
+        }
+        return workflowInfo;
     }
 
     private static boolean hasAny(List<String> labels, String ... toFind)
@@ -285,108 +451,175 @@ public class NextFlowImporter
 
     private static boolean isScript(List<String> labels)
     {
-        return hasAny( labels, "script" );
+        return hasAny( labels, CommandInfo.TYPE_EXEC ) || hasAny(labels, CommandInfo.TYPE_SCRIPT) || hasAny(labels, CommandInfo.TYPE_SHELL);
+    }
+    
+    private static String getScriptType(List<String> labels)
+    {
+        if( hasAny( labels, CommandInfo.TYPE_EXEC ) )
+            return CommandInfo.TYPE_EXEC;
+        else if( hasAny( labels, CommandInfo.TYPE_SHELL ) )
+            return CommandInfo.TYPE_SHELL;
+        return CommandInfo.TYPE_SCRIPT;
     }
 
-    private static boolean isTake(List<String> labels)
-    {
-        return hasAny( labels, "take" );
-    }
 
-    private static boolean isMain(List<String> labels)
+    public List<Statement> findLabeled(List<Statement> statements, String label)
     {
-        return hasAny( labels, "main" );
-    }
-
-    private static boolean isEmit(List<String> labels)
-    {
-        return hasAny( labels, "emit" );
-    }
-
-    public void parseStep(Statement statement, List<String> labels, WorkflowInfo workflowInfo) throws Exception
-    {
-        if( ! ( statement instanceof ExpressionStatement ) )
-            return;
-
-        Expression expression = ( (ExpressionStatement)statement ).getExpression();
-        if( isMain( labels ) )
+        List<Statement> result = new ArrayList<>();
+        boolean labelFound = false;
+        for( Statement statement : statements )
         {
-            if( expression instanceof BinaryExpression )
+            List<String> labels = statement.getStatementLabels();
+
+            boolean hasLabel = hasAny( labels, label );
+            boolean noLabels = labels == null;
+            boolean otherLabel = !hasLabel && !noLabels;
+
+            if( hasLabel )
+                labelFound = true;
+            else if( otherLabel && labelFound )
+                break;
+
+            if( labelFound && ( hasLabel || noLabels ) )
+            {
+                result.add( statement );
+            }
+        }
+        return result;
+    }
+
+    public void parseStep(Statement statement, ContainerInfo parent, WorkflowInfo workflowInfo) throws Exception
+    {
+        if( statement instanceof ExpressionStatement )
+        {
+            Expression expression = ( (ExpressionStatement)statement ).getExpression();
+            if( isTaskCall( expression ) )
+            {
+                parent.addObject( createCallInfo( (MethodCallExpression)expression, workflowInfo ) );
+            }
+            else if( expression instanceof BinaryExpression )
             {
                 Expression left = ( (BinaryExpression)expression ).getLeftExpression();
                 Expression right = ( (BinaryExpression)expression ).getRightExpression();
-                if( right instanceof MethodCallExpression )
+                if( isTaskCall( right ) )
                 {
-                    MethodCallExpression methodCall = (MethodCallExpression)right;
-                    if( isTaskCall( methodCall ) )
-                    {
-                        CallInfo callInfo = createCallInfo( (MethodCallExpression)right, workflowInfo );
-                        if( left instanceof VariableExpression )
-                            callInfo.setAttribute( "NextflowResult", ( (VariableExpression)left ).getName() );
-                        workflowInfo.addObject( callInfo );
-                    }
-                    else
-                    {
-                        ExpressionInfo info = parseDeclaration( methodCall, workflowInfo );
-                        if( left instanceof VariableExpression )
-                            info.setName( ( (VariableExpression)left ).getName() );
-                    }
+                    CallInfo callInfo = createCallInfo( (MethodCallExpression)right, workflowInfo );
+                    parent.addObject( callInfo );
+                    String varName = ( (VariableExpression)left ).getName();
+                    callInfo.setResultName( varName );
+                }
+                else
+                {
+                    ExpressionInfo info = parseDeclaration( right );
+                    String varName = ( (VariableExpression)left ).getName();
+                    info.setName( varName );
+                    parent.addObject( info );
                 }
             }
             else if( expression instanceof MethodCallExpression )
             {
-                MethodCallExpression methodCall = (MethodCallExpression)expression;
-                ExpressionInfo info = parseDeclaration( methodCall, workflowInfo );
+                parent.addObject( parseDeclaration( expression ) );
+            }
+            else
+            {
+                throw new Exception( "Unknown statement " + statement );
             }
         }
-        else if( isTake( labels ) && expression instanceof VariableExpression )
+        else if( statement instanceof IfStatement )
         {
-            parseTake( (VariableExpression)expression, workflowInfo );
+            parent.addObject( parseConditional( (IfStatement)statement, workflowInfo ) );
         }
-        else if( isEmit( labels ) && expression instanceof BinaryExpression )
+        else
         {
-            parseEmit( (BinaryExpression)expression, workflowInfo );
+            throw new Exception( "Unknown statement " + statement );
         }
     }
 
-    private ExpressionInfo parseDeclaration(MethodCallExpression methodCall, WorkflowInfo workflowInfo)
+    private ConditionalInfo parseConditional(IfStatement ifStatement, WorkflowInfo workflowInfo) throws Exception
+    {
+        ConditionalInfo conditionalInfo = new ConditionalInfo();
+        parseConditionalBlock( ifStatement, conditionalInfo, workflowInfo );
+        return conditionalInfo;
+    }
+
+    private void parseConditionalBlock(IfStatement ifStatement, ConditionalInfo conditionalInfo, WorkflowInfo workflowInfo) throws Exception
+    {
+        String condition = nextflowFormatter.format( ifStatement.getBooleanExpression() );
+        Set<String> arguments = new ArgumentsCollector().getArguments( ifStatement.getBooleanExpression() );
+        conditionalInfo.addCondition( condition, arguments );
+        BlockStatement ifBlock = (BlockStatement)ifStatement.getIfBlock();
+        for( Statement inBlockStatement : ifBlock.getStatements() )
+        {
+            parseStep( inBlockStatement, conditionalInfo.get( condition ), workflowInfo );
+        }
+        Statement elseStatement = ifStatement.getElseBlock();
+        if( elseStatement instanceof BlockStatement )
+        {
+            for( Statement inBlockStatement : ( (BlockStatement)elseStatement ).getStatements() )
+            {
+                parseStep( inBlockStatement, conditionalInfo.getElse(), workflowInfo );
+            }
+        }
+        else if( elseStatement instanceof IfStatement )
+        {
+            parseConditionalBlock( (IfStatement)elseStatement, conditionalInfo, workflowInfo );
+        }
+    }
+
+    private ExpressionInfo parseDeclaration(Expression methodCall)
     {
         ExpressionInfo expressionInfo = new ExpressionInfo();
-        String formatted = NextFlowFormatter.format( methodCall );
-        expressionInfo.setExpression( formatted );
+        expressionInfo.setExpression( nextflowFormatter.format( methodCall ) );
         expressionInfo.setName( "" );
-        workflowInfo.addObject( expressionInfo );
+        expressionInfo.setArguments( new ArgumentsCollector().getArguments( methodCall ) );
         return expressionInfo;
     }
 
-    private InputInfo parseTake(VariableExpression variableExpression, WorkflowInfo workflowInfo)
+    private InputInfo parseTake(Statement statement, WorkflowInfo workflowInfo)
     {
-        String name = variableExpression.getName();
-        InputInfo inputInfo = new InputInfo();
-        inputInfo.setName( name );
-        workflowInfo.addInput( inputInfo );
-        return inputInfo;
+        if( statement instanceof ExpressionStatement )
+        {
+            Expression expression = ( (ExpressionStatement)statement ).getExpression();
+            VariableExpression variableExpression = (VariableExpression)expression;
+            String name = variableExpression.getName();
+            InputInfo inputInfo = new InputInfo();
+            inputInfo.setName( name );
+            workflowInfo.addInput( inputInfo );
+            return inputInfo;
+        }
+        return null;
     }
 
-    private OutputInfo parseEmit(BinaryExpression binaryExpression, WorkflowInfo workflowInfo)
+    private OutputInfo parseEmit(Statement statement, WorkflowInfo workflowInfo)
     {
-        Expression left = binaryExpression.getLeftExpression();
-        Expression right = binaryExpression.getRightExpression();
-        String variable = null;
-        String rhs = null;
-        if( left instanceof VariableExpression )
+        if( statement instanceof ExpressionStatement )
         {
-            variable = ( (VariableExpression)left ).getName();
+            Expression expression = ( (ExpressionStatement)statement ).getExpression();
+            String variable = null;
+            String rhs = null;
+
+            if( expression instanceof BinaryExpression )
+            {
+                BinaryExpression binaryExpression = (BinaryExpression)expression;
+                Expression left = binaryExpression.getLeftExpression();
+                Expression right = binaryExpression.getRightExpression();
+                if( left instanceof VariableExpression )
+                    variable = ( (VariableExpression)left ).getName();
+                rhs = nextflowFormatter.format( right );
+            }
+            else if( expression instanceof VariableExpression )
+            {
+                variable = ( (VariableExpression)expression ).getName();
+            }
+
+            OutputInfo outputInfo = new OutputInfo();
+            outputInfo.setName( variable );
+            outputInfo.setExpression( rhs );
+            workflowInfo.addOutput( outputInfo );
+            return outputInfo;
         }
-        if( right instanceof PropertyExpression )
-        {
-            rhs = parsePropertyExpression( (PropertyExpression)right, workflowInfo );
-        }
-        OutputInfo outputInfo = new OutputInfo();
-        outputInfo.setName( variable );
-        outputInfo.setExpression( rhs );
-        workflowInfo.addOutput( outputInfo );
-        return outputInfo;
+        return null;
     }
 
     private String parsePropertyExpression(PropertyExpression propertyExpression, WorkflowInfo workflowInfo)
@@ -395,35 +628,70 @@ public class NextFlowImporter
         Expression property = propertyExpression.getProperty();
         String source = null;
         String propertyString = null;
-        if( objectExpression instanceof VariableExpression )
-            source = ( (VariableExpression)objectExpression ).getName();
-        if( property instanceof ConstantExpression )
-            propertyString = ( (ConstantExpression)property ).getValue().toString();
-
+        source = nextflowFormatter.format( objectExpression );
+        propertyString = nextflowFormatter.format( property );
         CallInfo callInfo = findCallByResult( workflowInfo, source );
-        String callName = callInfo.getAlias();
-        return callName + "." + propertyString;
+        if( callInfo != null )
+        {
+            String callName = callInfo.getAlias();
+            return callName + "." + propertyString;
+        }
+        else
+        {
+            return nextflowFormatter.format( propertyExpression );
+        }
     }
 
-    public CallInfo findCallByResult(WorkflowInfo workflow, String resultName)
+    public CallInfo findCallByResult(Iterable<Object> objects, String resultName)
     {
-        for( Object object : workflow.getObjects() )
+        if( resultName.endsWith( ".out" ) )
+        {
+            resultName = resultName.substring( 0, resultName.lastIndexOf( "." ) );
+        }
+        for( Object object : objects )
         {
             if( object instanceof CallInfo )
             {
-                String callResult = ( (CallInfo)object ).getAttribute( "NextflowResult" ).toString();
-                if( resultName.equals( callResult ) )
-                    return (CallInfo)object;
+                CallInfo callInfo = (CallInfo)object;
+                Object resultAttribute = callInfo.getAttribute( "NextflowResult" );
+                if( resultAttribute != null )
+                {
+                    String callResult = resultAttribute.toString();
+                    if( resultName.equals( callResult ) )
+                        return (CallInfo)object;
+                }
+                else
+                {
+                    if( resultName.equals( callInfo.getAlias() ) )
+                        return (CallInfo)object;
+                }
+            }
+            else if( object instanceof ConditionalInfo )
+            {
+                ConditionalInfo conditionalInfo = (ConditionalInfo)object;
+                for( String condition : conditionalInfo.getConditions() )
+                {
+                    CallInfo callInfo = findCallByResult( conditionalInfo.get( condition ), resultName );
+                    if( callInfo != null )
+                        return callInfo;
+                }
+                CallInfo callInfo = findCallByResult( conditionalInfo.getElse(), resultName );
+                if( callInfo != null )
+                    return callInfo;
             }
         }
         return null;
     }
 
-    public boolean isTaskCall(MethodCallExpression methodCall)
+    public static boolean isTaskCall(Expression expression)
     {
-        Expression method = methodCall.getMethod();
-        Expression object = methodCall.getObjectExpression();
-        return isThis( object ) && method instanceof ConstantExpression;
+        if( expression instanceof MethodCallExpression )
+        {
+            Expression method = ( (MethodCallExpression)expression ).getMethod();
+            Expression object = ( (MethodCallExpression)expression ).getObjectExpression();
+            return isThis( object ) && method instanceof ConstantExpression;
+        }
+        return false;
     }
 
     public CallInfo createCallInfo(MethodCallExpression methodCall, WorkflowInfo workflowInfo)
@@ -432,12 +700,17 @@ public class NextFlowImporter
         Expression method = methodCall.getMethod();
         Expression object = methodCall.getObjectExpression();
 
-        if( isThis( object ) && method instanceof ConstantExpression ) //this is process call
+        if( isThis( object ) && method instanceof ConstantExpression ) //this is call
         {
             String taskName = ( (ConstantExpression)method ).getValue().toString();
 
-            TaskInfo taskInfo = scriptInfo.getTask( taskName );
-            List<ExpressionInfo> taskInputs = taskInfo.getInputs();
+            ExecutableInfo executable = scriptInfo.getTask( taskName );
+            if( executable == null )
+                executable = scriptInfo.getWorkflow( taskName );
+            if( executable == null )
+                executable = importedExecutables.get( taskName );
+
+            List<ExpressionInfo> taskInputs = executable.getInputs();
 
             callInfo.setTaskName( taskName );
             callInfo.setAlias( taskName );
@@ -451,11 +724,15 @@ public class NextFlowImporter
                 if( argument instanceof VariableExpression )
                 {
                     String input = ( (VariableExpression)argument ).getName();
+
+                    CallInfo inputCall = findCallByResult( workflowInfo, input );
+                    if( inputCall != null )
+                        input = inputCall.getAlias();
                     InputInfo inputInfo = new InputInfo();
                     inputInfo.setExpression( input );
                     inputInfo.setName( taskInput.getName() );
+                    inputInfo.setArguments( new ArgumentsCollector().getArguments( argument ) );
                     callInfo.addInputInfo( inputInfo );
-
                     index++;
                 }
                 else if( argument instanceof PropertyExpression )
@@ -464,8 +741,8 @@ public class NextFlowImporter
                     InputInfo inputInfo = new InputInfo();
                     inputInfo.setName( taskInput.getName() );
                     inputInfo.setExpression( rhs );
+                    inputInfo.setArguments( new ArgumentsCollector().getArguments( argument ) );
                     callInfo.addInputInfo( inputInfo );
-
                     index++;
                 }
             }
@@ -482,7 +759,7 @@ public class NextFlowImporter
         return false;
     }
 
-    public List<Statement> getSteps(MethodCallExpression workflow)
+    public List<Statement> getStatements(MethodCallExpression workflow)
     {
         Expression arguments = workflow.getArguments();
         if( arguments instanceof ArgumentListExpression )
@@ -497,7 +774,7 @@ public class NextFlowImporter
             }
             else if( first instanceof MethodCallExpression )
             {
-                return getSteps( (MethodCallExpression)first );
+                return getStatements( (MethodCallExpression)first );
             }
         }
         return null;
@@ -519,7 +796,7 @@ public class NextFlowImporter
         return "";
     }
 
-    public String getMethodName(MethodCallExpression expression)
+    public static String getMethodName(MethodCallExpression expression)
     {
         Expression method = expression.getMethod();
         if( method instanceof ConstantExpression )
@@ -548,9 +825,16 @@ public class NextFlowImporter
     }
 
 
-    public List<BinaryExpression> getParams(List<ASTNode> nodes)
+    public Set<String> getParams(List<ASTNode> nodes)
     {
-        List<BinaryExpression> result = new ArrayList<>();
+        ParamsCollector paramsCollector = new ParamsCollector();
+        paramsCollector.visit( nodes );
+        return paramsCollector.getParameters();
+    }
+
+    public List<Expression> getDeclarations(List<ASTNode> nodes)
+    {
+        List<Expression> expressions = new ArrayList<Expression>();
         for( ASTNode node : nodes )
         {
             if( node instanceof BlockStatement )
@@ -562,33 +846,39 @@ public class NextFlowImporter
                         Expression expression = ( (ExpressionStatement)statement ).getExpression();
                         if( expression instanceof BinaryExpression )
                         {
-                            Expression left = ( (BinaryExpression)expression ).getLeftExpression();
-                            if( left instanceof PropertyExpression )
-                            {
-                                Expression objectExpression = ( (PropertyExpression)left ).getObjectExpression();
-                                if( objectExpression instanceof VariableExpression )
-                                {
-                                    if( "params".equals( ( (VariableExpression)objectExpression ).getName() ) )
-                                        result.add( (BinaryExpression)expression );
-                                }
-                            }
+                            expressions.add( expression );
+                        }
+                    }
+                }
+            }
+        }
 
+        return expressions;
+    }
+
+    public List<MethodCallExpression> getIncludes(List<ASTNode> nodes)
+    {
+        List<MethodCallExpression> result = new ArrayList<>();
+        for( ASTNode node : nodes )
+        {
+            if( node instanceof BlockStatement )
+            {
+                for( Statement statement : ( (BlockStatement)node ).getStatements() )
+                {
+                    if( statement instanceof ExpressionStatement )
+                    {
+                        Expression expression = ( (ExpressionStatement)statement ).getExpression();
+                        if( expression instanceof MethodCallExpression )
+                        {
+                            String methodName = getMethodName( (MethodCallExpression)expression );
+                            if( methodName.equals( "from" ) )//TODO: double check
+                                result.add( (MethodCallExpression)expression );
                         }
                     }
                 }
             }
         }
         return result;
-    }
-
-    public List<Expression> getDeclarations(List<ASTNode> nodes)
-    {
-        List<Expression> expressions = getExpressions( nodes );
-        for( Expression expression : expressions )
-        {
-            //            System.out.println( expression );
-        }
-        return expressions;
     }
 
     public List<MethodCallExpression> getProcesses(List<ASTNode> nodes)

@@ -13,7 +13,7 @@
         var dc = getDataCollection(path);
         var type = dc.getChildClass(name);
         if (instanceOf(type,'ru.biosoft.access.core.FolderCollection') || 
-        	getDataCollection(completePath).getChildClass() == 'biouml.plugins.wdl.WDLScript') 
+        	getDataCollection(completePath).getChildClass() == 'biouml.plugins.wdl.analysis.WDLScript') 
         {
             return true;
         }

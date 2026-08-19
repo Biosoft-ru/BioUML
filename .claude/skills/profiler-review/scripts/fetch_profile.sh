@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# fetch_profile.sh — Fetch profiler data from a BioUML server.
+# Reads MONITORING_USER and MONITORING_PASS from .env at the current working directory.
+#
+# Usage:
+#   # List recent profiles (JSON output, filtered by age and size)
+#   bash fetch_profile.sh list <server_url>
+#
+#   # Get raw profile content by ID
+#   bash fetch_profile.sh get <profile_id> <server_url>
+#
+#   # Get profile summary (legacy, single latest profile)
+#   bash fetch_profile.sh summary <server_url>
+#
+# Server URL can also be passed via PROFILE_SERVER_URL env var:
+#   export PROFILE_SERVER_URL=https://ict.biouml.org
+#   bash fetch_profile.sh list
+#
+# List action filters: last 24 hours, size > 1000 bytes.
+# Output format: JSON array of profile objects (list) or raw text (get/summary).
+
+set -euo pipefail
+
+# Load .env from current directory if present
+if [[ -f ".env" ]]; then
+  set -a
+  source ".env"
+  set +a
+fi
+
+if [[ -z "${MONITORING_USER:-}" || -z "${MONITORING_PASS:-}" ]]; then
+  echo "ERROR: MONITORING_USER and MONITORING_PASS must be set (e.g., in .env file)" >&2
+  exit 1
+fi
+
+# Server URL: last argument, fall back to PROFILE_SERVER_URL env var
+SERVER_URL="${PROFILE_SERVER_URL:-}"
+if [[ $# -gt 0 ]]; then
+  SERVER_URL="${@: -1}"
+fi
+SERVER_URL="${SERVER_URL%/}"
+
+if [[ -z "$SERVER_URL" ]]; then
+  echo "ERROR: server URL is required" >&2
+  echo "Usage: $0 <action> <server_url>" >&2
+  echo "  or:   PROFILE_SERVER_URL=<url> $0 <action>" >&2
+  exit 1
+fi
+
+ACTION="${1:-summary}"
+shift
+
+case "$ACTION" in
+  list)
+    # List recent profiler reports: last 24 hours, size > 1000 bytes
+    LIST_URL="${SERVER_URL}/biouml/support/profile?action=list&user=${MONITORING_USER}&pass=${MONITORING_PASS}"
+    echo "Fetching profile list from: ${LIST_URL}" >&2
+    echo "" >&2
+
+    curl -s -L --max-time 120 "$LIST_URL" | python3 -c "
+import sys, json, time
+
+try:
+    data = json.load(sys.stdin)
+except json.JSONDecodeError:
+    print('ERROR: invalid JSON response', file=sys.stderr)
+    sys.exit(1)
+
+# Handle wrapper formats
+if isinstance(data, dict):
+    if 'value' in data and isinstance(data['value'], list):
+        profiles = data['value']
+    elif 'profiles' in data:
+        profiles = data['profiles']
+    else:
+        # Assume top-level dict is a single profile entry
+        profiles = [data]
+elif isinstance(data, list):
+    profiles = data
+else:
+    print('ERROR: unexpected response format', file=sys.stderr)
+    sys.exit(1)
+
+now = time.time()
+cutoff = now - 86400  # 24 hours
+min_size = 1000
+
+filtered = []
+for p in profiles:
+    ts = p.get('timestamp', 0)
+    sz = p.get('size', 0)
+    if ts >= cutoff and sz > min_size:
+        filtered.append(p)
+
+print(json.dumps(filtered, indent=2))
+"
+    ;;
+
+  get)
+    # Get raw profile content by ID (base64-decoded)
+    if [[ $# -lt 1 ]]; then
+      echo "ERROR: profile ID required for 'get' action" >&2
+      echo "Usage: $0 get <profile_id> <server_url>" >&2
+      exit 1
+    fi
+    PROFILE_ID="$1"
+    shift
+
+    GET_URL="${SERVER_URL}/biouml/support/profile?action=get&id=${PROFILE_ID}&user=${MONITORING_USER}&pass=${MONITORING_PASS}"
+    echo "Fetching profile '${PROFILE_ID}' from: ${GET_URL}" >&2
+    echo "" >&2
+
+    curl -s -L --max-time 120 "$GET_URL" | python3 -c "
+import sys, json, base64
+
+try:
+    data = json.load(sys.stdin)
+except json.JSONDecodeError:
+    # Maybe plain text response
+    sys.stdout.write(sys.stdin.read())
+    sys.exit(0)
+
+# Handle JSON wrapper: extract base64 content
+if isinstance(data, dict):
+    if 'value' in data and isinstance(data['value'], dict):
+        b64 = data['value'].get('content', '')
+    elif 'content' in data:
+        b64 = data['content']
+    elif 'data' in data:
+        b64 = data['data']
+    else:
+        # Try to find any base64-like field
+        for key in ('content', 'data', 'value'):
+            if key in data and isinstance(data[key], str):
+                b64 = data[key]
+                break
+        else:
+            print(json.dumps(data, indent=2))
+            sys.exit(0)
+else:
+    print(json.dumps(data, indent=2))
+    sys.exit(0)
+
+# Decode base64 and print
+try:
+    raw = base64.b64decode(b64)
+    sys.stdout.buffer.write(raw)
+except Exception:
+    # If not valid base64, print as-is
+    sys.stdout.write(str(b64))
+"
+    ;;
+
+  summary)
+    # Legacy: fetch summary of latest profile
+    QUERY_URL="${SERVER_URL}/biouml/support/profile?action=summary&id=latest&user=${MONITORING_USER}&pass=${MONITORING_PASS}"
+    echo "Fetching profile summary from: ${QUERY_URL}" >&2
+    echo "" >&2
+
+    RESPONSE=$(curl -s -L --max-time 120 \
+      -H "Accept: text/plain" \
+      "$QUERY_URL")
+
+    # Handle JSON response (API may return {"type":"ok","value":{"content":"..."}})
+    if echo "$RESPONSE" | grep -q '"type"'; then
+      CONTENT=$(echo "$RESPONSE" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    if 'value' in data and 'content' in data['value']:
+        print(data['value']['content'], end='')
+    elif 'content' in data:
+        print(data['content'], end='')
+    else:
+        print(json.dumps(data, indent=2), end='')
+except:
+    print('$RESPONSE', end='')
+" 2>/dev/null || echo "$RESPONSE")
+      echo "$CONTENT"
+    else
+      echo "$RESPONSE"
+    fi
+    ;;
+
+  *)
+    echo "ERROR: unknown action '${ACTION}'. Use: list, get, summary" >&2
+    exit 1
+    ;;
+esac

@@ -2,11 +2,10 @@ package biouml.plugins.simulation_test;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import biouml.standard.simulation.SimulationResult;
+import one.util.streamex.StreamEx;
 
 public class DefaultTestLogger implements TestLogger
 {
@@ -84,40 +83,30 @@ public class DefaultTestLogger implements TestLogger
 
     protected void writeCSVFile(String fileName, SimulationResult simulationResult)
     {
-        if( status == Status.SUCCESSFULL )
+        try
         {
-            File outDir = new File( outputPath );
-            if( !outDir.exists() )
-                outDir.mkdirs();
-
-            if( statistics != null && simulationResult != null )
+            if( status == Status.SUCCESSFULL )
             {
-                File outputFile = new File( outDir, fileName );
-                SbmlCSVHandler handler = new SbmlCSVHandler();
-                List<String> varList = Arrays
-                        .asList( simulationResult.getVariableMap().keySet().stream().sorted().toArray( String[]::new ) );
-                handler.setVariableNames( varList );
-                List<double[]> values = new ArrayList<>();
-                try
-                {
-                    List<double[]> tmpValues = statistics.getInterpolatedValues( simulationResult, times, varList );
-                    int ind = 0;
-                    for( double[] line : tmpValues )
-                    {
-                        double[] newLine = new double[line.length + 1];
-                        newLine[0] = times[ind];
-                        System.arraycopy( line, 0, newLine, 1, line.length );
-                        values.add( newLine );
-                        ind++;
-                    }
-                }
-                catch( Exception e )
-                {
+                File outDir = new File( outputPath );
+                if( !outDir.exists() )
+                    outDir.mkdirs();
 
+                if( statistics != null && simulationResult != null )
+                {
+                    List<String> varList = StreamEx.of( simulationResult.getVariableMap().keySet() ).sorted().toList();
+                    List<double[]> values = statistics.getInterpolatedValues( simulationResult, times, varList );
+                    SbmlCSVHandler handler = new SbmlCSVHandler();
+                    File outputFile = new File( outDir, fileName );
+                    handler.setTimes( times );
+                    handler.setVariableNames( varList );
+                    handler.setVariableValues( values );
+                    handler.writeCSVFile( outputFile, true );
                 }
-                handler.setVariableValues( values );
-                handler.writeCSVFile( outputFile );
             }
+        }
+        catch( Exception e )
+        {
+
         }
     }
 

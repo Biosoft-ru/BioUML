@@ -1,0 +1,3 @@
+{
+  "readTsvWorkflow.in_file": "tests/read_tsv_as_output/test.tsv"
+}

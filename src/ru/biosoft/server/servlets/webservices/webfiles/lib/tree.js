@@ -215,7 +215,17 @@ function getContextMenu(node)
             if(!action.multi && paths.length > 1 )
                 return -1;
             var allVisible = paths.every(function(path){
-                return action.isVisible(action.useOriginalPath?path:getTargetPath(path)) === true;
+                var dc = getDataCollection(path);
+                //some actions can be applied to invalid elements (like remove or changeType)
+                var isValid = dc.isValid(); 
+                
+                //if(!pathDC.isValid())
+                //    return false;
+                var actionPath = (action.useOriginalPath || !isValid) ? path : getTargetPath(path);
+                if(isValid || action.allowInvalid)
+                    return action.isVisible(actionPath) === true;
+                else
+                    return false;
             });
             if(allVisible)
                 visibleActions[action.id] = action;

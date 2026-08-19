@@ -356,13 +356,19 @@ public class BrainRegionalModelDeployer
         		diagramEq, point);
         point.translate(0, yLocalOffset);
         
-        double excStrength = 0.5; 
-        double excDutyCycle = 0.5;
-        double excPeriod = 2.0; 
-        double excTimeMax = 20000.0; 
-        double initialTimeRest = excPeriod - excPeriod * excDutyCycle;
-        setExcitationSignal(diagramEq, initialTimeRest, excStrength, excDutyCycle, excPeriod, excTimeMax, point);
-        point.translate(0, 2 * yGroupOffset);
+        String fRefractoryName = "refractory";
+        String fRefractoryFormula = "function refractory(t,time_start,time_end) = piecewise( (t >= time_start) && (t < time_end) =>0.0; 1.0 )";
+        BrainUtils.createFunction(fRefractoryName, fRefractoryFormula,
+        		diagramEq, point);
+        point.translate(0, yLocalOffset);
+        
+//        double excStrength = 0.5; 
+//        double excDutyCycle = 0.5;
+//        double excPeriod = 2.0; 
+//        double excTimeMax = 20000.0; 
+//        double initialTimeRest = excPeriod - excPeriod * excDutyCycle;
+//        setExcitationSignal(diagramEq, initialTimeRest, excStrength, excDutyCycle, excPeriod, excTimeMax, point);
+//        point.translate(0, 2 * yGroupOffset);
         
         
         /*
@@ -436,8 +442,18 @@ public class BrainRegionalModelDeployer
             	zFormula += "-" + uExcI + "/tau0";
 //            }
             
-            x2Formula += "+noise(0.0025)";
-            y2Formula += "+noise(0.0025)";
+//            x2Formula += "+noise(0.0025)";
+//            y2Formula += "+noise(0.0025)";
+            
+//            x2Formula += "+stochastic(\"normal\",0,0.05)";
+//            y2Formula += "+stochastic(\"normal\",0,0.05)";
+            
+//            x2Formula += "+stochastic(\"normal\",0,0.05)*sqrt(0.005/0.001)";
+//            y2Formula += "+stochastic(\"normal\",0,0.05)*sqrt(0.005/0.001)";
+
+            x2Formula += "+stochastic(\"normal\",0,0.10)";
+            y2Formula += "+stochastic(\"normal\",0,0.10)";
+            
             
             BrainUtils.createEquation("equation_" + x1I, x1I, x1Formula,
                     Equation.TYPE_RATE, diagramEq, point);
@@ -478,12 +494,16 @@ public class BrainRegionalModelDeployer
         {
             for (int i = 0; i < N; i++) 
             {
-            	point.translate(0, yLocalOffset);
-          	    String lfpIFormula = "-x1_" + String.valueOf(i + 1) + "+x2_" + String.valueOf(i + 1) + "-3.7*" + String.valueOf(i); // offset for graph with all channels 
+            	point.translate(0, yLocalOffset / 2);
+          	    //String lfpIFormula = "-x1_" + String.valueOf(i + 1) + "+x2_" + String.valueOf(i + 1) + "-3.7*" + String.valueOf(i); // offset for graph with all channels 
           	    //String lfpIFormula = "+x1_" + String.valueOf(i + 1) + "+x2_" + String.valueOf(i + 1) + "-3.7*" + String.valueOf(i); // offset for graph with all channels 
-          	    //lfpFormula = "+x1_" + String.valueOf(i + 1) + "+x2_" + String.valueOf(i + 1); // no offset
+            	String lfpIFormula = "-x1_" + String.valueOf(i + 1) + "+x2_" + String.valueOf(i + 1); // no offset
                 BrainUtils.createEquation("equation_LFP", "LFP_" + String.valueOf(i + 1), lfpIFormula,
                 		Equation.TYPE_SCALAR, diagramEq, point);
+                
+                String lfpI = "LFP_" + String.valueOf(i + 1);
+                BrainUtils.createPort(lfpI, lfpI, Type.TYPE_OUTPUT_CONNECTION_PORT,
+                		diagramEq, new Point(point.x + 120, point.y));
             }
         }
         point.translate(0, yGroupOffset);
@@ -495,7 +515,8 @@ public class BrainRegionalModelDeployer
         	for (int i = 0; i < N; i++)
         	{
         		String uExcI = "u_exc_" + String.valueOf(i + 1);
-        		String x1I = "x1_" + String.valueOf(i + 1);
+        		//String x1I = "x1_" + String.valueOf(i + 1);
+        		String stateRegionI = "state_region_" + String.valueOf(i + 1);
         		
                 BrainUtils.createPort(uExcI, uExcI, Type.TYPE_INPUT_CONNECTION_PORT,
                 		diagramEq, point);
@@ -506,7 +527,9 @@ public class BrainRegionalModelDeployer
                 		diagramEq, point);
                 point.translate(80, 0);
                 
-                BrainUtils.createPort(x1I, x1I, Type.TYPE_OUTPUT_CONNECTION_PORT,
+//                BrainUtils.createPort(x1I, x1I, Type.TYPE_OUTPUT_CONNECTION_PORT,
+//                		diagramEq, new Point(point.x + 80, point.y));
+                BrainUtils.createPort(stateRegionI, stateRegionI, Type.TYPE_OUTPUT_CONNECTION_PORT,
                 		diagramEq, new Point(point.x + 80, point.y));
                 point.translate(-180, yLocalOffset - 20);
         	}
@@ -526,23 +549,41 @@ public class BrainRegionalModelDeployer
 	      	for (int i = 0; i < N; i++)
 	      	{
 	      		String x1I = "x1_" + String.valueOf(i + 1);
+	      		String zI = "z_" + String.valueOf(i + 1);
 	      		String refractoryCounterI = "refractory_counter_" + String.valueOf(i + 1);
 	      		String rI = "r_" + String.valueOf(i + 1);
+	      		String stateRegionI = "state_region_" + String.valueOf(i + 1);
+	      		String refractoryStartI = "refractory_start_" + String.valueOf(i + 1);
+	      		String refractoryEndI = "refractory_end_" + String.valueOf(i + 1);
 	      		
 	      		Double refractoryTime = 60.0 * 50.0;
-	            BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_refractory_period_started", x1I + " <= -1.0", new Assignment[] {new Assignment(refractoryCounterI, String.valueOf(refractoryTime)), new Assignment(rI, "0.0")},
+	            BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_seizure_started", x1I + " > -1.0", new Assignment[] {new Assignment(stateRegionI, "1.0")},
 	            		diagramEq, new Point(point.x, point.y));
-	            point.translate(0, yGroupOffset + 5);
-	            
-	            diagramEq.getRole(EModel.class).declareVariable(refractoryCounterI, -2.0);
-	            
-	            BrainUtils.createEquation(refractoryCounterI + "_eq", refractoryCounterI, "-1.0",
-	            		Equation.TYPE_RATE, diagramEq, point);
-	            point.translate(0, yGroupOffset - 40);
-	            
-	            BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_refractory_period_ended", refractoryCounterI + " <= 0.0", new Assignment[] {new Assignment(rI, "1.0")},
-	            		diagramEq, new Point(point.x, point.y));
-	            point.translate(0, yGroupOffset);
+	            //BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_seizure_ended", x1I + " < -1.0",
+	            //BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_seizure_ended", x1I + " < -1.0 && " + zI + " > 3.7",
+	            BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_seizure_ended", zI + " > 3.7 && " + x1I + " < -1.0",
+	            		new Assignment[] {
+	            				new Assignment(stateRegionI, "0.0"), 
+	            				new Assignment(refractoryStartI, "time"), new Assignment(refractoryEndI, "time+" + String.valueOf(refractoryTime))},
+	            		diagramEq, new Point(point.x + 200, point.y));
+	            BrainUtils.createEquation(rI + "_eq", rI, "refractory(time," + refractoryStartI + "," + refractoryEndI + ")",
+	            		Equation.TYPE_SCALAR, diagramEq, new Point(point.x + 400, point.y));
+	            point.translate(0, yGroupOffset + 30);
+	      		
+//	      		Double refractoryTime = 60.0 * 50.0;
+//	            BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_refractory_period_started", x1I + " <= -1.0", new Assignment[] {new Assignment(refractoryCounterI, String.valueOf(refractoryTime)), new Assignment(rI, "0.0")},
+//	            		diagramEq, new Point(point.x, point.y));
+//	            point.translate(0, yGroupOffset + 5);
+//	            
+//	            diagramEq.getRole(EModel.class).declareVariable(refractoryCounterI, -2.0);
+//	            
+//	            BrainUtils.createEquation(refractoryCounterI + "_eq", refractoryCounterI, "-1.0",
+//	            		Equation.TYPE_RATE, diagramEq, point);
+//	            point.translate(0, yGroupOffset - 40);
+//	            
+//	            BrainUtils.createEvent("region_" + String.valueOf(i + 1) + "_refractory_period_ended", refractoryCounterI + " <= 0.0", new Assignment[] {new Assignment(rI, "1.0")},
+//	            		diagramEq, new Point(point.x, point.y));
+//	            point.translate(0, yGroupOffset);
 	      	}
         }
         
@@ -857,6 +898,11 @@ public class BrainRegionalModelDeployer
         {
         	for (int j = 0; j < N; j++) 
         	{
+            	if (i == j || !(connectivityMatrix[i][j] > 0.0) ) 
+            	{
+            		continue;
+            	}   	
+        		
         		String cIJ = "C_" + String.valueOf(i + 1) + "_" + String.valueOf(j + 1);
         		
             	BrainUtils.setInitialValue(diagram, cIJ, connectivityMatrix[i][j]);
@@ -869,6 +915,11 @@ public class BrainRegionalModelDeployer
             {
             	for (int j = 0; j < N; j++) 
             	{
+                	if (i == j || !(connectivityMatrix[i][j] > 0.0) ) 
+                	{
+                		continue;
+                	}  
+            		
             		String tauIJ = "tau_" + String.valueOf(i + 1) + "_" + String.valueOf(j + 1); 
             		
                 	//BrainUtils.setInitialValue(diagram, tauIJ, delayMatrix[i][j]);
@@ -877,38 +928,38 @@ public class BrainRegionalModelDeployer
             }
         }
         
-        for (int i = 0; i < N; i++) 
-        {
-        	BrainUtils.setInitialValue(diagram, "lambda_" + String.valueOf(i + 1), 1.0 / N);
-        }
-        
-        // add synaptic strength from Rossler model
-        double a_1 = 0.5;
-        double b_1 = 0.005;
-        double a_2 = 0.0013;
-        double b_2 = 0.005;
-        double eta_th = 0.5;
-        double eta_eq = 0.1;
-        double counter_duration = 2500.0;
-        double insensitive_duration = 2500.0;
-        double k_insensitive = 1.0;
-        
-        BrainUtils.setInitialValue(diagram, "a_1", a_1);
-        BrainUtils.setInitialValue(diagram, "b_1", b_1);
-        BrainUtils.setInitialValue(diagram, "a_2", a_2);
-        BrainUtils.setInitialValue(diagram, "b_2", b_2);
-        BrainUtils.setInitialValue(diagram, "eta_th", eta_th);
-        BrainUtils.setInitialValue(diagram, "eta_eq", eta_eq);
-        
-        BrainUtils.setInitialValue(diagram, "counter_duration", counter_duration);
-        BrainUtils.setInitialValue(diagram, "insensitive_duration", insensitive_duration);
-        BrainUtils.setInitialValue(diagram, "k_insensitive", k_insensitive);
-        
-        // these counters should only be triggered after a seizure
-        double time_counter = Double.MAX_VALUE;
-        double time_insensitive = Double.MAX_VALUE;
-        BrainUtils.setInitialValue(diagram, "time_counter", time_counter);
-        BrainUtils.setInitialValue(diagram, "time_insensitive", time_insensitive); 
+//        for (int i = 0; i < N; i++) 
+//        {
+//        	BrainUtils.setInitialValue(diagram, "lambda_" + String.valueOf(i + 1), 1.0 / N);
+//        }
+//        
+//        // add synaptic strength from Rossler model
+//        double a_1 = 0.5;
+//        double b_1 = 0.005;
+//        double a_2 = 0.0013;
+//        double b_2 = 0.005;
+//        double eta_th = 0.5;
+//        double eta_eq = 0.1;
+//        double counter_duration = 2500.0;
+//        double insensitive_duration = 2500.0;
+//        double k_insensitive = 1.0;
+//        
+//        BrainUtils.setInitialValue(diagram, "a_1", a_1);
+//        BrainUtils.setInitialValue(diagram, "b_1", b_1);
+//        BrainUtils.setInitialValue(diagram, "a_2", a_2);
+//        BrainUtils.setInitialValue(diagram, "b_2", b_2);
+//        BrainUtils.setInitialValue(diagram, "eta_th", eta_th);
+//        BrainUtils.setInitialValue(diagram, "eta_eq", eta_eq);
+//        
+//        BrainUtils.setInitialValue(diagram, "counter_duration", counter_duration);
+//        BrainUtils.setInitialValue(diagram, "insensitive_duration", insensitive_duration);
+//        BrainUtils.setInitialValue(diagram, "k_insensitive", k_insensitive);
+//        
+//        // these counters should only be triggered after a seizure
+//        double time_counter = Double.MAX_VALUE;
+//        double time_insensitive = Double.MAX_VALUE;
+//        BrainUtils.setInitialValue(diagram, "time_counter", time_counter);
+//        BrainUtils.setInitialValue(diagram, "time_insensitive", time_insensitive); 
     }
     
 	/*

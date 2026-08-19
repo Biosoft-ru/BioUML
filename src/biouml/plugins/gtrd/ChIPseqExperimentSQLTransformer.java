@@ -21,13 +21,12 @@ public class ChIPseqExperimentSQLTransformer extends SqlTransformerSupport<ChIPs
 {
     private static final Logger log = Logger.getLogger(ChIPseqExperimentSQLTransformer.class.getName());
     
- // GTRD dir temporarly changed to GTRD_20.06
-    public static final String DEFAULT_GTRD_ROOT = "databases/GTRD_20.06/Data";
+    public static final String DEFAULT_GTRD_ROOT = "databases/GTRD/Data";
     public static final String DEFAULT_GTRD_READS = DEFAULT_GTRD_ROOT + "/sequences";
     public static final String DEFAULT_GTRD_ALIGNMENTS = DEFAULT_GTRD_ROOT + "/alignments";
     public static final String DEFAULT_GTRD_PEAKS = DEFAULT_GTRD_ROOT + "/peaks";
-    public static final String DEFAULT_GTRD_CELLS = "databases/GTRD_20.06/Dictionaries/cells";
-    public static final String DEFAULT_GTRD_EXP_FACTORS = "databases/GTRD_20.06/Dictionaries/experimental factors table";
+    public static final String DEFAULT_GTRD_CELLS = "databases/GTRD/Dictionaries/cells";
+    public static final String DEFAULT_GTRD_EXP_FACTORS = "databases/GTRD/Dictionaries/experimental factors table";
 
     private String gtrdReads;
     private String gtrdAlignments;

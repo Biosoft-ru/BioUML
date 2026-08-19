@@ -2031,6 +2031,11 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
             DynamicPropertySet dps = readDPS( element, getNestedRegistry( name, registry ) );
             if( type != null )
             {
+                // Primitive wrappers can't have nested properties; return default
+                if( XmlSerializationUtils.isPrimitiveWrapperElement( type ) )
+                {
+                    return XmlSerializationUtils.getPrimitiveValue( type, value );
+                }
                 Object result = TextUtil2.fromString( type, value );
                 if( result == null )
                 {
@@ -2077,13 +2082,13 @@ public class DiagramXmlReader extends DiagramXmlSupport implements DiagramReader
             return result;
 
         result = XmlSerializationUtils.getPrimitiveValue( type, value );
-        try
+        if( result != null )
+            return result;
+
+        // Handle primitive wrapper types with empty values by returning defaults
+        if( value.isEmpty() && XmlSerializationUtils.isPrimitiveWrapperElement( type ) )
         {
-            if( result == null && registry.getValue( name ) != null && value.isEmpty() )
-                return type.newInstance();
-        }
-        catch( Exception e )
-        {
+            return XmlSerializationUtils.getPrimitiveValue( type, "" );
         }
 
         try

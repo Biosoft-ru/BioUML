@@ -99,10 +99,16 @@ public class JVode extends JVodeSupport
     private final static double RDIV = 2; // declare divergence if ratio del/delp > RDIV
     private final static int MSBP = 20; // max no. of steps between lsetup calls
 
+    // Cached buffers to avoid per-step allocations (hot path optimization)
+    protected double[] mBuffer = new double[L_MAX]; // working buffer for adamsStart/adamsFinish
+    protected double[] mmBuffer = new double[3]; // reused in setAdams()
+    protected double[] newtonBuffer; // allocated once, reused in doNewtonIteration()
+
     protected JVode(Method method, OdeModel f, double[] u0, double t0)
     {
         super(method, f, u0, t0);
         iterationType = IterationType.FUNCTIONAL;
+        newtonBuffer = new double[n]; // allocate once, reuse in doNewtonIteration
     }
 
     public static JVode createJVode(JVodeOptions options, double initialTime, double[] initialValue, OdeModel odeModel)
@@ -1126,8 +1132,8 @@ public class JVode extends JVodeSupport
             return;
         }
 
-        double[] m = new double[JVodeSupport.L_MAX];
-        double[] mm = new double[3];
+        double[] m = mBuffer; // reuse cached working buffer (must be separate from l — adamsFinish writes to l while reading m)
+        double[] mm = mmBuffer; // reuse cached buffer instead of allocating
         double hsum = adamsStart(m);
         mm[0] = altSum(q - 1, m, 1);
         mm[1] = altSum(q - 1, m, 2);
@@ -1475,7 +1481,7 @@ public class JVode extends JVodeSupport
     {
         int m;
         double del, delp;
-        double[] b;
+        double[] b = newtonBuffer; // reuse cached buffer instead of allocating
 
         mNewt = m = 0;
 
@@ -1493,7 +1499,7 @@ public class JVode extends JVodeSupport
             VectorUtils.linearDiff(gamma, ftemp, temp, temp);
 
             // Call the lsolve function
-            b = VectorUtils.copy( temp );
+            VectorUtils.copy( temp, b ); // reuse cached buffer
             int retval = solve(b);
             nNewtonIter++;
 

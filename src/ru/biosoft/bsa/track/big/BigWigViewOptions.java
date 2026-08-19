@@ -1,5 +1,7 @@
 package ru.biosoft.bsa.track.big;
 
+import java.awt.Color;
+
 import ru.biosoft.bsa.view.SiteViewOptions;
 
 public class BigWigViewOptions extends SiteViewOptions
@@ -7,6 +9,8 @@ public class BigWigViewOptions extends SiteViewOptions
     private boolean autoScale = true;
     private float scale = 1;
     private boolean showValuesRange = true;
+    
+    private Color color = Color.BLUE;
     
     public boolean isAutoScale()
     {
@@ -40,4 +44,13 @@ public class BigWigViewOptions extends SiteViewOptions
         this.showValuesRange = showValuesRange;
         firePropertyChange( "showValuesRange", oldValue, showValuesRange );
     }
+    
+	public Color getColor() {
+		return color;
+	}
+	public void setColor(Color color) {
+		this.color = color;
+	}
+    
+    
 }

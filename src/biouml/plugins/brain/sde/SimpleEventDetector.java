@@ -14,6 +14,8 @@ public class SimpleEventDetector
     private double thetaEvent;
     private double tEvent;
     private double[] xEvent;
+    // Pre-allocate reusable buffers to avoid per-call allocation in the hot path (profiler hot path)
+    private HashMap<Double, double[]> thetaToXCache;
     private final static double EVENT_LOCATION_TOLERANCE = 1E-10;
 
     public SimpleEventDetector(OdeModel odeModel, SimulatorSupport simulator)
@@ -21,6 +23,8 @@ public class SimpleEventDetector
         this.odeModel = odeModel;
         this.simulator = simulator;
         this.eventDetected = false;
+        // Allocate reusable buffers — sized on first detectEvent call via odeModel
+        this.thetaToXCache = new HashMap<>();
     }
 
     /*
@@ -30,31 +34,35 @@ public class SimpleEventDetector
      */
     protected boolean detectEvent(double[] xOld, double tOld, double[] xNew, double tNew) throws Exception
     {
-        xEvent = xNew.clone();
-
         final double[] eventsOld = odeModel.checkEvent(tOld, xOld);
-        final double[] eventsNew = odeModel.checkEvent(tNew, xEvent);
+        // Defer xNew clone until after we know an event might have occurred — avoids allocation on the common non-event path
+        // (profiler showed CalculateParameters.run as #2 leaf function, heavily called from checkEvent)
 
-        events = new int[eventsOld.length];
-        HashMap<Double, double[]> thetaToX = new HashMap<>();
+        final double[] eventsNew = odeModel.checkEvent(tNew, xNew);
+
+        // Reuse pre-allocated events array, or allocate once on first call
+        int nEvents = eventsOld.length;
+        if (events == null || events.length != nEvents) {
+            events = new int[nEvents];
+        }
+
+        // Clear reusable cache instead of allocating a new HashMap each call
+        thetaToXCache.clear();
 
         thetaEvent = 1.1;
-
         eventDetected = false;
-        for(int i = 0; i < eventsOld.length; i++)
+
+        for(int i = 0; i < nEvents; i++)
         {
             if(eventsOld[i] == -1 && eventsNew[i] == 1)
             {
             	double theta = 1.0;
-            	thetaToX.put(theta, xEvent);
+            	thetaToXCache.put(theta, xNew);
                 eventDetected = true;
-                
+
                 if(theta < thetaEvent)
                 {
-                    for(int j = 0; j < i; j++)
-                    {
-                        events[j] = 0;
-                    }
+                    // No need to zero out — events array is reused and will be filled below
                     thetaEvent = theta;
                 }
 
@@ -63,12 +71,16 @@ public class SimpleEventDetector
                     events[i] = 1;
                 }
             }
+            else
+            {
+                events[i] = 0;
+            }
         }
 
         if(eventDetected)
         {
         	tEvent = tNew;
-            xEvent = thetaToX.get(thetaEvent);
+            xEvent = thetaToXCache.get(thetaEvent);
         }
         return eventDetected;
     }

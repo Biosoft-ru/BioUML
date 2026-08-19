@@ -7,6 +7,7 @@ openExternalURL.json
 openDiagram.json
 openTreeTable.json
 openGenomeBrowser.json
+openGenomeBrowserAdditional.json
 openSequence.json
 openTable.json
 openText.json
@@ -56,11 +57,7 @@ setCurrentProject.json
 openMolecule.json:Experimental
 openAlignmentViewer.json:Experimental
 changeType.json
-gitStatus.json
-gitClone.json
-gitPull.json
-gitCommit.json
-gitPush.json
 gitConsole.json
+gitClone.json
 openOASYS.json:Experimental
 runDockerCwlWorkflow.json:Experimental

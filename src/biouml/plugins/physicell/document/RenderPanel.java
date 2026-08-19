@@ -133,7 +133,7 @@ public class RenderPanel extends JPanel implements PropertyChangeListener
         try
         {
             videoGenerator.finish();
-            PhysicellResultWriter.uploadMP4( tempVideoFile, options.getResult().getParentCollection(), options.getResult().getName() );
+            new PhysicellResultWriter().uploadMP4( tempVideoFile, options.getResult().getParentCollection(), options.getResult().getName() );
         }
         catch( Exception ex )
         {

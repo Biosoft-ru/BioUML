@@ -417,6 +417,8 @@ function showAnalysisControl(parentDiv, analysis, options)
 
 function createProgressBar(element, jobID, completeCallback, processCallback)
 {
+    if(!jobID)
+        return;
 	element = $(element);
 	var progressMeter, progressText;
 	
@@ -1168,6 +1170,42 @@ function fitElement(element, text, trimRight, width)
 		element.val(fitBox([element.css("font-style"),element.css("font-variant"),element.css("font-weight"),element.css("font-size"),element.css("font-family")].join(" "), text, width, trimRight));
 	else
 		element.text(fitBox([element.css("font-style"),element.css("font-variant"),element.css("font-weight"),element.css("font-size"),element.css("font-family")].join(" "), text, width, trimRight));
+}
+
+function fitDivOrSplit(element, parent, text, wantedWidth)
+{
+    var style = [element.css("font-style"),element.css("font-variant"),element.css("font-weight"),element.css("font-size"),element.css("font-family")].join(" ");
+    var rWidth = measureTextLength(style, text);
+    if(rWidth < wantedWidth)
+    {
+        element.text(text);
+        return;
+    } 
+    var len = text.trim().split(/\s+/).map(word => [word,measureTextLength(style, word)]);
+    var newtext = "";
+    for(var i = 0; i < len.length; i++)
+    {
+        if(i > 0)
+            newtext += " ";
+        if(len[i][1] > wantedWidth)
+        {
+            let tosplit = len[i][0];
+            let curlen = len[i][1];
+            while(curlen > wantedWidth)
+            {
+                let pos = Math.floor(tosplit.length * (wantedWidth/curlen))
+                newtext += tosplit.substring(0, pos) + " ";
+                tosplit = tosplit.substring(pos);
+                curlen = measureTextLength(style, tosplit);
+            }
+            newtext += tosplit;
+        }
+        else
+            newtext +=  len[i][0];
+        
+    }
+    element.text(newtext);
+    
 }
 
 $.fn.extend({

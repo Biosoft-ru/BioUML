@@ -6,6 +6,7 @@
     label: "Remove",
     icon: "icons/remove_de.gif",
     multi: true,
+    allowInvalid: true,
     visible: "function(completePath)
     {
 		var path = getElementPath(completePath);

@@ -28,6 +28,7 @@ import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.html.ZipHtmlDataCollection;
 import ru.biosoft.access.support.FileImageTransformer;
 import ru.biosoft.jobcontrol.FunctionJobControl;
+import ru.biosoft.util.TextUtil2;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.util.OptionEx;
 
@@ -58,7 +59,10 @@ public class FileImporter implements DataElementImporter
             {
                 return file.getName().toLowerCase().endsWith(suffix) ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_LOW_PRIORITY;
             }
-            return file.getName().toLowerCase().endsWith(".pdf") ? ACCEPT_HIGHEST_PRIORITY : ACCEPT_LOW_PRIORITY;
+            if( file.getName().toLowerCase().endsWith( ".pdf" ) )
+                return ACCEPT_HIGHEST_PRIORITY;
+            //If file is not detected by other importers, treat as Generic file 
+            return ACCEPT_BELOW_MEDIUM_PRIORITY;
         }
         return ACCEPT_UNSUPPORTED;
     }
@@ -124,6 +128,8 @@ public class FileImporter implements DataElementImporter
             }
         }
         name = name.replaceAll("\\/", "");
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        name = TextUtil2.toASCII(name);
         if( parent.contains(name) )
         {
             parent.remove(name);

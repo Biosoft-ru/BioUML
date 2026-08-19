@@ -136,7 +136,7 @@ public abstract class TrackImporter implements DataElementImporter
     private final Map<String, Sequence> sequenceCache = new HashMap<>();
     private DataCollection<AnnotatedSequence> seqBase;
 
-    private Sequence getSequence(String name)
+    protected Sequence getSequence(String name)
     {
         Sequence result = sequenceCache.get(name);
         if(result != null)
@@ -173,6 +173,8 @@ public abstract class TrackImporter implements DataElementImporter
         }
 
         String name = elementName == null || elementName.equals("") ? file.getName().replaceFirst("\\.[^\\.]+$", "") : elementName;
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        name = TextUtil2.toASCII(name);
         if( parent.contains(name) )
             parent.remove(name);
         Properties properties = new Properties();

@@ -18,21 +18,33 @@ import ru.biosoft.graphics.font.ColorFont;
 @PropertyName("View options")
 public class WDLViewOptions extends DiagramViewOptions
 {
-    private Brush outputBrush;
-    private Pen outputPen;
+    private Brush outputBrush = new Brush(new Color(255, 173, 142), new Color(255, 200, 200));
+    private Pen outputPen = new Pen();
     private Brush structBrush = new Brush(Color.white);
     protected Brush deBrush;
-    protected Brush callBrush;
+    protected Brush callBrush  = new Brush(new Color(146, 223, 253), new Color(205, 241, 253));
     protected Brush taskBrush;
-    protected Brush expressionBrush;
-    protected Brush conditionBrush =  new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
-    protected Brush conditionalBrush =  new Brush(new Color(200, 128, 200), new Color(250, 125, 250));
+    protected Brush expressionBrush = new Brush(new Color(146, 223, 253), new Color(205, 241, 253));
+    protected Brush conditionBrush =  new Brush(new Color(224, 238, 245));//new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
+    protected Brush conditionalBrush =   new Brush(new Color(224, 238, 245));//new Brush(new Color(200, 128, 200), new Color(250, 125, 250));
+    protected Brush conditionalPortBrush =   new Brush(new Color(184, 200, 205));
 
-    protected Pen conditionPen =  new Pen(1, new Color(96, 48, 96));
-    protected Brush parameterBrush;
-    protected Pen parameterPen;
-    protected Pen expressionPen;
-    protected Pen analysisPen;
+    protected Brush workflowBrush = new Brush(Color.white);
+    protected Pen workflowPen = new Pen();
+
+    protected Pen conditionPen = new Pen();// =  new Pen(1, new Color(96, 48, 96));
+    protected Brush parameterBrush =  new Brush(new Color(178, 242, 227), new Color(200, 242, 250));
+    protected Pen parameterPen = new Pen();
+    protected Pen expressionPen = new Pen(1, new Color(83, 180, 222));
+    protected Pen analysisPen = new Pen(1, new Color(83, 180, 222));
+
+    private boolean clampInputs = false;
+    public static String labeledTags = "labeld tags";
+    public static String labeledIcons = "labeled icons";
+    public static String simpleIcons = "labeled icons";
+    private String  portsType = labeledTags;
+    
+    protected ColorFont tagTitleFont = new ColorFont("Arial", Font.PLAIN, 12, Color.black);
     
     public WDLViewOptions(Option parent)
     {
@@ -40,17 +52,17 @@ public class WDLViewOptions extends DiagramViewOptions
         diagramTitleVisible = false;
         autoLayout = true;
         setNotificationEnabled( false );
-        setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
+//        setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
         setOutputPen( new Pen(1, new Color(160, 60, 6)) );
-        setExpressionFont( new ColorFont("Arial", Font.PLAIN, 12, Color.black)  );
+//        setExpressionFont( new ColorFont("Arial", Font.PLAIN, 12, Color.black)  );
         setDeBrush( new Brush(new Color(176, 196, 222)) );
         setTaskBrush( new Brush(new Color(96, 96, 96), new Color(186, 186, 186)) );
-        setCallBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
-        setAnalysisPen( new Pen(1, new Color(83, 180, 222)) );
-        setExpressionBrush( new Brush(new Color(254, 214, 116), new Color(252, 245, 193)) );
-        setExpressionPen( new Pen(1, new Color(236, 158, 29)) );
-        setParameterBrush( new Brush(new Color(169, 237, 138), new Color(218, 250, 201)) );
-        setParameterPen( new Pen(1, new Color(60, 160, 6)) );
+//        setCallBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
+//        setAnalysisPen( new Pen(1, new Color(83, 180, 222)) );
+//        setExpressionBrush( new Brush(new Color(254, 214, 116), new Color(252, 245, 193)) );
+//        setExpressionPen( new Pen(1, new Color(236, 158, 29)) );
+//        setParameterBrush( new Brush(new Color(169, 237, 138), new Color(218, 250, 201)) );
+//        setParameterPen( new Pen(1, new Color(60, 160, 6)) );
         setNotificationEnabled( true );
     }
     
@@ -220,6 +232,17 @@ public class WDLViewOptions extends DiagramViewOptions
         this.nodeTitleFont = font;
     }
     
+    @PropertyName("Tag font")
+    @PropertyDescription("Font for tags")
+    public ColorFont getTagFont()
+    {
+        return tagTitleFont;
+    }  
+    public void setTagFont(ColorFont font)
+    {
+        this.tagTitleFont = font;
+    }
+    
     @PropertyName("Output brush")
     @PropertyDescription("Brush to fill output boxes")
     public Brush getOutputBrush()
@@ -245,4 +268,69 @@ public class WDLViewOptions extends DiagramViewOptions
         this.outputPen = outputPen;
         firePropertyChange("outputPen", oldValue, outputPen);
     }
+    
+    @PropertyName("Clamp inputs")
+    @PropertyDescription("Clamp inputs.")
+    public boolean isClampInputs()
+    {
+        return clampInputs;
+    }
+
+    public void setClampInputs(boolean clampInputs)
+    {
+        boolean oldValue = this.clampInputs;
+        this.clampInputs = clampInputs;
+        firePropertyChange("clampInputs", oldValue, clampInputs);
+    }
+    
+    @PropertyName("Ports type")
+    @PropertyDescription("Ports type.")
+    public String getPortsType()
+    {
+        return portsType;
+    }
+
+    public void setPortsType(String portsType)
+    {
+        String oldValue = this.portsType;
+        this.portsType = portsType;
+        firePropertyChange("portsType", oldValue, portsType);
+    }
+    
+    @PropertyName("Workflow brush")
+    @PropertyDescription("Workflow brush.")
+    public Brush getWorkflowBrush()
+    {
+        return workflowBrush;
+    }
+
+    public void setWorkflowBrush(Brush workflowBrush)
+    {
+        this.workflowBrush = workflowBrush;
+    }
+
+    @PropertyName("Workflow pen")
+    @PropertyDescription("Workflow pen.")
+    public Pen getWorkflowPen()
+    {
+        return workflowPen;
+    }
+
+    public void setWorkflowPen(Pen workflowPen)
+    {
+        this.workflowPen = workflowPen;
+    }
+
+    @PropertyName("Conditional port brush")
+    @PropertyDescription("Conditional port brush.")
+    public Brush getConditionalPortBrush()
+    {
+        return conditionalPortBrush;
+    }
+
+    public void setConditionalPortBrush(Brush conditionalPortBrush)
+    {
+        this.conditionalPortBrush = conditionalPortBrush;
+    }
+
 }

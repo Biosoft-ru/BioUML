@@ -48,6 +48,8 @@ public class HICTrackImporter implements DataElementImporter
         if( name == null || name.equals("") )
             name = fileToImport.getName();
         name = name.replaceAll("\\/", "");
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        name = TextUtil2.toASCII(name);
 
         if( parent.contains(name) )
             parent.remove(name);

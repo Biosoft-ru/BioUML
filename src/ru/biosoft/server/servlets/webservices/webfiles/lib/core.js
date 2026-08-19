@@ -560,6 +560,8 @@ var JobControl = {
  */
 function cancelJob(jobID)
 {
+    if(!jobID)
+        return;
     queryBioUML("web/jobcontrol/cancel",
     {
         jobID: jobID

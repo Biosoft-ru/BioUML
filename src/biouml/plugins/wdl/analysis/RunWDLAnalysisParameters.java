@@ -2,24 +2,25 @@ package biouml.plugins.wdl.analysis;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.StringReader;
-
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
-import biouml.plugins.wdl.parser.AstStart;
-import biouml.plugins.wdl.parser.WDLParser;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
+import ru.biosoft.util.bean.JSONBean;
 
-public class RunWDLAnalysisParameters extends AbstractAnalysisParameters implements PropertyChangeListener
+public class RunWDLAnalysisParameters extends AbstractAnalysisParameters implements PropertyChangeListener, JSONBean
 {
     private DataElementPath wdlPath;
     private WorkflowSettings settings = new WorkflowSettings();
 
+    public RunWDLAnalysisParameters()
+    {
+        settings.setParent( this );
+    }
     public WorkflowSettings getSettings()
     {
         return settings;
@@ -62,6 +63,13 @@ public class RunWDLAnalysisParameters extends AbstractAnalysisParameters impleme
         DataElementPath oldValue = this.wdlPath;
         this.wdlPath = wdlPath;
         firePropertyChange( "wdlPath", oldValue, wdlPath );
+        Diagram diagram = wdlPath.optDataElement(Diagram.class);
+        if(diagram != null)
+        {
+        	settings.initParameters( diagram );
+            settings.setParent( this );
+            firePropertyChange( "*", null, null );
+        }
     }
 
     @PropertyName ( "Parameters Json" )
@@ -94,10 +102,22 @@ public class RunWDLAnalysisParameters extends AbstractAnalysisParameters impleme
         firePropertyChange( "useJson", oldValue, useJson );
     }
 
+    @PropertyName("Run in docker")
+    public boolean isUseDocker()
+    {
+        return settings.isUseDocker();
+    }
+
+    public void setUseDocker(boolean useDocker)
+    {
+        boolean oldValue = settings.isUseDocker();
+        settings.setUseDocker( useDocker );
+        firePropertyChange( "useDocker", oldValue, useDocker );
+    }
+
     public void reloadParameters(String wdl) throws Exception
     {
-        AstStart start = new WDLParser().parse( new StringReader( wdl ) );
-        Diagram diagram = new WDLImporter().generateDiagram( start, null, "analysisDiagram" );
+        Diagram diagram = new WDLImporter().generateDiagram( wdl, "analysisDiagram" , null);
         settings.initParameters( diagram );
         firePropertyChange( "*", null, null );
     }

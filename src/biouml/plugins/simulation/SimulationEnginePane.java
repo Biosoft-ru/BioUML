@@ -256,8 +256,8 @@ public class SimulationEnginePane extends EditorPartSupport implements ItemListe
 
         public EngineTab(Object model, Document document)
         {
-            this.explore( model, document );
             log = Logger.getLogger( getClass().getName() );
+            this.explore( model, document );
             jobControl = new FunctionJobControl( log );
         }
 

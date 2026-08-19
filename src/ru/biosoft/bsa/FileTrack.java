@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.AbstractDataCollection;
@@ -18,11 +19,11 @@ import ru.biosoft.bsa.view.TrackViewBuilder;
 
 public abstract class FileTrack extends AbstractDataCollection<DataElement> implements Track
 {
-    private File file;
+    protected File file;
     private VectorDataCollection<Site> sites;
     private boolean isInitialized = false;
     private TrackOptions trackOptions;
-    private TrackViewBuilder viewBuilder = new DefaultTrackViewBuilder();
+    protected TrackViewBuilder viewBuilder = new DefaultTrackViewBuilder();
 
     public FileTrack(DataCollection<?> origin, Properties properties) throws IOException
     {
@@ -34,9 +35,6 @@ public abstract class FileTrack extends AbstractDataCollection<DataElement> impl
         }
         else
             file = DataCollectionUtils.getChildFile(origin, getName());
-
-        if( !file.exists() )
-            throw new FileNotFoundException("File " + file.getAbsolutePath() + " not found in track constructor");
 
         trackOptions = new TrackOptions(this, properties);
     }
@@ -57,12 +55,17 @@ public abstract class FileTrack extends AbstractDataCollection<DataElement> impl
             if( isInitialized )
                 return;
             sites = new VectorDataCollection<>(getName(), Site.class, null);
-            readFromFile(file, sites);
+            try {
+            	readFromFile(file, sites);
+            }catch(Exception e)
+            {
+            	log.log(Level.SEVERE, "Reading file: " + file.getAbsolutePath(), e);
+            }
             isInitialized = true;
         }
     }
 
-    protected abstract void readFromFile(File file, DataCollection<Site> sites);
+    protected abstract void readFromFile(File file, DataCollection<Site> sites) throws Exception;
 
     @Override
     public DataCollection<Site> getSites(String sequence, int from, int to)

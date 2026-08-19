@@ -307,7 +307,7 @@ public class CompositeModelPreprocessor extends Preprocessor
                 }
 
                 String key = subDiagram != null ? subDiagram.getCompleteNameInDiagram() : "";
-                substitutionMap.put(new Pair<>(var.getName(), key), uniqueName);
+                substitutionMap.put(new Pair<>(var.getName(), key), masterVariable);
             }
             dgr.setNotificationEnabled( notif );
         }
@@ -588,11 +588,13 @@ public class CompositeModelPreprocessor extends Preprocessor
                 {
                     mainVariableName = inVariableName;
                     auxVariableName = outVariableName;
+                    initialValue = inOldVariable.getInitialValue();
                 }
                 else
                 {
                     mainVariableName = outVariableName;
                     auxVariableName = inVariableName;
+                    initialValue = outOldVariable.getInitialValue();
                 }
                 String factor = ( (UndirectedConnection)connection ).getConversionFactor();
                 if( !factor.isEmpty() )
@@ -619,13 +621,13 @@ public class CompositeModelPreprocessor extends Preprocessor
                     {
                         mainVariableName = outVariableName;
                         auxVariableName = inVariableName;
-                        initialValue = inOldVariable.getInitialValue();
+                        initialValue = outOldVariable.getInitialValue();
                     }
                     else
                     {
                         mainVariableName = inVariableName;
                         auxVariableName = outVariableName;
-                        initialValue = outOldVariable.getInitialValue();
+                        initialValue = inOldVariable.getInitialValue();
                     }
 
                 }
@@ -693,6 +695,7 @@ public class CompositeModelPreprocessor extends Preprocessor
     public SubDiagram processCompositeSubDiagram(Diagram compositeDiagram, SubDiagram subDiagram) throws Exception
     {
         CompositeModelPreprocessor preprocessor = new CompositeModelPreprocessor();
+        preprocessor.setNameStyle( this.nameStyle );
         preprocessor.asSubDiagram = true; 
         Diagram innerDiagram = subDiagram.getDiagram();
         innerDiagram.getAttributes().remove(SubDiagram.RELATIVE_SUBDIAGRAM); //we should consider his diagram as a top level for this preprocessing
@@ -706,11 +709,10 @@ public class CompositeModelPreprocessor extends Preprocessor
         
         varPathMapping.putAll(preprocessor.getVarPathMapping(subDiagram.getName()));
 
-        boolean in = false;
-
         //rename variable in all correspondent connections
         for( Edge edge : Util.getEdges(subDiagram) )
         {
+            boolean in = false;
             if( edge.getInput().equals(subDiagram) )
             {
                 in = true;
@@ -754,6 +756,7 @@ public class CompositeModelPreprocessor extends Preprocessor
                     varName = Util.getPortVariable(edge.getOutput());
                     port = connection.getOutputPort();
                 }
+                System.out.println( "Rename variable in connection" +port.getVariableName()+" -> " + varName);
                 port.setVariableName(varName);
                 port.setVariableTitle(varName);
             }
@@ -1533,6 +1536,12 @@ public class CompositeModelPreprocessor extends Preprocessor
                             newReaction.setFormula(newReaction.getFormula() + "*(" + factor + ")");
                     }
                     oldNodesToNew.put(node, newNode);
+                    
+                    SubDiagram parentSubDiagram = SubDiagram.getParentSubDiagram(subDiagram);
+                    String key = parentSubDiagram != null ? parentSubDiagram.getCompleteNameInDiagram() : "";
+                    String oldVariable = ((Equation)node.getRole()).getVariable();
+                    String newVariable = ((Equation)newNode.getRole()).getVariable();
+                    substitutionMap.put(new Pair<>(oldVariable, key), newVariable);
                     //                    reactions.add( newReaction );
                 }
             }
@@ -1670,7 +1679,11 @@ public class CompositeModelPreprocessor extends Preprocessor
             }
 
             if( newVarName != null )
+            {
+                double initialValue = newVarsToOld.get(main).getInitialValue();
+                newVarsToOld.get( newVarName ).setInitialValue( initialValue );
                 uConnectedInfo.put( main, newVarsToOld.get( newVarName ) );
+            }
         }
 
         for( Entry<String, String> e : toReplace.entrySet() )
@@ -2184,6 +2197,7 @@ public class CompositeModelPreprocessor extends Preprocessor
      */
     public Map<String, String> getVarPathMapping(String parentSubDiagram)
     {
+    
 //        adjustSubstitutions();
         //first step: we create mapping for current preprocessing step: between paths with 1-level deep and variables in flat model
         //E.g.
@@ -2239,7 +2253,24 @@ public class CompositeModelPreprocessor extends Preprocessor
             }
             return result;
         }
-
+//        Map<String, String> reactionMapping = createRateMapping();
         return extendedPathMapping;
+    }
+    
+    private Map<String, String> createRateMapping()
+    {
+        Map<String, String> mapping = new HashMap<>();
+        for (Entry<biouml.model.Node, biouml.model.Node> e: oldNodesToNew.entrySet())
+        {
+            if (e.getKey().getKernel() instanceof Reaction)
+            {
+               Equation eq = (Equation)e.getKey().getRole();
+               String var = eq.getVariable();
+               Equation eq2 = (Equation)e.getValue().getRole();
+               String var2 = eq2.getVariable();
+                mapping.put(var , var );
+            }
+        }
+       return mapping;
     }
 }

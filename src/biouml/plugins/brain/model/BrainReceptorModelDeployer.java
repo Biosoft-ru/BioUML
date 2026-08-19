@@ -233,37 +233,67 @@ public class BrainReceptorModelDeployer
         String sigma1Formula = "kappa_1*$S1";
         BrainUtils.createEquation("sigma1", "sigma_1", sigma1Formula,
     			Equation.TYPE_SCALAR, diagramSbgn, point);
+        point.translate(0, yLocalOffset);
+        
         String sigma2Formula = "kappa_2*$S2";
         BrainUtils.createEquation("sigma2", "sigma_2", sigma2Formula,
-    			Equation.TYPE_SCALAR, diagramSbgn, new Point(point.x + 150, point.y));
+    			Equation.TYPE_SCALAR, diagramSbgn, point);
         point.translate(0, yLocalOffset);
         
         if (portsFlag)
-        {	
-        	BrainUtils.createEvent("start_LTP_epileptogenic", "epileptogenicity_flag == 1.0 && SR < 0.6", new Assignment[]
-			{
-			    new Assignment("mu", "0.0"), 
-				new Assignment("gamma", "0.0"),
-				new Assignment("alpha_1", "0.001"),
-				new Assignment("kappa_1", "0.0556"),
-				new Assignment("h_1", "0.01"),
-				new Assignment("c", "0.65"),
-			},
-			diagramSbgn, point);
-	        point.translate(0, 2 * yGroupOffset + 30);
-	        
-        	BrainUtils.createEvent("start_LTD_healthy", "epileptogenicity_flag == 0.0 && SR < 0.6", new Assignment[] 
-			{
-				 new Assignment("mu", "0.01"), 
-				
-				new Assignment("gamma", "0.001"),
-				new Assignment("alpha_1", "1.0E-6"),
-				new Assignment("kappa_1", "5.556E-4"),
-				new Assignment("h_1", "0.001257"),
-				new Assignment("c", "0.0")
-			},
-			diagramSbgn, point);
-            point.translate(0, yGroupOffset);
+        {
+        	//BrainUtils.createEvent("start_LTD", "state_cell == 1.0", 
+        	BrainUtils.createEvent("start_LTD", "state_cell == 0.0", 
+    		    new Assignment[]
+				    {
+						new Assignment("mu", "0.01"), 
+						new Assignment("gamma", "0.001"),
+						new Assignment("alpha_1", "1.0E-6"),
+						new Assignment("kappa_1", "5.556E-4"),
+						new Assignment("h_1", "0.001257"),
+						new Assignment("c", "0.0")
+					},
+				diagramSbgn, point);
+            point.translate(120, 0);
+            
+        	//BrainUtils.createEvent("stop_LTD", "state_cell == 0.0", 
+            BrainUtils.createEvent("stop_LTD", "state_cell == 1.0", 
+        		    new Assignment[]
+    				    {
+    						new Assignment("mu", "0.0"), 
+    						new Assignment("gamma", "0.0")
+    					},
+    				diagramSbgn, point);
+        	point.translate(120, 0);
+        	
+            BrainUtils.createPort("state_cell", "state_cell", Type.TYPE_INPUT_CONNECTION_PORT,
+            		diagramSbgn, point);
+            point.translate(0, yLocalOffset);
+
+//        	BrainUtils.createEvent("start_LTP_epileptogenic", "epileptogenicity_flag == 1.0 && SR < 0.6", new Assignment[]
+//			{
+//			    new Assignment("mu", "0.0"), 
+//				new Assignment("gamma", "0.0"),
+//				new Assignment("alpha_1", "0.001"),
+//				new Assignment("kappa_1", "0.0556"),
+//				new Assignment("h_1", "0.01"),
+//				new Assignment("c", "0.65"),
+//			},
+//			diagramSbgn, point);
+//	        point.translate(0, 2 * yGroupOffset + 30);
+//	        
+//        	BrainUtils.createEvent("start_LTD_healthy", "epileptogenicity_flag == 0.0 && SR < 0.6", new Assignment[] 
+//			{
+//				 new Assignment("mu", "0.01"), 
+//				
+//				new Assignment("gamma", "0.001"),
+//				new Assignment("alpha_1", "1.0E-6"),
+//				new Assignment("kappa_1", "5.556E-4"),
+//				new Assignment("h_1", "0.001257"),
+//				new Assignment("c", "0.0")
+//			},
+//			diagramSbgn, point);
+//            point.translate(0, yGroupOffset);
         }
         else if (regimeType.equals(AmpaReceptorModelProperties.REGIME_LTD))
         {
@@ -354,46 +384,57 @@ public class BrainReceptorModelDeployer
         
         if (portsFlag)
         {   
-            BrainUtils.createEquation("Total_PSD_max", "Total_PSD_max", "92.75",
-                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, point);
             BrainUtils.createEquation("Total_PSD_0", "Total_PSD_0", "Total_PSD",
-                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, new Point(point.x + 150, point.y));
-//            BrainUtils.createEquation("Total_PSD_min", "Total_PSD_min", "19.0",
-//                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, new Point(point.x + 2 * 150, point.y));
-            BrainUtils.createEquation("Total_PSD_min", "Total_PSD_min", "26.0",
-                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, new Point(point.x + 2 * 150, point.y));
+                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, point);
             point.translate(0, yLocalOffset);
         	
-            String interpolationFormula = "function interpolate(x1, x2, y1, y2, x) = (y2 - y1)*((x - x1)/(x2 - x1)) + y1";
-            BrainUtils.createFunction("interpolate", interpolationFormula,
-            		diagramSbgn, point);
-            point.translate(0, yLocalOffset);
-
-//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.85, 0.95, Total_PSD); "
-//            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.75, 0.85, Total_PSD) )";
-//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.8, 0.9, Total_PSD); "
-//            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.7, 0.8, Total_PSD) )";
-//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.825, 0.9, Total_PSD); "
-//            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.75, 0.825, Total_PSD) )"; 
-            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.85, 0.9, Total_PSD); "
-            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.8, 0.85, Total_PSD) )"; 
+            BrainUtils.createEquation("k_AMPA", "k_AMPA", "(Total_PSD/Total_PSD_0)^n",
+                    Equation.TYPE_SCALAR, diagramSbgn, point);
+            BrainUtils.createPort("k_AMPA", "k_AMPA", Type.TYPE_OUTPUT_CONNECTION_PORT,
+            		diagramSbgn, new Point(point.x + 150, point.y));
             
-//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.9, 1.0, Total_PSD); "
-//            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.8, 0.9, Total_PSD) )";
-//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 1.0, 1.05, Total_PSD); "
-//            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.8, 1.0, Total_PSD) )";
-//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 1.0, 1.1, Total_PSD); "
-            BrainUtils.createEquation("equation_SF", "SF", sfFormula,
-        			Equation.TYPE_SCALAR, diagramSbgn, point);
-            point.translate(0, yGroupOffset);
-            
-            BrainUtils.createPort("SF", "SF", Type.TYPE_OUTPUT_CONNECTION_PORT,
-            		diagramSbgn, point);
             point.translate(0, yLocalOffset);
-            
-            BrainUtils.createPort("SR", "SR", Type.TYPE_INPUT_CONNECTION_PORT,
-            		diagramSbgn, point);
-            point.translate(0, yLocalOffset);
+        	
+//            BrainUtils.createEquation("Total_PSD_max", "Total_PSD_max", "92.75",
+//                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, point);
+//            BrainUtils.createEquation("Total_PSD_0", "Total_PSD_0", "Total_PSD",
+//                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, new Point(point.x + 150, point.y));
+////            BrainUtils.createEquation("Total_PSD_min", "Total_PSD_min", "19.0",
+////                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, new Point(point.x + 2 * 150, point.y));
+//            BrainUtils.createEquation("Total_PSD_min", "Total_PSD_min", "26.0",
+//                    Equation.TYPE_INITIAL_ASSIGNMENT, diagramSbgn, new Point(point.x + 2 * 150, point.y));
+//            point.translate(0, yLocalOffset);
+//        	
+//            String interpolationFormula = "function interpolate(x1, x2, y1, y2, x) = (y2 - y1)*((x - x1)/(x2 - x1)) + y1";
+//            BrainUtils.createFunction("interpolate", interpolationFormula,
+//            		diagramSbgn, point);
+//            point.translate(0, yLocalOffset);
+//
+////            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.85, 0.95, Total_PSD); "
+////            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.75, 0.85, Total_PSD) )";
+////            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.8, 0.9, Total_PSD); "
+////            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.7, 0.8, Total_PSD) )";
+////            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.825, 0.9, Total_PSD); "
+////            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.75, 0.825, Total_PSD) )"; 
+//            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.85, 0.9, Total_PSD); "
+//            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.8, 0.85, Total_PSD) )"; 
+//            
+////            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 0.9, 1.0, Total_PSD); "
+////            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.8, 0.9, Total_PSD) )";
+////            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 1.0, 1.05, Total_PSD); "
+////            		+ "interpolate(Total_PSD_min, Total_PSD_0, 0.8, 1.0, Total_PSD) )";
+////            String sfFormula = "piecewise( Total_PSD >= Total_PSD_0 => interpolate(Total_PSD_0, Total_PSD_max, 1.0, 1.1, Total_PSD); "
+//            BrainUtils.createEquation("equation_SF", "SF", sfFormula,
+//        			Equation.TYPE_SCALAR, diagramSbgn, point);
+//            point.translate(0, yGroupOffset);
+//            
+//            BrainUtils.createPort("SF", "SF", Type.TYPE_OUTPUT_CONNECTION_PORT,
+//            		diagramSbgn, point);
+//            point.translate(0, yLocalOffset);
+//            
+//            BrainUtils.createPort("SR", "SR", Type.TYPE_INPUT_CONNECTION_PORT,
+//            		diagramSbgn, point);
+//            point.translate(0, yLocalOffset);
         }
 
         point = compartmentDendrite.getLocation();
@@ -782,18 +823,22 @@ public class BrainReceptorModelDeployer
         double S1 = 500.0;
         double S2 = 100.0;
         
-    	BrainUtils.setInitialValue(diagram, "P1", P1);
-    	BrainUtils.setInitialValue(diagram, "P2a", P2a);
-    	BrainUtils.setInitialValue(diagram, "P2b", P2b);
-    	BrainUtils.setInitialValue(diagram, "Q1", Q1);
-    	BrainUtils.setInitialValue(diagram, "Q2a", Q2a);
-    	BrainUtils.setInitialValue(diagram, "Q2b", Q2b);
-    	BrainUtils.setInitialValue(diagram, "R1", R1);
-    	BrainUtils.setInitialValue(diagram, "R2", R2);
-    	BrainUtils.setInitialValue(diagram, "D1", D1);
-    	BrainUtils.setInitialValue(diagram, "D2", D2);
-    	BrainUtils.setInitialValue(diagram, "S1", S1);
-    	BrainUtils.setInitialValue(diagram, "S2", S2);
+    	String ampaModelType = receptorModelProperties.getModelType();
+    	if (ampaModelType.equals(AmpaReceptorModelProperties.MODEL_MATH))
+    	{
+        	BrainUtils.setInitialValue(diagram, "P1", P1);
+        	BrainUtils.setInitialValue(diagram, "P2a", P2a);
+        	BrainUtils.setInitialValue(diagram, "P2b", P2b);
+        	BrainUtils.setInitialValue(diagram, "Q1", Q1);
+        	BrainUtils.setInitialValue(diagram, "Q2a", Q2a);
+        	BrainUtils.setInitialValue(diagram, "Q2b", Q2b);
+        	BrainUtils.setInitialValue(diagram, "R1", R1);
+        	BrainUtils.setInitialValue(diagram, "R2", R2);
+        	BrainUtils.setInitialValue(diagram, "D1", D1);
+        	BrainUtils.setInitialValue(diagram, "D2", D2);
+        	BrainUtils.setInitialValue(diagram, "S1", S1);
+        	BrainUtils.setInitialValue(diagram, "S2", S2);
+    	}
     }
 
     private static void setPlotsAmpa(Diagram diagram) 

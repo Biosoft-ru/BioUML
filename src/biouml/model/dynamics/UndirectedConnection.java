@@ -12,6 +12,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
+import biouml.model.Node;
 import biouml.model.Role;
 import biouml.standard.diagram.Util;
 
@@ -25,7 +26,7 @@ public class UndirectedConnection extends Connection
     public static final String NOT_SELECTED_STRING = "Not selected";
     private final Map<MainVariableType, String> varTypeDescription;
     private final boolean varIsEditable;
-    private MainVariableType mainVariable;
+    private MainVariableType mainVariable = MainVariableType.NOT_SELECTED;
     private String conversionFactor = "";
     private double initialValue; //TODO: delete
 
@@ -43,33 +44,33 @@ public class UndirectedConnection extends Connection
     {
         super.setInputPort( p );
         Edge edge = (Edge)getDiagramElement();
-
-        if( Util.isBus( edge.getInput() ) )
-            mainVariable = MainVariableType.INPUT;
-
-        String inputDescription = edge.getInput().getParent() instanceof Diagram?  getInputPort().getVariableName():
-            ((Compartment)edge.getInput().getParent()).getName()+"/"+ getInputPort().getVariableName();
-        varTypeDescription.put( MainVariableType.INPUT, inputDescription );
+        if( !Util.isBus( edge.getInput() ) )
+            varTypeDescription.put( MainVariableType.INPUT, generateVarDescription( edge.getInput(), getInputPort() ) );
     }
-    
+
     @Override
     public void setOutputPort(Port p)
     {
         super.setOutputPort( p );
         Edge edge = (Edge)getDiagramElement();
-        if( Util.isBus( edge.getOutput() ) )
-            mainVariable = MainVariableType.OUTPUT;
-
-        String outputDescription = edge.getOutput().getParent() instanceof Diagram? getOutputPort().getVariableName():
-            ((Compartment)edge.getOutput().getParent()).getName()+"/"+ getOutputPort().getVariableName();
-        varTypeDescription.put( MainVariableType.OUTPUT, outputDescription );
+        if( !Util.isBus( edge.getOutput() ) )
+            varTypeDescription.put( MainVariableType.OUTPUT, generateVarDescription( edge.getOutput(), getOutputPort() ) );
+    }
+    
+    private String generateVarDescription(Node node, Port port)
+    {
+        return  node.getParent() instanceof Diagram? port.getVariableName():
+            ((Compartment)node.getParent()).getName()+"/"+ port.getVariableName();
     }
 
     public void setMainVariableType(MainVariableType mainVariable)
     {
+        String stringValue = varTypeDescription.get( mainVariable );
+        if( !StreamEx.of( getAvailableNames() ).toSet().contains( stringValue ) )
+            return;
         MainVariableType oldValue = this.mainVariable;
         this.mainVariable = mainVariable;
-        firePropertyChange("mainVariable", oldValue, mainVariable);
+        firePropertyChange( "mainVariable", oldValue, mainVariable );
     }
 
     public MainVariableType getMainVariableType()

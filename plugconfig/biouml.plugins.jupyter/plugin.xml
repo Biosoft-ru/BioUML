@@ -21,5 +21,9 @@
   <extension point="ru.biosoft.server.servlets.webProvider">
       <provider prefix="biouml_jupyter" class="biouml.plugins.jupyter.server.JupyterProvider"/>
   </extension>
+  
+  <extension point="ru.biosoft.access.fileType">
+    <fileType name="IPython file" extensions="ipynb" transformerClass="biouml.plugins.jupyter.IPythonFileTransformer" priority="20" description="IPython format (*.ipynb)"/>
+  </extension>
 
 </plugin>

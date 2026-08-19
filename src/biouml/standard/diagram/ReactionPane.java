@@ -294,7 +294,10 @@ public class ReactionPane extends JPanel
             {
                 component.setTitle(SpecieReference.generateSpecieReferenceName(reactionTemplate.getName(), de.getKernel().getName(), role));
                 //TODO: Think about it: in SBGN diagrams module is no needed, in some cases diagram is not in the module
-                component.setSpecie(CollectionFactory.getRelativeName(de, Module.getModule(de)));
+                DataCollection module = Module.optModule( de );
+                if( module == null )
+                    module = diagram.getOrigin();
+                component.setSpecie( CollectionFactory.getRelativeName( de, module ) );
             }
             else
             {

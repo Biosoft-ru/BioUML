@@ -57,8 +57,10 @@ public class SteadyStateAnalysisParameters extends AbstractAnalysisParameters
         this.variableNames = variableNames;
         for (VariableSet var: variableNames)
         {
+            String[] names = var.getVariableNames();
             var.setEngine(getEngineWrapper().getEngine());
             var.setDiagram(this.getDiagram());
+            var.setVariableNames( names );
         }
     }
     

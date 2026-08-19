@@ -15,6 +15,6 @@ public class InputInfo extends ExpressionInfo
     
     public String toString()
     {
-        return getName() + " = " + getExpression();
+        return getType() + " " + getName() + " = " + getExpression();
     }
 }

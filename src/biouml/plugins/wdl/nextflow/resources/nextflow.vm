@@ -1,0 +1,154 @@
+#######################################################################################
+#####################################CONSTANTS#########################################
+#######################################################################################
+#set ($BR = "
+")
+#set ($INDENT = "  ")
+#set ($QUOTE = '"')
+#######################################################################################
+#####################################MACROS############################################
+######################f#################################################################
+#macro(comma $list)
+#if($velocityCount < $list.size()),#end
+#end
+#######################################################################################
+#macro(conditionalNF $conditional)
+${BR}if( $helper.findCondition($conditional) ) {
+#foreach( $n in $helper.orderCalls($conditional) )
+#if( $helper.isCycle($n) )#scatterNF($n)
+#elseif( $helper.isCall($n) )#callNF($n)
+#elseif( $helper.isExpression($n) )#expressionNF($n)
+#elseif( $helper.isConditional($n) )#conditionalNF($n)
+#end 
+#end
+}
+#end
+#######################################################################################
+#macro(callNF $call)
+#set ($inputs = $helper.getOrderedInputs($call))
+#set($result = false)
+#set ($result = $helper.getResultName($call))
+#if ($result  && $result != "null")
+  $result = $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
+#else
+  $helper.getCallName($call)( #foreach($input in $inputs)$helper.getCallInputName($input)#comma($inputs) #end)$BR
+#end
+#end
+#######################################################################################
+#macro(scatterNF $scatter)
+$helper.describeCycle($scatter)
+#end
+#######################################################################################
+#macro(expressionNF $expression)
+#set( $rhs = $helper.getCallEmit($expression) )
+#if( $helper.getName($expression).isEmpty())
+   $rhs$BR###
+#else
+   $helper.getName($expression) = $rhs$BR##
+#end
+#end 
+#######################################################################################
+#######################################START###########################################
+#######################################################################################
+nextflow.enable.dsl=2
+#######################################################################################
+#set($functions = $helper.getFunctions())
+#if (!$functions.isEmpty())
+include { $functions } from './biouml_function.nf'
+#end
+#######################################################################################
+#foreach ( $import in $helper.getImports() )
+#if ( $import.getAlias() )
+include { $import.getName() as $import.getAlias() } from './${import.getSourceName()}.nf'
+#else
+include { $import.getName() } from './${import.getSourceName()}.nf'
+#end
+#end
+##foreach ($c in $helper.getImportedCalls())include { $helper.getTaskRef($c) as $helper.getImportedAlias($c) } from './$helper.getImportedDiagram($c)'$BR#end
+#######################################################################################
+#set ($externalParameters = $helper.getExternalParameters())
+#if ($externalParameters.size() > 0)
+#foreach( $externalParameter in $externalParameters )
+$helper.getExternalInput($externalParameter)
+#end
+#end
+#if($externalParameters.size() > 0)$BR#end
+#######################################################################################
+#######################################TASKS###########################################
+#######################################################################################
+#foreach( $task in $helper.getTasks())
+process $task.getName() {
+$helper.printDirectives($task, "  ")
+#set ($inputs = $helper.getOrderedInputs($task))
+#if ($inputs.size() > 0)
+$BR  input:
+#foreach( $input in $inputs )  $helper.getShortDeclaration($input)$BR#end
+#end
+#set ($outputs = $helper.getOutputs($task))
+#if ($outputs.size() > 0)
+$BR  output:
+#foreach( $output in $outputs )
+  $helper.getType($output) $helper.getExpression($output),#if($helper.isOptional($output)) optional: true,#end emit: $helper.getName($output)
+#end
+#end
+#if ($helper.getCommand($task) || $helper.getPrivateDeclarations($task).size() > 0)
+#set( $scriptType = $helper.getCommandType($task) )
+$BR  $scriptType:
+#foreach($declaration in $helper.getPrivateDeclarations($task))
+  $helper.writePrivateDeclaration($declaration)
+#end
+#if ($helper.getCommand($task) )
+#if ($helper.commandNeedsQuotes($scriptType))
+  """
+#end
+  $helper.getCommand($task).trim()
+#if ($helper.commandNeedsQuotes($scriptType))
+  """
+#end
+#end
+#end
+}$BR
+#end
+#######################################################################################
+###################################WORKFLOWS###########################################
+#######################################################################################
+#foreach ( $workflow in $helper.getWorkflows() )
+workflow $helper.getWorkflowName($workflow) {
+#set ($externalParameters = $helper.getExternalParameters($workflow))
+#if ($externalParameters.size() > 0)
+$BR  take:
+#foreach( $externalParameter in $externalParameters )
+  $helper.getName($externalParameter)
+#end
+#end
+#set ($calls = $helper.orderCalls($workflow))
+#if (!$calls.isEmpty())
+$BR  main:
+#foreach( $n in $calls)
+#if( $helper.isCycle($n) )#scatterNF($n)
+#elseif( $helper.isCall($n) )#callNF($n)
+#elseif( $helper.isExpression($n) )#expressionNF($n)
+#elseif( $helper.isConditional($n) )#conditionalNF($n)
+#end
+#end 
+#end
+#set ($externalOutputs = $helper.getExternalOutputs($workflow))
+#if ($externalOutputs.size() > 0)
+  emit: 
+#foreach( $externalOutput in $externalOutputs )
+#if ( $helper.getOutputExpression($externalOutput) )
+  $helper.getName($externalOutput) = $helper.getOutputExpression($externalOutput)
+#else
+  $helper.getName($externalOutput)
+#end  
+#end
+#end
+}$BR
+#end
+################################ENTRY WORKFLOW#########################################
+#if ( $helper.getWorkflows().size() > 0 )
+workflow {
+$helper.getWorkflowName($diagram) ( #foreach($ep in $externalParameters)$helper.getEntryInput($ep)#comma($externalParameters) #end )
+$helper.generateWorkflowPublish( $diagram )
+}
+#end

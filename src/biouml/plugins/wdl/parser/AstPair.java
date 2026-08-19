@@ -11,6 +11,21 @@ class AstPair extends SimpleNode {
   public AstPair(WDLParser p, int id) {
     super(p, id);
   }
+  
+  public AstExpression[] toPair()
+  {
+      AstExpression[] result = new AstExpression[2];
+  
+      int i = 0;
+      for (Node child: this.getChildren())
+      {
+          if (child instanceof AstExpression)
+          {
+              result[i++] = (AstExpression)child;
+          }
+      }
+      return result;
+  }
 
 }
 /* JavaCC - OriginalChecksum=76edd9de486f008b6009147a1ed70a1e (do not edit this line) */

@@ -109,7 +109,7 @@ function FiltersViewPart()
         });
         toolbarBlock.append(this.removeAction);
         
-        this.exportAction = createToolbarButton(resources.vpTableFilterButtonExport, "export.gif");
+        this.exportAction = createToolbarButton(resources.vpTableFilterButtonExport, "saveas.gif");
         this.exportAction.click(function()
         {
             _this.exportActionClick();

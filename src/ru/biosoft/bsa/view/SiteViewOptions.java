@@ -237,7 +237,7 @@ public class SiteViewOptions extends OptionEx implements JSONBean
         firePropertyChange("boxHeight", oldValue, boxHeight);
     }
     
-    private int maxProfileHeight = 200;
+    private int maxProfileHeight = 70;
 
     /**
      * @return the maxProfileHeight

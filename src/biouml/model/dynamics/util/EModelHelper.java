@@ -338,12 +338,11 @@ public class EModelHelper
             {
                 for( Curve c : plot.getYVariables() )
                 {
-                    String name = c.getName();
-                    if( name.equals( oldName ) )
-                        c.setName( newName );
+                    if( c.getVariableName().equals( oldName ) && c.getActualEModel().equals( model ) )
+                        c.setVariableName( newName );
                 }
-                if( plot.getXVariable().getName().equals( oldName ) )
-                    plot.getXVariable().setName( newName );
+                if( plot.getXVariable().getVariableName().equals( oldName ) && plot.getXVariable().getActualEModel().equals( model ) )
+                    plot.getXVariable().setVariableName( newName );
             }
         }
     }

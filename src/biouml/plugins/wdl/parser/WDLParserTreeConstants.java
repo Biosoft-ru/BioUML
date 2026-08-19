@@ -22,9 +22,9 @@ public interface WDLParserTreeConstants
   public int JJTCOMMAND = 16;
   public int JJTBASHSTRING = 17;
   public int JJTCALL = 18;
-  public int JJTSYMBOL = 19;
-  public int JJTINPUT = 20;
-  public int JJTSUBSYMBOL = 21;
+  public int JJTINPUT = 19;
+  public int JJTSUBSYMBOL = 20;
+  public int JJTSYMBOL = 21;
   public int JJTEQUAL = 22;
   public int JJTRUNTIME = 23;
   public int JJTHINTS = 24;
@@ -71,9 +71,9 @@ public interface WDLParserTreeConstants
     "Command",
     "BashString",
     "Call",
-    "Symbol",
     "Input",
     "SubSymbol",
+    "Symbol",
     "Equal",
     "Runtime",
     "Hints",
@@ -100,4 +100,4 @@ public interface WDLParserTreeConstants
     "Pair",
   };
 }
-/* JavaCC - OriginalChecksum=b2d144a2a2279678e431864c0cf3c2c3 (do not edit this line) */
+/* JavaCC - OriginalChecksum=d97bf88a34f1d67514fa8d3d2f4745b4 (do not edit this line) */

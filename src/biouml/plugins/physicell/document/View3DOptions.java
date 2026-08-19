@@ -68,11 +68,11 @@ public class View3DOptions extends Option
     }
 
     @PropertyName ( "Heading" )
-    public int getHead()
+    public int getHeading()
     {
         return head;
     }
-    public void setHead(int head)
+    public void setHeading(int head)
     {
         head = Util.restrict( head, 180 );
         int oldValue = this.head;

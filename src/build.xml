@@ -40,12 +40,15 @@
         <property name="JAVADOC_OUTDIR" value="${TOPDIR}/javadoc" />
 
         <property name="VERSION" value="2025.2"/>
-        <property name="PUBLIC_VERSION" value="2025.2" />
+        <property name="PUBLIC_VERSION" value="2026.1" />
         
         <property name="PLUGIN_DIR" value="${TOPDIR}/plugins" />
         <property name="PLUGIN_CONFIG_DIR" value="${TOPDIR}/plugconfig" />
         <property name="DEFAULT_DATABASE_SERVER" value="localhost"/>
 
+    	 <!-- Path to IzPack libraries (not included into BioUML as of now) -->
+    	<property name="IZ_PACK_LIB" value = "C:/Program Files/IzPack/lib"/>
+    	
         <!-- Libraries -->
         <property name="STARTUP_JAR" value="${PLUGIN_DIR}/org.eclipse.equinox.launcher_1.4.0.v20161219-1356.jar" />
         <property name="ECLIPSE_JARS" value="${PLUGIN_DIR}/org.eclipse.core.contenttype_3.6.0.v20170207-1037.jar;${PLUGIN_DIR}/org.eclipse.core.jobs_3.9.0.v20170322-0013.jar;${PLUGIN_DIR}/org.eclipse.core.runtime_3.13.0.v20170207-1030.jar;${PLUGIN_DIR}/org.eclipse.equinox.preferences_3.7.0.v20170126-2132.jar;${PLUGIN_DIR}/org.eclipse.equinox.registry_3.7.0.v20170222-1344.jar;${PLUGIN_DIR}/org.eclipse.equinox.launcher_1.4.0.v20161219-1356.jar;${PLUGIN_DIR}/org.eclipse.equinox.common_3.9.0.v20170207-1454.jar;${PLUGIN_DIR}/org.eclipse.osgi_3.12.0.v20170512-1932.jar;${PLUGIN_DIR}/org.eclipse.update.configurator_3.3.100.v20100512.jar;${PLUGIN_DIR}/org.eclipse.equinox.app_1.3.400.v20150715-1528.jar" />
@@ -100,8 +103,8 @@
         <property name="SMACK" value="${PLUGIN_DIR}/org.jivesoftware.smack_1.0.0/smack.jar;${PLUGIN_DIR}/org.jivesoftware.smack_1.0.0/smackx.jar" />
         <property name="JOBCONTROL" value="${PLUGIN_DIR}/ru.biosoft.jobcontrol-2.0.0.jar;" />
         <property name="EXCEPTION" value="${PLUGIN_DIR}/ru.biosoft.exception-1.0.0.jar;" />
-        <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.1.jar;" />
-        <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-2.0.1.jar;" />
+        <property name="ACCESSCORE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.core-2.0.2.jar;" />
+        <property name="ACCESSFILE" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.access.file-2.0.2.jar;" />
         <property name="RTREE" value="${PLUGIN_DIR}/ru.biosoft.rtree-0.0.1.jar" />
         <property name="BIGBED" value="${PLUGIN_DIR}/ru.biosoft.bigbed-1.0.0.jar" />
         <property name="UTIL" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.access/ru.biosoft.util-2.0.0.jar" />
@@ -217,13 +220,13 @@
         <echo message="Compiling BioUML Library..." />
         <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${BUILD_CLASSPATH}" debug="on" deprecation="off" optimize="off" includeantruntime="false"  encoding="UTF-8"  nowarn="on">
             <include name="**/*.java" />
-	    <exclude name="**/_test/*.java" />
-	    <exclude name="**/target/**" />
+            <exclude name="**/_test/*.java" />
+            <exclude name="**/target/**" />
         </javac>
         <copy todir="${OUTDIR}">
             <fileset dir="${SRCDIR}" includes="**/*.gif,**/*.jpg,**/*.xml,**/*.html,**/*.png,**/*.txt,**/*.json,**/*.sql,**/*.R,**/*.yaml,**/*.nf">
-		    <exclude name="**/large/"/>
-		    <exclude name="**/target/**" />
+                <exclude name="**/large/"/>
+                <exclude name="**/target/**" />
             </fileset>
         </copy>
         <if>
@@ -972,6 +975,7 @@
         <create.plugin plugin="biouml.plugins.wdl" source="biouml/plugins/wdl">
         	<files>
                 <include name="biouml/plugins/wdl/**/*.nf"/>
+                <include name="biouml/plugins/wdl/**/*.wdl"/>
             </files>
         </create.plugin>
     </target>
@@ -1269,6 +1273,40 @@
     </target>
 
     <!-- =================================================================== -->
+    <!-- Generates BioUML Installer                                          -->
+    <!-- =================================================================== -->
+    	
+    <target name="installer" depends="plugin.all">
+        <property name="INSTALLER_DIR" location="${TOPDIR}/installer(IzPack)"/>
+        <copy file="${INSTALLER_DIR}/install.xml" todir="${OUTDIR}">
+            <filterchain>
+                <tokenfilter>
+                    <replacestring from="$PUBLIC_VERSION$" to="${PUBLIC_VERSION}" />
+                    <replacestring from="$VERSION$" to="${VERSION}" />
+                </tokenfilter>
+            </filterchain>
+        </copy>
+
+        <taskdef name="IzPack" classname="com.izforge.izpack.ant.IzPackTask">
+            <classpath>
+	            <fileset dir="${IZ_PACK_LIB}">
+                    <include name="izpack-ant-*.jar"/>
+                    <include name="izpack-compiler-*.jar"/>
+                    <include name="izpack-core-*.jar"/>
+                    <include name="izpack-api-*.jar"/>
+                    <include name="izpack-util-*.jar"/>
+			        <include name="*.jar"/>
+		       </fileset>
+	       </classpath>
+        </taskdef>
+        <IzPack input="${OUTDIR}/install.xml"
+                output="${INSTALLER_DIR}/BioUML-${PUBLIC_VERSION}-install.jar"
+                installerType="standard"
+                basedir="${INSTALLER_DIR}"
+                IzPackDir="${INSTALLER_DIR}"/>
+     </target>
+	
+    <!-- =================================================================== -->
     <!-- Compiles and run regression tests                                   -->
     <!-- =================================================================== -->
 
@@ -1276,8 +1314,8 @@
         <property name="TEST_CLASSPATH" value="${BUILD_CLASSPATH};${JUNIT};${JUNITX};${JUNIT5};${COMMON}" />
         <echo message="Building Tests..." />
         <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${TEST_CLASSPATH}" debug="on" deprecation="off" optimize="off" encoding="UTF-8">
-		<include name="**/_test/*.java" />
-		<exclude name="**/target/**" />
+            <include name="**/_test/*.java" />
+            <exclude name="**/target/**" />
         </javac>
     </target>
 

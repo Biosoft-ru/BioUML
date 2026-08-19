@@ -6,7 +6,7 @@ public class AstRegularFormulaElement extends SimpleNode
 {
     private String element;
     private boolean isNumber = false;
-    private boolean isVariable;
+    public boolean isVariable;
 
     public AstRegularFormulaElement(int id)
     {

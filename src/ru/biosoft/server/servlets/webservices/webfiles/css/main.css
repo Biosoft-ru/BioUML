@@ -395,7 +395,7 @@ input.cellControl {
 	right: 5px;
 	overflow: hidden;
 	position: absolute;
-	text-indent: 18px;
+    padding-left: 18px;
 	min-height: 16px;
 	cursor: pointer;
 	text-decoration: none;

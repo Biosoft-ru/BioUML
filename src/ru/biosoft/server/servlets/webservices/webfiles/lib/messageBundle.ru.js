@@ -363,6 +363,7 @@ var resourcesRU = {
     dlgCreatePrjTitle : "Создать новый проект",
     dlgCreatePrjCreated : "Проект {name} успешно создан",
     dlgCreatePrjName: "Имя проекта:",
+    dlgCreatePrjType: "Тип проекта:",
     dlgCreatePrjDescription: "Описание:",
     dlgCreatePrjDescriptionPlaceholder: "Введите описание проекта здесь",
 
@@ -522,7 +523,7 @@ var resourcesRU = {
     vpTableFilterTitle: "Фильтры",
     vpTableFilterButtonApply: "Применить фильтры",
     vpTableFilterButtonClear: "Удалить фильтры",
-    vpTableFilterButtonExport: "Экспортировать отфильтрованную таблицу",
+    vpTableFilterButtonExport: "Сохранить отфильтрованную таблицу как...",
     vpTableFilterSaveDialogTitle: "Укажите имя экспортируемой таблицы",
 
     vpTableDetailsTitle: "Детали",
@@ -628,6 +629,8 @@ var resourcesRU = {
     vpOptVariables: "Переменные",
     vpOptEntities: "Сущности",
     vpOptSimulation: "Симуляция",
+    vpOptimizationWaitForResults: "Оптимизация остановлена, но результаты еще обрабатываются. Пожалуйста, подождите.",
+    vpOptimizationRefreshDiagram: "Обновить модель из диаграммы",
 
     vpExperimentsSaved: "Эксперимент {expname} сохранен",
     
@@ -643,6 +646,11 @@ var resourcesRU = {
     vpGitConsoleTitle: "Консоль Git",
     vpGitConsoleRun: "Выполнить",
     vpGitConsoleClose: "Закрыть консоль",
+    vpGitConsolePull: "Pull",
+    vpGitConsolePush: "Push",
+    vpGitConsoleCommit: "Commit",
+    vpGitConsoleStatus: "Status",
+    dlgGitCommitMessage: "Введите сообщение для коммита",
 
     /* Analysis document (prefix: an) */
     anLoading: "Загрузка свойств...",

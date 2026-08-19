@@ -329,12 +329,12 @@ public class CWLParser
             String sourcePortName = parts[1];
             Node sourceCall = WorkflowUtil.findCall( sourceCallName, diagram );
             Node sourcePort = (Node) ( (Compartment)sourceCall ).get( sourcePortName );
-            DiagramGenerator.createLink( sourcePort, node, WDLConstants.LINK_TYPE );
+            DiagramGenerator.createLink( sourcePort, node);
         }
         else
         {
             Node source = diagram.findNode( expression );
-            DiagramGenerator.createLink( source, node, WDLConstants.LINK_TYPE );
+            DiagramGenerator.createLink( source, node );
         }
     }
 

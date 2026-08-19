@@ -4,7 +4,7 @@ params.person_name = "Alice"
 params.question = "How are you?"
 
 process ask_how_are_you {
-
+  
   input :
   path greeting_file
   val question
@@ -24,6 +24,7 @@ process ask_how_are_you {
 
 process say_hello {
 
+  
   input :
   val name
 

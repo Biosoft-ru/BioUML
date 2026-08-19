@@ -122,7 +122,8 @@ public class BrainCellularModelDeployer
         point.translate(0, yGroupOffset);
         
         // Input current dynamic
-        String uFormula = "g_K_l*(V_K - V_K0) + SF*G_syn*FR*(SR - 0.5) + SF*sigma*noise(1.0)/sqrt(1000.0)";
+        //String uFormula = "g_K_l*(V_K - V_K0) + SF*G_syn*FR*(SR - 0.5) + SF*sigma*noise(1.0)/sqrt(1000.0)";
+        String uFormula = "g_K_l*(V_K - V_K0) + SF*G_syn*FR*(SR - 0.5) + SF*sigma*stochastic(\"normal\",0,1)*sqrt(0.001)";
         BrainUtils.createEquation("Input_current", "u", uFormula,
                 Equation.TYPE_SCALAR, diagramEq, point);
         point.translate(0, yLocalOffset);
@@ -666,7 +667,8 @@ public class BrainCellularModelDeployer
         point.translate(0, yGroupOffset);
         
         // Input current dynamic
-        String uFormula = "g_K_l*(V_K - V_K0) + SF*G_syn*FR*(SR - 0.5) + SF*sigma*noise(1.0)/sqrt(1000.0)";
+        //String uFormula = "g_K_l*(V_K - V_K0) + SF*G_syn*FR*(SR - 0.5) + SF*sigma*noise(1.0)/sqrt(1000.0)";
+        String uFormula = "g_K_l*(V_K - V_K0) + SF*G_syn*FR*(SR - 0.5) + SF*sigma*stochastic(\"normal\",0,1)*sqrt(0.001)";
         BrainUtils.createEquation("Input_current", "u", uFormula,
                 Equation.TYPE_SCALAR, diagramEq, point);
         point.translate(0, yLocalOffset);

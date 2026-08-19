@@ -40,7 +40,7 @@ public class SdeEModel extends EModel
     
     // Auxiliary names created to support expressions in "stochastic" function. 
     public static final String STOCHASTIC_FUNCTION_NAME = "stochastic";
-    public static final String STOCHASTIUC_AUX_VARIABLE_NAME = "AUX_" + STOCHASTIC_FUNCTION_NAME;
+    public static final String STOCHASTIC_AUX_VARIABLE_NAME = "AUX_" + STOCHASTIC_FUNCTION_NAME;
 
     public static final String SDE_EMODEL_TYPE_STRING = "SDE EModel";
     
@@ -294,8 +294,8 @@ public class SdeEModel extends EModel
                     
                     //if (eq.getFormula().indexOf(STOCHASTIC_FUNCTION_NAME) != -1)
                     
-                    //if (eq.getVariable().indexOf(STOCHASTIUC_AUX_VARIABLE_NAME) != -1)
-                    if (eq.getVariable().indexOf(STOCHASTIUC_AUX_VARIABLE_NAME) != -1)
+                    //if (eq.getVariable().indexOf(STOCHASTIC_AUX_VARIABLE_NAME) != -1)
+                    if (eq.getVariable().indexOf(STOCHASTIC_AUX_VARIABLE_NAME) != -1)
                     {
                         list.add(new StochasticExpression(eq.getVariable(), role)); 
                     }
@@ -308,7 +308,7 @@ public class SdeEModel extends EModel
 //                        .forEach(as -> list.add(new StochasticExpression(as.getVariable(), role)));
                     
                     StreamEx.of(ev.getEventAssignment())
-                    	.filter(as -> as.getExpressions()[0].indexOf(STOCHASTIUC_AUX_VARIABLE_NAME) != -1)
+                    	.filter(as -> as.getExpressions()[0].indexOf(STOCHASTIC_AUX_VARIABLE_NAME) != -1)
                     	.forEach(as -> list.add(new StochasticExpression(as.getVariable(), role)));
                 }
             }
