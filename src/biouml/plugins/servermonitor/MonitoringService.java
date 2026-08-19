@@ -49,6 +49,9 @@ public class MonitoringService {
         if (running) return;
         running = true;
 
+        // Ensure profiler directory exists (falls back to /tmp/profiling if needed)
+        config.ensureProfilerDir();
+
         // Initialize profiler
         profiler.init();
 
@@ -340,10 +343,22 @@ public class MonitoringService {
     private String buildProfilePath(String taskId, String format) {
         File dir = new File(config.getProfilerDir());
         if (!dir.exists()) {
-            try {
-                dir.mkdirs();
-            } catch (Exception e) {
-                log.log(Level.WARNING, "Error creating profile directory: " + dir.getAbsolutePath(), e);
+            if (!dir.mkdirs()) {
+                File parent = dir.getParentFile();
+                if (parent != null) {
+                    log.log(Level.WARNING,
+                            "MonitoringService: failed to create profiler directory " + dir.getAbsolutePath()
+                                    + "; parent folder=" + parent.getAbsolutePath()
+                                    + " exists=" + parent.exists()
+                                    + " canWrite=" + parent.canWrite()
+                                    + " — falling back to /tmp/profiling");
+                } else {
+                    log.log(Level.WARNING,
+                            "MonitoringService: failed to create profiler directory " + dir.getAbsolutePath()
+                                    + " (no parent folder) — falling back to /tmp/profiling");
+                }
+                config.ensureProfilerDir();
+                dir = new File(config.getProfilerDir());
             }
         }
 

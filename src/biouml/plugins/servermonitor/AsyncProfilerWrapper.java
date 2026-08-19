@@ -345,9 +345,26 @@ public class AsyncProfilerWrapper {
 
         try {
             if (!dir.exists()) {
+                // Directory should already exist after ensureProfilerDir(),
+                // but create it here as a safety net.
                 if (!dir.mkdirs()) {
-                    log.warning("AsyncProfilerWrapper: failed to create profiler directory: " + downloadDir);
-                    return false;
+                    File parent = dir.getParentFile();
+                    if (parent != null) {
+                        log.log(Level.SEVERE,
+                                "AsyncProfilerWrapper: failed to create profiler directory " + dir.getAbsolutePath()
+                                        + "; parent folder=" + parent.getAbsolutePath()
+                                        + " exists=" + parent.exists()
+                                        + " canWrite=" + parent.canWrite()
+                                        + " — falling back to /tmp/profiling");
+                    } else {
+                        log.log(Level.SEVERE,
+                                "AsyncProfilerWrapper: failed to create profiler directory " + dir.getAbsolutePath()
+                                        + " (no parent folder) — falling back to /tmp/profiling");
+                    }
+                    // Trigger fallback
+                    config.ensureProfilerDir();
+                    downloadDir = config.getProfilerDir();
+                    dir = new File(downloadDir);
                 }
             }
 
@@ -490,7 +507,23 @@ public class AsyncProfilerWrapper {
     private String buildOutputPath(String baseName, String format) {
         File dir = new File(config.getProfilerDir());
         if (!dir.exists()) {
-            dir.mkdirs();
+            if (!dir.mkdirs()) {
+                File parent = dir.getParentFile();
+                if (parent != null) {
+                    log.log(Level.WARNING,
+                            "AsyncProfilerWrapper: failed to create profiler directory " + dir.getAbsolutePath()
+                                    + "; parent folder=" + parent.getAbsolutePath()
+                                    + " exists=" + parent.exists()
+                                    + " canWrite=" + parent.canWrite()
+                                    + " — falling back to /tmp/profiling");
+                } else {
+                    log.log(Level.WARNING,
+                            "AsyncProfilerWrapper: failed to create profiler directory " + dir.getAbsolutePath()
+                                    + " (no parent folder) — falling back to /tmp/profiling");
+                }
+                config.ensureProfilerDir();
+                dir = new File(config.getProfilerDir());
+            }
         }
         return dir.getAbsolutePath() + "/" + baseName + "." + format;
     }
