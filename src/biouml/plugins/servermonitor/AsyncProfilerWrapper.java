@@ -18,8 +18,6 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 /**
  * Wrapper for async-profiler integration.
@@ -33,8 +31,8 @@ public class AsyncProfilerWrapper {
     private static final String PROFILER_VERSION = "v3.0";
     private static final String PROFILER_URL = "https://github.com/async-profiler/async-profiler/releases/download/"
             + PROFILER_VERSION + "/async-profiler-3.0-linux-x64.tar.gz";
-    // Directory name inside the tarball (matches tarball name minus .tar.gz)
-    private static final String PROFILER_DIR_NAME = "async-profiler-3.0-linux-x64";
+    // Directory name inside the tarball (no 'v' prefix)
+    private static final String PROFILER_DIR_NAME = "async-profiler-3.0";
 
     private final ServerMonitorConfig config;
     private String profilerPath;
@@ -457,45 +455,93 @@ public class AsyncProfilerWrapper {
     }
 
     /**
-     * Extract a tar.gz archive using Apache Commons Compress.
+     * Extract a tar.gz archive using pure Java (no external tar command needed).
      */
     private void extractTarball(File tarball, File destDir) throws IOException {
-        log.info("AsyncProfilerWrapper: extracting tarball with Apache Commons Compress");
+        log.info("AsyncProfilerWrapper: extracting tarball with pure Java extractor");
         try (InputStream fis = Files.newInputStream(tarball.toPath());
-             GZIPInputStream gzis = new GZIPInputStream(fis);
-             TarArchiveInputStream tais = new TarArchiveInputStream(gzis)) {
-            TarArchiveEntry entry;
-            int entryCount = 0;
-            while ((entry = tais.getNextTarEntry()) != null) {
-                String name = entry.getName();
-                // Sanitize: strip leading ./ or /
-                while (name.startsWith("./") || name.startsWith("/")) {
-                    name = name.substring(1);
-                }
-                if (name.isEmpty()) continue;
+             GZIPInputStream gzis = new GZIPInputStream(fis)) {
+            extractTar(gzis, destDir);
+        }
+    }
 
-                File outFile = new File(destDir, name);
-                File parent = outFile.getParentFile();
-                if (parent != null && !parent.exists()) {
-                    parent.mkdirs();
-                }
+    /**
+     * Extract a tar archive from the given stream.
+     * Each tar entry is 512 bytes. File names are null-terminated in the first 100 bytes.
+     * File size is in octal in bytes 124-135. Data follows, padded to 512-byte blocks.
+     */
+    private void extractTar(InputStream in, File destDir) throws IOException {
+        byte[] header = new byte[512];
+        int read;
 
-                if (entry.isDirectory()) {
-                    outFile.mkdirs();
-                    log.fine("AsyncProfilerWrapper: extracted dir: " + outFile.getPath());
-                } else {
-                    try (FileOutputStream fos = new FileOutputStream(outFile)) {
-                        byte[] buf = new byte[8192];
-                        int n;
-                        while ((n = tais.read(buf)) != -1) {
-                            fos.write(buf, 0, n);
-                        }
-                    }
-                    log.fine("AsyncProfilerWrapper: extracted file: " + outFile.getPath() + " (" + entry.getSize() + " bytes)");
-                }
-                entryCount++;
+        while ((read = in.read(header)) >= 0) {
+            // End of archive marker: two consecutive 512-byte blocks of zeros
+            boolean allZero = true;
+            for (int i = 0; i < 512; i++) {
+                if (header[i] != 0) { allZero = false; break; }
             }
-            log.info("AsyncProfilerWrapper: extracted " + entryCount + " entries");
+            if (allZero) break;
+
+            if (read < 512) break;
+
+            // Parse file name (bytes 0-99, null-terminated)
+            int nameEnd = 0;
+            while (nameEnd < 100 && header[nameEnd] != 0) nameEnd++;
+            String name = new String(header, 0, nameEnd);
+            if (name.isEmpty()) continue;
+
+            // Sanitize: strip leading ./ or /
+            while (name.startsWith("./") || name.startsWith("/")) {
+                name = name.substring(1);
+            }
+            if (name.isEmpty()) continue;
+
+            // Parse size (bytes 124-135, octal)
+            long size = 0;
+            for (int i = 124; i < 136; i++) {
+                byte b = header[i];
+                if (b == 0 || b == ' ') break;
+                if (b >= '0' && b <= '9') {
+                    size = size * 8 + (b - '0');
+                }
+            }
+
+            // Parse type flag (byte 156): '0' = file, '5' = directory, '' = file
+            char typeFlag = (header[156] == 0) ? '0' : (char) header[156];
+
+            File outFile = new File(destDir, name);
+            File parent = outFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+
+            if (typeFlag == '5') {
+                // Directory entry
+                outFile.mkdirs();
+                log.fine("AsyncProfilerWrapper: extracted dir: " + outFile.getPath());
+            } else {
+                // File entry — read size bytes
+                try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                    long remaining = size;
+                    byte[] buf = new byte[Math.min((int) Math.min(remaining, 8192), 8192)];
+                    while (remaining > 0) {
+                        int toRead = (int) Math.min(remaining, buf.length);
+                        int n = in.read(buf, 0, toRead);
+                        if (n <= 0) break;
+                        fos.write(buf, 0, n);
+                        remaining -= n;
+                    }
+                }
+                log.fine("AsyncProfilerWrapper: extracted file: " + outFile.getPath() + " (" + size + " bytes)");
+            }
+
+            // Skip remaining data in this entry (padded to 512-byte boundary)
+            long dataBytes = (size + 511) / 512 * 512;
+            while (dataBytes > 0) {
+                long skipped = in.skip(dataBytes);
+                if (skipped <= 0) break;
+                dataBytes -= skipped;
+            }
         }
     }
 
