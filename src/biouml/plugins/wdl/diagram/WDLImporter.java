@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -16,6 +17,7 @@ import com.developmentontheedge.beans.Option;
 import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
+import biouml.plugins.wdl.FileScriptLoader;
 import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.plugins.wdl.model.CallInfo;
@@ -93,15 +95,24 @@ public class WDLImporter implements DataElementImporter
         try (FileInputStream in = new FileInputStream( file );
                 InputStreamReader reader = new InputStreamReader( in, StandardCharsets.UTF_8 ))
         {
-            Diagram diagram = generateDiagram( file, name, parent );
+            
+            if (scriptLoader == null)
+                scriptLoader = new FileScriptLoader( ScriptLoader.WDL_TYPE, file.getParentFile() );
+            
+            String text = ApplicationUtils.readAsString( file );
+            ScriptInfo info = readScript( name, text );
+            DiagramGenerator generator = new DiagramGenerator();
+            Diagram main = generator.generateDiagram( info, parent, name );
+            
+            Map<String, Diagram> diagrams = generator.getAllImports();
 
             if( jobControl != null )
                 jobControl.functionFinished();
 
-            new WDLLayouter().layout( diagram );
-            CollectionFactoryUtils.save( diagram );
+            for( Diagram diagram : diagrams.values() )
+                CollectionFactoryUtils.save( diagram );
 
-            return diagram;
+            return main;
         }
         catch( Exception e )
         {
@@ -122,13 +133,13 @@ public class WDLImporter implements DataElementImporter
         Diagram result = new WDLDiagramType().createDiagram( dc, name );
         return generateDiagram( wdl, result );
     }
-
+//
     public Diagram generateDiagram(String wdl, Diagram diagram) throws Exception
     {
         ScriptInfo info = readScript( diagram.getName(), wdl );
         return new DiagramGenerator().generateDiagram( info, diagram );
     }
-    
+//    
     public ScriptInfo readScript(String name, String text) throws Exception
     {
         text = processContent(text);

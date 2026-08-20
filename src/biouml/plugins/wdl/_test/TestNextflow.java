@@ -27,6 +27,7 @@ import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowImporter;
 import biouml.plugins.wdl.nextflow.NextFlowPreprocessor;
 import biouml.plugins.wdl.nextflow.NextFlowRunner;
+import biouml.plugins.wdl.nextflow.NextflowSettings;
 import one.util.streamex.StreamEx;
 import biouml.plugins.wdl.FileScriptLoader;
 import biouml.plugins.wdl.ScriptLoader;
@@ -40,11 +41,14 @@ public class TestNextflow
 {
     private static boolean validateWDL = true;
     private static String WOM_TOOL_PATH = "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/wdl/womtool-92.jar";
-
+    private static NextflowSettings settings = new NextflowSettings();
+    {
+        settings.setPublishOutput( NextflowSettings.COPY );
+        settings.setStageInput( NextflowSettings.COPY );
+    }
     public boolean executeNextflow = true;
     private File testsDir;
     private File resultsDir;
-    private File nextflowResultsDir = null;
     private WorkflowReportGenerator workflowReportGenerator = new WorkflowReportGenerator();
     private List<TestResult> testResults = new ArrayList<>();
     private File yamlFile = null;
@@ -228,28 +232,13 @@ public class TestNextflow
     {
         System.out.println( "TESTING " + name );
         File testDir = new File( testsDir, name );
-        nextflowResultsDir = new File( new File( resultsDir, name), "output");
+//        nextflowResultsDir = new File( new File( resultsDir, name), "output");
         String originalNextflow = ApplicationUtils.readAsString( new File( testDir, name + ".nf" ) );
         Diagram diagram = new NextFlowImporter().importNextflow( originalNextflow );
         NextFlowGenerator nextFlowGenerator = new NextFlowGenerator();
-        nextFlowGenerator.setPublishOutput( true );
         String nextflow = nextFlowGenerator.generate( diagram );
         System.out.println( nextflow );
     }
-
-    //    outputs:
-    //        quoteWorkflow.str_output:
-    //          type: Array[String]
-    //          value: ['"value1"', '"value2"', '"value3"']
-    //        quoteWorkflow.int_output:
-    //          type: Array[String]
-    //          value: ['"1"', '"2"', '"-3"']
-    //        quoteWorkflow.float_output:
-    //          type: Array[String]
-    //          value: ['"1.234000"', '"-0.543000"', '"-13.300000"']
-    //        quoteWorkflow.bool_output:
-    //          type: Array[String]
-    //          value: ['"true"', '"false"', '"true"']
 
     public static class WorkflowTestResults
     {
@@ -338,23 +327,6 @@ public class TestNextflow
     {
         test( testName, "TBA", new File( testsDir, testName ), testName + ".wdl", testName + ".json" , new HashSet<>());
     }
-    
-//    public void createFiles(File testDir, String wdlName) throws Exception
-//    {
-//        String name = testDir.getName();
-//
-//        //            File testDir = new File( testDir, wdlName );
-//        String originalWDL = ApplicationUtils.readAsString( new File( testDir, wdlName ) );
-//        Diagram diagram = null;
-//        String nextflow = null;
-//        String generatedWDL = null;
-//        String validated = null;
-//        String roundWDL = null;
-//        File resultDir = new File( resultsDir, name );
-//        resultDir.mkdirs();
-//
-//        copyFiles( testDir, resultDir );
-//    }
 
     public void test(String id, String description, File testDir, String wdlName, String jsonName, Set<WorkflowTestResult> expected)
     {
@@ -365,7 +337,6 @@ public class TestNextflow
         testResult.setDescrption( description );
         try
         {
-//                        File testDir = new File( testDir, wdlName );
             String originalWDL = ApplicationUtils.readAsString( new File( testDir, wdlName ) );
             Diagram diagram = null;
             String nextflow = null;
@@ -374,7 +345,6 @@ public class TestNextflow
             String roundWDL = null;
             File resultDir = new File( resultsDir, id );
             resultDir.mkdirs();
-           nextflowResultsDir = new File(resultDir, "output");
         
             copyFiles( testDir, resultDir );
 
@@ -431,7 +401,8 @@ public class TestNextflow
                     
                     String relPath = suiteDir.toPath().relativize( resultDir.toPath() ).toString().replace( "\\", "/" )+"/output";
                     nextFlowGenerator.setPublishDir( relPath);
-                    nextFlowGenerator.setPublishOutput( true );
+                    nextFlowGenerator.setNextflowSettings( settings );
+                    nextFlowGenerator.setResultPath( "results/" + diagram.getName() + "/output/" );
                     nextflow = nextFlowGenerator.generate( diagram );
                     if( nextflow != null )
                         testResult.setNextflowGenerated( TestUtil.TEST_OK );
@@ -440,6 +411,7 @@ public class TestNextflow
                 catch( Exception ex )
                 {
                     testResult.setNextflowGenerated( ex.toString() );
+                    ex.printStackTrace();
                 }
 
                 //5. Execute nextflow
@@ -467,14 +439,16 @@ public class TestNextflow
                         results.add( error );
                 }
 
-                if( results.isEmpty() )
-                    testResult.setNextflowChecked( "Ok" );
-                else
+                if( TestUtil.TEST_OK.equals( testResult.getNextflowExecuted() ) )
                 {
-                    testResult.setNextflowChecked( StreamEx.of(results).joining("\n") );
-                    System.out.println( StreamEx.of(results).joining("\n") );
+                    if( results.isEmpty() )
+                        testResult.setNextflowChecked( "Ok" );
+                    else
+                    {
+                        testResult.setNextflowChecked( StreamEx.of( results ).joining( "\n" ) );
+                        System.out.println( StreamEx.of( results ).joining( "\n" ) );
+                    }
                 }
-
                 //6. Validate WDL (optional)
                 if( !validateWDL )
                     validated = "N/A";
@@ -551,6 +525,9 @@ public class TestNextflow
         {
             NextFlowRunner.generateFunctions( resultDir.getCanonicalPath() );
 
+                    
+            File configFile = NextFlowRunner.generateConfig( "nextflow", resultDir , settings);
+            
             for( String imported : imports )
             {
                 File file = new File( testDir, imported + ".nf" );
@@ -560,24 +537,23 @@ public class TestNextflow
 
             File f = new File( resultDir, name + ".nf" );
             ApplicationUtils.writeString( f, script );
-
+            Path basePath = baseDir.toPath();
+            String configPath = basePath.relativize(configFile.toPath() ).toString().replace( "\\", "/" );
+            String wdlRelPath = basePath.relativize( f.toPath() ).toString().replace( "\\", "/" );
+           
             ProcessBuilder builder = null;
-
             if( jsonName != null )
             {
                 File oldJson = new File( resultDir, jsonName );
                 File nfJson = new File( resultDir, f.getName() + ".json" );
                 ApplicationUtils.writeString( nfJson, NextFlowPreprocessor.processJson( ApplicationUtils.readAsString( oldJson ) ) );
-
-                Path basePath = baseDir.toPath();
-                Path wdlPath = f.toPath();
-                Path jsonPath = nfJson.toPath();
-                String wdlRelPath = basePath.relativize( wdlPath ).toString().replace( "\\", "/" );
-                String jsonRelPath = basePath.relativize( jsonPath ).toString().replace( "\\", "/" );
+               
+                String jsonRelPath = basePath.relativize( nfJson.toPath() ).toString().replace( "\\", "/" );
+              
                 if( isWindows )
                 {
                     builder = new ProcessBuilder( "wsl", "--cd", baseDir.getAbsolutePath(), "nextflow", wdlRelPath, "-params-file",
-                            jsonRelPath );
+                            jsonRelPath, "-c", configPath );
                 }
                 else
                 {
@@ -589,7 +565,7 @@ public class TestNextflow
             {
                 if( isWindows )
                 {
-                    builder = new ProcessBuilder( "wsl", "--cd", resultDir.getAbsolutePath(), "nextflow", f.getName() );
+                    builder = new ProcessBuilder( "wsl", "--cd", baseDir.getAbsolutePath(), "nextflow", wdlRelPath, "-c", configPath);
                 }
                 else
                 {
@@ -597,6 +573,7 @@ public class TestNextflow
                     builder.directory( resultDir );
                 }
             }
+            System.out.println( "COMMAND "+ StreamEx.of(builder.command()).joining(" ") );
             return TestUtil.executeProcess( builder.start() );
 
         }
@@ -644,18 +621,22 @@ public class TestNextflow
         if( result.type.equals( "File" ) )
         {
             JSONObject jsonObj = (JSONObject)jsonValue;
-            File generated = new File( nextflowResultsDir, jsonObj.get( result.name ).toString() );
+            JSONObject element = (JSONObject)jsonObj.get( result.name );
+            Object generatedValue = element.get("value");
+            File generated = new File( generatedValue.toString() );
             return checkFile( generated, result.value );
         }
         else if( result.type.equals( "Array[File]" ) )
         {
             JSONObject jsonObj = (JSONObject)jsonValue;
-            JSONArray array = (JSONArray)jsonObj.get( result.name );
+            JSONObject element = (JSONObject)jsonObj.get( result.name );
+            Object generatedValue = element.get("value");
+            JSONArray array = (JSONArray)generatedValue;
             ArrayList<String> checkArray = (ArrayList<String>)result.value;
             for( int i = 0; i < array.length(); i++ )
             {
                 String path = array.get( i ).toString();
-                File generated = new File( nextflowResultsDir, path );
+                File generated = new File( path );
                 Object checker = checkArray.get( i );
                 String err = checkFile( generated, checker );
                 if( !err.isEmpty() )
@@ -666,8 +647,8 @@ public class TestNextflow
         else
         {
             JSONObject jsonObj = (JSONObject)jsonValue;
-            Object generatedValue = jsonObj.get( result.name );
-
+            JSONObject element = (JSONObject)jsonObj.get( result.name );
+            Object generatedValue = element.get("value");
             if( generatedValue instanceof JSONArray )
             {
                 if( ( (JSONArray)generatedValue ).toList().equals( result.value ) )

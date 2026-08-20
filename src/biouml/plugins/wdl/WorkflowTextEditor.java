@@ -100,7 +100,6 @@ public class WorkflowTextEditor extends EditorPartSupport
 
         wdlGenerator = new WDLGenerator();
         nextFlowGenerator = new NextFlowGenerator();
-        nextFlowGenerator.setPublishOutput( false );
         cwlGenerator = new CWLGenerator();
         wdlImporter = new WDLImporter();
     }
@@ -336,9 +335,7 @@ public class WorkflowTextEditor extends EditorPartSupport
         {
             try
             {
-                //                CWLRunner.runNextFlow( diagram, WorkflowTextEditor.this.getCWL(), settings, outputDir,
-                //                      System.getProperty( "os.name" ).startsWith( "Windows" ) );
-                NextFlowRunner.runNextFlowByDiagram( diagram, WorkflowTextEditor.this.getNextFlow(), settings, outputDir,
+                NextFlowRunner.runNextFlowByDiagram( diagram, settings, outputDir,
                         System.getProperty( "os.name" ).startsWith( "Windows" ) );
             }
             catch( Exception ex )

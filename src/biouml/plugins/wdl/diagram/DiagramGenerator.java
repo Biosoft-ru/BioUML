@@ -78,7 +78,7 @@ public class DiagramGenerator
 
         for( ImportInfo importInfo : script.getImports() )
         {
-            createImport( diagram, importInfo );
+            createImport( diagram.getOrigin(), importInfo );
         }
 
         for( StructInfo structInfo : script.getStructs() )
@@ -279,10 +279,10 @@ public class DiagramGenerator
         return node;
     }
 
-    public void createImport(Diagram diagram, ImportInfo importInfo) throws Exception
+    public void createImport(DataCollection dc, ImportInfo importInfo) throws Exception
     {
         DiagramGenerator generator = new DiagramGenerator();
-        Diagram importedDiagram = generator.generateDiagram( importInfo.getImported(), null, importInfo.getImported().getName() );
+        Diagram importedDiagram = generator.generateDiagram( importInfo.getImported(), dc, importInfo.getImported().getName() );
         this.allimports.putAll(generator.getAllImports());
         this.imports.put( importInfo.getAlias(), importedDiagram );
         importedDiagram.getAttributes().add( new DynamicProperty( "SOURCE", String.class, importInfo.getSource() ) );
@@ -740,10 +740,6 @@ public class DiagramGenerator
 
     public static Edge createLink(Node input, Node output, String type, Map<String, Object> attributes)
     {
-        if( WorkflowUtil.isWorkflow( input ) )
-        {
-            System.out.println( "Ds" );
-        }
         if( input.equals( output ) )
             return null;
         String name = input.getName() + "_to_" + output.getName();

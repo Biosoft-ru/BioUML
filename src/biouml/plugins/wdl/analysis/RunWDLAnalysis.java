@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.WorkflowSettings;
-import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
@@ -27,12 +26,11 @@ public class RunWDLAnalysis extends AnalysisMethodSupport<RunWDLAnalysisParamete
         Diagram diagram =parameters.getWdlPath().getDataElement( Diagram.class );
         DataElementPath outPath = parameters.getOutputPath();
 
-        String nextFlow = new NextFlowGenerator().generate( diagram );
         boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
         WorkflowSettings settings = parameters.getSettings();
         settings.setOutputPath( outPath );
         String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
-        NextFlowRunner.runNextFlowByDiagram( diagram, nextFlow, settings, outputDir, isWindows );
+        NextFlowRunner.runNextFlowByDiagram( diagram, settings, outputDir, isWindows );
 
         log.info( "WDL Analysis finished" );
         return new Object[0];

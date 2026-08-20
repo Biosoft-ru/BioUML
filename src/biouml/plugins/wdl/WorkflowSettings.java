@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -17,6 +18,7 @@ import com.developmentontheedge.beans.annot.PropertyName;
 
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.plugins.wdl.nextflow.NextflowSettings;
 import ru.biosoft.access.FileExporter;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
@@ -29,6 +31,7 @@ public class WorkflowSettings extends Option
     private boolean useJson = false;
     private boolean useDocker = false;
     private DataElementPath json;
+    private NextflowSettings nextflowSettings = new NextflowSettings();
     private DynamicPropertySet parameters = new DynamicPropertySetSupport();
 
     public static String NEXTFLOW_TYPE = "Nextflow";
@@ -72,8 +75,25 @@ public class WorkflowSettings extends Option
                     result.add( path.toString() );
                 }
             }
+            else 
+            {
+                addInputs( object , result);
+            }
         }
         return result;
+    }
+    
+    public static void addInputs(Object jsonObject, Set<String> inputs)
+    {
+        if (jsonObject instanceof JSONArray)
+        {
+            for (Object inner: ((JSONArray)jsonObject).toList())
+            {
+                addInputs( inner, inputs );
+            }
+        }
+        else
+            inputs.add( jsonObject.toString() );
     }
 
     public void exportCollections(String outputDir) throws Exception
@@ -89,11 +109,21 @@ public class WorkflowSettings extends Option
                 Set<String> fileInputs = getFileInputs( content );
                 for( String fileInput : fileInputs )
                 {
-                    DataElement parameterDe = dc.get( fileInput );
-                    if( parameterDe != null )
+                    try
                     {
-                        System.out.println( "Exporting " + fileInput );
-                        WorkflowUtil.export( parameterDe, new File( outputDir ) );
+                        DataElement parameterDe = dc.getCompletePath().getChildPath( fileInput.split( "/" ) ).getDataElement();
+                        //                    DataElement parameterDe = dc.get( fileInput );
+                        if( parameterDe != null )
+                        {
+                            System.out.println( "Exporting " + fileInput );
+                            File outFile = new File( outputDir );
+                            File dir = outFile.toPath().resolve( fileInput ).toFile().getParentFile();
+                            WorkflowUtil.export( parameterDe, dir );
+                        }
+                    }
+                    catch( Exception ex )
+                    {
+
                     }
                 }
 
@@ -259,5 +289,16 @@ public class WorkflowSettings extends Option
         boolean oldValue = this.useDocker;
         this.useDocker = useDocker;
         firePropertyChange( "useDocker", oldValue, this.useDocker );
+    }
+
+    @PropertyName("Nextflow settings")
+    public NextflowSettings getNextflowSettings()
+    {
+        return nextflowSettings;
+    }
+
+    public void setNextflowSettings(NextflowSettings nextflowSettings)
+    {
+        this.nextflowSettings = nextflowSettings;
     }
 }

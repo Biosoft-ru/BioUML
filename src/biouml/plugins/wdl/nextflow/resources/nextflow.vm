@@ -148,7 +148,34 @@ $BR  main:
 ################################ENTRY WORKFLOW#########################################
 #if ( $helper.getWorkflows().size() > 0 )
 workflow {
-$helper.getWorkflowName($diagram) ( #foreach($ep in $externalParameters)$helper.getEntryInput($ep)#comma($externalParameters) #end )
-$helper.generateWorkflowPublish( $diagram )
+    $helper.getWorkflowName($diagram) ( #foreach($ep in $externalParameters)$helper.getEntryInput($ep)#comma($externalParameters) #end )
+    $helper.generateWorkflowPublish( $diagram )
+    ##if ($externalOutputs.size() > 0)
+    ##def outputFile = new File("workflow_outputs.tsv")
+    ##def outputs = [
+    ###foreach( $externalOutput in $externalOutputs )
+    ##    "$helper.getName($externalOutput)" : ${helper.getWorkflowName($diagram)}.out.$helper.getName($externalOutput)#comma($externalOutputs)$BR
+    ###end    
+    ##]
+
+    ##outputFile.text = ""
+
+   ## outputs.each { name, channel ->
+   ##    channel.subscribe { value ->
+   ##        if (value instanceof Collection) {
+   ##             value.each { item ->
+   ##                 synchronized(outputFile) {
+   ##                      outputFile << name + "\t" + item + "\n"
+   ##                  }
+   ##              }
+   ##         }
+   ##         else {
+   ##             synchronized(outputFile) {
+   ##                 outputFile << name + "\t" + value + "\n"
+   ##              }
+   ##         }
+   ##    }
+   ## }
+###end
 }
 #end

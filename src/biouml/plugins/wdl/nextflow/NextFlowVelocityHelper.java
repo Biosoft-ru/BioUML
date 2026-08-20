@@ -25,8 +25,9 @@ import one.util.streamex.StreamEx;
 public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 {
     private boolean isEntryScript = true;
-   private boolean publishOutput = false;
-   
+   private NextflowSettings settings;
+   private String resultPath = "";
+
     public NextFlowVelocityHelper(Diagram diagram)
     {
         super( diagram );
@@ -37,6 +38,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         super( diagram );
         this.isEntryScript = isEntryScript;
     }
+    
+    public void setSettings(NextflowSettings settings)
+    {
+        this.settings = settings;
+    } 
     
     public String getShortDeclaration(Node n)
     {
@@ -931,7 +937,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         {
             expression = expression.replace( e.getKey(), e.getValue() );
         }
-//        expression = ("{ " + expression + " }");
         return expression;
     }
 
@@ -1064,8 +1069,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return WorkflowUtil.getCallName( call );
     }
 
-
-
     public String writePrivateDeclaration(ExpressionInfo declaration)
     {
         String expression = declaration.getExpression();
@@ -1149,7 +1152,11 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
         String publishDir = getPublishDir( task );
         if( publishDir != null )
+        {
             sb.append( "\n" + offset + "publishDir " + publishDir );
+            if( settings != null )
+                sb.append( ", mode: '" + settings.getPublishOutput() + "', overwrite: 'true'" );
+        }
 
         return sb.toString();
     }
@@ -1187,40 +1194,27 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             return "orNull( params." + getName( input ) + ")";
         return "params." + getName( input );
     }
-    
-    public void setPublishOutput(boolean publishOutput)
-    {
-        this.publishOutput = publishOutput;
-    }
 
     public String generateWorkflowPublish(Diagram diagram)
     {
-        if( !publishOutput )
-            return "";
         String workflowName = getWorkflowName( diagram );
         StringBuilder sb = new StringBuilder();
-
+        
+        boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
+        
         for( Node output : WorkflowUtil.getExternalOutputs( diagram ) )
         {
-            String publishDir = "\"\"";
             Node source = WorkflowUtil.getSource( output );
             Compartment call = null;
             if( source != null )
-            {
                 call = source.getCompartment();
-                if( WorkflowUtil.isCall( call ) )
-                {
-                    Compartment task = WorkflowUtil.findTask( WorkflowUtil.getTaskRef( call ), diagram );
-                    publishDir = getPublishDir( task );
-                    publishDir = publishDir.substring( 0, publishDir.indexOf( "," ) );
-                }
-            }
             String outputName = WorkflowUtil.getName( output );
             String outputPath = workflowName + "." + outputName;
             if( diagram.getAttributes().getProperty( "autoOutputs" ) != null )
                 outputPath = workflowName + "." + WorkflowUtil.getCallName( call ) + "." + outputName;
-            sb.append( "saveOutput( " + workflowName + ".out." + outputName + "," + publishDir + "," + "\"results/" + diagram.getName()
-                    + "/output\" , \"" + outputPath + "\"" + ")" );
+
+            sb.append( "saveOutput( " + workflowName + ".out." + outputName + ", \"" + WorkflowUtil.getType( output ) + "\", \""
+                    + outputPath + "\", \"" + getResultPath() + "\"," + isWindows + ");" );
             sb.append( System.lineSeparator() );
         }
 
@@ -1230,6 +1224,16 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public boolean isOptional(Node node)
     {
         return super.getType( node ).endsWith( "?" );
+    }
+
+    public String getResultPath()
+    {
+        return resultPath;
+    }
+
+    public void setResultPath(String resultPath)
+    {
+        this.resultPath = resultPath;
     }
 
 }
