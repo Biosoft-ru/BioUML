@@ -69,6 +69,55 @@ public class ServerMonitorConfig {
     private String extraFormats = DEFAULT_EXTRA_FORMATS;
 
     /**
+     * Ensure the configured profiler directory exists.
+     * If creation fails, logs the parent folder that was attempted and
+     * falls back to {@code /tmp/profiling}.
+     * Also updates {@link #profilerPath} to match the resolved directory.
+     *
+     * @return the directory that will be used (configured path or fallback)
+     */
+    String ensureProfilerDir() {
+        File dir = new File(profilerDir);
+        if (dir.exists()) {
+            return profilerDir;
+        }
+        if (dir.mkdirs()) {
+            return profilerDir;
+        }
+
+        // Failed — log diagnostic info about the parent folder
+        File parent = dir.getParentFile();
+        if (parent != null) {
+            log.log(Level.SEVERE,
+                    "ServerMonitorConfig: failed to create profiler directory " + dir.getAbsolutePath()
+                            + "; parent folder=" + parent.getAbsolutePath()
+                            + " exists=" + parent.exists()
+                            + " canWrite=" + parent.canWrite()
+                            + " (current working directory=" + System.getProperty("user.dir") + ")"
+                            + " — falling back to /tmp/profiling");
+        } else {
+            log.log(Level.SEVERE,
+                    "ServerMonitorConfig: failed to create profiler directory " + dir.getAbsolutePath()
+                            + " (no parent folder; current working directory=" + System.getProperty("user.dir") + ")"
+                            + " — falling back to /tmp/profiling");
+        }
+
+        // Fall back to /tmp/profiling
+        profilerDir = "/tmp/profiling";
+        dir = new File(profilerDir);
+        try {
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "ServerMonitorConfig: also failed to create fallback directory " + profilerDir, e);
+        }
+        // Update profiler path to match the resolved directory
+        profilerPath = profilerDir + "/async-profiler-3.0-linux-x64/bin/asprof";
+        return profilerDir;
+    }
+
+    /**
      * Load configuration from BioUML preferences.
      * @param prefs BioUML preferences, may be null
      * @return a new ServerMonitorConfig with values from preferences or defaults
