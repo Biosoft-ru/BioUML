@@ -1176,13 +1176,22 @@ def sep_wdl(separator, values, workDir = null)
 
     List items
 
-    if (values instanceof Iterable)
+    if (values instanceof File ||
+        values instanceof java.nio.file.Path)
+    {
+        items = [values]
+    }
+    else if (values instanceof Collection)
     {
         items = values.collect { it }
     }
     else if (values.getClass().isArray())
     {
         items = values.toList()
+    }
+    else if (values instanceof Iterable)
+    {
+        items = values.collect { it }
     }
     else
     {
