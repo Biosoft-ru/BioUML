@@ -12,7 +12,7 @@ Monitors BioUML server tasks and profiles slow ones using async-profiler.
 
 ## Configuration
 
-Edit `preferences_server.xml` or use the API `setConfig` action:
+Edit `preferences.xml` (in the server root or its `conf/` directory) or use the API `setConfig` action:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -153,18 +153,48 @@ chmod +x async-profiler-3.0-linux-x64/bin/asprof
 
 ### 2. Configure
 
-Add to `preferences_server.xml` under the `serverMonitor` preference node:
+Configuration is read from the `serverMonitor` node of the BioUML preferences
+(`ServerMonitorConfig.load()` calls `prefs.getPreferencesValue("serverMonitor")`
+and iterates its child `DynamicProperty`s). Add a `serverMonitor` property to
+`preferences.xml`, using the standard `Preferences`/`dynamicPropertySet` XML
+format (the same structure as the `Global` and `GridOptions` blocks):
 
 ```xml
-<serverMonitor>
-    <slowTaskThreshold>3600</slowTaskThreshold>
-    <checkInterval>60</checkInterval>
-    <profilerPath>./profiling/async-profiler-3.0-linux-x64/bin/asprof</profilerPath>
-    <profilerDir>./profiling</profilerDir>
-    <periodicInterval>1800</periodicInterval>
-    <periodicMode>random</periodicMode>
-</serverMonitor>
+<property name="serverMonitor" type="com.developmentontheedge.beans.Preferences"
+          display-name="Server monitor" short-description="Server monitor plugin settings">
+    <dynamicPropertySet>
+        <property name="slowTaskThreshold" type="java.lang.Integer" value="3600"
+                  display-name="Slow task threshold" short-description="Seconds before a task is considered slow"/>
+        <property name="checkInterval" type="java.lang.Integer" value="60"
+                  display-name="Check interval" short-description="Seconds between task checks"/>
+        <property name="profilerPath" type="java.lang.String"
+                  value="/var/lib/tomcat9/profiling/async-profiler-3.0-linux-x64/bin/asprof"
+                  display-name="Profiler path" short-description="Absolute path to the async-profiler binary"/>
+        <property name="profilerDir" type="java.lang.String" value="/var/lib/tomcat9/profiling"
+                  display-name="Profiler directory" short-description="Absolute directory for profile output"/>
+        <property name="periodicInterval" type="java.lang.Integer" value="1800"
+                  display-name="Periodic interval" short-description="Seconds between periodic profiling (0=disabled)"/>
+        <property name="periodicMode" type="java.lang.String" value="random"
+                  display-name="Periodic mode" short-description="random, sample, or all"/>
+    </dynamicPropertySet>
+</property>
 ```
+
+Notes:
+
+- Use **absolute** paths for `profilerDir` and `profilerPath`. The defaults are
+  relative (`./profiling`), resolved against the JVM working directory
+  (`user.dir`), which is not a stable location on a server (e.g. it may be `/`,
+  which a non-root server user cannot write to). Prefer a directory the server
+  user owns, such as under `catalina.base`.
+- The `Preferences` XML loader only understands `<property>` and
+  `<dynamicPropertySet>` elements. A bare `<serverMonitor>…</serverMonitor>`
+  block (or any other tag) is rejected with `SEVERE: Error: Unknown tag …` and
+  silently falls back to defaults — so the nested `<dynamicPropertySet>` form
+  above is required.
+- All keys are optional; any key you omit keeps its default (see the table
+  above). You can also change values at runtime via the `setConfig` API action,
+  which persists them the same way.
 
 ## Requirements
 
