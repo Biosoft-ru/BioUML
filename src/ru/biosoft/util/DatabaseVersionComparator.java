@@ -3,6 +3,7 @@ package ru.biosoft.util;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Comparator for database versions. 
@@ -12,14 +13,31 @@ import java.util.regex.Pattern;
  */
 public class DatabaseVersionComparator implements Comparator<String>
 {
-    private Pattern p = Pattern.compile( "^(\\d+(?:\\.\\d+))" );
+    // Pattern is compiled once and shared by all comparator instances (previously
+    // every instance recompiled the same regular expression).
+    private static final Pattern PATTERN = compilePattern();
+
+    private static Pattern compilePattern()
+    {
+        try
+        {
+            return Pattern.compile( "^(\\d+(?:\\.\\d+))" );
+        }
+        catch( PatternSyntaxException e )
+        {
+            // Should never happen with the literal pattern above; fall back to a pattern
+            // which matches nothing so that compare() degrades to plain string comparison.
+            return Pattern.compile( "^$" );
+        }
+    }
+
     @Override
     public int compare(String o1, String o2)
     {
         try
         {
-            Matcher m1 = p.matcher( o1 );
-            Matcher m2 = p.matcher( o2 );
+            Matcher m1 = PATTERN.matcher( o1 );
+            Matcher m2 = PATTERN.matcher( o2 );
             if( m1.find() && m2.find() )
             {
                 String d1s = m1.group( 1 );

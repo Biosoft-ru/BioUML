@@ -12,8 +12,11 @@ import javax.annotation.CheckForNull;
 
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
+import ru.biosoft.access.DataCollectionListenerSupport;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionEvent;
+import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.util.DatabaseVersionComparator;
@@ -149,13 +152,67 @@ public class ProjectUtils
     /**
      * @return map databaseMap -> set of available versions
      */
+    // Cache of getAvailableDatabaseVersions() results. The method scans all databases and
+    // re-resolves every database element on each call (each resolution goes through
+    // SecurityManager.getPermissions). The list of installed databases rarely changes during
+    // a server run, while the method is called from hot paths
+    // (BioHubRegistry.isHubPathAvailable, ProjectUtils.isDatabasePreferred) for every
+    // BioHub on every workflow initialization. The cache is invalidation-based: it is
+    // refreshed whenever the databases collection changes or permissions are reloaded.
+    private static volatile Map<String, SortedSet<String>> availableDatabaseVersions;
+    private static volatile DataCollectionListener availableVersionsListener;
+
+    private static void initAvailableVersionsListener()
+    {
+        if( availableVersionsListener == null )
+        {
+            synchronized( ProjectUtils.class )
+            {
+                if( availableVersionsListener == null )
+                {
+                    availableVersionsListener = new DataCollectionListenerSupport()
+                    {
+                        @Override
+                        public void elementAdded(DataCollectionEvent e)
+                        {
+                            availableDatabaseVersions = null;
+                        }
+
+                        @Override
+                        public void elementWillRemove(DataCollectionEvent e)
+                        {
+                            availableDatabaseVersions = null;
+                        }
+                    };
+                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( availableVersionsListener );
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidate the cache of available database versions (called from
+     * SecurityManager.invalidatePermissions, since permission changes can affect
+     * which databases are visible).
+     */
+    public static void invalidateAvailableDatabaseVersions()
+    {
+        availableDatabaseVersions = null;
+    }
+
     public static Map<String, SortedSet<String>> getAvailableDatabaseVersions()
     {
-        return StreamEx.of( CollectionFactoryUtils.getDatabases().stream() )
+        Map<String, SortedSet<String>> versions = availableDatabaseVersions;
+        if( versions != null )
+            return versions;
+        initAvailableVersionsListener();
+        versions = StreamEx.of( CollectionFactoryUtils.getDatabases().stream() )
                 .mapToEntry( ProjectUtils::getDatabaseName, ProjectUtils::getVersion )
                 .nonNullKeys().removeValues( String::isEmpty ).groupingTo( TreeMap::new, () -> {
                     return new TreeSet<>( new DatabaseVersionComparator() );
                 } );
+        availableDatabaseVersions = versions;
+        return versions;
     }
 
     public static Map<String, String> getPreferredDatabaseVersions(DataElementPath project)
