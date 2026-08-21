@@ -83,7 +83,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             JSONUtils.correctBeanOptions( settings, jsonSettings );
             try
             {
-                String log = NextFlowRunner.runNextFlowByDiagram( diagram, null, settings, outputDir, false );
+                String log = NextFlowRunner.runNextFlowByDiagram( diagram, settings, outputDir, false );
                 JSONObject res = new JSONObject();
                 res.put( "result", settings.getOutputPath().toString() );
                 res.put( "log", log );

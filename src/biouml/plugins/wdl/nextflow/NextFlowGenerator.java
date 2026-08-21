@@ -10,8 +10,9 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     private static String TEMPLATE_NAME = "Nextflow template";
     private boolean isEntryWorkflow = true;
     private String publishDir = "";
-    private boolean publishOutput = false;
-    
+    private NextflowSettings settings = null;
+    private String resultPath = "";
+            
     public NextFlowGenerator()
     {
         this.isEntryWorkflow = true;
@@ -22,9 +23,9 @@ public class NextFlowGenerator extends WorkflowTextGenerator
         this.isEntryWorkflow = isEntryWorkflow;
     }
     
-    public void setPublishOutput(boolean publishOutput)
+    public void setNextflowSettings(NextflowSettings settings)
     {
-        this.publishOutput = publishOutput;
+        this.settings = settings;
     }
     
     public void setPublishDir(String publishDir)
@@ -48,7 +49,8 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     public WorkflowVelocityHelper getVelocityHelper(Diagram diagram)
     {
         NextFlowVelocityHelper helper = new NextFlowVelocityHelper( diagram, isEntryWorkflow );
-        helper.setPublishOutput( publishOutput );
+        helper.setSettings( settings );
+        helper.setResultPath( resultPath );
         return helper;
     }
 
@@ -58,5 +60,10 @@ public class NextFlowGenerator extends WorkflowTextGenerator
         NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
         preprocessor.setPublishDir( publishDir );
         return preprocessor.preprocess( diagram );
+    }
+
+    public void setResultPath(String resultPath)
+    {
+        this.resultPath = resultPath;
     }
 }

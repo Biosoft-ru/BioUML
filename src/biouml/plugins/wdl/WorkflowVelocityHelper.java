@@ -308,12 +308,6 @@ public class WorkflowVelocityHelper
         
     public String getWorkflowName(Compartment c)
     {
-        if( c instanceof Diagram )
-        {
-            String name = diagram.getAttributes().getValueAsString( WDLConstants.WORKFLOW_NAME );
-            if( name != null )
-                return name;
-        }
-        return c.getName();
+        return WorkflowUtil.getWorkflowName(c);
     }
 }

@@ -774,12 +774,7 @@ private final Object SAVE_OUTPUT_LOCK = new Object()
  * outputDirectory:
  *   Directory containing outputs.json.
  */
-def saveOutput(
-    channel,
-    String publishDirectory,
-    String outputDirectory,
-    String outputName
-)
+def saveOutput(channel, String outputType, String outputName, String outputDirectory, boolean isWSL)
 {
     channel.subscribe { value ->
 
@@ -789,43 +784,26 @@ def saveOutput(
 
         Files.createDirectories(outputDir)
 
-        /*
-         * An empty string must not become Path.of(""), because that
-         * represents the current working directory.
-         */
-        Path publishDir = null
-
-        if (publishDirectory != null &&
-            !publishDirectory.isBlank())
-        {
-            publishDir = Path.of(publishDirectory)
-                .toAbsolutePath()
-                .normalize()
-        }
-
         def serializedValue = serializeOutputValue(
             value,
-            publishDir,
-            outputDir
+            outputDir,
+            isWSL
         )
+
+        def result = [
+            type: outputType,
+            value: serializedValue
+        ]
 
         updateOutputsJson(
             outputDir.resolve("outputs.json"),
             outputName,
-            serializedValue
+            result
         )
     }
 }
 
-
-/**
- * Recursively converts a Nextflow/WDL output into a JSON-compatible value.
- */
-private def serializeOutputValue(
-    def value,
-    Path publishDir,
-    Path outputDir
-)
+private def serializeOutputValue(def value, Path outputDir, boolean isWSL)
 {
     if (value == null)
     {
@@ -837,59 +815,35 @@ private def serializeOutputValue(
      */
     if (value instanceof Path)
     {
-         Path path = ((Path)value)
-        .toAbsolutePath()
-        .normalize()
+        Path path = ((Path)value)
+            .toAbsolutePath()
+            .normalize()
 
-    /*
-     * WDL Directory output is represented by its recursive listing,
-     * not by a string path.
-     */
-    if (Files.isDirectory(path))
-    {
-        return serializeDirectory(path)
-    }
+        /*
+         * WDL Directory output is represented by its recursive listing,
+         * not by a string path.
+         */
+        if (Files.isDirectory(path))
+        {
+            return serializeDirectory(path)
+        }
 
-    if (publishDir != null)
-    {
-        return publishedFilePath(
-            path,
-            publishDir,
-            outputDir
-        )
-    }
-
-    return existingFilePath(
-        path,
-        outputDir
-    )
+        return serializePath(path, isWSL)
     }
 
     if (value instanceof File)
     {
         Path path = ((File)value)
-        .toPath()
-        .toAbsolutePath()
-        .normalize()
+            .toPath()
+            .toAbsolutePath()
+            .normalize()
 
-    if (Files.isDirectory(path))
-    {
-        return serializeDirectory(path)
-    }
+        if (Files.isDirectory(path))
+        {
+            return serializeDirectory(path)
+        }
 
-    if (publishDir != null)
-    {
-        return publishedFilePath(
-            path,
-            publishDir,
-            outputDir
-        )
-    }
-
-    return existingFilePath(
-        path,
-        outputDir
-    )
+        return serializePath(path, isWSL)
     }
 
     if (value instanceof Map)
@@ -899,8 +853,8 @@ private def serializeOutputValue(
         value.each { key, item ->
             result[String.valueOf(key)] = serializeOutputValue(
                 item,
-                publishDir,
-                outputDir
+                outputDir,
+                isWSL
             )
         }
 
@@ -912,8 +866,8 @@ private def serializeOutputValue(
         return value.collect { item ->
             serializeOutputValue(
                 item,
-                publishDir,
-                outputDir
+                outputDir,
+                isWSL 
             )
         }
     }
@@ -929,8 +883,8 @@ private def serializeOutputValue(
             result.add(
                 serializeOutputValue(
                     java.lang.reflect.Array.get(value, i),
-                    publishDir,
-                    outputDir
+                    outputDir,
+                    isWSL
                 )
             )
         }
@@ -948,6 +902,17 @@ private def serializeOutputValue(
     return value.toString()
 }
 
+private String serializePath(Path path, boolean isWSL)
+{
+    String p = path.toAbsolutePath().normalize().toString()
+
+    if (isWSL && p ==~ /^\/mnt\/[a-zA-Z]\/.*/)
+    {
+        return p.substring(5, 6).toUpperCase() + ":" + p.substring(6)
+    }
+
+    return p
+}
 
 /**
  * Returns the expected location of a file copied by process publishDir.
@@ -1231,10 +1196,16 @@ def sep_wdl(separator, values, workDir = null)
         separator == null ? "" : separator.toString()
 
     return items.collect { value ->
-        sep_element_wdl(value, workDir)
+
+        if (value instanceof CharSequence)
+        {
+            return value.toString()
+        }
+
+        return sep_element_wdl(value, workDir)
+
     }.join(actualSeparator)
 }
-
 
 def sep_element_wdl(value, workDir = null)
 {

@@ -41,7 +41,7 @@ public class WorkflowUtil
 
     public static boolean isOfType(String type, DiagramElement de)
     {
-        return type.equals( de.getKernel().getType() );
+        return de != null && type.equals( de.getKernel().getType() );
 
     }
     public static boolean isTask(Node node)
@@ -425,7 +425,7 @@ public class WorkflowUtil
     public static String getCallName(Compartment n)
     {
         String alias = getAlias(n);
-        if (alias != null)
+        if (alias != null && !alias.isEmpty())
             return alias;
         return getTaskRef(n);
     }
@@ -610,6 +610,51 @@ public class WorkflowUtil
         return diagram.recursiveStream().select( Compartment.class ).filter( c -> isTask( c ) && c.getName().equals( taskName ) ).findAny()
                 .orElse( null );
     }
+    
+    /**
+     * Returns task corresponding to this call in diagram and other diagrams in BioUML repository (for now only in the same data collection)
+     * Or if this call is a call of workflow - return this workflow
+     * TODO: maybe generalize if needed
+     * @param call
+     * @param diagram
+     * @return
+     */
+    public static Compartment findCallee(Compartment call)
+    {
+        Diagram diagram = Diagram.getDiagram( call );;
+        String taskRef = getTaskRef( call );
+        String ref = getDiagramRef( call );
+        if (ref != null && !(ref.isEmpty()))
+        {
+            DataCollection origin = diagram.getOrigin();
+            try
+            {
+                diagram = (Diagram)origin.get( ref );
+            }
+            catch( Exception ex )
+            {
+                return null;
+            }
+        }
+        Compartment c = findTask(taskRef, diagram);
+        
+        if (c == null)
+        {
+            String mainWorkflow = getWorkflowName( diagram );
+            if (mainWorkflow.equals( taskRef ))
+            {
+                return diagram;
+            }
+            for( Compartment innerWorkflow : getWorkflows( diagram ) )
+            {
+                if( innerWorkflow.getName().equals( taskRef ) )
+                {
+                    return innerWorkflow;
+                }
+            }
+        }
+        return c;
+    }
 
     public static List<Compartment> findCalls(String taskName, Compartment compartment)
     {
@@ -623,7 +668,7 @@ public class WorkflowUtil
     public static String getResultName(Compartment c)
     {
         Object resultName = c.getAttributes().getValue( Util.RESULT_NAME_ATTR );
-        return resultName == null ? null : resultName.toString();
+        return resultName == null || "".equals( resultName ) ? null : resultName.toString();
     }
     
     public static void setResultName(Compartment c, String resultName)
@@ -803,7 +848,12 @@ public class WorkflowUtil
     {
         return node.edges().filter( e -> e.getOutput().equals( node ) ).map( e -> e.getInput() ).findAny().orElse( null );
     }
-
+    
+    public static Node findCallOutputSource(Node node)
+    {
+        return getSources( node ).filter( n->isOutput( n ) && isCall( n.getCompartment() )).findAny().orElse( null );
+    }
+    
     public static String getCycleName(Compartment c)
     {
         Node cycleNode = getCycleNode( c );
@@ -966,7 +1016,10 @@ public class WorkflowUtil
         {
             NextFlowGenerator generator = new NextFlowGenerator( false );
             String nextFlow = generator.generate( (Diagram)de );
-            File exported = new File( dir, de.getName() );
+            String name = de.getName();
+            if (!name.endsWith( ".nf "))
+                name = name +".nf";
+            File exported = new File( dir, name );
             ApplicationUtils.writeString( exported, nextFlow );
         }
         else if( de instanceof GenericDataCollection )
@@ -1096,5 +1149,16 @@ public class WorkflowUtil
     public static boolean hasOnlyTasks(Diagram diagram)
     {
        return !diagram.stream(Node.class).anyMatch(n -> !isTask(n));
+    }
+    
+    public static String getWorkflowName(Compartment c)
+    {
+        if( c instanceof Diagram )
+        {
+            String name = c.getAttributes().getValueAsString( WDLConstants.WORKFLOW_NAME );
+            if( name != null )
+                return name;
+        }
+        return c.getName();
     }
 }
