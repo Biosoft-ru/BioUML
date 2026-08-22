@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +29,7 @@ import ru.biosoft.access.DataCollectionListenerSupport;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataCollectionEvent;
+import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataCollectionVetoException;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -320,8 +322,82 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
             return true;
         if( !path.exists() )
             return false;
-        return addOtherVersions || ( projectPath == null && ProjectUtils.isDatabasePreferred( path ) )
-                || ProjectUtils.isDatabasePreferred( projectPath, path );
+        return addOtherVersions || ( projectPath == null && isDatabasePreferredCached( path ) )
+                || isDatabasePreferredCached( projectPath, path );
+    }
+
+    // Cached ProjectUtils.isDatabasePreferred results. The check resolves database
+    // element info (which goes through SecurityManager.getPermissions) and was
+    // executed for every BioHub on every getReachableTypes() call during workflow
+    // initialization. Values are invalidation-based: they expire when the databases
+    // collection changes (see ProjectUtils) or when permissions are reloaded.
+    private static final ConcurrentHashMap<DataElementPath, Boolean> preferredWithoutProject = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<DataElementPath, ConcurrentHashMap<DataElementPath, Boolean>> preferredByProject = new ConcurrentHashMap<>();
+    private static volatile DataCollectionListener preferredCheckListener;
+
+    private static void initPreferredCheckListener()
+    {
+        if( preferredCheckListener == null )
+        {
+            synchronized( BioHubRegistry.class )
+            {
+                if( preferredCheckListener == null )
+                {
+                    preferredCheckListener = new DataCollectionListenerSupport()
+                    {
+                        @Override
+                        public void elementAdded(DataCollectionEvent e)
+                        {
+                            clearPreferredCache();
+                        }
+
+                        @Override
+                        public void elementWillRemove(DataCollectionEvent e)
+                        {
+                            clearPreferredCache();
+                        }
+                    };
+                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( preferredCheckListener );
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidate the cached isDatabasePreferred results (called from
+     * SecurityManager.invalidatePermissions, since permission changes can affect
+     * the result of the check).
+     */
+    public static void invalidatePreferredDatabaseCache()
+    {
+        clearPreferredCache();
+    }
+
+    private static void clearPreferredCache()
+    {
+        preferredWithoutProject.clear();
+        preferredByProject.clear();
+    }
+
+    private static boolean isDatabasePreferredCached(DataElementPath database)
+    {
+        return isDatabasePreferredCached( null, database );
+    }
+
+    private static boolean isDatabasePreferredCached(DataElementPath project, DataElementPath database)
+    {
+        initPreferredCheckListener();
+        ConcurrentHashMap<DataElementPath, Boolean> cache = project == null
+                ? preferredWithoutProject : preferredByProject.computeIfAbsent( project, p -> new ConcurrentHashMap<>() );
+        Boolean result = cache.get( database );
+        if( result == null )
+        {
+            result = project == null
+                    ? ProjectUtils.isDatabasePreferred( database )
+                    : ProjectUtils.isDatabasePreferred( project, database );
+            cache.put( database, result );
+        }
+        return result;
     }
 
     public static StreamEx<BioHubInfo> specialHubs()
@@ -487,7 +563,68 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
         }
     }
 
+    // Cache of getMatchingGraph results. Building the graph iterates over all BioHubs
+    // and repeatedly calls getSupportedMatching; during workflow initialization the same
+    // input properties are requested for every node. Values are invalidation-based: they
+    // expire when the databases collection changes (hubs are added/removed).
+    private static final ConcurrentHashMap<Properties, List<MatchingStep>> matchingGraphCache = new ConcurrentHashMap<>();
+    private static volatile DataCollectionListener matchingGraphListener;
+
+    private static void initMatchingGraphListener()
+    {
+        if( matchingGraphListener == null )
+        {
+            synchronized( BioHubRegistry.class )
+            {
+                if( matchingGraphListener == null )
+                {
+                    matchingGraphListener = new DataCollectionListenerSupport()
+                    {
+                        @Override
+                        public void elementAdded(DataCollectionEvent e)
+                        {
+                            clearMatchingGraphCache();
+                        }
+
+                        @Override
+                        public void elementWillRemove(DataCollectionEvent e)
+                        {
+                            clearMatchingGraphCache();
+                        }
+                    };
+                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( matchingGraphListener );
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidate the cached matching graphs (called from
+     * SecurityManager.invalidatePermissions, since permission changes can affect
+     * which BioHubs are available).
+     */
+    public static void invalidateMatchingGraphCache()
+    {
+        clearMatchingGraphCache();
+    }
+
+    private static void clearMatchingGraphCache()
+    {
+        matchingGraphCache.clear();
+    }
+
     private static List<MatchingStep> getMatchingGraph(Properties inputType)
+    {
+        initMatchingGraphListener();
+        List<MatchingStep> cached = matchingGraphCache.get( inputType );
+        if( cached != null )
+            return cached;
+        List<MatchingStep> steps = buildMatchingGraph( inputType );
+        List<MatchingStep> previous = matchingGraphCache.putIfAbsent( inputType, steps );
+        return previous != null ? previous : steps;
+    }
+
+    private static List<MatchingStep> buildMatchingGraph(Properties inputType)
     {
         List<MatchingStep> steps = new ArrayList<>();
         MatchingStep startStep = new MatchingStep( inputType );
