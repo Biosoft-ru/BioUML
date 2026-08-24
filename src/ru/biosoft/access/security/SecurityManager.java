@@ -686,6 +686,13 @@ public class SecurityManager
      */
     public static void invalidatePermissions()
     {
+        // Permission changes can affect which databases are visible and which are preferred,
+        // so the cached database version list (ProjectUtils) and the cached
+        // isDatabasePreferred / matching-graph results (BioHubRegistry) must be refreshed.
+        ru.biosoft.journal.ProjectUtils.invalidateAvailableDatabaseVersions();
+        ru.biosoft.access.biohub.BioHubRegistry.invalidatePreferredDatabaseCache();
+        ru.biosoft.access.biohub.BioHubRegistry.invalidateMatchingGraphCache();
+
         //clear guest permissions map
         guestPermissionsMap.clear();
 
