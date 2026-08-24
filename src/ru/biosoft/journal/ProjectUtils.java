@@ -1,5 +1,6 @@
 package ru.biosoft.journal;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -7,13 +8,17 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.CheckForNull;
 
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
+import ru.biosoft.access.DataCollectionListenerSupport;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionEvent;
+import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.util.DatabaseVersionComparator;
@@ -147,15 +152,94 @@ public class ProjectUtils
     }
 
     /**
-     * @return map databaseMap -> set of available versions
+     * @return map databaseName -> set of available versions
      */
+    // Cache of getAvailableDatabaseVersions() results. The method scans all databases and
+    // re-resolves every database element on each call (each resolution goes through
+    // SecurityManager.getPermissions). The list of installed databases rarely changes during
+    // a server run, while the method is called from hot paths
+    // (BioHubRegistry.isHubPathAvailable, ProjectUtils.isDatabasePreferred) for every
+    // BioHub on every workflow initialization. The cache is invalidation-based: it is
+    // refreshed whenever the databases collection changes or permissions are reloaded.
+    //
+    // Two concurrency measures are used:
+    //  1. The returned map is deep-immutable, so callers can never mutate the cached value.
+    //  2. A generation counter makes invalidation race-safe: a computation that starts under
+    //     generation N is only installed if the generation is still N when it finishes, so an
+    //     in-flight computation cannot repopulate the cache after a concurrent invalidation.
+    private static volatile Map<String, SortedSet<String>> availableDatabaseVersions;
+    private static final AtomicLong availableVersionsGeneration = new AtomicLong();
+    private static volatile DataCollectionListener availableVersionsListener;
+
+    private static void initAvailableVersionsListener()
+    {
+        if( availableVersionsListener == null )
+        {
+            synchronized( ProjectUtils.class )
+            {
+                if( availableVersionsListener == null )
+                {
+                    availableVersionsListener = new DataCollectionListenerSupport()
+                    {
+                        @Override
+                        public void elementAdded(DataCollectionEvent e)
+                        {
+                            invalidateAvailableDatabaseVersions();
+                        }
+
+                        @Override
+                        public void elementWillRemove(DataCollectionEvent e)
+                        {
+                            invalidateAvailableDatabaseVersions();
+                        }
+                    };
+                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( availableVersionsListener );
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidate the cache of available database versions. Called from
+     * {@code SecurityManager.invalidatePermissions} (permission changes can affect which
+     * databases are visible) and from the databases-collection listener (databases
+     * added/removed). Bumps the generation counter first so that any in-flight
+     * computation is discarded rather than installed after the invalidation.
+     */
+    public static void invalidateAvailableDatabaseVersions()
+    {
+        availableVersionsGeneration.incrementAndGet();
+        availableDatabaseVersions = null;
+    }
+
     public static Map<String, SortedSet<String>> getAvailableDatabaseVersions()
     {
-        return StreamEx.of( CollectionFactoryUtils.getDatabases().stream() )
+        Map<String, SortedSet<String>> versions = availableDatabaseVersions;
+        if( versions != null )
+            return versions;
+        initAvailableVersionsListener();
+        long generation = availableVersionsGeneration.get();
+        Map<String, SortedSet<String>> computed = buildAvailableDatabaseVersions();
+        // Only publish if no invalidation happened while we were computing; otherwise a
+        // concurrent recomputation (started after the invalidation) will install the fresh
+        // value, and we return our now-stale `computed` just for this caller.
+        if( generation == availableVersionsGeneration.get() )
+            availableDatabaseVersions = computed;
+        return computed;
+    }
+
+    private static Map<String, SortedSet<String>> buildAvailableDatabaseVersions()
+    {
+        TreeMap<String, SortedSet<String>> result = new TreeMap<>();
+        StreamEx.of( CollectionFactoryUtils.getDatabases().stream() )
                 .mapToEntry( ProjectUtils::getDatabaseName, ProjectUtils::getVersion )
                 .nonNullKeys().removeValues( String::isEmpty ).groupingTo( TreeMap::new, () -> {
                     return new TreeSet<>( new DatabaseVersionComparator() );
-                } );
+                } ).forEach( result::put );
+        // Deep-freeze so the cached value cannot be mutated by any caller.
+        for( Map.Entry<String, SortedSet<String>> entry : result.entrySet() )
+            entry.setValue( Collections.unmodifiableSortedSet( entry.getValue() ) );
+        return Collections.unmodifiableSortedMap( result );
     }
 
     public static Map<String, String> getPreferredDatabaseVersions(DataElementPath project)
