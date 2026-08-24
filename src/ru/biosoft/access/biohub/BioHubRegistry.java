@@ -402,17 +402,17 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
                                 ? ProjectUtils.isDatabasePreferred( db )
                                 : ProjectUtils.isDatabasePreferred( project, db ) );
         // If the cache was invalidated (generation bumped) while we were computing, drop the
-        // result so it is not installed under the new generation. Only remove if it is still
-        // the value we installed: a concurrent recomputation under the new generation may have
-        // already replaced it, and that fresh value must not be evicted (worst case if we
-        // removed it anyway would just be an extra cache miss).
+        // result so it is not installed under the new generation. remove(database, result) is
+        // atomic and only removes the entry if it is still mapped to the value we installed;
+        // a concurrent recomputation under the new generation that already replaced it is left
+        // alone (worst case we simply leave a value to be recomputed, never evict a good one).
         if( generation != preferredCacheGeneration.get() )
         {
             Map<DataElementPath, Boolean> map = project == null
                     ? preferredWithoutProject
                     : preferredByProject.get( project );
-            if( map != null && map.get( database ) == result )
-                map.remove( database );
+            if( map != null )
+                map.remove( database, result );
         }
         return result;
     }
@@ -695,8 +695,14 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
         // a fresh miss), so we detect the generation bump and remove the entry we may have
         // just installed.
         matchingGraphCache.putIfAbsent( key, steps );
+        // If the cache was invalidated while we were computing, putIfAbsent may have installed
+        // our stale value (post-clear the key looks like a fresh miss). Remove it — but only
+        // if it is still OUR value. remove(key, value) is atomic and leaves alone a fresh
+        // value that a concurrent recomputation under the new generation may have already
+        // installed (worst case we simply leave a stale entry to be recomputed, never evict a
+        // good one).
         if( generation != matchingGraphGeneration.get() )
-            matchingGraphCache.remove( key );
+            matchingGraphCache.remove( key, steps );
         List<MatchingStep> installed = matchingGraphCache.get( key );
         return installed != null ? installed : steps;
     }
