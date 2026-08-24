@@ -402,11 +402,18 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
                                 ? ProjectUtils.isDatabasePreferred( db )
                                 : ProjectUtils.isDatabasePreferred( project, db ) );
         // If the cache was invalidated (generation bumped) while we were computing, drop the
-        // result so it is not installed under the new generation.
+        // result so it is not installed under the new generation. Only remove if it is still
+        // the value we installed: a concurrent recomputation under the new generation may have
+        // already replaced it, and that fresh value must not be evicted (worst case if we
+        // removed it anyway would just be an extra cache miss).
         if( generation != preferredCacheGeneration.get() )
-            ( project == null
+        {
+            Map<DataElementPath, Boolean> map = project == null
                     ? preferredWithoutProject
-                    : preferredByProject.get( project ) ).remove( database );
+                    : preferredByProject.get( project );
+            if( map != null && map.get( database ) == result )
+                map.remove( database );
+        }
         return result;
     }
 
@@ -581,11 +588,15 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
     //
     // The cache is keyed by an immutable snapshot of the input Properties (see
     // MatchingGraphKey), never by the mutable Properties object itself.
-    // Invalidation is race-safe because putIfAbsent installs a value only if the key is
-    // still absent: an in-flight computation that finishes after a concurrent clear simply
-    // does not get installed (the cache has already moved on), so no stale value is
-    // repopulated.
+    //
+    // A generation counter makes invalidation race-safe. Note that putIfAbsent alone is NOT
+    // sufficient: after invalidateMatchingGraphCache() clears the map, a computation that
+    // started before the invalidation would see the key as absent and putIfAbsent would
+    // install its stale result (post-clear, the key looks exactly like a fresh miss). So the
+    // generation is captured before computing and the just-installed entry is removed if the
+    // generation has since moved.
     private static final ConcurrentHashMap<MatchingGraphKey, List<MatchingStep>> matchingGraphCache = new ConcurrentHashMap<>();
+    private static final AtomicLong matchingGraphGeneration = new AtomicLong();
     private static volatile DataCollectionListener matchingGraphListener;
 
     private static void initMatchingGraphListener()
@@ -619,10 +630,13 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
     /**
      * Invalidate the cached matching graphs. Called from
      * {@code SecurityManager.invalidatePermissions} (permission changes can affect which
-     * BioHubs are available) and from the databases-collection listener.
+     * BioHubs are available) and from the databases-collection listener. Bumps the generation
+     * counter first so that any in-flight computation is discarded rather than installed
+     * after the clear.
      */
     public static void invalidateMatchingGraphCache()
     {
+        matchingGraphGeneration.incrementAndGet();
         matchingGraphCache.clear();
     }
 
@@ -673,11 +687,16 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
         List<MatchingStep> cached = matchingGraphCache.get( key );
         if( cached != null )
             return cached;
+        long generation = matchingGraphGeneration.get();
         List<MatchingStep> steps = buildMatchingGraph( inputType );
         // putIfAbsent: if another thread installed a value for the same key while we were
-        // computing, use theirs. If the cache was invalidated in the meantime the map is
-        // empty, so our (stale) value is simply not installed.
+        // computing, use theirs. If the cache was invalidated in the meantime, the map is
+        // empty and putIfAbsent would install our stale value (post-clear the key looks like
+        // a fresh miss), so we detect the generation bump and remove the entry we may have
+        // just installed.
         matchingGraphCache.putIfAbsent( key, steps );
+        if( generation != matchingGraphGeneration.get() )
+            matchingGraphCache.remove( key );
         List<MatchingStep> installed = matchingGraphCache.get( key );
         return installed != null ? installed : steps;
     }
