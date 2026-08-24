@@ -10,6 +10,7 @@ import ru.biosoft.access.biohub.BioHubRegistry;
 import ru.biosoft.access.biohub.ReferenceType;
 import ru.biosoft.access.biohub.ReferenceTypeRegistry;
 import ru.biosoft.access.core.CollectionFactory;
+import ru.biosoft.access.core.DataCollection;
 
 /**
  * Regression test for the race-safe invalidation of the {@link BioHubRegistry} caches
@@ -31,19 +32,31 @@ public class BioHubRegistryCacheInvalidationTest extends AbstractBioUMLTest
 {
     public static final String repositoryPath = "../data/test/ru/biosoft/analysis/databases";
 
+    private DataCollection<?> databasesRepo;
     private Properties input;
 
     @Override
     protected void setUp() throws Exception
     {
         super.setUp();
-        CollectionFactory.createRepository( repositoryPath );
+        databasesRepo = CollectionFactory.createRepository( repositoryPath );
         // Build an input from a registered reference type (its display name is what
         // getMatchingGraph stores under TYPE_PROPERTY, so the graph resolves it cleanly).
         ReferenceType type = ReferenceTypeRegistry.getDefaultReferenceType();
         input = new Properties();
         input.setProperty( "Species", "Homo sapiens" );
         input.setProperty( "ReferenceType", type.toString() );
+    }
+
+    @Override
+    protected void tearDown() throws Exception
+    {
+        // Unregister the repository this test created so it does not leak into subsequent
+        // tests in the same JVM (which would otherwise see a databases collection / hubs this
+        // test registered).
+        if( databasesRepo != null )
+            CollectionFactory.unregisterRoot( databasesRepo );
+        super.tearDown();
     }
 
     public void testMatchingGraphReturnsNonNullAndCaches()

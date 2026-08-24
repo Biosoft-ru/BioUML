@@ -51,7 +51,10 @@ public class ProjectUtilsCacheInvalidationTest extends AbstractBioUMLTest
     @Override
     protected void tearDown() throws Exception
     {
-        CollectionFactory.unregisterAllRoot();
+        // Unregister only the collection this test registered (not all roots) so it does not
+        // clobber state that other tests in the same JVM may have registered.
+        if( databases != null )
+            CollectionFactory.unregisterRoot( databases );
         super.tearDown();
     }
 
