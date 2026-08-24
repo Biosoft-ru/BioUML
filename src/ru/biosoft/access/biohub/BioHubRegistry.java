@@ -12,6 +12,9 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +31,7 @@ import ru.biosoft.access.DataCollectionListenerSupport;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataCollectionEvent;
+import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataCollectionVetoException;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
@@ -320,8 +324,90 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
             return true;
         if( !path.exists() )
             return false;
-        return addOtherVersions || ( projectPath == null && ProjectUtils.isDatabasePreferred( path ) )
-                || ProjectUtils.isDatabasePreferred( projectPath, path );
+        return addOtherVersions || ( projectPath == null && isDatabasePreferredCached( path ) )
+                || isDatabasePreferredCached( projectPath, path );
+    }
+
+    // Cached ProjectUtils.isDatabasePreferred results. The check resolves database element
+    // info (which goes through SecurityManager.getPermissions) and was executed for every
+    // BioHub on every getReachableTypes() call during workflow initialization. Values are
+    // invalidation-based: they expire when the databases collection changes or when
+    // permissions are reloaded.
+    //
+    // A generation counter makes invalidation race-safe: a value computed under generation N
+    // is only installed if the generation is still N when it finishes, so an in-flight
+    // computation cannot repopulate the cache after a concurrent invalidation.
+    private static final ConcurrentHashMap<DataElementPath, Boolean> preferredWithoutProject = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<DataElementPath, ConcurrentHashMap<DataElementPath, Boolean>> preferredByProject = new ConcurrentHashMap<>();
+    private static final AtomicLong preferredCacheGeneration = new AtomicLong();
+    private static volatile DataCollectionListener preferredCheckListener;
+
+    private static void initPreferredCheckListener()
+    {
+        if( preferredCheckListener == null )
+        {
+            synchronized( BioHubRegistry.class )
+            {
+                if( preferredCheckListener == null )
+                {
+                    preferredCheckListener = new DataCollectionListenerSupport()
+                    {
+                        @Override
+                        public void elementAdded(DataCollectionEvent e)
+                        {
+                            invalidatePreferredDatabaseCache();
+                        }
+
+                        @Override
+                        public void elementWillRemove(DataCollectionEvent e)
+                        {
+                            invalidatePreferredDatabaseCache();
+                        }
+                    };
+                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( preferredCheckListener );
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidate the cached isDatabasePreferred results. Called from
+     * {@code SecurityManager.invalidatePermissions} (permission changes can affect the
+     * result of the check) and from the databases-collection listener. Bumps the generation
+     * counter first so that any in-flight computation is discarded.
+     */
+    public static void invalidatePreferredDatabaseCache()
+    {
+        preferredCacheGeneration.incrementAndGet();
+        preferredWithoutProject.clear();
+        preferredByProject.clear();
+    }
+
+    private static boolean isDatabasePreferredCached(DataElementPath database)
+    {
+        return isDatabasePreferredCached( null, database );
+    }
+
+    private static boolean isDatabasePreferredCached(DataElementPath project, DataElementPath database)
+    {
+        initPreferredCheckListener();
+        long generation = preferredCacheGeneration.get();
+        // computeIfAbsent guarantees a single computation per (project, database) even under
+        // concurrent access (the computation does not recursively touch the same map).
+        Boolean result = ( project == null
+                ? preferredWithoutProject
+                : preferredByProject.computeIfAbsent( project, p -> new ConcurrentHashMap<>() ) )
+                .computeIfAbsent( database, db ->
+                        project == null
+                                ? ProjectUtils.isDatabasePreferred( db )
+                                : ProjectUtils.isDatabasePreferred( project, db ) );
+        // If the cache was invalidated (generation bumped) while we were computing, drop the
+        // result so it is not installed under the new generation.
+        if( generation != preferredCacheGeneration.get() )
+            ( project == null
+                    ? preferredWithoutProject
+                    : preferredByProject.get( project ) ).remove( database );
+        return result;
     }
 
     public static StreamEx<BioHubInfo> specialHubs()
@@ -487,7 +573,116 @@ public class BioHubRegistry extends ExtensionRegistrySupport<BioHubRegistry.BioH
         }
     }
 
+    // Cache of getMatchingGraph results. Building the graph iterates over all BioHubs and
+    // repeatedly calls getSupportedMatching; during workflow initialization the same input
+    // properties are requested for every node. Values are invalidation-based: they expire
+    // when the databases collection changes (hubs are added/removed) or when permissions are
+    // reloaded.
+    //
+    // The cache is keyed by an immutable snapshot of the input Properties (see
+    // MatchingGraphKey), never by the mutable Properties object itself.
+    // Invalidation is race-safe because putIfAbsent installs a value only if the key is
+    // still absent: an in-flight computation that finishes after a concurrent clear simply
+    // does not get installed (the cache has already moved on), so no stale value is
+    // repopulated.
+    private static final ConcurrentHashMap<MatchingGraphKey, List<MatchingStep>> matchingGraphCache = new ConcurrentHashMap<>();
+    private static volatile DataCollectionListener matchingGraphListener;
+
+    private static void initMatchingGraphListener()
+    {
+        if( matchingGraphListener == null )
+        {
+            synchronized( BioHubRegistry.class )
+            {
+                if( matchingGraphListener == null )
+                {
+                    matchingGraphListener = new DataCollectionListenerSupport()
+                    {
+                        @Override
+                        public void elementAdded(DataCollectionEvent e)
+                        {
+                            invalidateMatchingGraphCache();
+                        }
+
+                        @Override
+                        public void elementWillRemove(DataCollectionEvent e)
+                        {
+                            invalidateMatchingGraphCache();
+                        }
+                    };
+                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( matchingGraphListener );
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidate the cached matching graphs. Called from
+     * {@code SecurityManager.invalidatePermissions} (permission changes can affect which
+     * BioHubs are available) and from the databases-collection listener.
+     */
+    public static void invalidateMatchingGraphCache()
+    {
+        matchingGraphCache.clear();
+    }
+
+    /**
+     * Immutable cache key for getMatchingGraph: a sorted, unmodifiable snapshot of the input
+     * Properties. Using this instead of the mutable Properties object avoids the classic
+     * mutable-key problem (a key whose contents change after being inserted into a map is
+     * effectively lost, and the orphaned entry leaks).
+     */
+    private static final class MatchingGraphKey
+    {
+        private final Map<String, String> properties;
+
+        private MatchingGraphKey(Map<String, String> properties)
+        {
+            this.properties = properties;
+        }
+
+        static MatchingGraphKey of(Properties properties)
+        {
+            Map<String, String> snapshot = new TreeMap<>();
+            for( String name : properties.stringPropertyNames() )
+                snapshot.put( name, properties.getProperty( name ) );
+            return new MatchingGraphKey( Collections.unmodifiableMap( snapshot ) );
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if( this == o )
+                return true;
+            if( !( o instanceof MatchingGraphKey ) )
+                return false;
+            return properties.equals( ( (MatchingGraphKey)o ).properties );
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return properties.hashCode();
+        }
+    }
+
     private static List<MatchingStep> getMatchingGraph(Properties inputType)
+    {
+        initMatchingGraphListener();
+        MatchingGraphKey key = MatchingGraphKey.of( inputType );
+        List<MatchingStep> cached = matchingGraphCache.get( key );
+        if( cached != null )
+            return cached;
+        List<MatchingStep> steps = buildMatchingGraph( inputType );
+        // putIfAbsent: if another thread installed a value for the same key while we were
+        // computing, use theirs. If the cache was invalidated in the meantime the map is
+        // empty, so our (stale) value is simply not installed.
+        matchingGraphCache.putIfAbsent( key, steps );
+        List<MatchingStep> installed = matchingGraphCache.get( key );
+        return installed != null ? installed : steps;
+    }
+
+    private static List<MatchingStep> buildMatchingGraph(Properties inputType)
     {
         List<MatchingStep> steps = new ArrayList<>();
         MatchingStep startStep = new MatchingStep( inputType );
