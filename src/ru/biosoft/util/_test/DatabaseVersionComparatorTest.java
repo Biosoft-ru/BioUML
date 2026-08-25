@@ -52,7 +52,7 @@ public class DatabaseVersionComparatorTest extends TestCase
         // Equal numerical parts with trailing symbols -> string comparison
         assertOrder( "52.36", "52.361" );
         assertOrder( "52.36n", "52.361" );
-        // 'a' (0x61) sorts after '(' (0x28) in the string fallback
+        // ' ' (0x20, the char after "75.13") sorts before 'a' (0x61) in the string fallback
         assertOrder( "75.13 (homo_sapiens)", "75.13a" );
         // A version with trailing symbols compares to another version by its numerical part
         assertOrder( "52.36n", "107.1" );
@@ -63,6 +63,20 @@ public class DatabaseVersionComparatorTest extends TestCase
         // no numerical part at all on both sides -> plain (case-sensitive) string comparison
         assertOrder( "Ensembl 75", "abc" );
         assertOrder( "52abc", "75 Ensembl" );
+    }
+
+    public void testLongDigitRunsDoNotOverflow()
+    {
+        // Fractional and integer digit runs longer than the tracked width must not throw and
+        // must not reverse the comparison direction (extra digits are dropped while parsing).
+        String longFrac = "1." + "1234567890123456789012345";
+        String longInt = "999999999999999999999999.1";
+        // a very large integer part still compares greater than a small one, in both directions
+        assertTrue( comparator.compare( longInt, "1.0" ) > 0 );
+        assertTrue( comparator.compare( "1.0", longInt ) < 0 );
+        // a very long fractional part compares without throwing
+        comparator.compare( longFrac, "1.0" );
+        comparator.compare( "1.0", longFrac );
     }
 
     public void testFullSorting()
