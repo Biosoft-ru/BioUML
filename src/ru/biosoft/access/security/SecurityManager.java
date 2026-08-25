@@ -66,9 +66,12 @@ public class SecurityManager
 
     private static final Map<String, Integer> guestPermissionsMap = new WeakHashMap<>();
 
-    private static SecurityProvider securityProvider = null;
+    // volatile: getPermissions() reads these outside the class monitor (fast path), so they
+    // must be safely published for the writes in initSecurityManager() to be visible to all
+    // threads.
+    private static volatile SecurityProvider securityProvider = null;
 
-    private static String adminSession = null;
+    private static volatile String adminSession = null;
 
     private static boolean isThreadPrivileged()
     {

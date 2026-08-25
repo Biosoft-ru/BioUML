@@ -12,9 +12,12 @@ public class DatabaseVersionComparator implements Comparator<String>
 {
     // Maximum number of fractional digits taken into account. Beyond this the values are
     // indistinguishable for any practical version string, and 15 is the last width where a
-    // scaled long value cannot overflow (10^15 * 10 < 2^63).
+    // scaled long value cannot overflow (10^15 * 10 < 2^63). Digits beyond this are dropped
+    // while parsing (so the accumulator can never overflow).
     private static final int MAX_FRACTION_DIGITS = 15;
-    private static final long TRUNCATION_MODULUS = 1000000000000000L;
+    // Maximum number of integer digits accumulated before dropping the rest (18 is the last
+    // width where value * 10 + 9 cannot overflow a long).
+    private static final int MAX_INTEGER_DIGITS = 18;
 
     @Override
     public int compare(String o1, String o2)
@@ -29,9 +32,13 @@ public class DatabaseVersionComparator implements Comparator<String>
         int i2 = parseNumber( o2 );
         if( i1 > 0 && i2 > 0 )
         {
-            // Parse integer and fractional digit values separately (e.g. "52.36" -> int 52, frac 36)
+            // Parse integer and fractional digit values separately (e.g. "52.36" -> int 52, frac 36).
+            // Digits beyond MAX_*_DIGITS are dropped while parsing so the accumulators cannot
+            // overflow (real version strings are far shorter; the old Double-based code would
+            // lose precision or saturate on such inputs, never reverse direction).
             long intPart1 = 0, intPart2 = 0;
             long fracPart1 = 0, fracPart2 = 0;
+            int intDigits1 = 0, intDigits2 = 0;
             int fracDigits1 = 0, fracDigits2 = 0;
             boolean d1 = false, d2 = false;
             for( int i = 0; i < i1; i++ )
@@ -44,12 +51,19 @@ public class DatabaseVersionComparator implements Comparator<String>
                 }
                 if( d1 )
                 {
-                    fracPart1 = fracPart1 * 10 + ( c - '0' );
-                    fracDigits1++;
+                    if( fracDigits1 < MAX_FRACTION_DIGITS )
+                    {
+                        fracPart1 = fracPart1 * 10 + ( c - '0' );
+                        fracDigits1++;
+                    }
                 }
                 else
                 {
-                    intPart1 = intPart1 * 10 + ( c - '0' );
+                    if( intDigits1 < MAX_INTEGER_DIGITS )
+                    {
+                        intPart1 = intPart1 * 10 + ( c - '0' );
+                        intDigits1++;
+                    }
                 }
             }
             for( int i = 0; i < i2; i++ )
@@ -62,12 +76,19 @@ public class DatabaseVersionComparator implements Comparator<String>
                 }
                 if( d2 )
                 {
-                    fracPart2 = fracPart2 * 10 + ( c - '0' );
-                    fracDigits2++;
+                    if( fracDigits2 < MAX_FRACTION_DIGITS )
+                    {
+                        fracPart2 = fracPart2 * 10 + ( c - '0' );
+                        fracDigits2++;
+                    }
                 }
                 else
                 {
-                    intPart2 = intPart2 * 10 + ( c - '0' );
+                    if( intDigits2 < MAX_INTEGER_DIGITS )
+                    {
+                        intPart2 = intPart2 * 10 + ( c - '0' );
+                        intDigits2++;
+                    }
                 }
             }
             // Compare integer parts first; scale fractional parts to a common width before
@@ -75,16 +96,6 @@ public class DatabaseVersionComparator implements Comparator<String>
             int cmp = Long.compare( intPart1, intPart2 );
             if( cmp == 0 )
             {
-                if( fracDigits1 > MAX_FRACTION_DIGITS )
-                {
-                    fracPart1 = fracPart1 % TRUNCATION_MODULUS;
-                    fracDigits1 = MAX_FRACTION_DIGITS;
-                }
-                if( fracDigits2 > MAX_FRACTION_DIGITS )
-                {
-                    fracPart2 = fracPart2 % TRUNCATION_MODULUS;
-                    fracDigits2 = MAX_FRACTION_DIGITS;
-                }
                 while( fracDigits1 < fracDigits2 )
                 {
                     fracPart1 *= 10;
