@@ -10,25 +10,44 @@ import junit.framework.TestSuite;
 
 public class GroupInfoTest extends TestCase
 {
+    // The two files this test writes into the working directory. They are regenerated on
+    // every run and are not part of the repository, so delete them when the test finishes
+    // (even if it fails) to keep the working tree clean.
+    private static final String FILE_2000_400 = "GroupInfo.2000.400.txt";
+    private static final String FILE_RAND = "GroupInfo.Rand.txt";
+
+    private File file(String name)
+    {
+        return new File( name );
+    }
+
+    private void deleteQuietly(File f)
+    {
+        // delete() only returns false if the file is absent (or cannot be removed); either
+        // way there is nothing to clean up, so there is no point in failing the test here.
+        f.delete();
+    }
+
     public GroupInfoTest(String name)
     {
         super(name);
     }
-    
+
     public static junit.framework.Test suite()
     {
         TestSuite suite = new TestSuite(GroupInfoTest.class.getName());
         suite.addTest(new GroupInfoTest("test"));
         return suite;
     }
-    
+
     public void test() throws Exception
     {
         int nGroups = 100000;
         int maxRank = 2000;
         int size = 400;
         Random rnd = new Random();
-        try (PrintWriter writer = new PrintWriter( new File( "GroupInfo.2000.400.txt" ), "UTF-8" ))
+        File file = file( FILE_2000_400 );
+        try (PrintWriter writer = new PrintWriter( file, "UTF-8" ))
         {
             System.out.println( GroupInfo.getAverageES( maxRank, size ) );
             for( int i = 0; i < nGroups; i++ )
@@ -43,6 +62,10 @@ public class GroupInfoTest extends TestCase
                 writer.println( Math.abs( group.getES() ) );
             }
         }
+        finally
+        {
+            deleteQuietly( file );
+        }
     }
     
     /**
@@ -54,9 +77,9 @@ public class GroupInfoTest extends TestCase
         int size = 200;
         int nGroups = 10000;
         Random rnd = new Random();
-        
+        File file = file( FILE_RAND );
         // AvgScore = 0.792/Math.pow((double)size*(maxRank-size)/maxRank, 0.486)
-        try( PrintWriter writer = new PrintWriter( new File( "GroupInfo.Rand.txt" ), "UTF-8" ) )
+        try( PrintWriter writer = new PrintWriter( file, "UTF-8" ) )
         {
             //writer.println("MaxRank\tSize\tESAvg(10000)\tESAvg(1000)\tP(1000)\tESAvg(calc)\tP(calc)");
 
@@ -174,6 +197,10 @@ public class GroupInfoTest extends TestCase
                         + "\t" + String.format( "%2.2f%%", Math.abs( ESavgCalc - ESavg ) / ESavg * 100 ) );
                 writer.flush();
             }
+        }
+        finally
+        {
+            deleteQuietly( file );
         }
     }
 }
