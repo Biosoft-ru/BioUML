@@ -170,6 +170,12 @@ public class ProjectUtils
     private static volatile Map<String, SortedSet<String>> availableDatabaseVersions;
     private static final AtomicLong availableVersionsGeneration = new AtomicLong();
     private static volatile DataCollectionListener availableVersionsListener;
+    // The resolved "databases" collection. Resolving it goes through
+    // SecurityManager.getPermissions (a synchronized call), and buildAvailableDatabaseVersions
+    // used to re-resolve it on every rebuild. The collection object itself is stable (only its
+    // contents change), so it is cached here and refreshed when the databases change or
+    // permissions are reloaded — both of which already invalidate the versions cache.
+    private static volatile DataCollection<DataCollection<?>> databasesCollection;
 
     private static void initAvailableVersionsListener()
     {
@@ -193,7 +199,8 @@ public class ProjectUtils
                             invalidateAvailableDatabaseVersions();
                         }
                     };
-                    CollectionFactoryUtils.getDatabases().addDataCollectionListener( availableVersionsListener );
+                    databasesCollection = CollectionFactoryUtils.getDatabases();
+                    databasesCollection.addDataCollectionListener( availableVersionsListener );
                 }
             }
         }
@@ -210,6 +217,9 @@ public class ProjectUtils
     {
         availableVersionsGeneration.incrementAndGet();
         availableDatabaseVersions = null;
+        // The databases collection is resolved through security; after a permission reload
+        // (or a databases change) re-resolve it on the next build.
+        databasesCollection = null;
     }
 
     public static Map<String, SortedSet<String>> getAvailableDatabaseVersions()
@@ -231,7 +241,13 @@ public class ProjectUtils
     private static Map<String, SortedSet<String>> buildAvailableDatabaseVersions()
     {
         TreeMap<String, SortedSet<String>> result = new TreeMap<>();
-        StreamEx.of( CollectionFactoryUtils.getDatabases().stream() )
+        DataCollection<DataCollection<?>> databases = databasesCollection;
+        if( databases == null )
+        {
+            databases = CollectionFactoryUtils.getDatabases();
+            databasesCollection = databases;
+        }
+        StreamEx.of( databases.stream() )
                 .mapToEntry( ProjectUtils::getDatabaseName, ProjectUtils::getVersion )
                 .nonNullKeys().removeValues( String::isEmpty ).groupingTo( TreeMap::new, () -> {
                     return new TreeSet<>( new DatabaseVersionComparator() );
