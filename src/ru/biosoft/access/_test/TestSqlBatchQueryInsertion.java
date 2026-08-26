@@ -129,6 +129,40 @@ public class TestSqlBatchQueryInsertion extends TestCase
         assertTrue( "ORDER BY should come before LIMIT", orderIdx < limitIdx );
     }
 
+    // --- findTrailingClauseIndex: stricter right boundary ---
+
+    public void testOrderByNoSpaceBeforeParen() throws Exception
+    {
+        // "GROUP BY(x)" — no whitespace after "BY".  Both ORDER BY and
+        // GROUP BY must be rejected by the stricter scan because the
+        // non-whitespace '(' after the clause means it is not a complete
+        // clause token (it's part of a larger expression, not a trailing
+        // ORDER BY / GROUP BY clause).
+        String sql = "SELECT * FROM t GROUP BY(x)";
+        assertEquals( -1, (int) findTrailingClauseIndex.invoke( null, sql, "ORDER BY" ) );
+        assertEquals( -1, (int) findTrailingClauseIndex.invoke( null, sql, "GROUP BY" ) );
+        // Normal "GROUP BY name" (with space) should still be found
+        String sql2 = "SELECT * FROM t GROUP BY name";
+        assertTrue( "GROUP BY with space should be found",
+                (int) findTrailingClauseIndex.invoke( null, sql2, "GROUP BY" ) >= 0 );
+    }
+
+    public void testLimitNoSpaceBeforeDigit() throws Exception
+    {
+        // "LIMIT5" — no whitespace after LIMIT.  The stricter scan
+        // must not match because '5' is not whitespace.
+        String sql = "SELECT * FROM t LIMIT5";
+        assertEquals( -1, (int) findTrailingClauseIndex.invoke( null, sql, "LIMIT" ) );
+    }
+
+    public void testLimitWithSpaceStillFound() throws Exception
+    {
+        // "LIMIT 10" — normal case, still found with stricter boundary
+        String sql = "SELECT * FROM t LIMIT 10";
+        int idx = (int) findTrailingClauseIndex.invoke( null, sql, "LIMIT" );
+        assertTrue( "LIMIT with space should be found", idx >= 0 );
+    }
+
     // --- hasWholeWord ---
 
     public void testHasWholeWordBasic() throws Exception
