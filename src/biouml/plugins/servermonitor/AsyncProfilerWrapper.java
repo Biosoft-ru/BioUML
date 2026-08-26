@@ -195,6 +195,10 @@ public class AsyncProfilerWrapper {
         // still be holding the profiler agent.  This prevents the new
         // `asprof -d` from failing because a prior session hasn't fully
         // released the agent.
+        //
+        // jvmPid is always this JVM's own PID (getJvmPid reads
+        // ManagementFactory.getRuntimeMXBean().getName()), so ProcessHandle
+        // descendants of jvmPid are the asprof child processes we spawned.
         killLingeringProfilerProcesses(jvmPid);
 
         List<String> command = new ArrayList<>();
