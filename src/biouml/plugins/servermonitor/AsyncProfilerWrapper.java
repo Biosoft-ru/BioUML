@@ -345,9 +345,10 @@ public class AsyncProfilerWrapper {
      * to find child processes whose executable matches the profiler binary
      * path.
      *
-     * @return true if all matching processes were killed and exited,
-     *         false if any are still alive (caller should not start a
-     *         new profiler in that case)
+     * @return true if no matching profiler process remains alive;
+     *         false if a matching process remains alive or the state
+     *         could not be determined (caller should not start a new
+     *         profiler in that case)
      */
     private boolean killLingeringProfilerProcesses(long jvmPid) {
         boolean allExited = true;
@@ -393,7 +394,8 @@ public class AsyncProfilerWrapper {
                 }
             }
         } catch (Exception e) {
-            log.log(Level.FINE, "AsyncProfilerWrapper: could not check for lingering profiler processes", e);
+            log.log(Level.WARNING, "AsyncProfilerWrapper: could not check for lingering profiler processes", e);
+            return false;
         }
         return allExited;
     }
