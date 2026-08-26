@@ -6,17 +6,19 @@ import junit.framework.TestCase;
 import ru.biosoft.access.SqlDataCollection;
 
 /**
- * Tests for the private static helpers findTrailingClauseIndex and
- * hasWholeWord used by SqlDataCollection.getSortedIterator to safely
- * insert an IN (...) filter into a SELECT query.
+ * Tests for the private static helpers indexOfWholeWord,
+ * findTrailingClauseIndex, and buildBatchQuery used by
+ * SqlDataCollection.getSortedIterator to safely insert an IN (...)
+ * filter into a SELECT query.
  *
- * These are exercised via reflection because the methods are package-private
+ * These are exercised via reflection because the methods are private
  * in ru.biosoft.access and the test lives in ru.biosoft.access._test.
  */
 public class TestSqlBatchQueryInsertion extends TestCase
 {
     private Method findTrailingClauseIndex;
     private Method hasWholeWord;
+    private Method indexOfWholeWord;
     private Method buildBatchQuery;
 
     @Override
@@ -28,6 +30,9 @@ public class TestSqlBatchQueryInsertion extends TestCase
         hasWholeWord = SqlDataCollection.class.getDeclaredMethod(
                 "hasWholeWord", String.class, String.class );
         hasWholeWord.setAccessible( true );
+        indexOfWholeWord = SqlDataCollection.class.getDeclaredMethod(
+                "indexOfWholeWord", String.class, String.class );
+        indexOfWholeWord.setAccessible( true );
         buildBatchQuery = SqlDataCollection.class.getDeclaredMethod(
                 "buildBatchQuery", String.class, String.class );
         buildBatchQuery.setAccessible( true );
@@ -153,6 +158,44 @@ public class TestSqlBatchQueryInsertion extends TestCase
         // Real WHERE clause present — should match even though another
         // "WHERE" is also inside a literal
         assertTrue( (boolean) hasWholeWord.invoke( null, "SELECT * FROM t WHERE x=1 AND note='WHERE'", "WHERE" ) );
+    }
+
+    // --- indexOfWholeWord: the core primitive ---
+
+    public void testIndexOfWholeWordBasic() throws Exception
+    {
+        int idx = (int) indexOfWholeWord.invoke( null, "SELECT * FROM t WHERE x=1", "WHERE" );
+        assertEquals( 16, idx );
+    }
+
+    public void testIndexOfWholeWordNotFound() throws Exception
+    {
+        assertEquals( -1, (int) indexOfWholeWord.invoke( null, "SELECT * FROM t", "WHERE" ) );
+    }
+
+    public void testIndexOfWholeWordCaseInsensitive() throws Exception
+    {
+        int idx = (int) indexOfWholeWord.invoke( null, "select * from t where x=1", "WHERE" );
+        assertEquals( 16, idx );
+    }
+
+    public void testIndexOfWholeWordInsideLiteralSkipped() throws Exception
+    {
+        // Only "WHERE" is inside a literal — should return -1
+        assertEquals( -1, (int) indexOfWholeWord.invoke( null, "SELECT * FROM t note='WHERE'", "WHERE" ) );
+        // Real WHERE at position 16, literal WHERE at 30 — should find the real one
+        int idx = (int) indexOfWholeWord.invoke( null, "SELECT * FROM t WHERE x=1 AND note='WHERE'", "WHERE" );
+        assertEquals( 16, idx );
+    }
+
+    public void testIndexOfWholeWordLeftBoundary() throws Exception
+    {
+        assertEquals( -1, (int) indexOfWholeWord.invoke( null, "SELECT * FROM t WHEREX x=1", "WHERE" ) );
+    }
+
+    public void testIndexOfWholeWordRightBoundary() throws Exception
+    {
+        assertEquals( -1, (int) indexOfWholeWord.invoke( null, "SELECT * FROM t XWHERE x=1", "WHERE" ) );
     }
 
     // --- buildBatchQuery: the full assembly logic ---
