@@ -5,10 +5,13 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.StringJoiner;
 
 import javax.annotation.Nonnull;
 
@@ -475,7 +478,222 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
     public Iterator<T> getSortedIterator(String field, boolean direction, int from, int to)
     {
         List<String> sortedNameList = getSortedNameList(field, direction);
-        return AbstractDataCollection.createDataCollectionIterator( this, sortedNameList.subList( from, to ).iterator() );
+        List<String> subList = sortedNameList.subList( from, to );
+        if( subList.isEmpty() )
+            return java.util.Collections.<T>emptyIterator();
+
+        // Batch-fetch all rows in one query instead of N+1 individual lookups.
+        // The old path (createDataCollectionIterator) called doGet(name) per row,
+        // issuing one SELECT per element. Profiling on strange.genexplain.com
+        // showed this was 43% of WebTablesProvider CPU time.
+        try
+        {
+            String selectQuery = transformer.getSelectQuery();
+            StringJoiner inClause = new StringJoiner( "," );
+            for( String name : subList )
+                inClause.add( SqlUtil.quoteString( name ) );
+
+            String idFilter = transformer.getIdField() + " IN (" + inClause + ")";
+            String batchQuery = buildBatchQuery( selectQuery, idFilter );
+
+            Map<String, T> byName = new HashMap<>();
+            try( Statement statement = getConnection().createStatement(); ResultSet rs = statement.executeQuery( batchQuery ) )
+            {
+                while( rs.next() )
+                {
+                    T element = transformer.create( rs, getConnection() );
+                    byName.put( element.getName(), element );
+                }
+            }
+
+            if( byName.size() < subList.size() )
+            {
+                log.log( Level.FINE,
+                        "getSortedIterator: batch query returned {0}/{1} rows — some will fall back to per-row doGet",
+                        new Object[]{ byName.size(), subList.size() } );
+            }
+
+            final Map<String, T> result = byName;
+            Iterator<String> nameIter = subList.iterator();
+            return new Iterator<T>()
+            {
+                @Override
+                public boolean hasNext()
+                {
+                    return nameIter.hasNext();
+                }
+                @Override
+                public T next()
+                {
+                    String name = nameIter.next();
+                    T element = result.get( name );
+                    if( element == null )
+                    {
+                        // Fallback for rows the batch query didn't return
+                        // (e.g. filtered out by a transformer-specific condition)
+                        try
+                        {
+                            element = doGet( name );
+                        }
+                        catch( Exception e )
+                        {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                    return element;
+                }
+            };
+        }
+        catch( Exception e )
+        {
+            // Fall back to the per-row iterator if the batch query fails.
+            // WARNING (not SEVERE): this is expected compatibility behavior
+            // for transformers whose SQL doesn't match the supported shapes.
+            log.log( Level.WARNING, "Batch query in getSortedIterator failed, falling back to per-row", e );
+            return AbstractDataCollection.createDataCollectionIterator( this, subList.iterator() );
+        }
+    }
+
+    /**
+     * Case-insensitive whole-word search: returns the index of the first
+     * occurrence of {@code word} as a standalone token in {@code sql},
+     * or -1 if not found.  A match requires:
+     * <ul>
+     *   <li>whole-word boundaries on both sides (the preceding and
+     *       following characters, if any, must not be letters or digits),</li>
+     *   <li>the match must not be inside a single-quoted string literal
+     *       or a backtick-quoted identifier.</li>
+     * </ul>
+     * Mutual guards (!inBacktick / !inSingleQuote) prevent a backtick
+     * inside a single-quoted literal (e.g. {@code 'can`stop'}) from
+     * toggling backtick-state, and vice versa.  Intentional — do not
+     * simplify.
+     *
+     * Known limitation: no parenthesis-depth tracking, so a subquery
+     * containing the target word earlier in the string than the outer
+     * occurrence will match first (leftmost wins).  Callers that depend
+     * on finding the <em>outermost</em> occurrence should not use this
+     * method on queries with nested subqueries.  None of the current
+     * SqlTransformer.getSelectQuery() implementations have such subqueries.
+     *
+     * @param sql the SQL string to search
+     * @param word the keyword to look for
+     * @param requireWhitespaceRightBoundary if true, the character after
+     *        the match must be whitespace or end-of-string (not merely a
+     *        non-identifier character).  Use this for multi-word clauses
+     *        like "ORDER BY" where the right boundary must be actual
+     *        whitespace for the clause to be a complete token.
+     * @return the index of the first match, or -1 if not found
+     */
+    private static int indexOfWholeWord( String sql, String word, boolean requireWhitespaceRightBoundary )
+    {
+        String upper = sql.toUpperCase();
+        String wordUpper = word.toUpperCase();
+        boolean inSingleQuote = false;
+        boolean inBacktick = false;
+        for( int i = 0; i < upper.length(); i++ )
+        {
+            char c = sql.charAt( i );
+            if( c == '\'' && !inBacktick )
+                inSingleQuote = !inSingleQuote;
+            else if( c == '`' && !inSingleQuote )
+                inBacktick = !inBacktick;
+            if( inSingleQuote || inBacktick )
+                continue;
+            if( upper.startsWith( wordUpper, i ) )
+            {
+                if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
+                    continue;
+                int end = i + wordUpper.length();
+                if( end >= upper.length()
+                        || ( requireWhitespaceRightBoundary
+                             ? Character.isWhitespace( upper.charAt( end ) )
+                             : !Character.isLetterOrDigit( upper.charAt( end ) ) ) )
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Case-insensitive whole-word search with a non-identifier right
+     * boundary.  See {@link #indexOfWholeWord(String, String, boolean)}.
+     */
+    private static int indexOfWholeWord( String sql, String word )
+    {
+        return indexOfWholeWord( sql, word, false );
+    }
+
+    /**
+     * Case-insensitive whole-word check: returns true if the given word
+     * appears as a standalone token in the string (not as a substring of an
+     * identifier, and not inside single-quoted or backtick-quoted literals).
+     */
+    private static boolean hasWholeWord( String sql, String word )
+    {
+        return indexOfWholeWord( sql, word ) >= 0;
+    }
+
+    /**
+     * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
+     * a query string, ignoring occurrences inside string literals and
+     * backtick-quoted identifiers.  Delegates to
+     * {@link #indexOfWholeWord(String, String, boolean)} with
+     * {@code requireWhitespaceRightBoundary=true}; the only difference from
+     * the default scan is that the right boundary must be whitespace (not
+     * just a non-identifier character) to handle multi-word clauses like
+     * "ORDER BY" where a non-whitespace character after the clause (e.g.
+     * "ORDER BYX") would not constitute a complete clause token.
+     * Returns -1 if the clause is not found.
+     */
+    private static int findTrailingClauseIndex( String sql, String clause )
+    {
+        return indexOfWholeWord( sql, clause, true );
+    }
+
+    /**
+     * Build a batch-fetch query by inserting an id filter into a SELECT
+     * query, before any trailing ORDER BY / GROUP BY / LIMIT clause.
+     *
+     * If the query already has a WHERE clause, the pre-existing condition
+     * is wrapped in parentheses before the AND is appended.  This is
+     * necessary because AND binds tighter than OR in SQL: without
+     * parenthesization, "... WHERE a=1 OR b=2 AND id IN (...)" would parse
+     * as "a=1 OR (b=2 AND id IN (...))", silently returning rows matching
+     * a=1 that are NOT in the requested batch.
+     *
+     * Known limitation: no parenthesis-depth tracking, so a subquery
+     * containing its own ORDER BY / LIMIT / WHERE earlier in the string
+     * than the outer occurrence will be matched first, causing the
+     * insertion point or parenthesization to target the subquery rather
+     * than the outer clause.  None of the current SqlTransformer
+     * implementations have such subqueries in getSelectQuery().
+     */
+    private static String buildBatchQuery( String selectQuery, String idFilter )
+    {
+        int orderIdx = findTrailingClauseIndex( selectQuery, "ORDER BY" );
+        int groupIdx = findTrailingClauseIndex( selectQuery, "GROUP BY" );
+        int limitIdx = findTrailingClauseIndex( selectQuery, "LIMIT" );
+        int insertIdx = Math.min(
+                Math.min( orderIdx == -1 ? selectQuery.length() : orderIdx,
+                          groupIdx == -1 ? selectQuery.length() : groupIdx ),
+                limitIdx == -1 ? selectQuery.length() : limitIdx );
+
+        String before = selectQuery.substring( 0, insertIdx ).trim();
+        String after  = selectQuery.substring( insertIdx );
+        String afterPart = after.isEmpty() ? "" : " " + after.trim();
+
+        int wherePos = indexOfWholeWord( before, "WHERE" );
+        if( wherePos == -1 )
+            return before + " WHERE " + idFilter + afterPart;
+
+        // Wrap the existing condition in parentheses so the appended AND
+        // doesn't change the semantics of any top-level OR.  The original
+        // case of the WHERE keyword is preserved.
+        String preWhere  = before.substring( 0, wherePos );
+        String whereKw   = before.substring( wherePos, wherePos + "WHERE".length() );
+        String condition = before.substring( wherePos + "WHERE".length() ).trim();
+        return preWhere + whereKw + " (" + condition + ") AND " + idFilter + afterPart;
     }
 
     @Override

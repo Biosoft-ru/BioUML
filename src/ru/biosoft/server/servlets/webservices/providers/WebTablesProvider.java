@@ -29,13 +29,12 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
@@ -1050,6 +1049,22 @@ public class WebTablesProvider extends WebProviderSupport
         }
     }
 
+    /** Pre-compiled patterns for HTML tag/entity stripping in getSubstringWithTags. */
+    private static final Pattern HTML_TAG = Pattern.compile( "<[^>]*>" );
+    /** Matches named, decimal numeric, and hex HTML entities (e.g. &amp;, &#65;, &#x41;). */
+    private static final Pattern HTML_ENTITY = Pattern.compile( "&(?:#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);" );
+    private static final Pattern WHITESPACE = Pattern.compile( "\\s+" );
+
+    /**
+     * Approximate length check for HTML cell values.  Strips tags and
+     * entities to estimate the rendered text length; if it exceeds 600
+     * characters the cell is truncated with a "(more)" link.
+     *
+     * This is intentionally not a full HTML parser: the only goal is to
+     * decide whether to truncate, so approximate is sufficient and
+     * dramatically cheaper than building a DOM tree per cell (the old
+     * Jsoup.parse call was a profiler hot path).
+     */
     private static String getSubstringWithTags(String value)
     {
         if( value.length() > 600 )
@@ -1057,8 +1072,9 @@ public class WebTablesProvider extends WebProviderSupport
             int startTag = value.indexOf( "<" );
             if( startTag != -1 )
             {
-                Document taggedStr = Jsoup.parse( value );
-                String innerStr = taggedStr.text();
+                String innerStr = HTML_TAG.matcher( value ).replaceAll( " " );
+                innerStr = HTML_ENTITY.matcher( innerStr ).replaceAll( " " );
+                innerStr = WHITESPACE.matcher( innerStr ).replaceAll( " " );
                 if( innerStr.length() > 600 )
                     return value.substring( 0, Math.min( 600, startTag ) )
                             + " <span class='clickable' onclick='displayTableCell(this)'>(more)</span>";
