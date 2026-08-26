@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
@@ -29,7 +30,7 @@ public class BiostoreConnector
 {
     protected static final Logger log = Logger.getLogger(BiostoreConnector.class.getName());
 
-    protected Map<String, String> sessionCookies = new HashMap<>();
+    protected Map<String, String> sessionCookies = new ConcurrentHashMap<>();
 
     protected String serverLink;
     
