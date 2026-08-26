@@ -3,6 +3,7 @@ package ru.biosoft.access._test;
 import java.lang.reflect.Method;
 
 import junit.framework.TestCase;
+import biouml.plugins.go.GORelationTransformer;
 import ru.biosoft.access.SqlDataCollection;
 
 /**
@@ -51,13 +52,10 @@ public class TestSqlBatchQueryInsertion extends TestCase
 
     public void testGORelationTransformerWithOrderByName() throws Exception
     {
-        // GORelationTransformer.getSelectQuery() returns a query ending with
-        // "...order by t1,t2" (lowercase)
-        String sql = "select t2.acc t1,t1.acc t2,t3.acc type from term t1,term t2,term t3,term2term "
-                + "where term1_id=t1.id and term2_id=t2.id and relationship_type_id=t3.id "
-                + "and t1.term_type IN ('biological_process','molecular_function','cellular_component') "
-                + "and t2.term_type IN ('biological_process','molecular_function','cellular_component') "
-                + "order by t1,t2";
+        // Source the query from the real transformer so the test validates
+        // against the actual production string, not a hand-reconstructed copy.
+        String sql = new GORelationTransformer().getSelectQuery();
+        assertTrue( "query should end with lowercase 'order by'", sql.endsWith( "order by t1,t2" ) );
         int idx = (int) findTrailingClauseIndex.invoke( null, sql, "ORDER BY" );
         assertTrue( "lowercase 'order by' should be found case-insensitively", idx >= 0 );
     }
