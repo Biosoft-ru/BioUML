@@ -191,6 +191,12 @@ public class AsyncProfilerWrapper {
      */
     private boolean runProfiler(long jvmPid, String threadIdStr, int duration, String outputPath, String outputFormat)
             throws IOException, InterruptedException {
+        // Kill any lingering asprof processes from a previous run that may
+        // still be holding the profiler agent.  This prevents the new
+        // `asprof -d` from failing because a prior session hasn't fully
+        // released the agent.
+        killLingeringProfilerProcesses(jvmPid);
+
         List<String> command = new ArrayList<>();
         command.add(profilerPath);
         command.add("-d");
@@ -311,6 +317,29 @@ public class AsyncProfilerWrapper {
         }
 
         activeProfileOutputPath = null;
+    }
+
+    /**
+     * Kill any lingering asprof child processes of the current JVM that may
+     * be holding the profiler agent from a previous run.  Uses ProcessHandle
+     * (Java 9+) to find child processes whose command line matches the
+     * profiler binary path.
+     */
+    private void killLingeringProfilerProcesses(long jvmPid) {
+        try {
+            java.lang.ProcessHandle.of(jvmPid).ifPresent(handle ->
+                handle.descendants().forEach(ph -> {
+                    String cmd = ph.info().command().orElse("");
+                    if (cmd.contains("asprof") || cmd.contains("async-profiler")) {
+                        log.info("AsyncProfilerWrapper: killing lingering profiler process PID "
+                                + ph.pid() + " (" + cmd + ")");
+                        ph.destroyForcibly();
+                    }
+                })
+            );
+        } catch (Exception e) {
+            log.log(Level.FINE, "AsyncProfilerWrapper: could not check for lingering profiler processes", e);
+        }
     }
 
     /**
