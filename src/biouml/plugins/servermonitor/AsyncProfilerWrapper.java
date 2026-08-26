@@ -40,6 +40,8 @@ public class AsyncProfilerWrapper {
     private static final int STOP_TIMEOUT_SECONDS = 30;
     /** Extra buffer (seconds) added to the profiling duration for the run timeout. */
     private static final int RUN_PROFILER_TIMEOUT_BUFFER_SECONDS = 60;
+    /** Bounded wait (seconds) after destroyForcibly() to confirm the process actually exited. */
+    private static final int KILL_WAIT_SECONDS = 5;
 
     private final ServerMonitorConfig config;
     private String profilerPath;
@@ -250,7 +252,10 @@ public class AsyncProfilerWrapper {
             log.warning("AsyncProfilerWrapper: profiler run timed out after " + timeoutSeconds
                     + "s, destroying process");
             process.destroyForcibly();
-            process.waitFor();
+            if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
+                log.warning("AsyncProfilerWrapper: profiler process did not exit within "
+                        + KILL_WAIT_SECONDS + "s after destroyForcibly");
+            }
             return false;
         }
         int exitCode = process.exitValue();
@@ -313,7 +318,10 @@ public class AsyncProfilerWrapper {
                 log.warning("AsyncProfilerWrapper: stop timed out after " + STOP_TIMEOUT_SECONDS
                         + "s, destroying process");
                 process.destroyForcibly();
-                process.waitFor();
+                if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
+                    log.warning("AsyncProfilerWrapper: stop process did not exit within "
+                            + KILL_WAIT_SECONDS + "s after destroyForcibly");
+                }
             }
             log.info("AsyncProfilerWrapper: profiling stopped");
         } catch (IOException | InterruptedException e) {
@@ -325,22 +333,49 @@ public class AsyncProfilerWrapper {
 
     /**
      * Kill any lingering asprof child processes of the current JVM that may
-     * be holding the profiler agent from a previous run.  Uses ProcessHandle
-     * (Java 9+) to find child processes whose command line matches the
-     * profiler binary path.
+     * be holding the profiler agent from a previous run, and wait for them
+     * to exit before the new profiler starts.  Uses ProcessHandle (Java 9+)
+     * to find child processes whose executable matches the profiler binary
+     * path.
      */
     private void killLingeringProfilerProcesses(long jvmPid) {
         try {
-            java.lang.ProcessHandle.of(jvmPid).ifPresent(handle ->
+            java.nio.file.Path profilerBin = java.nio.file.Paths.get(profilerPath)
+                    .toAbsolutePath().normalize();
+            java.lang.ProcessHandle.of(jvmPid).ifPresent(handle -> {
+                List<java.lang.ProcessHandle> toKill = new ArrayList<>();
                 handle.descendants().forEach(ph -> {
                     String cmd = ph.info().command().orElse("");
-                    if (cmd.contains("asprof") || cmd.contains("async-profiler")) {
-                        log.info("AsyncProfilerWrapper: killing lingering profiler process PID "
-                                + ph.pid() + " (" + cmd + ")");
-                        ph.destroyForcibly();
+                    if (cmd.isEmpty()) return;
+                    try {
+                        java.nio.file.Path cmdPath = java.nio.file.Paths.get(cmd)
+                                .toAbsolutePath().normalize();
+                        if (cmdPath.equals(profilerBin)) {
+                            log.info("AsyncProfilerWrapper: killing lingering profiler process PID "
+                                    + ph.pid() + " (" + cmd + ")");
+                            toKill.add(ph);
+                        }
+                    } catch (Exception e) {
+                        // Not a valid path — ignore
                     }
-                })
-            );
+                });
+                for (java.lang.ProcessHandle ph : toKill) {
+                    ph.destroyForcibly();
+                    // ProcessHandle has no bounded waitFor — poll isAlive()
+                    long deadline = System.currentTimeMillis() + KILL_WAIT_SECONDS * 1000L;
+                    while (ph.isAlive() && System.currentTimeMillis() < deadline) {
+                        try { Thread.sleep(100); } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                    if (ph.isAlive()) {
+                        log.warning("AsyncProfilerWrapper: lingering profiler process PID "
+                                + ph.pid() + " did not exit within " + KILL_WAIT_SECONDS
+                                + "s after destroyForcibly");
+                    }
+                }
+            });
         } catch (Exception e) {
             log.log(Level.FINE, "AsyncProfilerWrapper: could not check for lingering profiler processes", e);
         }
