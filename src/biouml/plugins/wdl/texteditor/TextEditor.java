@@ -274,6 +274,7 @@ class TextEditor extends JFrame implements ActionListener
                 DocumentPrototype doc = checker.getPrototype(astStart);
 
                 VelocityEngine velocityEngine = new VelocityEngine();
+                velocityEngine.setProperty( "parser.pool.size", "200" );
                 velocityEngine.init();
 
                 Template t = velocityEngine.getTemplate("vm_templates/index.vm");

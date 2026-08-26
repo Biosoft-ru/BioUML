@@ -577,6 +577,7 @@ public class PopulationTreatment extends AnalysisMethodSupport<PopulationTreatme
 
         p.setProperty( "file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader" );
         p.setProperty( "file.resource.loader.path", template.getParentFile().getAbsolutePath() );
+        p.setProperty( "parser.pool.size", "200" );
 
         final VelocityEngine engine = new VelocityEngine( p );
         engine.init();

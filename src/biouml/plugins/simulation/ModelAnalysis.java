@@ -168,9 +168,7 @@ public class ModelAnalysis extends AnalysisMethodSupport<ModelAnalysisParameters
         p.setProperty( "file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader" );
         p.setProperty( "file.resource.loader.path", templateFile.getParentFile().getAbsolutePath() );
 
-        // experimental, possble fix for 
-        // Runtime : ran out of parsers. Creating a new one.  Please increment the parser.pool.size property. The current value is too small.
-        p.setProperty( "parser.pool.size", "50" );
+        p.setProperty( "parser.pool.size", "200" );
 
         final VelocityEngine engine = new VelocityEngine( p );
         engine.init();
