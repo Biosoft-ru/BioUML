@@ -34,8 +34,6 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import com.developmentontheedge.beans.DynamicPropertySet;
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
@@ -1057,8 +1055,14 @@ public class WebTablesProvider extends WebProviderSupport
             int startTag = value.indexOf( "<" );
             if( startTag != -1 )
             {
-                Document taggedStr = Jsoup.parse( value );
-                String innerStr = taggedStr.text();
+                // Strip HTML tags with a regex instead of Jsoup.parse: the latter
+                // builds a full DOM tree just to extract text(), which dominates CPU
+                // when called per-cell in sendTableData (profiler hot path).
+                String innerStr = value.replaceAll( "<[^>]*>", " " )
+                                       .replaceAll( "&[a-zA-Z]+;", " " )
+                                       .replaceAll( "&#\\d+;", " " );
+                // Collapse whitespace the way Jsoup.text() does
+                innerStr = innerStr.replaceAll( "\\s+", " " );
                 if( innerStr.length() > 600 )
                     return value.substring( 0, Math.min( 600, startTag ) )
                             + " <span class='clickable' onclick='displayTableCell(this)'>(more)</span>";
