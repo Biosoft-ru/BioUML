@@ -560,9 +560,7 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
      *   <li>whole-word boundaries on both sides (the preceding and
      *       following characters, if any, must not be letters or digits),</li>
      *   <li>the match must not be inside a single-quoted string literal
-     *       or a backtick-quoted identifier,</li>
-     *   <li>the match must be followed by a non-identifier character or
-     *       end-of-string (so "WHEREX" doesn't match "WHERE").</li>
+     *       or a backtick-quoted identifier.</li>
      * </ul>
      * Mutual guards (!inBacktick / !inSingleQuote) prevent a backtick
      * inside a single-quoted literal (e.g. {@code 'can`stop'}) from
@@ -575,8 +573,17 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
      * on finding the <em>outermost</em> occurrence should not use this
      * method on queries with nested subqueries.  None of the current
      * SqlTransformer.getSelectQuery() implementations have such subqueries.
+     *
+     * @param sql the SQL string to search
+     * @param word the keyword to look for
+     * @param requireWhitespaceRightBoundary if true, the character after
+     *        the match must be whitespace or end-of-string (not merely a
+     *        non-identifier character).  Use this for multi-word clauses
+     *        like "ORDER BY" where the right boundary must be actual
+     *        whitespace for the clause to be a complete token.
+     * @return the index of the first match, or -1 if not found
      */
-    private static int indexOfWholeWord( String sql, String word )
+    private static int indexOfWholeWord( String sql, String word, boolean requireWhitespaceRightBoundary )
     {
         String upper = sql.toUpperCase();
         String wordUpper = word.toUpperCase();
@@ -596,11 +603,23 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
                 if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
                     continue;
                 int end = i + wordUpper.length();
-                if( end >= upper.length() || !Character.isLetterOrDigit( upper.charAt( end ) ) )
+                if( end >= upper.length()
+                        || ( requireWhitespaceRightBoundary
+                             ? Character.isWhitespace( upper.charAt( end ) )
+                             : !Character.isLetterOrDigit( upper.charAt( end ) ) ) )
                     return i;
             }
         }
         return -1;
+    }
+
+    /**
+     * Case-insensitive whole-word search with a non-identifier right
+     * boundary.  See {@link #indexOfWholeWord(String, String, boolean)}.
+     */
+    private static int indexOfWholeWord( String sql, String word )
+    {
+        return indexOfWholeWord( sql, word, false );
     }
 
     /**
@@ -616,43 +635,18 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
     /**
      * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
      * a query string, ignoring occurrences inside string literals and
-     * backtick-quoted identifiers.  Delegates to {@link #indexOfWholeWord}
-     * for the tokenization scan; the only difference is that the right
-     * boundary must be whitespace (not just a non-identifier character)
-     * to handle multi-clause keywords like "ORDER BY" where the space
-     * between the two words is part of the token.
+     * backtick-quoted identifiers.  Delegates to
+     * {@link #indexOfWholeWord(String, String, boolean)} with
+     * {@code requireWhitespaceRightBoundary=true}; the only difference from
+     * the default scan is that the right boundary must be whitespace (not
+     * just a non-identifier character) to handle multi-word clauses like
+     * "ORDER BY" where a non-whitespace character after the clause (e.g.
+     * "ORDER BYX") would not constitute a complete clause token.
      * Returns -1 if the clause is not found.
      */
     private static int findTrailingClauseIndex( String sql, String clause )
     {
-        // indexOfWholeWord treats the right boundary as "not a letter/digit",
-        // which is too permissive for multi-word clauses: "ORDER BYX" would
-        // match "ORDER BY" (space after BY is a non-identifier char).  For
-        // trailing-clause detection we need the right boundary to be actual
-        // whitespace.  Re-scan with the stricter check.
-        String upper = sql.toUpperCase();
-        String clauseUpper = clause.toUpperCase();
-        boolean inSingleQuote = false;
-        boolean inBacktick = false;
-        for( int i = 0; i < upper.length(); i++ )
-        {
-            char c = sql.charAt( i );
-            if( c == '\'' && !inBacktick )
-                inSingleQuote = !inSingleQuote;
-            else if( c == '`' && !inSingleQuote )
-                inBacktick = !inBacktick;
-            if( inSingleQuote || inBacktick )
-                continue;
-            if( upper.startsWith( clauseUpper, i ) )
-            {
-                if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
-                    continue;
-                int end = i + clauseUpper.length();
-                if( end >= upper.length() || Character.isWhitespace( upper.charAt( end ) ) )
-                    return i;
-            }
-        }
-        return -1;
+        return indexOfWholeWord( sql, clause, true );
     }
 
     /**
