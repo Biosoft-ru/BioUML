@@ -55,6 +55,7 @@ import ru.biosoft.graphics.chart.ChartSeries;
 import ru.biosoft.jobcontrol.JobControlException;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
+import ru.biosoft.templates.TemplateRegistry;
 import ru.biosoft.util.ColorUtils;
 import ru.biosoft.util.TempFiles;
 
@@ -476,7 +477,7 @@ public class TreatmentSystem extends AnalysisMethodSupport<TreatmentSystemParame
 
         p.setProperty("file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader");
         p.setProperty("file.resource.loader.path", templateFile.getParentFile().getAbsolutePath());
-        p.setProperty("parser.pool.size", "200");
+        p.setProperty("parser.pool.size", String.valueOf(TemplateRegistry.VELOCITY_PARSER_POOL_SIZE));
 
         final VelocityEngine engine = new VelocityEngine(p);
         engine.init();

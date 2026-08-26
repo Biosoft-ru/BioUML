@@ -27,6 +27,16 @@ import ru.biosoft.util.TextUtil2;
  */
 public class TemplateRegistry extends ExtensionRegistrySupport<TemplateInfo>
 {
+    /**
+     * Number of parsers kept in the Velocity parser pool.
+     * <p>
+     * Applied both to the shared singleton engine (see
+     * {@link #initVelocity()}) and to the independent
+     * <code>VelocityEngine</code> instances created by the simulation
+     * engines — keep those in sync via this constant.
+     */
+    public static final int VELOCITY_PARSER_POOL_SIZE = 200;
+
     public static final String FILTER_ELEMENT = "filter";
     public static final String PROPERTY_ELEMENT = "property";
     public static final String NAME_ATTR = "name";
@@ -61,7 +71,8 @@ public class TemplateRegistry extends ExtensionRegistrySupport<TemplateInfo>
      * parsed concurrently than the pool can hold, Velocity logs
      * "Runtime : ran out of parsers. Creating a new one. Please increment the
      * parser.pool.size property." for each excess thread, so the pool size is
-     * raised here to cover our worst-case concurrency.
+     * raised here to accommodate the observed level of concurrent template
+     * parsing.
      * <p>
      * Note: in Velocity 1.7 <code>RuntimeSingleton.init()</code> re-runs the
      * full runtime initialization on every call, which would discard these
@@ -87,7 +98,7 @@ public class TemplateRegistry extends ExtensionRegistrySupport<TemplateInfo>
 
             props.setProperty("velocimacro.library", "resources/displayMacros.vm, resources/processMacros.vm");
 
-            props.setProperty("parser.pool.size", "200");
+            props.setProperty("parser.pool.size", String.valueOf(VELOCITY_PARSER_POOL_SIZE));
 
             ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(ClassLoading.getClassLoader());
