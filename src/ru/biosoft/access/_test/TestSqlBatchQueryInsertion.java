@@ -17,6 +17,7 @@ public class TestSqlBatchQueryInsertion extends TestCase
 {
     private Method findTrailingClauseIndex;
     private Method hasWholeWord;
+    private Method buildBatchQuery;
 
     @Override
     protected void setUp() throws Exception
@@ -27,6 +28,9 @@ public class TestSqlBatchQueryInsertion extends TestCase
         hasWholeWord = SqlDataCollection.class.getDeclaredMethod(
                 "hasWholeWord", String.class, String.class );
         hasWholeWord.setAccessible( true );
+        buildBatchQuery = SqlDataCollection.class.getDeclaredMethod(
+                "buildBatchQuery", String.class, String.class );
+        buildBatchQuery.setAccessible( true );
     }
 
     // --- findTrailingClauseIndex: real transformer queries ---
@@ -149,5 +153,72 @@ public class TestSqlBatchQueryInsertion extends TestCase
         // Real WHERE clause present — should match even though another
         // "WHERE" is also inside a literal
         assertTrue( (boolean) hasWholeWord.invoke( null, "SELECT * FROM t WHERE x=1 AND note='WHERE'", "WHERE" ) );
+    }
+
+    // --- buildBatchQuery: the full assembly logic ---
+
+    public void testBuildBatchQueryNoWhere() throws Exception
+    {
+        String sql = "SELECT name, start, end FROM tasks";
+        String result = (String) buildBatchQuery.invoke( null, sql, "name IN ('a','b')" );
+        assertEquals( "SELECT name, start, end FROM tasks WHERE name IN ('a','b')", result );
+    }
+
+    public void testBuildBatchQueryWithWhere() throws Exception
+    {
+        String sql = "SELECT * FROM tasks WHERE user='x'";
+        String result = (String) buildBatchQuery.invoke( null, sql, "name IN ('a','b')" );
+        assertEquals( "SELECT * FROM tasks WHERE (user='x') AND name IN ('a','b')", result );
+    }
+
+    public void testBuildBatchQueryWithWhereAndOrderBy() throws Exception
+    {
+        // DataElementsSqlTransformer pattern: WHERE + trailing ORDER BY
+        String sql = "SELECT id,name FROM data_element WHERE parent='X' ORDER BY name";
+        String result = (String) buildBatchQuery.invoke( null, sql, "id IN ('1','2')" );
+        assertEquals( "SELECT id,name FROM data_element WHERE (parent='X') AND id IN ('1','2') ORDER BY name", result );
+    }
+
+    public void testBuildBatchQueryWithWhereOrAndOrderBy() throws Exception
+    {
+        // CRITICAL: top-level OR in the WHERE clause.  Without parenthesization,
+        // "WHERE a=1 OR b=2 AND id IN (...)" parses as "a=1 OR (b=2 AND id IN (...))"
+        // and silently returns rows matching a=1 that are NOT in the batch.
+        String sql = "SELECT * FROM t WHERE a=1 OR b=2 ORDER BY name";
+        String result = (String) buildBatchQuery.invoke( null, sql, "id IN ('x','y')" );
+        assertEquals(
+                "SELECT * FROM t WHERE (a=1 OR b=2) AND id IN ('x','y') ORDER BY name",
+                result );
+    }
+
+    public void testBuildBatchQueryLowercaseWhere() throws Exception
+    {
+        // GORelationTransformer uses lowercase keywords
+        String sql = "select t2.acc t1,t1.acc t2 from term t1,term t2 where term1_id=t1.id order by t1";
+        String result = (String) buildBatchQuery.invoke( null, sql, "t1 IN ('a')" );
+        assertEquals(
+                "select t2.acc t1,t1.acc t2 from term t1,term t2 where (term1_id=t1.id) AND t1 IN ('a') order by t1",
+                result );
+    }
+
+    public void testBuildBatchQueryWithLimit() throws Exception
+    {
+        String sql = "SELECT * FROM t WHERE x=1 LIMIT 10";
+        String result = (String) buildBatchQuery.invoke( null, sql, "id IN ('a')" );
+        assertEquals( "SELECT * FROM t WHERE (x=1) AND id IN ('a') LIMIT 10", result );
+    }
+
+    public void testBuildBatchQueryOrderByAndLimit() throws Exception
+    {
+        String sql = "SELECT * FROM t WHERE x=1 ORDER BY name LIMIT 5";
+        String result = (String) buildBatchQuery.invoke( null, sql, "id IN ('a')" );
+        assertEquals( "SELECT * FROM t WHERE (x=1) AND id IN ('a') ORDER BY name LIMIT 5", result );
+    }
+
+    public void testBuildBatchQueryNoWhereWithOrderBy() throws Exception
+    {
+        String sql = "SELECT * FROM t ORDER BY name";
+        String result = (String) buildBatchQuery.invoke( null, sql, "id IN ('a')" );
+        assertEquals( "SELECT * FROM t WHERE id IN ('a') ORDER BY name", result );
     }
 }
