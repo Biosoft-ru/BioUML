@@ -494,26 +494,7 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
                 inClause.add( SqlUtil.quoteString( name ) );
 
             String idFilter = transformer.getIdField() + " IN (" + inClause + ")";
-
-            // Insert the IN filter before any trailing ORDER BY / GROUP BY /
-            // LIMIT clause.  Naively appending to the end produces invalid
-            // SQL when getSelectQuery() includes such a clause (e.g.
-            // DataElementsSqlTransformer returns "... ORDER BY name").
-            String batchQuery;
-            int orderIdx = findTrailingClauseIndex( selectQuery, "ORDER BY" );
-            int groupIdx = findTrailingClauseIndex( selectQuery, "GROUP BY" );
-            int limitIdx = findTrailingClauseIndex( selectQuery, "LIMIT" );
-            int insertIdx = Math.min(
-                    Math.min( orderIdx == -1 ? selectQuery.length() : orderIdx,
-                              groupIdx == -1 ? selectQuery.length() : groupIdx ),
-                    limitIdx == -1 ? selectQuery.length() : limitIdx );
-
-            String before = selectQuery.substring( 0, insertIdx );
-            String after  = selectQuery.substring( insertIdx );
-            // Case-insensitive word-boundary check: matches "WHERE" as a whole
-            // word, not as a substring of an identifier or inside a literal.
-            String connector = hasWholeWord( before, "WHERE" ) ? "AND " : "WHERE ";
-            batchQuery = before + " " + connector + idFilter + ( after.isEmpty() ? "" : " " + after );
+            String batchQuery = buildBatchQuery( selectQuery, idFilter );
 
             Map<String, T> byName = new HashMap<>();
             try( Statement statement = getConnection().createStatement(); ResultSet rs = statement.executeQuery( batchQuery ) )
@@ -572,6 +553,84 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
     }
 
     /**
+     * Build a batch-fetch query by inserting an id filter into a SELECT
+     * query, before any trailing ORDER BY / GROUP BY / LIMIT clause.
+     *
+     * If the query already has a WHERE clause, the pre-existing condition
+     * is wrapped in parentheses before the AND is appended.  This is
+     * necessary because AND binds tighter than OR in SQL: without
+     * parenthesization, "... WHERE a=1 OR b=2 AND id IN (...)" would parse
+     * as "a=1 OR (b=2 AND id IN (...))", silently returning rows matching
+     * a=1 that are NOT in the requested batch.
+     *
+     * Known limitation: no parenthesis-depth tracking, so a subquery
+     * containing its own ORDER BY / LIMIT would cause the insertion point
+     * to land inside the subquery rather than at the outer clause boundary.
+     * None of the current SqlTransformer implementations have such
+     * subqueries in getSelectQuery().
+     */
+    static String buildBatchQuery( String selectQuery, String idFilter )
+    {
+        int orderIdx = findTrailingClauseIndex( selectQuery, "ORDER BY" );
+        int groupIdx = findTrailingClauseIndex( selectQuery, "GROUP BY" );
+        int limitIdx = findTrailingClauseIndex( selectQuery, "LIMIT" );
+        int insertIdx = Math.min(
+                Math.min( orderIdx == -1 ? selectQuery.length() : orderIdx,
+                          groupIdx == -1 ? selectQuery.length() : groupIdx ),
+                limitIdx == -1 ? selectQuery.length() : limitIdx );
+
+        String before = selectQuery.substring( 0, insertIdx ).trim();
+        String after  = selectQuery.substring( insertIdx );
+        String afterPart = after.isEmpty() ? "" : " " + after.trim();
+
+        if( !hasWholeWord( before, "WHERE" ) )
+            return before + " WHERE " + idFilter + afterPart;
+
+        // Has a WHERE clause: find its position and wrap the existing
+        // condition in parentheses so the appended AND doesn't change
+        // the semantics of any top-level OR in the pre-existing condition.
+        // The original case of the WHERE keyword is preserved.
+        String beforeUpper = before.toUpperCase();
+        int wherePos = -1;
+        {
+            // Reuse the same literal-skipping scan as hasWholeWord to find
+            // the first real WHERE keyword position.
+            boolean inSingleQuote = false;
+            boolean inBacktick = false;
+            for( int i = 0; i < before.length(); i++ )
+            {
+                char c = before.charAt( i );
+                if( c == '\'' && !inBacktick )
+                    inSingleQuote = !inSingleQuote;
+                else if( c == '`' && !inSingleQuote )
+                    inBacktick = !inBacktick;
+                if( inSingleQuote || inBacktick )
+                    continue;
+                if( beforeUpper.startsWith( "WHERE", i ) )
+                {
+                    if( i > 0 && Character.isLetterOrDigit( before.charAt( i - 1 ) ) )
+                        continue;
+                    int end = i + 5;
+                    if( end >= before.length() || !Character.isLetterOrDigit( before.charAt( end ) ) )
+                    {
+                        wherePos = i;
+                        break;
+                    }
+                }
+            }
+        }
+        if( wherePos == -1 )
+            // hasWholeWord said yes but position search failed — shouldn't
+            // happen; fall through to safe no-parenthesization path.
+            return before + " AND " + idFilter + afterPart;
+
+        String preWhere  = before.substring( 0, wherePos );
+        String whereKw   = before.substring( wherePos, wherePos + "WHERE".length() );
+        String condition = before.substring( wherePos + "WHERE".length() ).trim();
+        return preWhere + whereKw + " (" + condition + ") AND " + idFilter + afterPart;
+    }
+
+    /**
      * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
      * a query string, ignoring occurrences inside string literals and
      * backtick-quoted identifiers.  Uses whole-word boundaries on both sides
@@ -588,6 +647,9 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
         for( int i = 0; i < sql.length(); i++ )
         {
             char c = sql.charAt( i );
+            // Mutual guards (!inBacktick / !inSingleQuote) prevent a backtick
+            // inside a single-quoted literal (e.g. 'can`stop') from toggling
+            // backtick-state, and vice versa.  Intentional — do not simplify.
             if( c == '\'' && !inBacktick )
                 inSingleQuote = !inSingleQuote;
             else if( c == '`' && !inSingleQuote )
