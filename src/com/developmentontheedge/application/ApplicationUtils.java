@@ -444,7 +444,7 @@ public class ApplicationUtils
         }
         catch( IOException e )
         {
-            // walkFileTree only throws on the root; fall back to deleteOnExit
+            // Fall back to deleteOnExit if the traversal itself failed
             dir.deleteOnExit();
         }
     }

@@ -546,8 +546,10 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
         }
         catch( Exception e )
         {
-            // Fall back to the per-row iterator if the batch query fails
-            log.log( Level.SEVERE, "Batch query in getSortedIterator failed, falling back to per-row", e );
+            // Fall back to the per-row iterator if the batch query fails.
+            // WARNING (not SEVERE): this is expected compatibility behavior
+            // for transformers whose SQL doesn't match the supported shapes.
+            log.log( Level.WARNING, "Batch query in getSortedIterator failed, falling back to per-row", e );
             return AbstractDataCollection.createDataCollectionIterator( this, subList.iterator() );
         }
     }
