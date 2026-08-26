@@ -480,19 +480,7 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
         List<String> sortedNameList = getSortedNameList(field, direction);
         List<String> subList = sortedNameList.subList( from, to );
         if( subList.isEmpty() )
-            return new Iterator<T>()
-            {
-                @Override
-                public boolean hasNext()
-                {
-                    return false;
-                }
-                @Override
-                public T next()
-                {
-                    throw new java.util.NoSuchElementException();
-                }
-            };
+            return java.util.Collections.<T>emptyIterator();
 
         // Batch-fetch all rows in one query instead of N+1 individual lookups.
         // The old path (createDataCollectionIterator) called doGet(name) per row,
@@ -505,11 +493,25 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
             for( String name : subList )
                 inClause.add( SqlUtil.quoteString( name ) );
 
+            String idFilter = transformer.getIdField() + " IN (" + inClause + ")";
+
+            // Insert the IN filter before any trailing ORDER BY / GROUP BY /
+            // LIMIT clause.  Naively appending to the end produces invalid
+            // SQL when getSelectQuery() includes such a clause (e.g.
+            // DataElementsSqlTransformer returns "... ORDER BY name").
             String batchQuery;
-            if( selectQuery.contains(" WHERE ") )
-                batchQuery = selectQuery + " AND " + transformer.getIdField() + " IN (" + inClause + ")";
-            else
-                batchQuery = selectQuery + " WHERE " + transformer.getIdField() + " IN (" + inClause + ")";
+            int orderIdx = findTrailingClauseIndex( selectQuery, "ORDER BY" );
+            int groupIdx = findTrailingClauseIndex( selectQuery, "GROUP BY" );
+            int limitIdx = findTrailingClauseIndex( selectQuery, "LIMIT" );
+            int insertIdx = Math.min(
+                    Math.min( orderIdx == -1 ? selectQuery.length() : orderIdx,
+                              groupIdx == -1 ? selectQuery.length() : groupIdx ),
+                    limitIdx == -1 ? selectQuery.length() : limitIdx );
+
+            String before = selectQuery.substring( 0, insertIdx );
+            String after  = selectQuery.substring( insertIdx );
+            String connector = before.contains( "WHERE" ) ? "AND " : "WHERE ";
+            batchQuery = before + " " + connector + idFilter + ( after.isEmpty() ? "" : " " + after );
 
             Map<String, T> byName = new HashMap<>();
             try( Statement statement = getConnection().createStatement(); ResultSet rs = statement.executeQuery( batchQuery ) )
@@ -519,6 +521,13 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
                     T element = transformer.create( rs, getConnection() );
                     byName.put( element.getName(), element );
                 }
+            }
+
+            if( byName.size() < subList.size() )
+            {
+                log.log( Level.FINE,
+                        "getSortedIterator: batch query returned {0}/{1} rows — some will fall back to per-row doGet",
+                        new Object[]{ byName.size(), subList.size() } );
             }
 
             final Map<String, T> result = byName;
@@ -558,6 +567,34 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
             log.log( Level.SEVERE, "Batch query in getSortedIterator failed, falling back to per-row", e );
             return AbstractDataCollection.createDataCollectionIterator( this, subList.iterator() );
         }
+    }
+
+    /**
+     * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
+     * a query string, ignoring occurrences inside string literals.
+     * Returns -1 if the clause is not found.
+     */
+    private static int findTrailingClauseIndex( String sql, String clause )
+    {
+        // Case-insensitive search, but skip occurrences inside single-quoted
+        // string literals to avoid false positives.
+        String upper = sql.toUpperCase();
+        String clauseUpper = clause.toUpperCase();
+        boolean inQuote = false;
+        for( int i = 0; i < sql.length(); i++ )
+        {
+            char c = sql.charAt( i );
+            if( c == '\'' )
+                inQuote = !inQuote;
+            if( !inQuote && upper.startsWith( clauseUpper, i ) )
+            {
+                // Ensure the clause is a whole word (followed by space or end)
+                int end = i + clauseUpper.length();
+                if( end >= upper.length() || upper.charAt( end ) == ' ' )
+                    return i;
+            }
+        }
+        return -1;
     }
 
     @Override
