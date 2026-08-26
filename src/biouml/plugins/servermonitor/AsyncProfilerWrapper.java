@@ -201,7 +201,11 @@ public class AsyncProfilerWrapper {
         // jvmPid is always this JVM's own PID (getJvmPid reads
         // ManagementFactory.getRuntimeMXBean().getName()), so ProcessHandle
         // descendants of jvmPid are the asprof child processes we spawned.
-        killLingeringProfilerProcesses(jvmPid);
+        if (!killLingeringProfilerProcesses(jvmPid)) {
+            log.warning("AsyncProfilerWrapper: lingering profiler process still alive; "
+                    + "not starting a new profiler");
+            return false;
+        }
 
         List<String> command = new ArrayList<>();
         command.add(profilerPath);
@@ -321,9 +325,12 @@ public class AsyncProfilerWrapper {
                 if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
                     log.warning("AsyncProfilerWrapper: stop process did not exit within "
                             + KILL_WAIT_SECONDS + "s after destroyForcibly");
+                } else {
+                    log.info("AsyncProfilerWrapper: profiling stopped");
                 }
+            } else {
+                log.info("AsyncProfilerWrapper: profiling stopped");
             }
-            log.info("AsyncProfilerWrapper: profiling stopped");
         } catch (IOException | InterruptedException e) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: error stopping profiler", e);
         }
@@ -337,20 +344,25 @@ public class AsyncProfilerWrapper {
      * to exit before the new profiler starts.  Uses ProcessHandle (Java 9+)
      * to find child processes whose executable matches the profiler binary
      * path.
+     *
+     * @return true if all matching processes were killed and exited,
+     *         false if any are still alive (caller should not start a
+     *         new profiler in that case)
      */
-    private void killLingeringProfilerProcesses(long jvmPid) {
+    private boolean killLingeringProfilerProcesses(long jvmPid) {
+        boolean allExited = true;
         try {
             java.nio.file.Path profilerBin = java.nio.file.Paths.get(profilerPath)
                     .toAbsolutePath().normalize();
-            java.lang.ProcessHandle.of(jvmPid).ifPresent(handle -> {
-                List<java.lang.ProcessHandle> toKill = new ArrayList<>();
+            List<java.lang.ProcessHandle> toKill = new ArrayList<>();
+            java.lang.ProcessHandle.of(jvmPid).ifPresent(handle ->
                 handle.descendants().forEach(ph -> {
                     String cmd = ph.info().command().orElse("");
                     if (cmd.isEmpty()) return;
                     try {
                         java.nio.file.Path cmdPath = java.nio.file.Paths.get(cmd)
                                 .toAbsolutePath().normalize();
-                        if (cmdPath.equals(profilerBin)) {
+                        if (sameExecutable(cmdPath, profilerBin)) {
                             log.info("AsyncProfilerWrapper: killing lingering profiler process PID "
                                     + ph.pid() + " (" + cmd + ")");
                             toKill.add(ph);
@@ -358,26 +370,44 @@ public class AsyncProfilerWrapper {
                     } catch (Exception e) {
                         // Not a valid path — ignore
                     }
-                });
-                for (java.lang.ProcessHandle ph : toKill) {
-                    ph.destroyForcibly();
-                    // ProcessHandle has no bounded waitFor — poll isAlive()
-                    long deadline = System.currentTimeMillis() + KILL_WAIT_SECONDS * 1000L;
-                    while (ph.isAlive() && System.currentTimeMillis() < deadline) {
-                        try { Thread.sleep(100); } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                    }
-                    if (ph.isAlive()) {
-                        log.warning("AsyncProfilerWrapper: lingering profiler process PID "
-                                + ph.pid() + " did not exit within " + KILL_WAIT_SECONDS
-                                + "s after destroyForcibly");
+                })
+            );
+            for (java.lang.ProcessHandle ph : toKill) {
+                ph.destroyForcibly();
+                // ProcessHandle has no bounded waitFor — poll isAlive().
+                // Use nanoTime for the deadline (monotonic, unaffected
+                // by NTP/clock changes).
+                long deadline = System.nanoTime()
+                        + java.util.concurrent.TimeUnit.SECONDS.toNanos(KILL_WAIT_SECONDS);
+                while (ph.isAlive() && System.nanoTime() < deadline) {
+                    try { Thread.sleep(100); } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        return false;
                     }
                 }
-            });
+                if (ph.isAlive()) {
+                    allExited = false;
+                    log.warning("AsyncProfilerWrapper: lingering profiler process PID "
+                            + ph.pid() + " did not exit within " + KILL_WAIT_SECONDS
+                            + "s after destroyForcibly");
+                }
+            }
         } catch (Exception e) {
             log.log(Level.FINE, "AsyncProfilerWrapper: could not check for lingering profiler processes", e);
+        }
+        return allExited;
+    }
+
+    /**
+     * Compare two paths for identity, resolving symlinks where possible.
+     * Falls back to normalized absolute path comparison if toRealPath
+     * fails (e.g. file doesn't exist).
+     */
+    private static boolean sameExecutable(java.nio.file.Path a, java.nio.file.Path b) {
+        try {
+            return a.toRealPath().equals(b.toRealPath());
+        } catch (java.io.IOException e) {
+            return a.toAbsolutePath().normalize().equals(b.toAbsolutePath().normalize());
         }
     }
 
