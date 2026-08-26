@@ -336,6 +336,42 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
     @Override
     protected T doGet(String name) throws Exception
     {
+        return doGet( name, null );
+    }
+
+    /**
+     * Extracts and returns a data element, optionally serving it from a batch of
+     * pre-fetched rows to avoid a per-row SELECT.
+     *
+     * <p>This is the resolution point used by {@link #getSortedIterator}. The
+     * batch is <em>iterator-local</em> state: it is passed in as a parameter and
+     * never stored on the collection, so multiple iterators (concurrent or
+     * nested) can never interfere with each other.
+     *
+     * <p>The default implementation serves the named row from {@code batchedRows}
+     * when present and otherwise performs a single-row DB lookup. A subclass may
+     * override this method to intercept the element first — e.g. to return a live
+     * in-memory element for a row that is currently being mutated (this is what
+     * {@code TaskManager.getTasksInfo()} does for a running task) — and only defer
+     * to {@code super.doGet(name, batchedRows)} for names it does not handle.
+     * Returning {@code null} from an override means "no element for this name";
+     * it is not treated as a request to fall back to the batch.
+     *
+     * @param name         Name of the data element (PK).
+     * @param batchedRows  Rows pre-fetched by {@link #getSortedIterator}, or {@code null}
+     *                     when resolving outside a batched iteration.
+     * @return the data element, or {@code null} if not found.
+     * @throws Exception if the DB lookup or element creation fails.
+     */
+    protected T doGet(String name, Map<String, T> batchedRows) throws Exception
+    {
+        if( batchedRows != null )
+        {
+            T pre = batchedRows.get(name);
+            if( pre != null )
+                return pre;
+        }
+
         String elementQuery = transformer.getElementQuery(name);
         if( elementQuery == null )
             return null;
@@ -513,7 +549,19 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
                         new Object[]{ byName.size(), subList.size() } );
             }
 
-            final Map<String, T> result = byName;
+            // Resolve each element through doGet(name, batch) — passing the
+            // iterator-local batch as a parameter (not a collection field) — so
+            // that:
+            //   1. a subclass override of doGet can intercept the element first
+            //      (e.g. TaskManager.getTasksInfo() returns a live in-memory
+            //      task for a task that is still running, rather than the stale
+            //      DB row which TasksSqlTransformer.create() would render as
+            //      "terminated due to server shutdown"), and
+            //   2. the base implementation serves the row from the batch without
+            //      issuing a per-row SELECT (the N+1 optimization).
+            // The batch is captured by the returned iterator's closure, so
+            // multiple iterators never share or interfere with each other's state.
+            final Map<String, T> batch = byName;
             Iterator<String> nameIter = subList.iterator();
             return new Iterator<T>()
             {
@@ -522,25 +570,19 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
                 {
                     return nameIter.hasNext();
                 }
+
                 @Override
                 public T next()
                 {
                     String name = nameIter.next();
-                    T element = result.get( name );
-                    if( element == null )
+                    try
                     {
-                        // Fallback for rows the batch query didn't return
-                        // (e.g. filtered out by a transformer-specific condition)
-                        try
-                        {
-                            element = doGet( name );
-                        }
-                        catch( Exception e )
-                        {
-                            throw new RuntimeException( e );
-                        }
+                        return doGet( name, batch );
                     }
-                    return element;
+                    catch( Exception e )
+                    {
+                        throw new RuntimeException( e );
+                    }
                 }
             };
         }
