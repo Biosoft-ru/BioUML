@@ -553,131 +553,30 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
     }
 
     /**
-     * Build a batch-fetch query by inserting an id filter into a SELECT
-     * query, before any trailing ORDER BY / GROUP BY / LIMIT clause.
-     *
-     * If the query already has a WHERE clause, the pre-existing condition
-     * is wrapped in parentheses before the AND is appended.  This is
-     * necessary because AND binds tighter than OR in SQL: without
-     * parenthesization, "... WHERE a=1 OR b=2 AND id IN (...)" would parse
-     * as "a=1 OR (b=2 AND id IN (...))", silently returning rows matching
-     * a=1 that are NOT in the requested batch.
+     * Case-insensitive whole-word search: returns the index of the first
+     * occurrence of {@code word} as a standalone token in {@code sql},
+     * or -1 if not found.  A match requires:
+     * <ul>
+     *   <li>whole-word boundaries on both sides (the preceding and
+     *       following characters, if any, must not be letters or digits),</li>
+     *   <li>the match must not be inside a single-quoted string literal
+     *       or a backtick-quoted identifier,</li>
+     *   <li>the match must be followed by a non-identifier character or
+     *       end-of-string (so "WHEREX" doesn't match "WHERE").</li>
+     * </ul>
+     * Mutual guards (!inBacktick / !inSingleQuote) prevent a backtick
+     * inside a single-quoted literal (e.g. {@code 'can`stop'}) from
+     * toggling backtick-state, and vice versa.  Intentional — do not
+     * simplify.
      *
      * Known limitation: no parenthesis-depth tracking, so a subquery
-     * containing its own ORDER BY / LIMIT would cause the insertion point
-     * to land inside the subquery rather than at the outer clause boundary.
-     * None of the current SqlTransformer implementations have such
-     * subqueries in getSelectQuery().
+     * containing the target word earlier in the string than the outer
+     * occurrence will match first (leftmost wins).  Callers that depend
+     * on finding the <em>outermost</em> occurrence should not use this
+     * method on queries with nested subqueries.  None of the current
+     * SqlTransformer.getSelectQuery() implementations have such subqueries.
      */
-    static String buildBatchQuery( String selectQuery, String idFilter )
-    {
-        int orderIdx = findTrailingClauseIndex( selectQuery, "ORDER BY" );
-        int groupIdx = findTrailingClauseIndex( selectQuery, "GROUP BY" );
-        int limitIdx = findTrailingClauseIndex( selectQuery, "LIMIT" );
-        int insertIdx = Math.min(
-                Math.min( orderIdx == -1 ? selectQuery.length() : orderIdx,
-                          groupIdx == -1 ? selectQuery.length() : groupIdx ),
-                limitIdx == -1 ? selectQuery.length() : limitIdx );
-
-        String before = selectQuery.substring( 0, insertIdx ).trim();
-        String after  = selectQuery.substring( insertIdx );
-        String afterPart = after.isEmpty() ? "" : " " + after.trim();
-
-        if( !hasWholeWord( before, "WHERE" ) )
-            return before + " WHERE " + idFilter + afterPart;
-
-        // Has a WHERE clause: find its position and wrap the existing
-        // condition in parentheses so the appended AND doesn't change
-        // the semantics of any top-level OR in the pre-existing condition.
-        // The original case of the WHERE keyword is preserved.
-        String beforeUpper = before.toUpperCase();
-        int wherePos = -1;
-        {
-            // Reuse the same literal-skipping scan as hasWholeWord to find
-            // the first real WHERE keyword position.
-            boolean inSingleQuote = false;
-            boolean inBacktick = false;
-            for( int i = 0; i < before.length(); i++ )
-            {
-                char c = before.charAt( i );
-                if( c == '\'' && !inBacktick )
-                    inSingleQuote = !inSingleQuote;
-                else if( c == '`' && !inSingleQuote )
-                    inBacktick = !inBacktick;
-                if( inSingleQuote || inBacktick )
-                    continue;
-                if( beforeUpper.startsWith( "WHERE", i ) )
-                {
-                    if( i > 0 && Character.isLetterOrDigit( before.charAt( i - 1 ) ) )
-                        continue;
-                    int end = i + 5;
-                    if( end >= before.length() || !Character.isLetterOrDigit( before.charAt( end ) ) )
-                    {
-                        wherePos = i;
-                        break;
-                    }
-                }
-            }
-        }
-        if( wherePos == -1 )
-            // hasWholeWord said yes but position search failed — shouldn't
-            // happen; fall through to safe no-parenthesization path.
-            return before + " AND " + idFilter + afterPart;
-
-        String preWhere  = before.substring( 0, wherePos );
-        String whereKw   = before.substring( wherePos, wherePos + "WHERE".length() );
-        String condition = before.substring( wherePos + "WHERE".length() ).trim();
-        return preWhere + whereKw + " (" + condition + ") AND " + idFilter + afterPart;
-    }
-
-    /**
-     * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
-     * a query string, ignoring occurrences inside string literals and
-     * backtick-quoted identifiers.  Uses whole-word boundaries on both sides
-     * and accepts any whitespace (not just space) after the clause keyword,
-     * so multi-line formatted queries are handled correctly.
-     * Returns -1 if the clause is not found.
-     */
-    private static int findTrailingClauseIndex( String sql, String clause )
-    {
-        String upper = sql.toUpperCase();
-        String clauseUpper = clause.toUpperCase();
-        boolean inSingleQuote = false;
-        boolean inBacktick = false;
-        for( int i = 0; i < sql.length(); i++ )
-        {
-            char c = sql.charAt( i );
-            // Mutual guards (!inBacktick / !inSingleQuote) prevent a backtick
-            // inside a single-quoted literal (e.g. 'can`stop') from toggling
-            // backtick-state, and vice versa.  Intentional — do not simplify.
-            if( c == '\'' && !inBacktick )
-                inSingleQuote = !inSingleQuote;
-            else if( c == '`' && !inSingleQuote )
-                inBacktick = !inBacktick;
-            if( (inSingleQuote || inBacktick) )
-                continue;
-            if( upper.startsWith( clauseUpper, i ) )
-            {
-                // Left boundary: must be start of string or preceded by a
-                // non-identifier character (prevents matching "xORDER BY").
-                if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
-                    continue;
-                // Right boundary: must be end of string or followed by any
-                // whitespace (not just space, to handle newlines/tabs).
-                int end = i + clauseUpper.length();
-                if( end >= upper.length() || Character.isWhitespace( upper.charAt( end ) ) )
-                    return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Case-insensitive whole-word check: returns true if the given word
-     * appears as a standalone token in the string (not as a substring of an
-     * identifier, and not inside single-quoted or backtick-quoted literals).
-     */
-    private static boolean hasWholeWord( String sql, String word )
+    private static int indexOfWholeWord( String sql, String word )
     {
         String upper = sql.toUpperCase();
         String wordUpper = word.toUpperCase();
@@ -698,10 +597,107 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
                     continue;
                 int end = i + wordUpper.length();
                 if( end >= upper.length() || !Character.isLetterOrDigit( upper.charAt( end ) ) )
-                    return true;
+                    return i;
             }
         }
-        return false;
+        return -1;
+    }
+
+    /**
+     * Case-insensitive whole-word check: returns true if the given word
+     * appears as a standalone token in the string (not as a substring of an
+     * identifier, and not inside single-quoted or backtick-quoted literals).
+     */
+    private static boolean hasWholeWord( String sql, String word )
+    {
+        return indexOfWholeWord( sql, word ) >= 0;
+    }
+
+    /**
+     * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
+     * a query string, ignoring occurrences inside string literals and
+     * backtick-quoted identifiers.  Delegates to {@link #indexOfWholeWord}
+     * for the tokenization scan; the only difference is that the right
+     * boundary must be whitespace (not just a non-identifier character)
+     * to handle multi-clause keywords like "ORDER BY" where the space
+     * between the two words is part of the token.
+     * Returns -1 if the clause is not found.
+     */
+    private static int findTrailingClauseIndex( String sql, String clause )
+    {
+        // indexOfWholeWord treats the right boundary as "not a letter/digit",
+        // which is too permissive for multi-word clauses: "ORDER BYX" would
+        // match "ORDER BY" (space after BY is a non-identifier char).  For
+        // trailing-clause detection we need the right boundary to be actual
+        // whitespace.  Re-scan with the stricter check.
+        String upper = sql.toUpperCase();
+        String clauseUpper = clause.toUpperCase();
+        boolean inSingleQuote = false;
+        boolean inBacktick = false;
+        for( int i = 0; i < upper.length(); i++ )
+        {
+            char c = sql.charAt( i );
+            if( c == '\'' && !inBacktick )
+                inSingleQuote = !inSingleQuote;
+            else if( c == '`' && !inSingleQuote )
+                inBacktick = !inBacktick;
+            if( inSingleQuote || inBacktick )
+                continue;
+            if( upper.startsWith( clauseUpper, i ) )
+            {
+                if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
+                    continue;
+                int end = i + clauseUpper.length();
+                if( end >= upper.length() || Character.isWhitespace( upper.charAt( end ) ) )
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Build a batch-fetch query by inserting an id filter into a SELECT
+     * query, before any trailing ORDER BY / GROUP BY / LIMIT clause.
+     *
+     * If the query already has a WHERE clause, the pre-existing condition
+     * is wrapped in parentheses before the AND is appended.  This is
+     * necessary because AND binds tighter than OR in SQL: without
+     * parenthesization, "... WHERE a=1 OR b=2 AND id IN (...)" would parse
+     * as "a=1 OR (b=2 AND id IN (...))", silently returning rows matching
+     * a=1 that are NOT in the requested batch.
+     *
+     * Known limitation: no parenthesis-depth tracking, so a subquery
+     * containing its own ORDER BY / LIMIT / WHERE earlier in the string
+     * than the outer occurrence will be matched first, causing the
+     * insertion point or parenthesization to target the subquery rather
+     * than the outer clause.  None of the current SqlTransformer
+     * implementations have such subqueries in getSelectQuery().
+     */
+    private static String buildBatchQuery( String selectQuery, String idFilter )
+    {
+        int orderIdx = findTrailingClauseIndex( selectQuery, "ORDER BY" );
+        int groupIdx = findTrailingClauseIndex( selectQuery, "GROUP BY" );
+        int limitIdx = findTrailingClauseIndex( selectQuery, "LIMIT" );
+        int insertIdx = Math.min(
+                Math.min( orderIdx == -1 ? selectQuery.length() : orderIdx,
+                          groupIdx == -1 ? selectQuery.length() : groupIdx ),
+                limitIdx == -1 ? selectQuery.length() : limitIdx );
+
+        String before = selectQuery.substring( 0, insertIdx ).trim();
+        String after  = selectQuery.substring( insertIdx );
+        String afterPart = after.isEmpty() ? "" : " " + after.trim();
+
+        int wherePos = indexOfWholeWord( before, "WHERE" );
+        if( wherePos == -1 )
+            return before + " WHERE " + idFilter + afterPart;
+
+        // Wrap the existing condition in parentheses so the appended AND
+        // doesn't change the semantics of any top-level OR.  The original
+        // case of the WHERE keyword is preserved.
+        String preWhere  = before.substring( 0, wherePos );
+        String whereKw   = before.substring( wherePos, wherePos + "WHERE".length() );
+        String condition = before.substring( wherePos + "WHERE".length() ).trim();
+        return preWhere + whereKw + " (" + condition + ") AND " + idFilter + afterPart;
     }
 
     @Override
