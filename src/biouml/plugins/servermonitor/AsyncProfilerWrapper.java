@@ -105,8 +105,12 @@ public class AsyncProfilerWrapper {
             return new ProfilerResult("async-profiler is not available");
         }
 
-        // Stop any existing profiling first
-        stop();
+        // No explicit stop() here: runProfiler uses `asprof -d <duration>` which
+        // auto-stops when the duration expires. A separate `asprof stop` call
+        // was causing hangs (observed on strange_gx) when the previous session
+        // had already ended but the agent couldn't confirm the stop. If a
+        // previous session is somehow still running, the new `asprof -d` will
+        // fail with a clear error rather than hanging.
 
         // Get JVM PID
         long jvmPid = getJvmPid();
