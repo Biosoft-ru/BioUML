@@ -36,6 +36,11 @@ public class AsyncProfilerWrapper {
     // Directory name inside the tarball (matches tarball name minus .tar.gz)
     private static final String PROFILER_DIR_NAME = "async-profiler-3.0-linux-x64";
 
+    /** Timeout for the `asprof stop` command. Prevents a hung stop from blocking the monitoring thread. */
+    private static final int STOP_TIMEOUT_SECONDS = 30;
+    /** Extra buffer (seconds) added to the profiling duration for the run timeout. */
+    private static final int RUN_PROFILER_TIMEOUT_BUFFER_SECONDS = 60;
+
     private final ServerMonitorConfig config;
     private String profilerPath;
     private volatile boolean profilerAvailable = false;
@@ -224,7 +229,17 @@ public class AsyncProfilerWrapper {
             }
         }
 
-        int exitCode = process.waitFor();
+        // Use a timeout (duration + buffer) so a hung profiler process
+        // cannot block the monitoring thread indefinitely.
+        long timeoutSeconds = duration + RUN_PROFILER_TIMEOUT_BUFFER_SECONDS;
+        if (!process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
+            log.warning("AsyncProfilerWrapper: profiler run timed out after " + timeoutSeconds
+                    + "s, destroying process");
+            process.destroyForcibly();
+            process.waitFor();
+            return false;
+        }
+        int exitCode = process.exitValue();
         if (exitCode != 0) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: profiler exited with code " + exitCode + ". stderr: " + stderr);
             return false;
@@ -276,7 +291,16 @@ public class AsyncProfilerWrapper {
             }
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            process.waitFor();
+            // Use a timeout so a hung `asprof stop` (e.g. when the profiler
+            // session already ended) cannot block the monitoring thread
+            // indefinitely.  The hang was observed on strange_gx where a
+            // stuck `asprof stop` killed all subsequent profiling.
+            if (!process.waitFor(STOP_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
+                log.warning("AsyncProfilerWrapper: stop timed out after " + STOP_TIMEOUT_SECONDS
+                        + "s, destroying process");
+                process.destroyForcibly();
+                process.waitFor();
+            }
             log.info("AsyncProfilerWrapper: profiling stopped");
         } catch (IOException | InterruptedException e) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: error stopping profiler", e);
