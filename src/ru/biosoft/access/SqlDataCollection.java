@@ -510,7 +510,9 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
 
             String before = selectQuery.substring( 0, insertIdx );
             String after  = selectQuery.substring( insertIdx );
-            String connector = before.contains( "WHERE" ) ? "AND " : "WHERE ";
+            // Case-insensitive word-boundary check: matches "WHERE" as a whole
+            // word, not as a substring of an identifier or inside a literal.
+            String connector = hasWholeWord( before, "WHERE" ) ? "AND " : "WHERE ";
             batchQuery = before + " " + connector + idFilter + ( after.isEmpty() ? "" : " " + after );
 
             Map<String, T> byName = new HashMap<>();
@@ -571,30 +573,73 @@ public class SqlDataCollection<T extends DataElement> extends AbstractDataCollec
 
     /**
      * Find the index of a trailing SQL clause (ORDER BY, GROUP BY, LIMIT) in
-     * a query string, ignoring occurrences inside string literals.
+     * a query string, ignoring occurrences inside string literals and
+     * backtick-quoted identifiers.  Uses whole-word boundaries on both sides
+     * and accepts any whitespace (not just space) after the clause keyword,
+     * so multi-line formatted queries are handled correctly.
      * Returns -1 if the clause is not found.
      */
     private static int findTrailingClauseIndex( String sql, String clause )
     {
-        // Case-insensitive search, but skip occurrences inside single-quoted
-        // string literals to avoid false positives.
         String upper = sql.toUpperCase();
         String clauseUpper = clause.toUpperCase();
-        boolean inQuote = false;
+        boolean inSingleQuote = false;
+        boolean inBacktick = false;
         for( int i = 0; i < sql.length(); i++ )
         {
             char c = sql.charAt( i );
-            if( c == '\'' )
-                inQuote = !inQuote;
-            if( !inQuote && upper.startsWith( clauseUpper, i ) )
+            if( c == '\'' && !inBacktick )
+                inSingleQuote = !inSingleQuote;
+            else if( c == '`' && !inSingleQuote )
+                inBacktick = !inBacktick;
+            if( (inSingleQuote || inBacktick) )
+                continue;
+            if( upper.startsWith( clauseUpper, i ) )
             {
-                // Ensure the clause is a whole word (followed by space or end)
+                // Left boundary: must be start of string or preceded by a
+                // non-identifier character (prevents matching "xORDER BY").
+                if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
+                    continue;
+                // Right boundary: must be end of string or followed by any
+                // whitespace (not just space, to handle newlines/tabs).
                 int end = i + clauseUpper.length();
-                if( end >= upper.length() || upper.charAt( end ) == ' ' )
+                if( end >= upper.length() || Character.isWhitespace( upper.charAt( end ) ) )
                     return i;
             }
         }
         return -1;
+    }
+
+    /**
+     * Case-insensitive whole-word check: returns true if the given word
+     * appears as a standalone token in the string (not as a substring of an
+     * identifier, and not inside single-quoted or backtick-quoted literals).
+     */
+    private static boolean hasWholeWord( String sql, String word )
+    {
+        String upper = sql.toUpperCase();
+        String wordUpper = word.toUpperCase();
+        boolean inSingleQuote = false;
+        boolean inBacktick = false;
+        for( int i = 0; i < upper.length(); i++ )
+        {
+            char c = sql.charAt( i );
+            if( c == '\'' && !inBacktick )
+                inSingleQuote = !inSingleQuote;
+            else if( c == '`' && !inSingleQuote )
+                inBacktick = !inBacktick;
+            if( inSingleQuote || inBacktick )
+                continue;
+            if( upper.startsWith( wordUpper, i ) )
+            {
+                if( i > 0 && Character.isLetterOrDigit( sql.charAt( i - 1 ) ) )
+                    continue;
+                int end = i + wordUpper.length();
+                if( end >= upper.length() || !Character.isLetterOrDigit( upper.charAt( end ) ) )
+                    return true;
+            }
+        }
+        return false;
     }
 
     @Override
