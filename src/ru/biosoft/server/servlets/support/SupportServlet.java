@@ -1805,10 +1805,11 @@ public class SupportServlet extends AbstractJSONServlet
                 return errorResponse("Monitoring service not available");
             }
 
-            biouml.plugins.servermonitor.AsyncProfilerWrapper profiler =
-                    new biouml.plugins.servermonitor.AsyncProfilerWrapper(
-                            plugin.getMonitoringService().getConfig());
-            profiler.stop();
+            // Route the manual stop through the monitoring service so it is
+            // serialized against an in-progress profiling run (see
+            // MonitoringService.stopProfiling). A direct stop here could
+            // otherwise SIGKILL a running profiler's CLI mid-teardown.
+            plugin.getMonitoringService().stopProfiling();
 
             // Clear active profiles
             plugin.getMonitoringService().getActiveProfiles().clear();
