@@ -33,6 +33,16 @@ public class MonitoringService {
     private volatile int slowTaskCount = 0;
     private volatile List<String> slowTaskIds = new ArrayList<>();
     private final Map<String, ProfilerResult> activeProfiles = new ConcurrentHashMap<>();
+    /**
+     * Guards the entire profiler lifecycle (the blocking {@code profiler.start}
+     * call). Multiple callers hit profiling concurrently — the manual
+     * {@code profileNow} servlet action and the periodic / slow-task monitor
+     * timer — and without this lock one run's {@code asprof stop} / lingering
+     * kill can SIGKILL another run's CLI mid-teardown, leaving the in-JVM
+     * agent stuck "already started" for every subsequent call. Serializing
+     * makes that race impossible.
+     */
+    private final Object profilerLock = new Object();
     private final Random random = new Random();
     private volatile boolean firstLoopIteration = true;
 
@@ -160,6 +170,19 @@ public class MonitoringService {
     }
 
     /**
+     * Stop the current profiler session, serialized against any in-progress
+     * profiling run via {@link #profilerLock}. Use this (not a fresh
+     * {@link AsyncProfilerWrapper#stop()}) so a manual stop cannot race an
+     * active run and SIGKILL its CLI mid-teardown.
+     * @return true if the stop exited cleanly
+     */
+    public boolean stopProfiling() {
+        synchronized (profilerLock) {
+            return profiler.stop();
+        }
+    }
+
+    /**
      * Force immediate profiling of all running tasks (profiles entire JVM).
      * @return list with a single ProfilerResult
      */
@@ -228,6 +251,12 @@ public class MonitoringService {
      * @return ProfilerResult
      */
     private ProfilerResult profileJvm(String triggeredTask) {
+        synchronized (profilerLock) {
+            return profileJvmLocked(triggeredTask);
+        }
+    }
+
+    private ProfilerResult profileJvmLocked(String triggeredTask) {
         // Check max concurrent profiles
         if (activeProfiles.size() >= 1) {
             log.warning("Max concurrent profiles reached, skipping JVM profiling");

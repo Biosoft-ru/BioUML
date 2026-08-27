@@ -193,18 +193,34 @@ public class AsyncProfilerWrapper {
      */
     private boolean runProfiler(long jvmPid, String threadIdStr, int duration, String outputPath, String outputFormat)
             throws IOException, InterruptedException {
-        // Kill any lingering asprof processes from a previous run that may
-        // still be holding the profiler agent.  This prevents the new
-        // `asprof -d` from failing because a prior session hasn't fully
-        // released the agent.
+        // Clear any previous profiling session before starting a new one.
         //
-        // jvmPid is always this JVM's own PID (getJvmPid reads
-        // ManagementFactory.getRuntimeMXBean().getName()), so ProcessHandle
-        // descendants of jvmPid are the asprof child processes we spawned.
-        if (!killLingeringProfilerProcesses(jvmPid)) {
-            log.warning("AsyncProfilerWrapper: lingering profiler process still alive; "
-                    + "not starting a new profiler");
-            return false;
+        // async-profiler keeps the agent (libasyncProfiler.so) installed in
+        // the JVM between runs. If a prior session's auto-stop did not fully
+        // release it (e.g. its CLI was killed mid-teardown, or the duration
+        // stop was interrupted), the agent stays "active" and every new
+        // `asprof -d` fails with code 200 "Profiler already started" — with
+        // nothing to clear it short of a restart. `asprof stop` tells the
+        // agent to release, so run it first.
+        //
+        // stop() is bounded (STOP_TIMEOUT_SECONDS + destroyForcibly), so it
+        // cannot hang the monitoring thread — the reason it was previously
+        // removed from this path. When it exits cleanly we KNOW the agent is
+        // released, so proceed. When it times out / errors, the agent may
+        // still be active; fall back to killing lingering CLI processes (they
+        // hold the agent too) and only start if we can confirm the tree is
+        // clean — otherwise skip rather than risk a SIGKILL racing another
+        // in-progress profiler.
+        boolean stopClean = stop();
+        if (!stopClean) {
+            log.info("AsyncProfilerWrapper: stop() did not exit cleanly; "
+                    + "checking for lingering profiler processes");
+            if (!killLingeringProfilerProcesses(jvmPid)) {
+                log.warning("AsyncProfilerWrapper: profiler state could not be cleared "
+                        + "(stop timed out and lingering process still alive); "
+                        + "not starting a new profiler");
+                return false;
+            }
         }
 
         List<String> command = new ArrayList<>();
@@ -285,17 +301,27 @@ public class AsyncProfilerWrapper {
 
     /**
      * Stop the current profiling session.
+     * @return true if the stop command exited cleanly within the timeout
+     *         (profiler was cleanly stopped or not running); false if it timed
+     *         out and was destroyed, errored, or the profiler is unavailable
+     *         (the agent may still be active — a caller that needs to start a
+     *         new run should treat this as "not confirmed stopped").
      */
-    public void stop() {
+    public boolean stop() {
         if (profilerPath == null || !isAvailable()) {
-            return;
+            return false;
         }
 
         long jvmPid = getJvmPid();
         if (jvmPid <= 0) {
-            return;
+            return false;
         }
 
+        // Run the bounded stop. Returns true only if the stop process exited
+        // on its own within the timeout (i.e. the profiler was cleanly stopped
+        // or already not running). A timeout + destroyForcibly means the agent
+        // may still be active, so we return false so a caller can fall back.
+        boolean exitedCleanly;
         try {
             List<String> command = new ArrayList<>();
             command.add(profilerPath);
@@ -317,7 +343,9 @@ public class AsyncProfilerWrapper {
             // Use a timeout so a hung `asprof stop` (e.g. when the profiler
             // session already ended) cannot block the monitoring thread
             // indefinitely.  The hang was observed on strange_gx where a
-            // stuck `asprof stop` killed all subsequent profiling.
+            // stuck `asprof stop` killed all subsequent profiling.  Bounded
+            // here (STOP_TIMEOUT_SECONDS + destroyForcibly), so this stop is
+            // safe to call as a pre-run guard (see runProfiler).
             if (!process.waitFor(STOP_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
                 log.warning("AsyncProfilerWrapper: stop timed out after " + STOP_TIMEOUT_SECONDS
                         + "s, destroying process");
@@ -325,17 +353,19 @@ public class AsyncProfilerWrapper {
                 if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
                     log.warning("AsyncProfilerWrapper: stop process did not exit within "
                             + KILL_WAIT_SECONDS + "s after destroyForcibly");
-                } else {
-                    log.info("AsyncProfilerWrapper: profiling stopped");
                 }
+                exitedCleanly = false;
             } else {
+                exitedCleanly = true;
                 log.info("AsyncProfilerWrapper: profiling stopped");
             }
         } catch (IOException | InterruptedException e) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: error stopping profiler", e);
+            exitedCleanly = false;
         }
 
         activeProfileOutputPath = null;
+        return exitedCleanly;
     }
 
     /**
