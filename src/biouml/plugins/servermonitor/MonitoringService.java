@@ -44,11 +44,19 @@ public class MonitoringService {
      */
     private final Object profilerLock = new Object();
     private final Random random = new Random();
+    private final SubProcessMonitor subProcessMonitor;
+    /**
+     * Most recent sub-process scan result, for the profile API. Updated on each
+     * monitor-loop cycle.
+     */
+    private volatile List<SubProcessMonitor.SubProcess> lastSubProcesses = new ArrayList<>();
+    private volatile long lastSubProcessCheckTime = 0;
     private volatile boolean firstLoopIteration = true;
 
     public MonitoringService(ServerMonitorConfig config) {
         this.config = config;
         this.profiler = new AsyncProfilerWrapper(config);
+        this.subProcessMonitor = new SubProcessMonitor(config);
     }
 
     /**
@@ -111,6 +119,7 @@ public class MonitoringService {
             try {
                 checkSlowTasks();
                 checkPeriodicProfiling();
+                checkSubProcesses();
                 cleanupOldProfiles();
 
                 lastCheckTime = System.currentTimeMillis();
@@ -158,6 +167,24 @@ public class MonitoringService {
 
         slowTaskCount = currentSlow.size();
         slowTaskIds = currentSlow;
+    }
+
+    /**
+     * Scan for long-running external sub-processes (perl/R/nextflow/...) and
+     * record the result for the profile API. Logs a SEVERE line the first time
+     * each sub-process crosses the slow threshold.
+     */
+    private void checkSubProcesses() {
+        if (!config.isSubProcessEnabled()) {
+            return;
+        }
+        try {
+            List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
+            lastSubProcesses = subs;
+            lastSubProcessCheckTime = System.currentTimeMillis();
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Sub-process scan failed", e);
+        }
     }
 
     /**
@@ -522,5 +549,20 @@ public class MonitoringService {
 
     public long getLastCheckTime() {
         return lastCheckTime;
+    }
+
+    /**
+     * Most recent sub-process scan result (long-running external processes).
+     */
+    public List<SubProcessMonitor.SubProcess> getSubProcesses() {
+        return lastSubProcesses;
+    }
+
+    public long getLastSubProcessCheckTime() {
+        return lastSubProcessCheckTime;
+    }
+
+    public boolean isSubProcessEnabled() {
+        return config.isSubProcessEnabled();
     }
 }
