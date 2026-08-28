@@ -1805,10 +1805,11 @@ public class SupportServlet extends AbstractJSONServlet
                 return errorResponse("Monitoring service not available");
             }
 
-            biouml.plugins.servermonitor.AsyncProfilerWrapper profiler =
-                    new biouml.plugins.servermonitor.AsyncProfilerWrapper(
-                            plugin.getMonitoringService().getConfig());
-            profiler.stop();
+            // Route the manual stop through the monitoring service so it is
+            // serialized against an in-progress profiling run (see
+            // MonitoringService.stopProfiling). A direct stop here could
+            // otherwise SIGKILL a running profiler's CLI mid-teardown.
+            plugin.getMonitoringService().stopProfiling();
 
             // Clear active profiles
             plugin.getMonitoringService().getActiveProfiles().clear();
@@ -1845,6 +1846,24 @@ public class SupportServlet extends AbstractJSONServlet
                 status.put("slowTasks", new JSONArray(monitor.getSlowTaskIds()));
                 status.put("activeProfiles", monitor.getActiveProfiles().keySet().size());
                 status.put("lastCheck", monitor.getLastCheckTime());
+
+                // Long-running external sub-processes (perl/R/nextflow/...) with
+                // their full command lines — complements the CPU profiler, which
+                // only sees the JVM itself.
+                status.put("subProcessEnabled", monitor.isSubProcessEnabled());
+                status.put("lastSubProcessCheck", monitor.getLastSubProcessCheckTime());
+                JSONArray subs = new JSONArray();
+                for (biouml.plugins.servermonitor.SubProcessMonitor.SubProcess sp : monitor.getSubProcesses())
+                {
+                    JSONObject o = new JSONObject();
+                    o.put("pid", sp.pid);
+                    o.put("ageSeconds", sp.ageSeconds);
+                    o.put("slow", sp.slow);
+                    o.put("command", sp.command);
+                    subs.put(o);
+                }
+                status.put("subProcessCount", subs.length());
+                status.put("subProcesses", subs);
             }
 
             return arrayOkResponse(new JSONArray().put(status));

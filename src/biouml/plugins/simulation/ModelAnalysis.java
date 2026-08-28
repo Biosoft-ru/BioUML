@@ -30,6 +30,7 @@ import ru.biosoft.access.HtmlDataElement;
 import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.analysis.Util;
 import ru.biosoft.analysiscore.AnalysisJobControl;
+import ru.biosoft.templates.TemplateRegistry;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.util.TempFiles;
 
@@ -168,9 +169,7 @@ public class ModelAnalysis extends AnalysisMethodSupport<ModelAnalysisParameters
         p.setProperty( "file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader" );
         p.setProperty( "file.resource.loader.path", templateFile.getParentFile().getAbsolutePath() );
 
-        // experimental, possble fix for 
-        // Runtime : ran out of parsers. Creating a new one.  Please increment the parser.pool.size property. The current value is too small.
-        p.setProperty( "parser.pool.size", "50" );
+        p.setProperty( "parser.pool.size", String.valueOf( TemplateRegistry.VELOCITY_PARSER_POOL_SIZE ) );
 
         final VelocityEngine engine = new VelocityEngine( p );
         engine.init();

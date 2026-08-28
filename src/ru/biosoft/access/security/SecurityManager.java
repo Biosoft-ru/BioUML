@@ -66,9 +66,12 @@ public class SecurityManager
 
     private static final Map<String, Integer> guestPermissionsMap = new WeakHashMap<>();
 
-    private static SecurityProvider securityProvider = null;
+    // volatile: getPermissions() reads these outside the class monitor (fast path), so they
+    // must be safely published for the writes in initSecurityManager() to be visible to all
+    // threads.
+    private static volatile SecurityProvider securityProvider = null;
 
-    private static String adminSession = null;
+    private static volatile String adminSession = null;
 
     private static boolean isThreadPrivileged()
     {
@@ -130,60 +133,76 @@ public class SecurityManager
      * Get permissions by collection name and properties if necessary
      * @param create create guest permissions automatically if not logged in
      */
-    protected static synchronized Permission getPermissions(String dataCollectionName, boolean create)
+    protected static Permission getPermissions(String dataCollectionName, boolean create)
     {
-        if(securityProvider == null || Thread.currentThread().getName().equals("Finalizer") || isThreadPrivileged())    // Bypass security check for Finalizer
+        // Fast path: bypass the security check for privileged threads and Finalizer without
+        // taking the class monitor (the old synchronized method made every permission check a
+        // global lock, which dominated CPU time in the hot workflow initialization paths).
+        if( securityProvider == null || Thread.currentThread().getName().equals("Finalizer") || isThreadPrivileged() )    // Bypass security check for Finalizer
         {
             return PRIVILEGED_PERMISSION;
         }
         String sessionId = getSession();
-        if(adminSession != null && adminSession.equals(sessionId))
+        if( adminSession != null && adminSession.equals(sessionId) )
             return PRIVILEGED_PERMISSION;
-        long currentTime = System.currentTimeMillis();
-        if( !sessionId.equals(SYSTEM_SESSION) )
-        {
-            UserPermissions ps = sessionToPermission.get(sessionId);
-            if( ps == null )
-            {
-                if(!create)
-                    return null;
-                ps = new UserPermissions("", "");
-                sessionToPermission.put(sessionId, ps);
-            }
-            ps.updateExpirationTime();
-            Permission permission = null;
-
-            Hashtable<String, Permission> dbToPermission = ps.getDbToPermission();
-            synchronized( dbToPermission )
-            {
-                if( dbToPermission.containsKey(dataCollectionName) )
-                {
-                    Permission p = dbToPermission.get(dataCollectionName);
-                    if( p.getExpirationTime() > currentTime )
-                    {
-                        permission = p;
-                    }
-                    else
-                    {
-                        dbToPermission.remove(dataCollectionName);
-                    }
-                }
-
-                if( permission == null )
-                {
-                    permission = authorize(dataCollectionName, ps, sessionId);
-                    dbToPermission.put(dataCollectionName, permission);
-                }
-            }
-            if(permission.getSessionId() == null || permission.getSessionId().isEmpty())
-            {
-                permission = new Permission(permission.getPermissions(), permission.getUserName(), sessionId, permission.getExpirationTime());
-            }
-            return permission;
-        }
-        if(!create)
+        if( sessionId.equals(SYSTEM_SESSION) && !create )
             return null;
+        if( !sessionId.equals(SYSTEM_SESSION) )
+            return getUserPermission( sessionId, dataCollectionName, create );
+        return getGuestPermission( dataCollectionName );
+    }
 
+    // Per-user permission resolution. Synchronized on this class: the sessionToPermission map
+    // and the per-user dbToPermission Hashtable are shared mutable state, and this method may
+    // add new entries to both.
+    private static synchronized Permission getUserPermission(String sessionId, String dataCollectionName, boolean create)
+    {
+        long currentTime = System.currentTimeMillis();
+        UserPermissions ps = sessionToPermission.get(sessionId);
+        if( ps == null )
+        {
+            if(!create)
+                return null;
+            ps = new UserPermissions("", "");
+            sessionToPermission.put(sessionId, ps);
+        }
+        ps.updateExpirationTime();
+        Permission permission = null;
+
+        Hashtable<String, Permission> dbToPermission = ps.getDbToPermission();
+        synchronized( dbToPermission )
+        {
+            if( dbToPermission.containsKey(dataCollectionName) )
+            {
+                Permission p = dbToPermission.get(dataCollectionName);
+                if( p.getExpirationTime() > currentTime )
+                {
+                    permission = p;
+                }
+                else
+                {
+                    dbToPermission.remove(dataCollectionName);
+                }
+            }
+
+            if( permission == null )
+            {
+                permission = authorize(dataCollectionName, ps, sessionId);
+                dbToPermission.put(dataCollectionName, permission);
+            }
+        }
+        if(permission.getSessionId() == null || permission.getSessionId().isEmpty())
+        {
+            permission = new Permission(permission.getPermissions(), permission.getUserName(), sessionId, permission.getExpirationTime());
+        }
+        return permission;
+    }
+
+    // Guest (anonymous) permission resolution. Synchronized on this class to keep
+    // guestPermissionsMap access consistent with the rest of the security state.
+    private static synchronized Permission getGuestPermission(String dataCollectionName)
+    {
+        long currentTime = System.currentTimeMillis();
         Integer guestPermissions = guestPermissionsMap.get(dataCollectionName);
         if( guestPermissions == null )
         {
@@ -686,6 +705,13 @@ public class SecurityManager
      */
     public static void invalidatePermissions()
     {
+        // Permission changes can affect which databases are visible and which are preferred,
+        // so the cached database version list (ProjectUtils) and the cached
+        // isDatabasePreferred / matching-graph results (BioHubRegistry) must be refreshed.
+        ru.biosoft.journal.ProjectUtils.invalidateAvailableDatabaseVersions();
+        ru.biosoft.access.biohub.BioHubRegistry.invalidatePreferredDatabaseCache();
+        ru.biosoft.access.biohub.BioHubRegistry.invalidateMatchingGraphCache();
+
         //clear guest permissions map
         guestPermissionsMap.clear();
 

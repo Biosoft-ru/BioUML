@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.runtime.RuntimeSingleton;
 import org.eclipse.core.runtime.IConfigurationElement;
 
 import ru.biosoft.access.ClassLoading;
@@ -26,6 +27,16 @@ import ru.biosoft.util.TextUtil2;
  */
 public class TemplateRegistry extends ExtensionRegistrySupport<TemplateInfo>
 {
+    /**
+     * Number of parsers kept in the Velocity parser pool.
+     * <p>
+     * Applied both to the shared singleton engine (see
+     * {@link #initVelocity()}) and to the independent
+     * <code>VelocityEngine</code> instances created by the simulation
+     * engines — keep those in sync via this constant.
+     */
+    public static final int VELOCITY_PARSER_POOL_SIZE = 200;
+
     public static final String FILTER_ELEMENT = "filter";
     public static final String PROPERTY_ELEMENT = "property";
     public static final String NAME_ATTR = "name";
@@ -48,38 +59,67 @@ public class TemplateRegistry extends ExtensionRegistrySupport<TemplateInfo>
     
     static
     {
+        initVelocity();
+    }
+
+    /**
+     * Initializes the shared Velocity engine.
+     * <p>
+     * The singleton engine's parser pool (default size 25,
+     * <code>parser.pool.size</code>) is used by every
+     * <code>RuntimeSingleton.parse()</code> call. When more templates are
+     * parsed concurrently than the pool can hold, Velocity logs
+     * "Runtime : ran out of parsers. Creating a new one. Please increment the
+     * parser.pool.size property." for each excess thread, so the pool size is
+     * raised here to accommodate the observed level of concurrent template
+     * parsing.
+     * <p>
+     * Note: in Velocity 1.7 <code>RuntimeSingleton.init()</code> re-runs the
+     * full runtime initialization on every call, which would discard these
+     * properties. Callers that already parsed a template via the singleton
+     * therefore only need to call this before their first parse, and repeated
+     * calls must not reset a correctly configured engine — see the
+     * <code>isInitialized()</code> guard.
+     */
+    public static synchronized void initVelocity()
+    {
+        if( RuntimeSingleton.isInitialized() )
+        {
+            return;
+        }
         try
         {
             Properties props = new Properties();
             props.setProperty("velocimacro.context.localscope", "true");
-        
+
             props.setProperty("resource.loader", "class");
             props.setProperty("class.resource.loader.class", "ru.biosoft.templates.ClasspathResourceLoader");
             props.setProperty("class.resource.loader.cache", "false");
-        
+
             props.setProperty("velocimacro.library", "resources/displayMacros.vm, resources/processMacros.vm");
 
-            // experimental, possble fix for 
-            // Runtime : ran out of parsers. Creating a new one.  Please increment the parser.pool.size property. The current value is too small.
-            props.setProperty( "parser.pool.size", "50" );
-        
+            props.setProperty("parser.pool.size", String.valueOf(VELOCITY_PARSER_POOL_SIZE));
+
             ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(ClassLoading.getClassLoader());
-            synchronized( TemplateRegistry.class )
+            try
             {
                 Velocity.init(props);
             }
-            Thread.currentThread().setContextClassLoader(oldClassLoader);
+            finally
+            {
+                Thread.currentThread().setContextClassLoader(oldClassLoader);
+            }
         }
         catch( Exception e )
         {
             log.log(Level.SEVERE, "Unable to initialize Velocity engine", e);
         }
     }
-    
+
     public static void initialize()
     {
-        // Just to perform static initialization
+        initVelocity();
     }
     
     private TemplateRegistry()

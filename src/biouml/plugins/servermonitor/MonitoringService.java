@@ -33,12 +33,30 @@ public class MonitoringService {
     private volatile int slowTaskCount = 0;
     private volatile List<String> slowTaskIds = new ArrayList<>();
     private final Map<String, ProfilerResult> activeProfiles = new ConcurrentHashMap<>();
+    /**
+     * Guards the entire profiler lifecycle (the blocking {@code profiler.start}
+     * call). Multiple callers hit profiling concurrently — the manual
+     * {@code profileNow} servlet action and the periodic / slow-task monitor
+     * timer — and without this lock one run's {@code asprof stop} / lingering
+     * kill can SIGKILL another run's CLI mid-teardown, leaving the in-JVM
+     * agent stuck "already started" for every subsequent call. Serializing
+     * makes that race impossible.
+     */
+    private final Object profilerLock = new Object();
     private final Random random = new Random();
+    private final SubProcessMonitor subProcessMonitor;
+    /**
+     * Most recent sub-process scan result, for the profile API. Updated on each
+     * monitor-loop cycle.
+     */
+    private volatile List<SubProcessMonitor.SubProcess> lastSubProcesses = new ArrayList<>();
+    private volatile long lastSubProcessCheckTime = 0;
     private volatile boolean firstLoopIteration = true;
 
     public MonitoringService(ServerMonitorConfig config) {
         this.config = config;
         this.profiler = new AsyncProfilerWrapper(config);
+        this.subProcessMonitor = new SubProcessMonitor(config);
     }
 
     /**
@@ -101,6 +119,7 @@ public class MonitoringService {
             try {
                 checkSlowTasks();
                 checkPeriodicProfiling();
+                checkSubProcesses();
                 cleanupOldProfiles();
 
                 lastCheckTime = System.currentTimeMillis();
@@ -151,12 +170,43 @@ public class MonitoringService {
     }
 
     /**
+     * Scan for long-running external sub-processes (perl/R/nextflow/...) and
+     * record the result for the profile API. Logs a SEVERE line the first time
+     * each sub-process crosses the slow threshold.
+     */
+    private void checkSubProcesses() {
+        if (!config.isSubProcessEnabled()) {
+            return;
+        }
+        try {
+            List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
+            lastSubProcesses = subs;
+            lastSubProcessCheckTime = System.currentTimeMillis();
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Sub-process scan failed", e);
+        }
+    }
+
+    /**
      * Force immediate profiling of the entire JVM.
      * @param taskId the task that triggered profiling, or null
      * @return ProfilerResult
      */
     public ProfilerResult profileNow(String taskId) {
         return profileJvm(taskId);
+    }
+
+    /**
+     * Stop the current profiler session, serialized against any in-progress
+     * profiling run via {@link #profilerLock}. Use this (not a fresh
+     * {@link AsyncProfilerWrapper#stop()}) so a manual stop cannot race an
+     * active run and SIGKILL its CLI mid-teardown.
+     * @return true if the stop exited cleanly
+     */
+    public boolean stopProfiling() {
+        synchronized (profilerLock) {
+            return profiler.stop();
+        }
     }
 
     /**
@@ -228,6 +278,12 @@ public class MonitoringService {
      * @return ProfilerResult
      */
     private ProfilerResult profileJvm(String triggeredTask) {
+        synchronized (profilerLock) {
+            return profileJvmLocked(triggeredTask);
+        }
+    }
+
+    private ProfilerResult profileJvmLocked(String triggeredTask) {
         // Check max concurrent profiles
         if (activeProfiles.size() >= 1) {
             log.warning("Max concurrent profiles reached, skipping JVM profiling");
@@ -493,5 +549,20 @@ public class MonitoringService {
 
     public long getLastCheckTime() {
         return lastCheckTime;
+    }
+
+    /**
+     * Most recent sub-process scan result (long-running external processes).
+     */
+    public List<SubProcessMonitor.SubProcess> getSubProcesses() {
+        return lastSubProcesses;
+    }
+
+    public long getLastSubProcessCheckTime() {
+        return lastSubProcessCheckTime;
+    }
+
+    public boolean isSubProcessEnabled() {
+        return config.isSubProcessEnabled();
     }
 }
