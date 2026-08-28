@@ -106,7 +106,7 @@ public class NextFlowRunner
         log.log( Level.INFO, "COMMAND: " + StreamEx.of( pb.command() ).joining( " " ) );
 		System.out.println("COMMAND: " + StreamEx.of(pb.command()).joining(" "));
 		Process process = pb.start();
-		executeProcess(process);
+        executeProcess( process, isAsync );
 	}
 
     /*
