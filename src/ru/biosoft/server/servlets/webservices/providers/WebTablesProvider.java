@@ -1058,15 +1058,18 @@ public class WebTablesProvider extends WebProviderSupport
      * dramatically cheaper than building a DOM tree per cell (the old
      * Jsoup.parse call was a profiler hot path).
      *
-     * The tag/entity/whitespace stripping is done with a single
-     * character scan instead of three chained Matcher.replaceAll calls
-     * (java.util/regex was the top hot spot in server profiles for this
-     * method).  The scan is equivalent to the former pipeline
-     * (strip &lt;...&gt; tags, then named/decimal/hex entities, then
-     * collapse whitespace): a tag match consumes at least the leading
-     * '&lt;', so it always starts before any entity could start inside
-     * it, and the entity rule keeps a literal trailing space, so runs
-     * of whitespace are preserved the same way in both pipelines.
+     * The stripping is a single linear character scan, byte-for-byte
+     * equivalent to the former pipeline (HTML_TAG, then HTML_ENTITY, then
+     * WHITESPACE, each a Matcher.replaceAll with " "):
+     *  - a tag &lt;...&gt; and an entity are both replaced by a single space
+     *    (the scan only records that a space is "pending", and at most one
+     *    space is emitted at the next non-whitespace character, so a tag, an
+     *    entity and a run of whitespace that are adjacent still collapse to
+     *    one space exactly as the old "\s+" pass did);
+     *  - an entity is &amp;#NNN;, &amp;#xHHH; (lower-case x, as in the old
+     *    regex) or &amp;Name; where Name starts with a letter;
+     *  - "whitespace" is exactly the set of Java regex \s, i.e. ' ', \t, \n,
+     *    , \f, \r.
      */
     private static String getSubstringWithTags(String value)
     {
@@ -1077,6 +1080,7 @@ public class WebTablesProvider extends WebProviderSupport
             {
                 int n = value.length();
                 StringBuilder innerStr = new StringBuilder( n );
+                boolean whitespacePending = false;
                 int i = 0;
                 while( i < n )
                 {
@@ -1086,12 +1090,12 @@ public class WebTablesProvider extends WebProviderSupport
                         int end = value.indexOf( '>', i + 1 );
                         if( end != -1 )
                         {
-                            // replace the whole <...> tag by a single space
-                            innerStr.append( ' ' );
+                            // a whole <...> tag becomes a single space
+                            whitespacePending = true;
                             i = end + 1;
                             continue;
                         }
-                        // unmatched '<': fall through and append it literally
+                        // unmatched '<' - not a tag, keep it literally
                     }
                     else if( ch == '&' )
                     {
@@ -1099,9 +1103,9 @@ public class WebTablesProvider extends WebProviderSupport
                         boolean entity = false;
                         if( j < n && value.charAt( j ) == '#' )
                         {
-                            // &#[0-9]+; or &#x[0-9a-fA-F]+; (at least one digit required)
+                            // &#[0-9]+; or &#x[0-9a-fA-F]+; (at least one digit, lower-case x)
                             int k = j + 1;
-                            if( k < n && ( value.charAt( k ) == 'x' || value.charAt( k ) == 'X' ) )
+                            if( k < n && value.charAt( k ) == 'x' )
                             {
                                 k++;
                                 if( k >= n || !isHexDigit( value.charAt( k ) ) )
@@ -1124,7 +1128,7 @@ public class WebTablesProvider extends WebProviderSupport
                         }
                         else
                         {
-                            // named entity: first char must be a letter, then letters/digits, then ';'
+                            // named entity: &Name; where Name starts with a letter
                             if( j < n && isLetter( value.charAt( j ) ) )
                             {
                                 j++;
@@ -1138,18 +1142,29 @@ public class WebTablesProvider extends WebProviderSupport
                         }
                         if( entity )
                         {
-                            // replace the entity by a single space
-                            innerStr.append( ' ' );
+                            // an entity becomes a single space
+                            whitespacePending = true;
                             i = j + 1;
                             continue;
                         }
-                        // not an entity: append '&' literally
+                        // not an entity - keep '&' literally
                     }
-                    innerStr.append( Character.isWhitespace( ch ) ? ' ' : ch );
+                    if( isRegexWhitespace( ch ) )
+                    {
+                        whitespacePending = true;
+                        i++;
+                        continue;
+                    }
+                    if( whitespacePending )
+                    {
+                        innerStr.append( ' ' );
+                        whitespacePending = false;
+                    }
+                    innerStr.append( ch );
                     i++;
                 }
-                // collapse runs of whitespace to a single space (the old "\s+" step)
-                innerStr = collapseWhitespace( innerStr );
+                if( whitespacePending )
+                    innerStr.append( ' ' );
                 if( innerStr.length() > 600 )
                     return value.substring( 0, Math.min( 600, startTag ) )
                             + " <span class='clickable' onclick='displayTableCell(this)'>(more)</span>";
@@ -1162,63 +1177,10 @@ public class WebTablesProvider extends WebProviderSupport
         return value;
     }
 
-    /**
-     * Collapses consecutive whitespace characters to a single space, keeping a
-     * trailing space if the string ends in whitespace. Equivalent to
-     * {@code Pattern.compile( "\\s+" ).matcher( s ).replaceAll( " " )} but done
-     * in a single scan without a regex. Returns the input unchanged if there is
-     * nothing to collapse.
-     */
-    private static StringBuilder collapseWhitespace(StringBuilder s)
+    /** Exactly the set of Java regex \s: space, tab, line feed, vertical tab, form feed, carriage return. */
+    private static boolean isRegexWhitespace(char ch)
     {
-        int len = s.length();
-        // fast path: no run of consecutive whitespace, and no non-space whitespace
-        boolean changed = false;
-        int run = 0;
-        for( int k = 0; k < len; k++ )
-        {
-            char d = s.charAt( k );
-            if( d == ' ' )
-            {
-                if( run > 0 )
-                {
-                    changed = true;
-                    break;
-                }
-                run = 1;
-            }
-            else if( Character.isWhitespace( d ) )
-            {
-                changed = true;
-                break;
-            }
-            else
-            {
-                run = 0;
-            }
-        }
-        if( !changed )
-            return s;
-        StringBuilder c = new StringBuilder( len );
-        run = 0;
-        for( int k = 0; k < len; k++ )
-        {
-            char d = s.charAt( k );
-            if( Character.isWhitespace( d ) )
-            {
-                run++;
-            }
-            else
-            {
-                if( run > 0 )
-                    c.append( ' ' );
-                run = 0;
-                c.append( d );
-            }
-        }
-        if( run > 0 )
-            c.append( ' ' );
-        return c;
+        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000B' || ch == '\f' || ch == '\r';
     }
 
     private static boolean isHexDigit(char ch)
