@@ -83,8 +83,10 @@ public class MonitoringService {
     private static final long SUB_PROCESS_LOG_PURGE_INTERVAL = 10L * 60L * 1000L; // 10 min
 
     // In-memory record count for the sub-process log, so the status endpoint
-    // does not need to scan the whole file. Approximate after an external
-    // edit; recomputed exactly on every append.
+    // does not need to scan the whole file. Lazily initialized from the
+    // existing file on first use; thereafter maintained incrementally by the
+    // append path. Approximate after an external edit; recomputed exactly on
+    // every purge/compact.
     private int subProcessLogCount = -1;
     /** Last time the sub-process log was fully scanned for purging. */
     private long lastSubProcessLogPurgeTime = 0;
@@ -317,13 +319,18 @@ public class MonitoringService {
         if (excess > 0) {
             kept.subList(0, excess).clear();
         }
-        subProcessLogCount = kept.size();
+        int newCount = kept.size();
 
-        // Pass 2: rewrite the pruned content to a temp file, then atomically
-        // move it over the original so a reader never sees a partial/truncated
-        // file (the old delete-then-rename left a window where the log was
-        // missing). The move is atomic on the same filesystem; fall back to a
-        // plain rename if the platform doesn't support ATOMIC_MOVE.
+        // Pass 2: rewrite the pruned content to a temp file, then replace the
+        // original from it. The temp file is created in the same directory, so
+        // the move is a rename on the same filesystem: ATOMIC_MOVE is used when
+        // the platform supports it (the normal case on Linux ext4/xfs), and we
+        // fall back to a NON-ATOMIC replace otherwise — a reader could then
+        // briefly observe either the old or the new content, but never a
+        // truncated file. The in-memory count is published only after the
+        // replacement succeeds; if it fails the file is unchanged, so the count
+        // is left as-is (it still reflects the on-disk lines) and the next
+        // append re-compacts.
         File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
         try {
             try (BufferedWriter tw = new BufferedWriter(
@@ -337,8 +344,10 @@ public class MonitoringService {
                 Files.move(tmp.toPath(), logFile.toPath(),
                         StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } catch (AtomicMoveNotSupportedException e) {
+                // Fallback is a plain (non-atomic) replace.
                 Files.move(tmp.toPath(), logFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
+            subProcessLogCount = newCount;
         } finally {
             // Best-effort delete if the move did not consume the temp file.
             if (tmp.exists()) {
@@ -403,8 +412,9 @@ public class MonitoringService {
             o.put("slow", sp.slow);
             // The log is persisted (up to 7 days) and readable through the API,
             // so command lines are redacted: an external script can carry
-            // credentials on its command line (--password=..., --token=...),
-            // which must not be written to disk or exposed by the endpoint.
+            // credentials on its command line (--password=..., --token ...,
+            // --api-key ...), which must not be written to disk or exposed by
+            // the endpoint.
             o.put("command", redactCommand(sp.command));
             arr.put(o);
         }
@@ -414,32 +424,123 @@ public class MonitoringService {
 
     /**
      * Redact secret-looking arguments from a command line before it is
-     * persisted to the sub-process log. A token is redacted if its name
-     * (the argument before {@code =}, lowercased) matches a known
-     * credential key, or if the argument is {@code --key=value} where the key
-     * itself looks like a credential. The value is replaced with {@code ***}
-     * while the key is kept, so the record stays useful for analysis.
+     * persisted to the sub-process log. Handles both argument forms:
+     * {@code --password=secret} and the separate-token {@code --password secret}.
+     * The matched value (and the quoted value in {@code --password="secret"} /
+     * {@code --password "secret"}) is replaced with {@code ***} while the key is
+     * kept, so the record stays useful for analysis.
+     *
+     * <p>The line is tokenized quote-aware (so a quoted value with spaces stays
+     * one token); when no token is changed the original string is returned
+     * verbatim. When a redaction happens the tokens are re-joined with single
+     * spaces, which may collapse runs of whitespace in the input — acceptable
+     * for a log, and only on lines that actually carried a secret.
      */
     private static String redactCommand(String command) {
         if (command == null || command.isEmpty()) {
             return command;
         }
-        String[] parts = command.split("\\s+", -1);
+        List<String> toks = tokenizeCommandLine(command);
         boolean changed = false;
-        for (int i = 0; i < parts.length; i++) {
-            String p = parts[i];
-            int eq = p.indexOf('=');
-            if (eq <= 0) {
-                continue;
-            }
-            String key = p.substring(0, eq);
-            String bare = key.startsWith("-") ? key.substring(key.lastIndexOf('-') + 1) : key;
-            if (looksLikeSecretKey(bare)) {
-                parts[i] = key + "=***";
-                changed = true;
+        for (int i = 0; i < toks.size(); i++) {
+            String t = toks.get(i);
+            int eq = t.indexOf('=');
+            if (eq > 0) {
+                // key=value form: "--password=hunter2" -> "--password=***".
+                String key = t.substring(0, eq);
+                String value = t.substring(eq + 1);
+                if (looksLikeSecretKey(bareKey(key)) && !isBooleanFlagValue(value)) {
+                    toks.set(i, key + "=***");
+                    changed = true;
+                }
+            } else if (looksLikeSecretKey(bareKey(t))) {
+                // Separate-token form: "--password hunter2" -> "--password ***".
+                // The value is the next token. Skip the two cases where the key
+                // token is not a credential: (a) it carries an "=" value (handled
+                // above), or (b) it is the final token with nothing after it (a
+                // bare flag like "--use-token", not a secret). Otherwise redact
+                // this token and the following one.
+                if (i + 1 < toks.size()) {
+                    toks.set(i, t + " ***");
+                    toks.remove(i + 1);
+                    i++;
+                    changed = true;
+                }
             }
         }
-        return changed ? String.join(" ", parts) : command;
+        return changed ? String.join(" ", toks) : command;
+    }
+
+    /**
+     * True if the value looks like a boolean flag rather than a credential:
+     * a bare digit, "true", "false", "yes", "no", "on", or "off". Such values
+     * are not secrets even when the key name happens to contain a credential
+     * stem (e.g. {@code --use-token=1}).
+     */
+    private static boolean isBooleanFlagValue(String value) {
+        if (value.isEmpty()) return true;
+        String v = value.toLowerCase();
+        if (v.equals("true") || v.equals("false") || v.equals("yes")
+                || v.equals("no") || v.equals("on") || v.equals("off")) {
+            return true;
+        }
+        // A bare integer (0, 1, 2, …) is a flag/option, not a credential.
+        for (int i = 0; i < v.length(); i++) {
+            if (!Character.isDigit(v.charAt(i))) return false;
+        }
+        return true;
+    }
+
+    /** Strip a leading dash run ("--password" / "-password" -> "password"). */
+    private static String bareKey(String token) {
+        String s = token;
+        while (s.startsWith("-")) {
+            s = s.substring(1);
+        }
+        return s;
+    }
+
+    /**
+     * Tokenize a command line respecting single and double quotes so that a
+     * quoted value with spaces stays one token. Quotes are removed from the
+     * result (matching how the OS passes a single argv element). This is a
+     * deliberate approximation — not a full shell parser — and is only used to
+     * decide which tokens are secrets, not to re-run the command.
+     */
+    private static List<String> tokenizeCommandLine(String command) {
+        List<String> toks = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        boolean inToken = false;
+        int i = 0;
+        int n = command.length();
+        while (i < n) {
+            char c = command.charAt(i);
+            if (Character.isWhitespace(c)) {
+                if (inToken) {
+                    toks.add(cur.toString());
+                    cur.setLength(0);
+                    inToken = false;
+                }
+                i++;
+            } else if (c == '"' || c == '\'') {
+                char quote = c;
+                inToken = true;
+                i++;
+                while (i < n && command.charAt(i) != quote) {
+                    cur.append(command.charAt(i));
+                    i++;
+                }
+                i++; // skip closing quote (or run past the end if unbalanced)
+            } else {
+                cur.append(c);
+                inToken = true;
+                i++;
+            }
+        }
+        if (inToken) {
+            toks.add(cur.toString());
+        }
+        return toks;
     }
 
     /** True if a command-line argument key looks like a credential. */
@@ -448,15 +549,22 @@ public class MonitoringService {
         if (k.isEmpty()) {
             return false;
         }
-        // Common credential key stems.
+        // Normalize hyphens so "--api-key" matches the "api_key" stem.
+        k = k.replace("-", "_");
+        // Named credential stems only — a long argument name is not evidence of
+        // a secret (the value is what would be long, and we redact the whole
+        // value, so no length heuristic is needed).
         if (k.contains("password") || k.contains("passwd") || k.contains("pwd")
                 || k.contains("token") || k.contains("secret") || k.contains("apikey")
                 || k.contains("api_key") || k.contains("accesskey") || k.contains("access_key")
-                || k.contains("privatekey") || k.contains("private_key")) {
+                || k.contains("privatekey") || k.contains("private_key")
+                || k.contains("credential") || k.contains("auth") || k.contains("bearer")
+                || k.contains("clientsecret") || k.contains("client_secret")
+                || k.contains("sessiontoken") || k.contains("session_token")
+                || k.contains("refreshtoken") || k.contains("refresh_token")) {
             return true;
         }
-        // AWS-style keys are 20-char base64; flag anything that long.
-        return k.length() >= 20;
+        return false;
     }
 
     /**
@@ -507,7 +615,8 @@ public class MonitoringService {
      * the in-memory count maintained by the append path — this does NOT scan
      * the file. If the count has not been seeded yet (no append since startup
      * and the file pre-dates this service instance) it falls back to a single
-     * scan, then caches the result for subsequent calls.
+     * scan, then caches the result for subsequent calls. A transient read
+     * failure returns 0 without caching so the next call retries.
      */
     public int getSubProcessLogCount() {
         synchronized (subProcessLogLock) {
@@ -522,6 +631,9 @@ public class MonitoringService {
             try {
                 subProcessLogCount = countSubProcessLogLines(logFile);
             } catch (Exception e) {
+                log.log(Level.WARNING, "Failed to count sub-process log lines " + logFile.getAbsolutePath(), e);
+                // Do NOT cache the failure — leave the count at -1 so the
+                // next call retries (the file may be temporarily locked).
                 return 0;
             }
             return subProcessLogCount;

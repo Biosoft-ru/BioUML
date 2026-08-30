@@ -40,6 +40,7 @@ public class TestSubProcessLog extends junit.framework.TestCase
         suite.addTest(new TestSubProcessLog("testReadSinceUntil"));
         suite.addTest(new TestSubProcessLog("testPurgeByAge"));
         suite.addTest(new TestSubProcessLog("testPurgeByCountOverCap"));
+        suite.addTest(new TestSubProcessLog("testPurgeDropsMalformedLines"));
         suite.addTest(new TestSubProcessLog("testExtractTimestamp"));
         suite.addTest(new TestSubProcessLog("testRedactCommand"));
         return suite;
@@ -228,6 +229,26 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(now - (n - 2) * 1000L, earliest);
     }
 
+    public void testPurgeDropsMalformedLines() throws Exception
+    {
+        File logFile = new File(tmpDir, MonitoringService.SUB_PROCESS_LOG_FILE);
+
+        // Mix valid and malformed lines (no parseable timestamp). The malformed
+        // lines must be dropped on compact, not retained forever.
+        long now = 5_000_000_000L;
+        String valid = "{\"timestamp\":" + (now - 1000) + ",\"subProcesses\":[]}";
+        String noTs = "{\"count\":1}";
+        String garbage = "this is not even json";
+        String blank = "";
+        writeLines(logFile, valid, noTs, valid, garbage, blank, valid);
+
+        purgeAndCompact(logFile, now);
+
+        List<String> remaining = service.readSubProcessLog(0, 0);
+        assertEquals("only the 3 valid lines survive", 3, remaining.size());
+        assertEquals(3, service.getSubProcessLogCount());
+    }
+
     public void testExtractTimestamp() throws Exception
     {
         assertEquals(1234567890L, extractTimestamp("{\"timestamp\":1234567890,\"count\":1}"));
@@ -238,13 +259,54 @@ public class TestSubProcessLog extends junit.framework.TestCase
 
     public void testRedactCommand() throws Exception
     {
-        // Secret-looking arguments are masked, non-secrets kept.
+        // --- key=value form ---
         assertEquals(
                 "perl run.pl --host=db1 --password=*** --input=in.csv",
                 redactCommand("perl run.pl --host=db1 --password=hunter2 --input=in.csv"));
         assertEquals(
                 "python fetch.py --token=*** --retry=3",
                 redactCommand("python fetch.py --token=abc123 --retry=3"));
+
+        // --- separate-token form (--secret value) ---
+        assertEquals(
+                "perl run.pl --host=db1 --password *** --input=in.csv",
+                redactCommand("perl run.pl --host=db1 --password hunter2 --input=in.csv"));
+        assertEquals(
+                "python fetch.py --token *** --retry=3",
+                redactCommand("python fetch.py --token abc123 --retry=3"));
+
+        // --- quoted forms (tokenizer strips quotes, so re-joined output has none) ---
+        assertEquals(
+                "perl run.pl --password=*** --input=in.csv",
+                redactCommand("perl run.pl --password=\"hunter2\" --input=in.csv"));
+        assertEquals(
+                "perl run.pl --password *** --input=in.csv",
+                redactCommand("perl run.pl --password \"hunter 2\" --input=in.csv"));
+
+        // --- non-secret keys are NOT redacted (no length heuristic) ---
+        assertEquals(
+                "perl run.pl --very_long_parameter_name=value --input=in.csv",
+                redactCommand("perl run.pl --very_long_parameter_name=value --input=in.csv"));
+        assertEquals(
+                "perl run.pl --use-token=1",
+                redactCommand("perl run.pl --use-token=1"));
+
+        // --- bare flag at end of line (no value) is not redacted ---
+        assertEquals(
+                "perl run.pl --password",
+                redactCommand("perl run.pl --password"));
+
+        // --- api-key / client_secret / auth variants ---
+        assertEquals(
+                "curl --api-key=*** -u user",
+                redactCommand("curl --api-key=secret123 -u user"));
+        assertEquals(
+                "app --client-secret *** --verbose",
+                redactCommand("app --client-secret topsecret --verbose"));
+        assertEquals(
+                "app --auth-token=*** --verbose",
+                redactCommand("app --auth-token=abc --verbose"));
+
         // No secret -> unchanged (exact string, not re-joined).
         assertEquals(
                 "perl run.pl --host=db1 --input=in.csv",
