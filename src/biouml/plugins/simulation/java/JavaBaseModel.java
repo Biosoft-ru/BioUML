@@ -173,9 +173,17 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     private double[] timeCache = new double[0];
 
     // Monotonic cursor for the delay() fast path: the largest index known to hold a
-    // time <= the last requested t. History times only increase, so the cursor never
-    // has to move backwards and each step advances it at most one slot.
+    // time <= the last requested t, and the t that produced it. History times only
+    // increase, so as long as the requested t is non-decreasing the cursor never has
+    // to move backwards and each step advances it at most one slot.
+    //
+    // delay() is NOT guaranteed to be called with non-decreasing t (generated models
+    // evaluate several delay(..., time - d_i) expressions at the same simulation time
+    // with different offsets, and solvers may re-evaluate at earlier t), so the cursor
+    // is only used when t >= delayCursorTime; otherwise we fall back to the binary
+    // search (firstPart) which is correct for any ordering.
     private int delayCursor = 0;
+    private double delayCursorTime = Double.NEGATIVE_INFINITY;
 
     private double timeAt(int i)
     {
@@ -204,6 +212,7 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
         simulationResultTimes.clear();
         timeCache = new double[0];
         delayCursor = 0;
+        delayCursorTime = Double.NEGATIVE_INFINITY;
     }
 
     @Override
@@ -258,17 +267,27 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
         return low;
     }
 
-    // Fast path for delay(): advance the monotonic cursor to the first index whose
-    // time >= t. Between successive calls t only increases (and so do the history
-    // times), so the cursor starts near the answer and at most a few probes are
-    // needed -- no binary search over the whole history.
+    // Fast path for delay(): when the requested t is non-decreasing relative to the
+    // previous call, advance the monotonic cursor to the first index whose time >= t.
+    // The cursor starts near the answer, so at most a few probes are needed -- no
+    // binary search over the whole history.
+    //
+    // delay() is NOT guaranteed to be called with non-decreasing t (generated models
+    // evaluate several delay(..., time - d_i) at the same simulation time with
+    // different offsets, and solvers may re-evaluate at earlier t). If t moves
+    // backwards relative to the last cursor query, the cursor is not a valid start
+    // point, so fall back to the binary search, which is correct for any ordering.
     private int firstPartMonotonic(double t)
     {
+        if( t < delayCursorTime )
+            return firstPart(t);
+
         int i = delayCursor;
         int n = simulationResultTimes.size();
         while( i < n && timeAt(i) < t )
             i++;
         delayCursor = i;
+        delayCursorTime = t;
         return i;
     }
 
@@ -458,11 +477,12 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
             result.initialValues = this.initialValues.clone();
             result.x_values = this.x_values.clone();
             result.simulationResultTimes = new ArrayList<>(simulationResultTimes);
-            int nTimes = simulationResultTimes.size();
-            result.timeCache = new double[nTimes];
-            for( int i = 0; i < nTimes; i++ )
-                result.timeCache[i] = simulationResultTimes.get(i).doubleValue();
+            // Copy the primitive time cache (preserves allocated capacity, avoids an
+            // O(n) List<Double> unboxing pass). Must be a copy -- not a shared array --
+            // because each model extends its own history independently.
+            result.timeCache = this.timeCache.clone();
             result.delayCursor = 0;
+            result.delayCursorTime = Double.NEGATIVE_INFINITY;
             return result;
         }
         catch( Exception ex )
