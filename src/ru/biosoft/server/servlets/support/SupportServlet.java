@@ -1414,6 +1414,7 @@ public class SupportServlet extends AbstractJSONServlet
                 case "config":  return getMonitorConfig(params);
                 case "setConfig": return setMonitorConfig(params);
                 case "profileNow": return profileNow(params);
+                case "subProcessLog": return getSubProcessLog(params);
                 default:        return errorResponse("Unknown action: " + action);
             }
         }
@@ -1775,6 +1776,12 @@ public class SupportServlet extends AbstractJSONServlet
         }
         summary.append("\n");
 
+        // Slow sub-processes observed during this profile's time window — the
+        // external (perl/R/nextflow/...) work that the CPU profiler cannot see.
+        summary.append("--- Slow Sub-Processes (during profile window) ---\n");
+        appendSubProcessSummary(summary, baseName, profileDir);
+        summary.append("\n");
+
         // AI agent instructions
         summary.append("--- Instructions for AI Agent ---\n");
         summary.append("To suggest code improvements based on this profile:\n");
@@ -1790,6 +1797,167 @@ public class SupportServlet extends AbstractJSONServlet
         result.put("format", "text/markdown");
         result.put("content", summary.toString());
         return complexOkResponse(result);
+    }
+
+    /**
+     * Return the persistent sub-process observation log.
+     *
+     * <p>Each record is one scan (a JSON line) listing the external processes
+     * (perl / R / nextflow / ...) that were running at that moment, with their
+     * age and full command line. This is the historical complement to the live
+     * {@code status} snapshot: it survives process exit, so a slow external
+     * script that ran hours ago can still be inspected.
+     *
+     * <p>Optional parameters:
+     * <ul>
+     *   <li>{@code since} — earliest record timestamp (epoch millis), inclusive</li>
+     *   <li>{@code until} — latest record timestamp (epoch millis), inclusive</li>
+     *   <li>{@code slowOnly=true} — keep only scans that contained a slow (over-threshold) process</li>
+     * </ul>
+     */
+    protected JSONObject getSubProcessLog(Map params) throws Exception
+    {
+        try
+        {
+            biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+            if (plugin == null || plugin.getMonitoringService() == null)
+            {
+                return errorResponse("Monitoring service not available");
+            }
+
+            biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
+
+            long since = getLongParameter(params, "since", 0);
+            long until = getLongParameter(params, "until", 0);
+            boolean slowOnly = "true".equalsIgnoreCase(getStringParameter(params, "slowOnly"));
+
+            JSONArray records = new JSONArray();
+            for (String line : monitor.readSubProcessLog(since, until))
+            {
+                JSONObject rec;
+                try
+                {
+                    rec = new JSONObject(line);
+                }
+                catch (Exception e)
+                {
+                    continue; // skip malformed line
+                }
+                if (slowOnly)
+                {
+                    JSONArray subs = rec.optJSONArray("subProcesses");
+                    boolean anySlow = false;
+                    if (subs != null)
+                    {
+                        for (int i = 0; i < subs.length(); i++)
+                        {
+                            if (subs.getJSONObject(i).optBoolean("slow", false))
+                            {
+                                anySlow = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!anySlow) continue;
+                }
+                records.put(rec);
+            }
+
+            JSONObject result = new JSONObject();
+            result.put("path", monitor.getSubProcessLogPath());
+            result.put("count", records.length());
+            result.put("records", records);
+            return complexOkResponse(result);
+        }
+        catch (Exception e)
+        {
+            return errorResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Append a section listing the slow sub-processes observed during a profile's
+     * time window, reading the persistent sub-process log. The window is taken
+     * from the profile's {@code .json} metadata ({@code startTime}/{@code endTime});
+     * if that is unavailable the whole log is summarized (bounded to a few lines).
+     */
+    private void appendSubProcessSummary(StringBuilder summary, String baseName, File profileDir)
+    {
+        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+        if (plugin == null || plugin.getMonitoringService() == null)
+        {
+            summary.append("Sub-process log unavailable (monitoring service not running)\n");
+            return;
+        }
+        biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
+
+        // Resolve the profile's time window from its metadata sidecar.
+        long since = 0;
+        long until = 0;
+        File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
+        if (metaFile.exists())
+        {
+            try
+            {
+                JSONObject meta = new JSONObject(readFileContent(metaFile));
+                since = meta.optLong("startTime", 0);
+                until = meta.optLong("endTime", 0);
+            }
+            catch (Exception e)
+            {
+                // fall through to unbounded read
+            }
+        }
+        // Give a little slack on each side so a scan that bracketed the window is
+        // still included (the monitor scans on a fixed cadence, not on profile
+        // start/stop).
+        long slack = 120_000L; // 2 minutes
+        long effSince = since > 0 ? Math.max(0, since - slack) : 0;
+        long effUntil = until > 0 ? until + slack : 0;
+
+        List<String> lines = monitor.readSubProcessLog(effSince, effUntil);
+        if (lines.isEmpty())
+        {
+            summary.append("No sub-processes recorded for this window (work was in-JVM, or the log is empty).\n");
+            return;
+        }
+
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        int shown = 0;
+        for (String line : lines)
+        {
+            JSONObject rec;
+            try
+            {
+                rec = new JSONObject(line);
+            }
+            catch (Exception e)
+            {
+                continue;
+            }
+            JSONArray subs = rec.optJSONArray("subProcesses");
+            if (subs == null || subs.length() == 0) continue;
+            long ts = rec.optLong("timestamp", 0);
+            for (int i = 0; i < subs.length(); i++)
+            {
+                JSONObject sp = subs.getJSONObject(i);
+                if (!sp.optBoolean("slow", false)) continue; // summary only shows slow ones
+                summary.append(fmt.format(new Date(ts))).append("  pid=")
+                        .append(sp.optLong("pid"))
+                        .append(" age=").append(sp.optLong("ageSeconds")).append("s  ")
+                        .append(sp.optString("command"))
+                        .append("\n");
+                if (++shown >= 20)
+                {
+                    summary.append("... (").append(lines.size() - shown).append(" more records)\n");
+                    return;
+                }
+            }
+        }
+        if (shown == 0)
+        {
+            summary.append("Sub-processes were running in this window but none exceeded the slow threshold.\n");
+        }
     }
 
     /**
@@ -1852,6 +2020,8 @@ public class SupportServlet extends AbstractJSONServlet
                 // only sees the JVM itself.
                 status.put("subProcessEnabled", monitor.isSubProcessEnabled());
                 status.put("lastSubProcessCheck", monitor.getLastSubProcessCheckTime());
+                status.put("subProcessLogPath", monitor.getSubProcessLogPath());
+                status.put("subProcessLogCount", monitor.getSubProcessLogCount());
                 JSONArray subs = new JSONArray();
                 for (biouml.plugins.servermonitor.SubProcessMonitor.SubProcess sp : monitor.getSubProcesses())
                 {
@@ -2024,5 +2194,22 @@ public class SupportServlet extends AbstractJSONServlet
     {
         // Replace all non-alphanumeric characters (except ., _, -) with underscore
         return name.replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    /**
+     * Read a long parameter from the request map, falling back to a default if
+     * absent or not parseable.
+     */
+    private long getLongParameter(Map params, String key, long defaultValue)
+    {
+        String s = getStringParameter(params, key);
+        if (s == null || s.trim().isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 }

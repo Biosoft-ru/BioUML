@@ -1,8 +1,13 @@
 package biouml.plugins.servermonitor;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -12,6 +17,9 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
@@ -52,6 +60,23 @@ public class MonitoringService {
     private volatile List<SubProcessMonitor.SubProcess> lastSubProcesses = new ArrayList<>();
     private volatile long lastSubProcessCheckTime = 0;
     private volatile boolean firstLoopIteration = true;
+
+    /**
+     * File name (within the profiler directory) used for the persistent
+     * sub-process observation log. Each non-empty scan appends one JSON line,
+     * so the full timeline of long-running external processes is retained even
+     * after they exit — the {@code status} API only shows the live snapshot.
+     */
+    public static final String SUB_PROCESS_LOG_FILE = "subprocesses.jsonl";
+
+    /** Maximum number of JSON lines kept in the sub-process log. */
+    private static final int MAX_SUB_PROCESS_LOG_LINES = 5000;
+    /** Maximum age (ms) of a sub-process log line before it is purged. */
+    private static final long MAX_SUB_PROCESS_LOG_AGE = 7L * 24 * 60 * 60 * 1000; // 7 days
+
+    // Guards append/rewrite of the sub-process log (single monitor thread writes,
+    // but the API can read concurrently; keep the file in a consistent state).
+    private final Object subProcessLogLock = new Object();
 
     public MonitoringService(ServerMonitorConfig config) {
         this.config = config;
@@ -182,9 +207,220 @@ public class MonitoringService {
             List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
             lastSubProcesses = subs;
             lastSubProcessCheckTime = System.currentTimeMillis();
+
+            // Persist every non-empty scan so the timeline of long-running
+            // external processes survives process exit and is retrievable via
+            // the API (the live status only shows the current snapshot).
+            if (!subs.isEmpty()) {
+                appendSubProcessLog(subs, lastSubProcessCheckTime);
+            }
         } catch (Exception e) {
             log.log(Level.WARNING, "Sub-process scan failed", e);
         }
+    }
+
+    /**
+     * Append one JSON line describing a non-empty sub-process scan to the
+     * persistent log. Each line is a self-contained record:
+     * <pre>{"timestamp":..., "checkIntervalSec":..., "subProcesses":[{"pid":..,"ageSeconds":..,"slow":..,"command":..}, ...]}</pre>
+     *
+     * <p>Writing is serialized against {@link #subProcessLogLock}; a rewrite is
+     * performed (under the same lock) when the file exceeds the size/age limits
+     * so the log stays bounded.
+     */
+    private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+        File logFile = getSubProcessLogFile();
+        if (logFile == null) {
+            return;
+        }
+        synchronized (subProcessLogLock) {
+            try {
+                // Purge old / excess lines first (cheap: only read when the
+                // file is already large or the oldest line is past its age).
+                if (logFile.exists() && logFile.length() > 0) {
+                    long now = System.currentTimeMillis();
+                    File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
+                    boolean purged = purgeSubProcessLog(logFile, tmp, now);
+                    if (purged) {
+                        // tmp now holds the pruned content; rename over the original.
+                        if (!logFile.delete() || !tmp.renameTo(logFile)) {
+                            tmp.delete();
+                        }
+                    } else {
+                        tmp.delete();
+                    }
+                }
+
+                String line = buildSubProcessRecord(subs, timestamp);
+                try (BufferedWriter writer = new BufferedWriter(
+                        new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            } catch (Exception e) {
+                log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
+            }
+        }
+    }
+
+    /**
+     * Rewrite the sub-process log, dropping lines older than
+     * {@link #MAX_SUB_PROCESS_LOG_AGE} and keeping only the most recent
+     * {@link #MAX_SUB_PROCESS_LOG_LINES}. Returns true if any line was dropped
+     * (i.e. the file content actually changed).
+     */
+    private boolean purgeSubProcessLog(File logFile, File tmp, long now) throws IOException {
+        // Pass 1: read the log, dropping lines older than MAX_SUB_PROCESS_LOG_AGE.
+        List<String> kept = new ArrayList<>();
+        int total = 0;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                total++;
+                long ts = extractTimestamp(line);
+                boolean tooOld = ts > 0 && (now - ts) > MAX_SUB_PROCESS_LOG_AGE;
+                if (!tooOld) {
+                    kept.add(line);
+                }
+            }
+        }
+
+        // Keep only the most recent N lines.
+        int excess = kept.size() - MAX_SUB_PROCESS_LOG_LINES;
+        if (excess > 0) {
+            kept.subList(0, excess).clear();
+        }
+
+        boolean changed = (kept.size() != total);
+        if (changed) {
+            // Pass 2: rewrite the pruned content to tmp (caller renames tmp over logFile).
+            try (BufferedWriter tw = new BufferedWriter(
+                    new java.io.OutputStreamWriter(new FileOutputStream(tmp), StandardCharsets.UTF_8))) {
+                for (String l : kept) {
+                    tw.write(l);
+                    tw.newLine();
+                }
+            }
+        }
+        return changed;
+    }
+
+    /**
+     * Extract the {@code "timestamp":<long>} field from a log line (no full JSON
+     * parse — the field is written first and is always an integer).
+     */
+    private long extractTimestamp(String line) {
+        int idx = line.indexOf("\"timestamp\":");
+        if (idx < 0) return -1;
+        int start = idx + "\"timestamp\":".length();
+        int end = start;
+        while (end < line.length() && (Character.isDigit(line.charAt(end)) || line.charAt(end) == '-')) {
+            end++;
+        }
+        try {
+            return Long.parseLong(line.substring(start, end));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Build the single JSON line for one sub-process scan.
+     */
+    private String buildSubProcessRecord(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+        JSONObject record = new JSONObject();
+        record.put("timestamp", timestamp);
+        record.put("checkIntervalSec", config.getCheckInterval());
+        record.put("thresholdSec", config.getSubProcessThreshold());
+        record.put("minAgeSec", config.getSubProcessMinAge());
+        record.put("count", subs.size());
+        JSONArray arr = new JSONArray();
+        for (SubProcessMonitor.SubProcess sp : subs) {
+            JSONObject o = new JSONObject();
+            o.put("pid", sp.pid);
+            o.put("ageSeconds", sp.ageSeconds);
+            o.put("slow", sp.slow);
+            o.put("command", sp.command);
+            arr.put(o);
+        }
+        record.put("subProcesses", arr);
+        return record.toString();
+    }
+
+    /**
+     * Resolve the sub-process log file inside the profiler directory.
+     * Returns null if the directory is not resolvable.
+     */
+    private File getSubProcessLogFile() {
+        try {
+            config.ensureProfilerDir();
+            return new File(config.getProfilerDir(), SUB_PROCESS_LOG_FILE);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Read sub-process log lines whose timestamp falls within [since, until]
+     * (inclusive; either bound may be 0 to mean unbounded). Returns raw JSON
+     * lines (one per scan), most recent last.
+     */
+    public List<String> readSubProcessLog(long since, long until) {
+        List<String> result = new ArrayList<>();
+        File logFile = getSubProcessLogFile();
+        if (logFile == null || !logFile.exists() || logFile.length() == 0) {
+            return result;
+        }
+        synchronized (subProcessLogLock) {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) continue;
+                    long ts = extractTimestamp(line);
+                    if (ts < 0) continue;
+                    if (since > 0 && ts < since) continue;
+                    if (until > 0 && ts > until) continue;
+                    result.add(line);
+                }
+            } catch (Exception e) {
+                log.log(Level.WARNING, "Error reading sub-process log " + logFile.getAbsolutePath(), e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Total number of records in the sub-process log (0 if none).
+     */
+    public int getSubProcessLogCount() {
+        File logFile = getSubProcessLogFile();
+        if (logFile == null || !logFile.exists() || logFile.length() == 0) {
+            return 0;
+        }
+        synchronized (subProcessLogLock) {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+                int n = 0;
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.trim().isEmpty()) n++;
+                }
+                return n;
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+    }
+
+    /**
+     * Absolute path of the sub-process log file (for API / diagnostics).
+     */
+    public String getSubProcessLogPath() {
+        File f = getSubProcessLogFile();
+        return f != null ? f.getAbsolutePath() : null;
     }
 
     /**
@@ -351,10 +587,17 @@ public class MonitoringService {
         File[] files = profileDir.listFiles();
         if (files == null) return;
 
+        // The sub-process observation log is self-bounding (purged by age/line
+        // count in appendSubProcessLog) — never delete it here.
+        String subProcLogName = SUB_PROCESS_LOG_FILE;
+
         // Age-based cleanup (skip directories like the async-profiler installation)
         for (File f : files) {
             if (f.isDirectory()) {
                 log.fine("Skipping directory during cleanup: " + f.getName());
+                continue;
+            }
+            if (subProcLogName.equals(f.getName())) {
                 continue;
             }
             if (now - f.lastModified() > maxAgeMillis) {
@@ -373,7 +616,7 @@ public class MonitoringService {
             // Filter to only profile files (exclude directories like async-profiler-*)
             List<File> profileFiles = new ArrayList<>();
             for (File f : files) {
-                if (!f.isDirectory()) {
+                if (!f.isDirectory() && !subProcLogName.equals(f.getName())) {
                     profileFiles.add(f);
                 }
             }

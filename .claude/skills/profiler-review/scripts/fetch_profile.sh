@@ -182,8 +182,67 @@ except:
     fi
     ;;
 
+  subprocess)
+    # Fetch the persistent sub-process observation log (action=subProcessLog).
+    # Optional extra args before the server URL: --slow-only, --since <ms>, --until <ms>
+    # Prints a human-readable table of long-running external processes (perl/R/nextflow/...)
+    # recorded over time — the complement to the CPU profile, which only sees the JVM.
+    SP_EXTRA=""
+    SLOW_ONLY=""
+    SINCE=""
+    UNTIL=""
+    while [[ $# -gt 1 ]]; do
+      case "$1" in
+        --slow-only) SLOW_ONLY="&slowOnly=true"; shift ;;
+        --since)     SINCE="$2"; shift 2 ;;
+        --until)     UNTIL="$2"; shift 2 ;;
+        *)           shift ;;
+      esac
+    done
+    # Rebuild the query string, then drop the server URL from $@ handling.
+    SERVER_URL="${PROFILE_SERVER_URL:-${1:-}}"
+    [[ -n "$SINCE" ]] && SINCE="&since=${SINCE}"
+    [[ -n "$UNTIL" ]] && UNTIL="&until=${UNTIL}"
+    SUB_URL="${SERVER_URL%/}/biouml/support/profile?action=subProcessLog&user=${MONITORING_USER}&pass=${MONITORING_PASS}${SLOW_ONLY}${SINCE}${UNTIL}"
+    echo "Fetching sub-process log from: ${SUB_URL}" >&2
+    echo "" >&2
+
+    curl -s -L --max-time 120 "$SUB_URL" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+except json.JSONDecodeError:
+    sys.stdout.write(sys.stdin.read() if not sys.stdin.closed else '')
+    sys.exit(1)
+
+def get_value(d):
+    if isinstance(d, dict):
+        if 'value' in d and isinstance(d['value'], dict):
+            return d['value']
+        return d
+    return {}
+
+v = get_value(data)
+records = v.get('records', [])
+path = v.get('path', '')
+count = v.get('count', len(records))
+print(f'=== Sub-process log ({count} records)  [{path}] ===')
+if not records:
+    print('  (no sub-processes recorded — work was in-JVM, or log is empty)')
+    sys.exit(0)
+import datetime
+for rec in records:
+    ts = rec.get('timestamp', 0)
+    when = datetime.datetime.fromtimestamp(ts/1000.0).strftime('%Y-%m-%d %H:%M:%S') if ts else '?'
+    subs = rec.get('subProcesses', [])
+    for sp in subs:
+        flag = 'SLOW ' if sp.get('slow') else ''
+        print(f\"{when}  {flag}pid={sp.get('pid')} age={sp.get('ageSeconds')}s  {sp.get('command')}\")
+"
+    ;;
+
   *)
-    echo "ERROR: unknown action '${ACTION}'. Use: list, get, summary" >&2
+    echo "ERROR: unknown action '${ACTION}'. Use: list, get, summary, subprocess" >&2
     exit 1
     ;;
 esac

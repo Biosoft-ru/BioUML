@@ -83,6 +83,36 @@ Save each profile's content to a separate temporary file (e.g., `profile_1.colla
 
 **If no profiles match** (empty list): report that the server has no recent profiling data and stop.
 
+### Step 1.5: Fetch the Sub-Process Log (external scripts)
+
+async-profiler only samples the JVM. If a task's time is spent in an external
+script (perl / R / nextflow / git), the CPU profile looks nearly empty (just
+futex/park waits). The server's `SubProcessMonitor` records every long-running
+external descendant process to a persistent log (`subprocesses.jsonl`) and
+exposes it via `action=subProcessLog`. **Always fetch it** so a profile that
+"looks idle" can be cross-checked against off-JVM work.
+
+```bash
+bash .claude/skills/profiler-review/scripts/fetch_profile.sh subprocess --slow-only "$PROFILE_SERVER_URL"
+```
+
+This prints a table: `timestamp  [SLOW] pid=… age=…s  <full command line>`.
+Interpretation:
+- **Records present** → part of the task's wall-clock time is in an external
+  process. The CPU profile under-counts the JVM's real cost; the slow
+  sub-process (full `cmdline`) is the thing to investigate (script-level
+  profiling, I/O, missing indexes).
+- **No records / "work was in-JVM"** → the time is genuinely in the JVM;
+  proceed with the normal CPU-profile hot-path analysis (Step 2).
+
+Filter to a profile's window if needed: `--since <epochMillis> --until <epochMillis>`
+(from the profile's `metadata.startTime` / `endTime`). `--slow-only` keeps only
+scans that contained an over-threshold process.
+
+> Note: the `subProcessLog` action requires the server to be running a build
+> that includes the persistent sub-process log (this PR). Older deployments
+> return an error, which the script degrades to "0 records".
+
 ### Step 2: Analyze Profile Output
 
 Aggregate analysis across all fetched profiles. Focus on these sections per profile:
@@ -190,6 +220,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - **No recent profiles** (empty list from `action=list`): Report that the server has no profiling data from the last 24 hours with size >1000 bytes. Check that the monitoring plugin is running and profiling is enabled.
 - **Empty profile** (0 samples): No optimizations needed; report that the server has profiling data but no samples were captured.
 - **Native frames only** (e.g., `__pthread_cond_timedwait`): The hot path is in native code or waiting on a condition variable — suggest checking for busy-wait loops or excessive thread synchronization in Java code.
+- **Profile looks almost entirely idle/park but the task is slow**: The work is likely in an **external sub-process** (perl/R/nextflow). Check the sub-process log (Step 1.5) — if a SLOW record with a full `cmdline` lines up with the profile's time window, the bottleneck is in that external program, not the JVM.
 - **Tree/Traces not available**: Only Collapsed Stacks are populated — focus analysis on the top 100 collapsed chains.
 - **Profile from a specific task**: The metadata section shows task type — tailor optimizations to the task domain (diagram rendering, simulation, data import, etc.).
 - **Small profiles** (≤1000 bytes): Likely trivial or incomplete captures — skip these in the filter; they won't yield meaningful optimizations.
