@@ -209,10 +209,13 @@ except:
 
     curl -s -L --max-time 120 "$SUB_URL" | python3 -c "
 import sys, json
+# Read the whole response first, then parse — json.load(sys.stdin) would consume
+# the stream, so a failed parse leaves nothing to echo back.
+raw = sys.stdin.read()
 try:
-    data = json.load(sys.stdin)
+    data = json.loads(raw)
 except json.JSONDecodeError:
-    sys.stdout.write(sys.stdin.read() if not sys.stdin.closed else '')
+    sys.stdout.write(raw)
     sys.exit(1)
 
 def get_value(d):

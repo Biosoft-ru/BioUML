@@ -6,8 +6,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -73,6 +75,19 @@ public class MonitoringService {
     private static final int MAX_SUB_PROCESS_LOG_LINES = 5000;
     /** Maximum age (ms) of a sub-process log line before it is purged. */
     private static final long MAX_SUB_PROCESS_LOG_AGE = 7L * 24 * 60 * 60 * 1000; // 7 days
+    /**
+     * Purge the log at most once every this long (ms) unless the line cap is
+     * exceeded. The age check needs a full scan, so it must not run on every
+     * monitor cycle — only periodically, or when the log is already over the cap.
+     */
+    private static final long SUB_PROCESS_LOG_PURGE_INTERVAL = 10L * 60L * 1000L; // 10 min
+
+    // In-memory record count for the sub-process log, so the status endpoint
+    // does not need to scan the whole file. Approximate after an external
+    // edit; recomputed exactly on every append.
+    private int subProcessLogCount = -1;
+    /** Last time the sub-process log was fully scanned for purging. */
+    private long lastSubProcessLogPurgeTime = 0;
 
     // Guards append/rewrite of the sub-process log (single monitor thread writes,
     // but the API can read concurrently; keep the file in a consistent state).
@@ -224,9 +239,11 @@ public class MonitoringService {
      * persistent log. Each line is a self-contained record:
      * <pre>{"timestamp":..., "checkIntervalSec":..., "subProcesses":[{"pid":..,"ageSeconds":..,"slow":..,"command":..}, ...]}</pre>
      *
-     * <p>Writing is serialized against {@link #subProcessLogLock}; a rewrite is
-     * performed (under the same lock) when the file exceeds the size/age limits
-     * so the log stays bounded.
+     * <p>Writing is serialized against {@link #subProcessLogLock}. The append is
+     * the only per-scan I/O (the hot path never rewrites the file); a full
+     * rewrite/compact runs only when the line cap is exceeded or at most every
+     * {@link #SUB_PROCESS_LOG_PURGE_INTERVAL}, so the age bound is enforced
+     * without scanning on every cycle.
      */
     private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
         File logFile = getSubProcessLogFile();
@@ -235,27 +252,27 @@ public class MonitoringService {
         }
         synchronized (subProcessLogLock) {
             try {
-                // Purge old / excess lines first (cheap: only read when the
-                // file is already large or the oldest line is past its age).
-                if (logFile.exists() && logFile.length() > 0) {
-                    long now = System.currentTimeMillis();
-                    File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
-                    boolean purged = purgeSubProcessLog(logFile, tmp, now);
-                    if (purged) {
-                        // tmp now holds the pruned content; rename over the original.
-                        if (!logFile.delete() || !tmp.renameTo(logFile)) {
-                            tmp.delete();
-                        }
-                    } else {
-                        tmp.delete();
-                    }
-                }
-
+                // Append first — the hot path must never scan the whole file.
                 String line = buildSubProcessRecord(subs, timestamp);
                 try (BufferedWriter writer = new BufferedWriter(
                         new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
                     writer.write(line);
                     writer.newLine();
+                }
+
+                long now = System.currentTimeMillis();
+                if (subProcessLogCount < 0) {
+                    subProcessLogCount = countSubProcessLogLines(logFile);
+                }
+                subProcessLogCount++;
+
+                // Purge only when the line cap is exceeded or the age scan is
+                // due. The age check is a full scan, so it must not run on
+                // every monitor cycle.
+                boolean overCap = subProcessLogCount > MAX_SUB_PROCESS_LOG_LINES;
+                boolean ageDue = now - lastSubProcessLogPurgeTime >= SUB_PROCESS_LOG_PURGE_INTERVAL;
+                if (overCap || ageDue) {
+                    purgeAndCompactSubProcessLog(logFile, now);
                 }
             } catch (Exception e) {
                 log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
@@ -264,23 +281,31 @@ public class MonitoringService {
     }
 
     /**
-     * Rewrite the sub-process log, dropping lines older than
-     * {@link #MAX_SUB_PROCESS_LOG_AGE} and keeping only the most recent
-     * {@link #MAX_SUB_PROCESS_LOG_LINES}. Returns true if any line was dropped
-     * (i.e. the file content actually changed).
+     * Full scan of the sub-process log: drop lines older than
+     * {@link #MAX_SUB_PROCESS_LOG_AGE} and malformed lines (no parseable
+     * timestamp, which can't be bounded by age), keep the most recent
+     * {@link #MAX_SUB_PROCESS_LOG_LINES}, and atomically replace the file.
+     * Updates the in-memory line count.
      */
-    private boolean purgeSubProcessLog(File logFile, File tmp, long now) throws IOException {
+    private void purgeAndCompactSubProcessLog(File logFile, long now) throws IOException {
+        lastSubProcessLogPurgeTime = now;
+        if (!logFile.exists() || logFile.length() == 0) {
+            subProcessLogCount = 0;
+            return;
+        }
+
         // Pass 1: read the log, dropping lines older than MAX_SUB_PROCESS_LOG_AGE.
         List<String> kept = new ArrayList<>();
-        int total = 0;
         try (java.io.BufferedReader reader = new java.io.BufferedReader(
                 new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-                total++;
                 long ts = extractTimestamp(line);
-                boolean tooOld = ts > 0 && (now - ts) > MAX_SUB_PROCESS_LOG_AGE;
+                // A line with no parseable timestamp is malformed: it can never
+                // be dropped by age, so it would grow the log forever. Drop it.
+                if (ts <= 0) continue;
+                boolean tooOld = (now - ts) > MAX_SUB_PROCESS_LOG_AGE;
                 if (!tooOld) {
                     kept.add(line);
                 }
@@ -292,10 +317,15 @@ public class MonitoringService {
         if (excess > 0) {
             kept.subList(0, excess).clear();
         }
+        subProcessLogCount = kept.size();
 
-        boolean changed = (kept.size() != total);
-        if (changed) {
-            // Pass 2: rewrite the pruned content to tmp (caller renames tmp over logFile).
+        // Pass 2: rewrite the pruned content to a temp file, then atomically
+        // move it over the original so a reader never sees a partial/truncated
+        // file (the old delete-then-rename left a window where the log was
+        // missing). The move is atomic on the same filesystem; fall back to a
+        // plain rename if the platform doesn't support ATOMIC_MOVE.
+        File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
+        try {
             try (BufferedWriter tw = new BufferedWriter(
                     new java.io.OutputStreamWriter(new FileOutputStream(tmp), StandardCharsets.UTF_8))) {
                 for (String l : kept) {
@@ -303,8 +333,35 @@ public class MonitoringService {
                     tw.newLine();
                 }
             }
+            try {
+                Files.move(tmp.toPath(), logFile.toPath(),
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp.toPath(), logFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            // Best-effort delete if the move did not consume the temp file.
+            if (tmp.exists()) {
+                tmp.delete();
+            }
         }
-        return changed;
+    }
+
+    /**
+     * Count the non-empty lines in the sub-process log (full scan). Used once
+     * at startup to seed the in-memory count; steady-state appends maintain it
+     * incrementally so the status endpoint never scans the file.
+     */
+    private int countSubProcessLogLines(File logFile) throws IOException {
+        int n = 0;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) n++;
+            }
+        }
+        return n;
     }
 
     /**
@@ -331,6 +388,8 @@ public class MonitoringService {
      */
     private String buildSubProcessRecord(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
         JSONObject record = new JSONObject();
+        // Version the record schema so future readers can detect layout changes.
+        record.put("version", 1);
         record.put("timestamp", timestamp);
         record.put("checkIntervalSec", config.getCheckInterval());
         record.put("thresholdSec", config.getSubProcessThreshold());
@@ -342,11 +401,62 @@ public class MonitoringService {
             o.put("pid", sp.pid);
             o.put("ageSeconds", sp.ageSeconds);
             o.put("slow", sp.slow);
-            o.put("command", sp.command);
+            // The log is persisted (up to 7 days) and readable through the API,
+            // so command lines are redacted: an external script can carry
+            // credentials on its command line (--password=..., --token=...),
+            // which must not be written to disk or exposed by the endpoint.
+            o.put("command", redactCommand(sp.command));
             arr.put(o);
         }
         record.put("subProcesses", arr);
         return record.toString();
+    }
+
+    /**
+     * Redact secret-looking arguments from a command line before it is
+     * persisted to the sub-process log. A token is redacted if its name
+     * (the argument before {@code =}, lowercased) matches a known
+     * credential key, or if the argument is {@code --key=value} where the key
+     * itself looks like a credential. The value is replaced with {@code ***}
+     * while the key is kept, so the record stays useful for analysis.
+     */
+    private static String redactCommand(String command) {
+        if (command == null || command.isEmpty()) {
+            return command;
+        }
+        String[] parts = command.split("\\s+", -1);
+        boolean changed = false;
+        for (int i = 0; i < parts.length; i++) {
+            String p = parts[i];
+            int eq = p.indexOf('=');
+            if (eq <= 0) {
+                continue;
+            }
+            String key = p.substring(0, eq);
+            String bare = key.startsWith("-") ? key.substring(key.lastIndexOf('-') + 1) : key;
+            if (looksLikeSecretKey(bare)) {
+                parts[i] = key + "=***";
+                changed = true;
+            }
+        }
+        return changed ? String.join(" ", parts) : command;
+    }
+
+    /** True if a command-line argument key looks like a credential. */
+    private static boolean looksLikeSecretKey(String key) {
+        String k = key.toLowerCase();
+        if (k.isEmpty()) {
+            return false;
+        }
+        // Common credential key stems.
+        if (k.contains("password") || k.contains("passwd") || k.contains("pwd")
+                || k.contains("token") || k.contains("secret") || k.contains("apikey")
+                || k.contains("api_key") || k.contains("accesskey") || k.contains("access_key")
+                || k.contains("privatekey") || k.contains("private_key")) {
+            return true;
+        }
+        // AWS-style keys are 20-char base64; flag anything that long.
+        return k.length() >= 20;
     }
 
     /**
@@ -393,25 +503,28 @@ public class MonitoringService {
     }
 
     /**
-     * Total number of records in the sub-process log (0 if none).
+     * Total number of records in the sub-process log (0 if none). Served from
+     * the in-memory count maintained by the append path — this does NOT scan
+     * the file. If the count has not been seeded yet (no append since startup
+     * and the file pre-dates this service instance) it falls back to a single
+     * scan, then caches the result for subsequent calls.
      */
     public int getSubProcessLogCount() {
-        File logFile = getSubProcessLogFile();
-        if (logFile == null || !logFile.exists() || logFile.length() == 0) {
-            return 0;
-        }
         synchronized (subProcessLogLock) {
-            try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
-                int n = 0;
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!line.trim().isEmpty()) n++;
-                }
-                return n;
+            if (subProcessLogCount >= 0) {
+                return subProcessLogCount;
+            }
+            File logFile = getSubProcessLogFile();
+            if (logFile == null || !logFile.exists() || logFile.length() == 0) {
+                subProcessLogCount = 0;
+                return 0;
+            }
+            try {
+                subProcessLogCount = countSubProcessLogLines(logFile);
             } catch (Exception e) {
                 return 0;
             }
+            return subProcessLogCount;
         }
     }
 

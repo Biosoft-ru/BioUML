@@ -79,15 +79,25 @@ history, so a slow external process can be inspected long after it exits.
 
 Each record is one scan:
 ```json
-{"timestamp":…,"checkIntervalSec":…,"thresholdSec":…,"minAgeSec":…,"count":…,
+{"version":1,"timestamp":…,"checkIntervalSec":…,"thresholdSec":…,"minAgeSec":…,"count":…,
  "subProcesses":[{"pid":…,"ageSeconds":…,"slow":…,"command":"perl script.pl --opt1"}, …]}
 ```
 
 - `slowOnly=true` — keep only scans that contained an over-threshold process.
-- `since` / `until` — filter by record timestamp (epoch millis, inclusive).
-- The `status` endpoint also reports `subProcessLogPath` and `subProcessLogCount`.
+- `since` / `until` — filter by record timestamp (epoch millis, inclusive). Both
+  must be `>= 0` and `until >= since`, otherwise the endpoint returns an error.
+- The `status` endpoint also reports `subProcessLogPath` and `subProcessLogCount`
+  (served from an in-memory count, not a file scan).
+- **Command-line redaction** — because the log is persisted (up to 7 days) and
+  readable through this endpoint, command lines are redacted before writing: any
+  `--key=value` argument whose key looks like a credential (password, token,
+  secret, api/access key, etc.) has its value replaced with `***`. This prevents
+  credentials passed on an external script's command line from leaking into the
+  log.
 - The log is self-bounding (7-day age cap, 5000-line cap) and is excluded from
-  profile cleanup.
+  profile cleanup. Purging (a full scan) runs only when the line cap is
+  exceeded or at most every 10 minutes — the hot append path never rewrites the
+  file, and rewrites are applied atomically (temp file + atomic move).
 
 ### Stop profiling
 
