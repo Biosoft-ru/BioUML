@@ -88,16 +88,18 @@ Each record is one scan:
   must be `>= 0` and `until >= since`, otherwise the endpoint returns an error.
 - The `status` endpoint also reports `subProcessLogPath` and `subProcessLogCount`
   (served from an in-memory count, not a file scan).
-- **Command-line redaction** — because the log is persisted (up to 7 days) and
-  readable through this endpoint, command lines are redacted before writing: any
-  `--key=value` argument whose key looks like a credential (password, token,
-  secret, api/access key, etc.) has its value replaced with `***`. This prevents
-  credentials passed on an external script's command line from leaking into the
-  log.
-- The log is self-bounding (7-day age cap, 5000-line cap) and is excluded from
-  profile cleanup. Purging (a full scan) runs only when the line cap is
-  exceeded or at most every 10 minutes — the hot append path never rewrites the
-  file, and rewrites are applied atomically (temp file + atomic move).
+- **Command-line redaction** — because the log is persisted and readable
+  through this endpoint, command lines are redacted before writing: any argument
+  whose key looks like a credential (password, token, secret, api/access key,
+  auth, bearer, client/session/refresh token, etc.) has its value replaced with
+  `***`. Both `--key=value` and the separate-token `--key value` forms are
+  handled, including quoted values. This prevents credentials passed on an
+  external script's command line from leaking into the log.
+- The log is self-bounding: records older than 7 days are removed during
+  periodic compaction (at most every 10 minutes), and the file is capped at
+  5000 lines. It is excluded from profile cleanup. The hot append path never
+  rewrites the file; purges use a temp file + atomic move (falling back to a
+  non-atomic replace if the filesystem does not support `ATOMIC_MOVE`).
 
 ### Stop profiling
 
