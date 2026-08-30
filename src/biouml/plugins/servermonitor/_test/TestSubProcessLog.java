@@ -38,8 +38,10 @@ public class TestSubProcessLog extends junit.framework.TestCase
         TestSuite suite = new TestSuite(TestSubProcessLog.class.getName());
         suite.addTest(new TestSubProcessLog("testAppendAndRead"));
         suite.addTest(new TestSubProcessLog("testReadSinceUntil"));
-        suite.addTest(new TestSubProcessLog("testPurgeByAgeAndCount"));
+        suite.addTest(new TestSubProcessLog("testPurgeByAge"));
+        suite.addTest(new TestSubProcessLog("testPurgeByCountOverCap"));
         suite.addTest(new TestSubProcessLog("testExtractTimestamp"));
+        suite.addTest(new TestSubProcessLog("testRedactCommand"));
         return suite;
     }
 
@@ -106,12 +108,20 @@ public class TestSubProcessLog extends junit.framework.TestCase
         return (Long) m.invoke(service, line);
     }
 
-    /** Call private purgeSubProcessLog(File, File, long). */
-    private boolean purge(File logFile, File tmp, long now) throws Exception
+    /** Call private purgeAndCompactSubProcessLog(File, long) (does the atomic rename itself). */
+    private void purgeAndCompact(File logFile, long now) throws Exception
     {
-        Method m = MonitoringService.class.getDeclaredMethod("purgeSubProcessLog", File.class, File.class, long.class);
+        Method m = MonitoringService.class.getDeclaredMethod("purgeAndCompactSubProcessLog", File.class, long.class);
         m.setAccessible(true);
-        return (Boolean) m.invoke(service, logFile, tmp, now);
+        m.invoke(service, logFile, now);
+    }
+
+    /** Call private static redactCommand(String). */
+    private String redactCommand(String command) throws Exception
+    {
+        Method m = MonitoringService.class.getDeclaredMethod("redactCommand", String.class);
+        m.setAccessible(true);
+        return (String) m.invoke(null, command);
     }
 
     // ---------- tests ----------
@@ -169,33 +179,53 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(0, service.readSubProcessLog(base + 200_000L, 0).size());
     }
 
-    public void testPurgeByAgeAndCount() throws Exception
+    public void testPurgeByAge() throws Exception
     {
         File logFile = new File(tmpDir, MonitoringService.SUB_PROCESS_LOG_FILE);
-        File tmp = new File(tmpDir, "tmp.jsonl");
 
         // Write 5 lines: 2 old (past 7-day age), 3 recent.
         long now = 5_000_000_000L;
         long weekMs = 7L * 24 * 60 * 60 * 1000;
         String old = "{\"timestamp\":" + (now - weekMs - 1000) + ",\"subProcesses\":[]}";
         String recent = "{\"timestamp\":" + (now - 1000) + ",\"subProcesses\":[]}";
-        try (OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(logFile), StandardCharsets.UTF_8))
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                w.write(i < 2 ? old : recent);
-                w.write("\n");
-            }
-        }
+        writeLines(logFile, old, old, recent, recent, recent);
 
-        boolean changed = purge(logFile, tmp, now);
-        assertTrue("purge should drop the 2 old lines", changed);
+        purgeAndCompact(logFile, now);
 
-        // After rename, 3 recent lines remain.
-        assertTrue(logFile.delete());
-        assertTrue(tmp.renameTo(logFile));
+        // Atomic replacement done; 3 recent lines remain and the count matches.
         List<String> remaining = service.readSubProcessLog(0, 0);
         assertEquals(3, remaining.size());
+        assertEquals(3, service.getSubProcessLogCount());
+    }
+
+    public void testPurgeByCountOverCap() throws Exception
+    {
+        File logFile = new File(tmpDir, MonitoringService.SUB_PROCESS_LOG_FILE);
+
+        // 5002 recent lines (within the 7-day age window, so only the line-cap
+        // should trim). The cap keeps the most recent 5000, dropping the 2 oldest.
+        int n = 5002;
+        long now = 5_000_000_000L;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < n; i++)
+        {
+            sb.append("{\"timestamp\":").append(now - (n - i) * 1000L)
+              .append(",\"subProcesses\":[]}").append("\n");
+        }
+        try (OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(logFile), StandardCharsets.UTF_8))
+        {
+            w.write(sb.toString());
+        }
+
+        purgeAndCompact(logFile, now);
+
+        List<String> remaining = service.readSubProcessLog(0, 0);
+        assertEquals("cap keeps exactly 5000 lines", 5000, remaining.size());
+        assertEquals(5000, service.getSubProcessLogCount());
+        // The two oldest records were dropped: the earliest surviving timestamp
+        // is the 3rd one written.
+        long earliest = new org.json.JSONObject(remaining.get(0)).getLong("timestamp");
+        assertEquals(now - (n - 2) * 1000L, earliest);
     }
 
     public void testExtractTimestamp() throws Exception
@@ -204,5 +234,36 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(1234567890L, extractTimestamp("  garbage {\"timestamp\":1234567890} trailing"));
         assertEquals(-1, extractTimestamp("{\"count\":1}"));
         assertEquals(-1, extractTimestamp("no timestamp here"));
+    }
+
+    public void testRedactCommand() throws Exception
+    {
+        // Secret-looking arguments are masked, non-secrets kept.
+        assertEquals(
+                "perl run.pl --host=db1 --password=*** --input=in.csv",
+                redactCommand("perl run.pl --host=db1 --password=hunter2 --input=in.csv"));
+        assertEquals(
+                "python fetch.py --token=*** --retry=3",
+                redactCommand("python fetch.py --token=abc123 --retry=3"));
+        // No secret -> unchanged (exact string, not re-joined).
+        assertEquals(
+                "perl run.pl --host=db1 --input=in.csv",
+                redactCommand("perl run.pl --host=db1 --input=in.csv"));
+        // Null / empty pass through.
+        assertNull(redactCommand(null));
+        assertEquals("", redactCommand(""));
+    }
+
+    /** Write a fixed set of lines to the log file (one per line). */
+    private static void writeLines(File logFile, String... lines) throws Exception
+    {
+        try (OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(logFile), StandardCharsets.UTF_8))
+        {
+            for (String l : lines)
+            {
+                w.write(l);
+                w.write("\n");
+            }
+        }
     }
 }

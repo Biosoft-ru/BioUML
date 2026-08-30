@@ -1819,6 +1819,12 @@ public class SupportServlet extends AbstractJSONServlet
             long until = getLongParameter(params, "until", 0);
             boolean slowOnly = "true".equalsIgnoreCase(getStringParameter(params, "slowOnly"));
 
+            // Validate the time window: epoch-millis timestamps are non-negative,
+            // and until must not precede since.
+            if (since < 0 || until < 0 || (until > 0 && since > 0 && until < since)) {
+                return errorResponse("Invalid since/until: need since>=0, until>=0 and until>=since (epoch millis)");
+            }
+
             JSONArray records = new JSONArray();
             for (String line : monitor.readSubProcessLog(since, until))
             {
@@ -1868,6 +1874,8 @@ public class SupportServlet extends AbstractJSONServlet
      * time window, reading the persistent sub-process log. The window is taken
      * from the profile's {@code .json} metadata ({@code startTime}/{@code endTime});
      * if that is unavailable the whole log is summarized (bounded to a few lines).
+     * Command lines are already redacted at write time (see
+     * {@code MonitoringService#redactCommand}), so secrets never reach the summary.
      */
     private void appendSubProcessSummary(StringBuilder summary, String baseName, File profileDir)
     {
@@ -1911,6 +1919,31 @@ public class SupportServlet extends AbstractJSONServlet
         }
 
         java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        // First pass: collect the slow sub-processes we want to show, so the
+        // truncation message can report how many SLOW ENTRIES were omitted
+        // (not how many scan records).
+        int totalSlow = 0;
+        for (String line : lines)
+        {
+            JSONObject rec;
+            try
+            {
+                rec = new JSONObject(line);
+            }
+            catch (Exception e)
+            {
+                continue;
+            }
+            JSONArray subs = rec.optJSONArray("subProcesses");
+            if (subs == null || subs.length() == 0) continue;
+            for (int i = 0; i < subs.length(); i++)
+            {
+                if (subs.getJSONObject(i).optBoolean("slow", false))
+                    totalSlow++;
+            }
+        }
+
         int shown = 0;
         for (String line : lines)
         {
@@ -1937,7 +1970,8 @@ public class SupportServlet extends AbstractJSONServlet
                         .append("\n");
                 if (++shown >= 20)
                 {
-                    summary.append("... (").append(lines.size() - shown).append(" more records)\n");
+                    int remaining = totalSlow - shown;
+                    summary.append("... (").append(remaining).append(" more slow entries)\n");
                     return;
                 }
             }

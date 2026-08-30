@@ -97,13 +97,18 @@ bash .claude/skills/profiler-review/scripts/fetch_profile.sh subprocess --slow-o
 ```
 
 This prints a table: `timestamp  [SLOW] pid=… age=…s  <full command line>`.
-Interpretation:
-- **Records present** → part of the task's wall-clock time is in an external
-  process. The CPU profile under-counts the JVM's real cost; the slow
-  sub-process (full `cmdline`) is the thing to investigate (script-level
-  profiling, I/O, missing indexes).
-- **No records / "work was in-JVM"** → the time is genuinely in the JVM;
-  proceed with the normal CPU-profile hot-path analysis (Step 2).
+Interpretation (the log is *correlational* evidence, not proof of causation —
+an external process being alive is not proof the task is blocked on it, and its
+absence is not proof the work was in-JVM):
+- **Records present, and their timestamps line up with the profile window** →
+  a plausible explanation for an "idle-looking" CPU profile is that the task's
+  wall-clock time was spent in an external process. Worth investigating the
+  slow sub-process (script-level profiling, I/O, missing indexes) before
+  concluding the JVM is the bottleneck — but confirm the overlap rather than
+  assuming it.
+- **No records / "work was in-JVM"** → no long-running external process was
+  *observed* during that window; the in-JVM hot-path analysis (Step 2) is the
+  better starting point, but a short-lived subprocess may have gone unrecorded.
 
 Filter to a profile's window if needed: `--since <epochMillis> --until <epochMillis>`
 (from the profile's `metadata.startTime` / `endTime`). `--slow-only` keeps only
@@ -220,7 +225,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - **No recent profiles** (empty list from `action=list`): Report that the server has no profiling data from the last 24 hours with size >1000 bytes. Check that the monitoring plugin is running and profiling is enabled.
 - **Empty profile** (0 samples): No optimizations needed; report that the server has profiling data but no samples were captured.
 - **Native frames only** (e.g., `__pthread_cond_timedwait`): The hot path is in native code or waiting on a condition variable — suggest checking for busy-wait loops or excessive thread synchronization in Java code.
-- **Profile looks almost entirely idle/park but the task is slow**: The work is likely in an **external sub-process** (perl/R/nextflow). Check the sub-process log (Step 1.5) — if a SLOW record with a full `cmdline` lines up with the profile's time window, the bottleneck is in that external program, not the JVM.
+- **Profile looks almost entirely idle/park but the task is slow**: The work *may* be in an **external sub-process** (perl/R/nextflow). Check the sub-process log (Step 1.5) — if a SLOW record's timestamp lines up with the profile's time window, that external program is a likely candidate for the bottleneck (confirm the overlap before concluding it, not the JVM).
 - **Tree/Traces not available**: Only Collapsed Stacks are populated — focus analysis on the top 100 collapsed chains.
 - **Profile from a specific task**: The metadata section shows task type — tailor optimizations to the task domain (diagram rendering, simulation, data import, etc.).
 - **Small profiles** (≤1000 bytes): Likely trivial or incomplete captures — skip these in the filter; they won't yield meaningful optimizations.
