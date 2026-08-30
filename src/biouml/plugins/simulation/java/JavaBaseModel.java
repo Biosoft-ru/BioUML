@@ -175,7 +175,8 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     // Monotonic cursor for the delay() fast path: the largest index known to hold a
     // time <= the last requested t, and the t that produced it. History times only
     // increase, so as long as the requested t is non-decreasing the cursor never has
-    // to move backwards and each step advances it at most one slot.
+    // to move backwards; it starts at the previous insertion point and only scans
+    // history entries between the previous and current requested times.
     //
     // delay() is NOT guaranteed to be called with non-decreasing t (generated models
     // evaluate several delay(..., time - d_i) expressions at the same simulation time
@@ -269,14 +270,17 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
 
     // Fast path for delay(): when the requested t is non-decreasing relative to the
     // previous call, advance the monotonic cursor to the first index whose time >= t.
-    // The cursor starts near the answer, so at most a few probes are needed -- no
-    // binary search over the whole history.
+    // The cursor starts at the previous insertion point, so it only scans history
+    // entries between the previous and current requested times instead of searching
+    // the whole history.
     //
     // delay() is NOT guaranteed to be called with non-decreasing t (generated models
     // evaluate several delay(..., time - d_i) at the same simulation time with
     // different offsets, and solvers may re-evaluate at earlier t). If t moves
     // backwards relative to the last cursor query, the cursor is not a valid start
     // point, so fall back to the binary search, which is correct for any ordering.
+    // The cursor state is deliberately left unchanged on the fallback: it remains a
+    // valid lower bound for all future t >= delayCursorTime.
     private int firstPartMonotonic(double t)
     {
         if( t < delayCursorTime )

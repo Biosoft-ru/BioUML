@@ -16,8 +16,8 @@ import junit.framework.TestSuite;
  * bracketing pair gives a measurably wrong answer. Each assertion checks
  * delay() against the analytically-computed interpolation at the *correct*
  * bracketing times, which is exactly what the original binary-search
- * implementation returns. The final test is a direct differential comparison
- * against an independent reference implementation.
+ * implementation returns. The final test is a reference comparison against that
+ * independent analytic formula over a long non-monotonic sequence.
  */
 public class TestDelayCursor extends junit.framework.TestCase
 {
@@ -32,7 +32,8 @@ public class TestDelayCursor extends junit.framework.TestCase
         suite.addTest(new TestDelayCursor("testBackwardThenForward"));
         suite.addTest(new TestDelayCursor("testMixedOrdering"));
         suite.addTest(new TestDelayCursor("testMonotonicMatchesReference"));
-        suite.addTest(new TestDelayCursor("testDifferentialVsReference"));
+        suite.addTest(new TestDelayCursor("testReferenceComparison"));
+        suite.addTest(new TestDelayCursor("testCursorResetOnClear"));
         return suite;
     }
 
@@ -117,13 +118,13 @@ public class TestDelayCursor extends junit.framework.TestCase
     }
 
     /**
-     * Differential test: drive the same non-monotonic sequence through both the
-     * optimized delay() and an independent reference (fresh model + analytic
-     * interpolation) and require exact agreement at every step. This is the
-     * strongest guard: any divergence from the original binary-search semantics
-     * under arbitrary call ordering is caught here.
+     * Reference comparison: drive a long non-monotonic sequence through the
+     * optimized delay() and require exact agreement with the independent analytic
+     * interpolation at the correct bracketing times, at every step. Any divergence
+     * from the original binary-search semantics under arbitrary call ordering is
+     * caught here.
      */
-    public void testDifferentialVsReference()
+    public void testReferenceComparison()
     {
         int lastTime = 20;
         // Deterministic pseudo-random non-monotonic sequence in [0, lastTime].
@@ -136,5 +137,33 @@ public class TestDelayCursor extends junit.framework.TestCase
             double actual = m.delay(0, t);
             assertEquals("step " + k + " t=" + t, expected, actual, 1e-8);
         }
+    }
+
+    /**
+     * Regression for cursor-state reset: after clear() the history is rebuilt from
+     * scratch. A forward-then-backward sequence on the rebuilt history must still
+     * match the reference at every step, i.e. clear() must leave the model in a
+     * correct, usable state (no stale timeCache values or cursor state leaking into
+     * the smaller rebuilt history).
+     */
+    public void testCursorResetOnClear()
+    {
+        DelayCursorModel m = newModel(5);
+        assertDelay(m, 5, 4.5);          // advance cursor into the [0,5] history
+
+        // Reset the history to a smaller [0,2] range.
+        m.clear();
+        m.time = 0;
+        m.updateHistory(0);
+        m.time = 1;
+        m.updateHistory(1);
+        m.time = 2;
+        m.updateHistory(2);
+
+        // Forward-then-backward on the rebuilt history: every result must match the
+        // reference, confirming clear() left the model in a correct state.
+        assertDelay(m, 2, 1.5);
+        assertDelay(m, 2, 0.4);
+        assertDelay(m, 2, 1.9);
     }
 }
