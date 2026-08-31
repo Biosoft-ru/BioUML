@@ -336,40 +336,60 @@ public class TestSubProcessLog extends junit.framework.TestCase
                 "app --authorize=true",
                 redactCommand("app --authorize=true"));
 
-        // --- component-based: --auth-token is strong (token component) ---
+        // --- component-based: --auth-token is strong (exact sequence) ---
         assertEquals(
                 "app --auth-token=*** --verbose",
                 redactCommand("app --auth-token=abc123 --verbose"));
 
-        // --- component-based: --token-count is NOT a credential ---
-        // (the "count" component disqualifies the "token" component)
+        // --- exact-sequence: these are NOT credentials ---
+        // (extra components or wrong order disqualify the match)
+        assertEquals(
+                "app --api-key-mode=debug",
+                redactCommand("app --api-key-mode=debug"));
+        assertEquals(
+                "app --foo-api-key-bar=value",
+                redactCommand("app --foo-api-key-bar=value"));
+        assertEquals(
+                "app --auth-token-count=10",
+                redactCommand("app --auth-token-count=10"));
+        assertEquals(
+                "app --key-api=value",
+                redactCommand("app --key-api=value"));
         assertEquals(
                 "app --token-count=10 --verbose",
                 redactCommand("app --token-count=10 --verbose"));
-
-        // --- component-based: --secret-mode is NOT a credential ---
         assertEquals(
                 "app --secret-mode=debug",
                 redactCommand("app --secret-mode=debug"));
-
-        // --- component-based: --password-policy is NOT a credential ---
         assertEquals(
                 "app --password-policy=strict",
                 redactCommand("app --password-policy=strict"));
 
-        // --- weak credential stems with boolean values are NOT redacted ---
-        // (--authorize=true is a flag; "authorize" ≠ "auth")
+        // --- weak credential: exact single-component match ---
+        // (--authentication-mode, --authorize are NOT "auth")
+        assertEquals(
+                "app --authentication-mode=basic --verbose",
+                redactCommand("app --authentication-mode=basic --verbose"));
         assertEquals(
                 "app --authorize=true",
                 redactCommand("app --authorize=true"));
-
-        // --- weak credential stems with real values ARE redacted ---
-        assertEquals(
-                "app --bearer=*** --verbose",
-                redactCommand("app --bearer=eyJhbGciOi --verbose"));
         assertEquals(
                 "app --auth=*** --verbose",
                 redactCommand("app --auth=eyJhbGciOi --verbose"));
+        assertEquals(
+                "app --bearer=*** --verbose",
+                redactCommand("app --bearer=eyJhbGciOi --verbose"));
+
+        // --- camelCase: apiToken, clientSecret, APIKey ---
+        assertEquals(
+                "app --apiKey=***",
+                redactCommand("app --apiKey=secret"));
+        assertEquals(
+                "app --clientSecret=***",
+                redactCommand("app --clientSecret=secret"));
+        assertEquals(
+                "app --APIKey=***",
+                redactCommand("app --APIKey=secret"));
 
         // --- separate-token form: next token is an option, not a value ---
         // (--password --verbose must NOT eat --verbose as the password value)
