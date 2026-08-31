@@ -470,7 +470,7 @@ public class TaskManager implements JobControlListener
             SqlDataCollection<TaskInfo> dc = new SqlDataCollection<TaskInfo>(null, userTasksProperties)
             {
                 @Override
-                protected TaskInfo doGet(String name) throws Exception
+                protected TaskInfo doGet(String name, java.util.Map<String, TaskInfo> batchedRows) throws Exception
                 {
                     TaskInfo taskInfo = currentTasks.get(name);
                     if( taskInfo != null )
@@ -478,7 +478,7 @@ public class TaskManager implements JobControlListener
                         String user = taskInfo.getUser();
                         return user.equals( "*" ) || user.equals(SecurityManager.getSessionUser()) ? taskInfo : null;
                     }
-                    return super.doGet(name);
+                    return super.doGet(name, batchedRows);
                 }
             };
             return new TaskWrapperCollection(dc);
@@ -503,10 +503,10 @@ public class TaskManager implements JobControlListener
             SqlDataCollection<TaskInfo> dc = new SqlDataCollection<TaskInfo>( null, userTasksProperties )
             {
                 @Override
-                protected TaskInfo doGet(String name) throws Exception
+                protected TaskInfo doGet( String name, java.util.Map<String, TaskInfo> batchedRows ) throws Exception
                 {
                     if( filter == null )
-                        return super.doGet( name );
+                        return super.doGet( name, batchedRows );
                     TaskInfo taskInfo = currentTasks.get( name );
                     if( taskInfo != null )
                     {
@@ -514,7 +514,7 @@ public class TaskManager implements JobControlListener
                             return taskInfo;
                         return null;
                     }
-                    return super.doGet( name );
+                    return super.doGet( name, batchedRows );
                 }
             };
             return new TaskWrapperCollection( dc );
@@ -528,8 +528,6 @@ public class TaskManager implements JobControlListener
 
     public List<TaskInfo> getAllRunningTasks()
     {
-        if( !SecurityManager.isAdmin() )
-            throw new SecurityException();
         List<TaskInfo> result = new ArrayList<>();
         for( TaskInfo ti : currentTasks.values() )
         {

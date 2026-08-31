@@ -25,7 +25,11 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -400,23 +404,47 @@ public class ApplicationUtils
     {
         if (dir == null || !dir.isDirectory())
             return;
-        File[] files = dir.listFiles();
-        if (files != null)
+        // Use walkFileTree instead of recursive listFiles+isDirectory: it batches
+        // directory reads via DirectoryStream and avoids a redundant stat per child
+        // (isDirectory then delete), which dominates CPU on large temp trees.
+        try
         {
-            for( File file : files )
+            Files.walkFileTree(dir.toPath(), new FileVisitor<Path>()
             {
-                if(file.isDirectory())
+                @Override
+                public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs)
                 {
-                    removeDir(file);
+                    return FileVisitResult.CONTINUE;
                 }
-                if(!file.delete())
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                 {
-                    file.deleteOnExit();
+                    if(!file.toFile().delete())
+                    {
+                        file.toFile().deleteOnExit();
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-            }
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc)
+                {
+                    file.toFile().deleteOnExit();
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                {
+                    if(!dir.toFile().delete())
+                    {
+                        dir.toFile().deleteOnExit();
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         }
-        if(!dir.delete())
+        catch( IOException e )
         {
+            // Fall back to deleteOnExit if the traversal itself failed
             dir.deleteOnExit();
         }
     }

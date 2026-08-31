@@ -103,7 +103,9 @@ public class CollectionFactoryUtils
     }
 
     /**
-     * Initialize JavaScript security manager if necessary
+     * Initialize JavaScript security manager if necessary.
+     * On Java 24+ the Security Manager is fully removed (JEP 487);
+     * log a warning instead of an error so it does not alarm operators.
      */
     private static void initSecurityManager()
     {
@@ -113,6 +115,12 @@ public class CollectionFactoryUtils
         {
             if( System.getProperty( "biouml.server.path" ) != null )
                 System.setSecurityManager( new BiosoftSecurityManager() );
+        }
+        catch( UnsupportedOperationException e )
+        {
+            // Java 24+ removed the Security Manager entirely (JEP 487).
+            log.warning( "Security Manager is not supported on this JVM (Java 24+). "
+                    + "JavaScript sandboxing and BiosoftSecurityManager features are disabled." );
         }
         catch( Throwable e )
         {

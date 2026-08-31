@@ -324,6 +324,7 @@
         plugin.lucene,
         plugin.helpgen,
         plugin.server,
+        plugin.servermonitor,
         plugin.tomcat,
         plugin.biosoft.math,
         plugin.cellml,
@@ -614,6 +615,10 @@
                 <exclude name="ru/biosoft/server/servlets/**" />
             </files>
         </create.plugin>
+    </target>
+
+    <target name="plugin.servermonitor" depends="compile">
+        <create.plugin plugin="biouml.plugins.servermonitor" source="biouml/plugins/servermonitor"/>
     </target>
 
     <target name="plugin.tomcat" depends="compile">
