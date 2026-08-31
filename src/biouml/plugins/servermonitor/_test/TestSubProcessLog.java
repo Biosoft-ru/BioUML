@@ -380,7 +380,10 @@ public class TestSubProcessLog extends junit.framework.TestCase
                 "app --bearer=*** --verbose",
                 redactCommand("app --bearer=eyJhbGciOi --verbose"));
 
-        // --- camelCase: apiToken, clientSecret, APIKey ---
+        // --- camelCase: apiToken, clientSecret, APIKey, OAuthToken, HTTPToken ---
+        assertEquals(
+                "app --apiToken=***",
+                redactCommand("app --apiToken=secret"));
         assertEquals(
                 "app --apiKey=***",
                 redactCommand("app --apiKey=secret"));
@@ -390,12 +393,27 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(
                 "app --APIKey=***",
                 redactCommand("app --APIKey=secret"));
+        assertEquals(
+                "app --OAuthToken=***",
+                redactCommand("app --OAuthToken=secret"));
+        assertEquals(
+                "app --HTTPToken=***",
+                redactCommand("app --HTTPToken=secret"));
 
         // --- separate-token form: next token is an option, not a value ---
         // (--password --verbose must NOT eat --verbose as the password value)
         assertEquals(
                 "app --password --verbose",
                 redactCommand("app --password --verbose"));
+
+        // --- separate-token form: strong credentials redact regardless of
+        //     value appearance (no boolean guard on the separate-token path) ---
+        assertEquals(
+                "app --password ***",
+                redactCommand("app --password true"));
+        assertEquals(
+                "app --token ***",
+                redactCommand("app --token 1"));
 
         // --- bare flag at end of line (no value) is not redacted ---
         assertEquals(
