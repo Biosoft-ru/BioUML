@@ -10,9 +10,12 @@ import junit.framework.TestSuite;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Tests the persistent sub-process observation log in {@link MonitoringService}:
@@ -44,6 +47,11 @@ public class TestSubProcessLog extends junit.framework.TestCase
         suite.addTest(new TestSubProcessLog("testAppendSeedsCountCorrectly"));
         suite.addTest(new TestSubProcessLog("testExtractTimestamp"));
         suite.addTest(new TestSubProcessLog("testRedactCommand"));
+        // New: per-pid observation / report semantics
+        suite.addTest(new TestSubProcessLog("testEstimatedLifetimeUsesLastAgeOnly"));
+        suite.addTest(new TestSubProcessLog("testObservationOverlapFilter"));
+        suite.addTest(new TestSubProcessLog("testMergeLifetimeAndCommand"));
+        suite.addTest(new TestSubProcessLog("testPersistCursorAtomicAndCopy"));
         return suite;
     }
 
@@ -124,6 +132,51 @@ public class TestSubProcessLog extends junit.framework.TestCase
         Method m = MonitoringService.class.getDeclaredMethod("redactCommand", String.class);
         m.setAccessible(true);
         return (String) m.invoke(null, command);
+    }
+
+    /** Build a SubProcess carrying a first/last-seen observation interval. */
+    private SubProcessMonitor.SubProcess makeObserved(long pid, long age, long firstSeenMs,
+            long lastSeenMs, long firstAgeSec, long lastAgeSec, boolean slow, String cmd) throws Exception
+    {
+        Constructor<SubProcessMonitor.SubProcess> ctor =
+                SubProcessMonitor.SubProcess.class.getDeclaredConstructor(
+                        long.class, long.class, long.class, long.class,
+                        long.class, long.class, boolean.class, String.class);
+        ctor.setAccessible(true);
+        return ctor.newInstance(pid, age, firstSeenMs, lastSeenMs, firstAgeSec, lastAgeSec, slow, cmd);
+    }
+
+    /** Invoke private static SupportServlet.mergeSubProcessEntry(...) via reflection. */
+    private void merge(Map<Long, ?> target, long pid, long ageSec, boolean slow, String command,
+            long firstSeenMs, long lastSeenMs, long lifetimeSec) throws Exception
+    {
+        Class<?> servlet = Class.forName("ru.biosoft.server.servlets.support.SupportServlet");
+        Method m = servlet.getDeclaredMethod("mergeSubProcessEntry",
+                Map.class, long.class, long.class, boolean.class, String.class,
+                long.class, long.class, long.class);
+        m.setAccessible(true);
+        m.invoke(null, target, pid, ageSec, slow, command, firstSeenMs, lastSeenMs, lifetimeSec);
+    }
+
+    /** Reflect into the private SubProcessEntry fields of a merged entry. */
+    private long entryField(Map<Long, ?> byPid, long pid, String field) throws Exception
+    {
+        Object e = ((Map<?, ?>) byPid).get(pid);
+        java.lang.reflect.Field f = e.getClass().getDeclaredField(field);
+        f.setAccessible(true);
+        Object v = f.get(e);
+        if (v instanceof Long) return (Long) v;
+        if (v instanceof Boolean) return ((Boolean) v) ? 1 : 0;
+        return -999; // sentinel for non-numeric
+    }
+
+    /** Reflect a String field off a merged entry. */
+    private String entryStringField(Map<Long, ?> byPid, long pid, String field) throws Exception
+    {
+        Object e = ((Map<?, ?>) byPid).get(pid);
+        java.lang.reflect.Field f = e.getClass().getDeclaredField(field);
+        f.setAccessible(true);
+        return (String) f.get(e);
     }
 
     // ---------- tests ----------
@@ -440,6 +493,194 @@ public class TestSubProcessLog extends junit.framework.TestCase
         // Null / empty pass through.
         assertNull(redactCommand(null));
         assertEquals("", redactCommand(""));
+    }
+
+    // ---------- new: per-pid observation / report semantics ----------
+
+    /**
+     * The lifetime estimate must NOT add the wall-clock observation interval on
+     * top of the age delta (that double-counts the same elapsed time). Since
+     * ageSeconds is measured from process start, the total-lifetime estimate is
+     * simply the last observed age.
+     */
+    public void testEstimatedLifetimeUsesLastAgeOnly() throws Exception
+    {
+        // Process started long ago: at first observation age=100s, at last
+        // observation age=160s, observations 60s apart. The true elapsed since
+        // creation is ~160s, not 60 + (160-100) = 120s.
+        long firstSeen = 1_000_000L;
+        long lastSeen = firstSeen + 60_000L; // 60s of wall clock between scans
+        SubProcessMonitor.SubProcess sp = makeObserved(
+                42, /*ageSeconds*/160, firstSeen, lastSeen,
+                /*firstAge*/100, /*lastAge*/160, true, "perl x.pl");
+        assertEquals("lifetime must be the last observed age, not interval+ageDelta",
+                160L, sp.estimatedLifetimeSec());
+
+        // A single-scan snapshot (no ages) has no interval → -1.
+        SubProcessMonitor.SubProcess snap = makeSub(7, 5, false, "Rscript a.R");
+        assertEquals(-1L, snap.estimatedLifetimeSec());
+    }
+
+    /**
+     * getObservedSubProcesses filters by interval OVERLAP, not by "firstSeen in
+     * interval". This is what keeps the first report from pulling in unrelated
+     * processes observed long before the profile, while still catching a process
+     * that started before the window but is alive inside it, and one still alive
+     * after the window ended.
+     */
+    public void testObservationOverlapFilter() throws Exception
+    {
+        // Effective window: [17:00, 17:10] (ms offsets from a base).
+        long base = 10_000_000L;
+        long ws = base;                 // 17:00
+        long we = base + 10 * 60_000L;  // 17:10
+
+        // Populate the in-memory observation map directly (bypassing the
+        // update/prune cycle, which would remove "exited" pids) with four
+        // observations of distinct [firstSeen, lastSeen] intervals:
+        //   A: 16:58..17:05  (started before, alive in window)  -> overlaps
+        //   B: 16:40..16:50  (ended before window)              -> no overlap
+        //   C: 17:12..17:15  (started after window)             -> no overlap
+        //   D: 16:50..18:50  (spans across the window)          -> overlaps
+        seedObservation(100, base - 120_000L, base + 5 * 60_000L, 100L);
+        seedObservation(200, base - 300_000L, base - 60_000L, 60L);
+        seedObservation(300, base + 12 * 60_000L, base + 15 * 60_000L, 20L);
+        seedObservation(400, base - 60_000L, base + 100 * 60_000L, 500L);
+
+        List<SubProcessMonitor.SubProcess> res = service.getObservedSubProcesses(ws, we);
+        java.util.Set<Long> pids = new java.util.HashSet<>();
+        for (SubProcessMonitor.SubProcess s : res) pids.add(s.pid);
+        assertTrue("A (started before, alive in window) must overlap", pids.contains(100L));
+        assertTrue("D (spans the window) must overlap", pids.contains(400L));
+        assertFalse("B (ended before window) must not overlap", pids.contains(200L));
+        assertFalse("C (started after window) must not overlap", pids.contains(300L));
+    }
+
+    /**
+     * Insert one observation directly into the private subProcessObservations map
+     * with the given [firstSeenMs, lastSeenMs] interval, bypassing the update /
+     * prune cycle (which is what this test does NOT want to exercise).
+     */
+    @SuppressWarnings("unchecked")
+    private void seedObservation(long pid, long firstSeenMs, long lastSeenMs, long ageSec) throws Exception
+    {
+        java.lang.reflect.Field f = MonitoringService.class.getDeclaredField("subProcessObservations");
+        f.setAccessible(true);
+        java.util.Map<Long, Object> map = (java.util.Map<Long, Object>) f.get(service);
+        // SubProcessObservation is a private static nested class; build one via
+        // its no-arg constructor and set its public fields.
+        Class<?> obsClass = Class.forName(
+                "biouml.plugins.servermonitor.MonitoringService$SubProcessObservation");
+        java.lang.reflect.Constructor<?> ctor = obsClass.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        Object obs = ctor.newInstance();
+        setObsField(obs, "firstSeenMs", firstSeenMs);
+        setObsField(obs, "lastSeenMs", lastSeenMs);
+        setObsField(obs, "firstAgeSec", ageSec / 2);
+        setObsField(obs, "lastAgeSec", ageSec);
+        setObsField(obs, "everSlow", true);
+        setObsField(obs, "missedScans", 0);
+        java.lang.reflect.Field cmd = obsClass.getDeclaredField("command");
+        cmd.setAccessible(true);
+        cmd.set(obs, "perl x.pl");
+        map.put(pid, obs);
+    }
+
+    private void setObsField(Object obs, String name, Object value) throws Exception
+    {
+        java.lang.reflect.Field fld = obs.getClass().getDeclaredField(name);
+        fld.setAccessible(true);
+        fld.set(obs, value);
+    }
+
+    /**
+     * Merging log snapshots (each a single ts with its age) must yield a real
+     * lifetime (the max observed age) rather than -1, and must keep the earliest
+     * firstSeen / latest lastSeen / first non-empty command.
+     */
+    public void testMergeLifetimeAndCommand() throws Exception
+    {
+        Map<Long, Object> byPid = new TreeMap<>(java.util.Comparator.reverseOrder());
+        // First scan: age 100s.
+        merge(byPid, 55, 100L, false, "perl a.pl", 1_000L, 1_000L, 100L);
+        // Second scan (later ts): age 160s.
+        merge(byPid, 55, 160L, true, "perl a.pl", 60_000L, 60_000L, 160L);
+
+        assertEquals("firstSeen keeps the earliest", 1_000L, entryField(byPid, 55, "firstSeenMs"));
+        assertEquals("lastSeen keeps the latest", 60_000L, entryField(byPid, 55, "lastSeenMs"));
+        assertEquals("maxAge is the max", 160L, entryField(byPid, 55, "maxAgeSec"));
+        assertEquals("lifetime is the max observed age, not -1", 160L, entryField(byPid, 55, "lifetimeSec"));
+        assertEquals("slow (everSlow) is sticky", 1L, entryField(byPid, 55, "slow"));
+        assertEquals("command is kept", "perl a.pl", entryStringField(byPid, 55, "command"));
+    }
+
+    /**
+     * The cursor sidecar must be written atomically (temp file + rename) and must
+     * not mutate the caller's JSONObject. A failed/missing target directory must
+     * leave no partial file behind and not throw.
+     */
+    public void testPersistCursorAtomicAndCopy() throws Exception
+    {
+        Class<?> servlet = Class.forName("ru.biosoft.server.servlets.support.SupportServlet");
+        // Build a minimal instance with no-arg ctor if available; otherwise use
+        // an instance via Unsafe-free reflective constructor of the nearest
+        // accessible one. SupportServlet extends AbstractJSONServlet; use the
+        // declared constructor with the fewest params we can no-op.
+        java.lang.reflect.Constructor<?> ctor = null;
+        for (java.lang.reflect.Constructor<?> c : servlet.getDeclaredConstructors()) {
+            if (c.getParameterCount() == 0) { ctor = c; break; }
+        }
+        Object inst;
+        if (ctor != null) { ctor.setAccessible(true); inst = ctor.newInstance(); }
+        else {
+            // Fall back: allocate without running the constructor.
+            sun.misc.Unsafe unsafe = getUnsafe();
+            inst = unsafe.allocateInstance(servlet);
+        }
+
+        Method m = servlet.getDeclaredMethod("persistSubProcessCursor",
+                File.class, org.json.JSONObject.class, long.class, long.class, String.class, File.class);
+        m.setAccessible(true);
+
+        File metaFile = new File(tmpDir, "profile.json");
+        org.json.JSONObject meta = new org.json.JSONObject();
+        meta.put("startTime", 1L);
+        meta.put("endTime", 2L);
+
+        // 1) Normal write: cursor 0 -> 1000. File created, meta NOT mutated.
+        m.invoke(inst, metaFile, meta, 0L, 1000L, "profile", tmpDir);
+        assertTrue("cursor file written", metaFile.exists());
+        org.json.JSONObject read = new org.json.JSONObject(readAll(metaFile));
+        assertEquals(1000L, read.optLong("subProcessReportCursor", 0));
+        assertEquals("original startTime preserved", 1L, read.optLong("startTime", 0));
+        assertFalse("caller's meta object must not be mutated",
+                meta.has("subProcessReportCursor"));
+        // No leftover temp files in the dir.
+        String[] leftovers = tmpDir.list((d, n) -> n.endsWith(".tmp"));
+        assertEquals("no temp files left behind", 0, leftovers == null ? 0 : leftovers.length);
+
+        // 2) Non-advancing cursor (new <= old) is a no-op.
+        long before = metaFile.lastModified();
+        m.invoke(inst, metaFile, meta, 1000L, 1000L, "profile", tmpDir);
+        assertEquals("no-op when cursor does not advance", 1000L,
+                new org.json.JSONObject(readAll(metaFile)).optLong("subProcessReportCursor", 0));
+
+        // 3) Missing parent dir → no throw, no file created.
+        File missingParent = new File(tmpDir, "does-not-exist/profile.json");
+        m.invoke(inst, missingParent, meta, 0L, 5L, "profile", tmpDir);
+        assertFalse("no file created when parent dir missing", missingParent.exists());
+    }
+
+    private static sun.misc.Unsafe getUnsafe() throws Exception
+    {
+        java.lang.reflect.Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        f.setAccessible(true);
+        return (sun.misc.Unsafe) f.get(null);
+    }
+
+    private static String readAll(File f) throws Exception
+    {
+        return new String(java.nio.file.Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
     }
 
     /** Write a fixed set of lines to the log file (one per line). */
