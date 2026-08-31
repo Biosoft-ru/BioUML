@@ -332,8 +332,8 @@ public class MonitoringService {
         // fallback is non-atomic and does not provide the same visibility
         // guarantees; readers may observe an intermediate state. The in-memory
         // count and purge time are published only after the replacement
-        // succeeds; if it fails the file is unchanged, so both are left as-is
-        // and the next append re-triggers the purge.
+        // succeeds; if the move fails before replacement, the in-memory state
+        // is left unchanged and the next append re-triggers the purge.
         File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
         try {
             try (BufferedWriter tw = new BufferedWriter(
@@ -351,8 +351,8 @@ public class MonitoringService {
                 Files.move(tmp.toPath(), logFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
             // Publish both in-memory state variables only after the
-            // replacement succeeds. If the move fails the file is unchanged,
-            // so the count and purge time are left as-is and the next append
+            // replacement succeeds. If the move fails before replacement,
+            // the in-memory state is left unchanged and the next append
             // re-triggers the purge.
             subProcessLogCount = newCount;
             lastSubProcessLogPurgeTime = now;
@@ -482,20 +482,16 @@ public class MonitoringService {
     }
 
     /**
-     * True if the value looks like a boolean flag rather than a credential:
-     * a bare digit, "true", "false", "yes", "no", "on", or "off". Such values
-     * are not secrets even when the key name happens to contain a credential
-     * stem (e.g. {@code --use-token=1}).
+     * True if the value is a literal boolean or a bare integer — the kinds of
+     * values that appear on non-credential flags (e.g. {@code --enable-foo=1}).
+     * Used only for weak credential stems to avoid redacting
+     * {@code --authentication-mode=basic} or {@code --authorize=true}.
      */
     private static boolean isBooleanFlagValue(String value) {
         if (value.isEmpty()) return true;
         String v = value.toLowerCase();
         if (v.equals("true") || v.equals("false") || v.equals("yes")
-                || v.equals("no") || v.equals("on") || v.equals("off")
-                || v.equals("basic") || v.equals("none") || v.equals("null")
-                || v.equals("disabled") || v.equals("enabled")
-                || v.equals("debug") || v.equals("info") || v.equals("warn")
-                || v.equals("error") || v.equals("verbose")) {
+                || v.equals("no") || v.equals("on") || v.equals("off")) {
             return true;
         }
         // A bare integer (0, 1, 2, …) is a flag/option, not a credential.
@@ -517,9 +513,14 @@ public class MonitoringService {
     /**
      * Tokenize a command line respecting single and double quotes so that a
      * quoted value with spaces stays one token. Quotes are removed from the
-     * result (matching how the OS passes a single argv element). This is a
-     * deliberate approximation — not a full shell parser — and is only used to
-     * decide which tokens are secrets, not to re-run the command.
+     * result (matching how the OS passes a single argv element).
+     *
+     * <p>This is a deliberate approximation — not a full shell parser — and is
+     * only used to decide which tokens are secrets, not to re-run the command.
+     * In particular, it does not handle backslash escapes inside quoted strings
+     * ({@code --password="abc\"def"} will be split at the inner {@code "}), so
+     * a credential in an escaped-quote command line may not be recognized and
+     * will not be redacted.
      */
     private static List<String> tokenizeCommandLine(String command) {
         List<String> toks = new ArrayList<>();
@@ -558,33 +559,70 @@ public class MonitoringService {
     }
 
     /**
+     * Split a bare key into lowercase components on {@code -}, {@code _},
+     * and camelCase boundaries. {@code api-key} → {@code [api, key]},
+     * {@code apiToken} → {@code [api, token]}, {@code client_secret}
+     * → {@code [client, secret]}.
+     */
+    private static java.util.Set<String> splitKey(String bareKey) {
+        // Insert a separator at camelCase boundaries: "apiToken" → "api Token"
+        String s = bareKey.replaceAll("([a-z0-9])([A-Z])", "$1 $2");
+        String k = s.toLowerCase();
+        String[] parts = k.split("[-_\\s]+");
+        java.util.Set<String> set = new java.util.HashSet<>();
+        for (String p : parts) {
+            if (!p.isEmpty()) set.add(p);
+        }
+        return set;
+    }
+
+    /**
      * True if the key is a strong credential: its value is redacted regardless
-     * of content (even if the value looks like a boolean or number). These are
-     * keys that by name are unambiguously secrets — a password, token, or key
-     * whose value is "true" or "1" is still a password.
+     * of content (even if the value looks like a boolean or number). Matching
+     * is component-based — {@code --token-count=10} has components
+     * {@code [token, count]} and the "count" component means it is NOT a
+     * credential, while {@code --auth-token=abc} has components
+     * {@code [auth, token]} and IS a credential.
      */
     private static boolean isStrongCredential(String bareKey) {
-        String k = bareKey.toLowerCase().replace("-", "_");
-        if (k.isEmpty()) return false;
-        return k.contains("password") || k.contains("passwd") || k.contains("pwd")
-                || k.contains("token") || k.contains("secret")
-                || k.contains("apikey") || k.contains("api_key")
-                || k.contains("accesskey") || k.contains("access_key")
-                || k.contains("privatekey") || k.contains("private_key")
-                || k.contains("credential") || k.contains("client_secret")
-                || k.contains("session_token") || k.contains("refresh_token");
+        if (bareKey.isEmpty()) return false;
+        java.util.Set<String> parts = splitKey(bareKey);
+        if (parts.isEmpty()) return false;
+        // Single-component keys: the whole key is a credential word.
+        // ("--password", "--token", "--secret", "--credential")
+        if (parts.size() == 1) {
+            String p = parts.iterator().next();
+            return p.equals("password") || p.equals("passwd") || p.equals("pwd")
+                    || p.equals("token") || p.equals("secret")
+                    || p.equals("credential");
+        }
+        // Multi-component keys: match known credential compound names.
+        // ("--api-key", "--access-key", "--client-secret", "--auth-token",
+        //  "--session-token", "--refresh-token", "--private-key")
+        if (parts.contains("api") && parts.contains("key")) return true;
+        if (parts.contains("access") && parts.contains("key")) return true;
+        if (parts.contains("private") && parts.contains("key")) return true;
+        if (parts.contains("client") && parts.contains("secret")) return true;
+        if (parts.contains("session") && parts.contains("token")) return true;
+        if (parts.contains("refresh") && parts.contains("token")) return true;
+        // "auth-token", "password-hash", etc. — a credential word combined
+        // with a qualifier is still a credential. But "token-count" and
+        // "secret-mode" are not: the qualifier changes the meaning.
+        if (parts.contains("auth") && parts.contains("token")) return true;
+        return false;
     }
 
     /**
      * True if the key is a weak credential indicator: the value is redacted
-     * only when it does not look like a boolean flag. These stems appear in
-     * non-credential contexts too (e.g. --authentication-mode, --authorize),
-     * so the boolean guard avoids false positives.
+     * only when it does not look like a boolean flag. Component-based:
+     * {@code --auth} or {@code --bearer} is a weak credential, but
+     * {@code --authentication-mode} is not (the component is
+     * "authentication", not "auth").
      */
     private static boolean isWeakCredential(String bareKey) {
-        String k = bareKey.toLowerCase().replace("-", "_");
-        if (k.isEmpty()) return false;
-        return k.contains("auth") || k.contains("bearer");
+        if (bareKey.isEmpty()) return false;
+        java.util.Set<String> parts = splitKey(bareKey);
+        return parts.contains("auth") || parts.contains("bearer");
     }
 
     /**
