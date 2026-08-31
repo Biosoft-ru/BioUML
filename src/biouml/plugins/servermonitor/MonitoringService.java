@@ -559,70 +559,86 @@ public class MonitoringService {
     }
 
     /**
-     * Split a bare key into lowercase components on {@code -}, {@code _},
-     * and camelCase boundaries. {@code api-key} → {@code [api, key]},
-     * {@code apiToken} → {@code [api, token]}, {@code client_secret}
-     * → {@code [client, secret]}.
+     * Split a bare key into an ordered list of lowercase components on
+     * {@code -}, {@code _}, and camelCase boundaries.
+     * {@code api-key} → {@code [api, key]}, {@code apiToken} →
+     * {@code [api, token]}, {@code APIKey} → {@code [api, key]},
+     * {@code client_secret} → {@code [client, secret]}.
+     *
+     * <p>Handles both the lower→upper boundary ({@code apiToken}) and the
+     * acronym→PascalCase boundary ({@code APIKey} → {@code API Key}).
      */
-    private static java.util.Set<String> splitKey(String bareKey) {
-        // Insert a separator at camelCase boundaries: "apiToken" → "api Token"
+    private static List<String> splitKey(String bareKey) {
+        // Insert a space at camelCase boundaries:
+        //   "apiToken" → "api Token"   (lower→upper)
+        //   "APIKey"   → "API Key"     (acronym→PascalCase)
         String s = bareKey.replaceAll("([a-z0-9])([A-Z])", "$1 $2");
+        s = s.replaceAll("([A-Z])([A-Z][a-z])", "$1 $2");
         String k = s.toLowerCase();
-        String[] parts = k.split("[-_\\s]+");
-        java.util.Set<String> set = new java.util.HashSet<>();
-        for (String p : parts) {
-            if (!p.isEmpty()) set.add(p);
+        List<String> parts = new ArrayList<>();
+        for (String p : k.split("[-_\\s]+")) {
+            if (!p.isEmpty()) parts.add(p);
         }
-        return set;
+        return parts;
+    }
+
+    /**
+     * True if the ordered component list exactly matches the given sequence.
+     */
+    private static boolean isExactCompound(List<String> parts, String... expected) {
+        if (parts.size() != expected.length) return false;
+        for (int i = 0; i < expected.length; i++) {
+            if (!parts.get(i).equals(expected[i])) return false;
+        }
+        return true;
     }
 
     /**
      * True if the key is a strong credential: its value is redacted regardless
      * of content (even if the value looks like a boolean or number). Matching
-     * is component-based — {@code --token-count=10} has components
-     * {@code [token, count]} and the "count" component means it is NOT a
-     * credential, while {@code --auth-token=abc} has components
-     * {@code [auth, token]} and IS a credential.
+     * is by exact component sequence — {@code --api-key} matches
+     * {@code [api, key]} but {@code --api-key-mode} ({@code [api, key, mode]})
+     * and {@code --key-api} ({@code [key, api]}) do not.
+     *
+     * <p>Recognized strong credentials:
+     * <ul>
+     *   <li>Single component: password, passwd, pwd, token, secret, credential</li>
+     *   <li>Two-component: api-key, access-key, private-key, client-secret,
+     *       session-token, refresh-token, auth-token, bearer-token</li>
+     * </ul>
      */
     private static boolean isStrongCredential(String bareKey) {
         if (bareKey.isEmpty()) return false;
-        java.util.Set<String> parts = splitKey(bareKey);
+        List<String> parts = splitKey(bareKey);
         if (parts.isEmpty()) return false;
-        // Single-component keys: the whole key is a credential word.
-        // ("--password", "--token", "--secret", "--credential")
         if (parts.size() == 1) {
-            String p = parts.iterator().next();
+            String p = parts.get(0);
             return p.equals("password") || p.equals("passwd") || p.equals("pwd")
                     || p.equals("token") || p.equals("secret")
                     || p.equals("credential");
         }
-        // Multi-component keys: match known credential compound names.
-        // ("--api-key", "--access-key", "--client-secret", "--auth-token",
-        //  "--session-token", "--refresh-token", "--private-key")
-        if (parts.contains("api") && parts.contains("key")) return true;
-        if (parts.contains("access") && parts.contains("key")) return true;
-        if (parts.contains("private") && parts.contains("key")) return true;
-        if (parts.contains("client") && parts.contains("secret")) return true;
-        if (parts.contains("session") && parts.contains("token")) return true;
-        if (parts.contains("refresh") && parts.contains("token")) return true;
-        // "auth-token", "password-hash", etc. — a credential word combined
-        // with a qualifier is still a credential. But "token-count" and
-        // "secret-mode" are not: the qualifier changes the meaning.
-        if (parts.contains("auth") && parts.contains("token")) return true;
-        return false;
+        return isExactCompound(parts, "api", "key")
+                || isExactCompound(parts, "access", "key")
+                || isExactCompound(parts, "private", "key")
+                || isExactCompound(parts, "client", "secret")
+                || isExactCompound(parts, "session", "token")
+                || isExactCompound(parts, "refresh", "token")
+                || isExactCompound(parts, "auth", "token")
+                || isExactCompound(parts, "bearer", "token");
     }
 
     /**
      * True if the key is a weak credential indicator: the value is redacted
-     * only when it does not look like a boolean flag. Component-based:
-     * {@code --auth} or {@code --bearer} is a weak credential, but
-     * {@code --authentication-mode} is not (the component is
+     * only when it does not look like a boolean flag. Matching is by exact
+     * single-component — {@code --auth} or {@code --bearer} is a weak
+     * credential, but {@code --authentication-mode} is not (the component is
      * "authentication", not "auth").
      */
     private static boolean isWeakCredential(String bareKey) {
         if (bareKey.isEmpty()) return false;
-        java.util.Set<String> parts = splitKey(bareKey);
-        return parts.contains("auth") || parts.contains("bearer");
+        List<String> parts = splitKey(bareKey);
+        return parts.size() == 1
+                && (parts.get(0).equals("auth") || parts.get(0).equals("bearer"));
     }
 
     /**
