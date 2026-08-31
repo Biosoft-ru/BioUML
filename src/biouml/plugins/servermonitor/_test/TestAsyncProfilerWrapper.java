@@ -51,6 +51,7 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
         TestSuite suite = new TestSuite(TestAsyncProfilerWrapper.class.getName());
         suite.addTest(new TestAsyncProfilerWrapper("testCleanRunSucceeds"));
         suite.addTest(new TestAsyncProfilerWrapper("testHungProfilerIsBoundedAndDestroyed"));
+        suite.addTest(new TestAsyncProfilerWrapper("testHungProcessTreeIsBoundedAndDestroyed"));
         suite.addTest(new TestAsyncProfilerWrapper("testNonZeroExitReportedAsFailure"));
         suite.addTest(new TestAsyncProfilerWrapper("testStopSkippedWhenNoSessionActive"));
         return suite;
@@ -134,6 +135,46 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
                 + "but found still running: " + leftover, leftover.isEmpty());
     }
 
+    /**
+     * A profiler whose hang is a real process tree (a shell wrapper that
+     * spawns a child and waits for it, rather than {@code exec}-ing it) must
+     * have the WHOLE tree torn down — not just the direct child. This is the
+     * scenario the earlier review flagged: a shell's child (e.g. {@code sleep})
+     * survives a plain {@code destroyForcibly()} of the shell, keeps the output
+     * pipe open, and leaks. We assert both the wrapper process and its child
+     * disappear.
+     */
+    public void testHungProcessTreeIsBoundedAndDestroyed() throws Exception
+    {
+        AsyncProfilerWrapper wrapper = makeWrapperWithFake("tree");
+        config.set(ServerMonitorConfig.PROFILE_DURATION, 2);
+        wrapper.setTestRunTimeout(3);
+
+        long start = System.currentTimeMillis();
+        ProfilerResult result = wrapper.start(new long[0], "collapsed");
+        long elapsedMs = System.currentTimeMillis() - start;
+
+        assertFalse("expected failed profile, got success at "
+                + result.getOutputPath(), result.isSuccess());
+        assertTrue("wrapper blocked too long: " + elapsedMs + "ms "
+                + "(should be bounded by ~3s timeout + 5s kill-confirm)",
+                elapsedMs < 12000);
+
+        // The hang is a shell wrapper (parent) plus a `sleep 600` child. Both
+        // must be gone; a leak of the child means the process-tree teardown
+        // (descendants() kill) did not work.
+        String marker = "asprof-test-tree-" + tmpDir.getName();
+        long deadline = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < deadline) {
+            if (listPidsRunningMarker(marker).isEmpty()) break;
+            Thread.sleep(100);
+        }
+        java.util.List<String> leftover = listPidsRunningMarker(marker);
+        assertTrue("expected the whole hung fake profiler process tree "
+                + "(wrapper + child) to be destroyed, but found still running: "
+                + leftover, leftover.isEmpty());
+    }
+
     /** A profiler that exits non-zero is reported as a failed result. */
     public void testNonZeroExitReportedAsFailure()
     {
@@ -197,18 +238,21 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
      *   -d N -f F ...   → sleep 0.2, create F, exit 0          (mode: clean)
      *   -d N -f F ...   → exec sleep 600 (no exit)             (mode: hung)
      *   -d N -f F ...   → sleep 0.2, exit 1                    (mode: fail)
+     *   -d N -f F ...   → spawn child + wait (a process tree) (mode: tree)
      *   -c 1 [pid]      → sleep 0.2, exit 1                    (any mode)
      * </pre>
      *
-     * The hanging path uses {@code exec} so the shell is replaced by the
-     * sleeper — a single process — meaning the wrapper's process-tree teardown
-     * is what must reclaim it, and the test can detect a leak unambiguously.
+     * The {@code hung} path uses {@code exec} so the shell is replaced by the
+     * sleeper — a single process (tests direct-child teardown). The {@code tree}
+     * path deliberately keeps the shell alive and spawns a {@code sleep 600}
+     * child, so the wrapper's process-<em>tree</em> teardown (the
+     * {@code descendants()} kill) is what must reclaim both — a plain
+     * {@code destroyForcibly()} of the shell alone would orphan the child.
      */
     private String fakeProfilerScript(String mode)
     {
         return "#!/bin/sh\n"
             + "MARKER=\"" + tmpDir.getAbsolutePath() + "/stop_invoked\"\n"
-            + "HANGMARKER=\"asprof-test-hung-" + tmpDir.getName() + "\"\n"
             + "if [ \"$1\" = \"stop\" ]; then\n"
             + "  touch \"$MARKER\"\n"
             + "  exec sleep 600\n"
@@ -225,8 +269,10 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
             + "  shift\n"
             + "done\n"
             + "sleep 0.2\n"
+            + "TREE_MARKER=\"asprof-test-tree-" + tmpDir.getName() + "\"\n"
             + "case \"" + mode + "\" in\n"
             + "  hung) exec sleep 600 ;;\n"
+            + "  tree) TREE_MARKER=\"$TREE_MARKER\" /bin/sh -c 'sleep 600 \"$TREE_MARKER\"' & wait ;;\n"
             + "  clean) [ -n \"$F\" ] && touch \"$F\"; exit 0 ;;\n"
             + "  fail) exit 1 ;;\n"
             + "esac\n";

@@ -396,9 +396,9 @@ public class AsyncProfilerWrapper {
             log.log(Level.WARNING, "AsyncProfilerWrapper: error stopping profiler", e);
             exitedCleanly = false;
         } catch (InterruptedException e) {
-            // executeBounded already destroyed the stop process and re-set the
-            // interrupt flag before rethrowing.
-            Thread.currentThread().interrupt();
+            // executeBounded() already destroyed the stop process (and its
+            // tree) and re-set the interrupt flag before rethrowing; nothing
+            // further to do here.
             log.log(Level.WARNING, "AsyncProfilerWrapper: interrupted while stopping profiler", e);
             exitedCleanly = false;
         }
@@ -472,12 +472,17 @@ public class AsyncProfilerWrapper {
         TailBuffer tail = new TailBuffer(MAX_OUTPUT_TAIL_CHARS);
         java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
         Thread ioThread = new Thread(() -> {
+            // Read fixed-size chunks with Reader.read(char[]) rather than
+            // readLine(): a pathological child that streams a huge amount with
+            // no newlines would otherwise make readLine() accumulate an
+            // unbounded single line in memory, defeating the bounded-memory
+            // guarantee. A fixed read buffer bounds memory to the buffer size.
+            char[] chunk = new char[4096];
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
+                int n;
+                while ((n = reader.read(chunk)) != -1) {
                     synchronized (tail) {
-                        tail.append(line);
-                        tail.append("\n");
+                        tail.append(new String(chunk, 0, n));
                     }
                 }
             } catch (IOException ignored) {
@@ -521,16 +526,35 @@ public class AsyncProfilerWrapper {
      * Destroy a process and, best-effort, its descendants. {@code destroyForcibly}
      * kills the direct child but not necessarily its children (e.g. a shell
      * wrapper's {@code sleep}), which can keep the output pipe open and leak
-     * orphans. Killing the whole tree is the more reliable form of teardown.
+     * orphans.
+     *
+     * <p>Ordering matters: the descendant set is captured <em>before</em> the
+     * root is killed. Killing the root first can reparent/reap the children
+     * before {@code descendants()} is even evaluated, so they would never be
+     * reached. Once captured, the descendants are killed deepest-first (a child
+     * after its own children) so a lower process doesn't outlive the parent
+     * that is about to be torn down. This is best-effort — a descendant spawned
+     * concurrently with the kill can still be missed — but it is materially
+     * more reliable than killing the root first.
      */
     private void destroyProcessTree(Process process) {
-        process.destroyForcibly();
+        // Capture the tree while the root is still alive so the enumeration is
+        // complete, then tear it down.
+        List<java.lang.ProcessHandle> tree = new ArrayList<>();
         try {
-            process.toHandle().descendants().forEach(d -> d.destroyForcibly());
+            java.lang.ProcessHandle root = process.toHandle();
+            root.descendants().forEach(tree::add);
         } catch (Exception ignored) {
-            // Descendant enumeration is best-effort; the direct kill above is
-            // the primary teardown.
+            // Enumerating is best-effort; the direct kill below is the primary
+            // teardown.
         }
+        // Kill deepest-first: a process only after all of its descendants.
+        // The captured list is in pre-order (parent before child), so iterating
+        // it in reverse yields children before their parents.
+        for (int i = tree.size() - 1; i >= 0; i--) {
+            tree.get(i).destroyForcibly();
+        }
+        process.destroyForcibly();
     }
 
     /**
@@ -538,25 +562,55 @@ public class AsyncProfilerWrapper {
      * {@code capacity} characters, discarding the oldest beyond that. Used to
      * keep child-process output memory bounded while preserving the tail
      * (where errors usually appear).
+     *
+     * <p>Implemented as a small deque of fixed-size chunks rather than a
+     * single {@code StringBuilder}: appending is O(1) (no repeated shifting
+     * of up to {@code capacity} characters on every chunk), which matters when
+     * a verbose/hung process streams a lot.
      */
     private static final class TailBuffer {
+        private static final int CHUNK = 4096;
         private final int capacity;
-        private final StringBuilder sb = new StringBuilder();
+        private final java.util.ArrayDeque<String> chunks = new java.util.ArrayDeque<>();
+        private int total;
 
         TailBuffer(int capacity) {
             this.capacity = capacity;
         }
 
         synchronized void append(CharSequence s) {
-            sb.append(s);
-            int len = sb.length();
-            if (len > capacity) {
-                sb.delete(0, len - capacity);
+            // Split the input into CHUNK-sized pieces and enqueue them.
+            int len = s.length();
+            for (int i = 0; i < len; ) {
+                int n = Math.min(CHUNK, len - i);
+                chunks.addLast(s.subSequence(i, i + n).toString());
+                i += n;
+            }
+            total += len;
+            // Trim oldest chunks until the retained total is within capacity.
+            while (total > capacity && chunks.size() > 1) {
+                String oldest = chunks.removeFirst();
+                total -= oldest.length();
+            }
+            // If a single chunk still exceeds capacity (only possible if one
+            // append carried more than capacity), collapse to its own tail.
+            if (total > capacity) {
+                String only = chunks.removeFirst();
+                total = only.length();
+                if (total > capacity) {
+                    only = only.substring(only.length() - capacity);
+                    total = capacity;
+                }
+                chunks.addLast(only);
             }
         }
 
         @Override
         public synchronized String toString() {
+            StringBuilder sb = new StringBuilder(total);
+            for (String c : chunks) {
+                sb.append(c);
+            }
             return sb.toString();
         }
     }
