@@ -143,9 +143,10 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
      * survives a plain {@code destroyForcibly()} of the shell, keeps the output
      * pipe open, and leaks.
      *
-     * <p>The fake records the child's PID in a file, so the test checks
-     * {@code /proc/<childPid>} directly — a deterministic identification of the
-     * process the test itself created, rather than a command-line scan.
+     * <p>The fake records the wrapper's own PID and the child's PID in a file,
+     * so the test checks {@code /proc/<pid>} for both — a deterministic
+     * identification of the processes the test itself created, rather than a
+     * command-line scan.
      */
     public void testHungProcessTreeIsBoundedAndDestroyed() throws Exception
     {
@@ -163,23 +164,32 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
                 + "(should be bounded by ~3s timeout + 5s kill-confirm)",
                 elapsedMs < 12000);
 
-        // The fake spawned a real `sleep 600` child and recorded its PID.
-        // That child (the shell wrapper's descendant) must be gone; a leak
+        // The fake spawned a real `sleep 600` child and recorded the wrapper's
+        // own PID plus the child's PID. Both must be gone; a leak of the child
         // means the process-tree teardown (descendants() kill) did not work.
-        File pidFile = new File(tmpDir, "tree_child.pid");
-        assertTrue("expected the fake profiler to record its child PID in "
+        File pidFile = new File(tmpDir, "tree_pids");
+        assertTrue("expected the fake profiler to record its PIDs in "
                 + pidFile, pidFile.exists());
-        long childPid = Long.parseLong(new String(Files.readAllBytes(pidFile.toPath())).trim());
+        String[] lines = new String(Files.readAllBytes(pidFile.toPath())).trim().split("\\R");
+        assertTrue("expected two recorded PIDs, got: " + java.util.Arrays.toString(lines),
+                lines.length == 2);
+        long wrapperPid = Long.parseLong(lines[0].trim());
+        long childPid = Long.parseLong(lines[1].trim());
+        assertTrue("expected a plausible wrapper PID, got " + wrapperPid, wrapperPid > 0);
         assertTrue("expected a plausible child PID, got " + childPid, childPid > 0);
 
-        File childProc = new File("/proc/" + childPid);
         long deadline = System.currentTimeMillis() + 5000;
-        while (childProc.exists() && System.currentTimeMillis() < deadline) {
+        while (System.currentTimeMillis() < deadline) {
+            if (!new File("/proc/" + wrapperPid).exists()
+                    && !new File("/proc/" + childPid).exists()) break;
             Thread.sleep(100);
         }
-        assertFalse("expected the hung fake profiler's child (PID " + childPid
-                + ") to be destroyed by the process-tree teardown, but "
-                + "/proc/" + childPid + " still exists", childProc.exists());
+        boolean wrapperAlive = new File("/proc/" + wrapperPid).exists();
+        boolean childAlive = new File("/proc/" + childPid).exists();
+        assertFalse("expected the hung fake profiler tree to be destroyed, but "
+                + "wrapper PID " + wrapperPid + " alive=" + wrapperAlive
+                + ", child PID " + childPid + " alive=" + childAlive,
+                wrapperAlive || childAlive);
     }
 
     /** A profiler that exits non-zero is reported as a failed result. */
@@ -276,10 +286,10 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
             + "  shift\n"
             + "done\n"
             + "sleep 0.2\n"
-            + "TREE_PID_FILE=\"" + tmpDir.getAbsolutePath() + "/tree_child.pid\"\n"
+            + "TREE_PID_FILE=\"" + tmpDir.getAbsolutePath() + "/tree_pids\"\n"
             + "case \"" + mode + "\" in\n"
             + "  hung) exec sleep 600 ;;\n"
-            + "  tree) sleep 600 & echo $! > \"$TREE_PID_FILE\"; wait ;;\n"
+            + "  tree) echo $$ > \"$TREE_PID_FILE\"; sleep 600 & echo $! >> \"$TREE_PID_FILE\"; wait ;;\n"
             + "  clean) [ -n \"$F\" ] && touch \"$F\"; exit 0 ;;\n"
             + "  fail) exit 1 ;;\n"
             + "esac\n";

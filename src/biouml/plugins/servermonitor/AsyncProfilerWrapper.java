@@ -551,11 +551,22 @@ public class AsyncProfilerWrapper {
             // teardown.
         }
         // Destroy every captured descendant (order is unspecified and not
-        // relied upon), then the root.
+        // relied upon), then the root. Each kill is independent and best-effort:
+        // a failure on one handle (e.g. a stale/unavailable handle) must not
+        // prevent the rest of the tree — and in particular the root — from
+        // being killed.
         for (java.lang.ProcessHandle h : tree) {
-            h.destroyForcibly();
+            try {
+                h.destroyForcibly();
+            } catch (Exception ignored) {
+                // Best-effort teardown; continue killing the rest of the tree.
+            }
         }
-        process.destroyForcibly();
+        try {
+            process.destroyForcibly();
+        } catch (Exception ignored) {
+            // Best-effort teardown.
+        }
     }
 
     /**
