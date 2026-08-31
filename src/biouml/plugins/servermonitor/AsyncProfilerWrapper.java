@@ -45,12 +45,12 @@ public class AsyncProfilerWrapper {
     /** Bounded wait (seconds) to join the process-I/O drain thread after the child exits. */
     private static final int IO_DRAIN_JOIN_SECONDS = 2;
     /**
-     * Maximum characters of child-process output kept for diagnostics. The
-     * profiler output is only ever logged on a failure path (non-zero exit),
-     * so the tail is enough to diagnose the failure; capping it keeps memory
-     * bounded even if a hung/verbose profiler streams a lot to the pipe.
+     * Maximum number of characters of child-process output kept for
+     * diagnostics. Only the TAIL of this size is retained (the error is
+     * usually at the end), so memory stays bounded even if a hung/verbose
+     * profiler streams a lot to the pipe.
      */
-    private static final int MAX_OUTPUT_CAPTURE_CHARS = 16384;
+    private static final int MAX_OUTPUT_TAIL_CHARS = 16384;
 
     /**
      * Optional test override for the per-run timeout (seconds). When > 0 the
@@ -73,7 +73,22 @@ public class AsyncProfilerWrapper {
     private final ServerMonitorConfig config;
     private String profilerPath;
     private volatile boolean profilerAvailable = false;
+    /**
+     * Output path of the profile this wrapper instance is currently
+     * generating, or null when idle. Drives {@link #getProfileStatus()}.
+     * Cleared in {@link #stop()} and after a run completes.
+     */
     private volatile String activeProfileOutputPath = null;
+    /**
+     * Whether this wrapper instance currently has an in-progress
+     * {@code asprof -d} run. Set/cleared around the synchronous run in
+     * {@link #runProfiler}. This is the pre-run stop guard's signal — it is
+     * deliberately LOCAL to this instance (it does not probe the agent), so
+     * it can go stale only if this JVM was killed mid-run and the agent was
+     * left installed; that case is handled by the run failing with the real
+     * async-profiler error until a restart clears the agent.
+     */
+    private volatile boolean profilerRunActive = false;
 
     public AsyncProfilerWrapper(ServerMonitorConfig config) {
         this.config = config;
@@ -167,10 +182,11 @@ public class AsyncProfilerWrapper {
         String primaryPath = buildOutputPath(baseName, format);
 
         try {
-            // Run 1: Primary format. runProfiler() sets activeProfileOutputPath
-            // while its `asprof -d` runs and clears it in a finally block, so
-            // getProfileStatus() reflects the live state and the pre-run stop
-            // guard knows when a session is actually in progress.
+            // Run 1: Primary format. runProfiler() sets profilerRunActive and
+            // activeProfileOutputPath while its `asprof -d` runs and clears
+            // them in a finally block, so getProfileStatus() reflects the live
+            // state and the pre-run stop guard knows when a session is
+            // actually in progress.
             boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath, format);
 
             // Run 2: Generate extra formats for AI agent use. Each extra run
@@ -221,9 +237,9 @@ public class AsyncProfilerWrapper {
      */
     private boolean runProfiler(long jvmPid, String threadIdStr, int duration, String outputPath, String outputFormat)
             throws IOException, InterruptedException {
-        // Clear a previous profiling session only if a run is actually
-        // in progress in this JVM (start() sets activeProfileOutputPath
-        // while its `asprof -d` runs, and clears it when the run returns).
+        // Clear a previous profiling session only if this wrapper instance
+        // has a run in progress (profilerRunActive, set/cleared around the
+        // synchronous `asprof -d` below).
         //
         // async-profiler keeps the agent (libasyncProfiler.so) installed in
         // the JVM between runs. If a prior session's auto-stop did not fully
@@ -233,14 +249,16 @@ public class AsyncProfilerWrapper {
         // nothing to clear it short of a restart. `asprof stop` tells the
         // agent to release, so run it first.
         //
-        // When NO run is active there is nothing to stop — and calling
-        // `asprof stop` then anyway is what the pre-run guard was doing on
-        // every 60s monitoring cycle on ict: when the agent is stuck (a
-        // prior CLI was SIGKILLed during teardown), every one of those stops
-        // hangs the full STOP_TIMEOUT_SECONDS before being destroyed, which
-        // both spams the log and delays every profiling run by 30s. Skipping
-        // the stop in the idle case avoids that; a genuinely active session
-        // still gets the bounded stop + lingering-process fallback below.
+        // This is deliberately LOCAL knowledge: profilerRunActive only says
+        // "this instance started a run that is still in flight", it does NOT
+        // probe the agent. So if this JVM was killed mid-run and the agent
+        // was left installed, a fresh instance sees profilerRunActive ==
+        // false and skips the stop; the subsequent `asprof -d` then fails
+        // with the real async-profiler error (rather than hanging on a
+        // useless `asprof stop` that would time out on a stuck agent every
+        // 60s monitoring cycle — the ict log-spam regression). A genuinely
+        // in-progress run still gets the bounded stop + lingering-process
+        // fallback below.
         //
         // stop() is bounded (STOP_TIMEOUT_SECONDS + destroyForcibly), so it
         // cannot hang the monitoring thread — the reason it was previously
@@ -250,7 +268,7 @@ public class AsyncProfilerWrapper {
         // hold the agent too) and only start if we can confirm the tree is
         // clean — otherwise skip rather than risk a SIGKILL racing another
         // in-progress profiler.
-        if (activeProfileOutputPath != null) {
+        if (profilerRunActive) {
             boolean stopClean = stop();
             if (!stopClean) {
                 log.info("AsyncProfilerWrapper: stop() did not exit cleanly; "
@@ -283,59 +301,14 @@ public class AsyncProfilerWrapper {
         // PID is a positional argument at the end (not -j)
         command.add(String.valueOf(jvmPid));
 
-        ProcessBuilder pb = new ProcessBuilder(command);
-        // Set LD_LIBRARY_PATH to include the profiler's lib directory
-        String profilerDir = new File(profilerPath).getParent();
-        String libPath = profilerDir + "/lib";
-        Map<String, String> env = pb.environment();
-        String existingLibPath = env.get("LD_LIBRARY_PATH");
-        if (existingLibPath != null) {
-            env.put("LD_LIBRARY_PATH", libPath + ":" + existingLibPath);
-        } else {
-            env.put("LD_LIBRARY_PATH", libPath);
-        }
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-
         // Advertise the in-progress run while its `asprof -d` is alive, so a
         // concurrent start() sees an active session (and the pre-run guard in
         // this method knows a stop is needed when a prior run is interrupted).
         // start() is serialized by MonitoringService's profilerLock, so no two
-        // runs overlap; the flag simply spans this blocking call.
+        // runs overlap; the flags simply span this blocking call.
+        profilerRunActive = true;
         activeProfileOutputPath = outputPath;
         try {
-            // Drain the process output on a daemon thread instead of reading it
-            // to EOF inline: a hung profiler keeps its pipe open, so an inline
-            // read would block forever (before the timeout was even reached),
-            // and a verbose/hung profiler that keeps writing >64KB of output
-            // fills the OS pipe and deadlocks the child once it stops
-            // responding. The daemon thread keeps the pipe draining until the
-            // child dies (destroyForcibly closes the stream and ends the
-            // reader), and only the last MAX_OUTPUT_CAPTURE_CHARS are kept for
-            // diagnostics — bounded memory by construction.
-            StringBuilder output = new StringBuilder();
-            java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
-            Thread ioThread = new Thread(() -> {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        synchronized (output) {
-                            if (output.length() < MAX_OUTPUT_CAPTURE_CHARS) {
-                                output.append(line).append("\n");
-                            }
-                        }
-                    }
-                } catch (IOException ignored) {
-                    // Stream closed by destroyForcibly() — expected on the
-                    // timeout path; the captured output so far is still used.
-                } finally {
-                    done.countDown();
-                }
-            });
-            ioThread.setName("AsyncProfilerWrapper-io-" + jvmPid);
-            ioThread.setDaemon(true);
-            ioThread.start();
-
             // Use a timeout (duration + buffer) so a hung profiler process
             // cannot block the monitoring thread indefinitely. A test override
             // can shrink this for fast unit tests of the hang path.
@@ -343,14 +316,13 @@ public class AsyncProfilerWrapper {
             long timeoutSeconds = override > 0
                     ? override
                     : duration + RUN_PROFILER_TIMEOUT_BUFFER_SECONDS;
-            if (!waitForProcessExit(process, timeoutSeconds, "profiler run")) {
+            BoundedProcess run = executeBounded(command, timeoutSeconds, "profiler run");
+
+            String stderr = run.output.toString();
+            if (run.timedOut) {
                 return false;
             }
-            // Reap the I/O thread so a daemon cannot outlive this run.
-            done.await(IO_DRAIN_JOIN_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
-
-            String stderr = output.toString();
-            int exitCode = process.exitValue();
+            int exitCode = run.exitCode;
             if (exitCode != 0) {
                 log.log(Level.WARNING, "AsyncProfilerWrapper: profiler exited with code " + exitCode + ". stderr: " + stderr);
                 return false;
@@ -370,8 +342,10 @@ public class AsyncProfilerWrapper {
 
             return true;
         } finally {
-            // Clear the in-progress marker even on error paths so the next
-            // run's pre-run guard sees a clean (idle) state.
+            // Clear the in-progress markers even on error paths so the next
+            // run's pre-run guard sees a clean (idle) state and
+            // getProfileStatus() reports "stopped".
+            profilerRunActive = false;
             activeProfileOutputPath = null;
         }
     }
@@ -394,10 +368,16 @@ public class AsyncProfilerWrapper {
             return false;
         }
 
-        // Run the bounded stop. Returns true only if the stop process exited
-        // on its own within the timeout (i.e. the profiler was cleanly stopped
-        // or already not running). A timeout + destroyForcibly means the agent
-        // may still be active, so we return false so a caller can fall back.
+        // Run the bounded stop through the same shared executor as runProfiler
+        // (output drained on a daemon thread, bounded wait, destroyForcibly on
+        // timeout, process destroyed on interruption). Returns true only if
+        // the stop process exited on its own within the timeout (i.e. the
+        // profiler was cleanly stopped or already not running). A timeout +
+        // destroyForcibly means the agent may still be active, so we return
+        // false so a caller can fall back to killing lingering processes.
+        // The hang was observed on strange_gx and ict (stop timed out on every
+        // 60s monitoring cycle when the agent was stuck); bounding it here
+        // keeps it safe to call as a pre-run guard.
         boolean exitedCleanly;
         try {
             List<String> command = new ArrayList<>();
@@ -405,71 +385,180 @@ public class AsyncProfilerWrapper {
             command.add("stop");
             command.add(String.valueOf(jvmPid));
 
-            ProcessBuilder pb = new ProcessBuilder(command);
-            String profilerDir = new File(profilerPath).getParent();
-            String libPath = profilerDir + "/lib";
-            Map<String, String> env = pb.environment();
-            String existingLibPath = env.get("LD_LIBRARY_PATH");
-            if (existingLibPath != null) {
-                env.put("LD_LIBRARY_PATH", libPath + ":" + existingLibPath);
-            } else {
-                env.put("LD_LIBRARY_PATH", libPath);
-            }
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            // Use a timeout so a hung `asprof stop` (e.g. when the agent is
-            // stuck after a prior CLI was killed mid-teardown) cannot block
-            // the monitoring thread indefinitely.  The hang was observed on
-            // strange_gx and ict (stop timed out on every 60s monitoring
-            // cycle).  Bounded here (STOP_TIMEOUT_SECONDS + destroyForcibly),
-            // so this stop is safe to call as a pre-run guard (see runProfiler).
-            if (!waitForProcessExit(process, STOP_TIMEOUT_SECONDS, "stop")) {
-                exitedCleanly = false;
-            } else {
+            BoundedProcess stop = executeBounded(command, STOP_TIMEOUT_SECONDS, "stop");
+            if (!stop.timedOut) {
                 exitedCleanly = true;
                 log.info("AsyncProfilerWrapper: profiling stopped");
+            } else {
+                exitedCleanly = false;
             }
         } catch (IOException e) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: error stopping profiler", e);
             exitedCleanly = false;
         } catch (InterruptedException e) {
+            // executeBounded already destroyed the stop process and re-set the
+            // interrupt flag before rethrowing.
             Thread.currentThread().interrupt();
             log.log(Level.WARNING, "AsyncProfilerWrapper: interrupted while stopping profiler", e);
             exitedCleanly = false;
         }
 
-        activeProfileOutputPath = null;
         return exitedCleanly;
     }
 
     /**
-     * Wait for a profiler child process to exit within a bounded timeout,
-     * draining its output pipe in the meantime (see runProfiler).
-     * On timeout the process is destroyed forcefully and we make one
-     * bounded attempt to confirm it actually exited — a child that ignores
-     * SIGKILL is exceptional and is reported, not waited on forever.
+     * Result of a bounded child-process execution.
+     */
+    private static final class BoundedProcess {
+        /** True if the process was destroyed on timeout/interruption (not a clean exit). */
+        final boolean timedOut;
+        /** Exit code, valid only when {@link #timedOut} is false. */
+        final int exitCode;
+        /** Tail of the process output (stdout+stderr) for diagnostics. */
+        final TailBuffer output;
+
+        BoundedProcess(boolean timedOut, int exitCode, TailBuffer output) {
+            this.timedOut = timedOut;
+            this.exitCode = exitCode;
+            this.output = output;
+        }
+    }
+
+    /**
+     * Run a profiler child process with bounded, non-blocking I/O.
      *
-     * @param process the child process to wait for
+     * <p>Both {@link #runProfiler} and {@link #stop} go through here so that
+     * the I/O-drain / bounded-wait / destroy-on-timeout behavior is shared and
+     * cannot drift. The child's combined stdout+stderr is drained on a daemon
+     * thread (keeping the OS pipe from filling, which would otherwise deadlock
+     * a child that keeps writing, and so the caller is never blocked reading
+     * before the timeout is even reached). Only the TAIL of
+     * {@link #MAX_OUTPUT_TAIL_CHARS} is retained for diagnostics.
+     *
+     * <p>On timeout the process (and, best-effort, its descendants) is
+     * destroyed forcefully and one bounded attempt is made to confirm it
+     * exited — a child that ignores SIGKILL is exceptional and reported, not
+     * waited on forever.
+     *
+     * @param command the command to run (profiler binary + args)
      * @param timeoutSeconds the maximum time to wait for a clean exit
      * @param label short label for log messages (e.g. "stop", "profiler run")
-     * @return true if the process exited cleanly within the timeout; false
-     *         on timeout (after destroyForcibly) or if the process could not
-     *         be confirmed dead
+     * @return a {@link BoundedProcess}; {@code timedOut} is true on timeout or
+     *         interruption (in which case {@code exitCode} is meaningless)
+     * @throws IOException if the process could not be started
+     * @throws InterruptedException if the wait was interrupted; the process is
+     *         destroyed and the interrupt flag re-set before rethrowing
      */
-    private boolean waitForProcessExit(Process process, long timeoutSeconds, String label)
-            throws InterruptedException {
-        if (!process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
-            log.warning("AsyncProfilerWrapper: " + label
-                    + " timed out after " + timeoutSeconds + "s, destroying process");
-            process.destroyForcibly();
-            if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
-                log.warning("AsyncProfilerWrapper: " + label + " process did not exit within "
-                        + KILL_WAIT_SECONDS + "s after destroyForcibly");
-                return false;
-            }
-            return false;
+    private BoundedProcess executeBounded(List<String> command, long timeoutSeconds, String label)
+            throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(command);
+        // Set LD_LIBRARY_PATH to include the profiler's lib directory.
+        String profilerDir = new File(profilerPath).getParent();
+        String libPath = profilerDir + "/lib";
+        Map<String, String> env = pb.environment();
+        String existingLibPath = env.get("LD_LIBRARY_PATH");
+        if (existingLibPath != null) {
+            env.put("LD_LIBRARY_PATH", libPath + ":" + existingLibPath);
+        } else {
+            env.put("LD_LIBRARY_PATH", libPath);
         }
-        return true;
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        // Drain the combined output on a daemon thread. The pipe is kept
+        // draining until the child dies, so a hung/verbose child can neither
+        // block the caller (we never read inline) nor deadlock itself by
+        // filling the pipe. The tail buffer caps memory.
+        TailBuffer tail = new TailBuffer(MAX_OUTPUT_TAIL_CHARS);
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        Thread ioThread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    synchronized (tail) {
+                        tail.append(line);
+                        tail.append("\n");
+                    }
+                }
+            } catch (IOException ignored) {
+                // Stream closed (child destroyed, or it exited) — expected;
+                // whatever was captured so far is still used.
+            } finally {
+                done.countDown();
+            }
+        });
+        ioThread.setName("AsyncProfilerWrapper-io-" + label);
+        ioThread.setDaemon(true);
+        ioThread.start();
+
+        try {
+            if (!process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
+                log.warning("AsyncProfilerWrapper: " + label
+                        + " timed out after " + timeoutSeconds + "s, destroying process");
+                destroyProcessTree(process);
+                if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
+                    log.warning("AsyncProfilerWrapper: " + label + " process did not exit within "
+                            + KILL_WAIT_SECONDS + "s after destroyForcibly");
+                }
+                done.await(IO_DRAIN_JOIN_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+                return new BoundedProcess(true, -1, tail);
+            }
+            int exitCode = process.exitValue();
+            // Reap the I/O thread so a daemon cannot outlive this run.
+            done.await(IO_DRAIN_JOIN_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+            return new BoundedProcess(false, exitCode, tail);
+        } catch (InterruptedException e) {
+            // A cleanup method must not leave its child running: destroy it
+            // (and descendants) before propagating the interruption.
+            destroyProcessTree(process);
+            done.await(IO_DRAIN_JOIN_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+            Thread.currentThread().interrupt();
+            throw e;
+        }
+    }
+
+    /**
+     * Destroy a process and, best-effort, its descendants. {@code destroyForcibly}
+     * kills the direct child but not necessarily its children (e.g. a shell
+     * wrapper's {@code sleep}), which can keep the output pipe open and leak
+     * orphans. Killing the whole tree is the more reliable form of teardown.
+     */
+    private void destroyProcessTree(Process process) {
+        process.destroyForcibly();
+        try {
+            process.toHandle().descendants().forEach(d -> d.destroyForcibly());
+        } catch (Exception ignored) {
+            // Descendant enumeration is best-effort; the direct kill above is
+            // the primary teardown.
+        }
+    }
+
+    /**
+     * A bounded output sink that retains only the trailing
+     * {@code capacity} characters, discarding the oldest beyond that. Used to
+     * keep child-process output memory bounded while preserving the tail
+     * (where errors usually appear).
+     */
+    private static final class TailBuffer {
+        private final int capacity;
+        private final StringBuilder sb = new StringBuilder();
+
+        TailBuffer(int capacity) {
+            this.capacity = capacity;
+        }
+
+        synchronized void append(CharSequence s) {
+            sb.append(s);
+            int len = sb.length();
+            if (len > capacity) {
+                sb.delete(0, len - capacity);
+            }
+        }
+
+        @Override
+        public synchronized String toString() {
+            return sb.toString();
+        }
     }
 
     /**

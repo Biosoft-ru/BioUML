@@ -9,7 +9,6 @@ import junit.framework.TestSuite;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Tests {@link AsyncProfilerWrapper}'s child-process handling with a fake
@@ -19,19 +18,23 @@ import java.nio.file.Path;
  * <ul>
  *   <li>a clean run exits promptly and is reported successful;</li>
  *   <li>when the "profiler" hangs past the timeout, the wrapper bounds the
- *       wait, destroys the child, and does NOT block the caller indefinitely
- *       — the regression behind the ict "stop timed out after 30s" spam,
- *       where a hung process held the output pipe and blocked the reader;</li>
+ *       wait, destroys the child <em>and its descendants</em>, and does NOT
+ *       block the caller indefinitely — the regression behind the ict
+ *       "stop timed out after 30s" spam, where a hung process held the output
+ *       pipe and blocked the reader;</li>
  *   <li>a non-zero exit is reported as a failed result;</li>
  *   <li>the pre-run guard skips {@code asprof stop} entirely when no session
  *       is active, so an idle monitoring cycle pays no stop wait (the ict
  *       log-spam amplifier: every 60s cycle ran a stop that hung 30s).</li>
  * </ul>
  *
- * <p>The fake binary's script location selects its behavior via argv[1]:
- * {@code stop} → sleep forever (the agent-stuck symptom); {@code -d N ...}
- * → sleep 0.2s then exit 0 and create the output file (a clean run);
- * {@code -c 1} → sleep 0.2s then exit 1 (a failed run).
+ * <p>The fake binary's first argument selects its behavior:
+ * {@code stop} → sleep forever (the agent-stuck symptom); {@code -d ...} →
+ * sleep 0.2s then exit 0 and create the output file (a clean run); {@code -c
+ * 1} → sleep 0.2s then exit 1 (a failed run). The hanging path uses
+ * {@code exec sleep} so there is exactly one process to clean up (no orphaned
+ * grandchild that would keep the output pipe open and mask a cleanup
+ * failure).
  */
 public class TestAsyncProfilerWrapper extends junit.framework.TestCase
 {
@@ -90,11 +93,13 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
 
     /**
      * A profiler that hangs must not hang the wrapper: the wait is bounded,
-     * the child is destroyed, and a failed result is returned. We use the
-     * test-only timeout override to shrink the bound to a few seconds so the
-     * hang path is exercised quickly; the property under test is that the
-     * bound is honored and the caller is not blocked indefinitely (the old
-     * failure mode was a blocked output reader / an unbounded stop wait).
+     * the child (and its descendants) is destroyed, and a failed result is
+     * returned. We use the test-only timeout override to shrink the bound to a
+     * few seconds so the hang path is exercised quickly. The property under
+     * test is that the bound is honored, the caller is not blocked
+     * indefinitely (the old failure mode was a blocked output reader / an
+     * unbounded stop wait), and the hung process is actually torn down — not
+     * left behind as an orphan.
      */
     public void testHungProfilerIsBoundedAndDestroyed() throws Exception
     {
@@ -108,12 +113,25 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
 
         assertFalse("expected failed profile, got success at "
                 + result.getOutputPath(), result.isSuccess());
+        // Intended bound: ~3s timeout + ~5s kill-confirm (+ small overhead).
+        // 12s allows CI jitter while still catching a regression that lets the
+        // call run for a minute (the old unbounded behavior).
         assertTrue("wrapper blocked too long: " + elapsedMs + "ms "
-                + "(should be bounded by ~3s test timeout, not hang)",
-                elapsedMs < 15000);
-        // The hung child must have been destroyed, not left running.
-        assertEquals("expected stopped status after timeout",
-                "stopped", wrapper.getProfileStatus());
+                + "(should be bounded by ~3s timeout + 5s kill-confirm)",
+                elapsedMs < 12000);
+
+        // The fake hang is `exec sleep 600` — exactly one process. It must be
+        // gone shortly after start() returns; a leak here would mean the
+        // wrapper failed to destroy the hung child (or its tree).
+        String marker = "asprof-test-hung-" + tmpDir.getName();
+        long deadline = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < deadline) {
+            if (listPidsRunningMarker(marker).isEmpty()) break;
+            Thread.sleep(100);
+        }
+        java.util.List<String> leftover = listPidsRunningMarker(marker);
+        assertTrue("expected the hung fake profiler process to be destroyed, "
+                + "but found still running: " + leftover, leftover.isEmpty());
     }
 
     /** A profiler that exits non-zero is reported as a failed result. */
@@ -128,10 +146,10 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
 
     /**
      * When no profiling session is active, start() must not invoke
-     * {@code asprof stop} at all. The fake binary records every invocation in
-     * a marker file; the idle path writes nothing there, while a run always
-     * writes to the output file — so the absence of the marker (with the
-     * output present) proves stop was skipped.
+     * {@code asprof stop} at all. The fake binary records every stop
+     * invocation in a marker file; the idle path writes nothing there, while
+     * a run always writes to the output file — so the absence of the marker
+     * (with the output present) proves stop was skipped.
      */
     public void testStopSkippedWhenNoSessionActive()
     {
@@ -171,23 +189,29 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
     }
 
     /**
-     * The fake profiler script. Its first argument distinguishes a {@code stop}
-     * invocation (sleeps forever — simulating the stuck agent) from a run
-     * (first arg {@code -d} or {@code -c}):
+     * The fake profiler script. Its first argument distinguishes a
+     * {@code stop} invocation (sleeps forever — simulating the stuck agent)
+     * from a run (first arg {@code -d} or {@code -c}):
      * <pre>
-     *   stop [pid]      → record marker, sleep 600 (agent stuck)
+     *   stop [pid]      → record marker, exec sleep 600 (agent stuck)
      *   -d N -f F ...   → sleep 0.2, create F, exit 0          (mode: clean)
+     *   -d N -f F ...   → exec sleep 600 (no exit)             (mode: hung)
      *   -d N -f F ...   → sleep 0.2, exit 1                    (mode: fail)
      *   -c 1 [pid]      → sleep 0.2, exit 1                    (any mode)
      * </pre>
+     *
+     * The hanging path uses {@code exec} so the shell is replaced by the
+     * sleeper — a single process — meaning the wrapper's process-tree teardown
+     * is what must reclaim it, and the test can detect a leak unambiguously.
      */
     private String fakeProfilerScript(String mode)
     {
         return "#!/bin/sh\n"
             + "MARKER=\"" + tmpDir.getAbsolutePath() + "/stop_invoked\"\n"
+            + "HANGMARKER=\"asprof-test-hung-" + tmpDir.getName() + "\"\n"
             + "if [ \"$1\" = \"stop\" ]; then\n"
             + "  touch \"$MARKER\"\n"
-            + "  sleep 600\n"
+            + "  exec sleep 600\n"
             + "  exit 0\n"
             + "fi\n"
             + "if [ \"$1\" = \"-c\" ]; then\n"
@@ -202,10 +226,36 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
             + "done\n"
             + "sleep 0.2\n"
             + "case \"" + mode + "\" in\n"
-            + "  hung) sleep 600 ;;\n"
+            + "  hung) exec sleep 600 ;;\n"
             + "  clean) [ -n \"$F\" ] && touch \"$F\"; exit 0 ;;\n"
             + "  fail) exit 1 ;;\n"
             + "esac\n";
+    }
+
+    /**
+     * Return the PIDs of processes on this host whose command line contains
+     * the given marker string. Used to confirm a hung fake-profiler process
+     * was actually destroyed (the wrapper's process-tree teardown) rather
+     * than merely that {@code start()} returned.
+     */
+    private java.util.List<String> listPidsRunningMarker(String marker) throws Exception
+    {
+        java.util.List<String> pids = new java.util.ArrayList<>();
+        File procDir = new File("/proc");
+        File[] entries = procDir.listFiles();
+        if (entries == null) return pids;
+        for (File e : entries) {
+            String name = e.getName();
+            if (name.isEmpty() || !name.chars().allMatch(Character::isDigit)) continue;
+            File cmdline = new File(e, "cmdline");
+            if (!cmdline.exists()) continue;
+            byte[] data = Files.readAllBytes(cmdline.toPath());
+            String cmd = new String(data, "UTF-8").replace('\u0000', ' ').trim();
+            if (cmd.contains(marker)) {
+                pids.add(name);
+            }
+        }
+        return pids;
     }
 
     private static void deleteRecursively(File f)
