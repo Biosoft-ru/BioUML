@@ -603,8 +603,10 @@ public class MonitoringService {
      * <p>Recognized strong credentials:
      * <ul>
      *   <li>Single component: password, passwd, pwd, token, secret, credential</li>
-     *   <li>Two-component: api-key, access-key, private-key, client-secret,
-     *       session-token, refresh-token, auth-token, bearer-token</li>
+     *   <li>Two-component: api-key, api-token, access-key, private-key,
+     *       client-secret, session-token, refresh-token, auth-token,
+     *       bearer-token, http-token</li>
+     *   <li>Three-component: o-auth-token (from OAuthToken)</li>
      * </ul>
      */
     private static boolean isStrongCredential(String bareKey) {
@@ -618,13 +620,19 @@ public class MonitoringService {
                     || p.equals("credential");
         }
         return isExactCompound(parts, "api", "key")
+                || isExactCompound(parts, "api", "token")
                 || isExactCompound(parts, "access", "key")
                 || isExactCompound(parts, "private", "key")
                 || isExactCompound(parts, "client", "secret")
                 || isExactCompound(parts, "session", "token")
                 || isExactCompound(parts, "refresh", "token")
                 || isExactCompound(parts, "auth", "token")
-                || isExactCompound(parts, "bearer", "token");
+                || isExactCompound(parts, "bearer", "token")
+                // "OAuthToken" splits to [o, auth, token] (the first pass
+                // separates "O" from "Auth" at the lower→upper boundary).
+                || isExactCompound(parts, "o", "auth", "token")
+                // "HTTPToken" splits to [http, token].
+                || isExactCompound(parts, "http", "token");
     }
 
     /**
