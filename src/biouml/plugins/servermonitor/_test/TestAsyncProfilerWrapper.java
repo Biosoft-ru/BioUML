@@ -141,8 +141,11 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
      * have the WHOLE tree torn down — not just the direct child. This is the
      * scenario the earlier review flagged: a shell's child (e.g. {@code sleep})
      * survives a plain {@code destroyForcibly()} of the shell, keeps the output
-     * pipe open, and leaks. We assert both the wrapper process and its child
-     * disappear.
+     * pipe open, and leaks.
+     *
+     * <p>The fake records the child's PID in a file, so the test checks
+     * {@code /proc/<childPid>} directly — a deterministic identification of the
+     * process the test itself created, rather than a command-line scan.
      */
     public void testHungProcessTreeIsBoundedAndDestroyed() throws Exception
     {
@@ -160,19 +163,23 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
                 + "(should be bounded by ~3s timeout + 5s kill-confirm)",
                 elapsedMs < 12000);
 
-        // The hang is a shell wrapper (parent) plus a `sleep 600` child. Both
-        // must be gone; a leak of the child means the process-tree teardown
-        // (descendants() kill) did not work.
-        String marker = "asprof-test-tree-" + tmpDir.getName();
+        // The fake spawned a real `sleep 600` child and recorded its PID.
+        // That child (the shell wrapper's descendant) must be gone; a leak
+        // means the process-tree teardown (descendants() kill) did not work.
+        File pidFile = new File(tmpDir, "tree_child.pid");
+        assertTrue("expected the fake profiler to record its child PID in "
+                + pidFile, pidFile.exists());
+        long childPid = Long.parseLong(new String(Files.readAllBytes(pidFile.toPath())).trim());
+        assertTrue("expected a plausible child PID, got " + childPid, childPid > 0);
+
+        File childProc = new File("/proc/" + childPid);
         long deadline = System.currentTimeMillis() + 5000;
-        while (System.currentTimeMillis() < deadline) {
-            if (listPidsRunningMarker(marker).isEmpty()) break;
+        while (childProc.exists() && System.currentTimeMillis() < deadline) {
             Thread.sleep(100);
         }
-        java.util.List<String> leftover = listPidsRunningMarker(marker);
-        assertTrue("expected the whole hung fake profiler process tree "
-                + "(wrapper + child) to be destroyed, but found still running: "
-                + leftover, leftover.isEmpty());
+        assertFalse("expected the hung fake profiler's child (PID " + childPid
+                + ") to be destroyed by the process-tree teardown, but "
+                + "/proc/" + childPid + " still exists", childProc.exists());
     }
 
     /** A profiler that exits non-zero is reported as a failed result. */
@@ -269,10 +276,10 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
             + "  shift\n"
             + "done\n"
             + "sleep 0.2\n"
-            + "TREE_MARKER=\"asprof-test-tree-" + tmpDir.getName() + "\"\n"
+            + "TREE_PID_FILE=\"" + tmpDir.getAbsolutePath() + "/tree_child.pid\"\n"
             + "case \"" + mode + "\" in\n"
             + "  hung) exec sleep 600 ;;\n"
-            + "  tree) TREE_MARKER=\"$TREE_MARKER\" /bin/sh -c 'sleep 600 \"$TREE_MARKER\"' & wait ;;\n"
+            + "  tree) sleep 600 & echo $! > \"$TREE_PID_FILE\"; wait ;;\n"
             + "  clean) [ -n \"$F\" ] && touch \"$F\"; exit 0 ;;\n"
             + "  fail) exit 1 ;;\n"
             + "esac\n";

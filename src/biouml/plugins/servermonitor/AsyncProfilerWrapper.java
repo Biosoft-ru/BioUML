@@ -531,11 +531,13 @@ public class AsyncProfilerWrapper {
      * <p>Ordering matters: the descendant set is captured <em>before</em> the
      * root is killed. Killing the root first can reparent/reap the children
      * before {@code descendants()} is even evaluated, so they would never be
-     * reached. Once captured, the descendants are killed deepest-first (a child
-     * after its own children) so a lower process doesn't outlive the parent
-     * that is about to be torn down. This is best-effort — a descendant spawned
-     * concurrently with the kill can still be missed — but it is materially
-     * more reliable than killing the root first.
+     * reached. Once the snapshot is captured we destroy every captured
+     * descendant and then the root. {@code descendants()} does not document a
+     * traversal order, so we do not rely on one — for this teardown the only
+     * thing that matters is that the whole captured snapshot is killed. This is
+     * best-effort: a descendant spawned concurrently with the kill can still be
+     * missed, but capturing-first is materially more reliable than killing the
+     * root first.
      */
     private void destroyProcessTree(Process process) {
         // Capture the tree while the root is still alive so the enumeration is
@@ -548,11 +550,10 @@ public class AsyncProfilerWrapper {
             // Enumerating is best-effort; the direct kill below is the primary
             // teardown.
         }
-        // Kill deepest-first: a process only after all of its descendants.
-        // The captured list is in pre-order (parent before child), so iterating
-        // it in reverse yields children before their parents.
-        for (int i = tree.size() - 1; i >= 0; i--) {
-            tree.get(i).destroyForcibly();
+        // Destroy every captured descendant (order is unspecified and not
+        // relied upon), then the root.
+        for (java.lang.ProcessHandle h : tree) {
+            h.destroyForcibly();
         }
         process.destroyForcibly();
     }
@@ -563,10 +564,12 @@ public class AsyncProfilerWrapper {
      * keep child-process output memory bounded while preserving the tail
      * (where errors usually appear).
      *
-     * <p>Implemented as a small deque of fixed-size chunks rather than a
-     * single {@code StringBuilder}: appending is O(1) (no repeated shifting
-     * of up to {@code capacity} characters on every chunk), which matters when
-     * a verbose/hung process streams a lot.
+     * <p>Implemented as a deque of fixed-size chunks rather than a single
+     * {@code StringBuilder}: appends do not repeatedly shift a full
+     * {@code capacity} buffer, so a verbose/hung process streaming a lot stays
+     * cheap. Callers are expected to pass bounded-size chunks (the I/O drain
+     * feeds 4KB reads); a single append larger than the capacity is collapsed
+     * to its own tail so the bound still holds.
      */
     private static final class TailBuffer {
         private static final int CHUNK = 4096;
