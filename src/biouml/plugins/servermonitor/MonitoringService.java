@@ -254,19 +254,24 @@ public class MonitoringService {
         }
         synchronized (subProcessLogLock) {
             try {
-                // Append first — the hot path must never scan the whole file.
+                // Seed the in-memory count BEFORE appending so that the
+                // subsequent increment reflects the post-append state.
+                // (Seeding after the append would double-count the new line.)
+                if (subProcessLogCount < 0) {
+                    subProcessLogCount = logFile.exists()
+                            ? countSubProcessLogLines(logFile) : 0;
+                }
+
+                // Append — the hot path must never scan the whole file.
                 String line = buildSubProcessRecord(subs, timestamp);
                 try (BufferedWriter writer = new BufferedWriter(
                         new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
                     writer.write(line);
                     writer.newLine();
                 }
+                subProcessLogCount++;
 
                 long now = System.currentTimeMillis();
-                if (subProcessLogCount < 0) {
-                    subProcessLogCount = countSubProcessLogLines(logFile);
-                }
-                subProcessLogCount++;
 
                 // Purge only when the line cap is exceeded or the age scan is
                 // due. The age check is a full scan, so it must not run on
@@ -290,7 +295,6 @@ public class MonitoringService {
      * Updates the in-memory line count.
      */
     private void purgeAndCompactSubProcessLog(File logFile, long now) throws IOException {
-        lastSubProcessLogPurgeTime = now;
         if (!logFile.exists() || logFile.length() == 0) {
             subProcessLogCount = 0;
             return;
@@ -324,13 +328,12 @@ public class MonitoringService {
         // Pass 2: rewrite the pruned content to a temp file, then replace the
         // original from it. The temp file is created in the same directory, so
         // the move is a rename on the same filesystem: ATOMIC_MOVE is used when
-        // the platform supports it (the normal case on Linux ext4/xfs), and we
-        // fall back to a NON-ATOMIC replace otherwise — a reader could then
-        // briefly observe either the old or the new content, but never a
-        // truncated file. The in-memory count is published only after the
-        // replacement succeeds; if it fails the file is unchanged, so the count
-        // is left as-is (it still reflects the on-disk lines) and the next
-        // append re-compacts.
+        // the platform supports it (the normal case on Linux ext4/xfs). The
+        // fallback is non-atomic and does not provide the same visibility
+        // guarantees; readers may observe an intermediate state. The in-memory
+        // count and purge time are published only after the replacement
+        // succeeds; if it fails the file is unchanged, so both are left as-is
+        // and the next append re-triggers the purge.
         File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
         try {
             try (BufferedWriter tw = new BufferedWriter(
@@ -347,7 +350,12 @@ public class MonitoringService {
                 // Fallback is a plain (non-atomic) replace.
                 Files.move(tmp.toPath(), logFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
+            // Publish both in-memory state variables only after the
+            // replacement succeeds. If the move fails the file is unchanged,
+            // so the count and purge time are left as-is and the next append
+            // re-triggers the purge.
             subProcessLogCount = newCount;
+            lastSubProcessLogPurgeTime = now;
         } finally {
             // Best-effort delete if the move did not consume the temp file.
             if (tmp.exists()) {
@@ -448,21 +456,23 @@ public class MonitoringService {
             if (eq > 0) {
                 // key=value form: "--password=hunter2" -> "--password=***".
                 String key = t.substring(0, eq);
-                String value = t.substring(eq + 1);
-                if (looksLikeSecretKey(bareKey(key)) && !isBooleanFlagValue(value)) {
+                String bare = bareKey(key);
+                // Strong credentials (password, token, secret, …) are always
+                // redacted — the value may legitimately be "true", "1", etc.
+                // Weak stems (auth, bearer) only redact non-boolean values to
+                // avoid false positives like --authentication-mode=basic.
+                if (isStrongCredential(bare) || (isWeakCredential(bare) && !isBooleanFlagValue(t.substring(eq + 1)))) {
                     toks.set(i, key + "=***");
                     changed = true;
                 }
-            } else if (looksLikeSecretKey(bareKey(t))) {
+            } else if (isStrongCredential(bareKey(t))
+                    || isWeakCredential(bareKey(t))) {
                 // Separate-token form: "--password hunter2" -> "--password ***".
-                // The value is the next token. Skip the two cases where the key
-                // token is not a credential: (a) it carries an "=" value (handled
-                // above), or (b) it is the final token with nothing after it (a
-                // bare flag like "--use-token", not a secret). Otherwise redact
-                // this token and the following one.
-                if (i + 1 < toks.size()) {
-                    toks.set(i, t + " ***");
-                    toks.remove(i + 1);
+                // The value is the next token, but only if it is not itself an
+                // option (does not start with "-"). A bare flag at the end of
+                // the line (--password with no value) is not redacted.
+                if (i + 1 < toks.size() && !toks.get(i + 1).startsWith("-")) {
+                    toks.set(i + 1, "***");
                     i++;
                     changed = true;
                 }
@@ -481,7 +491,11 @@ public class MonitoringService {
         if (value.isEmpty()) return true;
         String v = value.toLowerCase();
         if (v.equals("true") || v.equals("false") || v.equals("yes")
-                || v.equals("no") || v.equals("on") || v.equals("off")) {
+                || v.equals("no") || v.equals("on") || v.equals("off")
+                || v.equals("basic") || v.equals("none") || v.equals("null")
+                || v.equals("disabled") || v.equals("enabled")
+                || v.equals("debug") || v.equals("info") || v.equals("warn")
+                || v.equals("error") || v.equals("verbose")) {
             return true;
         }
         // A bare integer (0, 1, 2, …) is a flag/option, not a credential.
@@ -543,28 +557,34 @@ public class MonitoringService {
         return toks;
     }
 
-    /** True if a command-line argument key looks like a credential. */
-    private static boolean looksLikeSecretKey(String key) {
-        String k = key.toLowerCase();
-        if (k.isEmpty()) {
-            return false;
-        }
-        // Normalize hyphens so "--api-key" matches the "api_key" stem.
-        k = k.replace("-", "_");
-        // Named credential stems only — a long argument name is not evidence of
-        // a secret (the value is what would be long, and we redact the whole
-        // value, so no length heuristic is needed).
-        if (k.contains("password") || k.contains("passwd") || k.contains("pwd")
-                || k.contains("token") || k.contains("secret") || k.contains("apikey")
-                || k.contains("api_key") || k.contains("accesskey") || k.contains("access_key")
+    /**
+     * True if the key is a strong credential: its value is redacted regardless
+     * of content (even if the value looks like a boolean or number). These are
+     * keys that by name are unambiguously secrets — a password, token, or key
+     * whose value is "true" or "1" is still a password.
+     */
+    private static boolean isStrongCredential(String bareKey) {
+        String k = bareKey.toLowerCase().replace("-", "_");
+        if (k.isEmpty()) return false;
+        return k.contains("password") || k.contains("passwd") || k.contains("pwd")
+                || k.contains("token") || k.contains("secret")
+                || k.contains("apikey") || k.contains("api_key")
+                || k.contains("accesskey") || k.contains("access_key")
                 || k.contains("privatekey") || k.contains("private_key")
-                || k.contains("credential") || k.contains("auth") || k.contains("bearer")
-                || k.contains("clientsecret") || k.contains("client_secret")
-                || k.contains("sessiontoken") || k.contains("session_token")
-                || k.contains("refreshtoken") || k.contains("refresh_token")) {
-            return true;
-        }
-        return false;
+                || k.contains("credential") || k.contains("client_secret")
+                || k.contains("session_token") || k.contains("refresh_token");
+    }
+
+    /**
+     * True if the key is a weak credential indicator: the value is redacted
+     * only when it does not look like a boolean flag. These stems appear in
+     * non-credential contexts too (e.g. --authentication-mode, --authorize),
+     * so the boolean guard avoids false positives.
+     */
+    private static boolean isWeakCredential(String bareKey) {
+        String k = bareKey.toLowerCase().replace("-", "_");
+        if (k.isEmpty()) return false;
+        return k.contains("auth") || k.contains("bearer");
     }
 
     /**

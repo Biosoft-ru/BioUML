@@ -41,6 +41,7 @@ public class TestSubProcessLog extends junit.framework.TestCase
         suite.addTest(new TestSubProcessLog("testPurgeByAge"));
         suite.addTest(new TestSubProcessLog("testPurgeByCountOverCap"));
         suite.addTest(new TestSubProcessLog("testPurgeDropsMalformedLines"));
+        suite.addTest(new TestSubProcessLog("testAppendSeedsCountCorrectly"));
         suite.addTest(new TestSubProcessLog("testExtractTimestamp"));
         suite.addTest(new TestSubProcessLog("testRedactCommand"));
         return suite;
@@ -249,6 +250,32 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(3, service.getSubProcessLogCount());
     }
 
+    /**
+     * Regression test: when the service starts with an existing log file and
+     * {@code subProcessLogCount == -1}, the first append must seed the count
+     * to the pre-append line count, then increment — NOT count the post-append
+     * file and then increment (which would give N+1).
+     */
+    public void testAppendSeedsCountCorrectly() throws Exception
+    {
+        File logFile = new File(tmpDir, MonitoringService.SUB_PROCESS_LOG_FILE);
+
+        // Pre-existing file with 3 lines.
+        long now = System.currentTimeMillis();
+        writeLines(logFile,
+                "{\"timestamp\":" + (now - 3000) + ",\"subProcesses\":[]}",
+                "{\"timestamp\":" + (now - 2000) + ",\"subProcesses\":[]}",
+                "{\"timestamp\":" + (now - 1000) + ",\"subProcesses\":[]}");
+
+        // Append one more record. subProcessLogCount is -1 (never seeded).
+        java.util.ArrayList<SubProcessMonitor.SubProcess> subs = new java.util.ArrayList<>();
+        subs.add(makeSub(42, 500, true, "perl test.pl"));
+        append(subs, now);
+
+        // The count must be exactly 4 (3 pre-existing + 1 appended), not 5.
+        assertEquals("count must be 4, not 5 (off-by-one)", 4, service.getSubProcessLogCount());
+    }
+
     public void testExtractTimestamp() throws Exception
     {
         assertEquals(1234567890L, extractTimestamp("{\"timestamp\":1234567890,\"count\":1}"));
@@ -287,25 +314,54 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(
                 "perl run.pl --very_long_parameter_name=value --input=in.csv",
                 redactCommand("perl run.pl --very_long_parameter_name=value --input=in.csv"));
+
+        // --- boolean flag values on strong credentials ARE still redacted ---
+        // (a password of "true" or a token of "1" is still a credential)
         assertEquals(
-                "perl run.pl --use-token=1",
-                redactCommand("perl run.pl --use-token=1"));
+                "app --password=***",
+                redactCommand("app --password=true"));
+        assertEquals(
+                "app --token=***",
+                redactCommand("app --token=1"));
+        assertEquals(
+                "app --secret=***",
+                redactCommand("app --secret=no"));
+
+        // --- weak credential stems with boolean values are NOT redacted ---
+        // (--authentication-mode=basic, --authorize=true are flags, not secrets)
+        assertEquals(
+                "app --authentication-mode=basic --verbose",
+                redactCommand("app --authentication-mode=basic --verbose"));
+        assertEquals(
+                "app --authorize=true",
+                redactCommand("app --authorize=true"));
+
+        // --- weak credential stems with real values ARE redacted ---
+        assertEquals(
+                "app --auth-token=*** --verbose",
+                redactCommand("app --auth-token=abc123 --verbose"));
+        assertEquals(
+                "app --bearer=*** --verbose",
+                redactCommand("app --bearer=eyJhbGciOi --verbose"));
+
+        // --- separate-token form: next token is an option, not a value ---
+        // (--password --verbose must NOT eat --verbose as the password value)
+        assertEquals(
+                "app --password --verbose",
+                redactCommand("app --password --verbose"));
 
         // --- bare flag at end of line (no value) is not redacted ---
         assertEquals(
                 "perl run.pl --password",
                 redactCommand("perl run.pl --password"));
 
-        // --- api-key / client_secret / auth variants ---
+        // --- api-key / client_secret variants ---
         assertEquals(
                 "curl --api-key=*** -u user",
                 redactCommand("curl --api-key=secret123 -u user"));
         assertEquals(
                 "app --client-secret *** --verbose",
                 redactCommand("app --client-secret topsecret --verbose"));
-        assertEquals(
-                "app --auth-token=*** --verbose",
-                redactCommand("app --auth-token=abc --verbose"));
 
         // No secret -> unchanged (exact string, not re-joined).
         assertEquals(

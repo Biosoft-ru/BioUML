@@ -99,7 +99,8 @@ Each record is one scan:
   periodic compaction (at most every 10 minutes), and the file is capped at
   5000 lines. It is excluded from profile cleanup. The hot append path never
   rewrites the file; purges use a temp file + atomic move (falling back to a
-  non-atomic replace if the filesystem does not support `ATOMIC_MOVE`).
+  non-atomic replace if the filesystem does not support `ATOMIC_MOVE`, in
+  which case readers may briefly observe an intermediate state).
 
 ### Stop profiling
 
