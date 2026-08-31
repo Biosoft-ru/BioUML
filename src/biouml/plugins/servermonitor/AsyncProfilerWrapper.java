@@ -42,6 +42,33 @@ public class AsyncProfilerWrapper {
     private static final int RUN_PROFILER_TIMEOUT_BUFFER_SECONDS = 60;
     /** Bounded wait (seconds) after destroyForcibly() to confirm the process actually exited. */
     private static final int KILL_WAIT_SECONDS = 5;
+    /** Bounded wait (seconds) to join the process-I/O drain thread after the child exits. */
+    private static final int IO_DRAIN_JOIN_SECONDS = 2;
+    /**
+     * Maximum characters of child-process output kept for diagnostics. The
+     * profiler output is only ever logged on a failure path (non-zero exit),
+     * so the tail is enough to diagnose the failure; capping it keeps memory
+     * bounded even if a hung/verbose profiler streams a lot to the pipe.
+     */
+    private static final int MAX_OUTPUT_CAPTURE_CHARS = 16384;
+
+    /**
+     * Optional test override for the per-run timeout (seconds). When > 0 the
+     * run timeout is this value INSTEAD OF {@code duration + buffer}, letting
+     * unit tests exercise the hang/destroy path in seconds. The production
+     * path never sets this (it stays 0), so behavior is unchanged.
+     */
+    private volatile int testRunTimeoutOverride = 0;
+
+    /**
+     * Test-only: force the per-run timeout to {@code timeoutSeconds}.
+     * A value <= 0 clears the override and restores the normal
+     * {@code duration + RUN_PROFILER_TIMEOUT_BUFFER_SECONDS} timeout.
+     * Not part of the production API.
+     */
+    public void setTestRunTimeout(int timeoutSeconds) {
+        this.testRunTimeoutOverride = timeoutSeconds;
+    }
 
     private final ServerMonitorConfig config;
     private String profilerPath;
@@ -107,12 +134,13 @@ public class AsyncProfilerWrapper {
             return new ProfilerResult("async-profiler is not available");
         }
 
-        // No explicit stop() here: runProfiler uses `asprof -d <duration>` which
-        // auto-stops when the duration expires. A separate `asprof stop` call
-        // was causing hangs (observed on strange_gx) when the previous session
-        // had already ended but the agent couldn't confirm the stop. If a
-        // previous session is somehow still running, the new `asprof -d` will
-        // fail with a clear error rather than hanging.
+        // No explicit stop() here: runProfiler() decides per-invocation
+        // whether an in-progress session needs to be cleared first (see the
+        // pre-run guard there). A blanket `asprof stop` before every run was
+        // causing hangs (strange_gx) and, on ict, a 30s timeout wait on every
+        // 60s monitoring cycle when the agent was stuck. If a previous
+        // session is somehow still running, the new `asprof -d` fails with a
+        // clear error rather than hanging.
 
         // Get JVM PID
         long jvmPid = getJvmPid();
@@ -139,10 +167,14 @@ public class AsyncProfilerWrapper {
         String primaryPath = buildOutputPath(baseName, format);
 
         try {
-            // Run 1: Primary format
+            // Run 1: Primary format. runProfiler() sets activeProfileOutputPath
+            // while its `asprof -d` runs and clears it in a finally block, so
+            // getProfileStatus() reflects the live state and the pre-run stop
+            // guard knows when a session is actually in progress.
             boolean primaryOk = runProfiler(jvmPid, threadIdStr, duration, primaryPath, format);
 
-            // Run 2: Generate extra formats for AI agent use
+            // Run 2: Generate extra formats for AI agent use. Each extra run
+            // is a fresh `asprof -d` invocation with the same pre-run guard.
             String[] extraPaths = null;
             if (generateSecondary && primaryOk) {
                 String extra = config.getExtraFormats();
@@ -167,16 +199,12 @@ public class AsyncProfilerWrapper {
             long endTime = System.currentTimeMillis();
 
             if (primaryOk && new File(primaryPath).exists()) {
-                activeProfileOutputPath = primaryPath;
+                // Profiler runs synchronously — once we return the process has
+                // exited and runProfiler's finally block has cleared the
+                // active marker, so getProfileStatus() reports "stopped".
                 String[] tidStrs = threadIdStr.isEmpty() ? new String[0] : threadIdStr.split(",");
-                ProfilerResult profResult = new ProfilerResult(primaryPath, startTime, endTime,
-                        tidStrs.length, tidStrs, format,
-                        extraPaths);
-                // Profiler runs synchronously — once we return the process has exited.
-                // Clear the path so getProfileStatus() reports "stopped" instead of
-                // incorrectly reporting "profiling" after the session ends.
-                activeProfileOutputPath = null;
-                return profResult;
+                return new ProfilerResult(primaryPath, startTime, endTime,
+                        tidStrs.length, tidStrs, format, extraPaths);
             } else {
                 return new ProfilerResult("Profiler exited with code " + (primaryOk ? 0 : 1));
             }
@@ -193,7 +221,9 @@ public class AsyncProfilerWrapper {
      */
     private boolean runProfiler(long jvmPid, String threadIdStr, int duration, String outputPath, String outputFormat)
             throws IOException, InterruptedException {
-        // Clear any previous profiling session before starting a new one.
+        // Clear a previous profiling session only if a run is actually
+        // in progress in this JVM (start() sets activeProfileOutputPath
+        // while its `asprof -d` runs, and clears it when the run returns).
         //
         // async-profiler keeps the agent (libasyncProfiler.so) installed in
         // the JVM between runs. If a prior session's auto-stop did not fully
@@ -203,6 +233,15 @@ public class AsyncProfilerWrapper {
         // nothing to clear it short of a restart. `asprof stop` tells the
         // agent to release, so run it first.
         //
+        // When NO run is active there is nothing to stop — and calling
+        // `asprof stop` then anyway is what the pre-run guard was doing on
+        // every 60s monitoring cycle on ict: when the agent is stuck (a
+        // prior CLI was SIGKILLed during teardown), every one of those stops
+        // hangs the full STOP_TIMEOUT_SECONDS before being destroyed, which
+        // both spams the log and delays every profiling run by 30s. Skipping
+        // the stop in the idle case avoids that; a genuinely active session
+        // still gets the bounded stop + lingering-process fallback below.
+        //
         // stop() is bounded (STOP_TIMEOUT_SECONDS + destroyForcibly), so it
         // cannot hang the monitoring thread — the reason it was previously
         // removed from this path. When it exits cleanly we KNOW the agent is
@@ -211,15 +250,17 @@ public class AsyncProfilerWrapper {
         // hold the agent too) and only start if we can confirm the tree is
         // clean — otherwise skip rather than risk a SIGKILL racing another
         // in-progress profiler.
-        boolean stopClean = stop();
-        if (!stopClean) {
-            log.info("AsyncProfilerWrapper: stop() did not exit cleanly; "
-                    + "checking for lingering profiler processes");
-            if (!killLingeringProfilerProcesses(jvmPid)) {
-                log.warning("AsyncProfilerWrapper: profiler state could not be cleared "
-                        + "(stop timed out and lingering process still alive); "
-                        + "not starting a new profiler");
-                return false;
+        if (activeProfileOutputPath != null) {
+            boolean stopClean = stop();
+            if (!stopClean) {
+                log.info("AsyncProfilerWrapper: stop() did not exit cleanly; "
+                        + "checking for lingering profiler processes");
+                if (!killLingeringProfilerProcesses(jvmPid)) {
+                    log.warning("AsyncProfilerWrapper: profiler state could not be cleared "
+                            + "(stop timed out and lingering process still alive); "
+                            + "not starting a new profiler");
+                    return false;
+                }
             }
         }
 
@@ -256,47 +297,83 @@ public class AsyncProfilerWrapper {
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
-        // Capture stderr for debugging
-        StringBuilder stderr = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                stderr.append(line).append("\n");
+        // Advertise the in-progress run while its `asprof -d` is alive, so a
+        // concurrent start() sees an active session (and the pre-run guard in
+        // this method knows a stop is needed when a prior run is interrupted).
+        // start() is serialized by MonitoringService's profilerLock, so no two
+        // runs overlap; the flag simply spans this blocking call.
+        activeProfileOutputPath = outputPath;
+        try {
+            // Drain the process output on a daemon thread instead of reading it
+            // to EOF inline: a hung profiler keeps its pipe open, so an inline
+            // read would block forever (before the timeout was even reached),
+            // and a verbose/hung profiler that keeps writing >64KB of output
+            // fills the OS pipe and deadlocks the child once it stops
+            // responding. The daemon thread keeps the pipe draining until the
+            // child dies (destroyForcibly closes the stream and ends the
+            // reader), and only the last MAX_OUTPUT_CAPTURE_CHARS are kept for
+            // diagnostics — bounded memory by construction.
+            StringBuilder output = new StringBuilder();
+            java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+            Thread ioThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        synchronized (output) {
+                            if (output.length() < MAX_OUTPUT_CAPTURE_CHARS) {
+                                output.append(line).append("\n");
+                            }
+                        }
+                    }
+                } catch (IOException ignored) {
+                    // Stream closed by destroyForcibly() — expected on the
+                    // timeout path; the captured output so far is still used.
+                } finally {
+                    done.countDown();
+                }
+            });
+            ioThread.setName("AsyncProfilerWrapper-io-" + jvmPid);
+            ioThread.setDaemon(true);
+            ioThread.start();
+
+            // Use a timeout (duration + buffer) so a hung profiler process
+            // cannot block the monitoring thread indefinitely. A test override
+            // can shrink this for fast unit tests of the hang path.
+            int override = testRunTimeoutOverride;
+            long timeoutSeconds = override > 0
+                    ? override
+                    : duration + RUN_PROFILER_TIMEOUT_BUFFER_SECONDS;
+            if (!waitForProcessExit(process, timeoutSeconds, "profiler run")) {
+                return false;
             }
-        }
+            // Reap the I/O thread so a daemon cannot outlive this run.
+            done.await(IO_DRAIN_JOIN_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
 
-        // Use a timeout (duration + buffer) so a hung profiler process
-        // cannot block the monitoring thread indefinitely.
-        long timeoutSeconds = duration + RUN_PROFILER_TIMEOUT_BUFFER_SECONDS;
-        if (!process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
-            log.warning("AsyncProfilerWrapper: profiler run timed out after " + timeoutSeconds
-                    + "s, destroying process");
-            process.destroyForcibly();
-            if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
-                log.warning("AsyncProfilerWrapper: profiler process did not exit within "
-                        + KILL_WAIT_SECONDS + "s after destroyForcibly");
+            String stderr = output.toString();
+            int exitCode = process.exitValue();
+            if (exitCode != 0) {
+                log.log(Level.WARNING, "AsyncProfilerWrapper: profiler exited with code " + exitCode + ". stderr: " + stderr);
+                return false;
             }
-            return false;
-        }
-        int exitCode = process.exitValue();
-        if (exitCode != 0) {
-            log.log(Level.WARNING, "AsyncProfilerWrapper: profiler exited with code " + exitCode + ". stderr: " + stderr);
-            return false;
-        }
 
-        // Verify the output file was actually created
-        File outputFile = new File(outputPath);
-        if (!outputFile.exists()) {
-            log.log(Level.WARNING,
-                    "AsyncProfilerWrapper: profiler exited successfully (code " + exitCode + ") "
-                            + "but output file was not created — path=" + outputPath
-                            + " exists=" + outputFile.exists()
-                            + " canWrite=" + outputFile.getParentFile().canWrite()
-                            + " parentExists=" + outputFile.getParentFile().exists());
-            return false;
-        }
+            // Verify the output file was actually created
+            File outputFile = new File(outputPath);
+            if (!outputFile.exists()) {
+                log.log(Level.WARNING,
+                        "AsyncProfilerWrapper: profiler exited successfully (code " + exitCode + ") "
+                                + "but output file was not created — path=" + outputPath
+                                + " exists=" + outputFile.exists()
+                                + " canWrite=" + outputFile.getParentFile().canWrite()
+                                + " parentExists=" + outputFile.getParentFile().exists());
+                return false;
+            }
 
-        return true;
+            return true;
+        } finally {
+            // Clear the in-progress marker even on error paths so the next
+            // run's pre-run guard sees a clean (idle) state.
+            activeProfileOutputPath = null;
+        }
     }
 
     /**
@@ -340,32 +417,59 @@ public class AsyncProfilerWrapper {
             }
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            // Use a timeout so a hung `asprof stop` (e.g. when the profiler
-            // session already ended) cannot block the monitoring thread
-            // indefinitely.  The hang was observed on strange_gx where a
-            // stuck `asprof stop` killed all subsequent profiling.  Bounded
-            // here (STOP_TIMEOUT_SECONDS + destroyForcibly), so this stop is
-            // safe to call as a pre-run guard (see runProfiler).
-            if (!process.waitFor(STOP_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
-                log.warning("AsyncProfilerWrapper: stop timed out after " + STOP_TIMEOUT_SECONDS
-                        + "s, destroying process");
-                process.destroyForcibly();
-                if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
-                    log.warning("AsyncProfilerWrapper: stop process did not exit within "
-                            + KILL_WAIT_SECONDS + "s after destroyForcibly");
-                }
+            // Use a timeout so a hung `asprof stop` (e.g. when the agent is
+            // stuck after a prior CLI was killed mid-teardown) cannot block
+            // the monitoring thread indefinitely.  The hang was observed on
+            // strange_gx and ict (stop timed out on every 60s monitoring
+            // cycle).  Bounded here (STOP_TIMEOUT_SECONDS + destroyForcibly),
+            // so this stop is safe to call as a pre-run guard (see runProfiler).
+            if (!waitForProcessExit(process, STOP_TIMEOUT_SECONDS, "stop")) {
                 exitedCleanly = false;
             } else {
                 exitedCleanly = true;
                 log.info("AsyncProfilerWrapper: profiling stopped");
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             log.log(Level.WARNING, "AsyncProfilerWrapper: error stopping profiler", e);
+            exitedCleanly = false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.log(Level.WARNING, "AsyncProfilerWrapper: interrupted while stopping profiler", e);
             exitedCleanly = false;
         }
 
         activeProfileOutputPath = null;
         return exitedCleanly;
+    }
+
+    /**
+     * Wait for a profiler child process to exit within a bounded timeout,
+     * draining its output pipe in the meantime (see runProfiler).
+     * On timeout the process is destroyed forcefully and we make one
+     * bounded attempt to confirm it actually exited — a child that ignores
+     * SIGKILL is exceptional and is reported, not waited on forever.
+     *
+     * @param process the child process to wait for
+     * @param timeoutSeconds the maximum time to wait for a clean exit
+     * @param label short label for log messages (e.g. "stop", "profiler run")
+     * @return true if the process exited cleanly within the timeout; false
+     *         on timeout (after destroyForcibly) or if the process could not
+     *         be confirmed dead
+     */
+    private boolean waitForProcessExit(Process process, long timeoutSeconds, String label)
+            throws InterruptedException {
+        if (!process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
+            log.warning("AsyncProfilerWrapper: " + label
+                    + " timed out after " + timeoutSeconds + "s, destroying process");
+            process.destroyForcibly();
+            if (!process.waitFor(KILL_WAIT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
+                log.warning("AsyncProfilerWrapper: " + label + " process did not exit within "
+                        + KILL_WAIT_SECONDS + "s after destroyForcibly");
+                return false;
+            }
+            return false;
+        }
+        return true;
     }
 
     /**
