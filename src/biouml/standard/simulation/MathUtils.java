@@ -9,7 +9,13 @@ public class MathUtils
 {
     public static int[] multiBinarySearch(double[] x, double[] points) throws Exception
     {
-        return DoubleStreamEx.of(points).mapToInt( p -> Arrays.binarySearch( x, p ) ).toArray();
+        // Primitive loop instead of DoubleStreamEx to avoid object allocation per element.
+        // Profiler shows this called from SimulationResult.interpolateLinear which is
+        // invoked during result post-processing.
+        int[] result = new int[points.length];
+        for( int i = 0; i < points.length; i++ )
+            result[i] = Arrays.binarySearch( x, points[i] );
+        return result;
     }
     
     /**
