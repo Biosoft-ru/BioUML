@@ -179,9 +179,11 @@ public class JVodeDense extends DirectSolver
             double fnorm = VectorUtils.wrmsNorm(ftemp, errorWeight);
             double minInc = ( fnorm != 0.0 ) ? ( 1000 * Math.abs(h) * UROUND * n * fnorm ) : 1.0;
 
+            // Write directly into pre-allocated matrix columns to avoid per-column allocation.
+            // The Matrix constructor already allocated n columns of size n; we reuse them.
             for( int j = 0; j < n; j++ )
             {
-                double[] jthCol = new double[n];
+                double[] jthCol = matr.cols[j];
                 yjsaved = z[0][j];
                 double v1 = UROUND_SQRT * Math.abs(yjsaved);
                 double v2 = minInc / errorWeight[j];
@@ -192,7 +194,6 @@ public class JVodeDense extends DirectSolver
                 z[0][j] = yjsaved;
                 inc_inv = 1.0 / inc;
                 VectorUtils.scaleDiff(inc_inv, acor, ftemp, jthCol);
-                matr.cols[j] = jthCol;
             }
             return 0;
         }
