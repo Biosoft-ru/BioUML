@@ -414,6 +414,11 @@ public class TestSubProcessLog extends junit.framework.TestCase
         assertEquals(
                 "app --token ***",
                 redactCommand("app --token 1"));
+        // Compound strong credential in separate-token form: the key is
+        // matched (strong), so the value is redacted regardless of appearance.
+        assertEquals(
+                "app --client-secret ***",
+                redactCommand("app --client-secret true"));
 
         // --- bare flag at end of line (no value) is not redacted ---
         assertEquals(
