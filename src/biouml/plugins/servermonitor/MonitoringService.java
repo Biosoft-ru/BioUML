@@ -606,7 +606,8 @@ public class MonitoringService {
      *   <li>Two-component: api-key, api-token, access-key, private-key,
      *       client-secret, session-token, refresh-token, auth-token,
      *       bearer-token, http-token</li>
-     *   <li>Three-component: o-auth-token (from OAuthToken)</li>
+     *   <li>Three-component: o-auth-token, as produced by the camelCase
+     *       tokenizer for the argument name {@code OAuthToken}</li>
      * </ul>
      */
     private static boolean isStrongCredential(String bareKey) {
