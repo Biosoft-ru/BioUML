@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
@@ -1049,12 +1048,6 @@ public class WebTablesProvider extends WebProviderSupport
         }
     }
 
-    /** Pre-compiled patterns for HTML tag/entity stripping in getSubstringWithTags. */
-    private static final Pattern HTML_TAG = Pattern.compile( "<[^>]*>" );
-    /** Matches named, decimal numeric, and hex HTML entities (e.g. &amp;, &#65;, &#x41;). */
-    private static final Pattern HTML_ENTITY = Pattern.compile( "&(?:#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);" );
-    private static final Pattern WHITESPACE = Pattern.compile( "\\s+" );
-
     /**
      * Approximate length check for HTML cell values.  Strips tags and
      * entities to estimate the rendered text length; if it exceeds 600
@@ -1064,6 +1057,19 @@ public class WebTablesProvider extends WebProviderSupport
      * decide whether to truncate, so approximate is sufficient and
      * dramatically cheaper than building a DOM tree per cell (the old
      * Jsoup.parse call was a profiler hot path).
+     *
+     * The stripping is a single linear character scan, byte-for-byte
+     * equivalent to the former pipeline (HTML_TAG, then HTML_ENTITY, then
+     * WHITESPACE, each a Matcher.replaceAll with " "):
+     *  - a tag &lt;...&gt; and an entity are both replaced by a single space
+     *    (the scan only records that a space is "pending", and at most one
+     *    space is emitted at the next non-whitespace character, so a tag, an
+     *    entity and a run of whitespace that are adjacent still collapse to
+     *    one space exactly as the old "\s+" pass did);
+     *  - an entity is &amp;#NNN;, &amp;#xHHH; (lower-case x, as in the old
+     *    regex) or &amp;Name; where Name starts with a letter;
+     *  - "whitespace" is exactly the set of Java regex \s, i.e. ' ', \t, \n,
+     *    , \f, \r.
      */
     private static String getSubstringWithTags(String value)
     {
@@ -1072,9 +1078,93 @@ public class WebTablesProvider extends WebProviderSupport
             int startTag = value.indexOf( "<" );
             if( startTag != -1 )
             {
-                String innerStr = HTML_TAG.matcher( value ).replaceAll( " " );
-                innerStr = HTML_ENTITY.matcher( innerStr ).replaceAll( " " );
-                innerStr = WHITESPACE.matcher( innerStr ).replaceAll( " " );
+                int n = value.length();
+                StringBuilder innerStr = new StringBuilder( n );
+                boolean whitespacePending = false;
+                int i = 0;
+                while( i < n )
+                {
+                    char ch = value.charAt( i );
+                    if( ch == '<' )
+                    {
+                        int end = value.indexOf( '>', i + 1 );
+                        if( end != -1 )
+                        {
+                            // a whole <...> tag becomes a single space
+                            whitespacePending = true;
+                            i = end + 1;
+                            continue;
+                        }
+                        // unmatched '<' - not a tag, keep it literally
+                    }
+                    else if( ch == '&' )
+                    {
+                        int j = i + 1;
+                        boolean entity = false;
+                        if( j < n && value.charAt( j ) == '#' )
+                        {
+                            // &#[0-9]+; or &#x[0-9a-fA-F]+; (at least one digit, lower-case x)
+                            int k = j + 1;
+                            if( k < n && value.charAt( k ) == 'x' )
+                            {
+                                k++;
+                                if( k >= n || !isHexDigit( value.charAt( k ) ) )
+                                    k = -1;
+                                while( k > 0 && k < n && isHexDigit( value.charAt( k ) ) )
+                                    k++;
+                            }
+                            else
+                            {
+                                if( k >= n || !isAsciiDigit( value.charAt( k ) ) )
+                                    k = -1;
+                                while( k > 0 && k < n && isAsciiDigit( value.charAt( k ) ) )
+                                    k++;
+                            }
+                            if( k > 0 && k < n && value.charAt( k ) == ';' )
+                            {
+                                entity = true;
+                                j = k;
+                            }
+                        }
+                        else
+                        {
+                            // named entity: &Name; where Name starts with a letter
+                            if( j < n && isLetter( value.charAt( j ) ) )
+                            {
+                                j++;
+                                while( j < n && isAlnum( value.charAt( j ) ) )
+                                    j++;
+                                if( j < n && value.charAt( j ) == ';' )
+                                {
+                                    entity = true;
+                                }
+                            }
+                        }
+                        if( entity )
+                        {
+                            // an entity becomes a single space
+                            whitespacePending = true;
+                            i = j + 1;
+                            continue;
+                        }
+                        // not an entity - keep '&' literally
+                    }
+                    if( isRegexWhitespace( ch ) )
+                    {
+                        whitespacePending = true;
+                        i++;
+                        continue;
+                    }
+                    if( whitespacePending )
+                    {
+                        innerStr.append( ' ' );
+                        whitespacePending = false;
+                    }
+                    innerStr.append( ch );
+                    i++;
+                }
+                if( whitespacePending )
+                    innerStr.append( ' ' );
                 if( innerStr.length() > 600 )
                     return value.substring( 0, Math.min( 600, startTag ) )
                             + " <span class='clickable' onclick='displayTableCell(this)'>(more)</span>";
@@ -1085,6 +1175,32 @@ public class WebTablesProvider extends WebProviderSupport
                 return value.substring( 0, 600 ) + " <span class='clickable' onclick='displayTableCell(this)'>(more)</span>";
         }
         return value;
+    }
+
+    /** Exactly the set of Java regex \s: space, tab, line feed, vertical tab, form feed, carriage return. */
+    private static boolean isRegexWhitespace(char ch)
+    {
+        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000B' || ch == '\f' || ch == '\r';
+    }
+
+    private static boolean isHexDigit(char ch)
+    {
+        return ( ch >= '0' && ch <= '9' ) || ( ch >= 'a' && ch <= 'f' ) || ( ch >= 'A' && ch <= 'F' );
+    }
+
+    private static boolean isAsciiDigit(char ch)
+    {
+        return ch >= '0' && ch <= '9';
+    }
+
+    private static boolean isAlnum(char ch)
+    {
+        return ( ch >= 'a' && ch <= 'z' ) || ( ch >= 'A' && ch <= 'Z' ) || ( ch >= '0' && ch <= '9' );
+    }
+
+    private static boolean isLetter(char ch)
+    {
+        return ( ch >= 'a' && ch <= 'z' ) || ( ch >= 'A' && ch <= 'Z' );
     }
 
     public static String getCodeForReferenceTyped(Object value, String cellId, ReferenceType type, boolean displayTitle, int maxLength)

@@ -1,8 +1,15 @@
 package biouml.plugins.servermonitor;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -12,6 +19,9 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
@@ -52,6 +62,38 @@ public class MonitoringService {
     private volatile List<SubProcessMonitor.SubProcess> lastSubProcesses = new ArrayList<>();
     private volatile long lastSubProcessCheckTime = 0;
     private volatile boolean firstLoopIteration = true;
+
+    /**
+     * File name (within the profiler directory) used for the persistent
+     * sub-process observation log. Each non-empty scan appends one JSON line,
+     * so the full timeline of long-running external processes is retained even
+     * after they exit — the {@code status} API only shows the live snapshot.
+     */
+    public static final String SUB_PROCESS_LOG_FILE = "subprocesses.jsonl";
+
+    /** Maximum number of JSON lines kept in the sub-process log. */
+    private static final int MAX_SUB_PROCESS_LOG_LINES = 5000;
+    /** Maximum age (ms) of a sub-process log line before it is purged. */
+    private static final long MAX_SUB_PROCESS_LOG_AGE = 7L * 24 * 60 * 60 * 1000; // 7 days
+    /**
+     * Purge the log at most once every this long (ms) unless the line cap is
+     * exceeded. The age check needs a full scan, so it must not run on every
+     * monitor cycle — only periodically, or when the log is already over the cap.
+     */
+    private static final long SUB_PROCESS_LOG_PURGE_INTERVAL = 10L * 60L * 1000L; // 10 min
+
+    // In-memory record count for the sub-process log, so the status endpoint
+    // does not need to scan the whole file. Lazily initialized from the
+    // existing file on first use; thereafter maintained incrementally by the
+    // append path. Approximate after an external edit; recomputed exactly on
+    // every purge/compact.
+    private int subProcessLogCount = -1;
+    /** Last time the sub-process log was fully scanned for purging. */
+    private long lastSubProcessLogPurgeTime = 0;
+
+    // Guards append/rewrite of the sub-process log (single monitor thread writes,
+    // but the API can read concurrently; keep the file in a consistent state).
+    private final Object subProcessLogLock = new Object();
 
     public MonitoringService(ServerMonitorConfig config) {
         this.config = config;
@@ -182,9 +224,511 @@ public class MonitoringService {
             List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
             lastSubProcesses = subs;
             lastSubProcessCheckTime = System.currentTimeMillis();
+
+            // Persist every non-empty scan so the timeline of long-running
+            // external processes survives process exit and is retrievable via
+            // the API (the live status only shows the current snapshot).
+            if (!subs.isEmpty()) {
+                appendSubProcessLog(subs, lastSubProcessCheckTime);
+            }
         } catch (Exception e) {
             log.log(Level.WARNING, "Sub-process scan failed", e);
         }
+    }
+
+    /**
+     * Append one JSON line describing a non-empty sub-process scan to the
+     * persistent log. Each line is a self-contained record:
+     * <pre>{"timestamp":..., "checkIntervalSec":..., "subProcesses":[{"pid":..,"ageSeconds":..,"slow":..,"command":..}, ...]}</pre>
+     *
+     * <p>Writing is serialized against {@link #subProcessLogLock}. The append is
+     * the only per-scan I/O (the hot path never rewrites the file); a full
+     * rewrite/compact runs only when the line cap is exceeded or at most every
+     * {@link #SUB_PROCESS_LOG_PURGE_INTERVAL}, so the age bound is enforced
+     * without scanning on every cycle.
+     */
+    private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+        File logFile = getSubProcessLogFile();
+        if (logFile == null) {
+            return;
+        }
+        synchronized (subProcessLogLock) {
+            try {
+                // Seed the in-memory count BEFORE appending so that the
+                // subsequent increment reflects the post-append state.
+                // (Seeding after the append would double-count the new line.)
+                if (subProcessLogCount < 0) {
+                    subProcessLogCount = logFile.exists()
+                            ? countSubProcessLogLines(logFile) : 0;
+                }
+
+                // Append — the hot path must never scan the whole file.
+                String line = buildSubProcessRecord(subs, timestamp);
+                try (BufferedWriter writer = new BufferedWriter(
+                        new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+                subProcessLogCount++;
+
+                long now = System.currentTimeMillis();
+
+                // Purge only when the line cap is exceeded or the age scan is
+                // due. The age check is a full scan, so it must not run on
+                // every monitor cycle.
+                boolean overCap = subProcessLogCount > MAX_SUB_PROCESS_LOG_LINES;
+                boolean ageDue = now - lastSubProcessLogPurgeTime >= SUB_PROCESS_LOG_PURGE_INTERVAL;
+                if (overCap || ageDue) {
+                    purgeAndCompactSubProcessLog(logFile, now);
+                }
+            } catch (Exception e) {
+                log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
+            }
+        }
+    }
+
+    /**
+     * Full scan of the sub-process log: drop lines older than
+     * {@link #MAX_SUB_PROCESS_LOG_AGE} and malformed lines (no parseable
+     * timestamp, which can't be bounded by age), keep the most recent
+     * {@link #MAX_SUB_PROCESS_LOG_LINES}, and atomically replace the file.
+     * Updates the in-memory line count.
+     */
+    private void purgeAndCompactSubProcessLog(File logFile, long now) throws IOException {
+        if (!logFile.exists() || logFile.length() == 0) {
+            subProcessLogCount = 0;
+            return;
+        }
+
+        // Pass 1: read the log, dropping lines older than MAX_SUB_PROCESS_LOG_AGE.
+        List<String> kept = new ArrayList<>();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                long ts = extractTimestamp(line);
+                // A line with no parseable timestamp is malformed: it can never
+                // be dropped by age, so it would grow the log forever. Drop it.
+                if (ts <= 0) continue;
+                boolean tooOld = (now - ts) > MAX_SUB_PROCESS_LOG_AGE;
+                if (!tooOld) {
+                    kept.add(line);
+                }
+            }
+        }
+
+        // Keep only the most recent N lines.
+        int excess = kept.size() - MAX_SUB_PROCESS_LOG_LINES;
+        if (excess > 0) {
+            kept.subList(0, excess).clear();
+        }
+        int newCount = kept.size();
+
+        // Pass 2: rewrite the pruned content to a temp file, then replace the
+        // original from it. The temp file is created in the same directory, so
+        // the move is a rename on the same filesystem: ATOMIC_MOVE is used when
+        // the platform supports it (the normal case on Linux ext4/xfs). The
+        // fallback is non-atomic and does not provide the same visibility
+        // guarantees; readers may observe an intermediate state. The in-memory
+        // count and purge time are published only after the replacement
+        // succeeds; if the move fails before replacement, the in-memory state
+        // is left unchanged and the next append re-triggers the purge.
+        File tmp = File.createTempFile("subproc", ".jsonl", logFile.getParentFile());
+        try {
+            try (BufferedWriter tw = new BufferedWriter(
+                    new java.io.OutputStreamWriter(new FileOutputStream(tmp), StandardCharsets.UTF_8))) {
+                for (String l : kept) {
+                    tw.write(l);
+                    tw.newLine();
+                }
+            }
+            try {
+                Files.move(tmp.toPath(), logFile.toPath(),
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                // Fallback is a plain (non-atomic) replace.
+                Files.move(tmp.toPath(), logFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            // Publish both in-memory state variables only after the
+            // replacement succeeds. If the move fails before replacement,
+            // the in-memory state is left unchanged and the next append
+            // re-triggers the purge.
+            subProcessLogCount = newCount;
+            lastSubProcessLogPurgeTime = now;
+        } finally {
+            // Best-effort delete if the move did not consume the temp file.
+            if (tmp.exists()) {
+                tmp.delete();
+            }
+        }
+    }
+
+    /**
+     * Count the non-empty lines in the sub-process log (full scan). Used once
+     * at startup to seed the in-memory count; steady-state appends maintain it
+     * incrementally so the status endpoint never scans the file.
+     */
+    private int countSubProcessLogLines(File logFile) throws IOException {
+        int n = 0;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) n++;
+            }
+        }
+        return n;
+    }
+
+    /**
+     * Extract the {@code "timestamp":<long>} field from a log line (no full JSON
+     * parse — the field is written first and is always an integer).
+     */
+    private long extractTimestamp(String line) {
+        int idx = line.indexOf("\"timestamp\":");
+        if (idx < 0) return -1;
+        int start = idx + "\"timestamp\":".length();
+        int end = start;
+        while (end < line.length() && (Character.isDigit(line.charAt(end)) || line.charAt(end) == '-')) {
+            end++;
+        }
+        try {
+            return Long.parseLong(line.substring(start, end));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Build the single JSON line for one sub-process scan.
+     */
+    private String buildSubProcessRecord(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+        JSONObject record = new JSONObject();
+        // Version the record schema so future readers can detect layout changes.
+        record.put("version", 1);
+        record.put("timestamp", timestamp);
+        record.put("checkIntervalSec", config.getCheckInterval());
+        record.put("thresholdSec", config.getSubProcessThreshold());
+        record.put("minAgeSec", config.getSubProcessMinAge());
+        record.put("count", subs.size());
+        JSONArray arr = new JSONArray();
+        for (SubProcessMonitor.SubProcess sp : subs) {
+            JSONObject o = new JSONObject();
+            o.put("pid", sp.pid);
+            o.put("ageSeconds", sp.ageSeconds);
+            o.put("slow", sp.slow);
+            // The log is persisted (up to 7 days) and readable through the API,
+            // so command lines are redacted: an external script can carry
+            // credentials on its command line (--password=..., --token ...,
+            // --api-key ...), which must not be written to disk or exposed by
+            // the endpoint.
+            o.put("command", redactCommand(sp.command));
+            arr.put(o);
+        }
+        record.put("subProcesses", arr);
+        return record.toString();
+    }
+
+    /**
+     * Redact secret-looking arguments from a command line before it is
+     * persisted to the sub-process log. Handles both argument forms:
+     * {@code --password=secret} and the separate-token {@code --password secret}.
+     * The matched value (and the quoted value in {@code --password="secret"} /
+     * {@code --password "secret"}) is replaced with {@code ***} while the key is
+     * kept, so the record stays useful for analysis.
+     *
+     * <p>The line is tokenized quote-aware (so a quoted value with spaces stays
+     * one token); when no token is changed the original string is returned
+     * verbatim. When a redaction happens the tokens are re-joined with single
+     * spaces, which may collapse runs of whitespace in the input — acceptable
+     * for a log, and only on lines that actually carried a secret.
+     */
+    private static String redactCommand(String command) {
+        if (command == null || command.isEmpty()) {
+            return command;
+        }
+        List<String> toks = tokenizeCommandLine(command);
+        boolean changed = false;
+        for (int i = 0; i < toks.size(); i++) {
+            String t = toks.get(i);
+            int eq = t.indexOf('=');
+            if (eq > 0) {
+                // key=value form: "--password=hunter2" -> "--password=***".
+                String key = t.substring(0, eq);
+                String bare = bareKey(key);
+                // Strong credentials (password, token, secret, …) are always
+                // redacted — the value may legitimately be "true", "1", etc.
+                // Weak stems (auth, bearer) only redact non-boolean values to
+                // avoid false positives like --authentication-mode=basic.
+                if (isStrongCredential(bare) || (isWeakCredential(bare) && !isBooleanFlagValue(t.substring(eq + 1)))) {
+                    toks.set(i, key + "=***");
+                    changed = true;
+                }
+            } else if (isStrongCredential(bareKey(t))
+                    || isWeakCredential(bareKey(t))) {
+                // Separate-token form: "--password hunter2" -> "--password ***".
+                // The value is the next token, but only if it is not itself an
+                // option (does not start with "-"). A bare flag at the end of
+                // the line (--password with no value) is not redacted.
+                if (i + 1 < toks.size() && !toks.get(i + 1).startsWith("-")) {
+                    toks.set(i + 1, "***");
+                    i++;
+                    changed = true;
+                }
+            }
+        }
+        return changed ? String.join(" ", toks) : command;
+    }
+
+    /**
+     * True if the value is a literal boolean or a bare integer — the kinds of
+     * values that appear on non-credential flags (e.g. {@code --enable-foo=1}).
+     * Used only for weak credential stems to avoid redacting
+     * {@code --authentication-mode=basic} or {@code --authorize=true}.
+     */
+    private static boolean isBooleanFlagValue(String value) {
+        if (value.isEmpty()) return true;
+        String v = value.toLowerCase();
+        if (v.equals("true") || v.equals("false") || v.equals("yes")
+                || v.equals("no") || v.equals("on") || v.equals("off")) {
+            return true;
+        }
+        // A bare integer (0, 1, 2, …) is a flag/option, not a credential.
+        for (int i = 0; i < v.length(); i++) {
+            if (!Character.isDigit(v.charAt(i))) return false;
+        }
+        return true;
+    }
+
+    /** Strip a leading dash run ("--password" / "-password" -> "password"). */
+    private static String bareKey(String token) {
+        String s = token;
+        while (s.startsWith("-")) {
+            s = s.substring(1);
+        }
+        return s;
+    }
+
+    /**
+     * Tokenize a command line respecting single and double quotes so that a
+     * quoted value with spaces stays one token. Quotes are removed from the
+     * result (matching how the OS passes a single argv element).
+     *
+     * <p>This is a deliberate approximation — not a full shell parser — and is
+     * only used to decide which tokens are secrets, not to re-run the command.
+     * In particular, it does not handle backslash escapes inside quoted strings
+     * ({@code --password="abc\"def"} will be split at the inner {@code "}), so
+     * a credential in an escaped-quote command line may not be recognized and
+     * will not be redacted.
+     */
+    private static List<String> tokenizeCommandLine(String command) {
+        List<String> toks = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        boolean inToken = false;
+        int i = 0;
+        int n = command.length();
+        while (i < n) {
+            char c = command.charAt(i);
+            if (Character.isWhitespace(c)) {
+                if (inToken) {
+                    toks.add(cur.toString());
+                    cur.setLength(0);
+                    inToken = false;
+                }
+                i++;
+            } else if (c == '"' || c == '\'') {
+                char quote = c;
+                inToken = true;
+                i++;
+                while (i < n && command.charAt(i) != quote) {
+                    cur.append(command.charAt(i));
+                    i++;
+                }
+                i++; // skip closing quote (or run past the end if unbalanced)
+            } else {
+                cur.append(c);
+                inToken = true;
+                i++;
+            }
+        }
+        if (inToken) {
+            toks.add(cur.toString());
+        }
+        return toks;
+    }
+
+    /**
+     * Split a bare key into an ordered list of lowercase components on
+     * {@code -}, {@code _}, and camelCase boundaries.
+     * {@code api-key} → {@code [api, key]}, {@code apiToken} →
+     * {@code [api, token]}, {@code APIKey} → {@code [api, key]},
+     * {@code client_secret} → {@code [client, secret]}.
+     *
+     * <p>Handles both the lower→upper boundary ({@code apiToken}) and the
+     * acronym→PascalCase boundary ({@code APIKey} → {@code API Key}).
+     */
+    private static List<String> splitKey(String bareKey) {
+        // Insert a space at camelCase boundaries:
+        //   "apiToken" → "api Token"   (lower→upper)
+        //   "APIKey"   → "API Key"     (acronym→PascalCase)
+        String s = bareKey.replaceAll("([a-z0-9])([A-Z])", "$1 $2");
+        s = s.replaceAll("([A-Z])([A-Z][a-z])", "$1 $2");
+        String k = s.toLowerCase();
+        List<String> parts = new ArrayList<>();
+        for (String p : k.split("[-_\\s]+")) {
+            if (!p.isEmpty()) parts.add(p);
+        }
+        return parts;
+    }
+
+    /**
+     * True if the ordered component list exactly matches the given sequence.
+     */
+    private static boolean isExactCompound(List<String> parts, String... expected) {
+        if (parts.size() != expected.length) return false;
+        for (int i = 0; i < expected.length; i++) {
+            if (!parts.get(i).equals(expected[i])) return false;
+        }
+        return true;
+    }
+
+    /**
+     * True if the key is a strong credential: its value is redacted regardless
+     * of content (even if the value looks like a boolean or number). Matching
+     * is by exact component sequence — {@code --api-key} matches
+     * {@code [api, key]} but {@code --api-key-mode} ({@code [api, key, mode]})
+     * and {@code --key-api} ({@code [key, api]}) do not.
+     *
+     * <p>Recognized strong credentials:
+     * <ul>
+     *   <li>Single component: password, passwd, pwd, token, secret, credential</li>
+     *   <li>Two-component: api-key, api-token, access-key, private-key,
+     *       client-secret, session-token, refresh-token, auth-token,
+     *       bearer-token, http-token</li>
+     *   <li>Three-component: o-auth-token, as produced by the camelCase
+     *       tokenizer for the argument name {@code OAuthToken}</li>
+     * </ul>
+     */
+    private static boolean isStrongCredential(String bareKey) {
+        if (bareKey.isEmpty()) return false;
+        List<String> parts = splitKey(bareKey);
+        if (parts.isEmpty()) return false;
+        if (parts.size() == 1) {
+            String p = parts.get(0);
+            return p.equals("password") || p.equals("passwd") || p.equals("pwd")
+                    || p.equals("token") || p.equals("secret")
+                    || p.equals("credential");
+        }
+        return isExactCompound(parts, "api", "key")
+                || isExactCompound(parts, "api", "token")
+                || isExactCompound(parts, "access", "key")
+                || isExactCompound(parts, "private", "key")
+                || isExactCompound(parts, "client", "secret")
+                || isExactCompound(parts, "session", "token")
+                || isExactCompound(parts, "refresh", "token")
+                || isExactCompound(parts, "auth", "token")
+                || isExactCompound(parts, "bearer", "token")
+                // "OAuthToken" splits to [o, auth, token] (the first pass
+                // separates "O" from "Auth" at the lower→upper boundary).
+                || isExactCompound(parts, "o", "auth", "token")
+                // "HTTPToken" splits to [http, token].
+                || isExactCompound(parts, "http", "token");
+    }
+
+    /**
+     * True if the key is a weak credential indicator: the value is redacted
+     * only when it does not look like a boolean flag. Matching is by exact
+     * single-component — {@code --auth} or {@code --bearer} is a weak
+     * credential, but {@code --authentication-mode} is not (the component is
+     * "authentication", not "auth").
+     */
+    private static boolean isWeakCredential(String bareKey) {
+        if (bareKey.isEmpty()) return false;
+        List<String> parts = splitKey(bareKey);
+        return parts.size() == 1
+                && (parts.get(0).equals("auth") || parts.get(0).equals("bearer"));
+    }
+
+    /**
+     * Resolve the sub-process log file inside the profiler directory.
+     * Returns null if the directory is not resolvable.
+     */
+    private File getSubProcessLogFile() {
+        try {
+            config.ensureProfilerDir();
+            return new File(config.getProfilerDir(), SUB_PROCESS_LOG_FILE);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Read sub-process log lines whose timestamp falls within [since, until]
+     * (inclusive; either bound may be 0 to mean unbounded). Returns raw JSON
+     * lines (one per scan), most recent last.
+     */
+    public List<String> readSubProcessLog(long since, long until) {
+        List<String> result = new ArrayList<>();
+        File logFile = getSubProcessLogFile();
+        if (logFile == null || !logFile.exists() || logFile.length() == 0) {
+            return result;
+        }
+        synchronized (subProcessLogLock) {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(new FileInputStream(logFile), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) continue;
+                    long ts = extractTimestamp(line);
+                    if (ts < 0) continue;
+                    if (since > 0 && ts < since) continue;
+                    if (until > 0 && ts > until) continue;
+                    result.add(line);
+                }
+            } catch (Exception e) {
+                log.log(Level.WARNING, "Error reading sub-process log " + logFile.getAbsolutePath(), e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Total number of records in the sub-process log (0 if none). Served from
+     * the in-memory count maintained by the append path — this does NOT scan
+     * the file. If the count has not been seeded yet (no append since startup
+     * and the file pre-dates this service instance) it falls back to a single
+     * scan, then caches the result for subsequent calls. A transient read
+     * failure returns 0 without caching so the next call retries.
+     */
+    public int getSubProcessLogCount() {
+        synchronized (subProcessLogLock) {
+            if (subProcessLogCount >= 0) {
+                return subProcessLogCount;
+            }
+            File logFile = getSubProcessLogFile();
+            if (logFile == null || !logFile.exists() || logFile.length() == 0) {
+                subProcessLogCount = 0;
+                return 0;
+            }
+            try {
+                subProcessLogCount = countSubProcessLogLines(logFile);
+            } catch (Exception e) {
+                log.log(Level.WARNING, "Failed to count sub-process log lines " + logFile.getAbsolutePath(), e);
+                // Do NOT cache the failure — leave the count at -1 so the
+                // next call retries (the file may be temporarily locked).
+                return 0;
+            }
+            return subProcessLogCount;
+        }
+    }
+
+    /**
+     * Absolute path of the sub-process log file (for API / diagnostics).
+     */
+    public String getSubProcessLogPath() {
+        File f = getSubProcessLogFile();
+        return f != null ? f.getAbsolutePath() : null;
     }
 
     /**
@@ -351,10 +895,17 @@ public class MonitoringService {
         File[] files = profileDir.listFiles();
         if (files == null) return;
 
+        // The sub-process observation log is self-bounding (purged by age/line
+        // count in appendSubProcessLog) — never delete it here.
+        String subProcLogName = SUB_PROCESS_LOG_FILE;
+
         // Age-based cleanup (skip directories like the async-profiler installation)
         for (File f : files) {
             if (f.isDirectory()) {
                 log.fine("Skipping directory during cleanup: " + f.getName());
+                continue;
+            }
+            if (subProcLogName.equals(f.getName())) {
                 continue;
             }
             if (now - f.lastModified() > maxAgeMillis) {
@@ -373,7 +924,7 @@ public class MonitoringService {
             // Filter to only profile files (exclude directories like async-profiler-*)
             List<File> profileFiles = new ArrayList<>();
             for (File f : files) {
-                if (!f.isDirectory()) {
+                if (!f.isDirectory() && !subProcLogName.equals(f.getName())) {
                     profileFiles.add(f);
                 }
             }
