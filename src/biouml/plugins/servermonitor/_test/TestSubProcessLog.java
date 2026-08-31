@@ -336,13 +336,40 @@ public class TestSubProcessLog extends junit.framework.TestCase
                 "app --authorize=true",
                 redactCommand("app --authorize=true"));
 
-        // --- weak credential stems with real values ARE redacted ---
+        // --- component-based: --auth-token is strong (token component) ---
         assertEquals(
                 "app --auth-token=*** --verbose",
                 redactCommand("app --auth-token=abc123 --verbose"));
+
+        // --- component-based: --token-count is NOT a credential ---
+        // (the "count" component disqualifies the "token" component)
+        assertEquals(
+                "app --token-count=10 --verbose",
+                redactCommand("app --token-count=10 --verbose"));
+
+        // --- component-based: --secret-mode is NOT a credential ---
+        assertEquals(
+                "app --secret-mode=debug",
+                redactCommand("app --secret-mode=debug"));
+
+        // --- component-based: --password-policy is NOT a credential ---
+        assertEquals(
+                "app --password-policy=strict",
+                redactCommand("app --password-policy=strict"));
+
+        // --- weak credential stems with boolean values are NOT redacted ---
+        // (--authorize=true is a flag; "authorize" ≠ "auth")
+        assertEquals(
+                "app --authorize=true",
+                redactCommand("app --authorize=true"));
+
+        // --- weak credential stems with real values ARE redacted ---
         assertEquals(
                 "app --bearer=*** --verbose",
                 redactCommand("app --bearer=eyJhbGciOi --verbose"));
+        assertEquals(
+                "app --auth=*** --verbose",
+                redactCommand("app --auth=eyJhbGciOi --verbose"));
 
         // --- separate-token form: next token is an option, not a value ---
         // (--password --verbose must NOT eat --verbose as the password value)
