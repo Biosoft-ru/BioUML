@@ -1776,10 +1776,13 @@ public class SupportServlet extends AbstractJSONServlet
         }
         summary.append("\n");
 
-        // Slow sub-processes observed during this profile's time window — the
-        // external (perl/R/nextflow/...) work that the CPU profiler cannot see.
-        summary.append("--- Slow Sub-Processes (during profile window) ---\n");
-        appendSubProcessSummary(summary, baseName, profileDir);
+        // External (perl/R/nextflow/...) sub-processes that the CPU profiler
+        // cannot see. First report covers the profile's time window; each
+        // subsequent report shows only what was observed since the previous
+        // report (cursor persisted in the profile's metadata sidecar), so
+        // processes that outlive the profile window are still attributed to it.
+        summary.append("--- Slow Sub-Processes ---\n");
+        appendSubProcessSummary(summary, metaFile, baseName, profileDir);
         summary.append("\n");
 
         // AI agent instructions
@@ -1882,14 +1885,44 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
     /**
-     * Append a section listing the slow sub-processes observed during a profile's
-     * time window, reading the persistent sub-process log. The window is taken
-     * from the profile's {@code .json} metadata ({@code startTime}/{@code endTime});
-     * if that is unavailable the whole log is summarized (bounded to a few lines).
-     * Command lines are already redacted at write time (see
+     * Append a section listing the slow external sub-processes (perl / R /
+     * nextflow / ...) associated with a profile.
+     *
+     * <p>The report is cumulative across requests: the first report covers the
+     * profile's time window (from its {@code .json} metadata sidecar, or the
+     * whole log if that is unavailable); each subsequent report covers only the
+     * observations made since the previous report. The high-water mark is
+     * persisted as {@code subProcessReportCursor} in the metadata sidecar, so it
+     * survives server restarts (worst case: a few lines shown twice, which is
+     * harmless because entries are deduplicated per pid). It is a
+     * <em>report-time</em> cursor (the instant this report was generated), not a
+     * log-offset cursor — see {@link #persistSubProcessCursor}.
+     *
+     * <p>Two data sources are merged, both filtered to the same effective
+     * interval by <em>overlap</em> (a process counts if it was alive at any point
+     * inside the interval):
+     * <ul>
+     * <li>the persistent {@code subprocesses.jsonl} scan log, deduplicated per
+     *     pid (one line per scan would otherwise repeat the same process
+     *     dozens of times); the per-pid entry carries the first/last
+     *     observation time and the maximum age seen;</li>
+     * <li>the in-memory per-pid observation registry
+     *     ({@code MonitoringService#getObservedSubProcesses}), which covers
+     *     processes still observable right now — including ones that started
+     *     before the window but are alive inside it, and ones still alive after
+     *     the window ended.</li>
+     * </ul>
+     *
+     * <p>Process identity is the PID. PIDs can be reused by the OS, so a process
+     * that exits and a new, unrelated process that reuses the same PID within the
+     * report interval would be merged into one entry (see
+     * {@link #mergeSubProcessEntry}). The window is short and the monitor only
+     * tracks descendants of the server JVM, so this is accepted as a limitation.
+     *
+     * <p>Command lines are already redacted at write time (see
      * {@code MonitoringService#redactCommand}), so secrets never reach the summary.
      */
-    private void appendSubProcessSummary(StringBuilder summary, String baseName, File profileDir)
+    private void appendSubProcessSummary(StringBuilder summary, File metaFile, String baseName, File profileDir)
     {
         biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
         if (plugin == null || plugin.getMonitoringService() == null)
@@ -1899,43 +1932,56 @@ public class SupportServlet extends AbstractJSONServlet
         }
         biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
 
-        // Resolve the profile's time window from its metadata sidecar.
-        long since = 0;
-        long until = 0;
-        File metaFile = new File(profileDir, sanitizeFileName(baseName + ".json"));
+        // Read the profile's metadata (window + report cursor). A missing or
+        // malformed sidecar degrades to "no metadata": first report over the whole log.
+        JSONObject meta = null;
         if (metaFile.exists())
         {
             try
             {
-                JSONObject meta = new JSONObject(readFileContent(metaFile));
-                since = meta.optLong("startTime", 0);
-                until = meta.optLong("endTime", 0);
+                meta = new JSONObject(readFileContent(metaFile));
             }
             catch (Exception e)
             {
-                // fall through to unbounded read
+                // fall through with no metadata (unbounded read)
             }
         }
-        // Give a little slack on each side so a scan that bracketed the window is
-        // still included (the monitor scans on a fixed cadence, not on profile
-        // start/stop).
-        long slack = 120_000L; // 2 minutes
-        long effSince = since > 0 ? Math.max(0, since - slack) : 0;
-        long effUntil = until > 0 ? until + slack : 0;
+        long windowStart = meta != null ? meta.optLong("startTime", 0) : 0;
+        long windowEnd = meta != null ? meta.optLong("endTime", 0) : 0;
+        long cursor = meta != null ? meta.optLong("subProcessReportCursor", 0) : 0;
 
-        List<String> lines = monitor.readSubProcessLog(effSince, effUntil);
-        if (lines.isEmpty())
+        long now = System.currentTimeMillis();
+        long intervalStart;
+        long intervalEnd;
+        boolean firstReport;
+        if (cursor > 0)
         {
-            summary.append("No sub-processes recorded for this window (work was in-JVM, or the log is empty).\n");
-            return;
+            // Follow-up report: observations that overlap [cursor, now]. A process
+            // still alive at the cursor instant overlaps it (lastSeen >= cursor) and
+            // is included; on the next report it is excluded once it has exited and
+            // its lastSeen predates the new cursor.
+            firstReport = false;
+            intervalStart = cursor;
+            intervalEnd = now;
+        }
+        else
+        {
+            // First report: the profile's time window (or the whole span if the
+            // window is unknown). A little slack on each side so a scan that
+            // bracketed the window is still included (the monitor scans on a fixed
+            // cadence, not on profile start/stop). The same effective window is used
+            // for both the log read and the in-memory overlap test.
+            firstReport = true;
+            long slack = 120000L; // 2 minutes
+            intervalStart = windowStart > 0 ? Math.max(0, windowStart - slack) : 0;
+            intervalEnd = windowEnd > 0 ? windowEnd + slack : 0; // 0 = unbounded (to now)
         }
 
-        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        // First pass: collect the slow sub-processes we want to show, so the
-        // truncation message can report how many SLOW ENTRIES were omitted
-        // (not how many scan records).
-        int totalSlow = 0;
+        // --- Source 1: persistent scan log, deduplicated per pid ---
+        // The log reader interprets (since, until) as [since, now) with until as
+        // an inclusive upper bound; intervalEnd == 0 means "to the end of the log".
+        java.util.Map<Long, SubProcessEntry> byPid = new java.util.TreeMap<>(java.util.Comparator.reverseOrder());
+        List<String> lines = monitor.readSubProcessLog(intervalStart, intervalEnd);
         for (String line : lines)
         {
             JSONObject rec;
@@ -1945,28 +1991,7 @@ public class SupportServlet extends AbstractJSONServlet
             }
             catch (Exception e)
             {
-                continue;
-            }
-            JSONArray subs = rec.optJSONArray("subProcesses");
-            if (subs == null || subs.length() == 0) continue;
-            for (int i = 0; i < subs.length(); i++)
-            {
-                if (subs.getJSONObject(i).optBoolean("slow", false))
-                    totalSlow++;
-            }
-        }
-
-        int shown = 0;
-        for (String line : lines)
-        {
-            JSONObject rec;
-            try
-            {
-                rec = new JSONObject(line);
-            }
-            catch (Exception e)
-            {
-                continue;
+                continue; // skip malformed line
             }
             JSONArray subs = rec.optJSONArray("subProcesses");
             if (subs == null || subs.length() == 0) continue;
@@ -1974,23 +1999,199 @@ public class SupportServlet extends AbstractJSONServlet
             for (int i = 0; i < subs.length(); i++)
             {
                 JSONObject sp = subs.getJSONObject(i);
-                if (!sp.optBoolean("slow", false)) continue; // summary only shows slow ones
-                summary.append(fmt.format(new Date(ts))).append("  pid=")
-                        .append(sp.optLong("pid"))
-                        .append(" age=").append(sp.optLong("ageSeconds")).append("s  ")
-                        .append(sp.optString("command"))
-                        .append("\n");
-                if (++shown >= 20)
-                {
-                    int remaining = totalSlow - shown;
-                    summary.append("... (").append(remaining).append(" more slow entries)\n");
-                    return;
-                }
+                // A log line is a single scan: firstSeen == lastSeen == ts, and the
+                // age at that instant is the best total-lifetime estimate (ageSeconds
+                // is measured from process start). Pass it as lifetime so a process
+                // present only in the log still gets a real lifetime, not -1.
+                long ageSec = sp.optLong("ageSeconds", 0);
+                mergeSubProcessEntry(byPid, sp.optLong("pid"), ageSec,
+                        sp.optBoolean("slow", false), sp.optString("command"), ts, ts, ageSec);
+            }
+        }
+
+        // --- Source 2: in-memory observations (covers still-alive processes) ---
+        // Overlap filter: only observations whose [firstSeen, lastSeen] intersects
+        // the effective interval, so the first report does not pull in unrelated
+        // processes that were observed long before the profile.
+        List<biouml.plugins.servermonitor.SubProcessMonitor.SubProcess> observed =
+                monitor.getObservedSubProcesses(intervalStart, intervalEnd);
+        for (biouml.plugins.servermonitor.SubProcessMonitor.SubProcess sp : observed)
+        {
+            long lifetime = sp.estimatedLifetimeSec();
+            mergeSubProcessEntry(byPid, sp.pid, sp.ageSeconds, sp.slow, sp.command,
+                    sp.firstSeenMs, sp.lastSeenMs,
+                    lifetime >= 0 ? lifetime : sp.ageSeconds);
+        }
+
+        List<SubProcessEntry> entries = new ArrayList<>(byPid.values());
+        entries.sort((a, b) ->
+        {
+            if (a.slow != b.slow) return a.slow ? -1 : 1;
+            return Long.compare(b.lastSeenMs, a.lastSeenMs);
+        });
+
+        summary.append(firstReport
+                ? "Slow external sub-processes observed during this profile's time window (deduplicated per pid):\n"
+                : "New slow external sub-processes observed since the previous report of this profile:\n");
+        summary.append("(lifetime~ = estimated total run time, from the latest observed age; "
+                + "everSlow = exceeded the slow threshold at least once)\n");
+
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        int totalSlow = 0;
+        for (SubProcessEntry e : entries) if (e.slow) totalSlow++;
+
+        int shown = 0;
+        for (SubProcessEntry e : entries)
+        {
+            if (!e.slow) continue; // summary only shows slow ones
+            summary.append(fmt.format(new Date(e.firstSeenMs))).append(" → ")
+                    .append(fmt.format(new Date(e.lastSeenMs)))
+                    .append("  pid=").append(e.pid)
+                    .append(" lifetime~").append(e.lifetimeSec).append("s  ")
+                    .append(e.command)
+                    .append("\n");
+            if (++shown >= 20)
+            {
+                summary.append("... (").append(totalSlow - shown).append(" more slow entries)\n");
+                return;
             }
         }
         if (shown == 0)
         {
-            summary.append("Sub-processes were running in this window but none exceeded the slow threshold.\n");
+            boolean anyAtAll = !entries.isEmpty();
+            summary.append(firstReport
+                    ? (anyAtAll
+                            ? "Sub-processes were running in this window but none exceeded the slow threshold.\n"
+                            : "No sub-processes recorded for this window (work was in-JVM, or the log is empty).\n")
+                    : "No new slow sub-processes observed since the previous report.\n");
+        }
+
+        // Persist the cursor so the next report starts where this one stopped.
+        persistSubProcessCursor(metaFile, meta, cursor, now, baseName, profileDir);
+    }
+
+    /**
+     * One deduplicated sub-process entry across multiple scans/observations.
+     *
+     * <p>Identity is the PID only (PIDs can be reused by the OS, see
+     * {@link #appendSubProcessSummary}); the entry's command and lifetime are
+     * those of the observations merged under that PID.
+     */
+    private static final class SubProcessEntry {
+        long pid;
+        long maxAgeSec;
+        boolean slow; // everSlow: true if it exceeded the threshold at least once
+        String command;
+        long firstSeenMs;
+        long lastSeenMs;
+        long lifetimeSec; // -1 = unknown (no age ever observed)
+    }
+
+    /**
+     * Merge one observation into the per-pid map: keep the earliest first-seen,
+     * latest last-seen, max age, and the first non-empty command seen. The
+     * lifetime is the max over the observations' own lifetime estimates (each a
+     * total-run estimate, since ageSeconds is measured from process start).
+     *
+     * <p>Merging is by PID alone; a PID reused by an unrelated process within the
+     * interval will collapse these observations into a single entry.
+     */
+    private static void mergeSubProcessEntry(java.util.Map<Long, SubProcessEntry> byPid, long pid,
+                                             long ageSec, boolean slow, String command,
+                                             long firstSeenMs, long lastSeenMs,
+                                             long lifetimeSec)
+    {
+        SubProcessEntry e = byPid.get(pid);
+        if (e == null)
+        {
+            e = new SubProcessEntry();
+            e.pid = pid;
+            e.firstSeenMs = firstSeenMs;
+            e.lastSeenMs = lastSeenMs;
+            e.lifetimeSec = lifetimeSec;
+            byPid.put(pid, e);
+        }
+        if (firstSeenMs > 0 && (e.firstSeenMs == 0 || firstSeenMs < e.firstSeenMs)) e.firstSeenMs = firstSeenMs;
+        if (lastSeenMs > e.lastSeenMs) e.lastSeenMs = lastSeenMs;
+        if (ageSec > e.maxAgeSec) e.maxAgeSec = ageSec;
+        e.slow = e.slow || slow;
+        if (command != null && !command.isEmpty() && (e.command == null || e.command.isEmpty())) e.command = command;
+        if (lifetimeSec >= 0 && (e.lifetimeSec < 0 || lifetimeSec > e.lifetimeSec)) e.lifetimeSec = lifetimeSec;
+    }
+
+    /**
+     * Persist the sub-process report cursor ({@code subProcessReportCursor}) into
+     * the profile's metadata sidecar so the next report resumes where this one
+     * stopped.
+     *
+     * <p>The cursor is the <em>report time</em> ({@code newCursor} = now at the
+     * moment the report was generated), not a log offset: it marks "everything
+     * observed up to this instant has been reported", which is what the next
+     * report's {@code [cursor, now]} interval should start from.
+     *
+     * <p>The write is atomic: the updated JSON is written to a temp file in the
+     * same directory and then renamed over the sidecar, so a crash mid-write
+     * cannot truncate or corrupt the existing profile metadata. The in-memory
+     * {@code meta} object is not mutated; a copy is written. Best effort: if the
+     * sidecar cannot be written (e.g. missing or read-only directory), the cursor
+     * is simply not advanced and the next report re-covers the window — nothing is
+     * lost.
+     */
+    private void persistSubProcessCursor(File metaFile, JSONObject meta, long oldCursor, long newCursor,
+                                         String baseName, File profileDir)
+    {
+        if (newCursor <= oldCursor)
+        {
+            return;
+        }
+        try
+        {
+            // Work on a copy so the caller's JSONObject is never mutated.
+            JSONObject out = (meta != null) ? new JSONObject(meta.toString()) : new JSONObject();
+            out.put("subProcessReportCursor", newCursor);
+
+            File target = metaFile.exists() ? metaFile
+                    : new File(profileDir, sanitizeFileName(baseName + ".json"));
+            File parent = target.getParentFile();
+            if (parent == null || !parent.isDirectory())
+            {
+                return;
+            }
+
+            // Atomic replace: write to a temp file in the same directory, then
+            // rename over the target (a rename on the same filesystem is atomic).
+            File tmp = File.createTempFile(target.getName() + ".", ".tmp", parent);
+            try
+            {
+                try (java.io.OutputStreamWriter w = new java.io.OutputStreamWriter(
+                        new FileOutputStream(tmp), "UTF-8"))
+                {
+                    w.write(out.toString(2));
+                }
+                try
+                {
+                    java.nio.file.Files.move(tmp.toPath(), target.toPath(),
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                            java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+                }
+                catch (java.nio.file.AtomicMoveNotSupportedException ame)
+                {
+                    java.nio.file.Files.move(tmp.toPath(), target.toPath(),
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+            finally
+            {
+                if (tmp.exists())
+                {
+                    tmp.delete();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            // Non-fatal: the report itself already went out; the cursor just
+            // does not advance this time.
         }
     }
 

@@ -76,12 +76,54 @@ public class SubProcessMonitor {
         public final long ageSeconds;
         public final String command;
         public final boolean slow; // age >= threshold
+        /** First time this pid was observed (ms); 0 for a single-scan snapshot. */
+        public final long firstSeenMs;
+        /** Last time this pid was observed (ms); 0 for a single-scan snapshot. */
+        public final long lastSeenMs;
+        /** Age (s) at first observation; 0 for a single-scan snapshot. */
+        public final long firstAgeSec;
+        /** Age (s) at last observation. */
+        public final long lastAgeSec;
 
         SubProcess(long pid, long ageSeconds, String command, boolean slow) {
             this.pid = pid;
             this.ageSeconds = ageSeconds;
             this.command = command;
             this.slow = slow;
+            this.firstSeenMs = 0;
+            this.lastSeenMs = 0;
+            this.firstAgeSec = 0;
+            this.lastAgeSec = 0;
+        }
+
+        SubProcess(long pid, long ageSeconds, long firstSeenMs, long lastSeenMs,
+                   long firstAgeSec, long lastAgeSec, boolean slow, String command) {
+            this.pid = pid;
+            this.ageSeconds = ageSeconds;
+            this.command = command;
+            this.slow = slow;
+            this.firstSeenMs = firstSeenMs;
+            this.lastSeenMs = lastSeenMs;
+            this.firstAgeSec = firstAgeSec;
+            this.lastAgeSec = lastAgeSec;
+        }
+
+        /**
+         * Estimated total lifetime of the process in seconds, or -1 if this is a
+         * single-scan snapshot that carries no age.
+         *
+         * <p>{@code ageSeconds} is the wall-clock time since the process started
+         * (see {@link #check()}, which computes it as {@code now - startInstant}),
+         * so the age at the <em>last</em> observation is already a total-lifetime
+         * estimate. Do NOT add the observation-interval wall-clock delta on top of
+         * it: the process was running for the whole interval, and the age delta
+         * over that same interval would double-count it.
+         */
+        public long estimatedLifetimeSec() {
+            if (lastAgeSec <= 0) {
+                return -1;
+            }
+            return lastAgeSec;
         }
     }
 
