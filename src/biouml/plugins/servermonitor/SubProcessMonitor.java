@@ -76,12 +76,51 @@ public class SubProcessMonitor {
         public final long ageSeconds;
         public final String command;
         public final boolean slow; // age >= threshold
+        /** First time this pid was observed (ms); 0 for a single-scan snapshot. */
+        public final long firstSeenMs;
+        /** Last time this pid was observed (ms); 0 for a single-scan snapshot. */
+        public final long lastSeenMs;
+        /** Age (s) at first observation; 0 for a single-scan snapshot. */
+        public final long firstAgeSec;
+        /** Age (s) at last observation. */
+        public final long lastAgeSec;
 
         SubProcess(long pid, long ageSeconds, String command, boolean slow) {
             this.pid = pid;
             this.ageSeconds = ageSeconds;
             this.command = command;
             this.slow = slow;
+            this.firstSeenMs = 0;
+            this.lastSeenMs = 0;
+            this.firstAgeSec = 0;
+            this.lastAgeSec = 0;
+        }
+
+        SubProcess(long pid, long ageSeconds, long firstSeenMs, long lastSeenMs,
+                   long firstAgeSec, long lastAgeSec, boolean slow, String command) {
+            this.pid = pid;
+            this.ageSeconds = ageSeconds;
+            this.command = command;
+            this.slow = slow;
+            this.firstSeenMs = firstSeenMs;
+            this.lastSeenMs = lastSeenMs;
+            this.firstAgeSec = firstAgeSec;
+            this.lastAgeSec = lastAgeSec;
+        }
+
+        /**
+         * Estimated lifetime in seconds, or -1 if this is a single-scan snapshot
+         * with no observation interval.
+         */
+        public long estimatedLifetimeSec() {
+            if (firstSeenMs <= 0 || lastSeenMs <= 0) {
+                return -1;
+            }
+            long observed = (lastSeenMs - firstSeenMs) / 1000L;
+            if (lastAgeSec > firstAgeSec) {
+                observed += lastAgeSec - firstAgeSec;
+            }
+            return observed;
         }
     }
 

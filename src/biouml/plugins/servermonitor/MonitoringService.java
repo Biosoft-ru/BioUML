@@ -91,6 +91,31 @@ public class MonitoringService {
     /** Last time the sub-process log was fully scanned for purging. */
     private long lastSubProcessLogPurgeTime = 0;
 
+    /**
+     * Per-pid observation state for external sub-processes. A single scan only
+     * proves a process was alive at one instant; by merging consecutive scans
+     * we can report each process's first-seen time, last-seen time and
+     * estimated lifetime instead of one snapshot per scan.
+     */
+    private static final class SubProcessObservation {
+        long firstSeenMs;
+        long lastSeenMs;
+        long firstAgeSec; // age at first observation (process started before we saw it)
+        long lastAgeSec;  // age at last observation
+        String command;
+        boolean everSlow;
+        int missedScans; // consecutive scans without the pid (pruned past a grace period)
+    }
+
+    /**
+     * Pids missed this many consecutive scans before being pruned. Covers one
+     * transient /proc read failure or scheduler hiccup without keeping dead
+     * pids around.
+     */
+    private static final int SUB_PROCESS_MISS_GRACE = 2;
+    private final Map<Long, SubProcessObservation> subProcessObservations =
+            new ConcurrentHashMap<>();
+
     // Guards append/rewrite of the sub-process log (single monitor thread writes,
     // but the API can read concurrently; keep the file in a consistent state).
     private final Object subProcessLogLock = new Object();
@@ -224,6 +249,11 @@ public class MonitoringService {
             List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
             lastSubProcesses = subs;
             lastSubProcessCheckTime = System.currentTimeMillis();
+
+            // Merge this scan into the per-pid observation state. The scan is
+            // authoritative for "alive now" even when empty: a scan that finds
+            // nothing means every previously-seen pid is (temporarily) gone.
+            updateSubProcessObservations(subs, lastSubProcessCheckTime);
 
             // Persist every non-empty scan so the timeline of long-running
             // external processes survives process exit and is retrievable via
@@ -428,6 +458,76 @@ public class MonitoringService {
         }
         record.put("subProcesses", arr);
         return record.toString();
+    }
+
+    /**
+     * Merge one scan into the per-pid observation map. Each scan is
+     * authoritative: pids present update first/last-seen, pids absent from a
+     * non-empty scan are counted as missed (and pruned after
+     * {@link #SUB_PROCESS_MISS_GRACE} consecutive misses, so one transient
+     * /proc read failure does not drop a process). An empty scan means "no
+     * descendants older than the minimum age at all" and marks every pid as
+     * missed in one go, so a process that ran across one missed scan still
+     * keeps its correct first/last-seen interval.
+     */
+    private void updateSubProcessObservations(List<SubProcessMonitor.SubProcess> subs, long nowMs) {
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        for (SubProcessMonitor.SubProcess sp : subs) {
+            seen.add(sp.pid);
+            SubProcessObservation obs = subProcessObservations.get(sp.pid);
+            if (obs == null) {
+                obs = new SubProcessObservation();
+                obs.firstSeenMs = nowMs;
+                obs.firstAgeSec = sp.ageSeconds;
+                obs.command = sp.command;
+            }
+            obs.lastSeenMs = nowMs;
+            obs.lastAgeSec = sp.ageSeconds;
+            obs.everSlow = obs.everSlow || sp.slow;
+            obs.missedScans = 0;
+            subProcessObservations.put(sp.pid, obs);
+        }
+        if (subs.isEmpty()) {
+            // Nothing alive: every known pid is missed this scan.
+            for (SubProcessObservation obs : subProcessObservations.values()) {
+                obs.missedScans++;
+            }
+        } else {
+            for (java.util.Map.Entry<Long, SubProcessObservation> e : subProcessObservations.entrySet()) {
+                if (!seen.contains(e.getKey())) {
+                    e.getValue().missedScans++;
+                }
+            }
+        }
+        subProcessObservations.entrySet().removeIf(
+                e -> e.getValue().missedScans >= SUB_PROCESS_MISS_GRACE);
+    }
+
+    /**
+     * Snapshot of the in-memory per-pid observations, for the profile summary.
+     *
+     * <p>Complements the persistent {@code subprocesses.jsonl} log: the log
+     * only covers the 7-day retention window, while this covers everything seen
+     * since service start, so a process that outlived the profile window is
+     * still attributable to the profile while it is still observable.
+     *
+     * @param sinceMs lower bound on firstSeen, inclusive; 0 = unbounded
+     * @param untilMs upper bound on lastSeen, inclusive; 0 = unbounded
+     */
+    public List<SubProcessMonitor.SubProcess> getObservedSubProcesses(long sinceMs, long untilMs) {
+        List<SubProcessMonitor.SubProcess> result = new ArrayList<>();
+        for (java.util.Map.Entry<Long, SubProcessObservation> e : subProcessObservations.entrySet()) {
+            long pid = e.getKey();
+            SubProcessObservation obs = e.getValue();
+            if (sinceMs > 0 && obs.firstSeenMs < sinceMs) continue;
+            if (untilMs > 0 && obs.lastSeenMs > untilMs) continue;
+            result.add(new SubProcessMonitor.SubProcess(pid,
+                    obs.lastAgeSec,
+                    obs.firstSeenMs, obs.lastSeenMs,
+                    obs.firstAgeSec, obs.lastAgeSec, obs.everSlow, obs.command));
+        }
+        result.sort((a, b) -> Long.compare(b.firstSeenMs, a.firstSeenMs));
+        return result;
     }
 
     /**
