@@ -122,7 +122,7 @@ public class SupportServlet extends AbstractJSONServlet
      */
     private static SubProcessReportLock acquireSubProcessReportLock(String lockKey)
     {
-        return subProcessReportLocks.compute(lockKey, (k, existing) ->
+        SubProcessReportLock reg = subProcessReportLocks.compute(lockKey, (k, existing) ->
         {
             if (existing == null)
             {
@@ -131,6 +131,14 @@ public class SupportServlet extends AbstractJSONServlet
             existing.users++;
             return existing;
         });
+        // Called before the caller enters the monitor, so a thread that has
+        // acquired the reference but is still about to wait is observable here.
+        java.util.function.Consumer<Object> observer = subProcessReportLockObserver;
+        if (observer != null)
+        {
+            observer.accept(reg);
+        }
+        return reg;
     }
 
     /**
@@ -152,6 +160,26 @@ public class SupportServlet extends AbstractJSONServlet
             return existing.users == 0 ? null : existing;
         });
     }
+
+    /**
+     * Test hook invoked <em>before</em> a thread enters a profile's sub-process
+     * report lock, after it has already acquired its registry reference
+     * (incremented {@code users}). A thread that has acquired the reference but is
+     * still about to block on the monitor can only be observed at this point, so
+     * this is the synchronization seam the concurrency regression test uses to
+     * create a "waiting" thread that keeps the registry entry alive.
+     *
+     * <p>Also called from {@link #acquireSubProcessReportLock} for every acquire,
+     * so the test can count how many distinct lock objects it sees per profile.
+     * {@code null} in production (the call is a cheap null check). The entry is
+     * passed as {@code Object} so the test (in a different package) can inspect
+     * its identity without needing to name the private nested type.
+     *
+     * <p>Declared as {@code Consumer&lt;Object&gt;} (a public JDK functional type)
+     * rather than a nested interface so the test can assign a lambda without
+     * importing a package-private type.
+     */
+    static volatile java.util.function.Consumer<Object> subProcessReportLockObserver;
 
     /**
      * Test hook invoked while holding a profile's sub-process report lock, before the
@@ -2254,19 +2282,21 @@ public class SupportServlet extends AbstractJSONServlet
      * observed up to this instant has been reported", which is what the next
      * report's {@code (cursor, now]} interval should start from.
      *
-     * <p>This is a true high-water mark for two reasons. (a) The monitor stamps a
-     * scan with {@code System.currentTimeMillis()} <em>before</em> it appends the
-     * line, so the appended line's timestamp is always &lt;= the wall-clock moment
-     * the append completes. (b) Both the append and the report's read
-     * ({@code readSubProcessLog}) are serialized on {@code MonitoringService}'s
-     * {@code subProcessLogLock}, so the report's read sees a log that is closed
-     * under "append completed": a scan whose timestamp is &lt;= the report's
-     * {@code now} either finished appending before the read began (and is
-     * included) or started after it ended (and its timestamp is &gt; now, so it is
-     * correctly left for the next report). A line can therefore never land behind
-     * the cursor with a timestamp &lt;= now. If the log writer were ever made
-     * asynchronous or the read stopped taking that lock, this invariant would have
-     * to be re-established.
+     * <p>This is a true high-water mark for two reasons that must hold <em>together</em>.
+     * (a) The monitor captures the scan's timestamp with {@code System.currentTimeMillis()}
+     * <em>inside</em> {@code subProcessLogLock}, in the same critical section that writes
+     * the line (see {@code MonitoringService.appendSubProcessLog}). Capturing it before
+     * the lock would break the invariant: a line could carry an old timestamp yet be
+     * written after the report's read. (b) Both that append and the report's read
+     * ({@code readSubProcessLog}) are serialized on the same {@code subProcessLogLock},
+     * so the report's read sees a log that is closed under "append completed": a scan
+     * appended after the read has a timestamp strictly &gt; the report's {@code now}
+     * (the read finished before that line was written), and one appended before has
+     * timestamp &lt;= now and is already in the file the report read. A line can
+     * therefore never land behind the cursor with a timestamp &lt;= now. If the log
+     * writer were ever made asynchronous, the timestamp were captured outside the lock,
+     * or the read stopped taking that lock, this invariant would have to be
+     * re-established.
      *
      * <p>The write is atomic: the updated JSON is written to a temp file in the
      * same directory and then renamed over the sidecar, so a crash mid-write
@@ -2387,14 +2417,24 @@ public class SupportServlet extends AbstractJSONServlet
             JSONObject m = new JSONObject(readFileContent(metaFile));
             return m.optLong("subProcessReportCursor", 0);
         }
-        catch (Exception e)
+        catch (java.io.IOException e)
         {
-            // The caller treats null as "exists but unreadable" and refuses to
-            // overwrite the sidecar; log at FINE so a genuine I/O/security failure
-            // (as opposed to a malformed file) is diagnosable without noise.
+            // A genuine I/O or security failure (as opposed to a malformed file):
+            // the caller treats null as "exists but unreadable" and refuses to
+            // overwrite the sidecar. Log with the stack trace at FINE so it is
+            // diagnosable without noise in normal operation.
             log.log(java.util.logging.Level.FINE,
                     "Could not read sub-process report cursor from " + metaFile.getAbsolutePath(), e);
-            return null; // exists but unreadable/malformed — do not treat as 0
+            return null; // exists but unreadable — do not treat as 0
+        }
+        catch (Exception e)
+        {
+            // The file exists and was readable but is not valid JSON. This is
+            // expected for a sidecar that another writer left malformed; a concise
+            // FINE message (no stack trace) keeps the log clean.
+            log.fine("Malformed sub-process report cursor sidecar "
+                    + metaFile.getAbsolutePath() + " (treating as unreadable)");
+            return null; // exists but malformed — do not treat as 0
         }
     }
 
@@ -2610,10 +2650,30 @@ public class SupportServlet extends AbstractJSONServlet
     // Helper methods for profile API
     //
 
+    /**
+     * Per-instance test seam for {@link #getServerMonitorPlugin()}. When set (via
+     * {@link #setServerMonitorPluginForTest}), {@code getServerMonitorPlugin()}
+     * returns this plugin instead of the process-wide singleton, so the
+     * concurrency regression test can exercise the full report path with a
+     * dedicated {@code MonitoringService} without mutating global state.
+     * {@code null} in production and for all other callers.
+     */
+    private biouml.plugins.servermonitor.ServerMonitorPlugin serverMonitorPluginForTest;
+
+    /** Set the per-instance plugin override used by tests; {@code null} to clear. */
+    void setServerMonitorPluginForTest(biouml.plugins.servermonitor.ServerMonitorPlugin plugin)
+    {
+        this.serverMonitorPluginForTest = plugin;
+    }
+
     private biouml.plugins.servermonitor.ServerMonitorPlugin getServerMonitorPlugin()
     {
-        // The plugin is initialized by ServerMonitorPlugin.init() which creates the service
-        // We access it through the singleton reference
+        // Per-instance test seam, if set; otherwise the process-wide singleton,
+        // which is initialized by ServerMonitorPlugin.init().
+        if (serverMonitorPluginForTest != null)
+        {
+            return serverMonitorPluginForTest;
+        }
         return biouml.plugins.servermonitor.ServerMonitorPlugin.getInstance();
     }
 

@@ -240,12 +240,15 @@ public class MonitoringService {
      * record the result for the profile API. Logs a SEVERE line the first time
      * each sub-process crosses the slow threshold.
      *
-     * <p>The timestamped append here (via {@link #appendSubProcessLog}) and every
-     * read via {@link #readSubProcessLog} both take {@link #subProcessLogLock}, so
-     * the log is never read while it is being appended to. That is what makes the
-     * high-water cursor invariant hold: a report that reads the log under this lock
-     * sees a stable prefix, and the scan's own append (also under the lock) is
-     * either entirely before or entirely after the report's read — never interleaved.
+     * <p>The append here (via {@link #appendSubProcessLog}) and every read via
+     * {@link #readSubProcessLog} both take {@link #subProcessLogLock}, so the log
+     * is never read while it is being appended to. Because the log line's
+     * timestamp is also captured under that lock (see
+     * {@link #appendSubProcessLog}), a report that read the log at time {@code now}
+     * only ever sees lines with timestamp &lt;= now; a line appended afterwards
+     * necessarily has timestamp &gt; now. That is the ordering the report cursor's
+     * high-water invariant relies on — so the cursor must never move backwards
+     * relative to what a report has already covered.
      */
     private void checkSubProcesses() {
         if (!config.isSubProcessEnabled()) {
@@ -254,6 +257,11 @@ public class MonitoringService {
         try {
             List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
             lastSubProcesses = subs;
+            // Timestamp of this scan, exposed via getLastSubProcessCheckTime() for
+            // the status payload. NOTE: this is NOT the log line's timestamp — that
+            // one is captured inside appendSubProcessLog under subProcessLogLock
+            // (see its doc), because the ordering relative to the lock is what the
+            // report cursor relies on.
             lastSubProcessCheckTime = System.currentTimeMillis();
 
             // Merge this scan into the per-pid observation state. The scan is
@@ -263,9 +271,11 @@ public class MonitoringService {
 
             // Persist every non-empty scan so the timeline of long-running
             // external processes survives process exit and is retrievable via
-            // the API (the live status only shows the current snapshot).
+            // the API (the live status only shows the current snapshot). The
+            // log line's own timestamp is captured inside appendSubProcessLog,
+            // after it acquires subProcessLogLock.
             if (!subs.isEmpty()) {
-                appendSubProcessLog(subs, lastSubProcessCheckTime);
+                appendSubProcessLog(subs);
             }
         } catch (Exception e) {
             log.log(Level.WARNING, "Sub-process scan failed", e);
@@ -282,44 +292,75 @@ public class MonitoringService {
      * rewrite/compact runs only when the line cap is exceeded or at most every
      * {@link #SUB_PROCESS_LOG_PURGE_INTERVAL}, so the age bound is enforced
      * without scanning on every cycle.
+     *
+     * <p>The line's timestamp is captured <em>here, inside the lock</em>, not by
+     * the caller. That ordering is what makes the report cursor's high-water
+     * invariant hold: a scan appended after a report's read has a timestamp
+     * &gt; the report's {@code now} (the report read the whole file before this
+     * line was written, so its {@code now} precedes this one), and a scan
+     * appended before the report has a timestamp &lt;= it and is already in the
+     * file the report read. A pre-lock timestamp would break this: a line could
+     * carry an old timestamp yet be written after the read.
      */
-    private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+    private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs) {
         File logFile = getSubProcessLogFile();
         if (logFile == null) {
             return;
         }
         synchronized (subProcessLogLock) {
-            try {
-                // Seed the in-memory count BEFORE appending so that the
-                // subsequent increment reflects the post-append state.
-                // (Seeding after the append would double-count the new line.)
-                if (subProcessLogCount < 0) {
-                    subProcessLogCount = logFile.exists()
-                            ? countSubProcessLogLines(logFile) : 0;
-                }
+            // Capture the timestamp now that we hold subProcessLogLock, so the
+            // high-water invariant the report cursor relies on is preserved
+            // (see the method doc on the two-arg overload below).
+            appendSubProcessLogLocked(subs, System.currentTimeMillis());
+        }
+    }
 
-                // Append — the hot path must never scan the whole file.
-                String line = buildSubProcessRecord(subs, timestamp);
-                try (BufferedWriter writer = new BufferedWriter(
-                        new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
-                    writer.write(line);
-                    writer.newLine();
-                }
-                subProcessLogCount++;
-
-                long now = System.currentTimeMillis();
-
-                // Purge only when the line cap is exceeded or the age scan is
-                // due. The age check is a full scan, so it must not run on
-                // every monitor cycle.
-                boolean overCap = subProcessLogCount > MAX_SUB_PROCESS_LOG_LINES;
-                boolean ageDue = now - lastSubProcessLogPurgeTime >= SUB_PROCESS_LOG_PURGE_INTERVAL;
-                if (overCap || ageDue) {
-                    purgeAndCompactSubProcessLog(logFile, now);
-                }
-            } catch (Exception e) {
-                log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
+    /**
+     * Core append that takes the caller's timestamp. The production path
+     * ({@link #appendSubProcessLog(List)}) calls this with a timestamp captured
+     * <em>after</em> acquiring {@link #subProcessLogLock}, which is what makes the
+     * report cursor's high-water invariant hold: a line appended after a report's
+     * read has a timestamp &gt; the report's {@code now}, and one appended before
+     * has a timestamp &lt;= it. The two-arg form is also called by the test suite
+     * with a pinned (usually past) timestamp to exercise the time-range read
+     * logic; that use is test-only and does not rely on the invariant.
+     */
+    private void appendSubProcessLogLocked(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+        File logFile = getSubProcessLogFile();
+        if (logFile == null) {
+            return;
+        }
+        // Caller must hold subProcessLogLock (or, in the test, accept that no
+        // other thread is concurrently appending).
+        try {
+            // Seed the in-memory count BEFORE appending so that the
+            // subsequent increment reflects the post-append state.
+            // (Seeding after the append would double-count the new line.)
+            if (subProcessLogCount < 0) {
+                subProcessLogCount = logFile.exists()
+                        ? countSubProcessLogLines(logFile) : 0;
             }
+
+            // Append — the hot path must never scan the whole file.
+            String line = buildSubProcessRecord(subs, timestamp);
+            try (BufferedWriter writer = new BufferedWriter(
+                    new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
+                writer.write(line);
+                writer.newLine();
+            }
+            subProcessLogCount++;
+
+            long now = timestamp;
+            // Purge only when the line cap is exceeded or the age scan is
+            // due. The age check is a full scan, so it must not run on
+            // every monitor cycle.
+            boolean overCap = subProcessLogCount > MAX_SUB_PROCESS_LOG_LINES;
+            boolean ageDue = now - lastSubProcessLogPurgeTime >= SUB_PROCESS_LOG_PURGE_INTERVAL;
+            if (overCap || ageDue) {
+                purgeAndCompactSubProcessLog(logFile, now);
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
         }
     }
 

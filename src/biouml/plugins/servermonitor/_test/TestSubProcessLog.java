@@ -106,10 +106,16 @@ public class TestSubProcessLog extends junit.framework.TestCase
         return ctor.newInstance(pid, age, cmd, slow);
     }
 
-    /** Call private appendSubProcessLog(List, long). */
+    /**
+     * Call private appendSubProcessLogLocked(List, long) directly with a pinned
+     * timestamp, bypassing the production entry point that captures the timestamp
+     * under the lock. This is test-only: it lets us write records at arbitrary
+     * (usually past) timestamps so the time-range read logic and the cursor
+     * interval can be exercised without waiting for the wall clock.
+     */
     private void append(List<SubProcessMonitor.SubProcess> subs, long ts) throws Exception
     {
-        Method m = MonitoringService.class.getDeclaredMethod("appendSubProcessLog", List.class, long.class);
+        Method m = MonitoringService.class.getDeclaredMethod("appendSubProcessLogLocked", List.class, long.class);
         m.setAccessible(true);
         m.invoke(service, subs, ts);
     }
@@ -776,23 +782,27 @@ public class TestSubProcessLog extends junit.framework.TestCase
      *
      * <p>This drives the <em>full</em> {@code appendSubProcessSummary} happy path
      * (a real {@link MonitoringService} wired in through the plugin test hook, so
-     * the read → generate → persist sequence actually runs) and, with latches,
-     * deterministically creates the lock-lifetime race the ref-counted registry
-     * must prevent:
+     * the read → generate → persist sequence actually runs) and, with the
+     * {@code beforeEnter} lock observer, deterministically creates the
+     * lock-lifetime race the ref-counted registry must prevent:
      *
      * <pre>
-     *   A acquires the lock and holds it;
-     *   B acquires the same entry but is still blocked on the monitor;
-     *   A releases (a ref-count that ignores waiters would evict the entry here);
-     *   C acquires and, if the entry was evicted, gets a *different* lock object;
-     *   B finally enters the critical section.
+     *   A acquires the registry entry and enters the monitor;
+     *   B acquires the same entry (users++) but is still waiting before the monitor;
+     *   A releases the monitor (a ref-count that ignores waiters would evict the
+     *     entry here);
+     *   C acquires the entry — if it was evicted, C gets a *different* lock object;
+     *   B proceeds and enters the monitor.
      * </pre>
      *
-     * If B and C end up on different lock objects they enter at the same time and
-     * the in-lock counter reaches 2. A correct ref-count (counting waiters, not
-     * just holders) keeps B and C on the same monitor, so they serialize and the
-     * counter never exceeds 1. The test also asserts the registry does not retain
-     * entries once every report has returned.
+     * With a broken registry (no waiter counting), C's {@code beforeEnter} would
+     * see a fresh entry and the test's distinct-entries counter would reach 2; the
+     * test asserts it stays at 1, which is the direct invariant the patch protects.
+     * The test also asserts the in-lock counter never exceeds 1 and that the
+     * registry is empty once every report has returned.
+     *
+     * <p>All waits are bounded (5 s) so a broken synchronization fails the test
+     * promptly instead of hanging the JVM.
      */
     public void testConcurrentReportsAreSerializedPerProfile() throws Exception
     {
@@ -810,48 +820,105 @@ public class TestSubProcessLog extends junit.framework.TestCase
         cfg.set(ServerMonitorConfig.PROFILER_DIR, profileDir.getAbsolutePath());
         MonitoringService svc = new MonitoringService(cfg);
         seedObservation(777, System.currentTimeMillis(), System.currentTimeMillis(), 999L);
+        // A dedicated plugin instance carrying our service (its private service
+        // field is set via reflection; start() is never called, so no monitor
+        // thread is spawned).
         ServerMonitorPlugin plugin = new ServerMonitorPlugin();
-        Method setOverride = ServerMonitorPlugin.class.getDeclaredMethod(
-                "setMonitoringServiceOverride", MonitoringService.class);
-        setOverride.setAccessible(true);
-        setOverride.invoke(null, svc);
+        java.lang.reflect.Field svcField = ServerMonitorPlugin.class.getDeclaredField("monitoringService");
+        svcField.setAccessible(true);
+        svcField.set(plugin, svc);
+        // Point the servlet instance at our plugin via its per-instance test seam,
+        // so getServerMonitorPlugin() returns it without touching the global
+        // singleton. The instance was created with the no-arg ctor / Unsafe, so
+        // the seam field is simply absent/null — safe to set.
+        Method setPluginForTest = servlet.getDeclaredMethod(
+                "setServerMonitorPluginForTest", ServerMonitorPlugin.class);
+        setPluginForTest.setAccessible(true);
+        setPluginForTest.invoke(inst, plugin);
 
         final File profileA = new File(profileDir, "a.json");
 
-        // Count simultaneous holders of profile A's lock; maxConcurrentA must stay 1.
-        final java.util.concurrent.atomic.AtomicInteger inLockA = new java.util.concurrent.atomic.AtomicInteger();
-        final java.util.concurrent.atomic.AtomicInteger maxConcurrentA = new java.util.concurrent.atomic.AtomicInteger();
+        // State shared by the beforeEnter hook (called under no lock; safe).
+        final java.util.concurrent.atomic.AtomicInteger distinctEntries =
+                new java.util.concurrent.atomic.AtomicInteger(); // distinct lock objects seen for profile A
+        final java.util.concurrent.atomic.AtomicInteger inLockA =
+                new java.util.concurrent.atomic.AtomicInteger(); // threads inside the monitor
+        final java.util.concurrent.atomic.AtomicInteger maxConcurrentA =
+                new java.util.concurrent.atomic.AtomicInteger();
 
-        // Latches: aDone = A released; cDone = C finished (so B is released next).
-        final java.util.concurrent.CountDownLatch aDone = new java.util.concurrent.CountDownLatch(1);
-        final java.util.concurrent.CountDownLatch cDone = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.CountDownLatch aEntered =
+                new java.util.concurrent.CountDownLatch(1); // A is inside the monitor
+        final java.util.concurrent.CountDownLatch bBeforeMonitor =
+                new java.util.concurrent.CountDownLatch(1); // B has called beforeEnter (entry acquired, not yet in monitor)
+        final java.util.concurrent.CountDownLatch aReleased =
+                new java.util.concurrent.CountDownLatch(1); // A finished the monitor block
+        final java.util.concurrent.CountDownLatch cAcquired =
+                new java.util.concurrent.CountDownLatch(1); // C has called beforeEnter
+        final java.util.concurrent.CountDownLatch bReleased =
+                new java.util.concurrent.CountDownLatch(1); // B finished the monitor block
 
+        // beforeEnter hook: runs between acquireSubProcessReportLock and synchronized.
+        // We can inspect the entry's identity here to detect a second lock object
+        // for the same profile, which is exactly the bug the patch prevents.
+        final java.util.concurrent.atomic.AtomicInteger entrySeen = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger entryCount = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicReference<Object> firstEntry = new java.util.concurrent.atomic.AtomicReference<>();
+
+        java.lang.reflect.Field observerField = servlet.getDeclaredField("subProcessReportLockObserver");
+        observerField.setAccessible(true);
+        java.util.function.Consumer<Object> observer = (obj) -> {
+            // This hook is called for every acquire of a profile-A lock. Track distinct entries.
+            Object entry = obj;
+            Object prev = firstEntry.getAndSet(entry);
+            if (prev == null) {
+                entryCount.incrementAndGet();
+            } else if (prev != entry) {
+                // A second, distinct lock object for the same profile — the bug.
+                entryCount.incrementAndGet();
+            }
+            entrySeen.incrementAndGet();
+            // Signal per-thread progress via a thread-local (the hook is called once per acquire).
+            String t = Thread.currentThread().getName();
+            if (t.startsWith("B-")) {
+                bBeforeMonitor.countDown();
+            } else if (t.startsWith("C-")) {
+                cAcquired.countDown();
+            }
+            // (A's acquire is not signalled via beforeEnter; A's monitor entry is signalled by the test hook below.)
+        };
+        observerField.set(null, observer);
+
+        // Inside-the-monitor hook: count concurrent holders and signal A/B release.
         java.lang.reflect.Field hookField = servlet.getDeclaredField("subProcessReportLockTestHook");
         hookField.setAccessible(true);
         hookField.set(null, (Runnable) () -> {
             int cur = inLockA.incrementAndGet();
             maxConcurrentA.accumulateAndGet(cur, Math::max);
+            String t = Thread.currentThread().getName();
             try
             {
-                // Deterministic interleaving (all A threads target profile A):
-                //   A (first in) releases after holding; B (second in) blocks until
-                //   C is done, which is exactly the moment B would race C in the
-                //   eviction scenario if the registry had dropped the entry; C
-                //   (third in) releases after holding.
-                if (cur == 1)
+                if (t.startsWith("A-"))
                 {
-                    Thread.sleep(80);
-                    aDone.countDown();
+                    // A holds the monitor. Signal that we are in, then hold long
+                    // enough that B (started afterwards) is guaranteed to block on
+                    // the monitor before A exits.
+                    aEntered.countDown();
+                    Thread.sleep(1500);
+                    aReleased.countDown();   // A is about to release the monitor
                 }
-                else if (cur == 2)
+                else if (t.startsWith("B-"))
                 {
-                    cDone.await();
-                    Thread.sleep(80);
+                    // B has the monitor (A must have released). Hold it long enough
+                    // that C (which acquires the registry entry right after aReleased)
+                    // is still queued behind B when the poll below runs — so B's
+                    // eventual release cannot evict the entry before C acquires it.
+                    Thread.sleep(1000);
+                    bReleased.countDown();
                 }
-                else
+                else // C-
                 {
-                    Thread.sleep(80);
-                    cDone.countDown();
+                    // C is behind B on the monitor; hold briefly.
+                    Thread.sleep(300);
                 }
             }
             catch (InterruptedException e)
@@ -865,33 +932,86 @@ public class TestSubProcessLog extends junit.framework.TestCase
         {
             try { append.invoke(inst, new StringBuilder(), profileA, "a", profileDir); }
             catch (Exception e) { throw new RuntimeException(e); }
-        });
+        }, "A-report");
         Thread threadB = new Thread(() ->
         {
             try { append.invoke(inst, new StringBuilder(), profileA, "a", profileDir); }
             catch (Exception e) { throw new RuntimeException(e); }
-        });
+        }, "B-report");
         Thread threadC = new Thread(() ->
         {
             try { append.invoke(inst, new StringBuilder(), profileA, "a", profileDir); }
             catch (Exception e) { throw new RuntimeException(e); }
-        });
+        }, "C-report");
 
         try
         {
+            // A acquires the entry and enters the monitor, holding it for 1.5 s.
             threadA.start();
-            aDone.await();                 // A has finished its report (lock released)
-            threadB.start();               // B acquires the entry; blocked on the monitor
-            threadC.start();               // C acquires the entry; may block or run
-            threadA.join();
-            threadC.join();                // C released -> B is released (in-lock count -> 1)
-            threadB.join();
+            assertTrue("A must enter the monitor (aEntered)",
+                    aEntered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+
+            // B acquires the same entry (users++) and blocks on the monitor while
+            // A still holds it. Wait until B has at least called beforeEnter, then
+            // give it a moment so it is actually parked on the monitor.
+            threadB.start();
+            assertTrue("B must reach beforeEnter (bBeforeMonitor)",
+                    bBeforeMonitor.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            Thread.sleep(200); // let B park on the monitor
+
+            // Now wait for A to finish (it holds the monitor 1.5 s, so B is safely
+            // blocked throughout), and — critically — for A's release to actually
+            // complete (the map entry removed). The moment the entry is gone is when
+            // a broken registry has evicted it, so C must arrive only after that.
+            assertTrue("A must release the monitor (aReleased)",
+                    aReleased.await(10, java.util.concurrent.TimeUnit.SECONDS));
+            // Poll briefly (50 ms) to let A's release (in the finally, just after the
+            // monitor exits) land. In the broken implementation the entry is evicted
+            // here and the map goes empty within that window; in the correct
+            // implementation the entry persists (B is queued on the monitor) so the
+            // poll times out with the map still non-empty. Either way we now start C,
+            // and the assertion below distinguishes the cases by how many distinct
+            // lock objects C's acquire observed.
+            java.lang.reflect.Field regField = servlet.getDeclaredField("subProcessReportLocks");
+            regField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            java.util.Map<Object, Object> registry = (java.util.Map<Object, Object>) regField.get(null);
+            long regDeadline = System.currentTimeMillis() + 50;
+            while (registry.size() > 0 && System.currentTimeMillis() < regDeadline) {
+                Thread.sleep(5);
+            }
+
+            // C arrives after A's release has completed. B is still waiting on the
+            // monitor. With the correct ref-count (counting B as a waiter) the entry
+            // is still present (the poll above timed out) and C reuses it
+            // (entryCount stays 1). With the broken registry the entry was evicted
+            // (the poll above saw it empty) and C creates a fresh one (entryCount 2).
+            threadC.start();
+            assertTrue("C must reach beforeEnter (cAcquired)",
+                    cAcquired.await(5, java.util.concurrent.TimeUnit.SECONDS));
+
+            // Let B (now unblocked) and C finish their reports.
+            assertTrue("B must finish its report (bReleased)",
+                    bReleased.await(10, java.util.concurrent.TimeUnit.SECONDS));
+            threadA.join(5000);
+            threadC.join(5000);
+            threadB.join(5000);
+            assertFalse("threadA must have terminated", threadA.isAlive());
+            assertFalse("threadC must have terminated", threadC.isAlive());
+            assertFalse("threadB must have terminated", threadB.isAlive());
         }
         finally
         {
-            hookField.set(null, null);     // never leak the hook into other tests
-            setOverride.invoke(null, (Object) null);
+            observerField.set(null, null);   // never leak the hooks into other tests
+            hookField.set(null, null);
+            setPluginForTest.invoke(inst, (Object) null);
         }
+
+        // The direct invariant the patch protects: B and C must have seen the SAME
+        // lock object. If the registry had evicted the entry while B was waiting,
+        // C's acquire would have created a second one.
+        assertTrue("B and C must use the same lock object; distinct lock objects seen="
+                + entryCount.get(), entryCount.get() == 1);
 
         // B and C must never have been in the critical section at the same time.
         assertTrue("B and C must not run the same-profile report concurrently "
