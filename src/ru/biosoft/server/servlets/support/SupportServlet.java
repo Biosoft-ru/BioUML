@@ -80,12 +80,38 @@ public class SupportServlet extends AbstractJSONServlet
 
     static final String lineSeparator = System.getProperty("line.separator");
 
-    // Per-profile locks for the sub-process report (appendSubProcessSummary). Two
-    // concurrent requests for the same profile can otherwise both read the same
+    // Per-profile lock registry for the sub-process report (appendSubProcessSummary).
+    // Two concurrent requests for the same profile can otherwise both read the same
     // cursor, generate overlapping reports, and persist their report-time values out
-    // of order — moving the cursor backwards. Serializing read+generate+persist per
-    // profile keeps the cursor a true high-water mark.
-    private static final java.util.Map<String, Object> subProcessReportLocks = new java.util.concurrent.ConcurrentHashMap<>();
+    // of order — moving the cursor backwards. The read+generate+persist sequence is
+    // serialized per profile.
+    //
+    // The registry is bounded: a reference count tracks how many threads currently
+    // hold each lock, and the last thread to leave the synchronized block removes the
+    // entry from the map, so it does not grow without bound as profiles are created.
+    // A canonical-path key is used so the same profile reached via different path
+    // spellings (or symlinks) shares one lock.
+    private static final java.util.concurrent.ConcurrentHashMap<String, SubProcessReportLock> subProcessReportLocks =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * A lock object paired with a live-holder count so the registry can evict an
+     * entry once no thread holds it any more. The count is only meaningful while at
+     * least one thread is inside the corresponding {@code synchronized} block.
+     */
+    private static final class SubProcessReportLock
+    {
+        final Object monitor = new Object();
+        int holders;
+    }
+
+    /**
+     * Test hook invoked while holding a profile's sub-process report lock, before the
+     * monitoring plugin is resolved. Used by the concurrency regression test to
+     * observe lock hold time and detect overlapping same-profile reports. {@code null}
+     * in production.
+     */
+    static volatile Runnable subProcessReportLockTestHook;
 
     //
     // Servlet request keys
@@ -1931,19 +1957,48 @@ public class SupportServlet extends AbstractJSONServlet
      */
     private void appendSubProcessSummary(StringBuilder summary, File metaFile, String baseName, File profileDir)
     {
-        biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
-        if (plugin == null || plugin.getMonitoringService() == null)
-        {
-            summary.append("Sub-process log unavailable (monitoring service not running)\n");
-            return;
-        }
         // Serialize the read → generate → persist sequence per profile so concurrent
         // requests cannot interleave and move the cursor backwards (see the field).
-        String lockKey = metaFile.getAbsolutePath() + "|" + baseName;
-        Object lock = subProcessReportLocks.computeIfAbsent(lockKey, k -> new Object());
-        synchronized (lock)
+        // The lock is taken before the plugin check so the whole method body is
+        // serialized, not just the happy path.
+        String lockKey;
+        try
         {
-            appendSubProcessSummaryLocked(summary, plugin, metaFile, baseName, profileDir);
+            lockKey = metaFile.getCanonicalPath() + "|" + baseName;
+        }
+        catch (java.io.IOException e)
+        {
+            lockKey = metaFile.getAbsolutePath() + "|" + baseName;
+        }
+        SubProcessReportLock reg = subProcessReportLocks.computeIfAbsent(lockKey, k -> new SubProcessReportLock());
+        synchronized (reg.monitor)
+        {
+            reg.holders++;
+            try
+            {
+                Runnable hook = subProcessReportLockTestHook;
+                if (hook != null)
+                {
+                    hook.run();
+                }
+                biouml.plugins.servermonitor.ServerMonitorPlugin plugin = getServerMonitorPlugin();
+                if (plugin == null || plugin.getMonitoringService() == null)
+                {
+                    summary.append("Sub-process log unavailable (monitoring service not running)\n");
+                    return;
+                }
+                appendSubProcessSummaryLocked(summary, plugin, metaFile, baseName, profileDir);
+            }
+            finally
+            {
+                // Evict the registry entry once we are the last holder, so the map
+                // does not retain a lock object per profile forever.
+                reg.holders--;
+                if (reg.holders == 0)
+                {
+                    subProcessReportLocks.remove(lockKey, reg);
+                }
+            }
         }
     }
 
@@ -2154,14 +2209,19 @@ public class SupportServlet extends AbstractJSONServlet
      * observed up to this instant has been reported", which is what the next
      * report's {@code (cursor, now]} interval should start from.
      *
-     * <p>This is a true high-water mark because the monitor writes the log
-     * <em>synchronously</em> in the same {@code checkSubProcesses()} call that
-     * records the observation timestamp (it appends the scan before the monitor
-     * thread can advance to a later scan). So by the time a report generated at
-     * {@code now} reads the log, every log line with {@code timestamp <= now} is
-     * already on disk; an older-timestamped line cannot appear behind the cursor
-     * after the fact. (If the log writer were ever made asynchronous, this
-     * invariant would have to be re-established.)
+     * <p>This is a true high-water mark for two reasons. (a) The monitor stamps a
+     * scan with {@code System.currentTimeMillis()} <em>before</em> it appends the
+     * line, so the appended line's timestamp is always &lt;= the wall-clock moment
+     * the append completes. (b) Both the append and the report's read
+     * ({@code readSubProcessLog}) are serialized on {@code MonitoringService}'s
+     * {@code subProcessLogLock}, so the report's read sees a log that is closed
+     * under "append completed": a scan whose timestamp is &lt;= the report's
+     * {@code now} either finished appending before the read began (and is
+     * included) or started after it ended (and its timestamp is &gt; now, so it is
+     * correctly left for the next report). A line can therefore never land behind
+     * the cursor with a timestamp &lt;= now. If the log writer were ever made
+     * asynchronous or the read stopped taking that lock, this invariant would have
+     * to be re-established.
      *
      * <p>The write is atomic: the updated JSON is written to a temp file in the
      * same directory and then renamed over the sidecar, so a crash mid-write
@@ -2198,7 +2258,14 @@ public class SupportServlet extends AbstractJSONServlet
         // per-profile lock this normally cannot happen, but it also protects against
         // any future caller that writes the cursor outside that lock (a stale
         // report-time value would otherwise clobber a newer high-water mark).
-        long onDisk = readSubProcessCursor(metaFile);
+        Long onDisk = readSubProcessCursor(metaFile);
+        if (onDisk == null)
+        {
+            // The sidecar appeared/changed to an unreadable state between the read
+            // in appendSubProcessSummaryLocked and now. Refuse to write rather than
+            // clobber it (mirrors the meta == null guard above).
+            return;
+        }
         if (newCursor <= onDisk)
         {
             return;
@@ -2255,15 +2322,20 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
     /**
-     * Read the currently-persisted sub-process report cursor from the sidecar, or 0
-     * if the file is absent or unparseable. Used by {@link #persistSubProcessCursor}
-     * to avoid clobbering a newer high-water mark.
+     * Read the currently-persisted sub-process report cursor from the sidecar.
+     * Returns 0 if the file is absent (never reported yet), the stored value if it
+     * parses, and {@code null} if the file exists but cannot be read or parsed.
+     *
+     * <p>The distinction between 0 and {@code null} matters for the high-water
+     * guard in {@link #persistSubProcessCursor}: an absent file (0) may be
+     * advanced, but a malformed one ({@code null}) must not be — writing over it
+     * would destroy whatever it held.
      */
-    private long readSubProcessCursor(File metaFile)
+    private Long readSubProcessCursor(File metaFile)
     {
         if (!metaFile.exists())
         {
-            return 0;
+            return 0L;
         }
         try
         {
@@ -2272,7 +2344,7 @@ public class SupportServlet extends AbstractJSONServlet
         }
         catch (Exception e)
         {
-            return 0;
+            return null; // exists but unreadable/malformed — do not treat as 0
         }
     }
 

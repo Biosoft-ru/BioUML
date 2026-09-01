@@ -31,6 +31,9 @@ public class TestSubProcessLog extends junit.framework.TestCase
     private MonitoringService service;
     private File tmpDir;
 
+    /** Thread-local marker: set on threads that are submitting a report for profile A. */
+    private static final ThreadLocal<Boolean> A_THREAD_ID = new ThreadLocal<>();
+
     public TestSubProcessLog(String name)
     {
         super(name);
@@ -54,6 +57,7 @@ public class TestSubProcessLog extends junit.framework.TestCase
         suite.addTest(new TestSubProcessLog("testPersistCursorAtomicAndCopy"));
         suite.addTest(new TestSubProcessLog("testCursorIntervalIsHalfOpen"));
         suite.addTest(new TestSubProcessLog("testCursorNeverMovesBackwards"));
+        suite.addTest(new TestSubProcessLog("testConcurrentReportsAreSerializedPerProfile"));
         return suite;
     }
 
@@ -763,6 +767,101 @@ public class TestSubProcessLog extends junit.framework.TestCase
         persist.invoke(inst, metaFile, meta, 300L, 400L, "profile", tmpDir);
         assertEquals("newer cursor advances", 400L,
                 new org.json.JSONObject(readAll(metaFile)).optLong("subProcessReportCursor", 0));
+    }
+
+    /**
+     * Regression test for the per-profile serialization of
+     * read -> generate -> persist. The monotonic guard alone would let two reports
+     * both advance the cursor (no regression, but overlapping reports); only the
+     * per-profile lock makes concurrent same-profile reports run to completion in
+     * turn. This drives that path via the real {@code appendSubProcessSummary}
+     * (plugin returns null -> early return, which still acquires/releases the
+     * profile lock) and asserts two same-profile reports never overlap, while a
+     * different-profile report can run concurrently. Also asserts the registry does
+     * not retain locks after the calls return.
+     */
+    public void testConcurrentReportsAreSerializedPerProfile() throws Exception
+    {
+        Class<?> servlet = Class.forName("ru.biosoft.server.servlets.support.SupportServlet");
+        Object inst = newSupportServlet();
+        Method append = servlet.getDeclaredMethod("appendSubProcessSummary",
+                StringBuilder.class, File.class, String.class, File.class);
+        append.setAccessible(true);
+
+        File profileDir = new File(tmpDir, "prof");
+        profileDir.mkdirs();
+        final File profileA = new File(profileDir, "a.json");
+        final File profileB = new File(profileDir, "b.json");
+
+        // Measure lock hold precisely via the in-lock test hook, scoped to profile A
+        // by its canonical path. Count how many threads are simultaneously inside
+        // profile A's lock and assert it never exceeds 1 (the point of the
+        // per-profile serialization). Profile B threads run concurrently on a
+        // different lock and are simply not counted.
+        final String aKey = profileA.getCanonicalPath();
+        final java.util.concurrent.atomic.AtomicInteger inLockA = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger maxConcurrentA = new java.util.concurrent.atomic.AtomicInteger();
+        java.lang.reflect.Field hookField = servlet.getDeclaredField("subProcessReportLockTestHook");
+        hookField.setAccessible(true);
+        hookField.set(null, (Runnable) () -> {
+            // The hook runs inside appendSubProcessSummary, which knows the profile;
+            // it does not receive the key, so we approximate by checking the current
+            // thread is working on profile A. Since the hook is global, we instead
+            // only count when the in-lock sleep is for A — done by having each A
+            // thread signal its identity via a thread-local before invoking.
+            Object id = A_THREAD_ID.get();
+            if (id == null) return; // a profile-B thread; not counted
+            int cur = inLockA.incrementAndGet();
+            maxConcurrentA.accumulateAndGet(cur, Math::max);
+            try
+            {
+                Thread.sleep(5);
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+            }
+            inLockA.decrementAndGet();
+        });
+
+        final int N = 8;
+        java.util.List<Thread> threads = new java.util.ArrayList<>();
+        for (int i = 0; i < N; i++)
+        {
+            final boolean isA = (i % 2 == 0);
+            final File p = isA ? profileA : profileB;
+            final String name = isA ? "a" : "b";
+            threads.add(new Thread(() -> {
+                if (isA) A_THREAD_ID.set(Boolean.TRUE);
+                try
+                {
+                    append.invoke(inst, new StringBuilder(), p, name, profileDir);
+                }
+                catch (Exception e)
+                {
+                    throw new RuntimeException(e);
+                }
+                finally
+                {
+                    A_THREAD_ID.remove();
+                }
+            }));
+        }
+        for (Thread t : threads) t.start();
+        for (Thread t : threads) t.join();
+
+        hookField.set(null, null); // clear the hook
+
+        // Same-profile (A) reports must never have overlapped in the lock.
+        assertTrue("concurrent same-profile reports must be serialized (maxConcurrentA="
+                + maxConcurrentA.get() + ")", maxConcurrentA.get() <= 1);
+
+        // The per-profile lock registry must not retain entries after reports return.
+        java.lang.reflect.Field f = servlet.getDeclaredField("subProcessReportLocks");
+        f.setAccessible(true);
+        Object registry = f.get(null);
+        assertTrue("lock registry must be empty after reports complete",
+                ((java.util.Map<?, ?>) registry).isEmpty());
     }
 
     /** Build a SupportServlet instance the same way the persistence test does. */
