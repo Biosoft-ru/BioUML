@@ -91,6 +91,30 @@ public class MonitoringService {
     /** Last time the sub-process log was fully scanned for purging. */
     private long lastSubProcessLogPurgeTime = 0;
 
+    /**
+     * Per-pid observation state for external sub-processes. A single scan only
+     * proves a process was alive at one instant; by merging consecutive scans
+     * we can report each process's first-seen time, last-seen time and
+     * estimated lifetime instead of one snapshot per scan.
+     */
+    private static final class SubProcessObservation {
+        long firstSeenMs;
+        long lastSeenMs;
+        long lastAgeSec;  // age at last observation
+        String command;
+        boolean everSlow;
+        int missedScans; // consecutive scans without the pid (pruned past a grace period)
+    }
+
+    /**
+     * Pids missed this many consecutive scans before being pruned. Covers one
+     * transient /proc read failure or scheduler hiccup without keeping dead
+     * pids around.
+     */
+    private static final int SUB_PROCESS_MISS_GRACE = 2;
+    private final Map<Long, SubProcessObservation> subProcessObservations =
+            new ConcurrentHashMap<>();
+
     // Guards append/rewrite of the sub-process log (single monitor thread writes,
     // but the API can read concurrently; keep the file in a consistent state).
     private final Object subProcessLogLock = new Object();
@@ -215,6 +239,16 @@ public class MonitoringService {
      * Scan for long-running external sub-processes (perl/R/nextflow/...) and
      * record the result for the profile API. Logs a SEVERE line the first time
      * each sub-process crosses the slow threshold.
+     *
+     * <p>The append here (via {@link #appendSubProcessLog}) and every read via
+     * {@link #readSubProcessLog} both take {@link #subProcessLogLock}, so the log
+     * is never read while it is being appended to. Because the log line's
+     * timestamp is also captured under that lock (see
+     * {@link #appendSubProcessLog}), a report that read the log at time {@code now}
+     * only ever sees lines with timestamp &lt;= now; a line appended afterwards
+     * necessarily has timestamp &gt; now. That is the ordering the report cursor's
+     * high-water invariant relies on — so the cursor must never move backwards
+     * relative to what a report has already covered.
      */
     private void checkSubProcesses() {
         if (!config.isSubProcessEnabled()) {
@@ -223,13 +257,25 @@ public class MonitoringService {
         try {
             List<SubProcessMonitor.SubProcess> subs = subProcessMonitor.check();
             lastSubProcesses = subs;
+            // Timestamp of this scan, exposed via getLastSubProcessCheckTime() for
+            // the status payload. NOTE: this is NOT the log line's timestamp — that
+            // one is captured inside appendSubProcessLog under subProcessLogLock
+            // (see its doc), because the ordering relative to the lock is what the
+            // report cursor relies on.
             lastSubProcessCheckTime = System.currentTimeMillis();
+
+            // Merge this scan into the per-pid observation state. The scan is
+            // authoritative for "alive now" even when empty: a scan that finds
+            // nothing means every previously-seen pid is (temporarily) gone.
+            updateSubProcessObservations(subs, lastSubProcessCheckTime);
 
             // Persist every non-empty scan so the timeline of long-running
             // external processes survives process exit and is retrievable via
-            // the API (the live status only shows the current snapshot).
+            // the API (the live status only shows the current snapshot). The
+            // log line's own timestamp is captured inside appendSubProcessLog,
+            // after it acquires subProcessLogLock.
             if (!subs.isEmpty()) {
-                appendSubProcessLog(subs, lastSubProcessCheckTime);
+                appendSubProcessLog(subs);
             }
         } catch (Exception e) {
             log.log(Level.WARNING, "Sub-process scan failed", e);
@@ -246,44 +292,75 @@ public class MonitoringService {
      * rewrite/compact runs only when the line cap is exceeded or at most every
      * {@link #SUB_PROCESS_LOG_PURGE_INTERVAL}, so the age bound is enforced
      * without scanning on every cycle.
+     *
+     * <p>The line's timestamp is captured <em>here, inside the lock</em>, not by
+     * the caller. That ordering is what makes the report cursor's high-water
+     * invariant hold: a scan appended after a report's read has a timestamp
+     * &gt; the report's {@code now} (the report read the whole file before this
+     * line was written, so its {@code now} precedes this one), and a scan
+     * appended before the report has a timestamp &lt;= it and is already in the
+     * file the report read. A pre-lock timestamp would break this: a line could
+     * carry an old timestamp yet be written after the read.
      */
-    private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+    private void appendSubProcessLog(List<SubProcessMonitor.SubProcess> subs) {
         File logFile = getSubProcessLogFile();
         if (logFile == null) {
             return;
         }
         synchronized (subProcessLogLock) {
-            try {
-                // Seed the in-memory count BEFORE appending so that the
-                // subsequent increment reflects the post-append state.
-                // (Seeding after the append would double-count the new line.)
-                if (subProcessLogCount < 0) {
-                    subProcessLogCount = logFile.exists()
-                            ? countSubProcessLogLines(logFile) : 0;
-                }
+            // Capture the timestamp now that we hold subProcessLogLock, so the
+            // high-water invariant the report cursor relies on is preserved
+            // (see the method doc on the two-arg overload below).
+            appendSubProcessLogLocked(subs, System.currentTimeMillis());
+        }
+    }
 
-                // Append — the hot path must never scan the whole file.
-                String line = buildSubProcessRecord(subs, timestamp);
-                try (BufferedWriter writer = new BufferedWriter(
-                        new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
-                    writer.write(line);
-                    writer.newLine();
-                }
-                subProcessLogCount++;
-
-                long now = System.currentTimeMillis();
-
-                // Purge only when the line cap is exceeded or the age scan is
-                // due. The age check is a full scan, so it must not run on
-                // every monitor cycle.
-                boolean overCap = subProcessLogCount > MAX_SUB_PROCESS_LOG_LINES;
-                boolean ageDue = now - lastSubProcessLogPurgeTime >= SUB_PROCESS_LOG_PURGE_INTERVAL;
-                if (overCap || ageDue) {
-                    purgeAndCompactSubProcessLog(logFile, now);
-                }
-            } catch (Exception e) {
-                log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
+    /**
+     * Core append that takes the caller's timestamp. The production path
+     * ({@link #appendSubProcessLog(List)}) calls this with a timestamp captured
+     * <em>after</em> acquiring {@link #subProcessLogLock}, which is what makes the
+     * report cursor's high-water invariant hold: a line appended after a report's
+     * read has a timestamp &gt; the report's {@code now}, and one appended before
+     * has a timestamp &lt;= it. The two-arg form is also called by the test suite
+     * with a pinned (usually past) timestamp to exercise the time-range read
+     * logic; that use is test-only and does not rely on the invariant.
+     */
+    private void appendSubProcessLogLocked(List<SubProcessMonitor.SubProcess> subs, long timestamp) {
+        File logFile = getSubProcessLogFile();
+        if (logFile == null) {
+            return;
+        }
+        // Caller must hold subProcessLogLock (or, in the test, accept that no
+        // other thread is concurrently appending).
+        try {
+            // Seed the in-memory count BEFORE appending so that the
+            // subsequent increment reflects the post-append state.
+            // (Seeding after the append would double-count the new line.)
+            if (subProcessLogCount < 0) {
+                subProcessLogCount = logFile.exists()
+                        ? countSubProcessLogLines(logFile) : 0;
             }
+
+            // Append — the hot path must never scan the whole file.
+            String line = buildSubProcessRecord(subs, timestamp);
+            try (BufferedWriter writer = new BufferedWriter(
+                    new java.io.OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
+                writer.write(line);
+                writer.newLine();
+            }
+            subProcessLogCount++;
+
+            long now = timestamp;
+            // Purge only when the line cap is exceeded or the age scan is
+            // due. The age check is a full scan, so it must not run on
+            // every monitor cycle.
+            boolean overCap = subProcessLogCount > MAX_SUB_PROCESS_LOG_LINES;
+            boolean ageDue = now - lastSubProcessLogPurgeTime >= SUB_PROCESS_LOG_PURGE_INTERVAL;
+            if (overCap || ageDue) {
+                purgeAndCompactSubProcessLog(logFile, now);
+            }
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Error appending sub-process log " + logFile.getAbsolutePath(), e);
         }
     }
 
@@ -428,6 +505,93 @@ public class MonitoringService {
         }
         record.put("subProcesses", arr);
         return record.toString();
+    }
+
+    /**
+     * Merge one scan into the per-pid observation map. Each scan is
+     * authoritative: pids present update first/last-seen, pids absent from a
+     * non-empty scan are counted as missed (and pruned after
+     * {@link #SUB_PROCESS_MISS_GRACE} consecutive misses, so one transient
+     * /proc read failure does not drop a process). An empty scan means "no
+     * descendants older than the minimum age at all" and marks every pid as
+     * missed in one go, so a process that ran across one missed scan still
+     * keeps its correct first/last-seen interval.
+     */
+    private void updateSubProcessObservations(List<SubProcessMonitor.SubProcess> subs, long nowMs) {
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        for (SubProcessMonitor.SubProcess sp : subs) {
+            seen.add(sp.pid);
+            SubProcessObservation obs = subProcessObservations.get(sp.pid);
+            if (obs == null) {
+                obs = new SubProcessObservation();
+                obs.firstSeenMs = nowMs;
+                obs.command = sp.command;
+            }
+            obs.lastSeenMs = nowMs;
+            obs.lastAgeSec = sp.ageSeconds;
+            obs.everSlow = obs.everSlow || sp.slow;
+            obs.missedScans = 0;
+            subProcessObservations.put(sp.pid, obs);
+        }
+        if (subs.isEmpty()) {
+            // Nothing alive: every known pid is missed this scan.
+            for (SubProcessObservation obs : subProcessObservations.values()) {
+                obs.missedScans++;
+            }
+        } else {
+            for (java.util.Map.Entry<Long, SubProcessObservation> e : subProcessObservations.entrySet()) {
+                if (!seen.contains(e.getKey())) {
+                    e.getValue().missedScans++;
+                }
+            }
+        }
+        subProcessObservations.entrySet().removeIf(
+                e -> e.getValue().missedScans >= SUB_PROCESS_MISS_GRACE);
+    }
+
+    /**
+     * Snapshot of the in-memory per-pid observations whose [firstSeen, lastSeen]
+     * interval <em>overlaps</em> the query interval, for the profile summary.
+     *
+     * <p>Complements the persistent {@code subprocesses.jsonl} log: the log
+     * only covers the 7-day retention window, while this covers everything seen
+     * since service start, so a process that outlived the profile window is
+     * still attributable to the profile while it is <em>retained in this
+     * registry</em>. The retention is an approximation, not a live guarantee:
+     * an observation is pruned after {@code SUB_PROCESS_MISS_GRACE} consecutive
+     * missed scans (see {@code updateSubProcessObservations}), so a process that
+     * temporarily disappears from {@code /proc} for that long is forgotten here
+     * even if it is still alive — the persistent log still covers the history.
+     *
+     * <p>Overlap is tested with {@code lastSeen > qStart && firstSeen <= qEnd}
+     * (the start side exclusive so the follow-up report does not re-include an
+     * observation exactly at the cursor; each side unbounded when its argument is
+     * 0). This is an <em>intersection</em> test, not a "firstSeen inside the
+     * interval" test: a process that started before the window but is still alive
+     * inside it overlaps it, and a process that was alive at the window end
+     * overlaps it even if it started earlier.
+     *
+     * @param qStartMs lower bound of the query interval, <em>exclusive</em>; 0 = unbounded
+     * @param qEndMs   upper bound of the query interval, inclusive; 0 = unbounded
+     */
+    public List<SubProcessMonitor.SubProcess> getObservedSubProcesses(long qStartMs, long qEndMs) {
+        List<SubProcessMonitor.SubProcess> result = new ArrayList<>();
+        for (java.util.Map.Entry<Long, SubProcessObservation> e : subProcessObservations.entrySet()) {
+            long pid = e.getKey();
+            SubProcessObservation obs = e.getValue();
+            // lastSeen > qStart (process was still alive strictly after the window
+            // start). Strictly-greater so an observation exactly at the cursor is
+            // not re-reported by the follow-up [cursor, now] interval.
+            if (qStartMs > 0 && obs.lastSeenMs <= qStartMs) continue;
+            // firstSeen <= qEnd (process had already started by the window end)
+            if (qEndMs > 0 && obs.firstSeenMs > qEndMs) continue;
+            result.add(new SubProcessMonitor.SubProcess(pid,
+                    obs.lastAgeSec,
+                    obs.firstSeenMs, obs.lastSeenMs,
+                    obs.lastAgeSec, obs.everSlow, obs.command));
+        }
+        result.sort((a, b) -> Long.compare(b.firstSeenMs, a.firstSeenMs));
+        return result;
     }
 
     /**
@@ -682,6 +846,9 @@ public class MonitoringService {
                     if (line.trim().isEmpty()) continue;
                     long ts = extractTimestamp(line);
                     if (ts < 0) continue;
+                    // since is an inclusive lower bound, until an inclusive upper
+                    // bound. (A follow-up report passes cursor+1 as `since` to get
+                    // the half-open (cursor, now] range — see appendSubProcessSummary.)
                     if (since > 0 && ts < since) continue;
                     if (until > 0 && ts > until) continue;
                     result.add(line);
