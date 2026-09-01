@@ -52,6 +52,7 @@ public class TestSubProcessLog extends junit.framework.TestCase
         suite.addTest(new TestSubProcessLog("testObservationOverlapFilter"));
         suite.addTest(new TestSubProcessLog("testMergeLifetimeAndCommand"));
         suite.addTest(new TestSubProcessLog("testPersistCursorAtomicAndCopy"));
+        suite.addTest(new TestSubProcessLog("testCursorIntervalIsHalfOpen"));
         return suite;
     }
 
@@ -136,14 +137,14 @@ public class TestSubProcessLog extends junit.framework.TestCase
 
     /** Build a SubProcess carrying a first/last-seen observation interval. */
     private SubProcessMonitor.SubProcess makeObserved(long pid, long age, long firstSeenMs,
-            long lastSeenMs, long firstAgeSec, long lastAgeSec, boolean slow, String cmd) throws Exception
+            long lastSeenMs, long lastAgeSec, boolean slow, String cmd) throws Exception
     {
         Constructor<SubProcessMonitor.SubProcess> ctor =
                 SubProcessMonitor.SubProcess.class.getDeclaredConstructor(
                         long.class, long.class, long.class, long.class,
-                        long.class, long.class, boolean.class, String.class);
+                        long.class, boolean.class, String.class);
         ctor.setAccessible(true);
-        return ctor.newInstance(pid, age, firstSeenMs, lastSeenMs, firstAgeSec, lastAgeSec, slow, cmd);
+        return ctor.newInstance(pid, age, firstSeenMs, lastSeenMs, lastAgeSec, slow, cmd);
     }
 
     /** Invoke private static SupportServlet.mergeSubProcessEntry(...) via reflection. */
@@ -512,7 +513,7 @@ public class TestSubProcessLog extends junit.framework.TestCase
         long lastSeen = firstSeen + 60_000L; // 60s of wall clock between scans
         SubProcessMonitor.SubProcess sp = makeObserved(
                 42, /*ageSeconds*/160, firstSeen, lastSeen,
-                /*firstAge*/100, /*lastAge*/160, true, "perl x.pl");
+                /*lastAge*/160, true, "perl x.pl");
         assertEquals("lifetime must be the last observed age, not interval+ageDelta",
                 160L, sp.estimatedLifetimeSec());
 
@@ -576,7 +577,6 @@ public class TestSubProcessLog extends junit.framework.TestCase
         Object obs = ctor.newInstance();
         setObsField(obs, "firstSeenMs", firstSeenMs);
         setObsField(obs, "lastSeenMs", lastSeenMs);
-        setObsField(obs, "firstAgeSec", ageSec / 2);
         setObsField(obs, "lastAgeSec", ageSec);
         setObsField(obs, "everSlow", true);
         setObsField(obs, "missedScans", 0);
@@ -669,6 +669,64 @@ public class TestSubProcessLog extends junit.framework.TestCase
         File missingParent = new File(tmpDir, "does-not-exist/profile.json");
         m.invoke(inst, missingParent, meta, 0L, 5L, "profile", tmpDir);
         assertFalse("no file created when parent dir missing", missingParent.exists());
+
+        // 4) A sidecar that exists but cannot be parsed must NOT be overwritten:
+        //    the cursor is skipped so the malformed metadata is left intact.
+        File malformed = new File(tmpDir, "malformed.json");
+        try (OutputStreamWriter w = new OutputStreamWriter(
+                new FileOutputStream(malformed), StandardCharsets.UTF_8)) {
+            w.write("this is not json");
+        }
+        m.invoke(inst, malformed, /*meta*/null, 0L, 2000L, "malformed", tmpDir);
+        assertEquals("malformed sidecar left untouched",
+                "this is not json", readAll(malformed));
+    }
+
+    /**
+     * The follow-up report interval is the half-open range (cursor, now]: a scan
+     * recorded exactly at the cursor was already covered by the previous report
+     * and must be excluded, while one strictly after it is included. This is what
+     * makes the cumulative cursor not re-report the boundary observation (it only
+     * works because the summary now advances the cursor even when the entry list
+     * is truncated — see appendSubProcessSummary).
+     */
+    public void testCursorIntervalIsHalfOpen() throws Exception
+    {
+        long base = System.currentTimeMillis();
+        java.util.ArrayList<SubProcessMonitor.SubProcess> subs = new java.util.ArrayList<>();
+        subs.add(makeSub(1, 300, true, "perl a.pl"));
+        append(subs, base);
+        append(subs, base + 60_000L);
+        append(subs, base + 120_000L);
+
+        long cursor = base + 60_000L; // the middle scan, already "reported"
+
+        // The summary reads the follow-up log with lower bound cursor+1 so that a
+        // scan exactly at the cursor is excluded and the later one kept.
+        List<String> after = service.readSubProcessLog(cursor + 1, 0);
+        assertEquals("scan exactly at the cursor is excluded", 1, after.size());
+        assertEquals(base + 120_000L,
+                new org.json.JSONObject(after.get(0)).getLong("timestamp"));
+
+        // The log reader itself is still inclusive on both ends (contract unchanged
+        // for other callers): a record at the lower bound is included.
+        List<String> inclusive = service.readSubProcessLog(cursor, 0);
+        assertEquals("log reader lower bound is inclusive", 2, inclusive.size());
+
+        // Upper bound is inclusive.
+        List<String> atUpper = service.readSubProcessLog(base, base + 120_000L);
+        assertEquals("upper bound is inclusive", 3, atUpper.size());
+
+        // In-memory filter: an observation whose lastSeen is exactly at the query
+        // start is excluded (lastSeen > qStart required).
+        long qStart = 10_000_000L;
+        seedObservation(500, qStart - 5_000L, qStart, 100L);          // lastSeen == qStart
+        seedObservation(501, qStart - 5_000L, qStart + 1L, 100L);     // lastSeen > qStart
+        java.util.Set<Long> pids = new java.util.HashSet<>();
+        for (SubProcessMonitor.SubProcess s : service.getObservedSubProcesses(qStart, 0))
+            pids.add(s.pid);
+        assertFalse("obs ending exactly at the query start is excluded", pids.contains(500L));
+        assertTrue("obs still alive strictly after the query start is included", pids.contains(501L));
     }
 
     private static sun.misc.Unsafe getUnsafe() throws Exception

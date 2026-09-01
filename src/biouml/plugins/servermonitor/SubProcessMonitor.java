@@ -80,8 +80,6 @@ public class SubProcessMonitor {
         public final long firstSeenMs;
         /** Last time this pid was observed (ms); 0 for a single-scan snapshot. */
         public final long lastSeenMs;
-        /** Age (s) at first observation; 0 for a single-scan snapshot. */
-        public final long firstAgeSec;
         /** Age (s) at last observation. */
         public final long lastAgeSec;
 
@@ -92,19 +90,17 @@ public class SubProcessMonitor {
             this.slow = slow;
             this.firstSeenMs = 0;
             this.lastSeenMs = 0;
-            this.firstAgeSec = 0;
             this.lastAgeSec = 0;
         }
 
         SubProcess(long pid, long ageSeconds, long firstSeenMs, long lastSeenMs,
-                   long firstAgeSec, long lastAgeSec, boolean slow, String command) {
+                   long lastAgeSec, boolean slow, String command) {
             this.pid = pid;
             this.ageSeconds = ageSeconds;
             this.command = command;
             this.slow = slow;
             this.firstSeenMs = firstSeenMs;
             this.lastSeenMs = lastSeenMs;
-            this.firstAgeSec = firstAgeSec;
             this.lastAgeSec = lastAgeSec;
         }
 
