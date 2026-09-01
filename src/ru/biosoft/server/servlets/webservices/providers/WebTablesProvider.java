@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,6 +141,10 @@ public class WebTablesProvider extends WebProviderSupport
         private ColumnModel columnModel;
         private BiosoftTableModel tableModel;
         private int rowFrom, rowTo;
+
+        // Cache PropertyEditor instances by class to avoid re-instantiating Swing UI components
+        // for every table cell (profiler: GenericComboBoxEditor.<init> was the #1 hot path).
+        private static final ConcurrentMap<Class<?>, PropertyEditor> editorCache = new ConcurrentHashMap<>();
 
         public TableQueryResponse(DataCollection<?> dc, TableResolver resolver, BiosoftWebRequest arguments, OutputStream out)
         {
@@ -658,15 +664,30 @@ public class WebTablesProvider extends WebProviderSupport
             PropertyEditor editor = null;
             try
             {
-                editor = (PropertyEditor)editorClass.newInstance();
-                editor.setValue( value );
-                if( editor instanceof PropertyEditorEx )
+                // Reuse cached editor instance to avoid re-creating Swing UI components
+                // (e.g. JComboBox in GenericComboBoxEditor) for every cell.
+                editor = editorCache.computeIfAbsent(editorClass, c ->
                 {
-                    if( rowBean != null )
-                        ( (PropertyEditorEx)editor ).setBean( rowBean );
-                    ( (PropertyEditorEx)editor ).setDescriptor( descriptor );
+                    try
+                    {
+                        return (PropertyEditor) c.newInstance();
+                    }
+                    catch (Exception e)
+                    {
+                        return null;
+                    }
+                });
+                if( editor != null )
+                {
+                    editor.setValue( value );
+                    if( editor instanceof PropertyEditorEx )
+                    {
+                        if( rowBean != null )
+                            ( (PropertyEditorEx)editor ).setBean( rowBean );
+                        ( (PropertyEditorEx)editor ).setDescriptor( descriptor );
+                    }
+                    tags = editor.getTags();
                 }
-                tags = editor.getTags();
             }
             catch( Exception e1 )
             {

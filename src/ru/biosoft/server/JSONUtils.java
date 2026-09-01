@@ -39,6 +39,10 @@ import com.developmentontheedge.beans.model.CompositeProperty;
 import com.developmentontheedge.beans.model.Property;
 import com.developmentontheedge.beans.model.SimpleProperty;
 
+import java.beans.PropertyEditor;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 /**
  * Utility class for JSON manipulation
  */
@@ -57,6 +61,11 @@ public class JSONUtils
             Point.class, PointWrapper.class,
             ColorFont.class, ColorFontWrapper.class,
             Dimension.class, DimensionWrapper.class ).toMap();
+
+    // Cache a no-arg constructor reference per editor class to avoid repeated Class.newInstance()
+    // reflection overhead. We create a fresh instance per call to avoid state leakage
+    // between different beans/properties.
+    private static final ConcurrentMap<Class<?>, java.util.function.Supplier<Object>> editorSupplierCache = new ConcurrentHashMap<>();
 
     /**
      * Apply values from JSON to bean
@@ -143,13 +152,40 @@ public class JSONUtils
         {
             if( JSONSerializable.class.isAssignableFrom(c) )
             {
-                JSONSerializable editor = (JSONSerializable)c.newInstance();
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                // Create a fresh instance per call to avoid state leakage between beans.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(c, cls ->
+                {
+                    try
+                    {
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
+                        {
+                            try
+                            {
+                                return ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
+                    }
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                Object editor = supplier.get();
                 if( editor instanceof PropertyEditorEx )
                 {
                     initEditor( property, (PropertyEditorEx)editor );
-                    editor.fromJSON(jsonObject);
-                    setValue( property, ( (PropertyEditorEx)editor ).getValue());
-                    return;
+                    if( editor instanceof JSONSerializable )
+                    {
+                        ( (JSONSerializable)editor ).fromJSON(jsonObject);
+                        setValue( property, ( (PropertyEditorEx)editor ).getValue());
+                        return;
+                    }
                 }
             }
         }
@@ -164,26 +200,78 @@ public class JSONUtils
         {
             if( GenericMultiSelectEditor.class.isAssignableFrom(c) )
             {
-                GenericMultiSelectEditor editor = (GenericMultiSelectEditor)c.newInstance();
-                initEditor( property, editor );
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(c, cls ->
+                {
+                    try
+                    {
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
+                        {
+                            try
+                            {
+                                return (Object) ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
+                    }
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                GenericMultiSelectEditor editor = (GenericMultiSelectEditor) supplier.get();
+                if( editor != null )
+                {
+                    initEditor( property, editor );
 
-                Object jsonValue = jsonObject.get( "value" );
-                if(jsonValue instanceof String)
-                    jsonValue = new JSONArray( (String)jsonValue );
-                JSONArray jsonArray = (JSONArray)jsonValue;
+                    Object jsonValue = jsonObject.get( "value" );
+                    if(jsonValue instanceof String)
+                        jsonValue = new JSONArray( (String)jsonValue );
+                    JSONArray jsonArray = (JSONArray)jsonValue;
 
-                String[] val = new String[jsonArray.length()];
-                for( int index = 0; index < val.length; index++ )
-                    val[index] = jsonArray.getString(index);
-                editor.setStringValue(val);
-                setValue(property, editor.getValue());
-                return;
+                    String[] val = new String[jsonArray.length()];
+                    for( int index = 0; index < val.length; index++ )
+                        val[index] = jsonArray.getString(index);
+                    editor.setStringValue(val);
+                    setValue(property, editor.getValue());
+                    return;
+                }
             }
             else if( JSONCompatibleEditor.class.isAssignableFrom(c) )
             {
-                JSONCompatibleEditor editor = (JSONCompatibleEditor)c.newInstance();
-                editor.fillWithJSON(property, jsonObject);
-                return;
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(c, cls ->
+                {
+                    try
+                    {
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
+                        {
+                            try
+                            {
+                                return (Object) ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
+                    }
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                JSONCompatibleEditor editor = (JSONCompatibleEditor) supplier.get();
+                if( editor != null )
+                {
+                    editor.fillWithJSON(property, jsonObject);
+                    return;
+                }
             }
         }
 
@@ -485,11 +573,39 @@ public class JSONUtils
         {
             if( JSONSerializable.class.isAssignableFrom(editorClass) )
             {
-                JSONSerializable editor = (JSONSerializable)editorClass.newInstance();
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(editorClass, cls ->
+                {
+                    try
+                    {
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
+                        {
+                            try
+                            {
+                                return ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
+                    }
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                Object editor = supplier.get();
                 if( editor instanceof PropertyEditorEx )
                 {
-                    initEditor( property, (PropertyEditorEx)editor );
-                    JSONObject p1 = editor.toJSON();
+                    PropertyEditor propEditor = (PropertyEditor) editor;
+                    initEditor( property, (PropertyEditorEx)propEditor );
+                    JSONObject p1 = null;
+                    if( editor instanceof JSONSerializable )
+                    {
+                        p1 = ( (JSONSerializable)editor ).toJSON();
+                    }
                     if( p1 != null )
                     {
                         Iterator<?> iterator = p1.keys();
@@ -518,36 +634,113 @@ public class JSONUtils
             }
             else if( TagEditorSupport.class.isAssignableFrom(editorClass) )
             {
-                TagEditorSupport editor = (TagEditorSupport)editorClass.newInstance();
-                String[] tags = editor.getTags();
-                if( tags != null )
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(editorClass, cls ->
                 {
-                    p.put(DICTIONARY_ATTR, createDictionary(tags, true));
+                    try
+                    {
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
+                        {
+                            try
+                            {
+                                return (Object) ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
+                    }
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                TagEditorSupport editor = (TagEditorSupport) supplier.get();
+                if( editor != null )
+                {
+                    String[] tags = editor.getTags();
+                    if( tags != null )
+                    {
+                        p.put(DICTIONARY_ATTR, createDictionary(tags, true));
+                    }
                 }
             }
             else if( StringTagEditorSupport.class.isAssignableFrom(editorClass) )
             {
-                StringTagEditorSupport editor = (StringTagEditorSupport)editorClass.newInstance();
-                String[] tags = editor.getTags();
-                if( tags != null )
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(editorClass, cls ->
                 {
-                    p.put(DICTIONARY_ATTR, createDictionary(tags, false));
+                    try
+                    {
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
+                        {
+                            try
+                            {
+                                return (Object) ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
+                    }
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                StringTagEditorSupport editor = (StringTagEditorSupport) supplier.get();
+                if( editor != null )
+                {
+                    String[] tags = editor.getTags();
+                    if( tags != null )
+                    {
+                        p.put(DICTIONARY_ATTR, createDictionary(tags, false));
+                    }
                 }
             }
             else if( CustomEditorSupport.class.isAssignableFrom(editorClass) )
             {
-                CustomEditorSupport editor = null;
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
                 //TODO: support or correctly process some editors
                 //Some editors like biouml.model.util.ReactionEditor, biouml.model.util.FormulaEditor
                 //use Application.getApplicationFrame(), so we got a NullPointerException here
                 try
                 {
-                    editor = (CustomEditorSupport)editorClass.newInstance();
-                    initEditor( property, editor );
-                    String[] tags = editor.getTags();
-                    if( tags != null )
+                    java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(editorClass, cls ->
                     {
-                        p.put(DICTIONARY_ATTR, createDictionary(tags, false));
+                        try
+                        {
+                            java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                            return () ->
+                            {
+                                try
+                                {
+                                    return (Object) ctor.newInstance();
+                                }
+                                catch( Exception e )
+                                {
+                                    return null;
+                                }
+                            };
+                        }
+                        catch( Exception e )
+                        {
+                            return () -> null;
+                        }
+                    });
+                    CustomEditorSupport editor = (CustomEditorSupport) supplier.get();
+                    if( editor != null )
+                    {
+                        initEditor( property, editor );
+                        String[] tags = editor.getTags();
+                        if( tags != null )
+                        {
+                            p.put(DICTIONARY_ATTR, createDictionary(tags, false));
+                        }
                     }
                 }
                 catch( Exception e )
@@ -573,29 +766,55 @@ public class JSONUtils
         {
             if( CustomEditorSupport.class.isAssignableFrom(c) )
             {
-                CustomEditorSupport editor = (CustomEditorSupport)c.newInstance();
-                initEditor( property, editor );
-                String[] tags = editor.getTags();
-                if( tags != null )
+                // Use cached supplier to avoid repeated Class.newInstance() reflection overhead.
+                java.util.function.Supplier<Object> supplier = editorSupplierCache.computeIfAbsent(c, cls ->
                 {
-                    p.put(DICTIONARY_ATTR, createDictionary(tags, false));
-                    p.put(TYPE_ATTR, "multi-select");
-                    Object[] vals = (Object[])property.getValue();
-                    JSONArray value = new JSONArray();
-                    if( vals != null )
+                    try
                     {
-                        for( Object val : vals )
+                        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+                        return () ->
                         {
-                            value.put(val.toString());
-                        }
+                            try
+                            {
+                                return (Object) ctor.newInstance();
+                            }
+                            catch( Exception e )
+                            {
+                                return null;
+                            }
+                        };
                     }
-                    p.put(VALUE_ATTR, value);
-                    return p;
-                }
-                if( editor instanceof JSONCompatibleEditor )
+                    catch( Exception e )
+                    {
+                        return () -> null;
+                    }
+                });
+                CustomEditorSupport editor = (CustomEditorSupport) supplier.get();
+                if( editor != null )
                 {
-                    ( (JSONCompatibleEditor)editor ).addAsJSON(property, p, fieldMap, showMode);
-                    return p;
+                    initEditor( property, editor );
+                    String[] tags = editor.getTags();
+                    if( tags != null )
+                    {
+                        p.put(DICTIONARY_ATTR, createDictionary(tags, false));
+                        p.put(TYPE_ATTR, "multi-select");
+                        Object[] vals = (Object[])property.getValue();
+                        JSONArray value = new JSONArray();
+                        if( vals != null )
+                        {
+                            for( Object val : vals )
+                            {
+                                value.put(val.toString());
+                            }
+                        }
+                        p.put(VALUE_ATTR, value);
+                        return p;
+                    }
+                    if( editor instanceof JSONCompatibleEditor )
+                    {
+                        ( (JSONCompatibleEditor)editor ).addAsJSON(property, p, fieldMap, showMode);
+                        return p;
+                    }
                 }
             }
         }
