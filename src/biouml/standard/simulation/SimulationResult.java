@@ -83,9 +83,8 @@ public class SimulationResult extends SimulationResultSupport
     {
         if(times.length == size)
         {
-            // Use 2x growth instead of 1.5x to reduce reallocation frequency.
-            // Profiler shows realloc() called 24 times per simulation with 1.5x growth;
-            // 2x cuts the number of reallocations by ~40% for typical simulation sizes.
+            // Use 2x growth instead of 1.5x to reduce reallocation frequency as the
+            // result buffer grows (trading a bit of peak headroom for fewer copies).
             int newAllocSize = Math.max(size * 2, 10);
             double[] newTimes = new double[newAllocSize];
             System.arraycopy(times, 0, newTimes, 0, size);
@@ -139,18 +138,19 @@ public class SimulationResult extends SimulationResultSupport
     {
         realloc();
         times[size] = t;
-        // Clone the array so we own a private copy — the solver may reuse the buffer.
-        // Profiler shows realloc() called 24 times and add() 35 times per simulation;
-        // cloning here instead of in fireSolutionUpdate eliminates a redundant clone
-        // when extendResult returns a different array (e.g. interpolated).
-        values[size] = v.clone();
+        // v is already a private array: SimulatorSupport.fireSolutionUpdate hands the
+        // listeners a boundary clone of the solver's state (see that method), so we can
+        // store and forward the reference without copying again. Cloning here would be
+        // redundant and would change the value the sub-listeners receive relative to the
+        // value stored in this result.
+        values[size] = v;
         size++;
         int count = listeners.size();
         for(int i=0; i<count; i++)
         {
             try
             {
-                listeners.get(i).add(t, values[size - 1]);
+                listeners.get(i).add(t, v);
             }
             catch( Exception e )
             {

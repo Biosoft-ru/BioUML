@@ -2,16 +2,13 @@ package biouml.standard.simulation;
 
 import java.util.Arrays;
 
-import one.util.streamex.DoubleStreamEx;
-
 //moved from biouml.plugins.simulation
 public class MathUtils
 {
     public static int[] multiBinarySearch(double[] x, double[] points) throws Exception
     {
-        // Primitive loop instead of DoubleStreamEx to avoid object allocation per element.
-        // Profiler shows this called from SimulationResult.interpolateLinear which is
-        // invoked during result post-processing.
+        // Primitive loop instead of a DoubleStream to avoid per-element boxing and
+        // iterator allocation; this is on the result post-processing path.
         int[] result = new int[points.length];
         for( int i = 0; i < points.length; i++ )
             result[i] = Arrays.binarySearch( x, points[i] );

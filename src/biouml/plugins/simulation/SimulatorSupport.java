@@ -70,11 +70,18 @@ public abstract class SimulatorSupport implements Simulator
     {
         if( odeModel != null )
         {
-            // The profiler shows this method as a hot path (2314 samples) called every simulation step.
-            // Pass x directly to extendResult; listeners that store the reference are responsible
-            // for cloning (see SimulationResult.add which now clones internally).
-            // This eliminates the redundant x.clone() that was done unconditionally before.
-            double[] y = odeModel.extendResult(t, x);
+            // Boundary clone: x is the solver's state vector, and for several solvers
+            // (EulerSimple, non-interpolated DormandPrince, EventLoopSimulator, the
+            // stochastic solvers) it is a buffer reused and overwritten in place on the
+            // next step. extendResult and every result listener may retain the array by
+            // reference (e.g. SimulationResult stores it in values; the steady-state
+            // listeners keep a bounded deque of recent states), so we hand them a private
+            // copy. JVode already returns a fresh array from getY(), but this clone is
+            // what keeps the other solver paths safe. The cost is one allocation per
+            // step, which is acceptable for a scientific tool where silent corruption of
+            // results (aliasing a reused buffer) is a far worse failure mode than the
+            // allocation itself.
+            double[] y = odeModel.extendResult(t, x.clone());
 
             odeModel.updateHistory(t);
 
