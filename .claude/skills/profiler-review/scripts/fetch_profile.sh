@@ -33,11 +33,13 @@ if [[ -z "${MONITORING_USER:-}" || -z "${MONITORING_PASS:-}" ]]; then
   exit 1
 fi
 
-# Server URL: last argument, fall back to PROFILE_SERVER_URL env var
+# Server URL: last positional argument, fall back to PROFILE_SERVER_URL env var.
+# Capture before any shift: .env is sourced with `set -a` which exports
+# PROFILE_SERVER_URL, so an unguarded `shift` would consume it from $@.
 SERVER_URL="${PROFILE_SERVER_URL:-}"
-if [[ $# -gt 0 ]]; then
-  SERVER_URL="${@: -1}"
-fi
+for _arg in "$@"; do
+  SERVER_URL="$_arg"
+done
 SERVER_URL="${SERVER_URL%/}"
 
 if [[ -z "$SERVER_URL" ]]; then
@@ -104,8 +106,8 @@ print(json.dumps(filtered, indent=2))
       exit 1
     fi
     PROFILE_ID="$1"
-    shift
-
+    # PROFILE_SERVER_URL is already captured into SERVER_URL above; do not
+    # shift again (it would shift the exported env var out of $@).
     GET_URL="${SERVER_URL}/biouml/support/profile?action=get&id=${PROFILE_ID}&user=${MONITORING_USER}&pass=${MONITORING_PASS}"
     echo "Fetching profile '${PROFILE_ID}' from: ${GET_URL}" >&2
     echo "" >&2
