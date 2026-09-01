@@ -100,7 +100,6 @@ public class MonitoringService {
     private static final class SubProcessObservation {
         long firstSeenMs;
         long lastSeenMs;
-        long firstAgeSec; // age at first observation (process started before we saw it)
         long lastAgeSec;  // age at last observation
         String command;
         boolean everSlow;
@@ -478,7 +477,6 @@ public class MonitoringService {
             if (obs == null) {
                 obs = new SubProcessObservation();
                 obs.firstSeenMs = nowMs;
-                obs.firstAgeSec = sp.ageSeconds;
                 obs.command = sp.command;
             }
             obs.lastSeenMs = nowMs;
@@ -512,13 +510,15 @@ public class MonitoringService {
      * since service start, so a process that outlived the profile window is
      * still attributable to the profile while it is still observable.
      *
-     * <p>Overlap is tested with {@code lastSeen >= qStart && firstSeen <= qEnd}
-     * (each side unbounded when its argument is 0). This is an <em>intersection</em>
-     * test, not a "firstSeen inside the interval" test: a process that started
-     * before the window but is still alive inside it overlaps it, and a process
-     * that was alive at the window end overlaps it even if it started earlier.
+     * <p>Overlap is tested with {@code lastSeen > qStart && firstSeen <= qEnd}
+     * (the start side exclusive so the follow-up report does not re-include an
+     * observation exactly at the cursor; each side unbounded when its argument is
+     * 0). This is an <em>intersection</em> test, not a "firstSeen inside the
+     * interval" test: a process that started before the window but is still alive
+     * inside it overlaps it, and a process that was alive at the window end
+     * overlaps it even if it started earlier.
      *
-     * @param qStartMs lower bound of the query interval, inclusive; 0 = unbounded
+     * @param qStartMs lower bound of the query interval, <em>exclusive</em>; 0 = unbounded
      * @param qEndMs   upper bound of the query interval, inclusive; 0 = unbounded
      */
     public List<SubProcessMonitor.SubProcess> getObservedSubProcesses(long qStartMs, long qEndMs) {
@@ -526,14 +526,16 @@ public class MonitoringService {
         for (java.util.Map.Entry<Long, SubProcessObservation> e : subProcessObservations.entrySet()) {
             long pid = e.getKey();
             SubProcessObservation obs = e.getValue();
-            // lastSeen >= qStart (process was still alive at/after the window start)
-            if (qStartMs > 0 && obs.lastSeenMs < qStartMs) continue;
+            // lastSeen > qStart (process was still alive strictly after the window
+            // start). Strictly-greater so an observation exactly at the cursor is
+            // not re-reported by the follow-up [cursor, now] interval.
+            if (qStartMs > 0 && obs.lastSeenMs <= qStartMs) continue;
             // firstSeen <= qEnd (process had already started by the window end)
             if (qEndMs > 0 && obs.firstSeenMs > qEndMs) continue;
             result.add(new SubProcessMonitor.SubProcess(pid,
                     obs.lastAgeSec,
                     obs.firstSeenMs, obs.lastSeenMs,
-                    obs.firstAgeSec, obs.lastAgeSec, obs.everSlow, obs.command));
+                    obs.lastAgeSec, obs.everSlow, obs.command));
         }
         result.sort((a, b) -> Long.compare(b.firstSeenMs, a.firstSeenMs));
         return result;
@@ -791,6 +793,9 @@ public class MonitoringService {
                     if (line.trim().isEmpty()) continue;
                     long ts = extractTimestamp(line);
                     if (ts < 0) continue;
+                    // since is an inclusive lower bound, until an inclusive upper
+                    // bound. (A follow-up report passes cursor+1 as `since` to get
+                    // the half-open (cursor, now] range — see appendSubProcessSummary.)
                     if (since > 0 && ts < since) continue;
                     if (until > 0 && ts > until) continue;
                     result.add(line);

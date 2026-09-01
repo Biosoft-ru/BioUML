@@ -1956,12 +1956,15 @@ public class SupportServlet extends AbstractJSONServlet
         boolean firstReport;
         if (cursor > 0)
         {
-            // Follow-up report: observations that overlap [cursor, now]. A process
-            // still alive at the cursor instant overlaps it (lastSeen >= cursor) and
-            // is included; on the next report it is excluded once it has exited and
-            // its lastSeen predates the new cursor.
+            // Follow-up report: observations in the half-open interval (cursor, now].
+            // The persistent log reader takes an inclusive lower bound, so pass
+            // cursor+1 to make it exclusive; the in-memory filter (getObservedSubProcesses)
+            // treats its start as exclusive on its own. Either way a process still
+            // alive strictly after the cursor is included and one that exited at or
+            // before it (lastSeen <= cursor) is not, so an observation landing exactly
+            // on the cursor boundary is reported only once.
             firstReport = false;
-            intervalStart = cursor;
+            intervalStart = cursor + 1;
             intervalEnd = now;
         }
         else
@@ -2053,7 +2056,10 @@ public class SupportServlet extends AbstractJSONServlet
             if (++shown >= 20)
             {
                 summary.append("... (").append(totalSlow - shown).append(" more slow entries)\n");
-                return;
+                // Do NOT return here: the cursor below must still be advanced,
+                // otherwise a busy system with >20 slow sub-processes would report
+                // the same 20 entries on every request (the cursor never moves).
+                break;
             }
         }
         if (shown == 0)
@@ -2141,6 +2147,15 @@ public class SupportServlet extends AbstractJSONServlet
                                          String baseName, File profileDir)
     {
         if (newCursor <= oldCursor)
+        {
+            return;
+        }
+        // If the sidecar exists but could not be parsed (meta == null), do NOT
+        // write the cursor: the write would otherwise replace the malformed file
+        // with a JSON document containing only the cursor, destroying whatever the
+        // original (startTime/endTime/profiler config) held. Skip persistence and
+        // let the next request re-read the original file instead.
+        if (metaFile.exists() && meta == null)
         {
             return;
         }
