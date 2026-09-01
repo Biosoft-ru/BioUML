@@ -53,6 +53,7 @@ public class TestSubProcessLog extends junit.framework.TestCase
         suite.addTest(new TestSubProcessLog("testMergeLifetimeAndCommand"));
         suite.addTest(new TestSubProcessLog("testPersistCursorAtomicAndCopy"));
         suite.addTest(new TestSubProcessLog("testCursorIntervalIsHalfOpen"));
+        suite.addTest(new TestSubProcessLog("testCursorNeverMovesBackwards"));
         return suite;
     }
 
@@ -727,6 +728,51 @@ public class TestSubProcessLog extends junit.framework.TestCase
             pids.add(s.pid);
         assertFalse("obs ending exactly at the query start is excluded", pids.contains(500L));
         assertTrue("obs still alive strictly after the query start is included", pids.contains(501L));
+    }
+
+    /**
+     * Two reports can be generated from the same read cursor and then persist
+     * their (different) report-time values out of order. The high-water guard in
+     * persistSubProcessCursor must prevent the later-written (older) cursor from
+     * clobbering the newer one, so the persisted cursor never moves backwards.
+     */
+    public void testCursorNeverMovesBackwards() throws Exception
+    {
+        Class<?> servlet = Class.forName("ru.biosoft.server.servlets.support.SupportServlet");
+        Object inst = newSupportServlet();
+        Method persist = servlet.getDeclaredMethod("persistSubProcessCursor",
+                File.class, org.json.JSONObject.class, long.class, long.class, String.class, File.class);
+        persist.setAccessible(true);
+
+        File metaFile = new File(tmpDir, "profile.json");
+        org.json.JSONObject meta = new org.json.JSONObject();
+        meta.put("startTime", 1L);
+        meta.put("endTime", 2L);
+
+        // Report B persists the newer high-water mark first (cursor 0 -> 300).
+        persist.invoke(inst, metaFile, meta, 0L, 300L, "profile", tmpDir);
+        assertEquals(300L, new org.json.JSONObject(readAll(metaFile)).optLong("subProcessReportCursor", 0));
+
+        // Report A (still working off the cursor it read before B) tries to persist
+        // its older value 200. It must NOT move the cursor backwards.
+        persist.invoke(inst, metaFile, meta, 0L, 200L, "profile", tmpDir);
+        assertEquals("cursor must not regress", 300L,
+                new org.json.JSONObject(readAll(metaFile)).optLong("subProcessReportCursor", 0));
+
+        // A genuinely newer value still advances it.
+        persist.invoke(inst, metaFile, meta, 300L, 400L, "profile", tmpDir);
+        assertEquals("newer cursor advances", 400L,
+                new org.json.JSONObject(readAll(metaFile)).optLong("subProcessReportCursor", 0));
+    }
+
+    /** Build a SupportServlet instance the same way the persistence test does. */
+    private static Object newSupportServlet() throws Exception
+    {
+        Class<?> servlet = Class.forName("ru.biosoft.server.servlets.support.SupportServlet");
+        for (java.lang.reflect.Constructor<?> c : servlet.getDeclaredConstructors()) {
+            if (c.getParameterCount() == 0) { c.setAccessible(true); return c.newInstance(); }
+        }
+        return getUnsafe().allocateInstance(servlet);
     }
 
     private static sun.misc.Unsafe getUnsafe() throws Exception

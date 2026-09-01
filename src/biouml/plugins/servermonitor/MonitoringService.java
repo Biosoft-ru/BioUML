@@ -508,7 +508,12 @@ public class MonitoringService {
      * <p>Complements the persistent {@code subprocesses.jsonl} log: the log
      * only covers the 7-day retention window, while this covers everything seen
      * since service start, so a process that outlived the profile window is
-     * still attributable to the profile while it is still observable.
+     * still attributable to the profile while it is <em>retained in this
+     * registry</em>. The retention is an approximation, not a live guarantee:
+     * an observation is pruned after {@code SUB_PROCESS_MISS_GRACE} consecutive
+     * missed scans (see {@code updateSubProcessObservations}), so a process that
+     * temporarily disappears from {@code /proc} for that long is forgotten here
+     * even if it is still alive — the persistent log still covers the history.
      *
      * <p>Overlap is tested with {@code lastSeen > qStart && firstSeen <= qEnd}
      * (the start side exclusive so the follow-up report does not re-include an

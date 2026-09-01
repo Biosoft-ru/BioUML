@@ -80,6 +80,13 @@ public class SupportServlet extends AbstractJSONServlet
 
     static final String lineSeparator = System.getProperty("line.separator");
 
+    // Per-profile locks for the sub-process report (appendSubProcessSummary). Two
+    // concurrent requests for the same profile can otherwise both read the same
+    // cursor, generate overlapping reports, and persist their report-time values out
+    // of order — moving the cursor backwards. Serializing read+generate+persist per
+    // profile keeps the cursor a true high-water mark.
+    private static final java.util.Map<String, Object> subProcessReportLocks = new java.util.concurrent.ConcurrentHashMap<>();
+
     //
     // Servlet request keys
     //
@@ -1918,6 +1925,18 @@ public class SupportServlet extends AbstractJSONServlet
             summary.append("Sub-process log unavailable (monitoring service not running)\n");
             return;
         }
+        // Serialize the read → generate → persist sequence per profile so concurrent
+        // requests cannot interleave and move the cursor backwards (see the field).
+        String lockKey = metaFile.getAbsolutePath() + "|" + baseName;
+        Object lock = subProcessReportLocks.computeIfAbsent(lockKey, k -> new Object());
+        synchronized (lock)
+        {
+            appendSubProcessSummaryLocked(summary, plugin, metaFile, baseName, profileDir);
+        }
+    }
+
+    private void appendSubProcessSummaryLocked(StringBuilder summary, biouml.plugins.servermonitor.ServerMonitorPlugin plugin, File metaFile, String baseName, File profileDir)
+    {
         biouml.plugins.servermonitor.MonitoringService monitor = plugin.getMonitoringService();
 
         // Read the profile's metadata (window + report cursor). A missing or
@@ -2121,7 +2140,16 @@ public class SupportServlet extends AbstractJSONServlet
      * <p>The cursor is the <em>report time</em> ({@code newCursor} = now at the
      * moment the report was generated), not a log offset: it marks "everything
      * observed up to this instant has been reported", which is what the next
-     * report's {@code [cursor, now]} interval should start from.
+     * report's {@code (cursor, now]} interval should start from.
+     *
+     * <p>This is a true high-water mark because the monitor writes the log
+     * <em>synchronously</em> in the same {@code checkSubProcesses()} call that
+     * records the observation timestamp (it appends the scan before the monitor
+     * thread can advance to a later scan). So by the time a report generated at
+     * {@code now} reads the log, every log line with {@code timestamp <= now} is
+     * already on disk; an older-timestamped line cannot appear behind the cursor
+     * after the fact. (If the log writer were ever made asynchronous, this
+     * invariant would have to be re-established.)
      *
      * <p>The write is atomic: the updated JSON is written to a temp file in the
      * same directory and then renamed over the sidecar, so a crash mid-write
@@ -2142,8 +2170,24 @@ public class SupportServlet extends AbstractJSONServlet
         // write the cursor: the write would otherwise replace the malformed file
         // with a JSON document containing only the cursor, destroying whatever the
         // original (startTime/endTime/profiler config) held. Skip persistence and
-        // let the next request re-read the original file instead.
+        // let the next request re-read the original file instead. Log once so an
+        // admin can tell why the cursor is not advancing (every report re-covers
+        // the full window until the sidecar is repaired).
         if (metaFile.exists() && meta == null)
+        {
+            log.log(java.util.logging.Level.WARNING,
+                    "Sub-process report cursor not persisted: metadata sidecar "
+                    + metaFile.getAbsolutePath() + " exists but could not be parsed; "
+                    + "leaving it untouched (reports will re-cover the window).");
+            return;
+        }
+        // Defense in depth against the cursor moving backwards: re-read the cursor
+        // currently on disk and only write if we would advance it. Under the
+        // per-profile lock this normally cannot happen, but it also protects against
+        // any future caller that writes the cursor outside that lock (a stale
+        // report-time value would otherwise clobber a newer high-water mark).
+        long onDisk = readSubProcessCursor(metaFile);
+        if (newCursor <= onDisk)
         {
             return;
         }
@@ -2195,6 +2239,28 @@ public class SupportServlet extends AbstractJSONServlet
         {
             // Non-fatal: the report itself already went out; the cursor just
             // does not advance this time.
+        }
+    }
+
+    /**
+     * Read the currently-persisted sub-process report cursor from the sidecar, or 0
+     * if the file is absent or unparseable. Used by {@link #persistSubProcessCursor}
+     * to avoid clobbering a newer high-water mark.
+     */
+    private long readSubProcessCursor(File metaFile)
+    {
+        if (!metaFile.exists())
+        {
+            return 0;
+        }
+        try
+        {
+            JSONObject m = new JSONObject(readFileContent(metaFile));
+            return m.optLong("subProcessReportCursor", 0);
+        }
+        catch (Exception e)
+        {
+            return 0;
         }
     }
 
