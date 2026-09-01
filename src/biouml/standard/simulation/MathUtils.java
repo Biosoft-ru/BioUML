@@ -2,14 +2,17 @@ package biouml.standard.simulation;
 
 import java.util.Arrays;
 
-import one.util.streamex.DoubleStreamEx;
-
 //moved from biouml.plugins.simulation
 public class MathUtils
 {
     public static int[] multiBinarySearch(double[] x, double[] points) throws Exception
     {
-        return DoubleStreamEx.of(points).mapToInt( p -> Arrays.binarySearch( x, p ) ).toArray();
+        // Primitive loop instead of a DoubleStream to avoid per-element boxing and
+        // iterator allocation; this is on the result post-processing path.
+        int[] result = new int[points.length];
+        for( int i = 0; i < points.length; i++ )
+            result[i] = Arrays.binarySearch( x, points[i] );
+        return result;
     }
     
     /**

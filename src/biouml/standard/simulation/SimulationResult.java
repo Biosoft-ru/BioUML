@@ -83,7 +83,9 @@ public class SimulationResult extends SimulationResultSupport
     {
         if(times.length == size)
         {
-            int newAllocSize = Math.max(size*3/2, 10);
+            // Use 2x growth instead of 1.5x to reduce reallocation frequency as the
+            // result buffer grows (trading a bit of peak headroom for fewer copies).
+            int newAllocSize = Math.max(size * 2, 10);
             double[] newTimes = new double[newAllocSize];
             System.arraycopy(times, 0, newTimes, 0, size);
             times = newTimes;
@@ -136,6 +138,11 @@ public class SimulationResult extends SimulationResultSupport
     {
         realloc();
         times[size] = t;
+        // v is already a private array: SimulatorSupport.fireSolutionUpdate hands the
+        // listeners a boundary clone of the solver's state (see that method), so we can
+        // store and forward the reference without copying again. Cloning here would be
+        // redundant and would change the value the sub-listeners receive relative to the
+        // value stored in this result.
         values[size] = v;
         size++;
         int count = listeners.size();
