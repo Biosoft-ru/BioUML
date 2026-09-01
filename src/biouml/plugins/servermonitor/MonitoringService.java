@@ -239,6 +239,13 @@ public class MonitoringService {
      * Scan for long-running external sub-processes (perl/R/nextflow/...) and
      * record the result for the profile API. Logs a SEVERE line the first time
      * each sub-process crosses the slow threshold.
+     *
+     * <p>The timestamped append here (via {@link #appendSubProcessLog}) and every
+     * read via {@link #readSubProcessLog} both take {@link #subProcessLogLock}, so
+     * the log is never read while it is being appended to. That is what makes the
+     * high-water cursor invariant hold: a report that reads the log under this lock
+     * sees a stable prefix, and the scan's own append (also under the lock) is
+     * either entirely before or entirely after the report's read — never interleaved.
      */
     private void checkSubProcesses() {
         if (!config.isSubProcessEnabled()) {
