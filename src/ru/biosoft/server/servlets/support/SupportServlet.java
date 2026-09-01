@@ -95,14 +95,62 @@ public class SupportServlet extends AbstractJSONServlet
             new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
-     * A lock object paired with a live-holder count so the registry can evict an
-     * entry once no thread holds it any more. The count is only meaningful while at
-     * least one thread is inside the corresponding {@code synchronized} block.
+     * Registry entry for a per-profile sub-process report lock.
+     *
+     * <p>{@code users} counts every thread that has acquired a reference to this
+     * entry — including threads that have obtained the entry but are still waiting
+     * to enter {@code monitor}. A reference is taken <em>before</em> the thread
+     * blocks on the monitor (see {@link #acquireSubProcessReportLock}), so a
+     * waiting thread prevents the entry from being evicted. This is what keeps the
+     * invariant "at most one report in progress per profile": while any thread can
+     * still use this lock object, the entry stays in the map and no second lock
+     * object for the same key can be created.
      */
     private static final class SubProcessReportLock
     {
         final Object monitor = new Object();
-        int holders;
+        int users;
+    }
+
+    /**
+     * Acquire a reference to the per-profile lock entry, creating it if needed.
+     * The {@code users} count is incremented atomically with the map lookup so a
+     * thread that gets the entry — but has not yet entered its monitor — still
+     * prevents eviction (and thus the creation of a second lock object for the
+     * same profile). Returns the entry; the caller must {@code synchronized} on
+     * {@code entry.monitor} and later call {@link #releaseSubProcessReportLock}.
+     */
+    private static SubProcessReportLock acquireSubProcessReportLock(String lockKey)
+    {
+        return subProcessReportLocks.compute(lockKey, (k, existing) ->
+        {
+            if (existing == null)
+            {
+                existing = new SubProcessReportLock();
+            }
+            existing.users++;
+            return existing;
+        });
+    }
+
+    /**
+     * Release a reference to a per-profile lock entry and evict it from the map if
+     * no thread holds or is waiting on it any more. The decrement and conditional
+     * removal happen in one atomic {@code computeIfPresent} so the entry is only
+     * removed when {@code users} reaches 0.
+     */
+    private static void releaseSubProcessReportLock(String lockKey, SubProcessReportLock entry)
+    {
+        subProcessReportLocks.computeIfPresent(lockKey, (k, existing) ->
+        {
+            if (existing != entry)
+            {
+                // Defensive: never touch a different entry object under this key.
+                return existing;
+            }
+            existing.users--;
+            return existing.users == 0 ? null : existing;
+        });
     }
 
     /**
@@ -1970,11 +2018,14 @@ public class SupportServlet extends AbstractJSONServlet
         {
             lockKey = metaFile.getAbsolutePath() + "|" + baseName;
         }
-        SubProcessReportLock reg = subProcessReportLocks.computeIfAbsent(lockKey, k -> new SubProcessReportLock());
-        synchronized (reg.monitor)
+        // Take the registry reference BEFORE entering the monitor so a thread that
+        // is blocked waiting for the lock still prevents the entry from being
+        // evicted (see SubProcessReportLock). The reference is released in a
+        // finally, after the monitor is released.
+        SubProcessReportLock reg = acquireSubProcessReportLock(lockKey);
+        try
         {
-            reg.holders++;
-            try
+            synchronized (reg.monitor)
             {
                 Runnable hook = subProcessReportLockTestHook;
                 if (hook != null)
@@ -1989,16 +2040,10 @@ public class SupportServlet extends AbstractJSONServlet
                 }
                 appendSubProcessSummaryLocked(summary, plugin, metaFile, baseName, profileDir);
             }
-            finally
-            {
-                // Evict the registry entry once we are the last holder, so the map
-                // does not retain a lock object per profile forever.
-                reg.holders--;
-                if (reg.holders == 0)
-                {
-                    subProcessReportLocks.remove(lockKey, reg);
-                }
-            }
+        }
+        finally
+        {
+            releaseSubProcessReportLock(lockKey, reg);
         }
     }
 
@@ -2344,6 +2389,11 @@ public class SupportServlet extends AbstractJSONServlet
         }
         catch (Exception e)
         {
+            // The caller treats null as "exists but unreadable" and refuses to
+            // overwrite the sidecar; log at FINE so a genuine I/O/security failure
+            // (as opposed to a malformed file) is diagnosable without noise.
+            log.log(java.util.logging.Level.FINE,
+                    "Could not read sub-process report cursor from " + metaFile.getAbsolutePath(), e);
             return null; // exists but unreadable/malformed — do not treat as 0
         }
     }
