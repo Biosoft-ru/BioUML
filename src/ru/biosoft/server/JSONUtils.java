@@ -40,6 +40,7 @@ import com.developmentontheedge.beans.model.Property;
 import com.developmentontheedge.beans.model.SimpleProperty;
 
 import java.beans.PropertyEditor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -67,7 +68,8 @@ public class JSONUtils
     // is shared between different beans/properties or threads.
     private static final ConcurrentMap<Class<?>, java.lang.reflect.Constructor<?>> editorConstructorCache = new ConcurrentHashMap<>();
 
-    private static Object newEditor(Class<?> editorClass) throws ReflectiveOperationException
+    private static Object newEditor(Class<?> editorClass) throws InstantiationException, IllegalAccessException,
+            InvocationTargetException
     {
         java.lang.reflect.Constructor<?> ctor = editorConstructorCache.get(editorClass);
         if(ctor == null)
@@ -506,7 +508,8 @@ public class JSONUtils
         return fillSimpleProperty( property, p );
     }
 
-    private static JSONObject fillSimpleProperty(Property property, JSONObject p) throws Exception
+    private static JSONObject fillSimpleProperty(Property property, JSONObject p) throws InstantiationException, IllegalAccessException,
+            InvocationTargetException, JSONException
     {
         Class<?> editorClass = property.getPropertyEditorClass();
         if( editorClass != null )

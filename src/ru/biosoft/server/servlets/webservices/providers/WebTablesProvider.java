@@ -669,14 +669,7 @@ public class WebTablesProvider extends WebProviderSupport
                 java.lang.reflect.Constructor<?> ctor = editorConstructorCache.get(editorClass);
                 if(ctor == null)
                 {
-                    try
-                    {
-                        ctor = editorClass.getConstructor();
-                    }
-                    catch(NoSuchMethodException e)
-                    {
-                        return getControlCode( value, readOnly, id, path, null, false );
-                    }
+                    ctor = editorClass.getConstructor();
                     java.lang.reflect.Constructor<?> prev = editorConstructorCache.putIfAbsent(editorClass, ctor);
                     if(prev != null)
                         ctor = prev;
