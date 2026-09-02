@@ -39,6 +39,11 @@ import com.developmentontheedge.beans.model.CompositeProperty;
 import com.developmentontheedge.beans.model.Property;
 import com.developmentontheedge.beans.model.SimpleProperty;
 
+import java.beans.PropertyEditor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 /**
  * Utility class for JSON manipulation
  */
@@ -57,6 +62,32 @@ public class JSONUtils
             Point.class, PointWrapper.class,
             ColorFont.class, ColorFontWrapper.class,
             Dimension.class, DimensionWrapper.class ).toMap();
+
+    // Cache a no-arg constructor reference per editor class to avoid repeated constructor
+    // lookup on every call. A fresh instance is still created on each call, so no state
+    // is shared between different beans/properties or threads.
+    private static final ConcurrentMap<Class<?>, java.lang.reflect.Constructor<?>> editorConstructorCache = new ConcurrentHashMap<>();
+
+    private static Object newEditor(Class<?> editorClass) throws InstantiationException, IllegalAccessException,
+            InvocationTargetException
+    {
+        java.lang.reflect.Constructor<?> ctor = editorConstructorCache.get(editorClass);
+        if(ctor == null)
+        {
+            try
+            {
+                ctor = editorClass.getConstructor();
+            }
+            catch(NoSuchMethodException e)
+            {
+                throw new InternalException(e, "No public no-arg constructor: " + editorClass.getName());
+            }
+            java.lang.reflect.Constructor<?> prev = editorConstructorCache.putIfAbsent(editorClass, ctor);
+            if(prev != null)
+                ctor = prev;
+        }
+        return ctor.newInstance();
+    }
 
     /**
      * Apply values from JSON to bean
@@ -143,11 +174,11 @@ public class JSONUtils
         {
             if( JSONSerializable.class.isAssignableFrom(c) )
             {
-                JSONSerializable editor = (JSONSerializable)c.newInstance();
+                Object editor = newEditor(c);
                 if( editor instanceof PropertyEditorEx )
                 {
                     initEditor( property, (PropertyEditorEx)editor );
-                    editor.fromJSON(jsonObject);
+                    ( (JSONSerializable)editor ).fromJSON(jsonObject);
                     setValue( property, ( (PropertyEditorEx)editor ).getValue());
                     return;
                 }
@@ -164,7 +195,7 @@ public class JSONUtils
         {
             if( GenericMultiSelectEditor.class.isAssignableFrom(c) )
             {
-                GenericMultiSelectEditor editor = (GenericMultiSelectEditor)c.newInstance();
+                GenericMultiSelectEditor editor = (GenericMultiSelectEditor)newEditor(c);
                 initEditor( property, editor );
 
                 Object jsonValue = jsonObject.get( "value" );
@@ -181,7 +212,7 @@ public class JSONUtils
             }
             else if( JSONCompatibleEditor.class.isAssignableFrom(c) )
             {
-                JSONCompatibleEditor editor = (JSONCompatibleEditor)c.newInstance();
+                JSONCompatibleEditor editor = (JSONCompatibleEditor)newEditor(c);
                 editor.fillWithJSON(property, jsonObject);
                 return;
             }
@@ -478,18 +509,18 @@ public class JSONUtils
     }
 
     private static JSONObject fillSimpleProperty(Property property, JSONObject p) throws InstantiationException, IllegalAccessException,
-            JSONException
+            InvocationTargetException, JSONException
     {
         Class<?> editorClass = property.getPropertyEditorClass();
         if( editorClass != null )
         {
             if( JSONSerializable.class.isAssignableFrom(editorClass) )
             {
-                JSONSerializable editor = (JSONSerializable)editorClass.newInstance();
+                Object editor = newEditor(editorClass);
                 if( editor instanceof PropertyEditorEx )
                 {
                     initEditor( property, (PropertyEditorEx)editor );
-                    JSONObject p1 = editor.toJSON();
+                    JSONObject p1 = ( (JSONSerializable)editor ).toJSON();
                     if( p1 != null )
                     {
                         Iterator<?> iterator = p1.keys();
@@ -518,7 +549,7 @@ public class JSONUtils
             }
             else if( TagEditorSupport.class.isAssignableFrom(editorClass) )
             {
-                TagEditorSupport editor = (TagEditorSupport)editorClass.newInstance();
+                TagEditorSupport editor = (TagEditorSupport)newEditor(editorClass);
                 String[] tags = editor.getTags();
                 if( tags != null )
                 {
@@ -527,7 +558,7 @@ public class JSONUtils
             }
             else if( StringTagEditorSupport.class.isAssignableFrom(editorClass) )
             {
-                StringTagEditorSupport editor = (StringTagEditorSupport)editorClass.newInstance();
+                StringTagEditorSupport editor = (StringTagEditorSupport)newEditor(editorClass);
                 String[] tags = editor.getTags();
                 if( tags != null )
                 {
@@ -536,13 +567,12 @@ public class JSONUtils
             }
             else if( CustomEditorSupport.class.isAssignableFrom(editorClass) )
             {
-                CustomEditorSupport editor = null;
                 //TODO: support or correctly process some editors
                 //Some editors like biouml.model.util.ReactionEditor, biouml.model.util.FormulaEditor
                 //use Application.getApplicationFrame(), so we got a NullPointerException here
                 try
                 {
-                    editor = (CustomEditorSupport)editorClass.newInstance();
+                    CustomEditorSupport editor = (CustomEditorSupport)newEditor(editorClass);
                     initEditor( property, editor );
                     String[] tags = editor.getTags();
                     if( tags != null )
@@ -573,7 +603,7 @@ public class JSONUtils
         {
             if( CustomEditorSupport.class.isAssignableFrom(c) )
             {
-                CustomEditorSupport editor = (CustomEditorSupport)c.newInstance();
+                CustomEditorSupport editor = (CustomEditorSupport)newEditor(c);
                 initEditor( property, editor );
                 String[] tags = editor.getTags();
                 if( tags != null )

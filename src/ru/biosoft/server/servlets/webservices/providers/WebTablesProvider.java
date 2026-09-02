@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,6 +141,12 @@ public class WebTablesProvider extends WebProviderSupport
         private ColumnModel columnModel;
         private BiosoftTableModel tableModel;
         private int rowFrom, rowTo;
+
+        // Cache the no-arg constructor per editor class to avoid repeated constructor lookup.
+        // A fresh editor instance is still created per cell: PropertyEditor instances are
+        // mutable and hold per-call state (value, bean, descriptor), so they must not be
+        // shared across requests, rows or threads.
+        private static final ConcurrentMap<Class<?>, java.lang.reflect.Constructor<?>> editorConstructorCache = new ConcurrentHashMap<>();
 
         public TableQueryResponse(DataCollection<?> dc, TableResolver resolver, BiosoftWebRequest arguments, OutputStream out)
         {
@@ -658,7 +666,15 @@ public class WebTablesProvider extends WebProviderSupport
             PropertyEditor editor = null;
             try
             {
-                editor = (PropertyEditor)editorClass.newInstance();
+                java.lang.reflect.Constructor<?> ctor = editorConstructorCache.get(editorClass);
+                if(ctor == null)
+                {
+                    ctor = editorClass.getConstructor();
+                    java.lang.reflect.Constructor<?> prev = editorConstructorCache.putIfAbsent(editorClass, ctor);
+                    if(prev != null)
+                        ctor = prev;
+                }
+                editor = (PropertyEditor)ctor.newInstance();
                 editor.setValue( value );
                 if( editor instanceof PropertyEditorEx )
                 {
