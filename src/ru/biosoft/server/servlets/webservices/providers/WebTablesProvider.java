@@ -142,9 +142,11 @@ public class WebTablesProvider extends WebProviderSupport
         private BiosoftTableModel tableModel;
         private int rowFrom, rowTo;
 
-        // Cache PropertyEditor instances by class to avoid re-instantiating Swing UI components
-        // for every table cell (profiler: GenericComboBoxEditor.<init> was the #1 hot path).
-        private static final ConcurrentMap<Class<?>, PropertyEditor> editorCache = new ConcurrentHashMap<>();
+        // Cache the no-arg constructor per editor class to avoid repeated constructor lookup.
+        // A fresh editor instance is still created per cell: PropertyEditor instances are
+        // mutable and hold per-call state (value, bean, descriptor), so they must not be
+        // shared across requests, rows or threads.
+        private static final ConcurrentMap<Class<?>, java.lang.reflect.Constructor<?>> editorConstructorCache = new ConcurrentHashMap<>();
 
         public TableQueryResponse(DataCollection<?> dc, TableResolver resolver, BiosoftWebRequest arguments, OutputStream out)
         {
@@ -664,30 +666,30 @@ public class WebTablesProvider extends WebProviderSupport
             PropertyEditor editor = null;
             try
             {
-                // Reuse cached editor instance to avoid re-creating Swing UI components
-                // (e.g. JComboBox in GenericComboBoxEditor) for every cell.
-                editor = editorCache.computeIfAbsent(editorClass, c ->
+                java.lang.reflect.Constructor<?> ctor = editorConstructorCache.get(editorClass);
+                if(ctor == null)
                 {
                     try
                     {
-                        return (PropertyEditor) c.newInstance();
+                        ctor = editorClass.getConstructor();
                     }
-                    catch (Exception e)
+                    catch(NoSuchMethodException e)
                     {
-                        return null;
+                        return getControlCode( value, readOnly, id, path, null, false );
                     }
-                });
-                if( editor != null )
-                {
-                    editor.setValue( value );
-                    if( editor instanceof PropertyEditorEx )
-                    {
-                        if( rowBean != null )
-                            ( (PropertyEditorEx)editor ).setBean( rowBean );
-                        ( (PropertyEditorEx)editor ).setDescriptor( descriptor );
-                    }
-                    tags = editor.getTags();
+                    java.lang.reflect.Constructor<?> prev = editorConstructorCache.putIfAbsent(editorClass, ctor);
+                    if(prev != null)
+                        ctor = prev;
                 }
+                editor = (PropertyEditor)ctor.newInstance();
+                editor.setValue( value );
+                if( editor instanceof PropertyEditorEx )
+                {
+                    if( rowBean != null )
+                        ( (PropertyEditorEx)editor ).setBean( rowBean );
+                    ( (PropertyEditorEx)editor ).setDescriptor( descriptor );
+                }
+                tags = editor.getTags();
             }
             catch( Exception e1 )
             {
