@@ -42,6 +42,7 @@
         <module>plugconfig/biouml.plugins.kegg</module>
         <module>plugconfig/biouml.plugins.lucene</module>
         <module>plugconfig/biouml.plugins.microarray</module>
+        <module>plugconfig/biouml.plugins.mcp</module>
         <module>plugconfig/biouml.plugins.miriam</module>
         <module>plugconfig/biouml.plugins.modelreduction</module>
         <module>plugconfig/biouml.plugins.nextflow</module>

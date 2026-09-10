@@ -46,6 +46,13 @@
         <property name="PLUGIN_CONFIG_DIR" value="${TOPDIR}/plugconfig" />
         <property name="DEFAULT_DATABASE_SERVER" value="localhost"/>
 
+        <!-- Language floor for the flat Ant compile. The MCP plugin depends on the MCP Java SDK,
+             a Java 17 library, so the <javac> must be able to read v61 classes; this is set to 21
+             to match the Maven build (maven.compiler.source/target=21 in pom.xml). Requires the
+             invoking JAVA_HOME to be JDK 21+ (no JDK path is hardcoded here — ant uses whatever
+             javac JAVA_HOME resolves to, the same JDK the Maven build uses). -->
+        <property name="ant_source_target" value="21" />
+
     	 <!-- Path to IzPack libraries (not included into BioUML as of now) -->
     	<property name="IZ_PACK_LIB" value = "C:/Program Files/IzPack/lib"/>
     	
@@ -112,6 +119,12 @@
     	<property name="BEAKERX_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar" />
         <property name="DOCKER_JARS" value="${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-core-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-api-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-transport-3.2.13.jar;${PLUGIN_CONFIG_DIR}/ru.biosoft.server.servlets/docker-java-transport-httpclient5-3.2.13.jar" />
         <property name="MINIO_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.server/minio-8.0.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/okhttp-3.14.9.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/okio-1.17.2.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.server/simple-xml-2.7.1.jar" />
+        <!-- MCP (Model Context Protocol) SDK. The Ant flat compile has no Maven resolution, so the
+             jars the biouml.plugins.mcp source needs at compile time are staged in the bundle dir
+             and listed here. jackson-databind/core/annotations are the 2.17 line the SDK requires
+             (the repo otherwise ships 2.11.x, which lacks the JacksonFeature class databind 2.17
+             references); reactor-core/reactive-streams are transitive compile deps of the SDK. -->
+        <property name="MCP_JARS" value="${PLUGIN_CONFIG_DIR}/biouml.plugins.mcp/mcp-0.11.2.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.mcp/jackson-databind-2.17.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.mcp/jackson-core-2.17.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.mcp/jackson-annotations-2.17.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.mcp/reactor-core-3.7.0.jar;${PLUGIN_CONFIG_DIR}/biouml.plugins.mcp/reactive-streams-1.0.4.jar" />
                 
         <property name="JUNIT" value="${PLUGIN_DIR}/junit_3.8.1/junit.jar" />
         <property name="testui" value="swingui" />
@@ -128,7 +141,7 @@
         <!-- misc -->
 
         <!-- ROSUDA must go before CHEMPAINT as they have conflicting classes -->
-        <property name="BUILD_CLASSPATH" value=".;${ECLIPSE_JARS};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${RHINO};${JMAIL};${LOG4J};${DOTEBEANS};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${ROSUDA};${GRAPH};${JGRAPH};${JGRAPHADDONS};${BATIK};${JAMA};${JTAR};${JDBM};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${MYSQL_JAR};${OWLAPI};${CERN};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GROOVY};${GLPK};${SABIO};${POI};${CHIPMUNK};${PERFECTOSAPE};${FTPCLIENT};${JERICHO};${SMACK};${JUNIT};${JSOUP};${YAML};${BCEL_JAR};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${ACCESSCORE};${ACCESSFILE};${RTREE};${BIGBED};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${PHYSICELL_JARS};${SBOL};${BEAKERX_JARS};${JAVASTRAW}" />
+        <property name="BUILD_CLASSPATH" value=".;${ECLIPSE_JARS};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${RHINO};${JMAIL};${LOG4J};${DOTEBEANS};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${ROSUDA};${GRAPH};${JGRAPH};${JGRAPHADDONS};${BATIK};${JAMA};${JTAR};${JDBM};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${MYSQL_JAR};${OWLAPI};${CERN};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GROOVY};${GLPK};${SABIO};${POI};${CHIPMUNK};${PERFECTOSAPE};${FTPCLIENT};${JERICHO};${SMACK};${JUNIT};${JSOUP};${YAML};${BCEL_JAR};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${ACCESSCORE};${ACCESSFILE};${RTREE};${BIGBED};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${PHYSICELL_JARS};${SBOL};${BEAKERX_JARS};${JAVASTRAW};${MCP_JARS}" />
         <property name="RUN_CLASSPATH" value=".;${OUTDIR};${DOTEBEANS};${ACCESSCORE};${ACCESSFILE};${BELOGGER};${COMMON};${APACHE_HTTP};${FILE_UPLOAD};${JSR305};${LOG4J};${RHINO};${JMAIL};${JFREECHART};${CROMWELL};${JLIBSEDML};${HTSJDK};${GRAPH};${JGRAPH};${JGRAPHADDONS};${JAMA};${ROSUDA};${JTAR};${JDBM};${BATIK};${SYNTAX};${CDK};${CHEMPAINT};${JMOL};${LUCENE};${TOMCAT};${MYSQL_JAR};${OWLAPI};${JSON};${TROVE};${VELOCITY};${MATH};${GUROBI};${GROOVY};${GLPK};${SABIO};${POI};${FTPCLIENT};${CHIPMUNK};${PERFECTOSAPE};${JERICHO};${SMACK};${CERN};${JUNIT};${JSOUP};${YAML};${JOL_JAR};${STREAMEX};${GRAPHICSPLUGIN};${JOBCONTROL};${EXCEPTION};${RTREE};${BIGBED};${UTIL};${JADE};${PHYSICELL};${JUPYTER_BASE_KERNEL};${DOCKER_JARS};${MINIO_JARS};${SBOL};${JAVASTRAW}" />
 
         <property name="WORKBENCH" value="${PLUGIN_DIR}/ru.biosoft.workbench_${VERSION}" />
@@ -219,6 +232,10 @@
     <target name="compile" depends="main">
         <echo message="Compiling BioUML Library..." />
         <javac srcdir="${SRCDIR}" destdir="${OUTDIR}" classpath="${BUILD_CLASSPATH}" debug="on" deprecation="off" optimize="off" includeantruntime="false"  encoding="UTF-8"  nowarn="on">
+            <compilerarg value="-source"/>
+            <compilerarg value="${ant_source_target}"/>
+            <compilerarg value="-target"/>
+            <compilerarg value="${ant_source_target}"/>
             <include name="**/*.java" />
             <exclude name="**/_test/*.java" />
             <exclude name="**/target/**" />

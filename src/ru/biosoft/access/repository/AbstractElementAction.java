@@ -41,7 +41,19 @@ public abstract class AbstractElementAction extends AbstractAction
 
     protected int getActionPriority(DataElement de)
     {
-        return isApplicable(de)?priority:PRIORITY_NOT_SUPPORTED;
+        // Guard: isApplicable() may throw (e.g. GUI-only actions whose applicability check
+        // requires an uninitialized DocumentManager/Application when run headlessly). A throwing
+        // action must not break enumeration of the other actions in the popup menu.
+        boolean applicable;
+        try
+        {
+            applicable = isApplicable( de );
+        }
+        catch ( Throwable t )
+        {
+            return PRIORITY_NOT_SUPPORTED;
+        }
+        return applicable ? priority : PRIORITY_NOT_SUPPORTED;
     }
 
     protected abstract void performAction(DataElement de) throws Exception;

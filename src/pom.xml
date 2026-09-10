@@ -460,4 +460,35 @@
 
         </plugins>
     </build>
+
+    <dependencies>
+        <!-- MCP (Model Context Protocol) Java SDK — used by biouml.plugins.mcp to expose
+             BioUML functionality to AI agents. The json-mapper modules (mcp-json-jackson2/3)
+             do not exist for 0.11.2, so the plugin's custom transports serialize protocol
+             messages with jackson-databind (declared here as a direct dep of the SDK). -->
+        <dependency>
+            <groupId>io.modelcontextprotocol.sdk</groupId>
+            <artifactId>mcp</artifactId>
+            <version>0.11.2</version>
+        </dependency>
+        <!-- The MCP SDK's jackson-databind 2.17.0 requires a jackson-core of the same 2.17 line.
+             The repo previously resolved jackson-core 2.11.2 (a transitive pin) which is too old
+             for databind 2.17 (NoClassDefFoundError JacksonFeature). Bump to 2.17.0 to match.
+             Jackson 2.x is backwards-compatible, so existing jackson users (gtrd serializers, which
+             use only stable JsonGenerator/JsonParser/ObjectMapper APIs) are unaffected. The OSGi
+             runtime image (plugins/) ships its own jackson-core 2.11.2 bundle, which phase 5
+             replaces with the 2.17 line. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+        <!-- Match jackson-annotations to the 2.17 line as well (repo pinned 2.10.3 via
+             docker-java-api); databind 2.17 needs JsonKey etc. which are absent in 2.10. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+    </dependencies>
 </project>

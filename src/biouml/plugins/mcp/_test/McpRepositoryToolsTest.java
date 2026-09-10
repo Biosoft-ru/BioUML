@@ -1,0 +1,231 @@
+package biouml.plugins.mcp._test;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import com.developmentontheedge.application.ApplicationUtils;
+
+import ru.biosoft.access.LocalRepository;
+import ru.biosoft.access.Repository;
+import ru.biosoft.access._test.AbstractBioUMLTest;
+import ru.biosoft.access.core.CollectionFactory;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionConfigConstants;
+import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.generic.GenericDataCollection;
+import ru.biosoft.util.ExProperties;
+import ru.biosoft.util.TempFiles;
+
+import biouml.plugins.mcp.McpConstants;
+import biouml.plugins.mcp.server.McpToolCatalog;
+import biouml.plugins.mcp.support.McpEnvelope;
+import biouml.plugins.mcp.support.McpRepositorySupport;
+import biouml.plugins.mcp.tools.repo.RepoTools;
+
+/**
+ * Phase-2 tests for the repository MCP tools, against a temp-dir {@link LocalRepository} fixture
+ * (the same pattern as {@code TestGenericDataCollection}).
+ */
+public class McpRepositoryToolsTest extends AbstractBioUMLTest
+{
+	private File dir;
+
+	@Override
+	protected void setUp() throws Exception
+	{
+		super.setUp();
+		dir = TempFiles.dir( "mcpRepoTest" );
+
+		Properties properties = new ExProperties();
+		properties.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, "mcpdata" );
+		properties.setProperty( DataCollectionConfigConstants.CLASS_PROPERTY, LocalRepository.class.getName() );
+		properties.setProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, dir.toString() );
+		ExProperties.store( properties, new File( dir, DataCollectionConfigConstants.DEFAULT_CONFIG_FILE ) );
+		Repository repository = (Repository) CollectionFactory.createCollection( null, properties );
+		CollectionFactory.registerRoot( repository );
+		repository.getNameList();
+
+		// A folder collection (FolderCollection) so create-folder works.
+		DataCollection<?> folder = GenericDataCollection.createGenericCollection( repository, repository, "projects", "projects" );
+		assertNotNull( "folder created", folder );
+		repository.put( folder );
+	}
+
+	@Override
+	protected void tearDown() throws Exception
+	{
+		try
+		{
+			DataElementPath.create( "mcpdata/projects" ).getDataCollection().close();
+		}
+		catch ( Exception e )
+		{
+			// ignore during teardown
+		}
+		super.tearDown();
+		ApplicationUtils.removeDir( dir );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private McpEnvelope data( McpEnvelope env )
+	{
+		if ( !env.isOk() )
+			fail( "expected ok envelope but got error: " + env.getCode() + " " + env.getError() );
+		return env;
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testCollections()
+	{
+		McpEnvelope env = McpRepositorySupport.collections();
+		data( env );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		List<Map<String, Object>> cols = (List<Map<String, Object>>) m.get( "collections" );
+		assertTrue( "fixture root 'mcpdata' must be a registered collection", containsName( cols, "mcpdata" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testListDescribeSearch()
+	{
+		// list the root
+		McpEnvelope list = McpRepositorySupport.list( "mcpdata" );
+		data( list );
+		Map<String, Object> lm = (Map<String, Object>) list.getData();
+		List<Map<String, Object>> children = (List<Map<String, Object>>) lm.get( "children" );
+		assertTrue( "root must list 'projects'", containsName( children, "projects" ) );
+
+		// describe the folder
+		McpEnvelope desc = McpRepositorySupport.describe( "mcpdata/projects" );
+		data( desc );
+		Map<String, Object> dm = (Map<String, Object>) desc.getData();
+		assertEquals( "projects", dm.get( "name" ) );
+		assertEquals( Boolean.TRUE, dm.get( "isCollection" ) );
+
+		// search
+		McpEnvelope search = McpRepositorySupport.search( "projects", "mcpdata" );
+		data( search );
+		Map<String, Object> sm = (Map<String, Object>) search.getData();
+		assertTrue( "search must find projects", ((List<String>) sm.get( "matches" )).contains( "mcpdata/projects" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testGetActions()
+	{
+		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );
+		data( env );
+		List<Map<String, Object>> actions =
+				(List<Map<String, Object>>) biouml.plugins.mcp.support.McpActionInvoker
+						.actionsFor( (ru.biosoft.access.core.DataElement) env.getData() );
+		// A folder collection must expose at least the create-folder action.
+		boolean hasNewFolder = false;
+		for ( Map<String, Object> a : actions )
+		{
+			if ( "cmd-generic-newfolder".equals( a.get( "key" ) ) )
+			{
+				hasNewFolder = true;
+				assertNotNull( "action must have a name", a.get( "name" ) );
+				assertTrue( "action name must be non-empty", !String.valueOf( a.get( "name" ) ).isEmpty() );
+				assertEquals( "create-folder must be headless-safe", Boolean.TRUE, a.get( "headlessSafe" ) );
+			}
+		}
+		assertTrue( "folder collection must expose cmd-generic-newfolder", hasNewFolder );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testCreateFolder()
+	{
+		McpEnvelope created = McpRepositorySupport.createFolder( "mcpdata/projects", "MyProject" );
+		data( created );
+		Map<String, Object> m = (Map<String, Object>) created.getData();
+		assertEquals( "mcpdata/projects/MyProject", m.get( "created" ) );
+
+		// verify by re-list
+		McpEnvelope list = McpRepositorySupport.list( "mcpdata/projects" );
+		data( list );
+		List<Map<String, Object>> children = (List<Map<String, Object>>) ((Map<String, Object>) list.getData()).get( "children" );
+		assertTrue( "new folder must appear in re-list", containsName( children, "MyProject" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testRemoveDryRun()
+	{
+		McpRepositorySupport.createFolder( "mcpdata/projects", "ToRemove" );
+
+		// dry run: nothing removed
+		McpEnvelope dry = McpRepositorySupport.remove( "mcpdata/projects/ToRemove", true );
+		data( dry );
+		Map<String, Object> dm = (Map<String, Object>) dry.getData();
+		assertEquals( Boolean.TRUE, dm.get( "dryRun" ) );
+		assertTrue( "element must still exist after dry-run",
+				DataElementPath.create( "mcpdata/projects/ToRemove" ).exists() );
+
+		// real remove
+		McpEnvelope real = McpRepositorySupport.remove( "mcpdata/projects/ToRemove", false );
+		data( real );
+		assertFalse( "element must be gone after real remove",
+				DataElementPath.create( "mcpdata/projects/ToRemove" ).exists() );
+	}
+
+	public void testInteractiveActionRefused()
+	{
+		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );
+		data( env );
+		ru.biosoft.access.core.DataElement de = (ru.biosoft.access.core.DataElement) env.getData();
+
+		// 1) An action key not in the element's action set is refused with not_found.
+		McpEnvelope missing = biouml.plugins.mcp.support.McpActionInvoker.perform( de, "cmd-generic-newfolder-not-real" );
+		assertFalse( missing.isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+
+		// 2) End-to-end: pick a real action present for this element that is NOT headless-safe and
+		//    confirm perform() refuses it with requires_interactive_ui (the safety guarantee that a
+		//    GUI-only action is never silently invoked).
+		java.util.List<Map<String, Object>> actions =
+				biouml.plugins.mcp.support.McpActionInvoker.actionsFor( de );
+		String nonSafeKey = null;
+		for ( Map<String, Object> a : actions )
+			if ( Boolean.FALSE.equals( a.get( "headlessSafe" ) ) && a.get( "key" ) != null )
+			{
+				nonSafeKey = String.valueOf( a.get( "key" ) );
+				break;
+			}
+		if ( nonSafeKey != null )
+		{
+			McpEnvelope refused = biouml.plugins.mcp.support.McpActionInvoker.perform( de, nonSafeKey );
+			assertFalse( "interactive action '" + nonSafeKey + "' must not run", refused.isOk() );
+			assertEquals( "refusal must be requires_interactive_ui, was " + refused.getCode(),
+					McpConstants.CODE_INTERACTIVE_ONLY, refused.getCode() );
+		}
+
+		// 3) The allowlist is default-deny regardless.
+		assertFalse( "unlisted key must not be headless-safe",
+				biouml.plugins.mcp.support.McpActionInvoker.isHeadlessSafe( "cmd-open", null ) );
+		assertFalse( "made-up key must not be headless-safe",
+				biouml.plugins.mcp.support.McpActionInvoker.isHeadlessSafe( "cmd-anything", null ) );
+		assertTrue( "create-folder key must be headless-safe",
+				biouml.plugins.mcp.support.McpActionInvoker.isHeadlessSafe( "cmd-generic-newfolder", null ) );
+	}
+
+	public void testEnvelopeShape()
+	{
+		// A bad path returns the stable error envelope shape.
+		McpEnvelope env = McpRepositorySupport.resolve( "does/not/exist" );
+		assertFalse( env.isOk() );
+		assertNotNull( env.getCode() );
+		Map<String, Object> map = env.toMap();
+		assertEquals( Boolean.FALSE, map.get( "ok" ) );
+		assertTrue( "error map must carry an error message", map.containsKey( "error" ) );
+	}
+
+	private static boolean containsName( List<Map<String, Object>> items, String name )
+	{
+		if ( items == null )
+			return false;
+		for ( Map<String, Object> m : items )
+			if ( name.equals( m.get( "name" ) ) )
+				return true;
+		return false;
+	}
+}

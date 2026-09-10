@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+   <!-- BioUML MCP (Model Context Protocol) service.
+        The MCP server is created in-process by biouml.plugins.mcp.server.BioUmlMcpServer
+        and exposed over HTTP by biouml.plugins.mcp.web.McpServlet (added in later phases). -->
+</plugin>

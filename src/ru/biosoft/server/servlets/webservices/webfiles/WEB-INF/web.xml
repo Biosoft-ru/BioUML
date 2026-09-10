@@ -34,4 +34,16 @@
         <url-pattern>/anonde/*</url-pattern>
     </servlet-mapping>
 
+    <!-- BioUML MCP (Model Context Protocol) service: a plain HttpServlet that speaks MCP
+         JSON-RPC (initialize / tools/list / tools/call). Auth reuses the BioUML web session.
+         See biouml.plugins.mcp.web.McpServlet. -->
+    <servlet>
+        <servlet-name>McpServlet</servlet-name>
+        <servlet-class>biouml.plugins.mcp.web.McpServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>McpServlet</servlet-name>
+        <url-pattern>/mcp</url-pattern>
+    </servlet-mapping>
+
 </web-app>
