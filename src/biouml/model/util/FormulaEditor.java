@@ -32,12 +32,17 @@ import com.developmentontheedge.application.Application;
 public class FormulaEditor extends TextButtonEditor
 {
     protected DiagramDocument diagramDocument;
-    protected JLabel titledTextField = new JLabel();
+    // Lazily allocated: a JLabel (and its UI) is only needed when the text field
+    // is rendered, not when the editor is constructed (e.g. server-side table
+    // rendering that only reads the value).
+    protected JLabel titledTextField;
 
     public FormulaEditor()
     {
         super();
 
+        if( titledTextField == null )
+            titledTextField = new JLabel();
         editor.remove(textField);
         editor.add(titledTextField, BorderLayout.CENTER);
 
@@ -126,7 +131,8 @@ public class FormulaEditor extends TextButtonEditor
     {
         super.setValue(value);
         String titledValue = value.toString();
-        titledTextField.setText(titledValue);
+        if( titledTextField != null )
+            titledTextField.setText(titledValue);
     }
 
     protected Role getRole()
