@@ -42,6 +42,11 @@ public class ServerMonitorConfig {
     // --- Extra output formats ---
     public static final String EXTRA_FORMATS = "extraFormats";
 
+    // --- Sub-process (external script) monitoring ---
+    public static final String SUB_PROCESS_ENABLED = "subProcessEnabled";
+    public static final String SUB_PROCESS_THRESHOLD = "subProcessThreshold";
+    public static final String SUB_PROCESS_MIN_AGE = "subProcessMinAge";
+
     // Default values
     public static final int DEFAULT_SLOW_TASK_THRESHOLD = 3600;       // 1 hour
     public static final int DEFAULT_CHECK_INTERVAL = 60;              // 60 seconds
@@ -55,6 +60,20 @@ public class ServerMonitorConfig {
     public static final String DEFAULT_LOG_LEVEL = "INFO";
     public static final String DEFAULT_EXTRA_FORMATS = "";
 
+    /**
+     * Default threshold (seconds) at which a long-running external
+     * sub-process (perl/R/nextflow/...) is flagged. Deliberately low so a
+     * stuck or unexpectedly slow script surfaces quickly; raise it if normal
+     * analyses legitimately run longer than this.
+     */
+    public static final int DEFAULT_SUB_PROCESS_THRESHOLD = 120;        // 2 minutes
+    /**
+     * Minimum age (seconds) before a sub-process is even reported. Filters out
+     * the many short-lived helper processes (git, scp, mkdir, etc.) so the
+     * report stays focused on the actual long-running work.
+     */
+    public static final int DEFAULT_SUB_PROCESS_MIN_AGE = 30;           // 30 seconds
+
     // Config values
     private int slowTaskThreshold = DEFAULT_SLOW_TASK_THRESHOLD;
     private int checkInterval = DEFAULT_CHECK_INTERVAL;
@@ -67,6 +86,9 @@ public class ServerMonitorConfig {
     private int maxProfileAge = DEFAULT_MAX_PROFILE_AGE;
     private String logLevel = DEFAULT_LOG_LEVEL;
     private String extraFormats = DEFAULT_EXTRA_FORMATS;
+    private boolean subProcessEnabled = true;
+    private int subProcessThreshold = DEFAULT_SUB_PROCESS_THRESHOLD;
+    private int subProcessMinAge = DEFAULT_SUB_PROCESS_MIN_AGE;
 
     /**
      * Ensure the configured profiler directory exists.
@@ -164,6 +186,12 @@ public class ServerMonitorConfig {
                     config.logLevel = toString(value, DEFAULT_LOG_LEVEL);
                 } else if (EXTRA_FORMATS.equals(key)) {
                     config.extraFormats = toString(value, DEFAULT_EXTRA_FORMATS);
+                } else if (SUB_PROCESS_ENABLED.equals(key)) {
+                    config.subProcessEnabled = toBool(value, true);
+                } else if (SUB_PROCESS_THRESHOLD.equals(key)) {
+                    config.subProcessThreshold = toInt(value, DEFAULT_SUB_PROCESS_THRESHOLD);
+                } else if (SUB_PROCESS_MIN_AGE.equals(key)) {
+                    config.subProcessMinAge = toInt(value, DEFAULT_SUB_PROCESS_MIN_AGE);
                 }
             }
         } catch (Exception e) {
@@ -202,6 +230,9 @@ public class ServerMonitorConfig {
             config.maxProfileAge = getIntProp(props, MAX_PROFILE_AGE, DEFAULT_MAX_PROFILE_AGE);
             config.logLevel = getStringProp(props, LOG_LEVEL, DEFAULT_LOG_LEVEL);
             config.extraFormats = getStringProp(props, EXTRA_FORMATS, DEFAULT_EXTRA_FORMATS);
+            config.subProcessEnabled = getBoolProp(props, SUB_PROCESS_ENABLED, true);
+            config.subProcessThreshold = getIntProp(props, SUB_PROCESS_THRESHOLD, DEFAULT_SUB_PROCESS_THRESHOLD);
+            config.subProcessMinAge = getIntProp(props, SUB_PROCESS_MIN_AGE, DEFAULT_SUB_PROCESS_MIN_AGE);
         } catch (Exception e) {
             log.log(Level.WARNING, "Error loading config from file: " + path, e);
         }
@@ -227,6 +258,9 @@ public class ServerMonitorConfig {
             case MAX_PROFILE_AGE: return String.valueOf(maxProfileAge);
             case LOG_LEVEL: return logLevel;
             case EXTRA_FORMATS: return extraFormats;
+            case SUB_PROCESS_ENABLED: return String.valueOf(subProcessEnabled);
+            case SUB_PROCESS_THRESHOLD: return String.valueOf(subProcessThreshold);
+            case SUB_PROCESS_MIN_AGE: return String.valueOf(subProcessMinAge);
             default: return null;
         }
     }
@@ -272,6 +306,15 @@ public class ServerMonitorConfig {
                 break;
             case EXTRA_FORMATS:
                 extraFormats = toString(value, DEFAULT_EXTRA_FORMATS);
+                break;
+            case SUB_PROCESS_ENABLED:
+                subProcessEnabled = toBool(value, true);
+                break;
+            case SUB_PROCESS_THRESHOLD:
+                subProcessThreshold = toInt(value, DEFAULT_SUB_PROCESS_THRESHOLD);
+                break;
+            case SUB_PROCESS_MIN_AGE:
+                subProcessMinAge = toInt(value, DEFAULT_SUB_PROCESS_MIN_AGE);
                 break;
         }
     }
@@ -322,7 +365,29 @@ public class ServerMonitorConfig {
         return extraFormats;
     }
 
+    public boolean isSubProcessEnabled() {
+        return subProcessEnabled;
+    }
+
+    public int getSubProcessThreshold() {
+        return subProcessThreshold;
+    }
+
+    public int getSubProcessMinAge() {
+        return subProcessMinAge;
+    }
+
     // --- Utility methods ---
+
+    private static boolean toBool(Object value, boolean defaultValue) {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+            return Boolean.parseBoolean((String) value);
+        }
+        return defaultValue;
+    }
 
     private static int toInt(Object value, int defaultValue) {
         if (value instanceof Number) {
@@ -357,6 +422,11 @@ public class ServerMonitorConfig {
         return val == null ? defaultValue : val;
     }
 
+    private static boolean getBoolProp(Properties props, String key, boolean defaultValue) {
+        String val = props.getProperty(key);
+        return val == null ? defaultValue : Boolean.parseBoolean(val);
+    }
+
     @Override
     public String toString() {
         return "ServerMonitorConfig{" +
@@ -371,6 +441,9 @@ public class ServerMonitorConfig {
                 ", maxProfileAge=" + maxProfileAge +
                 ", logLevel='" + logLevel + '\'' +
                 ", extraFormats='" + extraFormats + '\'' +
+                ", subProcessEnabled=" + subProcessEnabled +
+                ", subProcessThreshold=" + subProcessThreshold +
+                ", subProcessMinAge=" + subProcessMinAge +
                 '}';
     }
 }

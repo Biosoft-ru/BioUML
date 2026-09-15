@@ -57,9 +57,50 @@ Returns a text-based profile summary optimized for AI agent consumption. The res
 - Collapsed stacks (primary output, top 100 call chains by sample count, sorted)
 - Tree profile (hierarchical call chains with CPU time)
 - Traces (secondary format, top 50 call chains)
+- Slow sub-processes observed during the profile's time window (see below)
 - Instructions for AI agents on how to analyze the profile
 
 This format is designed to be easily parsed by AI agents to suggest code changes.
+
+### Sub-process log (external scripts)
+
+```
+GET /biouml/support/profile?action=subProcessLog
+GET /biouml/support/profile?action=subProcessLog&slowOnly=true
+GET /biouml/support/profile?action=subProcessLog&since=<epochMillis>&until=<epochMillis>
+```
+
+async-profiler only samples the JVM, so a task whose time is spent in an
+external script (perl / R / nextflow / git) produces a near-empty CPU profile.
+The `SubProcessMonitor` walks the OS process tree under the JVM on every check
+cycle and **persists every non-empty scan** to a JSON-lines log
+(`subprocesses.jsonl` in the profiler directory). This endpoint returns that
+history, so a slow external process can be inspected long after it exits.
+
+Each record is one scan:
+```json
+{"version":1,"timestamp":…,"checkIntervalSec":…,"thresholdSec":…,"minAgeSec":…,"count":…,
+ "subProcesses":[{"pid":…,"ageSeconds":…,"slow":…,"command":"perl script.pl --opt1"}, …]}
+```
+
+- `slowOnly=true` — keep only scans that contained an over-threshold process.
+- `since` / `until` — filter by record timestamp (epoch millis, inclusive). Both
+  must be `>= 0` and `until >= since`, otherwise the endpoint returns an error.
+- The `status` endpoint also reports `subProcessLogPath` and `subProcessLogCount`
+  (served from an in-memory count, not a file scan).
+- **Command-line redaction** — because the log is persisted and readable
+  through this endpoint, command lines are redacted before writing: any argument
+  whose key looks like a credential (password, token, secret, api/access key,
+  auth, bearer, client/session/refresh token, etc.) has its value replaced with
+  `***`. Both `--key=value` and the separate-token `--key value` forms are
+  handled, including quoted values. This prevents credentials passed on an
+  external script's command line from leaking into the log.
+- The log is self-bounding: records older than 7 days are removed during
+  periodic compaction (at most every 10 minutes), and the file is capped at
+  5000 lines. It is excluded from profile cleanup. The hot append path never
+  rewrites the file; purges use a temp file + atomic move (falling back to a
+  non-atomic replace if the filesystem does not support `ATOMIC_MOVE`, in
+  which case readers may briefly observe an intermediate state).
 
 ### Stop profiling
 

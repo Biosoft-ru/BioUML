@@ -168,21 +168,67 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     protected List<double[]> simulationResultHistory = new ArrayList<double[]>();
     protected List<Double> simulationResultTimes = new ArrayList<Double>();
 
+    // Primitive mirror of simulationResultTimes, kept in sync by updateHistory()/clear()/init().
+    // delay() hot path reads this instead of unboxing a List<Double> on every probe.
+    private double[] timeCache = new double[0];
+
+    // Monotonic cursor for the delay() fast path: the largest index known to hold a
+    // time <= the last requested t, and the t that produced it. History times only
+    // increase, so as long as the requested t is non-decreasing the cursor never has
+    // to move backwards; it starts at the previous insertion point and only scans
+    // history entries between the previous and current requested times.
+    //
+    // delay() is NOT guaranteed to be called with non-decreasing t (generated models
+    // evaluate several delay(..., time - d_i) expressions at the same simulation time
+    // with different offsets, and solvers may re-evaluate at earlier t), so the cursor
+    // is only used when t >= delayCursorTime; otherwise we fall back to the binary
+    // search (firstPart) which is correct for any ordering.
+    private int delayCursor = 0;
+    private double delayCursorTime = Double.NEGATIVE_INFINITY;
+
+    private double timeAt(int i)
+    {
+        if( i < timeCache.length )
+            return timeCache[i];
+        return simulationResultTimes.get(i).doubleValue();
+    }
+
+    private void addHistory(double[] z, double t)
+    {
+        simulationResultHistory.add(z);
+        simulationResultTimes.add(t);
+        int n = simulationResultTimes.size();
+        if( timeCache.length < n )
+        {
+            double[] grown = new double[Math.max(16, n * 2)];
+            System.arraycopy(timeCache, 0, grown, 0, timeCache.length);
+            timeCache = grown;
+        }
+        timeCache[n - 1] = t;
+    }
+
+    private void clearHistory()
+    {
+        simulationResultHistory.clear();
+        simulationResultTimes.clear();
+        timeCache = new double[0];
+        delayCursor = 0;
+        delayCursorTime = Double.NEGATIVE_INFINITY;
+    }
+
     @Override
     public void updateHistory(double t)
     {
         double[] z = getCurrentHistory();
         if( z != null )
         {
-            simulationResultHistory.add(z);
-            simulationResultTimes.add(t);
+            addHistory(z, t);
         }
     }
 
     public void clear()
     {
-        simulationResultHistory.clear();
-        simulationResultTimes.clear();
+        clearHistory();
     }
 
     public double[] getTimes()
@@ -208,7 +254,7 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
         while (low < high)
         {
             int middle = low + (high - low) / 2;
-            double middleTime = simulationResultTimes.get(middle);
+            double middleTime = timeAt(middle);
 
             if (middleTime < t)
             {
@@ -221,7 +267,34 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
         }
         return low;
     }
-    
+
+    // Fast path for delay(): when the requested t is non-decreasing relative to the
+    // previous call, advance the monotonic cursor to the first index whose time >= t.
+    // The cursor starts at the previous insertion point, so it only scans history
+    // entries between the previous and current requested times instead of searching
+    // the whole history.
+    //
+    // delay() is NOT guaranteed to be called with non-decreasing t (generated models
+    // evaluate several delay(..., time - d_i) at the same simulation time with
+    // different offsets, and solvers may re-evaluate at earlier t). If t moves
+    // backwards relative to the last cursor query, the cursor is not a valid start
+    // point, so fall back to the binary search, which is correct for any ordering.
+    // The cursor state is deliberately left unchanged on the fallback: it remains a
+    // valid lower bound for all future t >= delayCursorTime.
+    private int firstPartMonotonic(double t)
+    {
+        if( t < delayCursorTime )
+            return firstPart(t);
+
+        int i = delayCursor;
+        int n = simulationResultTimes.size();
+        while( i < n && timeAt(i) < t )
+            i++;
+        delayCursor = i;
+        delayCursorTime = t;
+        return i;
+    }
+
     private double interpolate(double t1, double t2, double x1, double x2, double t)
     {
         return ( ( x2 - x1 ) / ( t2 - t1 ) ) * ( t - t1 ) + x1;
@@ -229,10 +302,10 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     
     public double delay(int index, double t)
     {
-        if( simulationResultTimes.size() == 0 || t < simulationResultTimes.get(0) )
+        if( simulationResultTimes.size() == 0 || t < timeAt(0) )
             return getPrehistory(t, index);
 
-        int i = firstPart(t);
+        int i = firstPartMonotonic(t);
 
         if( i == 0 )
             return simulationResultHistory.get(0)[index];
@@ -252,19 +325,18 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
         else
         {
             x1 = simulationResultHistory.get(i)[index];
-            t1 = simulationResultTimes.get(i).doubleValue();
+            t1 = timeAt(i);
         }
 
         x2 = simulationResultHistory.get(i - 1)[index];
-        t2 = simulationResultTimes.get(i - 1).doubleValue();
+        t2 = timeAt(i - 1);
         return interpolate(t1, t2, x1, x2, t);
     }
 
     @Override
     public void init() throws Exception
     {
-        this.simulationResultHistory.clear();
-        this.simulationResultTimes.clear();
+        clearHistory();
         CONSTRAINTS__VIOLATED = 0;
         initialValues = getInitialValues();
         isInit = true;
@@ -284,8 +356,7 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
     public void init(double[] initialValues, Map<String, Double> parameters) throws Exception
     {
         this.initialValues = Arrays.copyOf(initialValues, initialValues.length);
-        this.simulationResultHistory.clear();
-        this.simulationResultTimes.clear();
+        clearHistory();
         this.x_values = Arrays.copyOf(initialValues, initialValues.length);
         Field[] fields = this.getClass().getDeclaredFields();
 
@@ -410,6 +481,12 @@ abstract public class JavaBaseModel implements OdeModel, AeModel
             result.initialValues = this.initialValues.clone();
             result.x_values = this.x_values.clone();
             result.simulationResultTimes = new ArrayList<>(simulationResultTimes);
+            // Copy the primitive time cache (preserves allocated capacity, avoids an
+            // O(n) List<Double> unboxing pass). Must be a copy -- not a shared array --
+            // because each model extends its own history independently.
+            result.timeCache = this.timeCache.clone();
+            result.delayCursor = 0;
+            result.delayCursorTime = Double.NEGATIVE_INFINITY;
             return result;
         }
         catch( Exception ex )

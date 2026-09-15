@@ -20,7 +20,7 @@ public class Element implements Comparable<Element>
     public static final String USER_REACTANTS_PROPERTY = "userReactionReactants";
     public static final String USER_PRODUCTS_PROPERTY = "userReactionProducts";
 
-    protected String path;
+    protected final String path;
     protected String accession = null;
     protected String relationType;
     protected String linkedFromPath;
@@ -28,6 +28,16 @@ public class Element implements Comparable<Element>
     protected String linkedPath;
     protected int linkedDirection;
     protected DynamicPropertySet properties;
+
+    /**
+     * Cached hash of {@link #path}. The path is never reassigned after construction
+     * (no setter; only the two constructors assign it), so the hash is stable for the
+     * object's lifetime. hashCode() is invoked on every HashMap/HashSet operation during
+     * graph traversals (key nodes analysis); caching avoids the repeated method dispatch
+     * to String.hashCode() on the hot path.
+     */
+    private int cachedHash;
+    private boolean hashCached;
 
     public Element(String path)
     {
@@ -60,7 +70,12 @@ public class Element implements Comparable<Element>
     @Override
     public int hashCode()
     {
-        return path.hashCode();
+        if( !hashCached )
+        {
+            cachedHash = path.hashCode();
+            hashCached = true;
+        }
+        return cachedHash;
     }
 
     //

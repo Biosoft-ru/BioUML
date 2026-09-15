@@ -118,6 +118,11 @@ public class EventLoopSimulator extends SimulatorSupport
     public void init(Model model, double[] initialValues, Span tspan, ResultListener[] listeners, FunctionJobControl jobControl)
             throws Exception
     {
+        // Initialize reusable buffers
+        pendingEventsBuffer = new ArrayList<>();
+        switchedOffEventsBuffer = new ArrayList<>();
+        candidateEventsBuffer = new HashSet<>();
+
         this.jobControl = jobControl;
         this.odeModel = (OdeModel)model;
         if( !odeModel.isInit() )
@@ -133,11 +138,6 @@ public class EventLoopSimulator extends SimulatorSupport
 
         if( curTime == 0 )
             checkInitialEvents( curTime, initialValues );
-
-        // Initialize reusable buffers
-        pendingEventsBuffer = new ArrayList<>();
-        switchedOffEventsBuffer = new ArrayList<>();
-        candidateEventsBuffer = new HashSet<>();
     }
 
     @Override

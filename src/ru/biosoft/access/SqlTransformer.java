@@ -132,4 +132,13 @@ public interface SqlTransformer<T extends DataElement>
      * @return Query to get sorted name list
      */
     public String getSortedNameListQuery(String field, boolean direction);
+
+    /**
+     * Returns the SQL column name used as the primary key / element name.
+     * Used to build batch fetch queries (WHERE idField IN (...)).
+     */
+    default String getIdField()
+    {
+        return "id";
+    }
 }

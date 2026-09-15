@@ -57,6 +57,7 @@ import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.ImageDataElement;
 import ru.biosoft.access.HtmlDataElement;
+import ru.biosoft.templates.TemplateRegistry;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.analysiscore.AnalysisJobControl;
 import ru.biosoft.analysiscore.AnalysisMethodElement;
@@ -577,6 +578,7 @@ public class PopulationTreatment extends AnalysisMethodSupport<PopulationTreatme
 
         p.setProperty( "file.resource.loader.class", "org.apache.velocity.runtime.resource.loader.FileResourceLoader" );
         p.setProperty( "file.resource.loader.path", template.getParentFile().getAbsolutePath() );
+        p.setProperty( "parser.pool.size", String.valueOf( TemplateRegistry.VELOCITY_PARSER_POOL_SIZE ) );
 
         final VelocityEngine engine = new VelocityEngine( p );
         engine.init();

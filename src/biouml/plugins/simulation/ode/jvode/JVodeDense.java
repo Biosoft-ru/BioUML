@@ -179,9 +179,15 @@ public class JVodeDense extends DirectSolver
             double fnorm = VectorUtils.wrmsNorm(ftemp, errorWeight);
             double minInc = ( fnorm != 0.0 ) ? ( 1000 * Math.abs(h) * UROUND * n * fnorm ) : 1.0;
 
+            // Reuse the matrix columns allocated by the Matrix(n, n) constructor instead
+            // of allocating a fresh double[n] per column on every Jacobian evaluation.
+            // This is safe because each column is fully overwritten here (scaleDiff
+            // writes all n entries) before the matrix is used, and the Jacobian is
+            // cached into a separate matrix (savedJ) via an element-wise denseCopy in
+            // setup(), so mutating matr in place cannot corrupt the cached copy.
             for( int j = 0; j < n; j++ )
             {
-                double[] jthCol = new double[n];
+                double[] jthCol = matr.cols[j];
                 yjsaved = z[0][j];
                 double v1 = UROUND_SQRT * Math.abs(yjsaved);
                 double v2 = minInc / errorWeight[j];
@@ -192,7 +198,6 @@ public class JVodeDense extends DirectSolver
                 z[0][j] = yjsaved;
                 inc_inv = 1.0 / inc;
                 VectorUtils.scaleDiff(inc_inv, acor, ftemp, jthCol);
-                matr.cols[j] = jthCol;
             }
             return 0;
         }

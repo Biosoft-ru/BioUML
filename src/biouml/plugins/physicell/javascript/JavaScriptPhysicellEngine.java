@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.parser.node.SimpleNode;
@@ -24,6 +23,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.plugins.javascript.Global;
 import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
+import ru.biosoft.templates.TemplateRegistry;
 
 public class JavaScriptPhysicellEngine  extends JavaScriptHostObjectBase
 {
@@ -83,7 +83,7 @@ public class JavaScriptPhysicellEngine  extends JavaScriptHostObjectBase
         velocityTemplate.setRuntimeServices( runtimeServices );
         velocityTemplate.setData( node );
         velocityTemplate.initDocument();
-        Velocity.init();
+        TemplateRegistry.initVelocity();
         VelocityContext context = new VelocityContext();
         context.put( "physicellEngine", new SimulationEngineHelper() );
         context.put( "de", de );

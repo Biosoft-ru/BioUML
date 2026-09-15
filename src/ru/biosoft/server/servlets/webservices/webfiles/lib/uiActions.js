@@ -154,6 +154,33 @@ function removeElement(completePath)
     });
 }
 
+/*
+* Remove quietly, do not ask for confirmation
+*/
+function removeElementQuiet(completePath)
+{
+    if(!completePath) return;
+    var path = getElementPath(completePath);
+    var name = getElementName(completePath);
+    queryService('access.service', 26, 
+        {
+            dc: path,
+            de: name
+        },
+        function(data)
+        {
+            if (data.values == 'ok') 
+            {
+                removeElementOnClient(completePath);
+                //TODO: do not update whole branch, just change totalsize attribute in "Load next xx/Load last xx" tree element
+                refreshTreeBranch(getElementPath(completePath));
+            }
+        },
+        function(){
+        }
+    );
+}
+
 /**
  * Remove element from DOM-tree (including all linked paths) 
  * and from parent DataCollection (including all linked collections)
