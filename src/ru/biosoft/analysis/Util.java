@@ -951,7 +951,10 @@ public class Util
             t = i;
             while( t != 1 )
             {
-                k = (int) ( (double)t / 2 );
+                // t is always an integer <= n < 2^52, so t/2 is exact: the double
+                // round-trip is equivalent to a plain integer shift but costs extra ops
+                // in this O(n log n) hot loop (wilcoxonTest sorts the score array with it).
+                k = t >> 1;
                 if( x[k - 1] >= x[t - 1] )
                     t = 1;
                 else
