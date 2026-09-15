@@ -2,6 +2,20 @@ package biouml.plugins.wdl.parser;
 
 public class ParserUtil
 {
+    public static int findIndex(Node parent, Node child)
+    {
+        for( int i = 0; i < parent.jjtGetNumChildren(); i++ )
+        {
+            Node nextChild = parent.jjtGetChild( i );
+            if( child == nextChild )
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    
     public static void replaceChild(SimpleNode parent, int index, Node newChild)
     {
         if( newChild == null )

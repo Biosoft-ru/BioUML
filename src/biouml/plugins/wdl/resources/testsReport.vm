@@ -10,6 +10,7 @@
 <th align="center" valign="middle">#</th>
 <th align="center" valign="middle">Name</th>
 <th align="center" valign="middle">Description</th>
+<th align="center" valign="middle">Tags</th>
 <th align="center" valign="middle">Diagram generated</th>
 <th align="center" valign="middle">WDL generated</th>
 <th align="center" valign="middle">Round test</th>
@@ -32,24 +33,25 @@
 <td>$index</td>
 <td><a href="${name}/${name}.html" target="_blank">$title</a></td>
 <td>$result.getDescription()</a></td>
+<td>$result.getTags()</a></td>
 <td><a href="${name}/${name}.png" target="_blank">$result.getDiagramGenerated()</a></td>
 <td><a href="${name}/${name}_exported.wdl" target="_blank">$result.getWDLGenerated()</a></td>
 <td><a href="${name}/${name}_round.wdl" target="_blank">$result.getWDLGenerated()</a></td>
 <td>$result.getWDLValidated()</td>
 <td><a href="${name}/${name}.nf" target="_blank">$result.getNextflowGenerated()</a></td>
-<td>$result.getNextflowExecuted()</td>
-<td>$result.getNextflowChecked()</td>
-#if ($result.getNextflowExecuted() == "Ok")
+<td>$result.printHTML($result.getNextflowExecuted())</td>
+<td>$result.printHTML($result.getNextflowChecked())</td>
+#if ($result.getNextflowExecuted() == "Ok" || $result.getNextflowExecuted() == "Ok (Failed)")
 #set($executed = $executed + 1)
 #end
-#if ($result.getNextflowChecked() == "Ok")
+#if ($result.getNextflowChecked() == "Ok" || $result.getNextflowChecked() == "Ok (Failed)")
 #set($checked = $checked + 1)
 #end
 </tr>
 #set ($index = $index + 1)
 #end
 <tr>
-<td><td><td><td><td><td><td><td><td>$executed<td>$checked</tr>
+<td><td><td><td><td><td><td><td><td><td>$executed<td>$checked</tr>
 </tbody>
 </body>
 </html>

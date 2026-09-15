@@ -19,6 +19,7 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
         add("callBrush");
         add("callPen");
         add("taskBrush");
+        add("taskPen");
         add("workflowBrush");
         add("workflowPen");
         add("expressionBrush");
@@ -31,8 +32,10 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
         add("outputBrush");
         add("outputPen");
         add("defaultPen");
+        add( "tagFont", FontEditor.class );
         add( "expressionFont", FontEditor.class );
-        add("labeledTags");
+        add( "compartmentTitleFont", FontEditor.class );
+//        add("labeledTags");
         add("clampInputs");
     }
 }

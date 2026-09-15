@@ -20,6 +20,11 @@ import biouml.plugins.wdl.WorkflowVelocityHelper;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.CommandInfo;
 import biouml.plugins.wdl.model.ExpressionInfo;
+import biouml.plugins.wdl.parser.AstExpression;
+import biouml.plugins.wdl.parser.ExpressionParser;
+import biouml.plugins.wdl.parser.ParseException;
+import biouml.plugins.wdl.parser.ParserUtil;
+import biouml.plugins.wdl.parser.VariableRenamer;
 import one.util.streamex.StreamEx;
 
 public class NextFlowVelocityHelper extends WorkflowVelocityHelper
@@ -44,17 +49,39 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         this.settings = settings;
     } 
     
-    public String getShortDeclaration(Node n)
+    public String printTaskInput(Node n)
     {
         if( n == null )
             return "??";
         String result = getType( n ) + " " + getName( n );
 
+        String path = null;
+        if( "path".equals( getType( n ) ) )
+        {
+            Compartment call = findCallByTask( n.getCompartment() );
+            if( call != null )
+            {
+                Node callInput = call.stream( Node.class ).findAny( i -> getName( n ).equals( WorkflowUtil.getName( i ) ) ).orElse( null );
+                Node source = WorkflowUtil.getSource( callInput );
+                if( source != null )
+                {
+                    String expression = WorkflowUtil.getExpression( source );
+
+                    Compartment sourceParent = source.getCompartment();
+                    if( WorkflowUtil.isCall( sourceParent ) )
+                        path = WorkflowUtil.getCallName( sourceParent );
+                    if( expression != null && expression.contains( "/" ) )
+                        path = path + "/" + expression.substring( 1, expression.lastIndexOf( "/" ) );
+                }
+            }
+        }
         if( getType( n ).equals( "path" ) )
         {
             if( WorkflowUtil.getType( n ).contains( "Array" ) ) //WDL type
                 result = result + ", stageAs: 'inputs/file??/*'";
-            else
+            else if (path != null)
+                result = result + ", stageAs: 'inputs/"+path+"/"+getName( n )+"_*'";
+            else              
                 result = result + ", stageAs: 'inputs/*'";
         }
         return result;
@@ -166,17 +193,6 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String createChannelName(String input)
     {
         return input.replace( ".", "_" ) + "_ch";
-    }
-
-    public List<Node> getCallsScatters(Compartment compartment)
-    {
-        List<Node> result = new ArrayList<>();
-        for( Node c : orderedCalls )
-        {
-            if( c.getParent().equals( compartment ) )
-                result.add( c );
-        }
-        return result;
     }
 
     public String getInputName(Node n)
@@ -340,132 +356,145 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return channelName;
     }
 
+   public void printCallInCycle(Compartment call, StringBuilder sb)
+   {
+       List<Node> inputs = WorkflowUtil.getOrderedInputs( call );
+       List<String> inputNames = new ArrayList<>();
+       List<String> inputDeclarations = new ArrayList<>();
+       List<Compartment> parentCycles = WorkflowUtil.getParentCycles( call ).reversed();
+       List<Compartment> parentIfs = WorkflowUtil.getParentIfs( call ).reversed();
+       sb.append( "\n" );
+       for( Node input : inputs )
+       {
+           List<Node> cycledSources = getCycledSources( input );
+           if( cycledSources.size() == 0 )
+           {
+               inputNames.add( getCallInputName( input ) );
+           }
+           else
+           {
+               inputDeclarations.add( createInputName( input ) + " = " + printInputInCycle( parentCycles, parentIfs, input ) );
+               inputNames.add( createInputName( input ) );
+           }
+       }
+       sb.append( StreamEx.of( inputDeclarations ).joining( "\n  ", "  ", "" ) );
+       String callString = getCallName( call ) + "( " + StreamEx.of( inputNames ).joining( ", " ) + " )\n";
+       String resultName = getResultName( call );
+       sb.append( "  \n" );
+       if( resultName != null )
+           sb.append( resultName + " = " );
+       sb.append( callString );
+//           sb.append( "  \n" + resultName + " = " + getCallName( call ) + "( " + StreamEx.of( inputNames ).joining( ", " ) + " )\n" );
+//       else
+//           sb.append( "  \n" + getCallName( call ) + "( " + StreamEx.of( inputNames ).joining( ", " ) + " )\n" );
+   }
+   
+   public void printConditionalInCycle(Compartment conditional, StringBuilder sb)
+   {
+       sb.append( "\n" );
+       Node conditionNode = WorkflowUtil.findConditionNode( conditional );
+       List<Node> cycledSources = getCycledSources( conditionNode );
+       if( cycledSources.size() == 1 )
+       {
+           Node cycledVar = cycledSources.get( 0 );
+           String cycledVarName = getName( cycledVar );
+           String channelName = getChannelName( cycledVar );
 
-    public String describeNodeInCycle(Node node, Compartment cycle)
-    {
-        StringBuilder sb = new StringBuilder();
-        if( isExpression( node ) )
-        {
-            List<Node> cycledSources = getCycledSources( node );
+           String condition = getCallEmit( conditionNode );
+           for( Node inConditional : WorkflowUtil.orderCallsScatters( conditional ) )
+           {
+               if( isExpression( inConditional ) )
+               {
+                   String expression = getExpression( inConditional );
+                   expression = renameVariable( expression, cycledVarName, cycledVarName+"_value" );
+                   condition = renameVariable( condition, cycledVarName, cycledVarName+"_value" );
+                   cycledVarName = cycledVarName+"_value";
+                   if( isCall( cycledVar.getCompartment() ) )
+                       expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".", "" );
+                   sb.append( getName( inConditional ) + " = " + channelName + ".map { " + cycledVarName + "-> ( " + condition
+                           + " ) ? " + expression + ": null }.filter { it != null }" );
+               }
+               else if( isCall( inConditional ) )
+               {
+                   printCallInCycle((Compartment)inConditional, sb);
+               }
+               else if (isConditional( inConditional ))
+               {
+                   printConditionalInCycle((Compartment)inConditional,  sb);
+               }
+           }
+       }
+   }
+   
+   public void printExpressionInCycle(Node node, StringBuilder sb)
+   {
+       if ( getName(node).endsWith( "_wrapped" ) || getName(node).endsWith( "_collected" )) //this is autogenerated expression TODO: some clever marking
+       {
+           sb.append( "\n " );
+           sb.append( getName( node ) + " = " + getExpression( node ) );//simply repeat it wo changes
+           return;
+       }
+       List<Node> cycledSources = getCycledSources( node );
 
-            sb.append( "\n " );
-            if( cycledSources.size() == 0 )
-            {
-                sb.append( getName( node ) + " = " + getCallEmit( node ) );//simply repeat it wo changes
-            }
-            else if( cycledSources.size() == 1 )
-            {
-                Node cycledVar = cycledSources.get( 0 );
-                String cycledVarName = getName( cycledVar );
-                String channelName = getChannelName( cycledVar );
-                String expression = getCallEmit( node );
-                if( isCall( cycledVar.getCompartment() ) )
-                    expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".out.", "" );
-                sb.append( getName( node ) + " = " + channelName + ".map { " + cycledVarName + " -> " + expression + " }" );
-            }
-            else
-            {
-                List<Compartment> allCycles = WorkflowUtil.getParentCycles( node ).reversed();
-                List<Node> allNodes = new ArrayList<>();
-                sb.append( getName( node ) + " = " );
-                String expression = getCallEmit( node );
-                Map<String, List<Node>> cycledGroups = new HashMap<>();
-                for( int i = 0; i < cycledSources.size(); i++ )
-                {
-                    Node cycledVar = cycledSources.get( i );
-                    Compartment parentCycle = WorkflowUtil.getParentCycle( cycledVar );
-                    cycledGroups.computeIfAbsent( parentCycle.getName(), k -> new ArrayList() ).add( cycledVar );
+       sb.append( "\n " );
+       if( cycledSources.size() == 0 )
+       {
+           sb.append( getName( node ) + " = " + getCallEmit( node ) );//simply repeat it wo changes
+       }
+       else if( cycledSources.size() == 1 )
+       {
+           Node cycledVar = cycledSources.get( 0 );
+           String cycledVarName = getName( cycledVar );
+           String channelName = getChannelName( cycledVar );
+           String expression = getCallEmit( node );
+           if( isCall( cycledVar.getCompartment() ) )
+               expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".out.", "" );
+           String innerName = cycledVarName+"_value";//TODO: try to create unique name
+           expression = renameVariable( expression, cycledVarName, innerName );
+           sb.append( getName( node ) + " = " + channelName + ".map { " + innerName + " -> " + expression + " }" );
+       }
+       else
+       {
+           List<Compartment> allCycles = WorkflowUtil.getParentCycles( node ).reversed();
+           List<Node> allNodes = new ArrayList<>();
+           sb.append( getName( node ) + " = " );
+           String expression = getCallEmit( node );
+           Map<String, List<Node>> cycledGroups = new HashMap<>();
+           for( int i = 0; i < cycledSources.size(); i++ )
+           {
+               Node cycledVar = cycledSources.get( i );
+               Compartment parentCycle = WorkflowUtil.getParentCycle( cycledVar );
+               cycledGroups.computeIfAbsent( parentCycle.getName(), k -> new ArrayList() ).add( cycledVar );
 
-                    if( isCall( cycledVar.getCompartment() ) )//TODO: move somewhere
-                        expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".",
-                                getCallName( cycledVar.getCompartment() ) + "_" );
-                }
+               if( isCall( cycledVar.getCompartment() ) )//TODO: move somewhere
+                   expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".",
+                           getCallName( cycledVar.getCompartment() ) + "_" );
+           }
 
-                List<String> merged = new ArrayList<String>();
-                for( Compartment parentCycle : allCycles )
-                {
-                    List<Node> nodes = cycledGroups.get( parentCycle.getName() );
-                    allNodes.addAll( nodes );
-                    merged.add( getChannelName( nodes.get( 0 ) )
-                            + StreamEx.of( nodes ).skip( 1 ).map( n -> ".merge( " + getChannelName( n ) + " )" ).joining() );
-                }
-                sb.append( merged.get( 0 ) + StreamEx.of( merged ).skip( 1 ).map( n -> ".combine(" + n + ")" ).joining() );
+           List<String> merged = new ArrayList<String>();
+           for( Compartment parentCycle : allCycles )
+           {
+               List<Node> nodes = cycledGroups.get( parentCycle.getName() );
+               allNodes.addAll( nodes );
+               merged.add( getChannelName( nodes.get( 0 ) )
+                       + StreamEx.of( nodes ).skip( 1 ).map( n -> ".merge( " + getChannelName( n ) + " )" ).joining() );
+           }
+           for( Node index : StreamEx.of( allNodes ) )
+               expression = renameVariable( expression, getName( index ), getName( index ) + "_value" );
 
-                sb.append( ".map { " );
-                sb.append( StreamEx.of( allNodes ).map( s -> getName( s ) ).joining( "," ) );
-                sb.append( " -> " );
-                sb.append( expression );
-                sb.append( " }" );
-            }
-        }
-        else if( isCall( node ) )
-        {
-            Compartment call = (Compartment)node;
-            List<Node> inputs = WorkflowUtil.getOrderedInputs( call );
-            List<String> inputNames = new ArrayList<>();
-            List<String> inputDeclarations = new ArrayList<>();
-            List<Compartment> parentCycles = WorkflowUtil.getParentCycles( node ).reversed();
-            sb.append( "\n" );
-            for( Node input : inputs )
-            {
-                //                sb.append( "  " + createInputName( input ) + " = " + combine( parentCycles, input ) + "\n" );
-                List<Node> cycledSources = getCycledSources( input );
-                if( cycledSources.size() == 0 )
-                {
-                    inputNames.add( getCallInputName( input ) );
-                }
-                else
-                {
-                    inputDeclarations.add( createInputName( input ) + " = " + combine( parentCycles, input ) );
-                    inputNames.add( createInputName( input ) );
-                }
-            }
-
-            sb.append( StreamEx.of( inputDeclarations ).joining( "\n  ", "  ", "" ) );
-            String resultName = getResultName( call );
-            if( resultName != null )
-                sb.append( "  \n" + resultName + " = " + getCallName( call ) + "( " + StreamEx.of( inputNames ).joining( ", " ) + " )\n" );
-            else
-                sb.append( "  \n" + getCallName( call ) + "( " + StreamEx.of( inputNames ).joining( ", " ) + " )\n" );
-        }
-        //        y=arr.map { (it >2) ? it : null}.filter{ it !=  null }
-
-        else if( isConditional( node ) ) //TODO: nested conditions, conditions in nested cycle
-        {
-            Compartment conditional = (Compartment)node;
-            sb.append( "\n" );
-            Node conditionNode = WorkflowUtil.findConditionNode( conditional );
-            List<Node> cycledSources = getCycledSources( conditionNode );
-            if( cycledSources.size() == 1 )
-            {
-                Node cycledVar = cycledSources.get( 0 );
-                String cycledVarName = getName( cycledVar );
-                String channelName = getChannelName( cycledVar );
-
-                String condition = getCallEmit( conditionNode );
-                for( Node inConditional : WorkflowUtil.orderCallsScatters( conditional ) )
-                {
-                    String expression = getExpression( inConditional );
-                    if( isCall( cycledVar.getCompartment() ) )
-                        expression = expression.replace( getCallName( cycledVar.getCompartment() ) + ".", "" );
-                    sb.append( getName( inConditional ) + " = " + channelName + ".map { " + cycledVarName + "-> ( " + condition + " ) ? "
-                            + expression + ": null }.filter { it != null }" );
-                }
-            }
-        }
-        else if( WorkflowUtil.isCycle( node ) )
-        {
-            sb.append( describeCycle( (Compartment)node ) );
-        }
-        return sb.toString();
-    }
+           sb.append( merged.get( 0 ) + StreamEx.of( merged ).skip( 1 ).map( n -> ".combine(" + n + ")" ).joining() );
+           sb.append( ".map { " );
+           sb.append( StreamEx.of( allNodes ).map( s -> getName( s )+"_value" ).joining( "," ) );
+           sb.append( " -> " );
+           sb.append( expression );
+           sb.append( " }" );
+       }
+   }
 
     private String createInputName(Node input)
     {
         return getCallName( input.getCompartment() ) + "_input_" + getName( input );
     }
-
-
 
     /**
      * Creates channel for given input
@@ -495,7 +524,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
      * result3 = call3 (  result2.combine( k ).map {  result1, result2, k ->  i + result1 + result2 }
      * TODO: add merge
      */
-    private String combine(List<Compartment> parentCycles, Node input)
+    private String printInputInCycle(List<Compartment> parentCycles, List<Compartment> parentIfs, Node input)
     {
         StringBuilder sb = new StringBuilder();
         String expression = getExpression( input );
@@ -589,17 +618,45 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                 }
             }
         }
-        String indexes = StreamEx.of( indexNodes ).map( s -> withCallPrefix( s ) ).joining( ", " );
-        if( ! ( indexes.equals( expression ) ) )
-            sb.append( ".map { " + indexes + " -> " + expression + " }" );
+        
+        String condition = StreamEx.of( parentIfs ).map( parentIf -> WorkflowUtil.findCondition( parentIf ) ).joining("&&");        
+
+        List<String> indexesList = new ArrayList<>();
+        for (Node indexNode: indexNodes)
+        {
+            String s = withCallPrefix( indexNode ) ;
+            String oldName = WorkflowUtil.getName(indexNode);
+            String newName = oldName+"_value";
+            s = renameVariable(s, oldName, newName);
+            indexesList.add( s );
+            expression = renameVariable(expression, oldName, newName);
+            condition = renameVariable(condition, oldName, newName);
+        }
+        
+        String indexes = StreamEx.of( indexesList ).joining( ", " );
+       
+        if (!condition.isEmpty())
+        {
+            sb.append( ".map { " + indexes + " -> " + condition +"? "+ expression+": null}.filter { it != null }");
+        }
+        else
+        {
+            if( ! ( indexes.equals( expression ) ) )
+                sb.append( ".map { " + indexes + " -> " + expression + " }" );
+        }
         return sb.toString();
     }
-
-    private boolean isOutputCycle(Node input, Node source)
+    
+    private String renameVariable(String expression, String oldName, String newName)
     {
-        String expression = getExpression( input );
-        String qualified = getCallName( source.getCompartment() ) + "." + getName( source );
-        return expression.contains( qualified + '[' );
+        try
+        {
+            return new VariableRenamer().rename( expression, oldName, newName );
+        }
+        catch( Exception ex )
+        {
+            return "";
+        }
     }
 
     public static String removeArrayAccess(String input, String callName)
@@ -641,7 +698,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return strings.get( 0 ) + StreamEx.of( strings ).skip( 1 ).map( n -> prefix + n + suffix ).joining();
     }
 
-    public String describeCycle(Compartment cycle)
+    public String printCycle(Compartment cycle)
     {
         StringBuilder sb = new StringBuilder();
         List<Node> nodes = WorkflowUtil.orderCallsScatters( cycle );
@@ -650,7 +707,22 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
         for( Node node : nodes )
         {
-            sb.append( describeNodeInCycle( node, cycle ) );
+            if( isExpression( node ) )
+            {
+                printExpressionInCycle(node, sb);
+            }
+            else if( isCall( node ) )
+            {
+                printCallInCycle((Compartment)node, sb);
+            }
+            else if( isConditional( node ) ) //TODO: nested conditions, conditions in nested cycle
+            {
+                printConditionalInCycle((Compartment)node, sb);
+            }
+            else if( WorkflowUtil.isCycle( node ) )
+            {
+                sb.append( printCycle( (Compartment)node ) );
+            }
         }
 
         return sb.toString();
@@ -798,9 +870,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         boolean isFile = type.contains( "File" ) || type.contains( "Directory" );
         if( !isInsideCycle( call ) || WorkflowUtil.isCallResult( input ) )
         {
+            String expression = WorkflowUtil.getExpression( input );
             String result = getCallEmit( input );
             if( result == null )
-                result = WorkflowUtil.getExpression( input );
+                result = expression;
 
             List<Node> sources = getSources( input );
             for( Node source : sources )
@@ -830,6 +903,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
                     result = result.replace( "[" + cycleVariable + "]", "" );
             }
 
+            if (WorkflowUtil.getDefaultValue( input ) != null)
+                return "getDefault("+result+","+WorkflowUtil.getDefaultValue( input )+")";
             return result;
         }
         else
@@ -844,12 +919,16 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             return result;
         }
     }
-
+    
     public String getOutputExpression(Node node)
     {
         return getCallEmit( node );
     }
 
+    /**
+     * @param node
+     * @return
+     */
     public String getCallEmit(Node node)
     {
         String expression = getExpression( node );
@@ -978,8 +1057,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public String[] getMandatoryFunctions()
     {
-        return new String[] {"toChannel", "get", "getDefault", "combineAll", "saveOutput", "fileOrNull", "orNull", "pair", "range",
-                "stringify_wdl", "toArray", "sep_wdl"};
+        return new String[] {"toChannel", "get", "getDefault", "combineAll", "saveOutputs", "noNull", "fileOrNull", "orNull", "pair", "range",
+                "stringify_wdl", "toArray", "sep_wdl", "collectScatterValues" };
     }
     
     /**
@@ -990,7 +1069,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return new String[] {"defined", "basename", "sub", "length", "range", "read_int", "read_string", "read_float", "read_boolean",
                 "read_lines", "read_map", "write_lines", "read_tsv", "write_tsv", "numerate", "select_first", "select_all", "quote",
                 "squote", "sep", "ceil", "floor", "as_map", "keys", "zip", "round", "write_json", "prefix", "suffix", "collect_by_key",
-                "size", "cross", "transpose", "unzip", "contains", "flatten", "write_map", "as_pairs", "read_json"};
+                "size", "cross", "transpose", "unzip", "contains", "flatten", "write_map", "as_pairs", "read_json", "min", "max", "glob"};
     }
 
     public static String toNextflowFunction(String name, boolean inCommand)
@@ -1000,7 +1079,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         return name + "_wdl";
     }
 
-    public static Set<String> bashFunctions = Set.of( "read_int", "read_string", "read_float", "read_boolean", "read_lines", "read_tsv", "size" );//, "write_lines");
+    public static Set<String> bashFunctions = Set.of( "read_int", "read_string", "read_float", "read_boolean", /**"read_lines",**/ "read_tsv", "size" );//, "write_lines");
 
     public String getFunctions()
     {
@@ -1130,6 +1209,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String printDirectives(Compartment task, String offset)
     {
         StringBuilder sb = new StringBuilder();
+        
+        sb.append( "\n" + offset + "fair true");
         String tag = getTag( task );
         if( tag != null )
             sb.append( "\n" + offset + "tag " + tag );
@@ -1150,13 +1231,13 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         if( maxRetries != null )
             sb.append( "\n" + offset + "maxRetries " + maxRetries );
 
-        String publishDir = getPublishDir( task );
-        if( publishDir != null )
-        {
-            sb.append( "\n" + offset + "publishDir " + publishDir );
-            if( settings != null )
-                sb.append( ", mode: '" + settings.getPublishOutput() + "', overwrite: 'true'" );
-        }
+//        String publishDir = getPublishDir( task );
+//        if( publishDir != null )
+//        {
+//            sb.append( "\n" + offset + "publishDir " + publishDir );
+//            if( settings != null )
+//                sb.append( ", mode: '" + settings.getPublishOutput() + "', overwrite: 'true'" );
+//        }
 
         return sb.toString();
     }
@@ -1192,31 +1273,56 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             return "params." + getName( input ) + ".collect { file(it) }";
         if( WorkflowUtil.getType( input ).endsWith( "?" ) )
             return "orNull( params." + getName( input ) + ")";
-        return "params." + getName( input );
+        return "noNull(params." + getName( input )+")";
     }
 
     public String generateWorkflowPublish(Diagram diagram)
     {
         String workflowName = getWorkflowName( diagram );
-        StringBuilder sb = new StringBuilder();
-        
-        boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
-        
-        for( Node output : WorkflowUtil.getExternalOutputs( diagram ) )
-        {
-            Node source = WorkflowUtil.getSource( output );
-            Compartment call = null;
-            if( source != null )
-                call = source.getCompartment();
-            String outputName = WorkflowUtil.getName( output );
-            String outputPath = workflowName + "." + outputName;
-            if( diagram.getAttributes().getProperty( "autoOutputs" ) != null )
-                outputPath = workflowName + "." + WorkflowUtil.getCallName( call ) + "." + outputName;
 
-            sb.append( "saveOutput( " + workflowName + ".out." + outputName + ", \"" + WorkflowUtil.getType( output ) + "\", \""
-                    + outputPath + "\", \"" + getResultPath() + "\"," + isWindows + ");" );
-            sb.append( System.lineSeparator() );
+        boolean isWindows = System.getProperty( "os.name" ).startsWith( "Windows" );
+        String outputDirArg = "\"" + getResultPath() + "\"";
+        String idt = "    ";
+        StringBuilder sb = new StringBuilder();
+        sb.append( "saveOutputs(\n" );
+        sb.append( idt + "[\n" );
+        List<Node> outputs = WorkflowUtil.getExternalOutputs( diagram );
+        for( int i = 0; i < outputs.size(); i++ )
+        {
+            Node output = outputs.get( i );
+            boolean isLast = i == outputs.size() - 1;
+            String outputName = getName( output );
+            String channel = workflowName + ".out." + outputName;
+            String channelType = "\"" +WorkflowUtil.getType( output )+ "\"";
+            String channelName = "\"" + workflowName + "." + outputName + "\"";
+           
+            if( diagram.getAttributes().getProperty( "autoOutputs" ) != null )
+            {
+                Node source = WorkflowUtil.getSource( output );
+                String name = getName( source );
+                if (name.endsWith( "_collected" ))
+                {
+                    source = WorkflowUtil.getSource( source );
+                }
+                Compartment call = null;
+                if( source != null )
+                    call = source.getCompartment();
+                if( WorkflowUtil.isCall( call ) )
+                    channelName = "\"" + workflowName + "." + WorkflowUtil.getCallName( call ) + "." + getName( source ) + "\"";
+            }
+            sb.append( idt + idt + "[\n" );
+            sb.append( idt + idt + idt + "channel: " + channel + ",\n" );
+            sb.append( idt + idt + idt + "name: " + channelName + ",\n" );
+            sb.append( idt + idt + idt + "type: " + channelType + "\n" );
+            sb.append( idt + idt + "]" );
+            if( !isLast )
+                sb.append( "," );
+            sb.append( "\n" );
         }
+        sb.append( idt + "],\n" );
+        sb.append( idt + outputDirArg + ",\n" );
+        sb.append( idt + isWindows + "\n" );
+        sb.append( ")" );
 
         return sb.toString();
     }
@@ -1236,4 +1342,9 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         this.resultPath = resultPath;
     }
 
+    public Compartment findCallByTask(Compartment task)
+    {
+        return Diagram.getDiagram( task ).recursiveStream().select( Compartment.class )
+                .findAny( c -> task.getName().equals( WorkflowUtil.getTaskRef( c ) ) ).orElse( null );
+    }  
 }

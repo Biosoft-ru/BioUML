@@ -26,7 +26,6 @@ import biouml.plugins.wdl.FileScriptLoader;
 import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
-import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.model.CallInfo;
 import biouml.plugins.wdl.model.CommandInfo;
 import biouml.plugins.wdl.model.ConditionalInfo;
@@ -99,7 +98,6 @@ public class NextFlowImporter
             importer.scriptLoader = new FileScriptLoader( ScriptLoader.NEXTFLOW_TYPE, new File( "C:/Users/Damag/nextflow_work/SNV" ) );
 
             Diagram diagram = importer.importNextflow( code );
-            new WDLLayouter().layout( diagram );
 
             BufferedImage image = DiagramImageGenerator.generateDiagramImage( diagram );
             ImageWriter writer = ImageIO.getImageWritersBySuffix( "png" ).next();

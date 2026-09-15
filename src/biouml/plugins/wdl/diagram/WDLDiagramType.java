@@ -48,7 +48,7 @@ public class WDLDiagramType extends DiagramTypeSupport
     public @Nonnull Diagram createDiagram(DataCollection<?> origin, String diagramName, Base kernel) throws Exception
     {
         Diagram d = super.createDiagram( origin, diagramName, kernel );
-        WorkflowUtil.setVersion( d, "1.2");
+        WorkflowUtil.setWDLVersion( d, "1.2");
         return d;
     }
     

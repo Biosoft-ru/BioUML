@@ -133,13 +133,13 @@ public class WDLImporter implements DataElementImporter
         Diagram result = new WDLDiagramType().createDiagram( dc, name );
         return generateDiagram( wdl, result );
     }
-//
+
     public Diagram generateDiagram(String wdl, Diagram diagram) throws Exception
     {
         ScriptInfo info = readScript( diagram.getName(), wdl );
         return new DiagramGenerator().generateDiagram( info, diagram );
     }
-//    
+    
     public ScriptInfo readScript(String name, String text) throws Exception
     {
         text = processContent(text);
@@ -446,8 +446,13 @@ public class WDLImporter implements DataElementImporter
         String variable = astScatter.getVarible();
         AstExpression array = astScatter.getArrayExpression();
         result.setVariable( variable );
-        result.setExpression( array.toString() );
-        result.setArguments( array.getArguments() );
+        ExpressionInfo expression = new ExpressionInfo();
+        expression.setAST( array );
+        expression.setName( variable+"_array" );
+        expression.setType("Array[Int]");
+        expression.setArguments( array.getArguments() );
+        expression.setExpression( array.toString() );
+        result.setExpression( expression);
 
         for( biouml.plugins.wdl.parser.Node n : astScatter.getChildren() )
         {

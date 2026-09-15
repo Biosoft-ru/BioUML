@@ -6,7 +6,7 @@ import java.util.Set;
 public class ScatterInfo extends ContainerInfo
 {
     private String variable; //TODO: refactor expression info into declaration info
-    private String expression;
+    private ExpressionInfo expression;
     private Set<String> arguments = new HashSet<>();
 
     public Set<String> getArguments()
@@ -28,12 +28,12 @@ public class ScatterInfo extends ContainerInfo
     {
         this.variable = variable;
     }
-    public String getExpression()
+    public ExpressionInfo getExpression()
     {
         return expression;
     }
 
-    public void setExpression(String expression)
+    public void setExpression(ExpressionInfo expression)
     {
         this.expression = expression;
     }

@@ -134,14 +134,13 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     protected void processContainer(AstContainerElement node)
     {
-        result.append( node.toString() );
-        result.append( "[" );
-        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+        processNode( node.jjtGetChild( 0 ) );
+        for( int i = 1; i < node.jjtGetNumChildren(); i++ )
         {
-            Node child = node.jjtGetChild( i );
-            processNode( child );
+            result.append( "[" );
+            processNode(  node.jjtGetChild( i ) );
+            result.append( "]" );
         }
-        result.append( "]" );
     }
 
     protected void processFunction(AstFunction node)

@@ -14,9 +14,6 @@ import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
 import biouml.plugins.wdl.diagram.WDLImporter;
-import biouml.plugins.wdl.diagram.WDLLayouter;
-import biouml.plugins.wdl.parser.AstStart;
-import biouml.plugins.wdl.parser.WDLParser;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.JSONUtils;
 import ru.biosoft.server.servlets.webservices.BiosoftWebRequest;
@@ -79,7 +76,6 @@ public class WDLWebProvider extends WebJSONProviderSupport
             String text = arguments.get( "wdl" );
             WDLImporter wdlImporter = new WDLImporter();
             diagram = wdlImporter.generateDiagram( text, diagram );
-            new WDLLayouter().layout( diagram );
             diagramPath.save( diagram );
             OutputStream out = response.getOutputStream();
             WebDiagramsProvider.sendDiagramChanges( diagram, out, "json" );

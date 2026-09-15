@@ -759,21 +759,36 @@ void ternary() #Ternary:
     expression()
 }
 
+void functionContainerElement() #ContainerElement:
+{}
+{
+    function()
+    (
+        < SQUARE_BRACKET_L >
+        (sepEol())*
+        expression()
+        (sepEol())*
+        < SQUARE_BRACKET_R >
+    )+
+}
+
 void expression() #Expression:
 {}
 {
-    (LOOKAHEAD(10) subsymbolChain()
+    (LOOKAHEAD(functionContainerElement()) functionContainerElement()
+    | LOOKAHEAD(10) subsymbolChain()
     | LOOKAHEAD(10) constructor()
-    | LOOKAHEAD(10) expressionInBrackets() 
+    | LOOKAHEAD(10) expressionInBrackets()
     | text()
     | array()
     | map()
     | pair()
     | LOOKAHEAD(5) containerElement()
-    | LOOKAHEAD(5)function()
+    | LOOKAHEAD(5) function()
     | (< NONE > #None)
     | regularFormulaElement()
-    | ternary())+
+    | ternary()
+    )+
 }
 
 void expressionInBrackets() #Expression:
@@ -787,16 +802,22 @@ void expressionInBrackets() #Expression:
 }
 
 void containerElement() #ContainerElement:
-{Token name;}
 {
-    ( name = < SYMBOL > | name = < IN > ) {jjtThis.setContainerName(name.image);}
-    < SQUARE_BRACKET_L >
-    (sepEol())*
+    String name;
+}
+{
+    name = symbol()
+    {
+        jjtThis.setContainerName(name);
+    }
+
     (
-    LOOKAHEAD(2) subsymbolChain() | symbol() | text() | (< INTEGER > #RegularFormulaElement)
-    )
-    (sepEol())*
-    < SQUARE_BRACKET_R >
+        < SQUARE_BRACKET_L >
+        (sepEol())*
+        expression()
+        (sepEol())*
+        < SQUARE_BRACKET_R >
+    )+
 }
 
 void subsymbolChain() #SubSymbol:
@@ -914,10 +935,16 @@ void as() #As:
 }
 
 
-void symbol() #Symbol:
-{Token name;}
+String symbol() #Symbol:
 {
-  ( name = < SYMBOL > | name = < IN > ) { jjtThis.setName(name.image); }
+    Token name;
+}
+{
+    ( name = < SYMBOL > | name = < IN > )
+    {
+        jjtThis.setName(name.image);
+        return name.image;
+    }
 }
 
 void array() #Array:
