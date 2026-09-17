@@ -137,22 +137,27 @@ public class MatrixUtils
             }
         }
 
-        /* Solve Ly = b, store solution y in b */
+        /* Solve Ly = b, store solution y in b.
+           Skip the update when bk == 0 (nothing to subtract) — common in
+           sparse Newton systems where many RHS components vanish. */
         for(int k = 0; k < n - 1; k++ )
         {
             double[] ak = a[k];
             double bk = b[k];
-            for(int i = k + 1; i < n; i++ )
-                b[i] -= ak[i] * bk;
+            if( bk != 0.0 )
+                for(int i = k + 1; i < n; i++ )
+                    b[i] -= ak[i] * bk;
         }
 
-        /* Solve Ux = y, store solution x in b */
+        /* Solve Ux = y, store solution x in b.
+           Same zero-skip: if bk == 0 the row update is a no-op. */
         for(int k = n - 1; k > 0; k-- )
         {
             double[] ak = a[k];
             double bk = b[k] /= ak[k];
-            for(int i = 0; i < k; i++ )
-                b[i] -= ak[i] * bk;
+            if( bk != 0.0 )
+                for(int i = 0; i < k; i++ )
+                    b[i] -= ak[i] * bk;
         }
         b[0] /= a[0][0];
     }

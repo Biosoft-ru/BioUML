@@ -343,14 +343,11 @@ public class Matrix
 
     public static void denseCopy(double[][] a, double[][] b, int m, int n)
     {
+        // System.arraycopy is intrinsified to a native memmove — much faster
+        // than a Java element-by-element loop for the column copies JVode does
+        // on every Jacobian cache update.
         for( int j = 0; j < n; j++ )
-        {
-            for( int i = 0; i < m; i++ )
-            {
-                b[j][i] = a[j][i];
-            }
-        }
-
+            System.arraycopy( a[j], 0, b[j], 0, m );
     }
 
     static void bandCopy(double[][] a, double[][] b, int n, int asmu, int bsmu, int copymu, int copyml)
