@@ -7,8 +7,8 @@ import javax.swing.Action;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openscience.cdk.ChemModel;
-import org.openscience.cdk.MoleculeSet;
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.AtomContainerSet;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.application.action.ActionInitializer;
 import com.developmentontheedge.application.action.ActionManager;
@@ -51,9 +51,9 @@ public class StructureDocument extends Document implements PropertyChangeListene
         {
             try
             {
-                IMolecule molecule = CDKRenderer.loadMolecule( structure );
-                MoleculeSet moleculeSet = new MoleculeSet();
-                moleculeSet.addMolecule(molecule);
+                IAtomContainer molecule = CDKRenderer.loadMolecule( structure );
+                AtomContainerSet moleculeSet = new AtomContainerSet();
+                moleculeSet.addAtomContainer(molecule);
                 ChemModel chemModel = new ChemModel();
                 chemModel.setMoleculeSet(moleculeSet);
 

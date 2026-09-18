@@ -20,6 +20,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 
 import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.XMLIsotopeFactory;
 import org.openscience.cdk.event.ICDKChangeListener;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IChemModel;
@@ -284,8 +285,7 @@ public class StructurePanel extends AbstractJChemPaintPanel implements IChemMode
                 char x = arg0.getKeyChar();
                 if( Character.isLowerCase(x) )
                     x = Character.toUpperCase(x);
-                IsotopeFactory ifa;
-                ifa = IsotopeFactory.getInstance(closestAtom.getBuilder());
+                IsotopeFactory ifa = XMLIsotopeFactory.getInstance(closestAtom.getBuilder());
                 IIsotope iso = ifa.getMajorIsotope(Character.toString(x));
                 if( iso != null )
                 {

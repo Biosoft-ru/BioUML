@@ -11,12 +11,7 @@ Require-Bundle: org.eclipse.osgi,
  org.jgrapht,
  org.openscience.cdk
 Bundle-ClassPath: cdk-jchempaint-15.jar,jchempaint-3.1.2.jar
-Export-Package: org.openscience.cdk.renderer,
- org.openscience.cdk.renderer.elements,
- org.openscience.cdk.renderer.font,
- org.openscience.cdk.renderer.generators,
- org.openscience.cdk.renderer.visitor,
- org.openscience.jchempaint,
+Export-Package: org.openscience.jchempaint,
  org.openscience.jchempaint.action,
  org.openscience.jchempaint.applet,
  org.openscience.jchempaint.application,
