@@ -31,9 +31,8 @@ public class SimulatorProfile
     }
     public void setX(double[] x)
     {
-        // Reuse the backing buffer when the length is unchanged. The solver calls
-        // setX() repeatedly with same-length state vectors, avoiding a fresh
-        // allocation and GC pressure per span point.
+        // Reuse the backing buffer when the length is unchanged, avoiding a fresh
+        // allocation and GC pressure on repeated state updates.
         //
         // Note: getX() returns this backing buffer, not a snapshot. Callers that
         // need to retain a previous state must copy the returned array.
