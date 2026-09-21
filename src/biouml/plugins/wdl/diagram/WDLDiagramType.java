@@ -34,7 +34,8 @@ public class WDLDiagramType extends DiagramTypeSupport
     @Override
     public Object[] getNodeTypes()
     {
-        return new String[] {WDLConstants.TASK_TYPE};
+        return new String[] {WDLConstants.TASK_TYPE, WDLConstants.CALL_TYPE, WDLConstants.INPUT_TYPE, WDLConstants.OUTPUT_TYPE, WDLConstants.EXPRESSION_TYPE, WDLConstants.CONDITIONAL_TYPE,
+                WDLConstants.CONDITION_TYPE, WDLConstants.SCATTER_TYPE, WDLConstants.WORKFLOW_INPUT_TYPE, WDLConstants.WORKFLOW_OUTPUT_TYPE};
     }
 
     @Override

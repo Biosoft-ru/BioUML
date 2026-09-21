@@ -35,6 +35,7 @@ import biouml.plugins.wdl.parser.AstStart;
 import biouml.plugins.wdl.parser.WDLParser;
 import biouml.plugins.wdl.parser.validator.DocumentPrototype;
 import biouml.plugins.wdl.parser.validator.TypeChecker;
+import ru.biosoft.templates.TemplateRegistry;
 
 
 
@@ -274,6 +275,7 @@ class TextEditor extends JFrame implements ActionListener
                 DocumentPrototype doc = checker.getPrototype(astStart);
 
                 VelocityEngine velocityEngine = new VelocityEngine();
+                velocityEngine.setProperty( "parser.pool.size", String.valueOf( TemplateRegistry.VELOCITY_PARSER_POOL_SIZE ) );
                 velocityEngine.init();
 
                 Template t = velocityEngine.getTemplate("vm_templates/index.vm");

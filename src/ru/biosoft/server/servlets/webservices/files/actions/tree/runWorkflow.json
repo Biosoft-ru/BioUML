@@ -16,7 +16,7 @@
         if (instanceOf(type,'biouml.model.Diagram')) 
         {
             var type = getDataCollection(completePath).getDiagramType();
-			if(type.match(new RegExp('WorkflowDiagramType$')) || type.match(new RegExp('SedMlDiagramType$')))
+			if(type && (type.match(new RegExp('WorkflowDiagramType$')) || type.match(new RegExp('SedMlDiagramType$'))))
             	return true;
         }
         return -1;

@@ -76,6 +76,8 @@ public class SimulationEngineWrapper extends Option
             {
                 if( this.engine == null || !this.engine.getClass().equals( engine.getClass() ) )
                     setEngine( engine );
+                else
+                    this.engine.setDiagram( diagram );
             }
             else if( diagram.getRole() instanceof EModel )
             {

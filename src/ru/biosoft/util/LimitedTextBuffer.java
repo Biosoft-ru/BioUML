@@ -40,7 +40,7 @@ public class LimitedTextBuffer
         nRows += newRows;
         if( nRows > maxRows )
         {
-            while( true )
+            while ( cutPos < sb.length() )
             {
                 if( sb.charAt(cutPos++) == '\n' )
                 {

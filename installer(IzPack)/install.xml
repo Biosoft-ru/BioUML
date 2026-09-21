@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
+<izpack:installation version="5.0"
+                     xmlns:izpack="http://izpack.org/schema/installation"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:schemaLocation="http://izpack.org/schema/installation http://izpack.org/schema/5.0/izpack-installation-5.0.xsd">
+    <info>
+        <appname>BioUML</appname>
+        <appversion>$PUBLIC_VERSION$</appversion>
+        <appsubpath>BioUML_$PUBLIC_VERSION$</appsubpath>
+        <url>http://biouml.org</url>
+        <webdir>http://wiki.biouml.org/index.php/BioUML_workbench_installation</webdir>
+        <run-privileged condition="izpack.windowsinstall"/>
+    </info>
+    
+    <guiprefs width="640" height="480" resizable="yes">
+        <laf name="looks">
+            <os family="unix"/>
+        </laf>
+        <modifier key="useButtonIcons" value="no"/>
+        <modifier key="useLabelIcons" value="yes"/>
+        <modifier key="labelGap" value="2"/>
+        <modifier key="layoutAnchor" value="NORTHWEST"/>
+        <modifier key="useHeadingPanel" value="yes"/>
+        <modifier key="headingLineCount" value="2"/>
+        <modifier key="headingFontSize" value="1.3"/>
+        <modifier key="headingBackgroundColor" value="0x00ffffff"/>
+        <modifier key="headingPanelCounter" value="text"/>
+        <modifier key="headingPanelCounterPos" value="inHeading"/>       
+    </guiprefs>
+    
+    <variables>
+        <variable name="DesktopShortcutCheckboxEnabled" value="true"/>
+        <variable name="TargetPanel.dir.windows" value="${ENV[SystemDrive]}\${APP_NAME}_${APP_VER}"/>
+        <variable name="JDKPathPanel.minVersion" value="21.0.10" />
+        <variable name="JDKPathPanel.maxVersion" value="21.99" />
+        <variable name="jdkPath" value="${ENV[JAVA_HOME]}"/>
+        <!--variable name="JDKPathPanel.skipIfValid" value="yes" /-->
+    </variables>
+    
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+    
+    <!-- The resources needed by the various panels -->
+    <resources>
+        <res id="LicencePanel.licence" src="files/Licence.txt"/>
+        <res id="InfoPanel.info" src="files/Readme.txt"/>
+        <res id="shortcutSpec.xml" src="files/shortcutSpec.xml"/>
+        <res id="Unix_shortcutSpec.xml" src="files/Unix_shortcutSpec.xml"/>
+        <res id="AntActionsSpec.xml" src="files/AntActionsSpec.xml"/>
+        <res id="build.xml" src="files/build.xml"/>
+    </resources>
+
+    <jar src="files/ant.jar" stage="install" />
+    <jar src="files/ant-launcher.jar" stage="install" />
+    
+    <!-- The panels in a classic order -->
+    <panels>
+        <!--    <panel classname="InfoPanel" id="infopanel"/>           -->
+        <!--    <panel classname="LicencePanel" id="licensepanel"/>     -->
+        <panel classname="TargetPanel" id="targetpanel"/>
+        <panel classname="JDKPathPanel" id="jdkpathpanel"/>
+        <panel classname="PacksPanel" id="packspanel"/>
+        <panel classname="InstallPanel" id="installpanel"/>
+        <panel classname="ShortcutPanel" id="shortcutpanel"/>
+        <panel classname="SimpleFinishPanel" id="finishpanel"/>
+    </panels>
+    
+    <!--<listeners>
+        <listener installer="AntActionInstallerListener"/>
+    </listeners>-->
+
+    <!-- The packs section -->
+    <packs>
+        
+        <pack name="Core" required="yes">
+            <description>
+                Basic functionality
+            </description>
+            <file src="files/preferences.xml" targetdir="$INSTALL_PATH"/>
+            <file src="../run.bat" os="windows" targetdir="$INSTALL_PATH/"/>
+            <file src="../BioUML.ico" os="windows" targetdir="$INSTALL_PATH"/>
+            <file src="../biouml.png" os="unix" targetdir="$INSTALL_PATH"/>
+            <file src="../shell.bat" os="windows" targetdir="$INSTALL_PATH/"/>
+            <file src="../run.sh" os="unix" targetdir="$INSTALL_PATH/"/>
+            <file src="../shell.sh" os="unix" targetdir="$INSTALL_PATH/"/>
+            <file src="../biouml.lcf" targetdir="$INSTALL_PATH"/>
+            <file src="../configuration/config.ini" targetdir="$INSTALL_PATH/configuration"/>
+            <file src="../data/default.config" targetdir="$INSTALL_PATH/data"/>
+                 
+            <fileset dir="../data/Utils" targetdir="$INSTALL_PATH/data/Utils">
+               <include name="*.config"/>
+               <include name="Antimony/**/*"/>  
+            </fileset>
+            
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="default.config"/>
+                <include name="Public/*.config"/>
+                <include name="Public/**/*.*"/>
+                <include name="Collaboration/*.config"/>
+                <include name="git/*.config"/>
+            </fileset>
+            
+            <fileset dir="../analyses" targetdir="$INSTALL_PATH/analyses">
+                <include name="*"/>
+                <include name="**/*.*"/>
+                <exclude name="Galaxy/**"/>
+                <exclude name="Workflows/**"/>
+            </fileset>
+                 
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="*.jar"/>
+                <include name="*/**"/>
+                <exclude name="com.genexplain*/**"/>
+                <exclude name="com.beanexplorer*/beanexplorer_doc.jar"/>
+                <exclude name="biouml.plugins.*/**"/>
+                <exclude name="ru.biosoft.microarray*/**"/>
+                <exclude name="com.incors.plaf.alloy*/**"/>
+                <exclude name="ru.biosoft.templates*/**"/>
+                <exclude name="ru.biosoft.proteome*/**"/>
+                <exclude name="ru.biosoft.galaxy*/**"/>
+                <exclude name="ru.biosoft.vm*/**"/>
+                <exclude name="com.amazonaws*/**"/>
+                <exclude name="com.google.api.services.drive*/**"/>
+                <exclude name="com.dropbox.core*/**"/>
+            </fileset>
+
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.state*/**"/>
+            </fileset>
+
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.lucene*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Templates plugin" required="yes">
+            <description>
+                Templates support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="ru.biosoft.templates*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Agent modelling plugin" required="no">
+            <description>
+                Agent models support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.agentmodeling*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Antimony plugin" required="no">
+            <description>
+                Antimony support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.antimony*/**"/>
+            </fileset>
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/Antimony/**"/>
+                <include name="Examples/AntimonyComposite/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="BioNetGen plugin" required="no">
+            <description>
+                BioNetGen support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.bionetgen*/**"/>
+            </fileset>
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/Bionetgen/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="BioPAX plugin" required="no">
+            <description>
+                BioPAX support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.biopax*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="CellML plugin" required="no">
+            <description>
+                CellML support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.cellml*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="ChEBI plugin" required="no">
+            <description>
+                ChEBI database support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.chebi*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Chemoinformatics plugin" required="no">
+            <description>
+                Chemoinformatics support (includes CDK)
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.chemoinformatics*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="DAS plugin" required="no">
+            <description>
+                DAS support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.das*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Enrichment plugin" required="no">
+            <description>
+                Functional classification and enrichment analysis
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.enrichment*/**"/>
+            </fileset>
+        </pack>
+
+        <pack name="Ensembl plugin" required="no">
+            <description>
+                Ensembl support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.ensembl*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Expression plugin" required="no">
+            <description>
+                Expression mapping for diagrams
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.expression*/**"/>
+            </fileset>
+        </pack>
+
+        <pack name="FBC plugin" required="no">
+            <description>
+                Flux balance constraints
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.fbc*/**"/>
+            </fileset>
+        </pack>
+    
+        
+        <pack name="GNE plugin" required="no">
+            <description>
+                Graphic notation editor
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.gne*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="GO plugin" required="no">
+            <description>
+                Support for SQL GO database
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.go*/**"/>
+            </fileset>
+        </pack>
+
+        <pack name="GXL plugin" required="no">
+            <description>
+                GXL module
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.gxl*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="KEGG plugin" required="no">
+            <description>
+                KEGG support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.kegg*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Microarray plugin" required="no">
+            <description>
+                Microarray
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.microarray*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="MIRIAM plugin" required="no">
+            <description>
+                MIRIAM database support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.miriam*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="OBO plugin" required="no">
+            <description>
+                OBO support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.obo*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Optimization" required="no">
+            <description>
+                Optimization methods
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.optimization*/**"/>
+                <include name="biouml.plugins.modelreduction*/**"/>
+            </fileset>
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/Optimization/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="PSI-MI plugin" required="no">
+            <description>
+                PSI-MI models support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.psimi*/**"/>
+            </fileset>
+        </pack>
+    
+          <pack name="Hemodynamics plugin" required="no">
+            <description>
+                Hemodynamics model support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.hemodynamics*/**"/>
+            </fileset>
+        </pack>
+        
+      <pack name="Population modeling plugin" required="no">
+            <description>
+                Population modeling
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.pharm*/**"/>
+            </fileset>
+        <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/Population Models/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Reactome plugin" required="no">
+            <description>
+                Reactome database support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.reactome*/**"/>
+                <exclude name="biouml.plugins.reactome.biohub*/**"/>
+            </fileset>
+        </pack>
+
+        <pack name="Research plugin" required="no">
+            <description>
+                Research support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.research*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="SABIO-RK plugin" required="no">
+            <description>
+                SABIO-RK support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.sabiork*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="SBGN plugin" required="no">
+            <description>
+                SBGN support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.sbgn*/**"/>
+            </fileset>
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/SBGN/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="SBML plugin" required="no">
+            <description>
+                SBML support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.sbml*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="SBW plugin" required="no">
+            <description>
+                System Biology Workbench support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.sbw*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="SED-ML plugin" required="no">
+            <description>
+                SED-ML support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.sedml*/**"/>
+                <include name="biouml.plugins.download*/**"/>
+            </fileset>
+        </pack>
+
+        <pack name="Server plugin" required="no">
+            <description>
+                Server-client data exchange support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.server*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Simulation plugin" required="no">
+            <description>
+                Simulation support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.simulation*/**"/>
+                <include name="biouml.plugins.simulation_test*/**"/>
+            </fileset>
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/DAE models/**"/>
+            </fileset>
+        </pack>
+
+        <pack name="Stochastic plugin" required="no">
+            <description>
+                Stochastic simulations
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.stochastic*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="SVG plugin" required="no">
+            <description>
+                SVG support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.svg*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Uniprot plugin" required="no">
+            <description>
+                Uniprot support
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.uniprot*/**"/>
+            </fileset>
+        </pack>
+        
+        <pack name="Users plugin" required="no">
+            <description>
+                Support collaborative work
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.users*/**"/>
+            </fileset>
+        </pack>
+        
+        <!--<pack name="WDL plugin" required="no">
+            <description>
+                Workflow script languages
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.wdl*/**"/>
+            </fileset>
+        </pack>-->
+        <pack name="Physicell plugin" required="no">
+            <description>
+                Physicell multicellular models
+            </description>
+            <fileset dir="../plugins" targetdir="$INSTALL_PATH/plugins">
+                <include name="biouml.plugins.physicell*/**"/>
+            </fileset>
+            <fileset dir="../data_resources" targetdir="$INSTALL_PATH/data_resources">
+                <include name="Examples/Physicell/**/*"/>
+            </fileset>
+        </pack>
+    </packs>
+    
+    <!-- The native libraries to add -->
+	<natives>
+    <native type="izpack" name="ShellLink.dll"/>
+    <native type="izpack" name="ShellLink_x64.dll"/>
+    <native type="3rdparty" name="COIOSHelper.dll" stage="both">
+        <os family="windows"/>
+    </native>
+    </natives>
+    
+</izpack:installation>

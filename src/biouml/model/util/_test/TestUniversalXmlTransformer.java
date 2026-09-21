@@ -34,6 +34,10 @@ import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.support.BeanInfoEntryTransformer;
 import ru.biosoft.util.serialization.Utils;
 
+
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class TestUniversalXmlTransformer extends TestCase
 {
     static String repositoryPath = "./data/unittest";
@@ -60,6 +64,8 @@ public class TestUniversalXmlTransformer extends TestCase
     {
         TestSuite suite = new TestSuite(TestUniversalXmlTransformer.class
                 .getName());
+
+        Environment.setClassLoading( new BiosoftClassLoading() );
         
         suite.addTest(new TestUniversalXmlTransformer("testByCell"));
         suite.addTest(new TestUniversalXmlTransformer("testByCompartment"));

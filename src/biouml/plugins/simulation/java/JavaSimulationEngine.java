@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.RuntimeSingleton;
 import org.apache.velocity.runtime.parser.node.SimpleNode;
@@ -55,6 +54,7 @@ import one.util.streamex.EntryStream;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.math.model.Formatter;
 import ru.biosoft.math.model.JavaFormatter;
+import ru.biosoft.templates.TemplateRegistry;
 import ru.biosoft.util.DPSUtils;
 
 /**
@@ -464,16 +464,14 @@ public class JavaSimulationEngine extends OdeSimulationEngine
 
         if( largeTemplate )
             templatePath = parallel ? PARALLEL_LARGE_TEMPLATE : hasDelays ? LARGE_DELAY_TEMPLATE : LARGE_TEMPLATE;
-
-        log.info("Generating code with template " + templatePath);
+        log.info( "Generating code with template " + templatePath );
         return OdeSimulationEngine.class.getResourceAsStream(templatePath);
     }
 
     private void doGenerateModel() throws Exception
     {
         String name = executableModel.getDiagramElement().getName();
-        System.out.println("Generating model" + diagram.getName()+" in folder "+outputDir);
-        log.info("Generating model" + diagram.getName()+" in folder "+outputDir);
+        log.info( "Generating model" + diagram.getName() );
         File dir = new File(outputDir);
         if( !dir.exists() && !dir.mkdirs() )
             throw new Exception("Failed to create directory '" + outputDir + "'.");
@@ -488,13 +486,7 @@ public class JavaSimulationEngine extends OdeSimulationEngine
             velocityTemplate.setData(node);
             velocityTemplate.initDocument();
 
-            // experimental, possble fix for 
-            // Runtime : ran out of parsers. Creating a new one.  Please increment the parser.pool.size property. The current value is too small.
-            //Properties props = new Properties();
-            //props.setProperty( "parser.pool.size", "50" );
-            //Velocity.init( props );
-
-            Velocity.init();
+            TemplateRegistry.initVelocity();
         }
         VelocityContext context = new VelocityContext();
 

@@ -162,4 +162,30 @@ public class TextUtilTest extends TestCase
         }
     }
 
+    public void testToASCII()
+    {
+        // Cyrillic (no NFD decomposition to Latin, becomes underscores)
+        assertEquals("______", TextUtil2.toASCII("проект"));
+        assertEquals("______", TextUtil2.toASCII("данные"));
+        // Accented characters (NFD decomposition works)
+        assertEquals("cafe", TextUtil2.toASCII("café"));
+        assertEquals("naive", TextUtil2.toASCII("naïve"));
+        assertEquals("resume", TextUtil2.toASCII("résumé"));
+        // Mixed
+        assertEquals("______ ______", TextUtil2.toASCII("проект данные"));
+        // Already ASCII
+        assertEquals("hello", TextUtil2.toASCII("hello"));
+        assertEquals("file123", TextUtil2.toASCII("file123"));
+        // Empty/null
+        assertEquals("", TextUtil2.toASCII(""));
+        assertEquals("", TextUtil2.toASCII(null));
+        // German umlauts
+        assertEquals("Munchen", TextUtil2.toASCII("München"));
+        assertEquals("a", TextUtil2.toASCII("ä"));
+        assertEquals("o", TextUtil2.toASCII("ö"));
+        // Japanese (no NFD decomposition, becomes underscores)
+        String japanese = TextUtil2.toASCII("テスト");
+        assertEquals("___", japanese);
+    }
+
 }

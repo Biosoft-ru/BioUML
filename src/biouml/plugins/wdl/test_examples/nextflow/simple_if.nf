@@ -1,5 +1,5 @@
 nextflow.enable.dsl=2
-params.flag
+params.flag = true
 
 process write_false_file {
 
@@ -7,6 +7,7 @@ process write_false_file {
 
   script:
   """
+  echo "ds"
   echo "This is false" > false.txt
   """
 

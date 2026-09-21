@@ -45,7 +45,7 @@ public class SubDiagramProperties extends InitialElementPropertiesSupport
 
     public SubDiagramProperties(Diagram diagram)
     {
-        this.module = Module.getModule(diagram);
+        this.module = Module.optModule( diagram );
         this.upperDiagram = diagram;
 
         availableModelDefs = Util.getModelDefinitionNames(diagram).toArray(String[]::new);
@@ -62,7 +62,7 @@ public class SubDiagramProperties extends InitialElementPropertiesSupport
             log.log(Level.SEVERE, "Only diagram may be selected for subidgram");
             return;
         }
-        if( !Module.getModule(obj).equals(module) )
+        if( module != null && !Module.optModule( obj ).equals( module ) )
         {
             log.log(Level.SEVERE, "Please select diagram from module " + module.getName());
             return;

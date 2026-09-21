@@ -65,6 +65,8 @@ public class ZipFileImporter implements DataElementImporter
         if( name == null || name.equals("") )
             name = file.getName();
         name = name.replaceAll("\\/", "");
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        name = ru.biosoft.util.TextUtil2.toASCII(name);
         DataCollection<?> collection = null;
         try
         {

@@ -18,6 +18,7 @@ public class SiteModelsToProteinsParameters extends AbstractTableConverterParame
     private static final String P_VALUE_COLUMN = "P-value";
     private DataElementPath sitesCollection, siteModelsCollection;
     private String[] models;
+    private boolean ignoreSpecies = false;
     
     public SiteModelsToProteinsParameters()
     {
@@ -89,5 +90,19 @@ public class SiteModelsToProteinsParameters extends AbstractTableConverterParame
     public String[] getModels()
     {
         return models;
+    }
+
+    @PropertyName("Use all species")
+    @PropertyDescription("Convert site models to all possible species")
+    public boolean isIgnoreSpecies()
+    {
+        return ignoreSpecies;
+    }
+
+    public void setIgnoreSpecies(boolean ignoreSpecies)
+    {
+        boolean oldValue = ignoreSpecies;
+        this.ignoreSpecies = ignoreSpecies;
+        firePropertyChange( "ignoreSpecies", oldValue, this.ignoreSpecies );
     }
 }

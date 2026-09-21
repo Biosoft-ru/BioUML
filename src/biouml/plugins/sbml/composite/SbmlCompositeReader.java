@@ -846,16 +846,19 @@ public class SbmlCompositeReader extends SbmlPackageReader
             if( directed )
             {
                 connection = new DirectedConnection(edge);
+                connection.setOutputPort(new Port(replacedVarName));
+                connection.setInputPort(new Port(replacementVarName));
             }
             else
             {
                 connection = new UndirectedConnection(edge);
+                connection.setOutputPort(new Port(replacedVarName));
+                connection.setInputPort(new Port(replacementVarName));
                 ( (UndirectedConnection)connection ).setMainVariableType(forward ? MainVariableType.INPUT : MainVariableType.OUTPUT);
                 ( (UndirectedConnection)connection ).setConversionFactor(convFactor);
             }
             edge.setRole(connection);
-            connection.setOutputPort(new Port(replacedVarName));
-            connection.setInputPort(new Port(replacementVarName));
+
             edge.save();
         }
         catch( Exception ex )

@@ -58,6 +58,8 @@ public class BedEntryToMasterSite implements BedEntryConverter<MasterSite>
         }
         
         ChromInfo chrInfo = origin.getChromInfo(ms.getChr());
+        if(chrInfo == null)
+        	throw new RuntimeException("Chromosome not found: " + ms.getChr());
         BedEntry e =  new BedEntry( chrInfo.id, ms.getFrom() - 1, ms.getTo());
         e.data = json.getBytes(StandardCharsets.UTF_8);
         return e;

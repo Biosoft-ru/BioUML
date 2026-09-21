@@ -105,6 +105,8 @@ public class VideoFileImporter implements DataElementImporter
         }
 
         name = name.replaceAll("\\/", "");
+        // Convert non-ASCII characters to ASCII to prevent jstree selector errors
+        name = ru.biosoft.util.TextUtil2.toASCII(name);
         if ( parent.contains(name) )
         {
             parent.remove(name);

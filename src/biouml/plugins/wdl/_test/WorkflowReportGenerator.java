@@ -31,19 +31,20 @@ public class WorkflowReportGenerator
     /**
      * Generates HTML report for one model
      */
-    public String generate(String name, File testDir) throws Exception
+    public String generate(String name, String wdlPath, File testDir) throws Exception
     {
         if( velocityTemplate == null )
             initTemplate( getTemplateName(), getTemplatePath() );
         StringWriter sw = new StringWriter();
-        velocityTemplate.merge( createContext(name, testDir), sw );
+        velocityTemplate.merge( createContext(name, wdlPath, testDir), sw );
         return sw.toString();
     }
 
-    private VelocityContext createContext(String name, File testDir) throws IOException
+    private VelocityContext createContext(String name, String wdlPath, File testDir) throws IOException
     {
         VelocityContext context = new VelocityContext();
         context.put( "name", name );
+        context.put( "wdlPath", wdlPath );
         return context;
     }
 

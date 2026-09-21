@@ -7,23 +7,24 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
+import biouml.model.Module;
+import biouml.plugins.server.access.AccessProtocol;
+import biouml.plugins.server.access.ClientDataCollection;
+import one.util.streamex.StreamEx;
 import ru.biosoft.access.ClassLoading;
+import ru.biosoft.access.ReadOnlyVectorCollection;
+import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
-import ru.biosoft.access.ReadOnlyVectorCollection;
-import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.exception.BiosoftSQLException;
-import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.access.sql.SqlConnectionHolder;
 import ru.biosoft.access.sql.SqlConnectionPool;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.server.MapClientServerTransformer;
+import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.util.TextUtil2;
-import biouml.model.Module;
-import biouml.plugins.server.access.AccessProtocol;
-import biouml.plugins.server.access.ClientDataCollection;
 
 /**
  * @author lan
@@ -33,6 +34,8 @@ public class EnsemblSequenceSetsCollection extends ReadOnlyVectorCollection<SqlD
 {
     private static final Predicate<String> IS_CHROMOSOME = Pattern.compile( "^(\\d+|X|Y)$" ).asPredicate();
     private static final String CHROMOSOMES_KEY = "chromosomes";
+    private static final String ALL_CHROMOSOMES_KEY = "allChromosomes";
+    private boolean allChrs = false;
     private String[] chromosomes;
 
     public EnsemblSequenceSetsCollection(DataCollection<?> parent, Properties properties)
@@ -40,6 +43,7 @@ public class EnsemblSequenceSetsCollection extends ReadOnlyVectorCollection<SqlD
         super(parent, properties);
         if(properties.containsKey(CHROMOSOMES_KEY))
             chromosomes = TextUtil2.split( properties.getProperty(CHROMOSOMES_KEY), ',' );
+        allChrs = Boolean.valueOf(properties.getProperty(ALL_CHROMOSOMES_KEY));
     }
 
     @Override
@@ -54,11 +58,13 @@ public class EnsemblSequenceSetsCollection extends ReadOnlyVectorCollection<SqlD
 
             if(chromosomes == null)
             {
-                chromosomes = SqlUtil
-                        .stringStream(
-                                connection,
-                                "SELECT DISTINCT sr.name FROM karyotype JOIN seq_region sr USING(seq_region_id) WHERE coord_system_id="
-                                        + coordSystemId ).filter( IS_CHROMOSOME ).append( "MT" ).distinct().toArray( String[]::new );
+            	StreamEx<String> stream = SqlUtil.stringStream( connection,
+                  "SELECT DISTINCT sr.name FROM karyotype JOIN seq_region sr USING(seq_region_id) WHERE coord_system_id=" + coordSystemId );
+            	
+            	if(!allChrs)
+            		stream = stream.filter( IS_CHROMOSOME );
+                
+            	chromosomes = stream.append( "MT" ).distinct().toArray( String[]::new );
             }
 
             Properties properties = new Properties();

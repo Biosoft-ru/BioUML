@@ -1,0 +1,14 @@
+{
+  "typePairWorkflow.test_pair_file": {
+    "left": "whale",
+    "right": "tests/type_pair_with_files/test_string.txt"
+  },
+  "typePairWorkflow.test_array_pair_file": [
+    {
+      "left": "test_A",
+      "right": "tests/type_pair_with_files/test_boolean.txt"
+    }
+  ],
+  "typePairWorkflow.test_int":   "tests/type_pair_with_files/test_int.txt",
+  "typePairWorkflow.test_string": "tests/type_pair_with_files/test_string.txt"
+}

@@ -33,6 +33,7 @@ public class SiteModelsToProteinsParametersBeanInfo extends BeanInfoEx2<SiteMode
         addHidden(new PropertyDescriptor("defaultProfile", beanClass, "getDefaultProfile", null));
         property("siteModelsCollection").inputElement( SiteModelCollection.class ).auto( "$defaultProfile$" ).canBeNull().add();
         add(DataElementComboBoxSelector.registerSelector("species", beanClass, Species.SPECIES_PATH));
+        addExpert( "ignoreSpecies" );
         add(ReferenceTypeSelector.registerSelector("targetType", beanClass));
         addHidden(new PropertyDescriptorEx("shortTargetType", beanClass, "getShortTargetType", null));
         property( "ignoreNaNInAggregator" ).titleRaw( "Ignore empty values" ).descriptionRaw( "Ignore empty values during aggregator work" ).add();

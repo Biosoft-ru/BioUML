@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<izpack:shortcuts
+    version="5.0"
+    xmlns:izpack="http://izpack.org/schema/shortcuts"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://izpack.org/schema/shortcuts http://izpack.org/schema/5.0/izpack-shortcuts-5.0.xsd">
+
+  <skipIfNotSupported />
+
+  <programGroup defaultName="$APP_NAME" location="applications"/>
+
+   <shortcut
+     name="$APP_NAME $APP_VER"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+	 iconFile="$INSTALL_PATH\BioUML.ico"
+     target="$INSTALL_PATH\run.bat"
+     commandLine=""
+     workingDirectory="$INSTALL_PATH"
+     description="$APP_NAME $APP_VER">
+          
+     <createForPack name="Core" />
+   </shortcut>
+  
+   <shortcut
+     name="$APP_NAME $APP_VER Uninstaller"
+     programGroup="yes"
+     desktop="no"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="$INSTALL_PATH\Uninstaller\uninstaller.jar"     
+     commandLine=""
+     iconFile="%SystemRoot%\system32\SHELL32.dll"
+     iconIndex="31" 
+     description="This uninstalls $APP_NAME">
+     
+     <createForPack name="Core" />
+   </shortcut>
+   
+</izpack:shortcuts>

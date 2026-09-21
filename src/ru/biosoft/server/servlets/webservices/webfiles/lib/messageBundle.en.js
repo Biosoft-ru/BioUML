@@ -251,6 +251,7 @@ var resourcesEN = {
     dlgCreatePrjTitle : "Create new project",
     dlgCreatePrjCreated : "Project {name} successfully created",
     dlgCreatePrjName: "Project name:",
+    dlgCreatePrjType: "Project type:",
     dlgCreatePrjDescription: "Description:",
     dlgCreatePrjDescriptionPlaceholder: "Type project description here",
     
@@ -410,7 +411,7 @@ var resourcesEN = {
     vpTableFilterTitle: "Filters",
     vpTableFilterButtonApply: "Apply filters",
     vpTableFilterButtonClear: "Remove filters",
-    vpTableFilterButtonExport: "Export filtered table",
+    vpTableFilterButtonExport: "Save filtered table as...",
     vpTableFilterSaveDialogTitle: "Specify name of the export result table",
     
     vpTableDetailsTitle: "Details",
@@ -516,6 +517,8 @@ var resourcesEN = {
     vpOptVariables: "Variables",
     vpOptEntities: "Entities",
     vpOptSimulation: "Simulation",
+    vpOptimizationWaitForResults: "Optimization is terminated, but results are still processing and will be ready soon. Please, wait.",
+    vpOptimizationRefreshDiagram: "Refresh diagram model",
 
     vpExperimentsSaved: "Experiment {expname} saved",
         
@@ -531,6 +534,11 @@ var resourcesEN = {
     vpGitConsoleTitle: "Git console",
     vpGitConsoleRun: "Run command",
     vpGitConsoleClose: "Close console",
+    vpGitConsolePull: "Pull",
+    vpGitConsolePush: "Push",
+    vpGitConsoleCommit: "Commit",
+    vpGitConsoleStatus: "Status",
+    dlgGitCommitMessage: "Enter commit message",
     
     /* Analysis document (prefix: an) */
     anLoading: "Loading properties...",

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<graphic-notation appVersion="0.8.0" title="test GN" version="0.8.0">
+    <properties>
+        <property name="p1" short-description="p1" type="String"/>
+    </properties>
+    <nodes>
+        <node icon="icon0" type="node1">
+            <property name="node1_prop1" short-description="node1_prop1" type="double"/>
+        </node>
+        <node icon="icon1" type="node2"/>
+    </nodes>
+    <edges>
+        <edge icon="icon2" type="edge1">
+            <property name="edge1_prop1" short-description="edge1_prop1" type="double"/>
+        </edge>
+        <edge icon="icon3" type="edge2"/>
+        <edge icon="icon4" type="edge3"/>
+    </edges>
+    <reactions/>
+    <viewOptions/>
+    <viewBuilder prototype="biouml.model.DefaultDiagramViewBuilder"/>
+    <icons/>
+    <semanticController prototype="biouml.model.DefaultSemanticController"/>
+    <examples/>
+</graphic-notation>

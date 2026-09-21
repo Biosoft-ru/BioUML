@@ -475,6 +475,7 @@ function Action()
             this.icon = action.icon;
             this.multi = action.multi;
             this.useOriginalPath = action.useOriginalPath;
+            this.allowInvalid = action.allowInvalid;
             this.isVisible = evalFunction(action.visible, function(){return -1;});
             if(action.multiAction)
             {

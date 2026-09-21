@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -66,7 +67,7 @@ public abstract class XLSandXLSXToTabConvertersNew implements XLSandXLSXConverte
                     continue;
 
                 //we assume that row with column names does not contain empty lines
-                int lastColumn = Math.max( row.getLastCellNum(), maxColumns );
+                int lastColumn = Math.max( getLastDataCellNum( row ), maxColumns );
                 if( maxColumns < lastColumn )
                     maxColumns = lastColumn;
 
@@ -105,6 +106,42 @@ public abstract class XLSandXLSXToTabConvertersNew implements XLSandXLSXConverte
             }
             sheetData.add( curData );
         }
+    }
+
+    public static int getLastDataCellNum(Row row)
+    {
+        if( row == null )
+            return 0;
+
+        short lastDefined = row.getLastCellNum();
+        if( lastDefined <= 0 )
+            return 0; // Row has no cells defined
+
+        // Iterate backwards from the last defined cell (0-based index = lastDefined - 1)
+        for ( int i = lastDefined - 1; i >= 0; i-- )
+        {
+            Cell cell = row.getCell( i, Row.MissingCellPolicy.RETURN_NULL_AND_BLANK );
+            if( cell == null )
+                continue;
+
+            CellType type = cell.getCellTypeEnum();
+            if( type == CellType.BLANK )
+                continue;
+
+            // Handle empty/whitespace strings
+            if( type == CellType.STRING )
+            {
+                String val = cell.getStringCellValue();
+                if( val == null || val.trim().isEmpty() )
+                    continue;
+            }
+
+            if( type == CellType.FORMULA && cell.getCachedFormulaResultTypeEnum() == CellType.BLANK )
+                continue;
+
+            return i + 1; // Found last non-empty cell, return it's number (index+1)
+        }
+        return 0; // No actual data in this row
     }
 
     private boolean shouldEscape(String stringValue)

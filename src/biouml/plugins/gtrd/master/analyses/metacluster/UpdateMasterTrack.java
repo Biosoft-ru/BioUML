@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -120,6 +121,7 @@ public class UpdateMasterTrack extends AnalysisMethodSupport<UpdateMasterTrack.P
             masterSites = readMasterSites( old );
             log.info( "Done reading old master sites" );
         }
+        log.info("Master site count: " + masterSites.size());
         jobControl.popProgress();
         
         if( parameters.isAddAnnotation() )
@@ -242,7 +244,23 @@ public class UpdateMasterTrack extends AnalysisMethodSupport<UpdateMasterTrack.P
 
     public void saveMasterTrack(MasterTrack result, Map<String, List<MasterSite>> metaClusters, Map<String, Integer> chromSizes) throws IOException
     {
-        List<MasterSite> allMetaClusters = metaClusters.values().stream().flatMap( l->l.stream() ).collect( Collectors.toList() );
+    	List<MasterSite> allMetaClusters = new ArrayList<>();
+    	Set<String> missingChrs = new HashSet<>();
+    	for(String chr : metaClusters.keySet())
+    	{
+    		if(chromSizes.containsKey(chr))
+    		{
+    			allMetaClusters.addAll(metaClusters.get(chr));
+    		}else
+    		{
+    			missingChrs.add(chr);
+    		}
+    	}
+    	if(!missingChrs.isEmpty())
+    	{
+    		log.warning("Unknown chromosomes: " + missingChrs + ", they will not be written to the master track");
+    	}
+        
         Collections.sort( allMetaClusters, GenomeLocation.ORDER_BY_LOCATION );
         result.writeMetadata( metadata );
         result.write( allMetaClusters, chromSizes );

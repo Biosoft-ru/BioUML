@@ -16,6 +16,6 @@ public class BigWigViewOptionsBeanInfo extends SiteViewOptionsBeanInfo
         add("autoScale");
         addHidden( "scale", "isAutoScale" );
         add("showValuesRange");
-        initColorSchemeProperties();
+        add("color");
     }
 }

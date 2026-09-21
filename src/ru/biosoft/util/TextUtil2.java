@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
@@ -1000,6 +1001,49 @@ public class TextUtil2
             text = new StringBuffer( text ).replace( pos, pos + fromText.length(), newText ).toString();
         }
         return text;
+    }
+
+    /**
+     * Converts a string to ASCII by transliterating non-ASCII characters.
+     * Uses Unicode NFD normalization to decompose characters into base + combining marks,
+     * then strips combining marks and any remaining non-ASCII characters.
+     * For example: "café" -> "cafe", "naïve" -> "naive", "München" -> "Munchen"
+     * Non-decomposable characters (Cyrillic, Greek, etc.) are replaced with underscores.
+     *
+     * @param text the input string (may contain non-ASCII characters)
+     * @return an ASCII-only string, or empty string if input is null/empty
+     */
+    public static String toASCII(String text)
+    {
+        if( text == null || text.isEmpty() )
+        {
+            return text == null ? "" : "";
+        }
+        // NFD decomposition: "é" -> "e" + combining acute accent
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
+        // Strip combining marks (category Mn, Mc, Me) and any remaining non-ASCII
+        StringBuilder result = new StringBuilder();
+        for( int i = 0; i < normalized.length(); i++ )
+        {
+            int ch = normalized.charAt(i);
+            if( ch < 128 )
+            {
+                result.append((char) ch);
+            }
+            else
+            {
+                int category = Character.getType(ch);
+                // Skip combining marks: NON_SPACING_MARK(Mn), ENCLOSING_MARK(Me), COMBINING_SPACING_MARK(Mc)
+                if( category != Character.NON_SPACING_MARK &&
+                    category != Character.ENCLOSING_MARK &&
+                    category != Character.COMBINING_SPACING_MARK )
+                {
+                    // Fallback: replace with underscore for remaining non-ASCII
+                    result.append('_');
+                }
+            }
+        }
+        return result.toString();
     }
 
 }

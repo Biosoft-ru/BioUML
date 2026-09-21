@@ -7,9 +7,12 @@ import biouml.plugins.wdl.WorkflowVelocityHelper;
 public class NextFlowGenerator extends WorkflowTextGenerator
 {
     private static String TEMPLATE_PATH = "resources/nextflow.vm";
-    private static String TEMPLATE_NAME = "Next Flow template";
+    private static String TEMPLATE_NAME = "Nextflow template";
     private boolean isEntryWorkflow = true;
-
+    private String publishDir = "";
+    private NextflowSettings settings = null;
+    private String resultPath = "";
+            
     public NextFlowGenerator()
     {
         this.isEntryWorkflow = true;
@@ -18,6 +21,16 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     public NextFlowGenerator(boolean isEntryWorkflow)
     {
         this.isEntryWorkflow = isEntryWorkflow;
+    }
+    
+    public void setNextflowSettings(NextflowSettings settings)
+    {
+        this.settings = settings;
+    }
+    
+    public void setPublishDir(String publishDir)
+    {
+        this.publishDir = publishDir;
     }
 
     @Override
@@ -35,12 +48,22 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     @Override
     public WorkflowVelocityHelper getVelocityHelper(Diagram diagram)
     {
-        return new NextFlowVelocityHelper( diagram, isEntryWorkflow );
+        NextFlowVelocityHelper helper = new NextFlowVelocityHelper( diagram, isEntryWorkflow );
+        helper.setSettings( settings );
+        helper.setResultPath( resultPath );
+        return helper;
     }
 
     @Override
     public Diagram preprocess(Diagram diagram) throws Exception
     {
-        return new NextFlowPreprocessor().preprocess( diagram );
+        NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
+        preprocessor.setPublishDir( publishDir );
+        return preprocessor.preprocess( diagram );
+    }
+
+    public void setResultPath(String resultPath)
+    {
+        this.resultPath = resultPath;
     }
 }

@@ -101,6 +101,8 @@ public class NewDiagramDialog extends OkCancelDialog
         }
 
         DataElementPath modulePath = Module.optModulePath(parent);
+        if( modulePath == null && parent instanceof GenericFileDataCollection )
+            modulePath = parent.getCompletePath();
         if( modulePath != null )
         {
             moduleType.setSelectedItem(modulePath);

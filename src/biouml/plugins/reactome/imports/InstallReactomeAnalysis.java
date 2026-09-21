@@ -63,7 +63,7 @@ public class InstallReactomeAnalysis extends AnalysisMethodSupport<InstallReacto
     private final Map<String, Properties> propertySets = ExProperties.createPropertySets( new String[][][] {
             {{DEFAULT_CONFIG},
                     {"bioHub.functional", "biouml.plugins.reactome.biohub.ReactomeFunctionalHub;name=Reactome pathways"},
-                    {"bioHub.keynodes", "biouml.plugins.reactome.biohub.ReactomeSqlBioHub;name=Reactome database"},
+                    {"bioHub.keynodes", "biouml.plugins.keynodes.biohub.reactome.ReactomeSqlBioHub;name=Reactome database"},
                     {"bioHub.matching", "biouml.plugins.reactome.biohub.ReactomeUniprotHub;name=ReactomeUniprotHub"},
                     {"graph-search", "true"},
                     {"lucene-directory", "luceneIndex"},

@@ -223,6 +223,7 @@ dlgChangeQuotaTitle: "Change quota for {project}"
 dlgCreatePrjTitle : "Create new project"
 dlgCreatePrjCreated : "Project {name} successfully created"
 dlgCreatePrjName: "Project name:"
+dlgCreatePrjType: "Project type:"
 dlgCreatePrjDescription: "Description:"
 dlgCreatePrjDescriptionPlaceholder: "Type project description here"
 
@@ -485,6 +486,8 @@ vpOptConstraints: "Constraints"
 vpOptVariables: "Variables"
 vpOptEntities: "Entities"
 vpOptSimulation: "Simulation"
+vpOptimizationRefreshDiagram: "Refresh diagram model"
+
 
 vpExperimentsSaved: "Experiment {expname} saved"
 

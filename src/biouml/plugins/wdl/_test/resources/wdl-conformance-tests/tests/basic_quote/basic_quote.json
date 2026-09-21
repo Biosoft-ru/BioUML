@@ -1,0 +1,7 @@
+{
+    "quoteWorkflow.str_arr" : ["value1", "value2", "value3"],
+    "quoteWorkflow.int_arr" : [1, 2, -3],
+    "quoteWorkflow.float_arr" : [1.234, -0.543, -13.3],
+    "quoteWorkflow.bool_arr" : [true, false, true],
+    "quoteWorkflow.file_arr" : ["tests/basic_quote/basic_quote.wdl", "tests/basic_quote/basic_quote.json", "run.py"]
+}

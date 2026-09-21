@@ -59,7 +59,7 @@ class RotateListener implements MouseListener, MouseMotionListener
         {
             int xMove = ( xStart - xEnd ) / 10;
             int yMove = - ( yStart - yEnd ) / 10;
-            options.getOptions3D().setAngle( options.getOptions3D().getHead() - xMove, options.getOptions3D().getPitch() - yMove );
+            options.getOptions3D().setAngle( options.getOptions3D().getHeading() - xMove, options.getOptions3D().getPitch() - yMove );
         }
         dragged = false;
     }

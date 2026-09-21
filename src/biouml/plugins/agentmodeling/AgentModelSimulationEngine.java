@@ -22,6 +22,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
 
+import ru.biosoft.util.DPSUtils;
 import ru.biosoft.util.TempFiles;
 
 import com.developmentontheedge.beans.annot.PropertyDescription;
@@ -33,6 +34,7 @@ import biouml.model.DiagramContainer;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
+import biouml.model.Role;
 import biouml.model.SemanticController;
 import biouml.model.SubDiagram;
 import biouml.model.dynamics.Connection;
@@ -42,6 +44,7 @@ import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.MultipleConnection;
 import biouml.model.dynamics.UndirectedConnection;
 import biouml.model.dynamics.UndirectedConnection.MainVariableType;
+import biouml.model.dynamics.plot.PlotsInfo;
 import biouml.model.dynamics.Variable;
 import biouml.model.dynamics.VariableRole;
 import biouml.plugins.simulation.ArraySpan;
@@ -78,6 +81,8 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
     private HashMap<String, SimulationEngine> nameToEngine;
     private boolean flatSubModels = false;
     private String outputDir = TempFiles.path( "simulation" ).getAbsolutePath();
+    
+    private List<StatCollector> collectors = new ArrayList<>();
 
     @Override
     public void propertyChange(PropertyChangeEvent evt)
@@ -663,7 +668,9 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
             if( ! ( engine.getEngine() instanceof AgentModelSimulationEngine ) && DiagramUtility.containModules( engine.getDiagram() ) )
             {
                 SubDiagram subDiagram = (SubDiagram)result.findDiagramElement( engine.de.getCompleteNameInDiagram() );
-                new CompositeModelPreprocessor().processCompositeSubDiagram( result, subDiagram );
+                CompositeModelPreprocessor preprocessor = new CompositeModelPreprocessor();
+                preprocessor.setNameStyle( CompositeModelPreprocessor.SBML_STYLE );
+                preprocessor.processCompositeSubDiagram( result, subDiagram );
             }
         }
 
@@ -973,9 +980,17 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
                 if( agent instanceof SteadyStateAgent )
                     span.addPoints( calcAdditionalPointsSpan( ( (SteadyStateAgent)agent ) ) );
             }
+
+            if( simulator instanceof Scheduler )
+            {
+                ( (Scheduler)simulator ).clearStatisticsCollector();
+                for( StatCollector collector : this.collectors )
+                    ( (Scheduler)simulator ).addStatisticsCollector( collector );
+            }
+            
             log.info( "Model " + diagram.getName() + ": simulation started." );
             System.out.println( "Model " + diagram.getName() + ": simulation started." );
-
+            
             simulator.start( model, span, getListeners(), jobControl );
         }
         finally
@@ -1101,5 +1116,35 @@ public class AgentModelSimulationEngine extends SimulationEngine implements Prop
         super.setLogLevel( level );
         for( AgentSimulationEngineWrapper innerEngine : engines )
             innerEngine.setLogLevel( level );
+    }
+    
+    public static final String PLOTS = "Plots";
+    
+    @Override
+    public Object getPlotsBean(Diagram diagram)
+    {
+        Role role = diagram.getRole();
+        if (!(role instanceof EModel))
+            return null;
+        Object plotsObj = diagram.getAttributes().getValue( PLOTS );
+        PlotsInfo result = null;
+        if( ! ( plotsObj instanceof PlotsInfo ) )
+        {
+            result = new PlotsInfo( (EModel)role );
+            diagram.getAttributes().add( DPSUtils.createHiddenReadOnlyTransient( PLOTS, PlotsInfo.class, result ) );
+        }
+        else
+            result = (PlotsInfo)plotsObj;
+        return result;
+    }
+    
+    public void addCollector(StatCollector collector)
+    {
+        collectors.add( collector );
+    }
+    
+    public void clearCollectors()
+    {
+        collectors.clear();
     }
 }

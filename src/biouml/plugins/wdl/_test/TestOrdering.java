@@ -97,7 +97,7 @@ public class TestOrdering
             p.put( input );
 
             
-            DiagramGenerator.createLink( output, input, WDLConstants.LINK_TYPE );
+            DiagramGenerator.createLink( output, input );
         }
 
     }

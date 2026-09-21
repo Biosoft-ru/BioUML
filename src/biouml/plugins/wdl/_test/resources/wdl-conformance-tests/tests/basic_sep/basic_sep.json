@@ -1,0 +1,4 @@
+{
+    "sepWorkflow.delimiter": " - ",
+    "sepWorkflow.to_sep": ["a", "b", "c"]
+}

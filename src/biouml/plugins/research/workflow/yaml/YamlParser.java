@@ -6,15 +6,17 @@ import org.yaml.snakeyaml.Yaml;
 
 public class YamlParser
 {
+    // Cache the Yaml instance — SnakeYAML construction is expensive
+    // (sets up parser, constructor, emitter, etc.) and the instance is thread-safe for load() calls.
+    private static final Yaml CACHED_YAML = new Yaml();
+
     @SuppressWarnings ( "unchecked" )
     public Map<String, Object> parseYaml(String text)
     {
-        Yaml parser = new Yaml();
-
         Object root;
         try
         {
-            root = parser.load( text );
+            root = CACHED_YAML.load( text );
         }
         catch( Exception e )
         {

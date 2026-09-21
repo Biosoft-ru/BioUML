@@ -98,6 +98,16 @@ public class UniformSpan implements Span
         if( i >= length )
             throw new IndexOutOfBoundsException("ArraySpan index " + i + "> " + getLength());
 
+        // Fast path: no additional points — skip TreeMap lookups entirely
+        if( additionalPoints.isEmpty() )
+        {
+            if( i == 0 )
+                return t0;
+            if( i == ( length - 1 ) )
+                return tf;
+            return t0 + incN * i / incD;
+        }
+
         if( additionalPoints.containsKey(i) )
             return additionalPoints.get(i);
 
@@ -112,7 +122,7 @@ public class UniformSpan implements Span
         if( key != null )
             smallerAdditionalPoints = smallerPointsNumber.get(key);
 
-        return t0+incN*(i - smallerAdditionalPoints)/incD;
+        return t0 + incN * (i - smallerAdditionalPoints) / incD;
     }
 
     private double getUniformPoint(int i)
@@ -230,7 +240,15 @@ public class UniformSpan implements Span
     @Override
     public UniformSpan clone()
     {
-        return new UniformSpan(t0, tf, incN, incD);
+        UniformSpan result = new UniformSpan(t0, tf, incN, incD);
+        // Copy additional points (deep copy of the maps)
+        if( !additionalPoints.isEmpty() )
+        {
+            result.additionalPoints.putAll(additionalPoints);
+            result.smallerPointsNumber.putAll(smallerPointsNumber);
+            result.length = length;
+        }
+        return result;
     }
     
     public JsonObject toJson()

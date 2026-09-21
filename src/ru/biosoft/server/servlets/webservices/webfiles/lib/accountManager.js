@@ -403,12 +403,15 @@ function removeProject(completePath)
 function createNewProject(callback, cancelCallback, errorCallback)
 {
     var dialogDiv = $('<div title="'+resources.dlgCreatePrjTitle+'"></div>');
+    var defaultSelectedFileTables = appInfo.name == "BioUML" ? ' selected="selected" ' : '';
+    var defaultSelectedSqlTables = appInfo.name != "BioUML" ? ' selected="selected" ' : '';
     var loginForm = $('<table><tr><td>'+resources.dlgLoginUsername+'</td><td>'+currentUser+'</td></tr>'+
     '<tr><td>'+resources.dlgLoginPassword+'</td><td><input type="password" size="25" id="password"/></td></tr>'+
     '<tr><td>'+resources.dlgCreatePrjName+'</td><td><input type="text" size="25" id="project_name"/></td></tr>'+
-    '<tr><td>Project type</td><td><select id="projectType" name="projectType">'
-      +'<option value="SQL">SQL</option>'
+    '<tr><td>'+resources.dlgCreatePrjType+'</td><td><select id="projectType" name="projectType">'
+      +'<option value="FILETABLES"' + defaultSelectedFileTables + '>File tables</option>'
       +'<option value="FILE">FILE</option>'
+      +'<option value="SQL"' + defaultSelectedSqlTables + '>SQL</option>'
       +'</select></td></tr>'+
     '<tr><td>'+resources.dlgCreatePrjDescription+'</td><td><textarea cols="35" rows="5" style = "resize: vertical;" placeholder="'+resources.dlgCreatePrjDescriptionPlaceholder+'" id="project_description"></textarea></td></tr>'+
     '</table>');

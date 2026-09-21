@@ -956,7 +956,7 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
     public enum ProjectType {
-        SQL, FILE
+        SQL, FILE, FILETABLES
     }
     
     public static DataCollection createNewProject( String projectName, String user, boolean reuse, List<String> errors, ProjectType projectType )
@@ -988,6 +988,8 @@ public class SupportServlet extends AbstractJSONServlet
                     return createSQLBasedProject( projectName, userProjectsParent );
                 else if(projectType == ProjectType.FILE)
                     return createFileBasedProject( projectName, userProjectsParent, null );
+                else if( projectType == ProjectType.FILETABLES )
+                    return createSQLBasedProject( projectName, userProjectsParent, "File" );
             }
             else
             {
@@ -1067,6 +1069,12 @@ public class SupportServlet extends AbstractJSONServlet
 
 
     public static DataCollection createSQLBasedProject(String projectName, DataCollection userProjectsParent) throws Exception
+
+    {
+        return createSQLBasedProject( projectName, userProjectsParent, "SQL" );
+    }
+
+    public static DataCollection createSQLBasedProject(String projectName, DataCollection userProjectsParent, String tableImplementation) throws Exception
     {
         log.log( Level.INFO, "createSQLBasedProject(" + projectName + "): START" );
         long before = System.currentTimeMillis();
@@ -1105,7 +1113,7 @@ public class SupportServlet extends AbstractJSONServlet
         props.setProperty(SqlDataCollection.JDBC_URL_PROPERTY, jdbcUrl);
         props.setProperty(SqlDataCollection.JDBC_USER_PROPERTY, dbUser);
         props.setProperty(SqlDataCollection.JDBC_PASSWORD_PROPERTY, dbPassword);
-        props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, "SQL");
+        props.setProperty( GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, tableImplementation );
 
         try
         { 
@@ -1486,6 +1494,10 @@ public class SupportServlet extends AbstractJSONServlet
         sizeObj.put( "sizeTotal", newFormattedSize );
         return complexOkResponse( sizeObj );
     }
+
+    //
+    // Profile API endpoints
+    //
 
     /**
      * Handle profiling-related API calls.

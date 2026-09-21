@@ -14,8 +14,10 @@ public class WorkflowSettingsBeanInfo extends BeanInfoEx2<WorkflowSettings>
     {
         add( "executionType" );
         add( "outputPath" );
+        add( "useDocker" );
         property( "useJson" ).structureChanging().add();
         property( "json" ).hidden( "isNotJson" ).add();
+        add( "nextflowSettings" );
         property( "parameters" ).hidden( "isUseJson" ).add();
     }
 }

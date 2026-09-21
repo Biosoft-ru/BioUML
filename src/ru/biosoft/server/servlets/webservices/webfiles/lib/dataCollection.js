@@ -30,6 +30,7 @@ function DataCollection(completeName)
     // False if for current set of filters nothing in current collection can be selected for sure
     // If false, DataElementPathDialog may disable 'Ok' button
     this.enabled = true;
+    this.valid = null;
     
     //listeners
     this.changeListeners = new Array();
@@ -96,9 +97,14 @@ function DataCollection(completeName)
         if(data.type != QUERY_TYPE_SUCCESS)
         {
             if(_this.size < 0) _this.size = 0;
+            if(instanceOf(_this.getClass(), "ru.biosoft.access.core.DataCollection"))
+                _this.valid = false;
+            else
+                _this.valid = true;
             return;
         }
         _this.fillElementInfoByResult(JSON.parse(data.values));
+        _this.valid = true;
     };
     
     this.setFilters = function(elementClass, childClass, referenceType)
@@ -578,6 +584,12 @@ function DataCollection(completeName)
     var diagramTypeInfo;
     this.getDiagramTypeInfo = function(callback)
     {
+        if(!this.isValid())
+            if(callback)
+                callback(null);
+            else
+                return null;
+                    
         if(callback)
         {
             if(diagramTypeInfo)
@@ -607,6 +619,11 @@ function DataCollection(completeName)
     
     this.getDiagramType = function(callback)
     {
+        if(!this.isValid())
+            if(callback)
+                callback(null);
+            else
+                return null;
         if(callback)
         {
             this.getDiagramTypeInfo(function(info)
@@ -643,6 +660,11 @@ function DataCollection(completeName)
      */
     this.diagramHasModel = function(callback)
     {
+        if(!this.isValid())
+            if(callback)
+                callback(false);
+            else
+                return false;
         if(callback)
         {
             this.getDiagramTypeInfo(function(info)
@@ -820,6 +842,7 @@ function DataCollection(completeName)
         thisClass = undefined;
         if(this.getLinkTarget())
             getDataCollection(this.getLinkTarget()).invalidateCollection();
+        this.valid = null;
     };
     
     this.initLinkTargets = function()
@@ -966,7 +989,20 @@ function DataCollection(completeName)
         }, function(data){
             logger.error(data.message);
             if(failure)
-                failure();
+                failure(data.message);
         });
     }
+    
+    this.isValid = function()
+    {
+        if(this.valid == null)
+        {
+            logger.setQuietMode(true);
+            this.getElementInfoAt(0);
+            logger.setQuietMode(false);
+        }
+        return this.valid;
+    }
+    
+    
 }

@@ -21,6 +21,9 @@ public class JavaScriptUtils
 {
     public static final String ID_ATTR = "ID";
 
+    private static final Pattern NON_WORD_PATTERN = Pattern.compile("[\\W]+");
+    private static final Pattern LEADING_DIGIT_PATTERN = Pattern.compile("^\\d");
+
     private static final class RowScriptable extends ScriptableObject
     {
         private static final long serialVersionUID = 1L;
@@ -33,8 +36,8 @@ public class JavaScriptUtils
 
     public static String getValidName (String name)
     {
-        String validName = Pattern.compile("[\\W]+").matcher(name).replaceAll("_");
-        if(Pattern.compile("^\\d").matcher(validName).find())
+        String validName = NON_WORD_PATTERN.matcher(name).replaceAll("_");
+        if(LEADING_DIGIT_PATTERN.matcher(validName).find())
         {
             validName = "_" + validName;
         }

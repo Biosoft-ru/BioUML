@@ -322,7 +322,7 @@ public class JSONUtils
         }
         else
         {
-            correctBeanOptions(property, jsonObject.getJSONArray("value"), jsonOrder);
+            correctBeanOptions(oldValue, jsonObject.getJSONArray("value"), jsonOrder);
         }
     }
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<dynamicPropertySet> 
+    <property name="Look and feel" type="java.lang.String" value="JGoodies: Plastic" display-name="Look and feel" short-description="Preferred look and feel.&lt;br&gt;&lt;font color=red&gt;Warning:&lt;/font&gt; sometimes you need to restart the application so look and feel was updated properly.&lt;/i&gt;" property-editor="ru.biosoft.workbench.LookAndFeelManager$LookAndFeelTagEditor"/> 
+    <property name="Look and feel theme" type="java.lang.String" value="Expierence blue" display-name="Look and feel, theme" short-description="Preferred theme for selected look and feel. Some look and feels have not themes.&lt;br&gt;&lt;font color=&quot;red&quot;&gt;Warning:&lt;/font&gt; sometimes you need to restart the application so look and feel theme was updated properly." property-editor="ru.biosoft.workbench.LookAndFeelManager$ThemeTagEditor"/> 
+	<property name="Servers" type="com.beanexplorer.beans.Preferences" display-name="Server preferences" short-description="Server preferences.">
+        <dynamicPropertySet> 
+			<property name="Server addresses" type="java.lang.String" value="ie.biouml.org:80/biouml/;" display-name="Server addresses list" short-description="Server addresses list to be shown at drop down."/> 
+        	<property name="DAS servers" type="java.lang.String" value="http://www.ensembl.org/das;http://www.ebi.ac.uk/das-srv/uniprot/das;http://www.ebi.ac.uk/das-srv/genomicdas/das;http://genome.ucsc.edu/cgi-bin/das;http://supfam.org/SUPERFAMILY/cgi-bin/das" display-name="DAS servers" short-description="DAS servers"/> 
+        </dynamicPropertySet> 
+    </property>
+	<property name="Global" type="com.beanexplorer.beans.Preferences" display-name="Global" short-description="Global" hidden="true">
+        <dynamicPropertySet> 
+            <property name="ApplicationName" type="java.lang.String" value="BioUML" display-name="ApplicationName" short-description="ApplicationName"/> 
+            <property name="ApplicationTitle" type="java.lang.String" value="BioUML workbench" display-name="ApplicationTitle" short-description="ApplicationTitle"/> 
+            <property name="ApplicationVersion" type="java.lang.String" value="0.9.6" display-name="ApplicationVersion" short-description="ApplicationVersion"/> 
+            <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/> 
+            <!--property name="HistoryDiagrams" type="java.lang.String" value="history/diagrams" display-name="HistoryDiagrams" short-description="HistoryDiagrams"/--> 
+        </dynamicPropertySet> 
+    </property> 
+</dynamicPropertySet> 

@@ -27,6 +27,9 @@ import ru.biosoft.access.biohub.TargetOptions;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 
+import ru.biosoft.access.core.Environment;
+import ru.biosoft.access.security.BiosoftClassLoading;
+
 public class TestStandardQueryEngine extends TestCase
 {
     public TestStandardQueryEngine(String name)
@@ -48,6 +51,8 @@ public class TestStandardQueryEngine extends TestCase
     @Override
     public void setUp() throws Exception
     {
+        Environment.setClassLoading( new BiosoftClassLoading() );
+
         // create repository
         CollectionFactory.unregisterAllRoot();
         repository = CollectionFactory.createRepository("../data/test/biouml/standard");

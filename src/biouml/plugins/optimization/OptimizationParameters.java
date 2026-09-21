@@ -53,6 +53,20 @@ public class OptimizationParameters extends AbstractAnalysisParameters
         }
         if( optimizerParameters != null )
             optimizerParameters.setDiagramPath( DataElementPath.create( diagram ) );
+        if( optimizationExperiments != null )
+        {
+            for ( OptimizationExperiment exp : optimizationExperiments )
+            {
+                exp.setDiagram( diagram );
+            }
+        }
+        if( optimizationConstraints != null )
+        {
+            for ( OptimizationConstraint constraint : optimizationConstraints )
+            {
+                constraint.setDiagram( diagram );
+            }
+        }
     }
 
     public Diagram getDiagram()

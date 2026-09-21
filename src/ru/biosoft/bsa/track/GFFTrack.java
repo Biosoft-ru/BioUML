@@ -25,7 +25,7 @@ public class GFFTrack extends FileTrack
     }
 
     @Override
-    protected void readFromFile(File trackFile, DataCollection<Site> track)
+    protected void readFromFile(File trackFile, DataCollection<Site> track) throws Exception
     {
         int i = 1;
         try (FileInputStream is = new FileInputStream( trackFile );
@@ -51,11 +51,6 @@ public class GFFTrack extends FileTrack
                 track.put( site );
                 i++;
             }
-        }
-
-        catch( Exception e )
-        {
-            //TODO:
         }
     }
 

@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,8 +24,6 @@ import biouml.plugins.wdl.cwl.CWLParser;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.diagram.WDLViewBuilder;
-import biouml.plugins.wdl.parser.AstStart;
-import biouml.plugins.wdl.parser.WDLParser;
 import biouml.workbench.diagram.ImageExporter;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataElementExporterRegistry;
@@ -38,12 +35,8 @@ public class TestUtil
 
     public static Diagram generateDiagram(String name, String wdl) throws Exception
     {
-        WDLParser parser = new WDLParser();
-
-        wdl = wdl.replace( "<<<", "{" ).replace( ">>>", "}" );
-        AstStart start = parser.parse( new StringReader( wdl ) );
         WDLImporter importer = new WDLImporter();
-        return importer.generateDiagram( start, null, name );
+        return importer.generateDiagram( wdl, name, null );
     }
 
     public static String loadDescription(String name) throws Exception

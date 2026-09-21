@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -111,6 +112,7 @@ public class SemanticSimulatorTest extends SimulatorTest
     protected double completionTime = 0;
     protected double timeIncrement = 0;
 
+    protected boolean highest = false;
     protected String sbmlLevel;
     protected String testURL;
 
@@ -153,7 +155,7 @@ public class SemanticSimulatorTest extends SimulatorTest
     {
         try
         {
-            setPreferences();
+//            setPreferences();
             ApplicationUtils.removeDir(new File(outDirectory));
 
             //            testAgentBased("l3v1");
@@ -273,10 +275,12 @@ public class SemanticSimulatorTest extends SimulatorTest
         engine.setOutputDir(javaOutDirectory);
         engine.setSrcDir(srcDirectory);
         engine.setNeedToShowPlot(false);
-
+        engine.setLogLevel( Level.OFF );
         if( engine instanceof JavaSimulationEngine )
             ( (JavaSimulationEngine)engine ).setTemplateType(JavaSimulationEngine.TEMPLATE_LARGE_ONLY);
 
+        highest = sbmlLevel.equals("highest");
+            
         this.sbmlLevel = sbmlLevel;
         List<String> testList = SemanticTestListParser.parseTestList(new File(testDirectory + testListName));
         for( String testName : testList )
@@ -316,6 +320,7 @@ public class SemanticSimulatorTest extends SimulatorTest
         for( int i = 0; i < levels.length; i++ )
         {
             String modelPath = testDirectory + testName + "-sbml-" + levels[i] + ".xml";
+            this.sbmlLevel = levels[i];
             File sbmlModelFile = new File(modelPath);
             if( sbmlModelFile.exists() )
                 return sbmlModelFile;
@@ -337,13 +342,13 @@ public class SemanticSimulatorTest extends SimulatorTest
         {
             zero = DEFAULT_ZERO_SEMANTIC;
 
-            File sbmlModelFile = ( sbmlLevel.equals("highest") ) ? findHighestLevel(testName)
+            File sbmlModelFile = ( highest ) ? findHighestLevel(testName)
                     : new File(testDirectory + testName + "-sbml-" + sbmlLevel + ".xml");
 
             if( sbmlModelFile == null || !sbmlModelFile.exists() )
             {
                 logger.warn("SBML model " + testName + " for level " + sbmlLevel + " was not found");
-                System.out.println("SBML model " + testName + " was not found");
+                System.out.println("SBML model " + testName + " for level " + sbmlLevel + " was not found");
                 logger.simulationCompleted();
                 saveSimulationResults(testDirectory, testName, logger);
                 return;

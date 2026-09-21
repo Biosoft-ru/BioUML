@@ -8,8 +8,10 @@ import ru.biosoft.bsa.Basis;
 import ru.biosoft.bsa.Precision;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
+import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.importer.WiggleTrackImporter.WiggleState;
+import ru.biosoft.bsa.track.big.BigWigTrackViewBuilder;
 
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.DynamicPropertySet;
@@ -81,6 +83,7 @@ public class WiggleTrackImporter extends TrackImporter
 
     private WiggleState ws;
 
+    
     @Override
     protected Site parseLine(String line)
     {
@@ -137,6 +140,7 @@ public class WiggleTrackImporter extends TrackImporter
     {
         super.init(properties);
         format = "wig";
+        getProperties().getTrackProperties().put(SqlTrack.VIEW_BUILDER, BigWigTrackViewBuilder.class.getName());
         return true;
     }
 }

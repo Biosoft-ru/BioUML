@@ -5,8 +5,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,9 +43,6 @@ import biouml.plugins.simulation.TableElementPreprocessor;
 import biouml.plugins.simulation.java.EventLoopSimulator;
 import biouml.plugins.simulation.java.JavaBaseModel;
 import biouml.plugins.simulation.java.JavaSimulationEngine;
-import biouml.plugins.stochastic.StochasticSimulator;
-import biouml.standard.diagram.CompositeModelPreprocessor;
-import biouml.standard.diagram.DiagramUtility;
 import biouml.standard.diagram.Util;
 import biouml.standard.simulation.ResultListener;
 import one.util.streamex.EntryStream;
@@ -272,104 +271,389 @@ public class JavaSdeSimulationEngine extends JavaSimulationEngine
     /**Returns true if the equations contain stochastic terms.*/
     public boolean containsStochastic()
     {
-        //return false;
         return EModel.isOfType(modelType, SdeEModel.SDE_TYPE)
                 || EModel.isOfType(modelType, SdeEModel.STOCHASTIC_TYPE);
     }
     
     
-    public String extractStochasticPart(Equation eq, String stochasticVarName) throws Exception
+    /**
+     * Builds map with definitions of scalar-like equations (including initial assignments and stochastic scalars).
+     * This map is used by expression extractors to inline scalar definitions in differential equations when needed.
+     */
+    private Map<String, AstStart> buildScalarDefinitionsMap()
     {
+        SdeEModel model = (SdeEModel)getDiagram().getRole();
+        Map<String, AstStart> scalarDefs = new HashMap<>();
+
+        for (Equation eq : model.getEquations().toList())
+        {
+            String type = eq.getType();
+            if (Equation.TYPE_SCALAR.equals(type)
+                || Equation.TYPE_SCALAR_DELAYED.equals(type)
+                || Equation.TYPE_SCALAR_INTERNAL.equals(type)
+                || Equation.TYPE_INITIAL_ASSIGNMENT.equals(type)
+                || StochasticEquation.TYPE_SCALAR_STOCHASTIC.equals(type))
+            {
+            	scalarDefs.put(eq.getVariable(), eq.getMath());
+            }
+        }
+
+        return scalarDefs;
+    }
+    
+    public String extractStochasticPart(Equation eq) throws Exception
+    {
+        Map<String, AstStart> scalarDefs = buildScalarDefinitionsMap();
+
         AstStart start = eq.getMath();
-        StochasticPartExtractor stochasticPartExtractor = new StochasticPartExtractor();
+        StochasticPartExtractor stochasticPartExtractor = new StochasticPartExtractor(scalarDefs);
         stochasticPartExtractor.visitStart(start);
         return stochasticPartExtractor.getResultFormula();
     }
     
-    private class StochasticPartExtractor extends ASTVisitorSupport
+    public String extractDeterministicPart(Equation eq) throws Exception
     {
-        private String resultFormula = "";
+        Map<String, AstStart> scalarDefs = buildScalarDefinitionsMap();
+
+        AstStart start = eq.getMath();
+        DeterministicPartExtractor deterministicPartExtractor = new DeterministicPartExtractor(scalarDefs);
+        deterministicPartExtractor.visitStart(start);
+        return deterministicPartExtractor.getResultFormula();
+    }
+    
+    private abstract class AbstractExpressionExtractor extends ASTVisitorSupport
+    {
+    	protected final Map<String, AstStart> scalarDefs;
+    	
+    	/** protects from cycles in scalar definitions: a -> b -> a */
+    	protected final Set<String> expandingVars = new HashSet<>();
+    	
+        /** memoization for "contains stochastic" check for scalar variables */
+        private final Map<String, Boolean> containsStochMemo = new HashMap<>();
+        
+        AbstractExpressionExtractor(Map<String, AstStart> scalarDefs)
+        {
+            this.scalarDefs = scalarDefs;
+        }
+        
+        protected final boolean isAuxStochasticVariable(String name)
+        {
+            return name != null && name.contains(SdeEModel.STOCHASTIC_AUX_VARIABLE_NAME);
+        }
+        
+        protected final boolean isStochasticFunction(Node node)
+        {
+            if (!(node instanceof AstFunNode))
+            {
+            	return false;
+            }
+
+            AstFunNode f = (AstFunNode)node;
+            return "stochastic".equalsIgnoreCase(f.getFunction().getName());
+        }
+        
+        /**
+         * True if expression contains stochastic somewhere inside.
+         */
+        protected final boolean containsStochastic(Node node) throws Exception
+        {
+        	if (isStochasticFunction(node))
+        	{
+        		return true;
+        	}
+        	
+            if (node instanceof AstVarNode)
+            {
+                String name = ((AstVarNode)node).getName();
+                if (isAuxStochasticVariable(name))
+                {
+                    return true;
+                }
+                
+                Boolean memo = containsStochMemo.get(name);
+                if (memo != null)
+                {
+                	return memo.booleanValue();
+                }
+
+                AstStart def = scalarDefs.get(name);
+                if (def != null)
+                {
+                    if (!expandingVars.add(name))
+                    {
+                    	// cycles protection: treat as non-stochastic
+                    	containsStochMemo.put(name, Boolean.FALSE);
+                    	return false;
+                    }
+                    boolean res = containsStochastic(def.jjtGetChild(0));
+                    expandingVars.remove(name);
+                    containsStochMemo.put(name, Boolean.valueOf(res));
+                    return res;
+                }
+                
+                containsStochMemo.put(name, Boolean.FALSE);
+                return false;
+            }
+
+            for (int i = 0; i < node.jjtGetNumChildren(); i++)
+            {
+            	if (containsStochastic(node.jjtGetChild(i)))
+            	{
+            		return true;
+            	}
+            }
+
+            return false;
+        }
+        
+        protected final String formatNode(Node node)
+        {
+            LinearFormatter formatter = new LinearFormatter();
+            AstStart start = Utils.createStart(Utils.cloneAST(node));
+            return formatter.format(start)[1];
+        }
+    }
+    
+    private class StochasticPartExtractor extends AbstractExpressionExtractor
+    {
+        private String resultFormula = "0";
+        
+        StochasticPartExtractor(Map<String, AstStart> scalarDefs)
+        {
+            super(scalarDefs);
+        }
         
         @Override
         public void visitStart(AstStart start) throws Exception
         {
-            for (int i = 0; i < start.jjtGetNumChildren(); i++)
+            if (start.jjtGetNumChildren() == 0)
             {
-                visitNode(start.jjtGetChild(i));   
-            }
-        }
-        
-        @Override
-        public void visitNode(Node node) throws Exception
-        {
-            Node parent = node.jjtGetParent();
-            
-            if (node instanceof AstFunNode)
-            {
-                AstFunNode funNode = (AstFunNode)node;
-                for (int i = 0; i < funNode.jjtGetNumChildren(); i++)
-                {
-                    visitNode(funNode.jjtGetChild(i));   
-                }
+                resultFormula = "0";
                 return;
             }
-            else if (node instanceof AstVarNode)
-            {
-                AstVarNode varNode = (AstVarNode)node;
-                String name = varNode.getName();
-                
-                if (name.indexOf(SdeEModel.STOCHASTIUC_AUX_VARIABLE_NAME) != -1)
-                {
-//                    Node tmpNode = Utils.cloneAST(node);
-//                    tmpNode.jjtSetParent(parent);
-                    Node tmpNode = node;
-                    Node tmpNodeParent = tmpNode.jjtGetParent();
-                    while (tmpNodeParent instanceof AstFunNode 
-                            && !"+-".contains(((AstFunNode)tmpNodeParent).getFunction().getName()))
-                    {
-                        tmpNode = tmpNode.jjtGetParent();
-                        tmpNodeParent = tmpNode.jjtGetParent();
-                    }
-                    buildEquationFromAstNode(tmpNode);
-                }                
-            }
-            return;
-        }
-        
-        private void buildEquationFromAstNode(Node node)
-        {
-            LinearFormatter formatter = new LinearFormatter();
-            
-            if (node instanceof AstFunNode)
-            {
-                // arguments should be processed properly if stochastic terms can be used with non-standard functions.
-                Node first = (node.jjtGetNumChildren() > 0) ? node.jjtGetChild(0) : null;
-                Node second = (node.jjtGetNumChildren() > 1) ? node.jjtGetChild(1) : null;
-                
-                if (!resultFormula.isEmpty() && resultFormula.endsWith(")"))
-                {
-                    // sign should be parsed properly if several stochastic terms can be used within one equation with different signs.
-                    resultFormula += "+";
-                }
-                
-                resultFormula += "(";
-                buildEquationFromAstNode(first);
-                resultFormula += ((AstFunNode)node).getFunction().getName();
-                buildEquationFromAstNode(second);    
-                resultFormula += ")";
-            }
-            else
-            {
-                AstStart start = Utils.createStart(Utils.cloneAST(node)); // do not rewrite node parent
-                resultFormula += formatter.format(start)[1];
-            }
+            String stochExpr = extractStochasticExpression(start.jjtGetChild(0));
+            resultFormula = (stochExpr == null || stochExpr.isEmpty()) ? "0" : stochExpr;
         }
         
         public String getResultFormula()
         {
             return resultFormula;
         }
+        
+        /**
+         * Returns stochastic part of expression. Deterministic parts are replaced by 0.
+         */
+        private String extractStochasticExpression(Node node) throws Exception
+        {
+            if (!containsStochastic(node))
+            {
+            	return "0";
+            }
+            
+            if (isStochasticFunction(node))
+            {
+                return formatNode(node);
+            }
+
+            if (node instanceof AstVarNode)
+            {
+                String name = ((AstVarNode)node).getName();
+                if (isAuxStochasticVariable(name))
+                {
+                    return formatNode(node);
+                }
+
+                AstStart def = scalarDefs.get(name);
+                if (def != null)
+                {
+                    if (!expandingVars.add(name))
+                    {
+                    	return "0";
+                    }
+                    String res = extractStochasticExpression(def.jjtGetChild(0));
+                    expandingVars.remove(name);
+                    return res;
+                }
+
+                return "0";
+            }
+
+            if (node instanceof AstFunNode)
+            {
+                AstFunNode f = (AstFunNode)node;
+                String op = f.getFunction().getName();
+                int n = f.jjtGetNumChildren();
+                
+                // Unary minus is encoded by the parser as function "u-" with single child var
+                if (n == 1 && ("u-".equals(op) || "-".equals(op)))
+                {
+                    String a = extractStochasticExpression(f.jjtGetChild(0));
+                    return "(-(" + a + "))";
+                }
+                if (n == 1 && ("u+".equals(op) || "+".equals(op)))
+                {
+                    String a = extractStochasticExpression(f.jjtGetChild(0));
+                    return "(+(" + a + "))";
+                }
+
+                // linear operations: just extract stochastic parts from both sides
+                if (n == 2 && ("+".equals(op) || "-".equals(op)))
+                {
+                    String a = extractStochasticExpression(f.jjtGetChild(0));
+                    String b = extractStochasticExpression(f.jjtGetChild(1));
+                    return "(" + a + op + b + ")";
+                }
+                
+                // product/ratio: handle "stoch * det" and "stoch / det" specially
+                if (n == 2 && ("*".equals(op) || "/".equals(op)))
+                {
+                    Node left = f.jjtGetChild(0);
+                    Node right = f.jjtGetChild(1);
+
+                    boolean leftSt = containsStochastic(left);
+                    boolean rightSt = containsStochastic(right);
+
+                    // (stoch * det) or (stoch / det) -> keep stochastic left and deterministic right
+                    if (leftSt && !rightSt)
+                    {
+                        return "(" + extractStochasticExpression(left) + op + formatNode(right) + ")";
+                    }
+                    
+                    // (det * stoch) -> keep deterministic left and stochastic right
+                    // (det / stoch) -> cannot be expressed as a pure "linear stochastic part": keep full expression
+                    if (!leftSt && rightSt)
+                    {
+                        if ("/".equals(op))
+                        {
+                        	return formatNode(node);
+                        }
+
+                        return "(" + formatNode(left) + op + extractStochasticExpression(right) + ")";
+                    }
+
+                    // other cases: keep full expression (contains stochastic anyway)
+                    return formatNode(node);
+                }
+
+                // for other functions: if there is stochastic inside, keep full expression
+                return formatNode(node);
+            }
+
+            // constants etc.
+            return formatNode(node);
+        }
     }
+    
+    private class DeterministicPartExtractor extends AbstractExpressionExtractor
+    {
+        private String resultFormula = "0";
+
+        DeterministicPartExtractor(Map<String, AstStart> scalarDefs)
+        {
+            super(scalarDefs);
+        }
+
+        @Override
+        public void visitStart(AstStart start) throws Exception
+        {
+            if (start.jjtGetNumChildren() == 0)
+            {
+                resultFormula = "0";
+                return;
+            }
+            String detExpr = extractDeterministicExpression(start.jjtGetChild(0));
+            resultFormula = (detExpr == null || detExpr.isEmpty()) ? "0" : detExpr;
+        }
+
+        public String getResultFormula()
+        {
+            return resultFormula;
+        }
+
+        /**
+         * Returns deterministic part of expression (stochastic parts are replaced by 0).
+         * Important: scalar variables are inlined ONLY if scalar definition contains stochastic,
+         * otherwise we keep scalar variable reference to avoid duplicating blocks (like piecewise).
+         */
+        private String extractDeterministicExpression(Node node) throws Exception
+        {
+            if (isStochasticFunction(node))
+            {
+                return "0";
+            }
+
+            if (node instanceof AstVarNode)
+            {
+                String name = ((AstVarNode)node).getName();
+                if (isAuxStochasticVariable(name))
+                {
+                	return "0";
+                }
+
+                AstStart def = scalarDefs.get(name);
+                if (def != null)
+                {
+                	// Inline scalar only if it contains stochastic term (to remove it properly).
+                    if (containsStochastic(def.jjtGetChild(0)))
+                    {
+                        if (!expandingVars.add(name)) // cycle protection
+                            return "0";
+
+                        String res = extractDeterministicExpression(def.jjtGetChild(0));
+                        expandingVars.remove(name);
+                        return res;
+                    }
+
+                    return formatNode(node);
+                }
+
+                return formatNode(node);
+            }
+
+            if (node instanceof AstFunNode)
+            {
+                AstFunNode f = (AstFunNode)node;
+                String op = f.getFunction().getName();
+                int n = f.jjtGetNumChildren();
+                
+                // Unary minus is encoded by the parser as function "u-"
+                if (n == 1 && ("u-".equals(op) || "-".equals(op)))
+                {
+                    String a = extractDeterministicExpression(f.jjtGetChild(0));
+                    return "(-(" + a + "))";
+                }
+                if (n == 1 && ("u+".equals(op) || "+".equals(op)))
+                {
+                    String a = extractDeterministicExpression(f.jjtGetChild(0));
+                    return "(+(" + a + "))";
+                }
+
+                //if (n == 2 && ("+".equals(op) || "-".equals(op) || "*".equals(op) || "/".equals(op)))
+                if (n == 2 && ("+".equals(op) || "-".equals(op) || "*".equals(op) || "/".equals(op) || "^".equals(op)))
+                {
+                    String a = extractDeterministicExpression(f.jjtGetChild(0));
+                    String b = extractDeterministicExpression(f.jjtGetChild(1));
+                    return "(" + a + op + b + ")";
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(op).append("(");
+                for (int i = 0; i < n; i++)
+                {
+                    if (i > 0)
+                    {
+                    	sb.append(",");
+                    }
+                    sb.append(extractDeterministicExpression(f.jjtGetChild(i)));
+                }
+                sb.append(")");
+                return sb.toString();
+            }
+
+            return formatNode(node);
+        }
+    }
+
     
     public Map<String, Integer> getVarStochasticIndexMapping()
     {
