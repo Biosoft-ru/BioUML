@@ -82,42 +82,57 @@ public class McpServletTest extends TestCase
 	 * session travels in the params map under {@code sessionId} and the JSON-RPC body under
 	 * {@code mcpBody}, exactly as {@code ConnectionServlet.getParameterMap} delivers a form POST.
 	 */
-	private HandleResult post( String sessionId, String jsonBody )
+	private HandleResult post( String sessionId, String jsonBody ) throws Exception
 	{
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
 		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
 		params.put( SecurityManager.SESSION_ID, new String[] { sessionId } );
 		params.put( McpServlet.MCP_BODY_KEY, new String[] { jsonBody } );
-		String body = servlet.service( "/mcp", null, params, new java.io.ByteArrayOutputStream(),
-				new java.util.HashMap<String, String>() );
-		return new HandleResult( 200, body );
+		return serviceRoundTrip( params );
 	}
 
 	/**
 	 * Drive the connection-servlet entry point {@code service(String,Object,Map,OutputStream,Map)}
-	 * directly: the JSON-RPC body is carried in the params map under the {@code sessionId} key (as
-	 * {@code ConnectionServlet} passes it), and the method must return the JSON-RPC response as its
-	 * String result. This is the exact path the live server takes, so it guards the body-return
-	 * contract (regression: the body was once written to a stream that ConnectionServlet discarded).
+	 * (the path the live server takes): the session and body travel in the params map (as
+	 * {@code ConnectionServlet.getParameterMap} delivers a form POST), the response body is written to
+	 * the {@code out} stream, and the content type is returned. This mirrors
+	 * {@code ConnectionServlet}'s {@code (…, OutputStream, Map)} branch exactly, so it guards the
+	 * write-to-stream + return-content-type contract.
+	 */
+	private HandleResult serviceRoundTrip( Map<String, Object> params ) throws Exception
+	{
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		String contentType = servlet.service( "/mcp", null, params, out, header );
+		assertEquals( "service() returns the content type", "application/json", contentType );
+		String body = new String( out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8 );
+		int status = 200;
+		if ( header.get( "X-MCP-Status" ) != null )
+			status = Integer.parseInt( header.get( "X-MCP-Status" ) );
+		return new HandleResult( status, body );
+	}
+
+	/**
+	 * Direct service() round-trip: a tools/list request through the real 5-arg entry point must produce
+	 * a non-empty JSON-RPC response written to the output stream (regression: the body was once
+	 * returned as the method's String result, which {@code ConnectionServlet} discards in this branch).
 	 */
 	@SuppressWarnings( "unchecked" )
 	public void testServiceReturnsJsonBody() throws Exception
 	{
-		// Bind the thread to the live logged-in session so SecurityManager resolves the user
-		// (mirrors the post() helper and the live request path).
+		// Bind the thread to the live logged-in session so SecurityManager resolves the user.
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
 		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
 		// getParameterMap delivers each form parameter as a String[]; mirror that here.
 		params.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
 		params.put( McpServlet.MCP_BODY_KEY,
 				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
-		String body = servlet.service( "/mcp", null, params, new java.io.ByteArrayOutputStream(),
-				new java.util.HashMap<String, String>() );
-		assertNotNull( "service() returns the response body", body );
-		assertFalse( "response body is non-empty", body.isEmpty() );
-		Map<String, Object> resp = parse( body );
+
+		HandleResult r = serviceRoundTrip( params );
+		assertFalse( "response body is non-empty", r.body.isEmpty() );
+		Map<String, Object> resp = parse( r.body );
 		Map<String, Object> result = (Map<String, Object>) resp.get( "result" );
-		assertNotNull( "tools/list result present via service() — body=" + body, result );
+		assertNotNull( "tools/list result present via service() — body=" + r.body, result );
 		java.util.List<Map<String, Object>> tools = (java.util.List<Map<String, Object>>) result.get( "tools" );
 		assertTrue( "tools present via service()", tools != null && tools.size() >= 10 );
 	}

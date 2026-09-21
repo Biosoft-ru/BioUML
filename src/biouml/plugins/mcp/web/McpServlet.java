@@ -104,7 +104,23 @@ public class McpServlet
 		}
 
 		HandleResult r = handle( "POST", path, query, body, session );
-		return r.body;
+
+		// ConnectionServlet's (…, OutputStream, Map) branch contract: write the response bytes to the
+		// `out` stream (it writes `out`'s bytes to the client) and RETURN the content type (it calls
+		// resp.setContentType(returned) and copies `header` onto the response). The HTTP status is
+		// carried in the header map.
+		try
+		{
+			out.write( r.body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+			out.flush();
+		}
+		catch ( Exception e )
+		{
+			log.log( Level.WARNING, "Client aborted while writing MCP response", e );
+		}
+		if ( header != null )
+			header.put( "X-MCP-Status", String.valueOf( r.status ) );
+		return "application/json";
 	}
 
 	/**
