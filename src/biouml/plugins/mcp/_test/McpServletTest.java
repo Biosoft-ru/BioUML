@@ -85,6 +85,34 @@ public class McpServletTest extends TestCase
 		return servlet.handle( "POST", "/mcp", query, jsonBody, null );
 	}
 
+	/**
+	 * Drive the connection-servlet entry point {@code service(String,Object,Map,OutputStream,Map)}
+	 * directly: the JSON-RPC body is carried in the params map under the {@code sessionId} key (as
+	 * {@code ConnectionServlet} passes it), and the method must return the JSON-RPC response as its
+	 * String result. This is the exact path the live server takes, so it guards the body-return
+	 * contract (regression: the body was once written to a stream that ConnectionServlet discarded).
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testServiceReturnsJsonBody() throws Exception
+	{
+		// Bind the thread to the live logged-in session so SecurityManager resolves the user
+		// (mirrors the post() helper and the live request path).
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( SecurityManager.SESSION_ID, AUTH_SESSION );
+		params.put( McpServlet.MCP_BODY_KEY,
+				"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
+		String body = servlet.service( "/mcp", null, params, new java.io.ByteArrayOutputStream(),
+				new java.util.HashMap<String, String>() );
+		assertNotNull( "service() returns the response body", body );
+		assertFalse( "response body is non-empty", body.isEmpty() );
+		Map<String, Object> resp = parse( body );
+		Map<String, Object> result = (Map<String, Object>) resp.get( "result" );
+		assertNotNull( "tools/list result present via service() — body=" + body, result );
+		java.util.List<Map<String, Object>> tools = (java.util.List<Map<String, Object>>) result.get( "tools" );
+		assertTrue( "tools present via service()", tools != null && tools.size() >= 10 );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	private Map<String, Object> parse( String json ) throws Exception
 	{

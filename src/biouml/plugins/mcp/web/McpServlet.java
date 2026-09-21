@@ -1,6 +1,5 @@
 package biouml.plugins.mcp.web;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -71,30 +70,94 @@ public class McpServlet
 	}
 
 	/**
-	 * Entry point invoked by {@code ConnectionServlet.executeQueryWithExtensionServlet} via the
-	 * {@code service(String, Object, Map, OutputStream, Object)} overload.
+	 * Entry point invoked by {@code ConnectionServlet.executeQueryWithExtensionServlet}. It tries three
+	 * {@code service} overloads in order: the {@code (String, Object, Map, OutputStream, Map)} form
+	 * (this method) is the one it uses — it passes {@code req.getSession()} as the session, the parsed
+	 * parameters as {@code params}, and returns the response body as the String result, which
+	 * {@code ConnectionServlet} writes to the response stream. The HTTP status is set on the
+	 * {@code HttpServletResponse} we are handed (the last argument is the response object).
+	 *
+	 * <p>The raw JSON-RPC body travels inside the parsed {@code params} map (the connection servlet
+	 * puts the request body there under the {@link SecurityManager#SESSION_ID} key, since the MCP
+	 * request is a plain JSON body with no form fields). The {@code JSESSIONID} is recovered from the
+	 * {@code HttpSession} reflectively so this class keeps no compile-time servlet-API dependency.
 	 *
 	 * @param localAddress the request servlet path (e.g. {@code /mcp})
 	 * @param session      Tomcat's {@code HttpSession} (carries the {@code JSESSIONID}); may be null
-	 * @param params       the parsed request parameters; the raw JSON-RPC body is carried here under
+	 * @param params       the parsed request parameters; the JSON-RPC body is under
 	 *                     {@link SecurityManager#SESSION_ID}
-	 * @param out          the response output stream (unused; the response is written via {@code respObj})
-	 * @param respObj      the {@code HttpServletResponse}
-	 * @return the content type (the reflection contract expects a non-null string)
+	 * @param out          a response stream (unused — the body is returned as the String result)
+	 * @param header       the header map (unused for the raw-JSON path)
+	 * @return the response body (the JSON-RPC response, or empty for a notification)
 	 */
-	@SuppressWarnings( "unchecked" )
-	public String service( String localAddress, Object session, Map params, OutputStream out, Object respObj )
+	public String service( String localAddress, Object session, Map params, java.io.OutputStream out, Map<String, String> header )
 	{
-		Object resp = respObj;
 		String path = localAddress == null ? "/mcp" : localAddress;
-		String query = params == null ? null : String.valueOf( params.get( SecurityManager.SESSION_ID ) );
-		String body = params == null || params.get( SecurityManager.SESSION_ID ) == null
-				? "" : String.valueOf( params.get( SecurityManager.SESSION_ID ) );
+		// The session id and the JSON-RPC body arrive in the parsed params map under distinct keys:
+		//   sessionId  -> the caller's session (the JSESSIONID or an explicit sessionId param)
+		//   mcpBody    -> the raw JSON-RPC request body
+		// The JSESSIONID is also available on the HttpSession (session slot); we prefer the params
+		// map because the connection servlet's getParameterMap puts the request body there.
+		String query = null;
+		String body = "";
+		if ( params != null )
+		{
+			Object sid = params.get( SecurityManager.SESSION_ID );
+			if ( sid != null )
+				query = SecurityManager.SESSION_ID + "=" + sid;
+			Object b = params.get( MCP_BODY_KEY );
+			if ( b != null )
+				body = String.valueOf( b );
+		}
 
 		HandleResult r = handle( "POST", path, query, body, session );
-		writeJson( resp, r.status, r.body );
+		return r.body;
+	}
+
+	/**
+	 * Secondary overload kept for the connection servlet's {@code (…, OutputStream, Object)} probe:
+	 * it writes the response to the {@code OutputStream} and returns the content type. (The branch
+	 * that uses the {@code (…, OutputStream, Map)} form above is the one actually taken, but both
+	 * are present so the reflective dispatch finds a compatible method.)
+	 */
+	public String service( String localAddress, Object session, Map params, java.io.OutputStream out, Object respObj )
+	{
+		String path = localAddress == null ? "/mcp" : localAddress;
+		String query = null;
+		String body = "";
+		if ( params != null )
+		{
+			Object sid = params.get( SecurityManager.SESSION_ID );
+			if ( sid != null )
+				query = SecurityManager.SESSION_ID + "=" + sid;
+			Object b = params.get( MCP_BODY_KEY );
+			if ( b != null )
+				body = String.valueOf( b );
+		}
+
+		HandleResult r = handle( "POST", path, query, body, session );
+		try
+		{
+			if ( respObj != null )
+			{
+				respObj.getClass().getMethod( "setStatus", int.class ).invoke( respObj, r.status );
+			}
+			out.write( r.body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+			out.flush();
+		}
+		catch ( Exception e )
+		{
+			log.log( Level.WARNING, "Client aborted while writing MCP response", e );
+		}
 		return "application/json";
 	}
+
+	/**
+	 * The params-map key under which the raw JSON-RPC request body is carried by the connection
+	 * servlet. Kept distinct from {@link SecurityManager#SESSION_ID} so the session id and the body
+	 * do not collide in the parsed-params map.
+	 */
+	public static final String MCP_BODY_KEY = "mcpBody";
 
 	/**
 	 * The transport-agnostic core (also driven directly by the test suite): authenticate, dispatch the
@@ -205,27 +268,6 @@ public class McpServlet
 			}
 		}
 		return null;
-	}
-
-	private void writeJson( Object resp, int status, String body )
-	{
-		try
-		{
-			java.lang.reflect.Method setStatus = resp.getClass().getMethod( "setStatus", int.class );
-			setStatus.invoke( resp, status );
-			resp.getClass().getMethod( "setContentType", String.class ).invoke( resp, "application/json; charset=UTF-8" );
-			OutputStream os = (OutputStream) resp.getClass().getMethod( "getOutputStream" ).invoke( resp );
-			os.write( body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
-			os.flush();
-		}
-		catch ( IOException e )
-		{
-			log.log( Level.WARNING, "Client aborted while writing MCP response", e );
-		}
-		catch ( Exception e )
-		{
-			log.log( Level.SEVERE, "Failed to write MCP response", e );
-		}
 	}
 
 	private String unauthBody( String reason )
