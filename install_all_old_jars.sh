@@ -92,7 +92,7 @@ mvn -N install:install-file \
 
 mvn -N install:install-file \
   -DgroupId=org.openscience.jchempaint \
-  -DartifactId=jchempaint \
+  -DartifactId=jchempaint-core \
   -Dversion=3.4-SNAPSHOT \
   -Dpackaging=jar \
   -Dfile=plugins/org.openscience.jchempaint_3.4.0/jchempaint-core-3.4-SNAPSHOT.jar \
@@ -100,7 +100,7 @@ mvn -N install:install-file \
 
 mvn -N install:install-file \
   -DgroupId=org.openscience.jchempaint \
-  -DartifactId=cdk-jchempaint \
+  -DartifactId=jchempaint-render \
   -Dversion=3.4-SNAPSHOT \
   -Dpackaging=jar \
   -Dfile=plugins/org.openscience.jchempaint_3.4.0/jchempaint-render-3.4-SNAPSHOT.jar \
