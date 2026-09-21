@@ -57,7 +57,7 @@
                                     <classes dir="${rootDir}/src/target/classes">
                                         <include name="ru/biosoft/server/tomcat/CacheControlFilter.class" />
                                         <include name="ru/biosoft/server/tomcat/DataElementServlet.class" />
-                                        <include name="biouml/plugins/mcp/web/McpServlet*.class" />
+                                        <include name="ru/biosoft/server/mcp/McpWebAppServlet*.class" />
                                     </classes>
                                 </war>
 
