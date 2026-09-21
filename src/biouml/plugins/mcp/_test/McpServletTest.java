@@ -77,12 +77,20 @@ public class McpServletTest extends TestCase
 		super.tearDown();
 	}
 
-	/** Bind the thread to the given session and call the servlet's handle() for a POST request. */
+	/**
+	 * Call the servlet's real 5-arg {@code service} entry point (the path the live server takes): the
+	 * session travels in the params map under {@code sessionId} and the JSON-RPC body under
+	 * {@code mcpBody}, exactly as {@code ConnectionServlet.getParameterMap} delivers a form POST.
+	 */
 	private HandleResult post( String sessionId, String jsonBody )
 	{
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
-		String query = SecurityManager.SESSION_ID + "=" + sessionId;
-		return servlet.handle( "POST", "/mcp", query, jsonBody, null );
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( SecurityManager.SESSION_ID, new String[] { sessionId } );
+		params.put( McpServlet.MCP_BODY_KEY, new String[] { jsonBody } );
+		String body = servlet.service( "/mcp", null, params, new java.io.ByteArrayOutputStream(),
+				new java.util.HashMap<String, String>() );
+		return new HandleResult( 200, body );
 	}
 
 	/**
@@ -99,9 +107,10 @@ public class McpServletTest extends TestCase
 		// (mirrors the post() helper and the live request path).
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
 		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
-		params.put( SecurityManager.SESSION_ID, AUTH_SESSION );
+		// getParameterMap delivers each form parameter as a String[]; mirror that here.
+		params.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
 		params.put( McpServlet.MCP_BODY_KEY,
-				"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
 		String body = servlet.service( "/mcp", null, params, new java.io.ByteArrayOutputStream(),
 				new java.util.HashMap<String, String>() );
 		assertNotNull( "service() returns the response body", body );
@@ -276,7 +285,11 @@ public class McpServletTest extends TestCase
 	@SuppressWarnings( "unchecked" )
 	public void testMalformedJsonIs400() throws Exception
 	{
-		HandleResult r = post( AUTH_SESSION, "this is not json" );
+		// Drive handle() directly (the 5-arg service() returns only the body string, always 200 at the
+		// transport level; the JSON-RPC error code carries the parse error).
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		HandleResult r = servlet.handle( "POST", "/mcp", SecurityManager.SESSION_ID + "=" + AUTH_SESSION,
+				"this is not json", null );
 		assertEquals( "malformed body → 400", 400, r.status );
 		Map<String, Object> resp = parse( r.body );
 		Map<String, Object> error = (Map<String, Object>) resp.get( "error" );
@@ -331,15 +344,19 @@ public class McpServletTest extends TestCase
 		}
 
 		/**
-		 * Send one raw POST request over the wire and return the parsed status + body.
+		 * Send one POST request over the wire (the JSON-RPC body as the {@code mcpBody} form field, the
+		 * session as the {@code sessionId} query parameter) and return the parsed status + body.
 		 */
 		@SuppressWarnings( "unchecked" )
 		Map<String, Object> post( String sessionId, String body ) throws Exception
 		{
-			byte[] bodyBytes = body.getBytes( StandardCharsets.UTF_8 );
-			String raw = "POST /mcp?" + SecurityManager.SESSION_ID + "=" + sessionId + " HTTP/1.1\r\n"
+			// Form-encode the body exactly as ConnectionServlet.getParameterMap expects.
+			String form = SecurityManager.SESSION_ID + "=" + urlEncode( sessionId )
+					+ "&" + McpServlet.MCP_BODY_KEY + "=" + urlEncode( body );
+			byte[] bodyBytes = form.getBytes( StandardCharsets.UTF_8 );
+			String raw = "POST /mcp HTTP/1.1\r\n"
 					+ "Host: 127.0.0.1:" + port + "\r\n"
-					+ "Content-Type: application/json\r\n"
+					+ "Content-Type: application/x-www-form-urlencoded\r\n"
 					+ "Content-Length: " + bodyBytes.length + "\r\n"
 					+ "Connection: close\r\n"
 					+ "\r\n"
@@ -439,19 +456,23 @@ public class McpServletTest extends TestCase
 					String path = qpos >= 0 ? target.substring( 0, qpos ) : target;
 					String query = qpos >= 0 ? target.substring( qpos + 1 ) : null;
 
-					// Body = everything after the first blank line.
+					// Body = everything after the first blank line (a form-encoded body).
 					int bodyStart = raw.indexOf( "\r\n\r\n" );
-					String body = bodyStart >= 0 ? raw.substring( bodyStart + 4 ) : "";
+					String formBody = bodyStart >= 0 ? raw.substring( bodyStart + 4 ) : "";
 
-					// Bind the worker thread to the requested session, then route through the
-					// servlet's real protocol core.
-					String sessionId = parseSessionId( query );
+					// Decode the form fields: sessionId (auth) + mcpBody (the JSON-RPC request).
+					String sessionId = urlDecode( formValue( formBody, SecurityManager.SESSION_ID ) );
+					String jsonBody = urlDecode( formValue( formBody, McpServlet.MCP_BODY_KEY ) );
+					if ( sessionId == null && query != null )
+						sessionId = parseSessionId( query );
 					if ( sessionId != null )
 						SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
 
 					McpServlet.HandleResult result =
 						"POST".equalsIgnoreCase( method )
-								? servlet.handle( method, path, query, body, null )
+								? servlet.handle( method, path,
+										sessionId == null ? null : SecurityManager.SESSION_ID + "=" + sessionId,
+										jsonBody, null )
 								: methodNotAllowed();
 
 					// Write the HTTP response back.
@@ -537,6 +558,48 @@ public class McpServletTest extends TestCase
 			return headers + new String( bodyBytes, StandardCharsets.UTF_8 );
 		}
 		return headers;
+	}
+
+	/** URL-encode a string for a form body. */
+	private static String urlEncode( String s )
+	{
+		try
+		{
+			return java.net.URLEncoder.encode( s, "UTF-8" );
+		}
+		catch ( Exception e )
+		{
+			return s;
+		}
+	}
+
+	/** URL-decode a string from a form body. */
+	private static String urlDecode( String s )
+	{
+		if ( s == null )
+			return null;
+		try
+		{
+			return java.net.URLDecoder.decode( s, "UTF-8" );
+		}
+		catch ( Exception e )
+		{
+			return s;
+		}
+	}
+
+	/** Extract a single form-field value ({@code name=value&...}) from a form body, or null. */
+	private static String formValue( String form, String name )
+	{
+		if ( form == null || form.isEmpty() )
+			return null;
+		for ( String pair : form.split( "&" ) )
+		{
+			int idx = pair.indexOf( '=' );
+			if ( idx > 0 && pair.substring( 0, idx ).equals( name ) )
+				return pair.substring( idx + 1 );
+		}
+		return null;
 	}
 
 	/** Extract the {@code sessionId=...} value from a query string, or null. */

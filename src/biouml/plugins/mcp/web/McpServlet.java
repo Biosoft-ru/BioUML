@@ -1,6 +1,5 @@
 package biouml.plugins.mcp.web;
 
-import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -26,18 +25,19 @@ import biouml.plugins.mcp.server.McpServerFactory;
  * OSGi classloader (via the plugin's {@code Require-Bundle}), which may not resolve {@code
  * javax.servlet} the same way the webapp classloader does, so it deliberately has <em>no</em> hard
  * compile-time dependency on the servlet API. {@code ConnectionServlet} drives it purely reflectively:
- * {@link #init(String[])} at startup, then {@code service(String, Object, Map, OutputStream, Object)}
- * (the {@code Object}-typed response overload) per request, passing Tomcat's {@code HttpSession} in the
- * {@code session} slot and the request body (as the {@code sessionId} parameter value) in the
- * {@code params} map. The MCP protocol (raw JSON-RPC over {@code application/json} with its own HTTP
- * status codes) does not fit the form/multipart pipeline {@code ConnectionServlet} uses for the other
- * web providers, so this servlet writes its own response. The {@code JSESSIONID} is recovered from the
- * {@code HttpSession} reflectively so the class stays free of a compile-time servlet dependency.</p>
+ * {@link #init(String[])} at startup, then per request the
+ * {@code service(String, Object, Map, OutputStream, Map)} overload, passing the servlet path, the
+ * Tomcat {@code HttpSession} (the {@code JSESSIONID} the client carries), and the parsed request
+ * parameters. The JSON-RPC request is sent as a {@code application/x-www-form-urlencoded} POST with the
+ * body in the {@value #MCP_BODY_KEY} form field, so {@code ConnectionServlet}'s {@code getParameterMap}
+ * delivers it in the params map (a raw {@code application/json} body would be discarded by form
+ * parsing). The response body is returned as the method's {@code String} result, which
+ * {@code ConnectionServlet} writes to the response stream.</p>
  *
- * <p><b>Auth is the standard BioUML login</b> — the same check {@code WebServicesServlet} performs.
- * The session is the Tomcat {@code JSESSIONID} (the one the {@code /biouml/web/login} flow created) or
- * an explicit {@code sessionId} query parameter, then validated with
- * {@link SecurityManager#isSessionDead} and {@link SecurityManager#getSessionUser}. There is
+ * <p><b>Auth is the standard BioUML login</b> — the same check {@code WebServicesServlet} performs. The
+ * {@code JSESSIONID} the {@code /biouml/web/login} flow created is taken from the {@code HttpSession}
+ * (the MCP client carries the cookie) or an explicit {@code sessionId} query parameter, then validated
+ * with {@link SecurityManager#isSessionDead} and {@link SecurityManager#getSessionUser}. There is
  * <em>no</em> privileged {@code system} shortcut: the {@code system} session carries no user record by
  * design and is the server's internal identity, not an external credential. A request without a live,
  * logged-in session is refused with HTTP 401.</p>
@@ -70,44 +70,37 @@ public class McpServlet
 	}
 
 	/**
-	 * Entry point invoked by {@code ConnectionServlet.executeQueryWithExtensionServlet}. It tries three
-	 * {@code service} overloads in order: the {@code (String, Object, Map, OutputStream, Map)} form
-	 * (this method) is the one it uses — it passes {@code req.getSession()} as the session, the parsed
-	 * parameters as {@code params}, and returns the response body as the String result, which
-	 * {@code ConnectionServlet} writes to the response stream. The HTTP status is set on the
-	 * {@code HttpServletResponse} we are handed (the last argument is the response object).
-	 *
-	 * <p>The raw JSON-RPC body travels inside the parsed {@code params} map (the connection servlet
-	 * puts the request body there under the {@link SecurityManager#SESSION_ID} key, since the MCP
-	 * request is a plain JSON body with no form fields). The {@code JSESSIONID} is recovered from the
-	 * {@code HttpSession} reflectively so this class keeps no compile-time servlet-API dependency.
+	 * Entry point invoked by {@code ConnectionServlet.executeQueryWithExtensionServlet} (the
+	 * {@code (String, Object, Map, OutputStream, Map)} overload). It passes the servlet path, the
+	 * Tomcat {@code HttpSession} (the {@code JSESSIONID} the client carries), and the parsed request
+	 * parameters. The JSON-RPC body arrives in the params map under {@link #MCP_BODY_KEY} (a form field)
+	 * and the session under {@link SecurityManager#SESSION_ID}. We return the JSON-RPC response as the
+	 * method's {@code String} result, which {@code ConnectionServlet} writes to the response stream.
 	 *
 	 * @param localAddress the request servlet path (e.g. {@code /mcp})
 	 * @param session      Tomcat's {@code HttpSession} (carries the {@code JSESSIONID}); may be null
-	 * @param params       the parsed request parameters; the JSON-RPC body is under
-	 *                     {@link SecurityManager#SESSION_ID}
+	 * @param params       the parsed request parameters; the body is under {@link #MCP_BODY_KEY}
 	 * @param out          a response stream (unused — the body is returned as the String result)
-	 * @param header       the header map (unused for the raw-JSON path)
-	 * @return the response body (the JSON-RPC response, or empty for a notification)
+	 * @param header       the header map (unused)
+	 * @return the response body (the JSON-RPC response)
 	 */
 	public String service( String localAddress, Object session, Map params, java.io.OutputStream out, Map<String, String> header )
 	{
 		String path = localAddress == null ? "/mcp" : localAddress;
 		// The session id and the JSON-RPC body arrive in the parsed params map under distinct keys:
-		//   sessionId  -> the caller's session (the JSESSIONID or an explicit sessionId param)
-		//   mcpBody    -> the raw JSON-RPC request body
-		// The JSESSIONID is also available on the HttpSession (session slot); we prefer the params
-		// map because the connection servlet's getParameterMap puts the request body there.
+		//   sessionId  -> the caller's session (the JSESSIONID, or an explicit sessionId param)
+		//   mcpBody    -> the raw JSON-RPC request body (a form field, so getParameterMap parses it)
+		// The JSESSIONID is also on the HttpSession (session slot); the params-map sessionId wins.
 		String query = null;
 		String body = "";
 		if ( params != null )
 		{
 			Object sid = params.get( SecurityManager.SESSION_ID );
 			if ( sid != null )
-				query = SecurityManager.SESSION_ID + "=" + sid;
+				query = SecurityManager.SESSION_ID + "=" + first( sid );
 			Object b = params.get( MCP_BODY_KEY );
 			if ( b != null )
-				body = String.valueOf( b );
+				body = first( b );
 		}
 
 		HandleResult r = handle( "POST", path, query, body, session );
@@ -115,49 +108,27 @@ public class McpServlet
 	}
 
 	/**
-	 * Secondary overload kept for the connection servlet's {@code (…, OutputStream, Object)} probe:
-	 * it writes the response to the {@code OutputStream} and returns the content type. (The branch
-	 * that uses the {@code (…, OutputStream, Map)} form above is the one actually taken, but both
-	 * are present so the reflective dispatch finds a compatible method.)
-	 */
-	public String service( String localAddress, Object session, Map params, java.io.OutputStream out, Object respObj )
-	{
-		String path = localAddress == null ? "/mcp" : localAddress;
-		String query = null;
-		String body = "";
-		if ( params != null )
-		{
-			Object sid = params.get( SecurityManager.SESSION_ID );
-			if ( sid != null )
-				query = SecurityManager.SESSION_ID + "=" + sid;
-			Object b = params.get( MCP_BODY_KEY );
-			if ( b != null )
-				body = String.valueOf( b );
-		}
-
-		HandleResult r = handle( "POST", path, query, body, session );
-		try
-		{
-			if ( respObj != null )
-			{
-				respObj.getClass().getMethod( "setStatus", int.class ).invoke( respObj, r.status );
-			}
-			out.write( r.body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
-			out.flush();
-		}
-		catch ( Exception e )
-		{
-			log.log( Level.WARNING, "Client aborted while writing MCP response", e );
-		}
-		return "application/json";
-	}
-
-	/**
-	 * The params-map key under which the raw JSON-RPC request body is carried by the connection
-	 * servlet. Kept distinct from {@link SecurityManager#SESSION_ID} so the session id and the body
-	 * do not collide in the parsed-params map.
+	 * The form-field name under which the raw JSON-RPC request body is sent (and read back from the
+	 * parsed params map). Kept distinct from {@link SecurityManager#SESSION_ID} so the session id and the
+	 * body do not collide in the parsed-params map.
 	 */
 	public static final String MCP_BODY_KEY = "mcpBody";
+
+	/**
+	 * The params-map value for a form parameter is a {@code String[]}; return its first element as a
+	 * string. Handles both array and scalar values.
+	 */
+	private static String first( Object value )
+	{
+		if ( value == null )
+			return "";
+		if ( value instanceof Object[] )
+		{
+			Object[] arr = (Object[]) value;
+			return arr.length == 0 ? "" : String.valueOf( arr[ 0 ] );
+		}
+		return String.valueOf( value );
+	}
 
 	/**
 	 * The transport-agnostic core (also driven directly by the test suite): authenticate, dispatch the
