@@ -31,7 +31,13 @@ public class SimulatorProfile
     }
     public void setX(double[] x)
     {
-        this.x = new double[x.length];
+        // Reuse the backing buffer when the length is unchanged, avoiding a fresh
+        // allocation and GC pressure on repeated state updates.
+        //
+        // Note: getX() returns this backing buffer, not a snapshot. Callers that
+        // need to retain a previous state must copy the returned array.
+        if( this.x == null || this.x.length != x.length )
+            this.x = new double[x.length];
         System.arraycopy(x, 0, this.x, 0, x.length);
     }
     public double getStep()
