@@ -343,9 +343,9 @@ public class Matrix
 
     public static void denseCopy(double[][] a, double[][] b, int m, int n)
     {
-        // System.arraycopy is intrinsified to a native memmove — much faster
-        // than a Java element-by-element loop for the column copies JVode does
-        // on every Jacobian cache update.
+        // JVM-optimized bulk array copy instead of an element-by-element Java
+        // loop, for the per-row copies JVode does on every Jacobian cache
+        // update.
         for( int j = 0; j < n; j++ )
             System.arraycopy( a[j], 0, b[j], 0, m );
     }

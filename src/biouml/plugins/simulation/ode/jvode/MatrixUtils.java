@@ -138,8 +138,10 @@ public class MatrixUtils
         }
 
         /* Solve Ly = b, store solution y in b.
-           Skip the update when bk == 0 (nothing to subtract) — common in
-           sparse Newton systems where many RHS components vanish. */
+           Skip the update when bk == 0 — the row update is then a no-op.
+           Whether this actually helps depends on how often b has exact zeros
+           here (workload-dependent; -0.0 also satisfies the check and is
+           correctly skipped). */
         for(int k = 0; k < n - 1; k++ )
         {
             double[] ak = a[k];
@@ -150,7 +152,7 @@ public class MatrixUtils
         }
 
         /* Solve Ux = y, store solution x in b.
-           Same zero-skip: if bk == 0 the row update is a no-op. */
+           Same zero-skip as above. */
         for(int k = n - 1; k > 0; k-- )
         {
             double[] ak = a[k];

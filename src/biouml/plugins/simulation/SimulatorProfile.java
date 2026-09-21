@@ -34,6 +34,16 @@ public class SimulatorProfile
         // Reuse the backing buffer when the length is unchanged — the solver
         // calls setX() on every span point with a same-length state vector,
         // so this avoids a fresh allocation + GC pressure per point.
+        //
+        // Note: this changes the identity semantics of getX(). While the length
+        // stays constant, successive setX() calls overwrite the same array, so
+        // a reference obtained via getX() is NOT a snapshot and must not be
+        // retained across steps. Audited 2026-09: no production caller retains
+        // a getX() reference (EventLoopSimulator copies it out each step, and
+        // ModelAgent/SteadyStateAgent consume it within a single init() call);
+        // SimulationResult / result listeners only ever see copies, because
+        // fireSolutionUpdate() clones before handing out the state. See
+        // TestSimulatorProfileSemantics.
         if( this.x == null || this.x.length != x.length )
             this.x = new double[x.length];
         System.arraycopy(x, 0, this.x, 0, x.length);
