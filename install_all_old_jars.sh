@@ -15,19 +15,6 @@ for jar in "${owl_jars[@]}"; do
      -DgeneratePom=true
 done
 
-cdk_jars=("interfaces" "data" "core" "extra" "io" "ioformats" "nonotify" "isomorphism" "smiles" "smarts" "pdb" "standard" "fingerprint")
-
-# Iterate over the list and execute a command for each element
-for jar in "${cdk_jars[@]}"; do
-   mvn -N install:install-file \
-     -DgroupId=org.openscience.cdk \
-     -DartifactId=cdk-$jar \
-     -Dversion=1.3.5 \
-     -Dpackaging=jar \
-     -Dfile=plugins/org.openscience.cdk_1.3.5/cdk-$jar.jar \
-     -DgeneratePom=true
-done
-
 ## it.sauronsoftware.ftp4j
 
 mvn -N install:install-file \
