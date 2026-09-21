@@ -22,13 +22,14 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.openscience.cdk.Atom;
 import org.openscience.cdk.AtomContainer;
+import org.openscience.cdk.Bond;
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.ChemFile;
 import org.openscience.cdk.ConformerContainer;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.Isotope;
-import org.openscience.cdk.Molecule;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.atomtype.CDKAtomTypeMatcher;
 import org.openscience.cdk.config.Elements;
@@ -41,17 +42,17 @@ import org.openscience.cdk.geometry.alignment.KabschAlignment;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IAtomContainerSet;
 import org.openscience.cdk.interfaces.IAtomType;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.interfaces.IChemObject;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.interfaces.IMoleculeSet;
+import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
 import org.openscience.cdk.io.FormatFactory;
 import org.openscience.cdk.io.ISimpleChemObjectReader;
-import org.openscience.cdk.io.MDLWriter;
+import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.ReaderFactory;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.io.formats.CMLFormat;
@@ -63,17 +64,11 @@ import org.openscience.cdk.io.formats.MDLV2000Format;
 import org.openscience.cdk.io.formats.SDFFormat;
 import org.openscience.cdk.io.iterator.IteratingMDLConformerReader;
 import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
-import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
 import org.openscience.cdk.isomorphism.matchers.OrderQueryBond;
 import org.openscience.cdk.isomorphism.matchers.QueryAtomContainer;
-import org.openscience.cdk.isomorphism.matchers.smarts.AromaticQueryBond;
 import org.openscience.cdk.isomorphism.mcss.RMap;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
-import org.openscience.cdk.nonotify.NNAtom;
-import org.openscience.cdk.nonotify.NNAtomContainer;
-import org.openscience.cdk.nonotify.NNChemFile;
-import org.openscience.cdk.nonotify.NNMolecule;
-import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.similarity.Tanimoto;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
@@ -113,7 +108,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Structure addExplicitHydrogens(Structure molecule) throws Exception
     {
-        IMolecule cdkmolecule = structureToMolecule(molecule);
+        IAtomContainer cdkmolecule = structureToMolecule(molecule);
         addImplicitHydrogens(cdkmolecule);
         AtomContainerManipulator.convertImplicitToExplicitHydrogens(cdkmolecule);
         return moleculeToStructure(cdkmolecule, NEW_STRUCTURE_PREFIX + "ExplHydr");
@@ -121,13 +116,13 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Structure addImplicitHydrogens(Structure molecule) throws Exception
     {
-        IMolecule cdkmolecule = structureToMolecule(molecule);
+        IAtomContainer cdkmolecule = structureToMolecule(molecule);
         addImplicitHydrogens(cdkmolecule);
         return moleculeToStructure(cdkmolecule, NEW_STRUCTURE_PREFIX + "ImplHydr");
 
     }
 
-    private void addImplicitHydrogens(IMolecule molecule) throws Exception
+    private void addImplicitHydrogens(IAtomContainer molecule) throws Exception
     {
         CDKAtomTypeMatcher matcher = CDKAtomTypeMatcher.getInstance(molecule.getBuilder());
         Iterator<IAtom> atoms = molecule.atoms().iterator();
@@ -168,7 +163,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         IAtomContainer container = structureToMolecule(molecule);
         for( IAtom atom : container.atoms() )
         {
-            atom.setHydrogenCount(0);
+            atom.setImplicitHydrogenCount( 0 );
         }
         return moleculeToStructure(container, molecule.getName());
     }
@@ -203,14 +198,14 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public boolean areIsomorphic(Structure molecule1, Structure molecule2) throws Exception
     {
-        IMolecule mol1 = structureToMolecule(molecule1);
-        IMolecule mol2 = structureToMolecule(molecule2);
-        return UniversalIsomorphismTester.isIsomorph(mol1, mol2);
+        IAtomContainer mol1 = structureToMolecule(molecule1);
+        IAtomContainer mol2 = structureToMolecule(molecule2);
+        return new UniversalIsomorphismTester().isIsomorph(mol1, mol2);
     }
 
     public double calculateMass(Structure molecule)
     {
-        IMolecule cdkmolecule = structureToMolecule(molecule);
+        IAtomContainer cdkmolecule = structureToMolecule(molecule);
         IMolecularFormula mf = molecularFormulaObject(cdkmolecule);
         // use four digits in the precision
         double mass = MolecularFormulaManipulator.getNaturalExactMass(mf);
@@ -219,7 +214,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         return mass;
     }
 
-    private IMolecularFormula molecularFormulaObject(IMolecule m)
+    private IMolecularFormula molecularFormulaObject(IAtomContainer m)
     {
         IMolecularFormula mf = MolecularFormulaManipulator.getMolecularFormula(m);
 
@@ -253,7 +248,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             for( int col = 0; col < molCount; col++ )
             {
                 Structure colMol = alignedMols[col];
-                IMolecule colMol1 = structureToMolecule(colMol);
+                IAtomContainer colMol1 = structureToMolecule(colMol);
                 matrix.append(String.format("%.3f", colMol1.getProperty("MCSS-RMSD")));
                 if( col < ( molCount - 1 ) )
                     matrix.append(',');
@@ -269,22 +264,24 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             throw new IllegalArgumentException("List must contain at least two molecules.");
 
         List<Structure> results = new ArrayList<>();
-        IMolecule cdkmolecule = structureToMolecule(molecule);
+        IAtomContainer cdkmolecule = structureToMolecule(molecule);
 
-        List<IMolecule> molecules = new ArrayList<>();
+        List<IAtomContainer> molecules = new ArrayList<>();
         for( Structure struct : structures )
         {
-            IMolecule mol = structureToMolecule(struct);
+            IAtomContainer mol = structureToMolecule(struct);
             molecules.add(mol);
         }
-        IMolecule mcss = mcssMolecule(molecules);
+        IAtomContainer mcss = mcssMolecule(molecules);
         if( mcss.getAtomCount() < 3 )
             throw new Exception("The MCSS must have at least 3 atoms.");
-        IMolecule firstSubstructure = getSubstructures(cdkmolecule, mcss)[0];
+        IAtomContainer[] firstSubstructures = getSubstructures(cdkmolecule, mcss);
+        IAtomContainer firstSubstructure = firstSubstructures[0];
 
-        for( IMolecule mol : molecules )
+        for( IAtomContainer mol : molecules )
         {
-            IMolecule substructure = getSubstructures(mol, mcss)[0];
+            IAtomContainer[] substructures = getSubstructures(mol, mcss);
+            IAtomContainer substructure = substructures[0];
             try
             {
                 KabschAlignment ka = new KabschAlignment(firstSubstructure, substructure);
@@ -308,30 +305,30 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Structure mcss(Structure[] structures) throws Exception
     {
-        List<IMolecule> molecules = new ArrayList<>();
+        List<IAtomContainer> molecules = new ArrayList<>();
         for( Structure struct : structures )
         {
-            IMolecule mol = structureToMolecule(struct);
+            IAtomContainer mol = structureToMolecule(struct);
             molecules.add(mol);
         }
-        IMolecule mol = mcssMolecule(molecules);
+        IAtomContainer mol = mcssMolecule(molecules);
         return moleculeToStructure(mol, NEW_STRUCTURE_PREFIX + "mcss");
     }
 
-    private IMolecule mcssMolecule(List<IMolecule> molecules) throws Exception
+    private IAtomContainer mcssMolecule(List<IAtomContainer> molecules) throws Exception
     {
         if( molecules.size() < 2 )
             throw new IllegalArgumentException("List must contain at least two molecules.");
 
-        IMolecule firstMolecule = molecules.get(0);
+        IAtomContainer firstMolecule = molecules.get(0);
         IAtomContainer mcss = firstMolecule;
         int counter = 1;
-        for( IMolecule followupMolecule : molecules )
+        for( IAtomContainer followupMolecule : molecules )
         {
             counter++;
             try
             {
-                mcss = UniversalIsomorphismTester.getOverlaps(mcss, followupMolecule).get(0);
+                mcss = new UniversalIsomorphismTester().getOverlaps(mcss, followupMolecule).get(0);
 
             }
             catch( CDKException exception )
@@ -339,7 +336,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
                 throw new Exception("Could not determine MCSS, because of molecule " + counter + ": " + exception.getMessage());
             }
         }
-        IMolecule newMolecule = new NNMolecule();
+        IAtomContainer newMolecule = new AtomContainer();
         newMolecule.add(mcss);
         return newMolecule;
     }
@@ -355,15 +352,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         SmilesGenerator generator = new SmilesGenerator();
         // Operate on a clone with removed hydrogens
         cdkMol = AtomContainerManipulator.removeHydrogens(cdkMol);
-        IMolecule newMol;
-        if( cdkMol instanceof IMolecule )
-        {
-            newMol = (IMolecule)cdkMol;
-        }
-        else
-        {
-            newMol = ( cdkMol.getBuilder() ).newInstance(Molecule.class, cdkMol);
-        }
+        IAtomContainer newMol = new AtomContainer(cdkMol);
         String result = null;
         try
         {
@@ -380,7 +369,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
     public Float[] calculateTanimoto(Structure[] calculateFor, Structure reference) throws Exception
     {
         List<Float> result = new ArrayList<>();
-        IMolecule molecule = structureToMolecule(reference);
+        IAtomContainer molecule = structureToMolecule(reference);
         Fingerprinter fp = new Fingerprinter();
         BitSet fingerprint = fp.getFingerprint(molecule);
         for( Structure structure : calculateFor )
@@ -393,7 +382,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Float calculateTanimoto(Structure structure, BitSet fingerprint) throws Exception
     {
-        IMolecule molecule = structureToMolecule(structure);
+        IAtomContainer molecule = structureToMolecule(structure);
         Fingerprinter fp = new Fingerprinter();
         BitSet fingerprint2 = fp.getFingerprint(molecule);
         return calculateTanimoto(fingerprint, fingerprint2);
@@ -470,7 +459,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Structure[] generate2dCoordinates(Structure[] molecules) throws Exception
     {
-        IMolecule cdkmol = null;
+        IAtomContainer cdkmol = null;
         List<Structure> newMolecules = new ArrayList<>();
 
         for( Structure molecule : molecules )
@@ -478,16 +467,16 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             cdkmol = structureToMolecule(molecule);
             String name = molecule.getName();
 
-            IMoleculeSet mols = ConnectivityChecker.partitionIntoMolecules(cdkmol);
+            IAtomContainerSet mols = ConnectivityChecker.partitionIntoMolecules(cdkmol);
 
             StructureDiagramGenerator sdg = new StructureDiagramGenerator();
 
-            IMolecule newmolecule = mols.getBuilder().newInstance(Molecule.class);
-            for( IAtomContainer mol : mols.molecules() )
+            IAtomContainer newmolecule = new AtomContainer();
+            for( IAtomContainer mol : mols.atomContainers() )
             {
                 try
                 {
-                    sdg.setMolecule(cdkmol.getBuilder().newInstance(Molecule.class, mol));
+                    sdg.setMolecule(new AtomContainer(mol));
                 }
                 catch( Exception e )
                 {
@@ -590,7 +579,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Object getProperty(Structure molecule, String propertyName)
     {
-        IMolecule cdkmolecule = structureToMolecule(molecule);
+        IAtomContainer cdkmolecule = structureToMolecule(molecule);
         if( cdkmolecule == null )
         {
             throw new IllegalArgumentException("Passed Molecule has a null IAtomContainer.");
@@ -606,23 +595,6 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
     private String molecularFormula(IAtomContainer mol)
     {
         return MolecularFormulaManipulator.getString(molecularFormulaObject(mol));
-    }
-
-    private IMolecularFormula molecularFormulaObject(IAtomContainer m)
-    {
-        IMolecularFormula mf = MolecularFormulaManipulator.getMolecularFormula(m);
-
-        int missingHCount = 0;
-        for( IAtom atom : m.atoms() )
-        {
-            missingHCount += calculateMissingHydrogens(m, atom);
-        }
-
-        if( missingHCount > 0 )
-        {
-            mf.addIsotope(m.getBuilder().newInstance(Isotope.class, Elements.HYDROGEN), missingHCount);
-        }
-        return mf;
     }
 
     public boolean has2d(Structure mol)
@@ -661,17 +633,9 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Structure[] getSmartsMatches(Structure molecule, String smarts) throws Exception
     {
+        IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-        SMARTSQueryTool querytool;
-
-        try
-        {
-            querytool = new SMARTSQueryTool(smarts);
-        }
-        catch( CDKException e )
-        {
-            throw new Exception("Could not parse SMARTS query", e);
-        }
+        SMARTSQueryTool querytool = new SMARTSQueryTool(smarts, builder);
 
         try
         {
@@ -706,7 +670,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public Structure[] getSubstructures(Structure molecule, Structure substructure) throws Exception
     {
-        IMolecule[] mols = getSubstructures(structureToMolecule(molecule), structureToMolecule(substructure));
+        IAtomContainer[] mols = getSubstructures(structureToMolecule(molecule), structureToMolecule(substructure));
         Structure[] molecules = new Structure[mols.length];
         int i = 0;
         for( IAtomContainer mol : mols )
@@ -716,7 +680,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         return molecules;
     }
 
-    private IMolecule[] getSubstructures(IMolecule originalContainer, IMolecule substructure) throws Exception
+    private IAtomContainer[] getSubstructures(IAtomContainer originalContainer, IAtomContainer substructure) throws Exception
     {
         // the below code is going to use IAtom.Id, so we need to keep
         // track of the originals. At the same time, we overwrite them
@@ -732,11 +696,11 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         try
         {
             // get all matches, which may include duplicates
-            List<List<RMap>> substructures = UniversalIsomorphismTester.getSubgraphMaps(originalContainer, substructure);
+            List<List<RMap>> substructures = new UniversalIsomorphismTester().getSubgraphMaps(originalContainer, substructure);
             for( List<RMap> substruct : substructures )
             {
                 // convert the RMap into an IAtomContainer
-                IAtomContainer match = new NNAtomContainer();
+                IAtomContainer match = new AtomContainer();
                 for( RMap mapping : substruct )
                 {
                     IBond bond = originalContainer.getBond(mapping.getId1());
@@ -749,7 +713,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
                 for( IAtomContainer mol : uniqueMatches )
                 {
                     QueryAtomContainer matchQuery = createQueryContainer(match);
-                    if( UniversalIsomorphismTester.isIsomorph(mol, matchQuery) )
+                    if( new UniversalIsomorphismTester().isIsomorph(mol, matchQuery) )
                         foundEquivalentSubstructure = true;
                 }
                 if( !foundEquivalentSubstructure )
@@ -764,22 +728,18 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         {
             throw new Exception("Error while finding substructures: " + e.getMessage(), e);
         }
-        // set up a List<ICDKMolecule> return list
-        Molecule[] molecules = new Molecule[uniqueMatches.size()];
-        int i = 0;
-        for( IAtomContainer mol : uniqueMatches )
-        {
-            molecules[i++].add(mol);
-        }
+        // set up a IAtomContainer[] return list
+        IAtomContainer[] molecules = uniqueMatches.toArray(new IAtomContainer[0]);
         return molecules;
     }
 
     private static QueryAtomContainer createQueryContainer(IAtomContainer container)
     {
-        QueryAtomContainer queryContainer = new QueryAtomContainer();
+        IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+        QueryAtomContainer queryContainer = new QueryAtomContainer(builder);
         for( int i = 0; i < container.getAtomCount(); i++ )
         {
-            queryContainer.addAtom(new NNAtom(container.getAtom(i).getID()));
+            queryContainer.addAtom(new Atom(container.getAtom(i).getID()));
         }
         Iterator<IBond> bonds = container.bonds().iterator();
         while( bonds.hasNext() )
@@ -789,13 +749,17 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             int index2 = container.getAtomNumber(bond.getAtom(1));
             if( bond.getFlag(CDKConstants.ISAROMATIC) )
             {
-                queryContainer.addBond(new AromaticQueryBond((IQueryAtom)queryContainer.getAtom(index1), (IQueryAtom)queryContainer
-                        .getAtom(index2), IBond.Order.SINGLE));
+                queryContainer.addBond(new org.openscience.cdk.isomorphism.matchers.smarts.AromaticQueryBond(
+                    (IQueryAtom)queryContainer.getAtom(index1),
+                    (IQueryAtom)queryContainer.getAtom(index2),
+                    IBond.Order.SINGLE, builder));
             }
             else
             {
-                queryContainer.addBond(new OrderQueryBond((IQueryAtom)queryContainer.getAtom(index1), (IQueryAtom)queryContainer
-                        .getAtom(index2), bond.getOrder()));
+                queryContainer.addBond(new OrderQueryBond(
+                    (IQueryAtom)queryContainer.getAtom(index1),
+                    (IQueryAtom)queryContainer.getAtom(index2),
+                    bond.getOrder(), builder));
             }
         }
         return queryContainer;
@@ -816,10 +780,10 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             .toArray( Structure[]::new );
     }
 
-    private List<IAtomContainer> partition(IMolecule molecule) throws Exception
+    private List<IAtomContainer> partition(IAtomContainer molecule) throws Exception
     {
         IAtomContainer todealwith = molecule;
-        IMoleculeSet set = ConnectivityChecker.partitionIntoMolecules(todealwith);
+        IAtomContainerSet set = ConnectivityChecker.partitionIntoMolecules(todealwith);
         List<IAtomContainer> result = new ArrayList<>();
         for( IAtomContainer container : set.atomContainers() )
         {
@@ -832,7 +796,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
     {
         try
         {
-            new SMARTSQueryTool(smarts);
+            new SMARTSQueryTool(smarts, SilentChemObjectBuilder.getInstance());
             return true;
         }
         catch( Exception error )
@@ -855,7 +819,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         int i = 1;
         while( it.hasNext() )
         {
-            IMolecule molecule = (IMolecule)it.next();
+            IAtomContainer molecule = it.next();
             String molName = (String)molecule.getProperty(CDKConstants.TITLE);
             if( molName == null || molName.equals("") )
             {
@@ -874,7 +838,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
     {
         File file = getFile(filename);
         FileInputStream fileStream = new FileInputStream(file);
-        return new MDLConformerReader(fileStream, NoNotificationChemObjectBuilder.getInstance());
+        return new MDLConformerReader(fileStream, SilentChemObjectBuilder.getInstance());
     }
 
     private static class MDLConformerReader extends TransformedIterator<ConformerContainer, IAtomContainer>
@@ -935,16 +899,8 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public boolean smartsMatches(Structure molecule, String smarts) throws Exception
     {
-        SMARTSQueryTool querytool;
-
-        try
-        {
-            querytool = new SMARTSQueryTool(smarts);
-        }
-        catch( CDKException e )
-        {
-            throw new Exception("Could not parse SMARTS query", e);
-        }
+        IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+        SMARTSQueryTool querytool = new SMARTSQueryTool(smarts, builder);
 
         try
         {
@@ -964,7 +920,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
     {
         try
         {
-            return UniversalIsomorphismTester.isSubgraph(structureToMolecule(molecule), structureToMolecule(subStructure));
+            return new UniversalIsomorphismTester().isSubgraph(structureToMolecule(molecule), structureToMolecule(subStructure));
         }
         catch( CDKException e )
         {
@@ -1205,12 +1161,12 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         {
             if( reader.accepts(ChemFile.class) )
             {
-                IChemFile chemFile = reader.read(new NNChemFile());
+                IChemFile chemFile = reader.read(new ChemFile());
                 atomContainersList = ChemFileManipulator.getAllAtomContainers(chemFile);
             }
-            else if( reader.accepts(Molecule.class) )
+            else if( reader.accepts(AtomContainer.class) )
             {
-                atomContainersList.add(reader.read(new NNMolecule()));
+                atomContainersList.add(reader.read(new AtomContainer()));
             }
             else
             {
@@ -1235,7 +1191,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
         IAtomContainer containerToReturn = atomContainersList.get(0);
         // sanatize the input for certain file formats
-        IMolecule retmol = new Molecule(containerToReturn);
+        IAtomContainer retmol = new AtomContainer(containerToReturn);
         // try to recover certain information for certain content types
         sanatizeFileInput(format, retmol);
         String molName = (String)containerToReturn.getProperty(CDKConstants.TITLE);
@@ -1328,15 +1284,10 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             String moleculeName = molecularFormula(mol);
             // If there's a CDK property TITLE (read from file), use that
             // as name
-            if( mol instanceof IMolecule )
             {
-
-                IMolecule imol = (IMolecule)mol;
-
-                String molName = (String)imol.getProperty("PUBCHEM_IUPAC_TRADITIONAL_NAME");
-
-                if( molName == null || ( molName.equals("") ) )
-                    molName = (String)imol.getProperty(CDKConstants.TITLE);
+                String molName = (String)mol.getProperty("PUBCHEM_IUPAC_TRADITIONAL_NAME");
+                if( molName == null || molName.equals("") )
+                    molName = (String)mol.getProperty(CDKConstants.TITLE);
 
                 if( molName != null && ! ( molName.equals("") ) )
                 {
@@ -1478,7 +1429,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
             try
             {
                 // perceive atom types
-                IAtomType[] types = matcher.findMatchingAtomType(molecule);
+                IAtomType[] types = matcher.findMatchingAtomTypes(molecule);
                 for( int i = 0; i < molecule.getAtomCount(); i++ )
                 {
                     if( types[i] != null )
@@ -1534,7 +1485,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         } );
         try
         {
-            IMolecule mol = parser.parseSmiles(smilesDescription);
+            IAtomContainer mol = parser.parseSmiles(smilesDescription);
             return moleculeToStructure(mol, name);
         }
         catch( InvalidSmilesException e )
@@ -1564,10 +1515,10 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
     public String getMDLMolfileString(Structure molecule)
     {
-        IMolecule cdkmolecule = structureToMolecule(molecule);
+        IAtomContainer cdkmolecule = structureToMolecule(molecule);
 
         StringWriter stringWriter = new StringWriter();
-        MDLWriter writer = new MDLWriter(stringWriter);
+        MDLV2000Writer writer = new MDLV2000Writer(stringWriter);
         try
         {
             writer.writeMolecule(cdkmolecule);
@@ -1583,10 +1534,10 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
 
 
     /**
-     * Convert BioUML Structure to CDK IMolecule and vice versa
+     * Convert BioUML Structure to CDK IAtomContainer and vice versa
      */
 
-    private IMolecule structureToMolecule(Structure structure)
+    private IAtomContainer structureToMolecule(Structure structure)
     {
         return CDKRenderer.loadMolecule( structure );
     }

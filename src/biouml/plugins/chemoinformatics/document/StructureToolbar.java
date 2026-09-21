@@ -70,7 +70,7 @@ public class StructureToolbar
                         //button.setBackground(Color.GRAY);
                         button.setBackground(new Color(238, 238, 238));
                         parent.setLastActionButton(button);
-                        AddBondDragModule activeModule = new AddBondDragModule(parent.get2DHub(), IBond.Stereo.NONE, true);
+                        AddBondDragModule activeModule = new AddBondDragModule(parent.get2DHub(), IBond.Display.Solid, true);
                         activeModule.setID(action);
                         parent.get2DHub().setActiveDrawModule(activeModule);
                         parent.updateStatusBar();
