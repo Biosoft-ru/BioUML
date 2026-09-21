@@ -50,8 +50,8 @@ public class McpServletTest extends TestCase
 {
 	private final ObjectMapper mapper = new ObjectMapper();
 	private McpServlet servlet;
-	/** A session id bound to the SYSTEM session (which has an anonymous user). */
-	private static final String AUTH_SESSION = SecurityManager.SYSTEM_SESSION;
+	/** A live session with a logged-in user (created via anonymousLogin under a non-system id). */
+	private static final String AUTH_SESSION = "mcp-servlet-auth-session";
 	/** A session id with no logged-in user → unauthenticated. */
 	private static final String UNAUTH_SESSION = "no-such-session-mcp-test";
 
@@ -59,12 +59,22 @@ public class McpServletTest extends TestCase
 	protected void setUp() throws Exception
 	{
 		super.setUp();
-		// Ensure the SYSTEM session has an anonymous user so getSessionUser() is non-null for the
-		// "authenticated" requests (mirrors HttpServer.java:74-75).
+		// Create a real, live session bound to a user under a NON-system session id, mirroring what the
+		// web /login flow produces. anonymousLogin() records a UserPermissions for the current thread's
+		// session, making isSessionDead() false and getSessionUser() non-null for it. (The `system`
+		// session is intentionally NOT used: it carries no user record by design and is not a valid
+		// external credential.)
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
 		SecurityManager.anonymousLogin();
 		servlet = new McpServlet();
 		servlet.initForTest();
+	}
+
+	@Override
+	protected void tearDown() throws Exception
+	{
+		SecurityManager.removeThreadFromSessionRecord();
+		super.tearDown();
 	}
 
 	/** Bind the thread to the given session and call the servlet's handle() for a POST request. */
@@ -72,7 +82,7 @@ public class McpServletTest extends TestCase
 	{
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
 		String query = SecurityManager.SESSION_ID + "=" + sessionId;
-		return servlet.handle( "POST", "/mcp", query, null, jsonBody );
+		return servlet.handle( "POST", "/mcp", query, jsonBody, null );
 	}
 
 	@SuppressWarnings( "unchecked" )
@@ -186,8 +196,8 @@ public class McpServletTest extends TestCase
 	public void testUnauthenticatedIs401() throws Exception
 	{
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), UNAUTH_SESSION );
-		HandleResult r = servlet.handle( "POST", "/mcp", SecurityManager.SESSION_ID + "=" + UNAUTH_SESSION, null,
-				"{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/list\",\"params\":{}}" );
+		HandleResult r = servlet.handle( "POST", "/mcp", SecurityManager.SESSION_ID + "=" + UNAUTH_SESSION,
+				"{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/list\",\"params\":{}}", null );
 		assertEquals( "unauthenticated → 401", 401, r.status );
 		Map<String, Object> resp = parse( r.body );
 		Map<String, Object> error = (Map<String, Object>) resp.get( "error" );
@@ -199,8 +209,8 @@ public class McpServletTest extends TestCase
 	{
 		// No session at all (no sessionId in the query) → 401.
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
-		HandleResult r = servlet.handle( "POST", "/mcp", null, null,
-				"{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/list\",\"params\":{}}" );
+		HandleResult r = servlet.handle( "POST", "/mcp", null,
+				"{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/list\",\"params\":{}}", null );
 		assertEquals( "no session → 401", 401, r.status );
 	}
 
@@ -413,7 +423,7 @@ public class McpServletTest extends TestCase
 
 					McpServlet.HandleResult result =
 						"POST".equalsIgnoreCase( method )
-								? servlet.handle( method, path, query, null, body )
+								? servlet.handle( method, path, query, body, null )
 								: methodNotAllowed();
 
 					// Write the HTTP response back.

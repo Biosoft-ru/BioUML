@@ -1,122 +1,117 @@
 package biouml.plugins.mcp.web;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import biouml.plugins.mcp.server.McpJsonRpcDispatcher;
-import biouml.plugins.mcp.server.McpServerFactory;
-import ru.biosoft.access.security.SecurityManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ru.biosoft.access.security.SecurityManager;
+
+import biouml.plugins.mcp.server.McpJsonRpcDispatcher;
+import biouml.plugins.mcp.server.McpServerFactory;
+
 /**
- * The MCP streamable-HTTP servlet, exposed at {@code /mcp}.
+ * The BioUML MCP (Model Context Protocol) HTTP endpoint.
  *
- * <p>It is a plain {@link HttpServlet} (the repo is {@code javax.servlet}; the MCP SDK's own
- * servlet transports are {@code jakarta}-based and cannot be used under the Tomcat-6 container).
- * It speaks the MCP JSON-RPC protocol by reading the request body, dispatching it through the
- * shared {@link McpJsonRpcDispatcher} (the same one the in-process server uses, so the tool list
- * and error shape are identical), and writing the JSON response back.</p>
+ * <p>Registered as an extension servlet (extension point {@code ru.biosoft.server.servlet}, prefix
+ * {@code mcp}) inside the OSGi web application. The launcher servlet
+ * ({@code biouml.launcher.BioUMLLauncher}) dispatches any sub-path by its first segment — {@code /mcp} →
+ * this servlet — so the endpoint is reachable at {@code /biouml/mcp} with no separate
+ * {@code <servlet-mapping>}.</p>
  *
- * <p>Auth reuses the BioUML web session: the request thread is bound to the session
- * ({@code JSESSIONID} cookie or an explicit {@code sessionId} parameter) and the call is refused
- * with HTTP 401 when there is no logged-in user. No new auth system is introduced.</p>
+ * <p>This class is <em>not</em> a {@code HttpServlet} subclass on purpose. It is instantiated by the
+ * OSGi classloader (via the plugin's {@code Require-Bundle}), which may not resolve {@code
+ * javax.servlet} the same way the webapp classloader does, so it deliberately has <em>no</em> hard
+ * compile-time dependency on the servlet API. {@code ConnectionServlet} drives it purely reflectively:
+ * {@link #init(String[])} at startup, then {@code service(String, Object, Map, OutputStream, Object)}
+ * (the {@code Object}-typed response overload) per request, passing Tomcat's {@code HttpSession} in the
+ * {@code session} slot and the request body (as the {@code sessionId} parameter value) in the
+ * {@code params} map. The MCP protocol (raw JSON-RPC over {@code application/json} with its own HTTP
+ * status codes) does not fit the form/multipart pipeline {@code ConnectionServlet} uses for the other
+ * web providers, so this servlet writes its own response. The {@code JSESSIONID} is recovered from the
+ * {@code HttpSession} reflectively so the class stays free of a compile-time servlet dependency.</p>
  *
- * <p>POST → JSON-RPC request/response (application/json). GET → 405. The protocol logic lives in
- * {@link #handle} (transport-agnostic), which the servlet's {@code doPost} delegates to and which
- * tests drive directly.</p>
+ * <p><b>Auth is the standard BioUML login</b> — the same check {@code WebServicesServlet} performs.
+ * The session is the Tomcat {@code JSESSIONID} (the one the {@code /biouml/web/login} flow created) or
+ * an explicit {@code sessionId} query parameter, then validated with
+ * {@link SecurityManager#isSessionDead} and {@link SecurityManager#getSessionUser}. There is
+ * <em>no</em> privileged {@code system} shortcut: the {@code system} session carries no user record by
+ * design and is the server's internal identity, not an external credential. A request without a live,
+ * logged-in session is refused with HTTP 401.</p>
+ *
+ * <p>Non-POST → 405. POST → MCP JSON-RPC (initialize / tools/list / tools/call).</p>
  */
-public class McpServlet extends HttpServlet
+public class McpServlet
 {
-	private static final long serialVersionUID = 1L;
+	private static final Logger log = Logger.getLogger( McpServlet.class.getName() );
 
-	/** The shared JSON-RPC dispatcher (one per servlet; the catalog is built in init). */
-	private McpJsonRpcDispatcher dispatcher;
 	private final ObjectMapper mapper = new ObjectMapper();
+	private McpJsonRpcDispatcher dispatcher;
 
-	@Override
-	public void init() throws ServletException
+	/**
+	 * Called by the servlet registry at server startup (mirrors {@code WebServicesServlet.init}).
+	 * {@code args} are the repository root folders; building the dispatcher is cheap, so it happens here
+	 * rather than on the first request.
+	 */
+	public void init( String[] args ) throws Exception
 	{
-		super.init();
 		this.dispatcher = McpServerFactory.createDispatcher();
 	}
 
 	/**
-	 * For tests / direct use: build a dispatcher over the full catalog.
+	 * For tests / direct use: build a dispatcher over the full catalog without the registry.
 	 */
 	public void initForTest()
 	{
 		this.dispatcher = McpServerFactory.createDispatcher();
 	}
 
-	@Override
-	protected void doGet( HttpServletRequest req, HttpServletResponse resp ) throws IOException
+	/**
+	 * Entry point invoked by {@code ConnectionServlet.executeQueryWithExtensionServlet} via the
+	 * {@code service(String, Object, Map, OutputStream, Object)} overload.
+	 *
+	 * @param localAddress the request servlet path (e.g. {@code /mcp})
+	 * @param session      Tomcat's {@code HttpSession} (carries the {@code JSESSIONID}); may be null
+	 * @param params       the parsed request parameters; the raw JSON-RPC body is carried here under
+	 *                     {@link SecurityManager#SESSION_ID}
+	 * @param out          the response output stream (unused; the response is written via {@code respObj})
+	 * @param respObj      the {@code HttpServletResponse}
+	 * @return the content type (the reflection contract expects a non-null string)
+	 */
+	@SuppressWarnings( "unchecked" )
+	public String service( String localAddress, Object session, Map params, OutputStream out, Object respObj )
 	{
-		// The MCP streamable-HTTP spec reserves GET for opening an SSE stream; this build serves
-		// plain-JSON responses, so GET is not used.
-		resp.setStatus( HttpServletResponse.SC_METHOD_NOT_ALLOWED );
-		resp.setContentType( "application/json" );
-		resp.getWriter().write( "{\"error\":\"method not allowed; use POST for MCP JSON-RPC\"}" );
-		resp.getWriter().flush();
-	}
+		Object resp = respObj;
+		String path = localAddress == null ? "/mcp" : localAddress;
+		String query = params == null ? null : String.valueOf( params.get( SecurityManager.SESSION_ID ) );
+		String body = params == null || params.get( SecurityManager.SESSION_ID ) == null
+				? "" : String.valueOf( params.get( SecurityManager.SESSION_ID ) );
 
-	@Override
-	protected void doPost( HttpServletRequest req, HttpServletResponse resp ) throws IOException
-	{
-		String body = readBody( req );
-		String query = req.getQueryString();
-		// Fold the JSESSIONID cookie into the query so the core's session resolution sees it.
-		javax.servlet.http.HttpSession session = req.getSession( false );
-		if ( session != null && session.getId() != null
-				&& ( query == null || !query.contains( SecurityManager.SESSION_ID ) ) )
-			query = SecurityManager.SESSION_ID + "=" + session.getId()
-					+ ( query == null ? "" : "&" + query );
-		HandleResult r = handle( "POST", req.getRequestURI(), query, null, body );
-		resp.setStatus( r.status );
-		resp.setContentType( "application/json; charset=UTF-8" );
-		resp.getWriter().write( r.body );
-		resp.getWriter().flush();
+		HandleResult r = handle( "POST", path, query, body, session );
+		writeJson( resp, r.status, r.body );
+		return "application/json";
 	}
 
 	/**
-	 * The transport-agnostic core: authenticate, dispatch the JSON-RPC body, and produce the
-	 * response status + body. The servlet's {@code doPost} wraps this with the {@code ServletResponse};
-	 * tests call this directly.
+	 * The transport-agnostic core (also driven directly by the test suite): authenticate, dispatch the
+	 * JSON-RPC body, and produce the response status + body.
 	 *
 	 * @param method  the HTTP method (POST expected)
 	 * @param path    the request path (e.g. {@code /mcp})
 	 * @param query   the query string, or null
-	 * @param headers request headers (case-insensitive lookup), or null
-	 * @param body    the raw request body
+	 * @param body    the raw JSON-RPC request body
+	 * @param session the caller's {@code HttpSession} (carries the {@code JSESSIONID}); may be null
 	 * @return the HTTP status and the response body
 	 */
-	/**
-	 * The transport-agnostic core: authenticate, dispatch the JSON-RPC body, and produce the
-	 * response status + body. The servlet's {@code doPost} wraps this with the {@code ServletResponse};
-	 * tests call this directly.
-	 *
-	 * @param method  the HTTP method (POST expected)
-	 * @param path    the request path (e.g. {@code /mcp})
-	 * @param query   the query string, or null
-	 * @param headers request headers (case-insensitive lookup), or null
-	 * @param body    the raw request body
-	 * @return the HTTP status and the response body
-	 */
-	public HandleResult handle( String method, String path, String query, Map<String, String> headers, String body )
+	public HandleResult handle( String method, String path, String query, String body, Object session )
 	{
 		long start = System.currentTimeMillis();
 
-		String sessionId = resolveSessionId( path, query, body );
+		String sessionId = resolveSessionId( query, session );
 		if ( sessionId == null )
 			return new HandleResult( 401, unauthBody( "no session" ) );
 
@@ -129,25 +124,23 @@ public class McpServlet extends HttpServlet
 		{
 			return new HandleResult( 401, unauthBody( "invalid session" ) );
 		}
-		// The BioUML "system" session is privileged (the server's own identity) — it carries no
-		// user record, so getSessionUser() is null for it by design. Any other session must have a
-		// logged-in user or the request is refused with 401 (reuses the existing web auth; no new
-		// auth system).
-		boolean systemSession = SecurityManager.SYSTEM_SESSION.equals( sessionId );
-		String user = systemSession ? SecurityManager.SYSTEM_SESSION : null;
-		if ( !systemSession )
+
+		// Standard BioUML auth (the same check WebServicesServlet performs): the session must be alive
+		// and carry a logged-in user. There is no privileged "system" shortcut for external requests —
+		// the system session has no user record by design.
+		String user;
+		try
 		{
-			try
-			{
-				user = SecurityManager.getSessionUser();
-			}
-			catch ( Exception e )
-			{
-				user = null;
-			}
-			if ( user == null )
-				return new HandleResult( 401, unauthBody( "unauthenticated" ) );
+			if ( SecurityManager.isSessionDead( sessionId ) )
+				return new HandleResult( 401, unauthBody( "invalid session" ) );
+			user = SecurityManager.getSessionUser();
 		}
+		catch ( Exception e )
+		{
+			user = null;
+		}
+		if ( user == null )
+			return new HandleResult( 401, unauthBody( "unauthenticated" ) );
 
 		if ( dispatcher == null )
 			initForTest();
@@ -159,14 +152,15 @@ public class McpServlet extends HttpServlet
 		}
 		catch ( Exception e )
 		{
-			return new HandleResult( 400, "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"parse error: not valid JSON\"}}" );
+			return new HandleResult( 400,
+					"{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"parse error: not valid JSON\"}}" );
 		}
 
 		String m = request.get( "method" ) == null ? null : String.valueOf( request.get( "method" ) );
 		Map<String, Object> response = dispatcher.handle( request );
 		String out = dispatcher.toJson( response );
 
-		// Request logging: method, tool name, duration, status — never the params/response body.
+		// Request logging: method, tool name, user, duration — never the params/response body.
 		String tool = null;
 		Object params = request.get( "params" );
 		if ( params instanceof Map )
@@ -175,43 +169,63 @@ public class McpServlet extends HttpServlet
 			tool = n == null ? null : String.valueOf( n );
 		}
 		long duration = System.currentTimeMillis() - start;
-		java.util.logging.Logger.getLogger( "biouml.plugins.mcp" ).info(
-				"MCP " + method + " " + path + " method=" + m + " tool=" + tool
-						+ " user=" + user + " status=200 " + duration + "ms" );
+		log.info( "MCP " + method + " " + path + " method=" + m + " tool=" + tool + " user=" + user + " status=200 " + duration + "ms" );
 
 		return new HandleResult( 200, out );
 	}
 
-	/** The HTTP status + body produced by {@link #handle}. */
-	public static final class HandleResult
-	{
-		public final int status;
-		public final String body;
-
-		public HandleResult( int status, String body )
-		{
-			this.status = status;
-			this.body = body;
-		}
-	}
-
 	/**
-	 * Resolve the session id from the query string: an explicit {@code sessionId} parameter wins
-	 * (matching the rest of the BioUML web stack, which passes {@link SecurityManager#SESSION_ID}).
-	 * The {@code JSESSIONID} cookie is read by the servlet's {@code doPost} and folded into the
-	 * query before calling this (see the servlet wrapper), so this only needs the query.
+	 * Resolve the session id: an explicit {@code sessionId} query parameter wins (matching the rest of
+	 * the BioUML web stack, which passes {@link SecurityManager#SESSION_ID}); otherwise the
+	 * {@code JSESSIONID} from the caller's {@code HttpSession}. The {@code HttpSession} is read
+	 * reflectively so this class has no compile-time servlet-API dependency.
 	 */
-	private String resolveSessionId( String path, String query, String body )
+	private String resolveSessionId( String query, Object session )
 	{
-		if ( query == null )
-			return null;
-		for ( String pair : query.split( "&" ) )
+		if ( query != null )
 		{
-			int idx = pair.indexOf( '=' );
-			if ( idx > 0 && SecurityManager.SESSION_ID.equals( pair.substring( 0, idx ) ) )
-				return pair.substring( idx + 1 );
+			for ( String pair : query.split( "&" ) )
+			{
+				int idx = pair.indexOf( '=' );
+				if ( idx > 0 && SecurityManager.SESSION_ID.equals( pair.substring( 0, idx ) ) )
+					return pair.substring( idx + 1 );
+			}
+		}
+		if ( session != null )
+		{
+			try
+			{
+				Object id = session.getClass().getMethod( "getId" ).invoke( session );
+				if ( id != null && !id.toString().isEmpty() )
+					return id.toString();
+			}
+			catch ( Exception ignore )
+			{
+				// not a session object — no JSESSIONID to fall back to
+			}
 		}
 		return null;
+	}
+
+	private void writeJson( Object resp, int status, String body )
+	{
+		try
+		{
+			java.lang.reflect.Method setStatus = resp.getClass().getMethod( "setStatus", int.class );
+			setStatus.invoke( resp, status );
+			resp.getClass().getMethod( "setContentType", String.class ).invoke( resp, "application/json; charset=UTF-8" );
+			OutputStream os = (OutputStream) resp.getClass().getMethod( "getOutputStream" ).invoke( resp );
+			os.write( body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+			os.flush();
+		}
+		catch ( IOException e )
+		{
+			log.log( Level.WARNING, "Client aborted while writing MCP response", e );
+		}
+		catch ( Exception e )
+		{
+			log.log( Level.SEVERE, "Failed to write MCP response", e );
+		}
 	}
 
 	private String unauthBody( String reason )
@@ -228,19 +242,16 @@ public class McpServlet extends HttpServlet
 		return (Map<String, Object>) mapper.readValue( body, Map.class );
 	}
 
-	private static String readBody( HttpServletRequest req )
+	/** The HTTP status + body produced by {@link #handle}. */
+	public static final class HandleResult
 	{
-		StringBuilder sb = new StringBuilder();
-		try (BufferedReader reader = new BufferedReader( new InputStreamReader( req.getInputStream(), StandardCharsets.UTF_8 ) ))
+		public final int status;
+		public final String body;
+
+		public HandleResult( int status, String body )
 		{
-			String line;
-			while ( ( line = reader.readLine() ) != null )
-				sb.append( line ).append( '\n' );
+			this.status = status;
+			this.body = body;
 		}
-		catch ( IOException e )
-		{
-			return "";
-		}
-		return sb.toString().trim();
 	}
 }

@@ -59,8 +59,8 @@ public class McpE2EServletTest extends AbstractBioUMLTest
 	private Repository repository;
 	private McpServlet servlet;
 	private BioumlMcpServer inProcess;
-	/** The system session: privileged, the server's own identity. */
-	private static final String SYS = SecurityManager.SYSTEM_SESSION;
+	/** A live session with a logged-in user (created via anonymousLogin under a non-system id). */
+	private static final String SYS = "mcp-e2e-auth-session";
 
 	@Override
 	protected void setUp() throws Exception
@@ -90,6 +90,10 @@ public class McpE2EServletTest extends AbstractBioUMLTest
 		AnalysisMethodRegistry.addMethodToGroup( McpTestAnalysis.NAME, "McpE2ETest",
 				new ru.biosoft.analysiscore.AnalysisMethodInfo( McpTestAnalysis.NAME, "Test stub analysis", null, McpTestAnalysis.class ) );
 
+		// Create a real, live session bound to a user under a NON-system id (mirrors /login). The
+		// `system` session is intentionally not used: it has no user record by design.
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), SYS );
+		SecurityManager.anonymousLogin();
 		servlet = new McpServlet();
 		servlet.initForTest();
 		inProcess = BioumlMcpServer.create();
@@ -332,7 +336,7 @@ public class McpE2EServletTest extends AbstractBioUMLTest
 	private HandleResult post( String sessionId, String jsonBody )
 	{
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
-		return servlet.handle( "POST", "/mcp", SecurityManager.SESSION_ID + "=" + sessionId, null, jsonBody );
+		return servlet.handle( "POST", "/mcp", SecurityManager.SESSION_ID + "=" + sessionId, jsonBody, null );
 	}
 
 	// =================================================================== real-socket helper (mirrors McpServletTest)
@@ -477,7 +481,7 @@ public class McpE2EServletTest extends AbstractBioUMLTest
 						SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
 
 					HandleResult result = "POST".equalsIgnoreCase( method )
-							? servlet.handle( method, path, query, null, body )
+							? servlet.handle( method, path, query, body, null )
 							: new HandleResult( 405, "{\"error\":\"method not allowed\"}" );
 
 					String statusText = result.status == 200 ? "OK" : result.status == 401 ? "Unauthorized" : "Error";

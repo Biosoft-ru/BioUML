@@ -34,18 +34,5 @@
         <url-pattern>/anonde/*</url-pattern>
     </servlet-mapping>
 
-    <!-- BioUML MCP (Model Context Protocol) service: speaks MCP JSON-RPC (initialize / tools/list /
-         tools/call). Auth reuses the BioUML web session.
-         This is the webapp-visible PROXY (ru.biosoft.server.mcp.McpWebAppServlet); it loads the
-         OSGi bundle's biouml.plugins.mcp.server.BioumlMcpServer at request time, because the
-         webapp classloader cannot see biouml.plugins.* classes. -->
-    <servlet>
-        <servlet-name>McpServlet</servlet-name>
-        <servlet-class>ru.biosoft.server.mcp.McpWebAppServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>McpServlet</servlet-name>
-        <url-pattern>/mcp</url-pattern>
-    </servlet-mapping>
 
 </web-app>

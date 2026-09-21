@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
-   <!-- BioUML MCP (Model Context Protocol) service.
-        The MCP tool catalog + in-process server live in this OSGi bundle (biouml.plugins.mcp.server.*).
-        The bioumlweb webapp's classloader cannot see biouml.plugins.* classes, so the web endpoint is
-        the webapp-visible proxy ru.biosoft.server.mcp.McpWebAppServlet, which loads this bundle's
-        BioumlMcpServer via ClassLoading.loadClass(name, "biouml.plugins.mcp"). -->
+    <!-- BioUML MCP (Model Context Protocol) service.
+         The tool catalog + in-process server live in this OSGi bundle (biouml.plugins.mcp.server.*).
+         The HTTP endpoint is an extension servlet (ru.biosoft.server.servlet, prefix "mcp") so it is
+         reachable at /biouml/mcp via the OSGi web application's dispatcher (BioUMLLauncher ->
+         ConnectionServlet), which runs in the same webapp classloader as the launcher and can resolve
+         the SecurityManager session. The servlet class is a plain object (not a javax.servlet subclass)
+         so it has no compile-time servlet dependency; ConnectionServlet drives it reflectively. -->
+    <extension point="ru.biosoft.server.servlet" id="McpServlet">
+        <servlet class="biouml.plugins.mcp.web.McpServlet" prefix="mcp"/>
+    </extension>
 </plugin>
