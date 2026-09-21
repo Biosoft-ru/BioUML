@@ -3,7 +3,16 @@ Bundle-ManifestVersion: 2
 Bundle-Name: BioUML MCP Service
 Bundle-SymbolicName: biouml.plugins.mcp;singleton:=true
 Bundle-Vendor: Biosoft
-Require-Bundle: org.biouml.src
+Require-Bundle: org.eclipse.osgi,
+ org.eclipse.equinox.registry,
+ biouml.workbench,
+ biouml.plugins.simulation,
+ com.developmentontheedge.beans,
+ com.developmentontheedge.util,
+ one.util.streamex,
+ ru.biosoft.access,
+ ru.biosoft.analysiscore,
+ ru.biosoft.table
 Export-Package: biouml.plugins.mcp,
  biouml.plugins.mcp.server,
  biouml.plugins.mcp.tools,
