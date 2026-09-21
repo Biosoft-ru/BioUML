@@ -423,7 +423,8 @@
         plugin.virtualcell,
         plugin.users,
         plugin.sbol,
-    	plugin.wdl"
+    	plugin.wdl,
+        plugin.mcp"
             />
 
     <target name="plugin.workbench" depends="compile">
@@ -966,6 +967,10 @@
 
     <target name="plugin.servermonitor" depends="compile">
         <create.plugin plugin="biouml.plugins.servermonitor" source="biouml/plugins/servermonitor"/>
+    </target>
+
+    <target name="plugin.mcp" depends="compile">
+        <create.plugin plugin="biouml.plugins.mcp" source="biouml/plugins/mcp"/>
     </target>
 
     <target name="plugin.perfectosape" depends="local_settings,compile">
