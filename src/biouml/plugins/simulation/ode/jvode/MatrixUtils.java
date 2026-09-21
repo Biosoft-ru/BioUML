@@ -137,22 +137,29 @@ public class MatrixUtils
             }
         }
 
-        /* Solve Ly = b, store solution y in b */
+        /* Solve Ly = b, store solution y in b.
+           Skip the update when bk == 0 — the row update is then a no-op.
+           Whether this actually helps depends on how often b has exact zeros
+           here (workload-dependent; -0.0 also satisfies the check and is
+           correctly skipped). */
         for(int k = 0; k < n - 1; k++ )
         {
             double[] ak = a[k];
             double bk = b[k];
-            for(int i = k + 1; i < n; i++ )
-                b[i] -= ak[i] * bk;
+            if( bk != 0.0 )
+                for(int i = k + 1; i < n; i++ )
+                    b[i] -= ak[i] * bk;
         }
 
-        /* Solve Ux = y, store solution x in b */
+        /* Solve Ux = y, store solution x in b.
+           Same zero-skip as above. */
         for(int k = n - 1; k > 0; k-- )
         {
             double[] ak = a[k];
             double bk = b[k] /= ak[k];
-            for(int i = 0; i < k; i++ )
-                b[i] -= ak[i] * bk;
+            if( bk != 0.0 )
+                for(int i = 0; i < k; i++ )
+                    b[i] -= ak[i] * bk;
         }
         b[0] /= a[0][0];
     }
