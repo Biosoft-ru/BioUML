@@ -34,6 +34,7 @@ import org.openscience.cdk.renderer.elements.LineElement;
 import org.openscience.cdk.renderer.elements.OvalElement;
 import org.openscience.cdk.renderer.elements.PathElement;
 import org.openscience.cdk.renderer.elements.RectangleElement;
+import org.openscience.cdk.renderer.elements.MarkedElement;
 import org.openscience.cdk.renderer.elements.TextElement;
 import org.openscience.cdk.renderer.elements.TextGroupElement;
 import org.openscience.cdk.renderer.elements.WedgeLineElement;
@@ -109,6 +110,8 @@ public class CDKRenderer
                 visit( (RectangleElement)element );
             else if( element instanceof PathElement )
                 visit( (PathElement)element );
+            else if( element instanceof MarkedElement )
+                visit( ((MarkedElement) element).element() );
             else
                 System.err.println( "Visitor method for " + element.getClass().getName() + " is not implemented" );
         }
@@ -518,11 +521,16 @@ public class CDKRenderer
             }
             catch( Exception e1 )
             {
+                // MDLV2000Reader may return null on failure; molecule stays null
             }
 
             if( baos.size() > 0 )
             {
                 throw new CDKException( new String( baos.toByteArray(), StandardCharsets.ISO_8859_1 ) );
+            }
+            if( molecule == null )
+            {
+                throw new CDKException( "Failed to parse structure: " + structure.getName() );
             }
             return molecule;
         }

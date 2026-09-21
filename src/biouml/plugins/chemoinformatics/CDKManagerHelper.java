@@ -15,7 +15,6 @@ import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.FormatFactory;
 import org.openscience.cdk.io.ISimpleChemObjectReader;
-import org.openscience.cdk.io.PDBReader;
 import org.openscience.cdk.io.ReaderFactory;
 import org.openscience.cdk.io.formats.CMLFormat;
 import org.openscience.cdk.io.formats.IChemFormatMatcher;
@@ -95,7 +94,10 @@ public class CDKManagerHelper
     {
         logger.log( Level.FINE, "customingIO, reader found: " + reader.getClass().getName() );
         logger.log( Level.FINE, "Found # IO settings: " + reader.getIOSettings().length );
-        if( reader instanceof PDBReader )
+        // PDBReader was in cdk-pdb module (CDK 1.x). In CDK 2.x, use FormatFactory
+        // to detect PDB format and apply settings generically.
+        String readerName = reader.getClass().getName().toLowerCase();
+        if( readerName.contains( "pdb" ) )
         {
             Properties customSettings = new Properties();
             customSettings.setProperty( "DeduceBonding", "false" );

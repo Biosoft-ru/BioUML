@@ -93,18 +93,18 @@ echo Installing jchempaint...
 call mvn -N install:install-file ^
   -DgroupId=org.openscience.jchempaint ^
   -DartifactId=jchempaint ^
-  -Dversion=3.1.2 ^
+  -Dversion=3.4-SNAPSHOT ^
   -Dpackaging=jar ^
-  -Dfile=plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar ^
+  -Dfile=plugins/org.openscience.jchempaint_3.4.0/jchempaint-core-3.4-SNAPSHOT.jar ^
   -DgeneratePom=true
 
 echo Installing cdk-jchempaint...
 call mvn -N install:install-file ^
   -DgroupId=org.openscience.jchempaint ^
   -DartifactId=cdk-jchempaint ^
-  -Dversion=1.3.5 ^
+  -Dversion=3.4-SNAPSHOT ^
   -Dpackaging=jar ^
-  -Dfile=plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar ^
+  -Dfile=plugins/org.openscience.jchempaint_3.4.0/jchempaint-render-3.4-SNAPSHOT.jar ^
   -DgeneratePom=true
 
 echo Installing smack...

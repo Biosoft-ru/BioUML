@@ -1,16 +1,16 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Localization: plugin
-Bundle-Name: Java Chemical Paint
+Bundle-Name: JChemPaint Core
 Bundle-SymbolicName: org.openscience.jchempaint;singleton:=true
-Bundle-Version: 3.1.2
+Bundle-Version: 3.4.0
 Require-Bundle: org.eclipse.osgi,
- javax.vecmath,
+ org.openscience.cdk,
  org.jgraph.jgraph,
  org.jgraph.jgraphaddons,
  org.jgrapht,
- org.openscience.cdk
-Bundle-ClassPath: cdk-jchempaint-15.jar,jchempaint-3.1.2.jar
+ javax.vecmath
+Bundle-ClassPath: jchempaint-core-3.4-SNAPSHOT.jar,jchempaint-render-3.4-SNAPSHOT.jar
 Export-Package: org.openscience.jchempaint,
  org.openscience.jchempaint.action,
  org.openscience.jchempaint.applet,
@@ -35,22 +35,10 @@ Export-Package: org.openscience.jchempaint,
  org.openscience.jchempaint.inchi,
  org.openscience.jchempaint.io,
  org.openscience.jchempaint.renderer,
- org.openscience.jchempaint.renderer.color,
  org.openscience.jchempaint.renderer.elements,
- org.openscience.jchempaint.renderer.elements.path,
  org.openscience.jchempaint.renderer.font,
  org.openscience.jchempaint.renderer.generators,
- org.openscience.jchempaint.renderer.generators.parameter,
  org.openscience.jchempaint.renderer.selection,
  org.openscience.jchempaint.renderer.visitor,
- org.openscience.jchempaint.resources,
- org.openscience.jchempaint.resources.apponly,
- org.openscience.jchempaint.resources.large-bin,
- org.openscience.jchempaint.resources.small-bin,
- org.openscience.jchempaint.resources.userhelp_jcp,
- org.openscience.jchempaint.resources.userhelp_jcp.en_US,
- org.openscience.jchempaint.resources.userhelp_jcp.en_US.contain,
- org.openscience.jchempaint.resources.userhelp_jcp.ru,
- org.openscience.jchempaint.resources.userhelp_jcp.ru.contain,
  org.openscience.jchempaint.rgroups,
  org.openscience.jchempaint.undoredo

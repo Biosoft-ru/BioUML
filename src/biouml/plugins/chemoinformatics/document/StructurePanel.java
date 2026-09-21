@@ -35,8 +35,8 @@ import org.openscience.jchempaint.controller.IChangeModeListener;
 import org.openscience.jchempaint.controller.IChemModelEventRelayHandler;
 import org.openscience.jchempaint.controller.IControllerModule;
 import org.openscience.jchempaint.controller.MoveModule;
-import org.openscience.jchempaint.renderer.RendererModel;
-import org.openscience.jchempaint.renderer.selection.AbstractSelection;
+import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.selection.AbstractSelection;
 
 public class StructurePanel extends AbstractJChemPaintPanel implements IChemModelEventRelayHandler, ICDKChangeListener, KeyListener,
         IChangeModeListener
@@ -177,7 +177,16 @@ public class StructurePanel extends AbstractJChemPaintPanel implements IChemMode
     @Override
     public String getSVGString()
     {
-        return this.renderPanel.toSVG();
+        // toSVG() is package-private in JChemPaint 3.4; use reflection to access it
+        try
+        {
+            java.lang.reflect.Method m = org.openscience.jchempaint.RenderPanel.class.getDeclaredMethod("toSVG");
+            return (String)m.invoke(this.renderPanel);
+        }
+        catch( Exception e )
+        {
+            return "";
+        }
     }
 
     /**
@@ -339,13 +348,13 @@ public class StructurePanel extends AbstractJChemPaintPanel implements IChemMode
      * 
      * @param lastSecondaryButton The lastSecondaryButton.
      */
-    @Override
+    // Removed @Override: setLastSecondaryButton() was removed from AbstractJChemPaintPanel in JChemPaint 3.4
     public void setLastSecondaryButton(JComponent lastSecondaryButton)
     {
         this.lastSecondaryButton = lastSecondaryButton;
     }
 
-    @Override
+    // Removed @Override: updateStatusBar() was removed from AbstractJChemPaintPanel in JChemPaint 3.4
     public void updateStatusBar()
     {
         //TODO:
