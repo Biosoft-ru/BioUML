@@ -642,18 +642,20 @@
 
       <dependency>
           <groupId>org.openscience.jchempaint</groupId>
-          <artifactId>jchempaint</artifactId>
-          <version>3.1.2</version>
-          <!--scope>system</scope-->
-          <!--systemPath>${project.basedir}/plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar</systemPath-->
+          <artifactId>jchempaint-core</artifactId>
+          <version>3.4-SNAPSHOT</version>
       </dependency>
 
       <dependency>
           <groupId>org.openscience.jchempaint</groupId>
-          <artifactId>cdk-jchempaint</artifactId>
-          <version>1.3.5</version>
-          <!--scope>system</scope-->
-          <!--systemPath>${project.basedir}/plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar</systemPath-->
+          <artifactId>jchempaint-render</artifactId>
+          <version>3.4-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.osgi</groupId>
+          <artifactId>osgi.annotation</artifactId>
+          <version>8.0.1</version>
       </dependency>
 
       <dependency>

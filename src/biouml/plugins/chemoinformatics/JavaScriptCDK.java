@@ -52,7 +52,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.isomorphism.matchers.IQueryAtom;
 import org.openscience.cdk.io.FormatFactory;
 import org.openscience.cdk.io.ISimpleChemObjectReader;
-import org.openscience.cdk.io.MDLWriter;
+import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.io.ReaderFactory;
 import org.openscience.cdk.io.SDFWriter;
 import org.openscience.cdk.io.formats.CMLFormat;
@@ -1518,7 +1518,7 @@ public class JavaScriptCDK extends JavaScriptHostObjectBase
         IAtomContainer cdkmolecule = structureToMolecule(molecule);
 
         StringWriter stringWriter = new StringWriter();
-        MDLWriter writer = new MDLWriter(stringWriter);
+        MDLV2000Writer writer = new MDLV2000Writer(stringWriter);
         try
         {
             writer.writeMolecule(cdkmolecule);
