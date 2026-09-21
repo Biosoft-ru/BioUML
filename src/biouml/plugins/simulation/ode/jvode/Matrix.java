@@ -343,9 +343,8 @@ public class Matrix
 
     public static void denseCopy(double[][] a, double[][] b, int m, int n)
     {
-        // JVM-optimized bulk array copy instead of an element-by-element Java
-        // loop, for the per-row copies JVode does on every Jacobian cache
-        // update.
+        // Use the JVM-optimized bulk array copy instead of an
+        // element-by-element loop.
         for( int j = 0; j < n; j++ )
             System.arraycopy( a[j], 0, b[j], 0, m );
     }

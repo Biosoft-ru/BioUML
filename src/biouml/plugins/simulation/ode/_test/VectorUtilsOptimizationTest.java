@@ -12,7 +12,7 @@ import biouml.plugins.simulation.ode.jvode.VectorUtils;
  */
 public class VectorUtilsOptimizationTest extends TestCase
 {
-    private static final int[] LENGTHS = { 0, 1, 2, 3, 4, 5, 7, 8, 9 };
+    private static final int[] LENGTHS = { 0, 1, 2, 3, 4, 5, 7, 8, 9, 12, 13 };
 
     public VectorUtilsOptimizationTest(String name)
     {

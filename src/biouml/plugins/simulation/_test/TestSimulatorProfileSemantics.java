@@ -69,6 +69,19 @@ public class TestSimulatorProfileSemantics extends TestCase
         assertEquals( 10.0, ref[1], 0.0 );
     }
 
+    public void testSetXCopiesInputSoCallerCannotMutateProfile()
+    {
+        // setX() copies the input into the backing buffer, so later mutation
+        // of the caller's array must not affect the profile.
+        SimulatorProfile profile = new SimulatorProfile();
+        double[] x1 = { 1.0, 2.0, 3.0 };
+        profile.setX( x1 );
+        x1[0] = 99.0;
+        assertEquals( 1.0, profile.getX()[0], 0.0 );
+        assertEquals( 2.0, profile.getX()[1], 0.0 );
+        assertEquals( 3.0, profile.getX()[2], 0.0 );
+    }
+
     private static void assertSameContents(double[] expected, double[] actual)
     {
         assertEquals( expected.length, actual.length );
