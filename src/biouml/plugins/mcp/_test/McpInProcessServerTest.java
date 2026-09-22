@@ -69,6 +69,9 @@ public class McpInProcessServerTest extends TestCase
 		assertTrue( "analysis tool present", names.contains( "biouml_analysis_list" ) );
 		assertTrue( "diagram tool present", names.contains( "biouml_diagram_create" ) );
 		assertTrue( "simulation tool present", names.contains( "biouml_simulation_run" ) );
+		assertTrue( "project tool present", names.contains( "biouml_project_create" ) );
+		assertTrue( "project list tool present", names.contains( "biouml_project_list" ) );
+		assertTrue( "user info tool present", names.contains( "biouml_user_info" ) );
 		assertTrue( "at least 10 tools, was " + names.size(), names.size() >= 10 );
 
 		// 4) tools/call — repo_collections works headlessly (lists registered roots, possibly empty)
@@ -81,6 +84,37 @@ public class McpInProcessServerTest extends TestCase
 		String text = (String) content.get( 0 ).get( "text" );
 		assertTrue( "tool result is the JSON envelope (ok field)", text.contains( "\"ok\"" ) );
 		assertEquals( "tools/call is not an error", Boolean.FALSE, callResult.get( "isError" ) );
+	}
+
+	/**
+	 * The project tools are registered and enforce their argument contracts: a missing required argument
+	 * yields a structured invalid_params envelope, and the name validator rejects malformed names.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testProjectToolsValidation() throws Exception
+	{
+		// biouml_project_create with no name → invalid_params (not an exception, not a crash).
+		String call = server.handle( parse( "{\"jsonrpc\":\"2.0\",\"id\":10,\"method\":\"tools/call\",\"params\":{\"name\":\"biouml_project_create\",\"arguments\":{}}}" ) );
+		Map<String, Object> resp = parse( call );
+		Map<String, Object> result = (Map<String, Object>) resp.get( "result" );
+		List<Map<String, Object>> content = (List<Map<String, Object>>) result.get( "content" );
+		String text = (String) content.get( 0 ).get( "text" );
+		assertTrue( "missing name → invalid_params envelope: " + text,
+				text.contains( "invalid_params" ) || text.contains( "project name is required" ) );
+
+		// biouml_project_size with no name → invalid_params.
+		String call2 = server.handle( parse( "{\"jsonrpc\":\"2.0\",\"id\":11,\"method\":\"tools/call\",\"params\":{\"name\":\"biouml_project_size\",\"arguments\":{}}}" ) );
+		Map<String, Object> resp2 = parse( call2 );
+		Map<String, Object> result2 = (Map<String, Object>) resp2.get( "result" );
+		List<Map<String, Object>> content2 = (List<Map<String, Object>>) result2.get( "content" );
+		String text2 = (String) content2.get( 0 ).get( "text" );
+		assertTrue( "missing name → invalid_params envelope: " + text2,
+				text2.contains( "invalid_params" ) || text2.contains( "project name is required" ) );
+
+		// Name validator: accepts normal names, rejects empty / bad-leading-character names.
+		assertTrue( "valid name accepted", biouml.plugins.mcp.support.McpProjectSupport.isProjectNameValid( "My Project_1" ) );
+		assertFalse( "empty name rejected", biouml.plugins.mcp.support.McpProjectSupport.isProjectNameValid( "" ) );
+		assertFalse( "bad leading char rejected", biouml.plugins.mcp.support.McpProjectSupport.isProjectNameValid( "-bad" ) );
 	}
 
 	@SuppressWarnings( "unchecked" )

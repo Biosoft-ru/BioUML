@@ -2,6 +2,7 @@ package biouml.plugins.mcp.server;
 
 import biouml.plugins.mcp.tools.analysis.AnalysisTools;
 import biouml.plugins.mcp.tools.diagram.DiagramTools;
+import biouml.plugins.mcp.tools.project.ProjectTools;
 import biouml.plugins.mcp.tools.repo.RepoTools;
 import biouml.plugins.mcp.tools.simulation.SimulationTools;
 
@@ -28,6 +29,7 @@ public final class McpServerFactory
 		AnalysisTools.registerAll( catalog );
 		DiagramTools.registerAll( catalog );
 		SimulationTools.registerAll( catalog );
+		ProjectTools.registerAll( catalog );
 		return catalog;
 	}
 

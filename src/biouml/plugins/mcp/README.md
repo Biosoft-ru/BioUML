@@ -111,6 +111,13 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
 | `biouml_diagram_import` | Import a diagram file (DML by default) into a target collection. Returns the new element's path. |
 | `biouml_simulation_run` | Run a headless ODE simulation of a diagram and return its time series. The diagram must have a dynamic model with at least one rate (ODE) equation; otherwise a missing_dynamic_model error is returned. Times and the solver are optional. |
 | `biouml_simulation_list_solvers` | List the ODE solvers available to the simulation engine (name, type, implementation class). |
+| `biouml_project_list` | List the current user's projects with their permissions (admin/canWrite/canDelete) and disk quota. |
+| `biouml_project_create` | Create a new project (a SQL-backed research collection) for the current user. The name may only contain latin letters, numbers, spaces and a few symbols. |
+| `biouml_project_delete` | Delete a project (and its data) for the current user. Requires delete permission. |
+| `biouml_project_size` | Report the disk usage (in bytes) of a single project's data folder. |
+| `biouml_user_info` | Return the current user's profile (username and profile fields) from the security provider. |
+| `biouml_user_change_password` | Change the current user's password. Requires the current (old) password and a new one. |
+| `biouml_user_change_info` | Update the current user's profile fields (e.g. name, email) in the security provider. Pass a flat object of field name -> value. |
 <!-- END GENERATED TOOL TABLE -->
 
 ## Running an analysis (list → describe → run → poll → get_result)
