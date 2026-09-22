@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "biouml": {
-      "type": "streamableHttp",
-      "url": "https://biouml2test.biouml.org/biouml/mcp"
-    }
-  },
-  "_comment": "BioUML MCP endpoint, served by the OSGi web application at /biouml/mcp (extension servlet, prefix 'mcp'). The JSON-RPC request must be sent as an application/x-www-form-urlencoded POST with the JSON-RPC body in the 'mcpBody' form field (the connection servlet's getParameterMap delivers it; a raw application/json body is discarded by form parsing). Auth is the standard BioUML login (NO 'system' shortcut): the session must be alive and carry a logged-in user. To obtain a session: POST https://biouml2test.biouml.org/biouml/web/login with form fields username=<MCP_USER> and password=<MCP_PASS> (the dedicated MCP credential lives in the gitignored .env file at the repo root, keys MCP_USER / MCP_PASS). The response sets a JSESSIONID cookie on /biouml; carry it on every /biouml/mcp request (same host+path as login, so the cookie applies automatically). Example: source .env; curl -c /tmp/c.txt -X POST https://biouml2test.biouml.org/biouml/web/login --data-urlencode \"username=$MCP_USER\" --data-urlencode \"password=$MCP_PASS\"; then curl -b /tmp/c.txt -X POST 'https://biouml2test.biouml.org/biouml/mcp' --data-urlencode 'mcpBody={\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}'."
-}
