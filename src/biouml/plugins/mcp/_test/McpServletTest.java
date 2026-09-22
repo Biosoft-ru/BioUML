@@ -145,7 +145,9 @@ public class McpServletTest extends TestCase
 	 */
 	private static String basicAuth( String username, String password )
 	{
-		// `user:pass` — split on the first ':'; the password is the verbatim credential (e.g. ":token:<uuid>").
+		// The Basic payload is `user:pass` (split on the first ':'); the password is the verbatim BioStore
+		// token, e.g. "token:<uuid>". (The live token starts with a colon, so the full string is
+		// "user::token:<uuid>"; the split still yields the whole token as the password.)
 		return "Basic " + java.util.Base64.getEncoder().encodeToString(
 				( username + ":" + password ).getBytes( StandardCharsets.UTF_8 ) );
 	}
@@ -189,8 +191,8 @@ public class McpServletTest extends TestCase
 		setProvider( new TokenAcceptingProvider() );
 		try
 		{
-			// user:pass where pass is the verbatim BioStore credential (itself starts with ":").
-			Map<String, Object> params = tokenParams( "mcpuser", ":token:62e63796-9cfc-41b5-be91-b9ebb21da098",
+			// user:pass where pass is the verbatim BioStore token (the live token itself starts with ":").
+			Map<String, Object> params = tokenParams( "mcpuser", "token:62e63796-9cfc-41b5-be91-b9ebb21da098",
 					"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
 			HandleResult r = serviceWith( params );
 			assertEquals( "token auth → 200 — body=" + r.body, 200, r.status );
@@ -232,7 +234,7 @@ public class McpServletTest extends TestCase
 		setProvider( new TokenRejectingProvider() );
 		try
 		{
-			Map<String, Object> params = tokenParams( "mcpuser", ":token:00000000-0000-0000-0000-000000000000",
+			Map<String, Object> params = tokenParams( "mcpuser", "token:00000000-0000-0000-0000-000000000000",
 					"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
 			HandleResult r = serviceWith( params );
 			assertEquals( "provider-rejected token → 401", 401, r.status );
