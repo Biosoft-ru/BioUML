@@ -302,12 +302,12 @@ public class McpServlet
 	}
 
 	/**
-	 * Authenticate via an {@code Authorization: Basic <base64>} header. The decoded value is of the form
-	 * {@code <username>::token:<uuid>} — split on the <em>first</em> {@code ::}; the left part is the
-	 * username and the right part (the verbatim {@code token:<uuid>}) is the BioStore credential passed as
-	 * the password. BioUML does not process the token: a fresh session is bound to the current thread and
-	 * {@link SecurityManager#commonLogin} delegates to the configured {@code SecurityProvider}
-	 * (the deployed BioStore provider) which performs the real validation.
+	 * Authenticate via an {@code Authorization: Basic <base64>} header. The decoded value is
+	 * {@code user:pass} — split on the <em>first</em> {@code :}; the left part is the username and the
+	 * right part (the verbatim password, e.g. a BioStore {@code :token:<uuid>} credential) is passed
+	 * untouched as the password. BioUML does not process the credential: a fresh session is bound to the
+	 * current thread and {@link SecurityManager#commonLogin} delegates to the configured
+	 * {@code SecurityProvider} (the deployed BioStore provider) which performs the real validation.
 	 *
 	 * @return the authenticated username, or {@code null} if the header is malformed or login fails
 	 */
@@ -323,17 +323,17 @@ public class McpServlet
 		{
 			return null; // not valid base64
 		}
-		int sep = decoded.indexOf( "::" );
-		if ( sep <= 0 || sep == decoded.length() - 2 )
-			return null; // no `username::token` separator, or empty username / empty token
+		int sep = decoded.indexOf( ':' );
+		if ( sep <= 0 || sep == decoded.length() - 1 )
+			return null; // no `user:pass` separator, or empty username / empty password
 		String username = decoded.substring( 0, sep );
-		String token = decoded.substring( sep + 2 );
+		String password = decoded.substring( sep + 1 );
 
 		String sessionId = SecurityManager.generateSessionId();
 		try
 		{
 			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
-			SecurityManager.commonLogin( username, token, remoteAddress, null );
+			SecurityManager.commonLogin( username, password, remoteAddress, null );
 		}
 		catch ( Exception e )
 		{

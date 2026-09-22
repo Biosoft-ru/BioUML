@@ -143,10 +143,11 @@ public class McpServletTest extends TestCase
 	 * Build an {@code Authorization: Basic <b64>} header from a raw {@code user::token:uuid} payload —
 	 * the same shape the BioStore token flow produces (decoded, {@code username::token:<uuid>}).
 	 */
-	private static String basicAuth( String username, String token )
+	private static String basicAuth( String username, String password )
 	{
+		// `user:pass` — split on the first ':'; the password is the verbatim credential (e.g. ":token:<uuid>").
 		return "Basic " + java.util.Base64.getEncoder().encodeToString(
-				( username + "::" + token ).getBytes( StandardCharsets.UTF_8 ) );
+				( username + ":" + password ).getBytes( StandardCharsets.UTF_8 ) );
 	}
 
 	/**
@@ -188,7 +189,8 @@ public class McpServletTest extends TestCase
 		setProvider( new TokenAcceptingProvider() );
 		try
 		{
-			Map<String, Object> params = tokenParams( "mcpuser", "token:62e63796-9cfc-41b5-be91-b9ebb21da098",
+			// user:pass where pass is the verbatim BioStore credential (itself starts with ":").
+			Map<String, Object> params = tokenParams( "mcpuser", ":token:62e63796-9cfc-41b5-be91-b9ebb21da098",
 					"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
 			HandleResult r = serviceWith( params );
 			assertEquals( "token auth → 200 — body=" + r.body, 200, r.status );
@@ -205,12 +207,12 @@ public class McpServletTest extends TestCase
 	}
 
 	/**
-	 * A Basic header whose decoded payload has no {@code ::} separator is malformed → 401, regardless of
+	 * A Basic header whose decoded payload has no {@code :} separator is malformed → 401, regardless of
 	 * whether a session is also present.
 	 */
 	public void testTokenAuthBadHeaderIs401() throws Exception
 	{
-		// "just-a-header" has no `username::token` separator.
+		// "just-a-header" has no `user:pass` separator.
 		String bad = "Basic " + java.util.Base64.getEncoder().encodeToString(
 				"just-a-header".getBytes( StandardCharsets.UTF_8 ) );
 		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
@@ -230,7 +232,7 @@ public class McpServletTest extends TestCase
 		setProvider( new TokenRejectingProvider() );
 		try
 		{
-			Map<String, Object> params = tokenParams( "mcpuser", "token:00000000-0000-0000-0000-000000000000",
+			Map<String, Object> params = tokenParams( "mcpuser", ":token:00000000-0000-0000-0000-000000000000",
 					"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
 			HandleResult r = serviceWith( params );
 			assertEquals( "provider-rejected token → 401", 401, r.status );
@@ -280,14 +282,15 @@ public class McpServletTest extends TestCase
 		setProvider( new ru.biosoft.access.security.TestSecurityProvider() );
 	}
 
-	/** Provider that accepts any {@code token:…} password (mirrors the deployed BioStore provider). */
+	/** Provider that accepts any BioStore {@code :token:…} password (mirrors the deployed provider). */
 	private static final class TokenAcceptingProvider extends ru.biosoft.access.security.TestSecurityProvider
 	{
 		@Override
 		public ru.biosoft.access.security.UserPermissions authorize( String username, String password,
 				String remoteAddress, String jwToken )
 		{
-			if ( password != null && password.startsWith( "token:" ) && username != null && !username.isEmpty() )
+			// The password is the verbatim BioStore credential, e.g. ":token:<uuid>" (itself starts with ':').
+			if ( password != null && password.indexOf( "token:" ) >= 0 && username != null && !username.isEmpty() )
 				return new ru.biosoft.access.security.UserPermissions( username, password, new String[] { "Server" },
 						java.util.Collections.<String, Long>emptyMap() );
 			return null;
