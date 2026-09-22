@@ -273,6 +273,28 @@ public abstract class ConnectionServlet extends HttpServlet
         }
         if (req.getHeader(RANGE) != null)
             params.put(RANGE, new String[] { req.getHeader(RANGE) });
+        // The MCP endpoint authenticates via an `Authorization: Basic <base64>` header (a BioStore token)
+        // and receives the JSON-RPC request as a raw `application/json` body. Extension servlets have no
+        // direct access to the request headers or the raw stream through the `service(...)` overloads, so
+        // surface both here: the header under its own key, and the JSON body (which Tomcat's form parsing
+        // would otherwise discard) under `mcpRawBody`. Neither key is read by the other extension servlets.
+        String authorization = req.getHeader( "Authorization" );
+        if( authorization != null )
+            params.put( "Authorization", new String[] { authorization } );
+        String contentType = req.getContentType();
+        if( contentType != null && contentType.toLowerCase( java.util.Locale.ROOT ).startsWith( "application/json" ) )
+        {
+            try
+            {
+                String rawBody = readRequestBody( req.getInputStream() );
+                if( rawBody != null && !rawBody.isEmpty() )
+                    params.put( "mcpRawBody", new String[] { rawBody } );
+            }
+            catch( Exception e )
+            {
+                // could not open/read the body stream — leave mcpRawBody absent (the MCP endpoint 400s)
+            }
+        }
         if( ServletFileUpload.isMultipartContent(req) )
         {
             try
@@ -328,6 +350,36 @@ public abstract class ConnectionServlet extends HttpServlet
             }
         }
         return params;
+    }
+
+    /**
+     * Read an (already form-parse-decided-not-to-consume) request body fully as UTF-8, bounded so a
+     * hostile/oversized body cannot exhaust memory. Used to recover the raw {@code application/json}
+     * body for the MCP endpoint. Returns {@code null} if the body exceeds the bound (the caller treats a
+     * {@code null}/empty result as "no body" → the MCP endpoint answers with a 400 parse error).
+     */
+    private static String readRequestBody( java.io.InputStream in )
+    {
+        final int bound = 16 * 1024 * 1024;
+        try
+        {
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[ 8192 ];
+            int total = 0;
+            int n;
+            while( ( n = in.read( chunk ) ) != -1 )
+            {
+                total += n;
+                if( total > bound )
+                    return null;
+                buffer.write( chunk, 0, n );
+            }
+            return new String( buffer.toByteArray(), java.nio.charset.StandardCharsets.UTF_8 );
+        }
+        catch( java.io.IOException e )
+        {
+            return null;
+        }
     }
 
     protected boolean executeQueryWithExtensionServlet(HttpServletRequest req, HttpServletResponse resp)

@@ -137,6 +137,174 @@ public class McpServletTest extends TestCase
 		assertTrue( "tools present via service()", tools != null && tools.size() >= 10 );
 	}
 
+	// =================================================================== token auth (Authorization header)
+
+	/**
+	 * Build an {@code Authorization: Basic <b64>} header from a raw {@code user::token:uuid} payload —
+	 * the same shape the BioStore token flow produces (decoded, {@code username::token:<uuid>}).
+	 */
+	private static String basicAuth( String username, String token )
+	{
+		return "Basic " + java.util.Base64.getEncoder().encodeToString(
+				( username + "::" + token ).getBytes( StandardCharsets.UTF_8 ) );
+	}
+
+	/**
+	 * Drive the real 5-arg {@code service} entry point with an arbitrary params map (session + body +
+	 * Authorization header + client IP, exactly as {@code ConnectionServlet.getParameterMap} delivers
+	 * them) and return the HTTP status (from the {@code X-MCP-Status} header) + response body.
+	 */
+	private HandleResult serviceWith( Map<String, Object> params ) throws Exception
+	{
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		String contentType = servlet.service( "/mcp", null, params, out, header );
+		assertEquals( "service() returns the content type", "application/json", contentType );
+		String body = new String( out.toByteArray(), StandardCharsets.UTF_8 );
+		int status = 200;
+		if ( header.get( "X-MCP-Status" ) != null )
+			status = Integer.parseInt( header.get( "X-MCP-Status" ) );
+		return new HandleResult( status, body );
+	}
+
+	/** A params map with a raw JSON body (mcpRawBody) + a Basic Authorization header, no session. */
+	private Map<String, Object> tokenParams( String username, String token, String jsonBody )
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY, new String[] { jsonBody } );
+		params.put( "Authorization", new String[] { basicAuth( username, token ) } );
+		params.put( "Remote-address", new String[] { "127.0.0.1" } );
+		return params;
+	}
+
+	/**
+	 * A token whose {@code user::token} payload is well-formed must authenticate against a
+	 * {@code SecurityProvider} that accepts it (the deployed BioStore provider), then dispatch the
+	 * request — proving the header-credential path (no session cookie) works end-to-end.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testTokenAuthSuccess() throws Exception
+	{
+		setProvider( new TokenAcceptingProvider() );
+		try
+		{
+			Map<String, Object> params = tokenParams( "mcpuser", "token:62e63796-9cfc-41b5-be91-b9ebb21da098",
+					"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
+			HandleResult r = serviceWith( params );
+			assertEquals( "token auth → 200 — body=" + r.body, 200, r.status );
+			Map<String, Object> resp = parse( r.body );
+			Map<String, Object> result = (Map<String, Object>) resp.get( "result" );
+			assertNotNull( "tools/list result present via token auth", result );
+			java.util.List<Map<String, Object>> tools = (java.util.List<Map<String, Object>>) result.get( "tools" );
+			assertTrue( "tools present via token auth", tools != null && tools.size() >= 10 );
+		}
+		finally
+		{
+			restoreProvider();
+		}
+	}
+
+	/**
+	 * A Basic header whose decoded payload has no {@code ::} separator is malformed → 401, regardless of
+	 * whether a session is also present.
+	 */
+	public void testTokenAuthBadHeaderIs401() throws Exception
+	{
+		// "just-a-header" has no `username::token` separator.
+		String bad = "Basic " + java.util.Base64.getEncoder().encodeToString(
+				"just-a-header".getBytes( StandardCharsets.UTF_8 ) );
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+		params.put( "Authorization", new String[] { bad } );
+		HandleResult r = serviceWith( params );
+		assertEquals( "malformed Authorization header → 401", 401, r.status );
+	}
+
+	/**
+	 * A well-formed token that the security provider rejects (returns a null permission) → 401. The
+	 * session path must not be used as a fallback: with no session present the request is refused.
+	 */
+	public void testTokenAuthInvalidCredentialsIs401() throws Exception
+	{
+		setProvider( new TokenRejectingProvider() );
+		try
+		{
+			Map<String, Object> params = tokenParams( "mcpuser", "token:00000000-0000-0000-0000-000000000000",
+					"{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" );
+			HandleResult r = serviceWith( params );
+			assertEquals( "provider-rejected token → 401", 401, r.status );
+		}
+		finally
+		{
+			restoreProvider();
+		}
+	}
+
+	/** No Authorization header and no session → 401 (unchanged behavior). */
+	public void testNoAuthNoSessionIs401() throws Exception
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+		HandleResult r = serviceWith( params );
+		assertEquals( "no header, no session → 401", 401, r.status );
+	}
+
+	/**
+	 * A raw JSON body (delivered under {@code mcpRawBody}) plus a live session → 200. Proves the
+	 * {@code application/json} body path parses and dispatches when authenticated by the existing
+	 * session (the form field is absent).
+	 */
+	public void testRawJsonBodyDispatch() throws Exception
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
+		params.put( McpServlet.MCP_RAW_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+		HandleResult r = serviceWith( params );
+		assertEquals( "raw JSON body + session → 200 — body=" + r.body, 200, r.status );
+	}
+
+	/** Swap the (private, static) SecurityProvider on SecurityManager for the duration of a test. */
+	private void setProvider( ru.biosoft.access.security.SecurityProvider provider ) throws Exception
+	{
+		java.lang.reflect.Field f = SecurityManager.class.getDeclaredField( "securityProvider" );
+		f.setAccessible( true );
+		f.set( null, provider );
+	}
+
+	/** Restore a lenient TestSecurityProvider (the test default) after a token test. */
+	private void restoreProvider() throws Exception
+	{
+		setProvider( new ru.biosoft.access.security.TestSecurityProvider() );
+	}
+
+	/** Provider that accepts any {@code token:…} password (mirrors the deployed BioStore provider). */
+	private static final class TokenAcceptingProvider extends ru.biosoft.access.security.TestSecurityProvider
+	{
+		@Override
+		public ru.biosoft.access.security.UserPermissions authorize( String username, String password,
+				String remoteAddress, String jwToken )
+		{
+			if ( password != null && password.startsWith( "token:" ) && username != null && !username.isEmpty() )
+				return new ru.biosoft.access.security.UserPermissions( username, password, new String[] { "Server" },
+						java.util.Collections.<String, Long>emptyMap() );
+			return null;
+		}
+	}
+
+	/** Provider that rejects every credential (authorize → null). */
+	private static final class TokenRejectingProvider extends ru.biosoft.access.security.TestSecurityProvider
+	{
+		@Override
+		public ru.biosoft.access.security.UserPermissions authorize( String username, String password,
+				String remoteAddress, String jwToken )
+		{
+			return null;
+		}
+	}
+
 	@SuppressWarnings( "unchecked" )
 	private Map<String, Object> parse( String json ) throws Exception
 	{
