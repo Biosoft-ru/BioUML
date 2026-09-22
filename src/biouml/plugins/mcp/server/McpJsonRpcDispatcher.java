@@ -121,15 +121,22 @@ public class McpJsonRpcDispatcher
 			Map<String, Object> t = new LinkedHashMap<String, Object>();
 			t.put( "name", tool.name );
 			t.put( "description", tool.description );
-			// inputSchema is delivered as the parsed JSON-Schema object (the MCP wire form).
+			// inputSchema is delivered as the parsed JSON-Schema object (the MCP wire form). The MCP spec
+			// requires it to be a JSON Schema with type "object"; tools registered with a bare "{}" (the
+			// no-argument tools) parse to an object with no `type`, which strict clients reject — normalize
+			// to an empty object schema in that case.
+			Object schema;
 			try
 			{
-				t.put( "inputSchema", mapper.readValue( tool.inputSchema, Object.class ) );
+				schema = mapper.readValue( tool.inputSchema, Object.class );
 			}
 			catch ( Exception e )
 			{
-				t.put( "inputSchema", new LinkedHashMap<String, Object>() {{ put( "type", "object" ); }} );
+				schema = null;
 			}
+			if ( !( schema instanceof Map ) || ( (Map<?, ?> ) schema ).get( "type" ) == null )
+				schema = new LinkedHashMap<String, Object>() {{ put( "type", "object" ); }};
+			t.put( "inputSchema", schema );
 			tools.add( t );
 		}
 		Map<String, Object> result = new LinkedHashMap<String, Object>();

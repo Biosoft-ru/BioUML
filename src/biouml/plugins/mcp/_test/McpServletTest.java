@@ -137,6 +137,36 @@ public class McpServletTest extends TestCase
 		assertTrue( "tools present via service()", tools != null && tools.size() >= 10 );
 	}
 
+	/**
+	 * Every tool's {@code inputSchema} must be a JSON Schema with {@code type: "object"} on the wire.
+	 * The no-argument tools register a bare "{}" schema; the dispatcher must normalize that to
+	 * {@code {"type":"object"}} or strict MCP clients (Claude Code, etc.) reject the whole
+	 * tools/list result with "inputSchema.type: Invalid input".
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testAllToolsInputSchemaHasObjectType() throws Exception
+	{
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
+		params.put( McpServlet.MCP_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+
+		HandleResult r = serviceRoundTrip( params );
+		Map<String, Object> result = (Map<String, Object>) parse( r.body ).get( "result" );
+		assertNotNull( "tools/list result present", result );
+		List<Map<String, Object>> tools = (List<Map<String, Object>>) result.get( "tools" );
+		assertNotNull( "tools present", tools );
+		for ( Map<String, Object> t : tools )
+		{
+			Object schemaObj = t.get( "inputSchema" );
+			assertTrue( "inputSchema is an object for " + t.get( "name" ), schemaObj instanceof Map );
+			Map<String, Object> schema = (Map<String, Object>) schemaObj;
+			assertEquals( "inputSchema.type must be 'object' for " + t.get( "name" ),
+					"object", schema.get( "type" ) );
+		}
+	}
+
 	// =================================================================== token auth (Authorization header)
 
 	/**
