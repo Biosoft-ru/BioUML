@@ -130,6 +130,13 @@ public class McpOAuthServlet
 				return wellKnown( "protected-resource", p );
 			if ( ".well-known/oauth-authorization-server".equals( sub ) )
 				return wellKnown( "authorization-server", p );
+			// Some MCP/OAuth clients (notably Claude.ai's connector) probe the standard OIDC
+			// discovery path (.well-known/openid-configuration) as a fallback. We are not an OpenID
+			// provider (no userinfo, no id_token), but answering this with our authorization-server
+			// metadata — the same document clients fetch at /oauth/.well-known/oauth-authorization-server
+			// — lets discovery succeed on either path.
+			if ( ".well-known/openid-configuration".equals( sub ) )
+				return wellKnown( "authorization-server", p );
 			if ( "authorize".equals( sub ) )
 				return authorize( session, p );
 			if ( "token".equals( sub ) )

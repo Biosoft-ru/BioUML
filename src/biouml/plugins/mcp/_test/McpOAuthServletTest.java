@@ -275,6 +275,28 @@ public class McpOAuthServletTest extends TestCase
 				doc.get( "token_endpoint_auth_methods_supported" ) );
 	}
 
+	/**
+	 * Clients that probe the standard OIDC discovery path ({@code .well-known/openid-configuration})
+	 * — Claude.ai's connector does — must be served the same authorization-server metadata as the
+	 * RFC 8414 path, not a 404. This is the exact request that 404'd in the live access log and
+	 * aborted Claude's connector registration.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testOpenIdConfigurationServesAsMetadata() throws Exception
+	{
+		HandleResult r = service( "/oauth/.well-known/openid-configuration", params() );
+		assertEquals( "200, not 404", 200, r.status );
+		assertEquals( "application/json", r.contentType );
+		Map<String, Object> doc = json( r.body );
+		assertEquals( "issuer present", "https://biouml2test.biouml.org/biouml/oauth", doc.get( "issuer" ) );
+		assertEquals( "authorization_endpoint present",
+				"https://biouml2test.biouml.org/biouml/oauth/authorize", doc.get( "authorization_endpoint" ) );
+		assertEquals( "token_endpoint present",
+				"https://biouml2test.biouml.org/biouml/oauth/token", doc.get( "token_endpoint" ) );
+		assertEquals( "registration_endpoint present (DCR)",
+				"https://biouml2test.biouml.org/biouml/oauth/register", doc.get( "registration_endpoint" ) );
+	}
+
 	/** Unknown sub-paths 404; the flow works with an explicit issuer property too. */
 	public void testUnknownPathIs404() throws Exception
 	{
