@@ -146,4 +146,47 @@ public class McpInProcessServerTest extends TestCase
 		assertEquals( "in-process list size == catalog size", fromCatalog.size(), fromServer.size() );
 		assertEquals( "in-process tool set == catalog tool set", new java.util.HashSet<String>( fromCatalog ), new java.util.HashSet<String>( fromServer ) );
 	}
+
+	/**
+	 * A {@code tools/call} response must always carry a valid MCP {@code CallToolResult} — a
+	 * {@code content} array — never a null or absent result. This is the regression for the
+	 * "Anthropic Proxy: Invalid content from server" failure: when serializing a tool result threw,
+	 * {@code toolsCallResult} returned {@code null} and the wire body was
+	 * {@code {"jsonrpc":"2.0","id":N,"result":null}}, which is valid JSON but not a valid MCP result,
+	 * so the Anthropic proxy rejected it while the HTTP status was still 200.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testToolsCallResultNeverNull() throws Exception
+	{
+		// The normal success path: a tool that returns cleanly yields a content array.
+		String ok = server.handle( parse( "{\"jsonrpc\":\"2.0\",\"id\":20,\"method\":\"tools/call\",\"params\":{\"name\":\"biouml_repo_collections\",\"arguments\":{}}}" ) );
+		Map<String, Object> okResp = parse( ok );
+		assertTrue( "success response has a non-null result", okResp.get( "result" ) != null );
+		assertTrue( "success result is a content array",
+				( (List<?>) ( (Map<String, Object>) okResp.get( "result" ) ).get( "content" ) ).size() > 0 );
+
+		// The failure path: force Jackson to fail serializing the response. A map that references
+		// itself is unserializable (Jackson throws a nesting-depth JsonMappingException). The
+		// dispatcher must NOT emit result:null — it must return a valid (isError) CallToolResult whose
+		// content text reports the serialization error.
+		Map<String, Object> badResult = new LinkedHashMap<String, Object>();
+		badResult.put( "self", badResult ); // circular → unserializable
+		Map<String, Object> badResponse = new LinkedHashMap<String, Object>();
+		badResponse.put( "jsonrpc", "2.0" );
+		badResponse.put( "id", 21 );
+		badResponse.put( "result", badResult );
+		Map<String, Object> req = parse( "{\"jsonrpc\":\"2.0\",\"id\":21,\"method\":\"tools/call\",\"params\":{\"name\":\"biouml_repo_collections\",\"arguments\":{}}}" );
+		String out = server.dispatcher().toJson( badResponse, req );
+		Map<String, Object> badResp = parse( out );
+		// The id must be mirrored so the client can correlate the response to its request.
+		assertEquals( "id mirrored in the fallback", 21, ( (Number) badResp.get( "id" ) ).intValue() );
+		// A tools/call fallback must be a valid CallToolResult (content array), not a JSON-RPC error.
+		Map<String, Object> result = (Map<String, Object>) badResp.get( "result" );
+		assertNotNull( "tools/call fallback has a non-null result", result );
+		List<Map<String, Object>> content = (List<Map<String, Object>>) result.get( "content" );
+		assertNotNull( "tools/call fallback result has a content array", content );
+		assertTrue( "tools/call fallback is flagged as an error", (Boolean) result.get( "isError" ) );
+		assertTrue( "content text reports the serialization error",
+				( (String) content.get( 0 ).get( "text" ) ).contains( "serialization_error" ) );
+	}
 }

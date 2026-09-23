@@ -358,7 +358,9 @@ public class McpServlet
 
 		String m = request.get( "method" ) == null ? null : String.valueOf( request.get( "method" ) );
 		Map<String, Object> response = dispatcher.handle( request );
-		String out = dispatcher.toJson( response );
+		// Pass the request so toJson's fallback can mirror the request id and emit a valid CallToolResult
+		// (never `result:null`) if the response map itself fails to serialize.
+		String out = dispatcher.toJson( response, request );
 
 		// Request logging: method, tool name, user, duration — never the params/response body.
 		String tool = null;

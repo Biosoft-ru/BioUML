@@ -168,18 +168,29 @@ public class McpJsonRpcDispatcher
 		try
 		{
 			String json = mapper.writeValueAsString( env.toMap() );
-			Map<String, Object> result = new LinkedHashMap<String, Object>();
-			Map<String, Object> content = new LinkedHashMap<String, Object>();
-			content.put( "type", "text" );
-			content.put( "text", json );
-			result.put( "content", java.util.Collections.singletonList( content ) );
-			result.put( "isError", Boolean.valueOf( !env.isOk() ) );
-			return result;
+			return toolResult( json, env.isOk() );
 		}
 		catch ( Exception e )
 		{
-			return null;
+			// Never return null: a `tools/call` response whose `result` is null (or missing a
+			// `content` array) is not a valid MCP CallToolResult, and intermediaries such as the
+			// Anthropic proxy reject it with "Invalid content from server" while the HTTP status is
+			// still 200. If serializing the envelope itself failed, emit a valid content array whose
+			// text is the error as a plain string (no Jackson involved, so it cannot throw again).
+			return toolResult( "{\"ok\":false,\"code\":\"serialization_error\",\"error\":\"could not serialize tool result\"}", false );
 		}
+	}
+
+	/** A valid MCP {@code CallToolResult}: a single text content item carrying {@code json}. */
+	private static Map<String, Object> toolResult( String json, boolean ok )
+	{
+		Map<String, Object> content = new LinkedHashMap<String, Object>();
+		content.put( "type", "text" );
+		content.put( "text", json );
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		result.put( "content", java.util.Collections.singletonList( content ) );
+		result.put( "isError", Boolean.valueOf( !ok ) );
+		return result;
 	}
 
 	private McpToolCatalog.Tool findTool( String name )
@@ -229,8 +240,15 @@ public class McpJsonRpcDispatcher
 
 	/**
 	 * Serialize a dispatch response to a JSON string (for the HTTP transport).
+	 *
+	 * <p>The fallback (when the response map itself cannot be serialized) must still be a <em>valid</em>
+	 * MCP body for the request that produced it. A {@code tools/call} request with an {@code id} must get
+	 * a response whose {@code result} is a content array — emitting {@code result:null} (what Jackson
+	 * would produce for a null result) is rejected by intermediaries such as the Anthropic proxy as
+	 * "Invalid content from server". So the fallback mirrors the request's {@code id} and, for a
+	 * {@code tools/call}, carries a proper (isError) content array instead of a JSON-RPC error object.</p>
 	 */
-	public String toJson( Map<String, Object> response )
+	public String toJson( Map<String, Object> response, Map<String, Object> request )
 	{
 		try
 		{
@@ -238,7 +256,25 @@ public class McpJsonRpcDispatcher
 		}
 		catch ( Exception e )
 		{
-			return "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":" + ERROR_INTERNAL + ",\"message\":\"serialization error\"}}";
+			Object id = request == null ? null : request.get( "id" );
+			String method = request == null || request.get( "method" ) == null ? null
+					: String.valueOf( request.get( "method" ) );
+			if ( id != null && "tools/call".equals( method ) )
+			{
+				// A valid CallToolResult (isError) so the proxy has a well-formed body to report.
+				return "{\"jsonrpc\":\"2.0\",\"id\":" + id
+						+ ",\"result\":{\"content\":[{\"type\":\"text\","
+						+ "\"text\":\"{\\\"ok\\\":false,\\\"code\\\":\\\"serialization_error\\\",\\\"error\\\":\\\"could not serialize response\\\"}\"}],"
+						+ "\"isError\":true}}";
+			}
+			return "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":" + ERROR_INTERNAL
+					+ ",\"message\":\"serialization error\"}}";
 		}
+	}
+
+	/** Backward-compatible overload (no request context for the fallback). */
+	public String toJson( Map<String, Object> response )
+	{
+		return toJson( response, null );
 	}
 }

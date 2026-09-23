@@ -42,7 +42,7 @@ public final class BioumlMcpServer
 		Map<String, Object> response = dispatcher.handle( request );
 		if ( response.isEmpty() )
 			return "";
-		return dispatcher.toJson( response );
+		return dispatcher.toJson( response, request );
 	}
 
 	/**
