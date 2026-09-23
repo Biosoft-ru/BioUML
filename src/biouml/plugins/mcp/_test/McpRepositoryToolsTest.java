@@ -111,6 +111,49 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testSearchAsync()
+	{
+		// Queue the search as a background task: must return a taskId immediately (no long block).
+		long t0 = System.currentTimeMillis();
+		McpEnvelope async = McpRepositorySupport.searchAsync( "projects", "mcpdata" );
+		data( async );
+		assertTrue( "searchAsync returns fast (no synchronous walk), took " + (System.currentTimeMillis() - t0) + "ms",
+				System.currentTimeMillis() - t0 < 5000 );
+		Map<String, Object> am = (Map<String, Object>) async.getData();
+		Object taskId = am.get( "taskId" );
+		assertNotNull( "taskId present", taskId );
+		assertEquals( "queued", am.get( "status" ) );
+
+		// The task completes on the TaskManager worker thread; poll the status until it is done
+		// (a small repo search finishes in well under the deadline).
+		String id = String.valueOf( taskId );
+		String status = null;
+		for ( int i = 0; i < 100; i++ )
+		{
+			McpEnvelope st = McpRepositorySupport.searchStatus( id );
+			data( st );
+			status = String.valueOf( ( (Map<String, Object>) st.getData() ).get( "status" ) );
+			if ( "done".equals( status ) )
+				break;
+			try
+			{
+				Thread.sleep( 50 );
+			}
+			catch ( InterruptedException e )
+			{
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
+		assertEquals( "async search completed", "done", status );
+
+		// A status lookup for an unknown task is a clean not_found, not an exception.
+		McpEnvelope missing = McpRepositorySupport.searchStatus( "no-such-task-xyz" );
+		assertFalse( missing.isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testGetActions()
 	{
 		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );

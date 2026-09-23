@@ -156,7 +156,9 @@ a multi-node deployment needs a shared store.
 | `biouml_repo_collections` | List the top-level registered repository collections (databases, data, analyses, ...). |
 | `biouml_repo_list` | List the children of a repository collection. |
 | `biouml_repo_describe` | Describe a repository element (name, class, child count, children). |
-| `biouml_repo_search` | Search element names (case-insensitive substring) under a scope (default: all roots). |
+| `biouml_repo_search` | Search element names (case-insensitive substring) under a scope (default: all roots). Synchronous; returns fast on a responsive server but can exceed the client timeout on a large repository — for large or slow repositories use biouml_repo_search_async and poll biouml_repo_search_status. |
+| `biouml_repo_search_async` | Run a repository search (same as biouml_repo_search) in the background and return a taskId immediately, instead of blocking. On a large/slow repository a synchronous search can exceed the client's request timeout, so: (1) call this to start the search, (2) poll biouml_repo_search_status with the taskId until status is 'done', (3) call biouml_repo_search again with the same query/scope to read the matches — by then the search has warmed the repository caches so it returns quickly. The background run itself does not store its matches. |
+| `biouml_repo_search_status` | Report the status (queued/running/done/cancelled/error) of a background repository search queued via biouml_repo_search_async. |
 | `biouml_repo_get_actions` | List the context-menu actions available for an element (key, name, description, headlessSafe). |
 | `biouml_repo_run_action` | Run a context-menu action (by ActionCommandKey) on an element headlessly. Interactive-only actions return requires_interactive_ui. |
 | `biouml_repo_create_folder` | Create a new folder inside a folder-collection parent. |

@@ -53,7 +53,7 @@ public final class RepoTools
 				} );
 
 		catalog.register( "biouml_repo_search",
-				"Search element names (case-insensitive substring) under a scope (default: all roots).",
+				"Search element names (case-insensitive substring) under a scope (default: all roots). Synchronous; returns fast on a responsive server but can exceed the client timeout on a large repository — for large or slow repositories use biouml_repo_search_async and poll biouml_repo_search_status.",
 				"{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},\"required\":[\"query\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "query" );
@@ -63,6 +63,29 @@ public final class RepoTools
 					if ( vs != null )
 						return vs;
 					return McpRepositorySupport.search( McpArgs.str( args, "query" ), McpArgs.str( args, "scope" ) );
+				} );
+
+		catalog.register( "biouml_repo_search_async",
+				"Run a repository search (same as biouml_repo_search) in the background and return a taskId immediately, instead of blocking. On a large/slow repository a synchronous search can exceed the client's request timeout, so: (1) call this to start the search, (2) poll biouml_repo_search_status with the taskId until status is 'done', (3) call biouml_repo_search again with the same query/scope to read the matches — by then the search has warmed the repository caches so it returns quickly. The background run itself does not store its matches.",
+				"{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},\"required\":[\"query\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "query" );
+					if ( v != null )
+						return v;
+					McpEnvelope vs = McpArgs.optionalString( args, "scope" );
+					if ( vs != null )
+						return vs;
+					return McpRepositorySupport.searchAsync( McpArgs.str( args, "query" ), McpArgs.str( args, "scope" ) );
+				} );
+
+		catalog.register( "biouml_repo_search_status",
+				"Report the status (queued/running/done/cancelled/error) of a background repository search queued via biouml_repo_search_async.",
+				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "taskId" );
+					if ( v != null )
+						return v;
+					return McpRepositorySupport.searchStatus( McpArgs.str( args, "taskId" ) );
 				} );
 
 		catalog.register( "biouml_repo_get_actions",

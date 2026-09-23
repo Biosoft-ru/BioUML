@@ -14,7 +14,8 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.analysiscore,
  ru.biosoft.table,
  ru.biosoft.server.servlets,
- ru.biosoft.workbench
+ ru.biosoft.workbench,
+ ru.biosoft.jobcontrol
 Export-Package: biouml.plugins.mcp,
  biouml.plugins.mcp.server,
  biouml.plugins.mcp.tools,

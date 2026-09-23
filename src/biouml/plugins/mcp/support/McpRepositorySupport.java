@@ -22,6 +22,8 @@ import ru.biosoft.access.core.DataElementPath;
  */
 public final class McpRepositorySupport
 {
+	private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger( McpRepositorySupport.class.getName() );
+
 	private McpRepositorySupport()
 	{
 	}
@@ -156,6 +158,97 @@ public final class McpRepositorySupport
 		result.put( "truncated", Boolean.valueOf( matches.size() >= McpConstants.LIST_CHILDREN_CAP ) );
 		result.put( "matches", matches );
 		return McpEnvelope.ok( result );
+	}
+
+	/**
+	 * Queue an async repository search as a task in the {@link TaskManager} and return its id. The
+	 * search runs off the request thread, so it cannot exceed the MCP client's (e.g. the Anthropic
+	 * proxy's ~60 s) per-request timeout; the caller polls {@link #searchStatus(String)} until the
+	 * task completes.
+	 *
+	 * <p>Each {@code NetworkRepository} child access resolves the caller's permission, which is a
+	 * database round-trip. On a large repository (or while the database is briefly unavailable) an
+	 * unscoped search can therefore take many minutes, so it must not be served synchronously.</p>
+	 *
+	 * @param query  case-insensitive substring
+	 * @param scope  scope path, or null/empty for all registered roots
+	 * @return an envelope whose data is {@code {taskId, status:"queued"}} on success, or an error.
+	 */
+	public static McpEnvelope searchAsync( String query, String scope )
+	{
+		if ( query == null || query.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "query must be a non-empty string" );
+
+		// The worker thread is bound to the calling session automatically: TaskPool captures the
+		// session at submit time (on this request thread) and re-binds it before task.run(), so the
+		// permission lookups inside search() resolve the caller's grants. The job-control lifecycle
+		// (begin/end) is driven by doRun() below so the task status actually transitions
+		// queued -> running -> done (addTask stores the JobControl as the task's status holder but
+		// never runs it itself).
+		ru.biosoft.jobcontrol.FunctionJobControl jc = new ru.biosoft.jobcontrol.FunctionJobControl( log )
+		{
+			@Override
+			protected void doRun() throws ru.biosoft.jobcontrol.JobControlException
+			{
+				try
+				{
+					search( query, scope );
+				}
+				catch ( RuntimeException e )
+				{
+					throw new ru.biosoft.jobcontrol.JobControlException( e );
+				}
+			}
+		};
+		ru.biosoft.access.task.RunnableTask task = new ru.biosoft.access.task.RunnableTask(
+				"repo-search:" + query,
+				jc::run );
+		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().addTask(
+				"repo-search",
+				ru.biosoft.access.core.DataElementPath.create( "mcp/repo-search" ),
+				jc, null, null, null, true, task );
+		if ( info == null )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "taskId", info.getName() );
+		m.put( "status", "queued" );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Report the status of a queued repo-search task. Reads the task's {@link JobControl} status, so
+	 * it works for tasks created in a previous request (the status is task-derived, not stored).
+	 */
+	public static McpEnvelope searchStatus( String taskId )
+	{
+		if ( taskId == null || taskId.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "taskId must be a non-empty string" );
+		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().getTask( taskId );
+		if ( info == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no task named: " + taskId );
+		int status = info.getJobControl() == null ? -1 : info.getJobControl().getStatus();
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "taskId", info.getName() );
+		m.put( "status", taskStatusString( status ) );
+		m.put( "elapsedMs", Long.valueOf( info.getJobControl() == null ? 0 : info.getJobControl().getElapsedTime() ) );
+		return McpEnvelope.ok( m );
+	}
+
+	private static String taskStatusString( int status )
+	{
+		if ( status == ru.biosoft.jobcontrol.JobControl.COMPLETED )
+			return "done";
+		if ( status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_REQUEST )
+			return "cancelled";
+		if ( status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_ERROR )
+			return "error";
+		if ( status == ru.biosoft.jobcontrol.JobControl.PAUSED )
+			return "paused";
+		if ( status == ru.biosoft.jobcontrol.JobControl.RUNNING )
+			return "running";
+		if ( status == ru.biosoft.jobcontrol.JobControl.CREATED )
+			return "queued";
+		return "unknown";
 	}
 
 	private static void collectMatches( DataCollection<?> dc, String q, List<String> out, int depth )
