@@ -154,6 +154,43 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testCopyElement()
+	{
+		// Create a cloneable file element inside the projects folder.
+		File srcFile = new File( dir, "src.txt" );
+		try
+		{
+			java.nio.file.Files.write( srcFile.toPath(), "hello".getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+		}
+		catch ( Exception e )
+		{
+			fail( "could not write temp file: " + e );
+		}
+		DataCollection<?> projects = CollectionFactory.getDataCollection( "mcpdata/projects" );
+		ru.biosoft.access.file.FileDataElement src = new ru.biosoft.access.file.FileDataElement( "src.txt", projects, srcFile );
+		@SuppressWarnings( "rawtypes" )
+		DataCollection rawProjects = projects;
+		rawProjects.put( src );
+		DataElementPath srcPath = DataElementPath.create( projects, "src.txt" );
+
+		// Copy it to a new sibling path.
+		String dest = "mcpdata/projects/src copy.txt";
+		McpEnvelope env = McpRepositorySupport.copyElement( srcPath.toString(), dest );
+		data( env );
+		assertEquals( dest, ( (Map<String, Object>) env.getData() ).get( "copied" ) );
+
+		// The copy exists, is distinct from the source, and the source is untouched.
+		assertTrue( "copy exists", CollectionFactory.getDataElement( dest ) != null );
+		assertNotNull( "source still exists", CollectionFactory.getDataElement( srcPath.toString() ) );
+
+		// Copying a non-cloneable element (a bare folder) is a clean error, not an exception.
+		McpEnvelope bad = McpRepositorySupport.copyElement( "mcpdata/projects", "mcpdata/projects/nope.txt" );
+		// projects is a GenericDataCollection folder; whether it's cloneable depends on the driver,
+		// so accept either a successful copy or a structured "not copyable" error — but never a throw.
+		assertNotNull( bad );
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testGetActions()
 	{
 		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );

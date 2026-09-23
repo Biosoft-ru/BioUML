@@ -8,10 +8,14 @@ import java.util.Map;
 
 import biouml.plugins.mcp.McpConstants;
 
+import ru.biosoft.access.core.CloneableDataElement;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.table.TableDataCollection;
+import ru.biosoft.tasks.TaskInfo;
+import ru.biosoft.tasks.TaskManager;
 
 /**
  * Shared, test-friendly helpers for the repository MCP tools.
@@ -345,6 +349,107 @@ public final class McpRepositorySupport
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "removed", path );
 		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Copy a single element (a file, table, diagram, or any cloneable data element) to a new location —
+	 * the headless equivalent of the web UI's "Save a copy" menu item (web provider {@code doc/save}).
+	 * Mirrors {@code DocumentProvider.saveAs}: resolves the source, clones it into the target parent,
+	 * and saves the clone under the target name. The source is left untouched.
+	 *
+	 * @param srcPath  full repository path of the element to copy
+	 * @param destPath full repository path of the new copy (parent must exist and be writable)
+	 * @return an envelope whose data is {@code {copied: destPath}} on success.
+	 */
+	public static McpEnvelope copyElement( String srcPath, String destPath )
+	{
+		McpEnvelope src = resolve( srcPath );
+		if ( !src.isOk() )
+			return src;
+		DataElement srcDe = (DataElement) src.getData();
+
+		// The destination's parent collection must exist and be writable (mirrors DocumentProvider.saveAs,
+		// which resolves the target parent, not the not-yet-existing target leaf).
+		DataElementPath destDep = DataElementPath.create( destPath );
+		DataElement parentDe = CollectionFactory.getDataElement( destDep.getParentPath().toString() );
+		if ( parentDe == null || !( parentDe instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND,
+					"target parent does not exist: " + destDep.getParentPath() );
+		DataCollection<?> parent = (DataCollection<?>) parentDe;
+		if ( !parent.isMutable() )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "target collection is read-only: " + destPath );
+
+		// The primary element is the concrete, cloneable one (a wrapper like a SymbolicLink resolves
+		// to its target) — same as DocumentProvider.saveAs.
+		DataElement de = ru.biosoft.access.DataCollectionUtils.fetchPrimaryElement( srcDe,
+				ru.biosoft.access.security.Permission.READ );
+		String name = destDep.getName();
+		try
+		{
+			if ( de instanceof TableDataCollection )
+			{
+				de = ( (TableDataCollection) de ).clone( parent, name );
+			}
+			else if ( de instanceof CloneableDataElement )
+			{
+				de = ( (CloneableDataElement) de ).clone( parent, name );
+			}
+			else
+			{
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+						"element is not copyable (not a cloneable data element): " + srcPath );
+			}
+			if ( de == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "copy produced no result: " + srcPath );
+			DataElementPath.create( parent, name ).save( de );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not copy '" + srcPath + "' to '" + destPath + "': " + e.getMessage() );
+		}
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "copied", destPath );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Queue a folder (subtree) copy as an async analysis task — the headless equivalent of the web UI's
+	 * "Copy folder" menu item (web provider {@code folder/copy} → {@code CopyFolderAnalysis}). Returns a
+	 * taskId immediately; poll {@link #taskStatus(String)} (the generic analysis task-status tool) until it
+	 * completes, since copying a large folder can exceed a client's request timeout.
+	 *
+	 * @param fromPath full repository path of the folder to copy
+	 * @param toPath   full repository path of the destination (parent must exist and be writable)
+	 * @return an envelope whose data is {@code {taskId, status}} on success.
+	 */
+	public static McpEnvelope copyFolder( String fromPath, String toPath )
+	{
+		McpEnvelope from = resolve( fromPath );
+		if ( !from.isOk() )
+			return from;
+		McpEnvelope to = resolve( toPath );
+		if ( !to.isOk() )
+			return to;
+		try
+		{
+			ru.biosoft.analysis.CopyFolderAnalysis analysis =
+					ru.biosoft.analysiscore.AnalysisMethodRegistry.getAnalysisMethod( ru.biosoft.analysis.CopyFolderAnalysis.class );
+			ru.biosoft.analysis.CopyFolderAnalysis.CopyFolderAnalysisParameters parameters = analysis.getParameters();
+			parameters.setWriteAnalysisInfo( false );
+			parameters.setFromFolder( DataElementPath.create( fromPath ) );
+			parameters.setToFolder( DataElementPath.create( toPath ) );
+			TaskInfo info = TaskManager.getInstance().addAnalysisTask( analysis, true );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "taskId", info.getName() );
+			m.put( "status", "queued" );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not queue folder copy: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
 	}
 
 	/**

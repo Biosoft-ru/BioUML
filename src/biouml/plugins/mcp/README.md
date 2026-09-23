@@ -163,6 +163,8 @@ a multi-node deployment needs a shared store.
 | `biouml_repo_run_action` | Run a context-menu action (by ActionCommandKey) on an element headlessly. Interactive-only actions return requires_interactive_ui. |
 | `biouml_repo_create_folder` | Create a new folder inside a folder-collection parent. |
 | `biouml_repo_remove` | Remove an element by path. dryRun=true reports what would be removed without changing anything. |
+| `biouml_repo_copy_element` | Copy a single element (file, table, diagram, or any cloneable data element) to a new location — the headless equivalent of the web UI's 'Save a copy'. destPath is the full path of the new copy (its parent must exist and be writable); the last path segment is the new name. The source is left untouched. |
+| `biouml_repo_copy_folder` | Copy a folder (its whole subtree) to a new location — the headless equivalent of the web UI's 'Copy folder'. Runs asynchronously as a background task and returns a taskId immediately; poll biouml_task_status with the taskId until it completes (a large folder copy can exceed the client's request timeout). |
 | `biouml_analysis_list` | List all available analysis methods grouped by their analyses group. |
 | `biouml_analysis_describe` | Describe an analysis method: its parameter input schema (name, type, default, description), input names, and output names. |
 | `biouml_analysis_run` | Run an analysis. params is a flat map of bean-property values (nested keys use '/' separators; path-typed properties take repository path strings). sync=true runs inline and returns the result; otherwise it is queued and returns {taskId,status}. |
