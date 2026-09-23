@@ -15,8 +15,16 @@ public final class McpConstants
 	/** MCP server version reported in the initialize response. */
 	public static final String SERVER_VERSION = "1.0.0";
 
-	/** MCP protocol version implemented (streamable HTTP, 2025-03-26). */
-	public static final String PROTOCOL_VERSION = "2025-03-26";
+	/**
+	 * MCP protocol version implemented (streamable HTTP). We advertise {@code 2025-11-25}, the
+	 * revision Claude's connector (and current MCP clients) speak. The revision is additive over
+	 * {@code 2025-03-26} — it extends authorization discovery (OIDC / OAuth Client ID Metadata) and
+	 * adds optional features (tool icons, elicitation, tasks) that a {@code tools}-only server need
+	 * not implement — so the core initialize/tools/ping wire shape is unchanged. Advertising a
+	 * version the client speaks is essential: per the spec, if the client cannot support the version
+	 * the server responds with, it MUST disconnect, which is what was breaking Claude's connector.
+	 */
+	public static final String PROTOCOL_VERSION = "2025-11-25";
 
 	/** Context path of the HTTP MCP endpoint on the embedded Tomcat. */
 	public static final String SERVLET_PATH = "/mcp";

@@ -28,8 +28,13 @@ import biouml.plugins.mcp.support.McpEnvelope;
  */
 public class McpJsonRpcDispatcher
 {
-	/** MCP protocol version advertised by this server (streamable-HTTP, 2025-03-26). */
-	public static final String PROTOCOL_VERSION = "2025-03-26";
+	/**
+	 * MCP protocol version advertised by this server (streamable HTTP). Must match the version the
+	 * client speaks, else the client disconnects per the spec's negotiation rule — see
+	 * {@link McpConstants#PROTOCOL_VERSION}. Kept here (rather than importing the constant) because
+	 * this class is the protocol core both transports share and is referenced by the SDK path too.
+	 */
+	public static final String PROTOCOL_VERSION = McpConstants.PROTOCOL_VERSION;
 
 	/** JSON-RPC error: method not found (unknown method). */
 	public static final int ERROR_METHOD_NOT_FOUND = -32601;

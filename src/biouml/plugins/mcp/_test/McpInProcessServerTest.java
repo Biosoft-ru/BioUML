@@ -53,7 +53,7 @@ public class McpInProcessServerTest extends TestCase
 		Map<String, Object> initResp = parse( init );
 		Map<String, Object> initResult = (Map<String, Object>) initResp.get( "result" );
 		assertNotNull( "initialize result present", initResult );
-		assertEquals( "protocol version negotiated", "2025-03-26", initResult.get( "protocolVersion" ) );
+		assertEquals( "protocol version negotiated", "2025-11-25", initResult.get( "protocolVersion" ) );
 		Map<String, Object> info = (Map<String, Object>) initResult.get( "serverInfo" );
 		assertEquals( "server name", "biouml", info.get( "name" ) );
 		assertNotNull( "server version", info.get( "version" ) );

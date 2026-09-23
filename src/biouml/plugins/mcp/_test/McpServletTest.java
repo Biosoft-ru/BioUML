@@ -468,7 +468,7 @@ public class McpServletTest extends TestCase
 			Map<String, Object> body = parse( (String) initResp.get( "body" ) );
 			Map<String, Object> result = (Map<String, Object>) body.get( "result" );
 			assertNotNull( "initialize result present", result );
-			assertEquals( "protocol version", "2025-03-26", result.get( "protocolVersion" ) );
+			assertEquals( "protocol version", "2025-11-25", result.get( "protocolVersion" ) );
 			Map<String, Object> info = (Map<String, Object>) result.get( "serverInfo" );
 			assertEquals( "server name", "biouml", info.get( "name" ) );
 			assertNotNull( "server version", info.get( "version" ) );

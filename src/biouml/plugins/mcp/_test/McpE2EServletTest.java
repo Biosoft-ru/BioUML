@@ -168,7 +168,7 @@ public class McpE2EServletTest extends AbstractBioUMLTest
 			assertEquals( "initialize → 200", "200", init.get( "status" ).toString() );
 			Map<String, Object> initResult = (Map<String, Object>) parse( (String) init.get( "body" ) ).get( "result" );
 			assertNotNull( "initialize result", initResult );
-			assertEquals( "protocol 2025-03-26", "2025-03-26", initResult.get( "protocolVersion" ) );
+			assertEquals( "protocol 2025-11-25", "2025-11-25", initResult.get( "protocolVersion" ) );
 
 			// 2) tools/list — ≥10 tools
 			Map<String, Object> list = server.post( SYS,
