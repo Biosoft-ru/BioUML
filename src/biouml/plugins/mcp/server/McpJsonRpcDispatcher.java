@@ -89,13 +89,18 @@ public class McpJsonRpcDispatcher
 	/**
 	 * The {@code result} payload for an {@code initialize} request: negotiated protocol version,
 	 * server info, and capabilities.
+	 *
+	 * <p>Per the MCP spec, when a client requests a protocol version the server does not implement,
+	 * the server responds with <em>its own</em> latest supported version — which is exactly what we do
+	 * (always {@link #PROTOCOL_VERSION}). The result is deliberately the minimal standard shape
+	 * ({@code protocolVersion}, {@code serverInfo}, {@code capabilities}). We do <em>not</em> set an
+	 * {@code instructions} field: it is optional, and echoing the client's requested version string
+	 * into it (as an earlier version did) is non-standard and caused strict MCP proxies (e.g. the
+	 * Anthropic connector) to reject the whole session with "Invalid content from server", which then
+	 * blocked every subsequent call including {@code tools/call}.</p>
 	 */
 	private Object initializeResult( Map<String, Object> request )
 	{
-		Map<String, Object> params = params( request );
-		String clientVersion = params.get( "protocolVersion" ) == null ? null : String.valueOf( params.get( "protocolVersion" ) );
-		// Advertise the server's protocol version (the client may request a different one; we accept
-		// and negotiate back our own, per the MCP spec).
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		result.put( "protocolVersion", PROTOCOL_VERSION );
 		Map<String, Object> serverInfo = new LinkedHashMap<String, Object>();
@@ -107,8 +112,6 @@ public class McpJsonRpcDispatcher
 		toolsCap.put( "listChanged", Boolean.FALSE );
 		caps.put( "tools", toolsCap );
 		result.put( "capabilities", caps );
-		if ( clientVersion != null )
-			result.put( "instructions", "BioUML MCP server. Protocol " + PROTOCOL_VERSION + " (client requested " + clientVersion + ")." );
 		return result;
 	}
 
