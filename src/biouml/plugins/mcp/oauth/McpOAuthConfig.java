@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Configuration for the BioUML MCP OAuth 2.1 authorization server (see {@link McpOAuthServlet}).
@@ -14,20 +16,30 @@ import java.util.Map;
  * for the BioStore provider):</p>
  * <ul>
  * <li>{@value #ISSUER_PROPERTY} — the public base URL of this authorization server
- * (e.g. {@code https://biouml2test.biouml.org/biouml/oauth}). When unset, the base is derived from
- * the request {@code Host} header ({@code https://<host>/biouml/oauth}) so a single build works on
- * every deployment.</li>
- * <li>{@value #CLIENTS_PROPERTY} — a static client allow-list (RFC 7591 dynamic registration is
- * intentionally not implemented). Format:
+ * (e.g. {@code https://biouml2test.biouml.org/biouml/oauth}). When set, it is used verbatim and
+ * wins over every derived value. When unset, the base is derived from the request's public
+ * hostname — {@code X-Forwarded-Host} (with {@code X-Forwarded-Proto}) when present, else the
+ * {@code Host} header — so a single build works on every deployment <em>including behind a proxy
+ * that forwards an internal {@code Host}</em>.</li>
+ * <li>{@value #PUBLIC_HOST_PROPERTY} — an optional, operator-declared public hostname (e.g.
+ * {@code biouml2test.biouml.org}). When set and the derived public host differs from it, a
+ * one-time WARNING is logged — this surfaces the classic misconfiguration where the app sits
+ * behind a proxy and would otherwise emit an unreachable internal URL in its OAuth metadata.</li>
+ * <li>{@value #CLIENTS_PROPERTY} — a static client allow-list. Format:
  * {@code clientId=uri1|uri2;clientId2=uri3} — each client maps to the <em>exact</em> redirect URIs
- * it may use. With no clients configured the authorization server refuses every
- * {@code /authorize} request ({@code unauthorized_client}), i.e. OAuth is effectively off.</li>
+ * it may use. (RFC 7591 dynamic registration is also supported and takes precedence, so this list
+ * is only needed for fixed-id clients.)</li>
  * </ul>
  */
 public final class McpOAuthConfig
 {
+	private static final Logger log = Logger.getLogger( McpOAuthConfig.class.getName() );
+
 	/** System property: the public base URL of the authorization server (issuer). */
 	public static final String ISSUER_PROPERTY = "biouml.mcp.oauth.issuer";
+
+	/** System property: the operator-declared public hostname, used to detect a mis-derived issuer. */
+	public static final String PUBLIC_HOST_PROPERTY = "biouml.mcp.oauth.public.host";
 
 	/** System property: the static client allow-list (see the class javadoc for the format). */
 	public static final String CLIENTS_PROPERTY = "biouml.mcp.oauth.clients";
@@ -35,19 +47,31 @@ public final class McpOAuthConfig
 	/** The MCP resource these tokens are issued for (the canonical URI in RFC 8707 terms). */
 	public static final String RESOURCE = "/mcp";
 
+	/** One-time warning guard: log the misconfiguration at most once per JVM. */
+	private static volatile boolean warned = false;
+
 	private McpOAuthConfig()
 	{
 	}
 
 	/**
-	 * The issuer (authorization server base) URL: the configured property, or
-	 * {@code https://<host>/biouml/oauth} derived from the request {@code Host} header. Returns
-	 * {@code null} if neither is available — callers treat that as "OAuth disabled".
+	 * The issuer (authorization server base) URL.
 	 *
-	 * @param host the request {@code Host} header value (e.g. {@code biouml2test.biouml.org:443});
-	 * may be null
+	 * <p>Resolution order:</p>
+	 * <ol>
+	 * <li>{@value #ISSUER_PROPERTY}, when set — used verbatim (trailing slash trimmed).</li>
+	 * <li>Otherwise derived from the request's <b>public</b> hostname: {@code X-Forwarded-Host}
+	 * (taking the first host, and the first {@code X-Forwarded-Proto} as the scheme) when present,
+	 * else the {@code Host} header — as {@code <scheme>://<host>/biouml/oauth}.</li>
+	 * </ol>
+	 *
+	 * <p>Returning {@code null} (no hostname available) is treated by callers as "OAuth disabled".</p>
+	 *
+	 * @param host             the request {@code Host} header value; may be null
+	 * @param forwardedHost    the request {@code X-Forwarded-Host} value; may be null
+	 * @param forwardedProto   the request {@code X-Forwarded-Proto} value; may be null
 	 */
-	public static String issuer( String host )
+	public static String issuer( String host, String forwardedHost, String forwardedProto )
 	{
 		String configured = System.getProperty( ISSUER_PROPERTY );
 		if ( configured != null && !configured.trim().isEmpty() )
@@ -57,17 +81,126 @@ public final class McpOAuthConfig
 				base = base.substring( 0, base.length() - 1 );
 			return base;
 		}
-		if ( host != null && !host.trim().isEmpty() )
+
+		// Prefer the proxy-forwarded public host over the (possibly internal) Host header.
+		String publicHost = firstCommaValue( forwardedHost );
+		if ( publicHost == null || publicHost.isEmpty() )
+			publicHost = firstCommaValue( host );
+		if ( publicHost == null || publicHost.isEmpty() )
+			return null;
+
+		String scheme = "https";
+		if ( forwardedProto != null && !forwardedProto.trim().isEmpty() )
 		{
-			String h = host.trim();
-			int path = h.indexOf( '/' );
-			if ( path >= 0 )
-				h = h.substring( 0, path ); // strip a non-default port? no — keep host:port, drop any path
-			if ( h.isEmpty() )
-				return null;
-			return "https://" + h + "/biouml/oauth";
+			String proto = firstCommaValue( forwardedProto ).trim().toLowerCase();
+			if ( proto.equals( "http" ) || proto.equals( "https" ) )
+				scheme = proto;
 		}
-		return null;
+		String issuer = scheme + "://" + publicHost + "/biouml/oauth";
+
+		// Misconfiguration guard: if the operator declared the public host and we derived a
+		// different one, the app is almost certainly behind a proxy that forwards an internal Host.
+		warnIfHostMismatch( publicHost );
+		return issuer;
+	}
+
+	/**
+	 * Backward-compatible overload (no forwarded headers) — equivalent to passing {@code null} for
+	 * both. Kept for existing callers and tests.
+	 */
+	public static String issuer( String host )
+	{
+		return issuer( host, null, null );
+	}
+
+	/**
+	 * If {@value #PUBLIC_HOST_PROPERTY} is set and differs from the derived public host, log a
+	 * one-time WARNING naming both values. This turns a silent "unreachable internal URL in the
+	 * OAuth metadata" failure into an obvious, greppable log line.
+	 */
+	private static void warnIfHostMismatch( String derivedHost )
+	{
+		String expected = System.getProperty( PUBLIC_HOST_PROPERTY );
+		if ( expected == null || expected.trim().isEmpty() )
+			return;
+		String exp = expected.trim();
+		// Compare host:port ignoring scheme; a portless expected host matches a derived "host:port"
+		// when the port is the scheme default.
+		if ( hostEquals( exp, derivedHost ) )
+			return;
+		if ( warned )
+			return;
+		synchronized ( McpOAuthConfig.class )
+		{
+			if ( warned )
+				return;
+			warned = true;
+			log.log( Level.WARNING,
+					"MCP OAuth: derived public host '" + derivedHost
+							+ "' differs from the configured public host '" + exp
+							+ "'. The OAuth metadata URLs will point at the derived host, which may be "
+							+ "unreachable by external MCP clients (e.g. the app is behind a proxy that "
+							+ "forwards an internal Host header). Set " + ISSUER_PROPERTY
+							+ "=https://" + exp + "/biouml/oauth (or ensure the proxy forwards the public "
+							+ "X-Forwarded-Host) so clients can reach the authorization server." );
+		}
+	}
+
+	/** True if two {@code host} or {@code host:port} values refer to the same host (port-agnostic when default). */
+	static boolean hostEquals( String a, String b )
+	{
+		if ( a == null || b == null )
+			return false;
+		String h1 = stripPort( a.trim() );
+		String h2 = stripPort( b.trim() );
+		return h1.equalsIgnoreCase( h2 ) && portOf( a ) == portOf( b );
+	}
+
+	/** Strip a {@code :port} suffix (and any path) from a host value. */
+	private static String stripPort( String host )
+	{
+		int slash = host.indexOf( '/' );
+		if ( slash >= 0 )
+			host = host.substring( 0, slash );
+		int colon = host.lastIndexOf( ':' );
+		if ( colon >= 0 && !host.substring( colon + 1 ).contains( ":" ) )
+			host = host.substring( 0, colon );
+		return host;
+	}
+
+	/** The explicit port of a host value, or the scheme default (443) when absent. */
+	private static int portOf( String host )
+	{
+		int slash = host.indexOf( '/' );
+		if ( slash >= 0 )
+			host = host.substring( 0, slash );
+		int colon = host.lastIndexOf( ':' );
+		if ( colon < 0 )
+			return 443;
+		try
+		{
+			return Integer.parseInt( host.substring( colon + 1 ) );
+		}
+		catch ( NumberFormatException e )
+		{
+			return 443;
+		}
+	}
+
+	/** The first comma-separated value of a forwarded header (proxies chain multiple). */
+	private static String firstCommaValue( String value )
+	{
+		if ( value == null )
+			return null;
+		String v = value.trim();
+		int comma = v.indexOf( ',' );
+		if ( comma >= 0 )
+			v = v.substring( 0, comma );
+		// A Host header may carry a path; keep only host:port.
+		int slash = v.indexOf( '/' );
+		if ( slash >= 0 )
+			v = v.substring( 0, slash );
+		return v.trim().isEmpty() ? null : v.trim();
 	}
 
 	/** The absolute MCP resource URL (the {@code resource} value in the metadata documents). */

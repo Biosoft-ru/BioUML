@@ -296,10 +296,18 @@ public abstract class ConnectionServlet extends HttpServlet
             }
         }
         // The MCP OAuth server builds its discovery URLs (issuer, authorization/token endpoints)
-        // request-relative; the Host header tells it which deployment it is answering for.
+        // request-relative; the public hostname tells it which deployment it is answering for. A
+        // reverse proxy typically rewrites Host to the internal backend, so X-Forwarded-Host /
+        // X-Forwarded-Proto (the original public values) are surfaced too and take precedence.
         String host = req.getHeader( "Host" );
         if( host != null )
             params.put( "Host", new String[] { host } );
+        String forwardedHost = req.getHeader( "X-Forwarded-Host" );
+        if( forwardedHost != null )
+            params.put( "X-Forwarded-Host", new String[] { forwardedHost } );
+        String forwardedProto = req.getHeader( "X-Forwarded-Proto" );
+        if( forwardedProto != null )
+            params.put( "X-Forwarded-Proto", new String[] { forwardedProto } );
         if( ServletFileUpload.isMultipartContent(req) )
         {
             try

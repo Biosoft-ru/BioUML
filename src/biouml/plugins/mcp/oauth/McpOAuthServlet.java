@@ -151,8 +151,7 @@ public class McpOAuthServlet
 
 	private HandleResult wellKnown( String kind, Map<String, Object> p ) throws Exception
 	{
-		String host = first( p.get( "Host" ) );
-		String issuer = McpOAuthConfig.issuer( host );
+		String issuer = issuer( p );
 		if ( issuer == null )
 			return new HandleResult( 500, "application/json",
 					errorJson( "server_error", "cannot determine the OAuth issuer (no Host header)" ) );
@@ -205,7 +204,7 @@ public class McpOAuthServlet
 
 		// Validation — every failure is an error page (no redirect: we must not bounce the user to an
 		// unvalidated URI before we know the request is sane).
-		String issuer = McpOAuthConfig.issuer( first( p.get( "Host" ) ) );
+		String issuer = issuer( p );
 		String bad = validateAuthorize( clientId, redirectUri, challenge, challengeMethod, resource, issuer );
 		if ( bad != null )
 			return new HandleResult( 400, "text/html; charset=utf-8", formPage( bad, clientId, redirectUri, state,
@@ -367,7 +366,7 @@ public class McpOAuthServlet
 		log.info( "MCP OAuth client registered id=" + client.clientId + " name=" + clientName
 				+ " uris=" + uris + " confidential=" + ( clientSecret != null ) );
 
-		String issuer = McpOAuthConfig.issuer( first( p.get( "Host" ) ) );
+		String issuer = issuer( p );
 		Map<String, Object> out = new LinkedHashMap<String, Object>();
 		out.put( "client_id", client.clientId );
 		if ( clientSecret != null )
@@ -504,6 +503,18 @@ public class McpOAuthServlet
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * The issuer for this request, derived from the request's public hostname. The proxy's
+	 * {@code X-Forwarded-Host} / {@code X-Forwarded-Proto} take precedence over the {@code Host}
+	 * header (which a reverse proxy typically rewrites to the internal backend); see
+	 * {@link McpOAuthConfig#issuer(String, String, String)}.
+	 */
+	private static String issuer( Map<String, Object> p )
+	{
+		return McpOAuthConfig.issuer( first( p.get( "Host" ) ),
+				first( p.get( "X-Forwarded-Host" ) ), first( p.get( "X-Forwarded-Proto" ) ) );
 	}
 
 	/** The params-map value for a parameter is a {@code String[]}; return its first element. */

@@ -63,6 +63,7 @@ public class McpOAuthServletTest extends TestCase
 		savedClients = System.getProperty( McpOAuthConfig.CLIENTS_PROPERTY );
 		System.setProperty( McpOAuthConfig.CLIENTS_PROPERTY, CLIENTS_PROPERTY );
 		System.clearProperty( McpOAuthConfig.ISSUER_PROPERTY );
+		System.clearProperty( McpOAuthConfig.PUBLIC_HOST_PROPERTY );
 	}
 
 	@Override
@@ -73,6 +74,7 @@ public class McpOAuthServletTest extends TestCase
 		else
 			System.setProperty( McpOAuthConfig.CLIENTS_PROPERTY, savedClients );
 		System.clearProperty( McpOAuthConfig.ISSUER_PROPERTY );
+		System.clearProperty( McpOAuthConfig.PUBLIC_HOST_PROPERTY );
 		OAuthTokenStore.clearForTest();
 		SecurityManager.removeThreadFromSessionRecord();
 		super.tearDown();
@@ -191,6 +193,32 @@ public class McpOAuthServletTest extends TestCase
 		System.clearProperty( McpOAuthConfig.ISSUER_PROPERTY );
 	}
 
+	/** The proxy's X-Forwarded-Host/Proto take precedence over the (internal) Host header. */
+	public void testIssuerForwardedHostPrecedence()
+	{
+		System.clearProperty( McpOAuthConfig.ISSUER_PROPERTY );
+		// X-Forwarded-Host present → the public host wins over the internal Host header.
+		assertEquals( "forwarded host wins over Host",
+				"https://biouml2test.biouml.org/biouml/oauth",
+				McpOAuthConfig.issuer( "bioumlweb:8080", "biouml2test.biouml.org", null ) );
+		// X-Forwarded-Proto sets the scheme (here downgraded to http).
+		assertEquals( "forwarded proto sets the scheme",
+				"http://biouml2test.biouml.org/biouml/oauth",
+				McpOAuthConfig.issuer( "bioumlweb:8080", "biouml2test.biouml.org", "http" ) );
+		// A comma-separated chain uses the first (public-most) value.
+		assertEquals( "first value of a forwarded chain wins",
+				"https://edge.example/biouml/oauth",
+				McpOAuthConfig.issuer( "bioumlweb:8080", "edge.example, bioumlweb:8080", "https, http" ) );
+		// A non-http(s) proto is ignored → default https.
+		assertEquals( "bad forwarded proto falls back to https",
+				"https://h.example/biouml/oauth",
+				McpOAuthConfig.issuer( "h.example", null, "ws" ) );
+		// No forwarded host → fall back to the plain Host header (unchanged behavior).
+		assertEquals( "falls back to Host when no forwarded host",
+				"https://h.example:8443/biouml/oauth",
+				McpOAuthConfig.issuer( "h.example:8443", null, null ) );
+	}
+
 	/** The RFC 9728 protected-resource document names the MCP resource + this authorization server. */
 	@SuppressWarnings( "unchecked" )
 	public void testProtectedResourceMetadata() throws Exception
@@ -203,6 +231,29 @@ public class McpOAuthServletTest extends TestCase
 		List<String> servers = (List<String>) doc.get( "authorization_servers" );
 		assertEquals( 1, servers.size() );
 		assertEquals( "https://biouml2test.biouml.org/biouml/oauth", servers.get( 0 ) );
+	}
+
+	/**
+	 * End-to-end: when the app sits behind a proxy that forwards an internal {@code Host}, the AS
+	 * metadata served by the servlet must point at the public {@code X-Forwarded-Host} — the exact
+	 * misconfiguration that broke Claude's connector discovery on biouml2test.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testWellKnownUsesForwardedHost() throws Exception
+	{
+		Map<String, Object> p = params();
+		p.put( "Host", new String[] { "bioumlweb:8080" } );
+		p.put( "X-Forwarded-Host", new String[] { "biouml2test.biouml.org" } );
+		p.put( "X-Forwarded-Proto", new String[] { "https" } );
+		HandleResult r = service( "/oauth/.well-known/oauth-authorization-server", p );
+		assertEquals( "200", 200, r.status );
+		Map<String, Object> doc = json( r.body );
+		assertEquals( "issuer uses the forwarded public host, not the internal Host",
+				"https://biouml2test.biouml.org/biouml/oauth", doc.get( "issuer" ) );
+		assertEquals( "authorization_endpoint uses the public host",
+				"https://biouml2test.biouml.org/biouml/oauth/authorize", doc.get( "authorization_endpoint" ) );
+		assertEquals( "registration_endpoint uses the public host",
+				"https://biouml2test.biouml.org/biouml/oauth/register", doc.get( "registration_endpoint" ) );
 	}
 
 	/** The RFC 8414 authorization-server metadata advertises code + PKCE S256 + public clients. */

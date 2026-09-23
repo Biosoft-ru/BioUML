@@ -105,7 +105,8 @@ client ──Authorization: Bearer <access_token>──▶ /biouml/mcp
 
 | Property | Meaning |
 |---|---|
-| `biouml.mcp.oauth.issuer` | Public base URL of the authorization server, e.g. `https://biouml2test.biouml.org/biouml/oauth`. Unset ⇒ derived from the request `Host` header as `https://<host>/biouml/oauth`. |
+| `biouml.mcp.oauth.issuer` | Public base URL of the authorization server, e.g. `https://biouml2test.biouml.org/biouml/oauth`. When set it is used verbatim and wins over everything derived. Unset ⇒ derived from the request's public hostname: `X-Forwarded-Host` (first value) with `X-Forwarded-Proto` as the scheme when present, else the `Host` header → `https://<host>/biouml/oauth`. |
+| `biouml.mcp.oauth.public.host` | Optional operator-declared public hostname (e.g. `biouml2test.biouml.org`). When set and the *derived* host differs from it, a one-time WARNING is logged — this surfaces the classic misconfiguration where the app sits behind a proxy that forwards an internal `Host` and would otherwise emit an unreachable internal URL in its OAuth metadata. Not required; purely a misconfiguration canary. |
 | `biouml.mcp.oauth.clients` | Static client allow-list: `clientId=uri1\|uri2;clientId2=uri3`. Redirect URIs are matched **exactly** (open-redirect defense). No RFC 7591 dynamic registration. |
 
 Example (test server, Claude connector as a public client):
@@ -133,6 +134,14 @@ Example (test server, Claude connector as a public client):
 `https://biouml2test.biouml.org/biouml/mcp` → the UI discovers the OAuth flow from the 401,
 registers a client via DCR, and lets the user sign in with their BioUML account (the `/authorize`
 login form). With DCR there is nothing to configure on the server for Claude.
+
+> **Behind a proxy:** Claude's checker probes the public URL, so the OAuth metadata it fetches must
+> point at the *public* host, not the internal backend. The server prefers the proxy's
+> `X-Forwarded-Host` / `X-Forwarded-Proto` over the `Host` header, so make sure your reverse proxy
+> forwards those (most do by default). If it doesn't — or if you'd rather not rely on it — set
+> `-Dbiouml.mcp.oauth.issuer=https://<public-host>/biouml/oauth` explicitly; that value always wins.
+> Set `-Dbiouml.mcp.oauth.public.host=<public-host>` to get a log WARNING if the derived host ever
+> diverges from what you expect.
 
 **Token lifetime:** 1 hour (no refresh-token grant in v1 — re-running the flow is the renewal
 path). Tokens and codes are in-memory, so the deployment must run a single JVM (biouml2test does);

@@ -66,6 +66,13 @@ public class McpServlet
 	private final ObjectMapper mapper = new ObjectMapper();
 	private McpJsonRpcDispatcher dispatcher;
 
+	// The current request's public-host hints (set at the top of handle() so unauthorized() can
+	// derive the OAuth issuer for the WWW-Authenticate challenge). One request is served per
+	// thread at a time by ConnectionServlet, so plain fields are safe here.
+	private String issuerHost;
+	private String issuerForwardedHost;
+	private String issuerForwardedProto;
+
 	/**
 	 * Called by the servlet registry at server startup (mirrors {@code WebServicesServlet.init}).
 	 * {@code args} are the repository root folders; building the dispatcher is cheap, so it happens here
@@ -132,8 +139,11 @@ public class McpServlet
 			if ( host != null )
 				hostValue = first( host );
 		}
+		String forwardedHost = params == null ? null : first( params.get( "X-Forwarded-Host" ) );
+		String forwardedProto = params == null ? null : first( params.get( "X-Forwarded-Proto" ) );
 
-		HandleResult r = handle( "POST", path, query, body, session, authorization, remoteAddress, hostValue );
+		HandleResult r = handle( "POST", path, query, body, session, authorization, remoteAddress,
+				hostValue, forwardedHost, forwardedProto );
 
 		// ConnectionServlet's (…, OutputStream, Map) branch contract: write the response bytes to the
 		// `out` stream (it writes `out`'s bytes to the client) and RETURN the content type (it calls
@@ -200,7 +210,7 @@ public class McpServlet
 	 */
 	public HandleResult handle( String method, String path, String query, String body, Object session )
 	{
-		return handle( method, path, query, body, session, null, "", null );
+		return handle( method, path, query, body, session, null, "", null, null, null );
 	}
 
 	/**
@@ -232,16 +242,35 @@ public class McpServlet
 	}
 
 	/**
-	 * The transport-agnostic core (see the 7-arg overload); the extra {@code host} parameter is the
+	 * The transport-agnostic core (see the 8-arg overload); the extra {@code host} parameter is the
 	 * request {@code Host} header, used to derive the OAuth issuer (and thus the {@code
 	 * WWW-Authenticate} challenge on a 401) when the {@code biouml.mcp.oauth.issuer} property is
-	 * unset.
+	 * unset. No forwarded headers (a plain non-proxied request).
 	 *
 	 * @param host the request {@code Host} header (e.g. {@code biouml2test.biouml.org}); may be null
 	 */
 	public HandleResult handle( String method, String path, String query, String body, Object session,
 			String authorization, String remoteAddress, String host )
 	{
+		return handle( method, path, query, body, session, authorization, remoteAddress, host, null, null );
+	}
+
+	/**
+	 * The transport-agnostic core: authenticate, dispatch the JSON-RPC body, and produce the response
+	 * status + headers + body. The {@code host} / {@code forwardedHost} / {@code forwardedProto}
+	 * parameters are the request's public-host hints, used to derive the OAuth issuer for the 401
+	 * {@code WWW-Authenticate} challenge (the proxy-forwarded values win over the raw {@code Host}).
+	 *
+	 * @param host           the request {@code Host} header; may be null
+	 * @param forwardedHost  the request {@code X-Forwarded-Host} value; may be null
+	 * @param forwardedProto the request {@code X-Forwarded-Proto} value; may be null
+	 */
+	public HandleResult handle( String method, String path, String query, String body, Object session,
+			String authorization, String remoteAddress, String host, String forwardedHost, String forwardedProto )
+	{
+		this.issuerHost = host;
+		this.issuerForwardedHost = forwardedHost;
+		this.issuerForwardedProto = forwardedProto;
 		long start = System.currentTimeMillis();
 
 		// Auth path 0: an `Authorization: Bearer <token>` header — an access token minted by the
@@ -252,14 +281,14 @@ public class McpServlet
 		{
 			OAuthTokenStore.AccessToken token = OAuthTokenStore.validate( authorization.substring( "Bearer ".length() ).trim() );
 			if ( token == null )
-				return unauthorized( "invalid or expired bearer token", host );
+				return unauthorized( "invalid or expired bearer token" );
 			try
 			{
 				SecurityManager.addThreadToSessionRecord( Thread.currentThread(), token.sessionId );
 			}
 			catch ( Exception e )
 			{
-				return unauthorized( "bearer token session unavailable", host );
+				return unauthorized( "bearer token session unavailable" );
 			}
 			return dispatch( method, path, body, token.user, start );
 		}
@@ -269,7 +298,7 @@ public class McpServlet
 		{
 			String user = authenticateByToken( authorization, remoteAddress );
 			if ( user == null )
-				return unauthorized( "invalid or missing Authorization credential", host );
+				return unauthorized( "invalid or missing Authorization credential" );
 			return dispatch( method, path, body, user, start );
 		}
 
@@ -278,7 +307,7 @@ public class McpServlet
 		// user. There is no privileged "system" shortcut for external requests.
 		String sessionId = resolveSessionId( query, session );
 		if ( sessionId == null )
-			return unauthorized( "no session", host );
+			return unauthorized( "no session" );
 
 		// Bind the thread to the session so SecurityManager calls resolve the caller's identity.
 		try
@@ -287,14 +316,14 @@ public class McpServlet
 		}
 		catch ( Exception e )
 		{
-			return unauthorized( "invalid session", host );
+			return unauthorized( "invalid session" );
 		}
 
 		String user;
 		try
 		{
 			if ( SecurityManager.isSessionDead( sessionId ) )
-				return unauthorized( "invalid session", host );
+				return unauthorized( "invalid session" );
 			user = SecurityManager.getSessionUser();
 		}
 		catch ( Exception e )
@@ -302,7 +331,7 @@ public class McpServlet
 			user = null;
 		}
 		if ( user == null )
-			return unauthorized( "unauthenticated", host );
+			return unauthorized( "unauthenticated" );
 
 		return dispatch( method, path, body, user, start );
 	}
@@ -425,12 +454,12 @@ public class McpServlet
 	 * authorization server and sign in, and the reserved {@code Status} key (consumed by
 	 * {@code ConnectionServlet}) makes the 401 real on the wire instead of a 200 with an error body.
 	 */
-	private HandleResult unauthorized( String reason, String host )
+	private HandleResult unauthorized( String reason )
 	{
 		String body = "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":401,\"message\":\"unauthorized: " + reason
 				+ " — a BioUML session is required\"}}";
 		Map<String, String> headers = new LinkedHashMap<String, String>();
-		String issuer = McpOAuthConfig.issuer( host );
+		String issuer = McpOAuthConfig.issuer( issuerHost, issuerForwardedHost, issuerForwardedProto );
 		if ( issuer != null )
 			headers.put( "WWW-Authenticate",
 					"Bearer resource_metadata=\"" + McpOAuthConfig.protectedResourceMetadataUrl( issuer ) + "\"" );
