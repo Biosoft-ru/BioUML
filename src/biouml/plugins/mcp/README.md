@@ -23,18 +23,25 @@ mvn -pl tomcat-embedded exec:java
 
 The MCP endpoint is `http://localhost:8080/bioumlweb/mcp`.
 
-### 2. Authentication (BioUML web session)
+### 2. Authentication
 
-The MCP endpoint reuses the BioUML web session — **no new auth system**. You need a session
-exactly as you would for the web UI:
+Three interchangeable paths; the `Authorization` header wins when present:
 
-- Log in through the BioUML web UI (or your usual session-issuing flow) and use that
-  `JSESSIONID` cookie, **or**
-- Pass the session id explicitly as a query parameter: `?sessionId=<sessionId>`.
+- **BioUML web session** — the `JSESSIONID` cookie the web UI login created (or the session id
+  explicitly as `?sessionId=<sessionId>`).
+- **BioStore token (Basic)** — an `Authorization: Basic <base64>` header whose decoded value is
+  `<username>::token:<uuid>`. The `:token:<uuid>` part is a credential issued by the BioStore auth
+  server; BioUML passes it verbatim to the configured `SecurityProvider`, which performs the real
+  validation. This is the path for clients that already hold a BioStore token (Claude Code's
+  `.mcp.json`, third-party clients).
+- **OAuth 2.1 bearer token** — an `Authorization: Bearer <token>` header with an access token minted
+  by the MCP OAuth server (see *OAuth for remote clients* below).
 
 The special **`system`** session (the server's own identity) is privileged and is used for
 headless/automated calls. Any other session must belong to a logged-in user; unauthenticated
-requests are refused with HTTP **401** and a structured JSON-RPC error body.
+requests are refused with HTTP **401** — a real 401 status line plus a `WWW-Authenticate: Bearer
+resource_metadata="…"` challenge (when the OAuth issuer is determinable) plus a structured
+JSON-RPC error body.
 
 ### 3. Connect an MCP client
 
@@ -75,6 +82,48 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"biouml_repo_collections","arguments":{}}}'
 ```
+
+### 4. OAuth for remote clients (Claude.ai custom connectors)
+
+Remote MCP clients that cannot present a session or a BioStore token up front — notably **Claude.ai
+custom connectors** — sign in through the MCP-spec OAuth flow: the client probes the endpoint,
+receives the `401` + `WWW-Authenticate` challenge, fetches the protected-resource metadata
+(RFC 9728) and the authorization-server metadata (RFC 8414), then completes an OAuth 2.1
+authorization-code + PKCE (S256) exchange against the authorization server hosted at
+`/biouml/oauth`:
+
+```
+client ──401+WWW-Authenticate──▶ /biouml/mcp
+client ──GET .well-known/oauth-protected-resource──▶ /biouml/oauth/…
+client ──GET .well-known/oauth-authorization-server──▶ /biouml/oauth/…
+browser ──GET /authorize (user signs in)──▶ 302 redirect_uri?code=…&state=…
+client ──POST /token (code + code_verifier)──▶ {access_token, "Bearer", expires_in}
+client ──Authorization: Bearer <access_token>──▶ /biouml/mcp
+```
+
+**Configuration** (system properties on the server JVM; no clients configured ⇒ OAuth is off):
+
+| Property | Meaning |
+|---|---|
+| `biouml.mcp.oauth.issuer` | Public base URL of the authorization server, e.g. `https://biouml2test.biouml.org/biouml/oauth`. Unset ⇒ derived from the request `Host` header as `https://<host>/biouml/oauth`. |
+| `biouml.mcp.oauth.clients` | Static client allow-list: `clientId=uri1\|uri2;clientId2=uri3`. Redirect URIs are matched **exactly** (open-redirect defense). No RFC 7591 dynamic registration. |
+
+Example (test server, Claude connector as a public client):
+
+```
+-Dbiouml.mcp.oauth.issuer=https://biouml2test.biouml.org/biouml/oauth
+-Dbiouml.mcp.oauth.clients=claude-connector=https://claude.ai/api/mcp/oauth/callback
+```
+
+**Claude Web setup:** *Connectors → Add custom connector* → server URL
+`https://biouml2test.biouml.org/biouml/mcp` → the UI discovers the OAuth flow from the 401 and
+lets the user sign in with their BioUML account (the `/authorize` login form). The client id to
+paste into the UI's OAuth field must match the `clientId` in the allow-list; the client is treated
+as public (PKCE), so a client secret is not required (ignored if sent).
+
+**Token lifetime:** 1 hour (no refresh-token grant in v1 — re-running the flow is the renewal
+path). Tokens and codes are in-memory, so the deployment must run a single JVM (biouml2test does);
+a multi-node deployment needs a shared store.
 
 ## Tool reference
 
@@ -164,11 +213,14 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
   rather than a time series; on a provisioned OSGi/Tomcat runtime it returns the series.
 - **Result size caps** — list/describe tools cap their output (children ≤ 100, table rows ≤ 50,
   describe payloads ≤ 200 KB) and set a `truncated:true` flag when they do.
+- **OAuth is single-JVM and has no refresh grant** — see *OAuth for remote clients*.
 
 ## Security
 
-- **Auth** — the endpoint requires a valid BioUML web session (see *Quick start*). Unauthenticated
-  requests → HTTP 401. The privileged `system` session is the server's own identity.
+- **Auth** — the endpoint requires a valid BioUML web session, a BioStore token, or an OAuth
+  bearer token (see *Quick start* and *OAuth for remote clients*). Unauthenticated requests →
+  real HTTP 401 + `WWW-Authenticate` challenge. The privileged `system` session is the server's
+  own identity.
 - **Input validation** — every tool validates its arguments at the boundary. A missing required
   argument or a wrong-typed argument returns a structured `invalid_params` envelope; a bad
   repository path returns `not_found` / `path_escape`. Unknown tools return JSON-RPC `-32601`.
@@ -178,6 +230,10 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
 - **No stack-trace leakage** — all failures are returned as structured `{ok:false, code, error}`
   envelopes. Exception details are logged server-side (via `java.util.logging`, method/tool/
   duration/status — no PII or request bodies), never sent to the client.
+- **OAuth hardening** — redirect URIs must match the allow-list exactly (no open redirect);
+  authorization codes are one-time (no replay); `state` round-trips untouched (CSRF); PKCE is
+  S256-only and compared in constant time; access tokens are opaque `SecureRandom` values; the
+  login form HTML-escapes every reflected (client-controlled) value.
 
 ## Development
 
@@ -185,6 +241,8 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
 - OSGi/bundle metadata: `plugconfig/biouml.plugins.mcp/` (this directory's `plugin.xml`,
   `META-INF/MANIFEST.MF`, `pom.xml`).
 - Tests: `src/biouml/plugins/mcp/_test/` — `Mcp*Test` covers the repository/analysis/diagram/
-  simulation tools, the HTTP + in-process transports, the end-to-end journey, and the hardening
-  (malformed input, path-escape, denied action, truncation, performance). `McpReadmeTableTest`
-  keeps this file's tool table in sync with the code.
+  simulation tools, the HTTP + in-process transports, the end-to-end journey, the OAuth flow
+  (`McpOAuthServletTest`: discovery docs, authorize session/form paths, PKCE, one-time codes,
+  redirect-binding negatives; `McpServletTest` adds the Bearer path + 401 challenges), and the
+  hardening (malformed input, path-escape, denied action, truncation, performance).
+  `McpReadmeTableTest` keeps this file's tool table in sync with the code.

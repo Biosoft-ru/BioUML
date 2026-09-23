@@ -10,4 +10,10 @@
     <extension point="ru.biosoft.server.servlet" id="McpServlet">
         <servlet class="biouml.plugins.mcp.web.McpServlet" prefix="mcp"/>
     </extension>
+    <!-- The MCP OAuth 2.1 authorization server (RFC 9728/8414 discovery + authorization-code/PKCE
+         flow) so remote MCP clients (Claude.ai custom connectors, etc.) can sign in: it serves the
+         well-known metadata at /biouml/oauth/.well-known/... plus /authorize and /token. -->
+    <extension point="ru.biosoft.server.servlet" id="McpOAuthServlet">
+        <servlet class="biouml.plugins.mcp.oauth.McpOAuthServlet" prefix="oauth"/>
+    </extension>
 </plugin>

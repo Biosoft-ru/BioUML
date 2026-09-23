@@ -64,8 +64,19 @@ public class McpServletTest extends TestCase
 		// session, making isSessionDead() false and getSessionUser() non-null for it. (The `system`
 		// session is intentionally NOT used: it carries no user record by design and is not a valid
 		// external credential.)
+		// A real, live session with a NON-empty username: commonLogin (TestSecurityProvider accepts
+		// everything) records a UserPermissions whose user is "alice". (anonymousLogin() would work too,
+		// but its user is "" — fine for the MCP servlet's non-null check, not for identity-bearing flows.)
+		// The static SecurityProvider is normally initialized by the suite before the MCP tests run;
+		// when this class runs in isolation it is null, so install the lenient provider here.
+		if ( SecurityManager.getSecurityProvider() == null )
+		{
+			java.lang.reflect.Field f = SecurityManager.class.getDeclaredField( "securityProvider" );
+			f.setAccessible( true );
+			f.set( null, new ru.biosoft.access.security.TestSecurityProvider() );
+		}
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
-		SecurityManager.anonymousLogin();
+		SecurityManager.commonLogin( "alice", "pw", "127.0.0.1", null );
 		servlet = new McpServlet();
 		servlet.initForTest();
 	}
@@ -298,6 +309,85 @@ public class McpServletTest extends TestCase
 				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
 		HandleResult r = serviceWith( params );
 		assertEquals( "raw JSON body + session → 200 — body=" + r.body, 200, r.status );
+	}
+
+	// =================================================================== bearer auth (MCP OAuth tokens)
+
+	/** Mint an access token bound to the live test session (as /token would). */
+	private String mintBearerToken()
+	{
+		String user = null;
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		try
+		{
+			user = SecurityManager.getSessionUser();
+		}
+		finally
+		{
+			SecurityManager.removeThreadFromSessionRecord();
+		}
+		return biouml.plugins.mcp.oauth.OAuthTokenStore
+				.issueToken( AUTH_SESSION, "test-client", user == null ? "alice" : user ).value;
+	}
+
+	/**
+	 * A Bearer token minted by the OAuth server authenticates and dispatches — the remote-client path
+	 * (no JSESSIONID, no Basic header).
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testBearerTokenAuthSuccess() throws Exception
+	{
+		biouml.plugins.mcp.oauth.OAuthTokenStore.clearForTest();
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+		params.put( "Authorization", new String[] { "Bearer " + mintBearerToken() } );
+		HandleResult r = serviceWith( params );
+		assertEquals( "bearer token → 200 — body=" + r.body, 200, r.status );
+		Map<String, Object> result = (Map<String, Object>) parse( r.body ).get( "result" );
+		assertNotNull( "tools/list result via bearer auth", result );
+	}
+
+	/**
+	 * An unknown/garbage Bearer token → 401, and the 401 response carries the OAuth discovery
+	 * headers: {@code WWW-Authenticate: Bearer resource_metadata="…"} (when the issuer is
+	 * determinable) and the reserved {@code Status} key (the real HTTP status on the wire).
+	 */
+	public void testBearerInvalidTokenIs401WithDiscovery() throws Exception
+	{
+		biouml.plugins.mcp.oauth.OAuthTokenStore.clearForTest();
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+		params.put( "Authorization", new String[] { "Bearer mcp_at_garbage" } );
+		params.put( "Host", new String[] { "biouml2test.biouml.org" } );
+
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		String ct = servlet.service( "/mcp", null, params, out, header );
+		assertEquals( "application/json", ct );
+		assertEquals( "invalid bearer → 401", "401", header.get( "X-MCP-Status" ) );
+		assertEquals( "reserved Status key set for ConnectionServlet", "401", header.get( "Status" ) );
+		String www = header.get( "WWW-Authenticate" );
+		assertNotNull( "WWW-Authenticate present", www );
+		assertTrue( "challenges with Bearer", www.startsWith( "Bearer " ) );
+		assertTrue( "points at the protected-resource metadata",
+				www.contains( "resource_metadata=\"https://biouml2test.biouml.org/biouml/oauth/.well-known/oauth-protected-resource\"" ) );
+	}
+
+	/** No credentials at all → 401 with the reserved Status key (real 401 on the wire). */
+	public void testNoCredsIs401WithStatusHeader() throws Exception
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY,
+				new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}" } );
+		params.put( "Host", new String[] { "biouml2test.biouml.org" } );
+
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		servlet.service( "/mcp", null, params, out, header );
+		assertEquals( "401", header.get( "X-MCP-Status" ) );
+		assertEquals( "401", header.get( "Status" ) );
 	}
 
 	/** Swap the (private, static) SecurityProvider on SecurityManager for the duration of a test. */

@@ -295,6 +295,11 @@ public abstract class ConnectionServlet extends HttpServlet
                 // could not open/read the body stream — leave mcpRawBody absent (the MCP endpoint 400s)
             }
         }
+        // The MCP OAuth server builds its discovery URLs (issuer, authorization/token endpoints)
+        // request-relative; the Host header tells it which deployment it is answering for.
+        String host = req.getHeader( "Host" );
+        if( host != null )
+            params.put( "Host", new String[] { host } );
         if( ServletFileUpload.isMultipartContent(req) )
         {
             try
@@ -470,6 +475,22 @@ public abstract class ConnectionServlet extends HttpServlet
                 String contentType = (String)service.invoke(servlet, new Object[] {path, req.getSession(), getParameterMap(req, servlet),
                         result, header});
 
+                // A servlet may carry the logical HTTP status in the header map under the reserved
+                // "Status" key (e.g. the MCP endpoint's 401 challenges). This branch never calls
+                // setStatus otherwise, so the wire status would stay 200. The body is fully buffered
+                // above, so the status can still be set before the response is committed. `remove`
+                // also keeps the reserved key from leaking to the client as a bogus "Status" header.
+                String status = header.remove( "Status" );
+                if( status != null )
+                {
+                    try
+                    {
+                        resp.setStatus( Integer.parseInt( status ) );
+                    }
+                    catch( NumberFormatException ignore )
+                    {
+                    }
+                }
                 if(contentType.equals("logout"))
                 {
                     resp.setContentType("text/html");

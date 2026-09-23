@@ -17,4 +17,5 @@ Export-Package: biouml.plugins.mcp,
  biouml.plugins.mcp.server,
  biouml.plugins.mcp.tools,
  biouml.plugins.mcp.web,
- biouml.plugins.mcp.support
+ biouml.plugins.mcp.support,
+ biouml.plugins.mcp.oauth
