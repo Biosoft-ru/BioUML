@@ -145,9 +145,17 @@ public final class McpOAuthConfig
 	{
 		if ( clientId == null || clientId.trim().isEmpty() )
 			return "missing client_id";
+		// A dynamically-registered client (RFC 7591) takes precedence; it carries its own exact
+		// redirect-URI set. (A DCR client is in-memory and single-JVM, so it cannot collide with a
+		// statically-configured one in practice — server-generated ids never match hand-set ids.)
+		OAuthTokenStore.RegisteredClient dynamic = OAuthTokenStore.findClient( clientId );
+		if ( dynamic != null )
+			return OAuthTokenStore.clientAllowsRedirect( dynamic, redirectUri ) ? null
+					: "redirect_uri not registered for this client";
+		// Fall back to the static allow-list (biouml.mcp.oauth.clients).
 		Map<String, List<String>> clients = clients();
 		if ( clients.isEmpty() )
-			return "no clients configured";
+			return "unknown client_id (no clients configured and none registered)";
 		List<String> uris = clients.get( clientId );
 		if ( uris == null )
 			return "unknown client_id";

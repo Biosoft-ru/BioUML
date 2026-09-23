@@ -217,8 +217,11 @@ public class McpOAuthServletTest extends TestCase
 		assertEquals( "https://biouml2test.biouml.org/biouml/oauth/token", doc.get( "token_endpoint" ) );
 		assertEquals( java.util.Collections.singletonList( "code" ), doc.get( "response_types_supported" ) );
 		assertEquals( java.util.Collections.singletonList( "authorization_code" ), doc.get( "grant_types_supported" ) );
-		assertEquals( java.util.Collections.singletonList( "S256" ), doc.get( "code_challenge_methods_supported" ) );
-		assertEquals( java.util.Collections.singletonList( "none" ), doc.get( "token_endpoint_auth_methods_supported" ) );
+		assertEquals( "registration endpoint advertised (RFC 7591)",
+				"https://biouml2test.biouml.org/biouml/oauth/register", doc.get( "registration_endpoint" ) );
+		assertEquals( java.util.Arrays.asList( "S256", "none" ), doc.get( "code_challenge_methods_supported" ) );
+		assertEquals( java.util.Arrays.asList( "none", "client_secret_basic" ),
+				doc.get( "token_endpoint_auth_methods_supported" ) );
 	}
 
 	/** Unknown sub-paths 404; the flow works with an explicit issuer property too. */
@@ -227,6 +230,98 @@ public class McpOAuthServletTest extends TestCase
 		HandleResult r = service( "/oauth/nope", params() );
 		assertEquals( 404, r.status );
 		assertTrue( r.body.contains( "invalid_request" ) );
+	}
+
+	// ------------------------------------------------------------------ DCR (RFC 7591)
+
+	/**
+	 * Dynamic Client Registration: a JSON body with redirect_uris → 201 with a server-generated
+	 * client_id + client_id_issuer, and the client is immediately usable (authorize accepts it).
+	 * This is the path Claude's "Register automatically" mode takes.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testRegisterClientSucceedsAndIsUsable() throws Exception
+	{
+		String regBody = "{\"client_name\":\"claude-connector\","
+				+ "\"redirect_uris\":[\"https://claude.ai/api/mcp/oauth/callback\"],"
+				+ "\"grant_types\":[\"authorization_code\"],\"response_types\":[\"code\"]}";
+		Map<String, Object> p = params( "mcpRawBody", regBody );
+		HandleResult reg = service( "/oauth/register", p );
+		assertEquals( "201 created — body=" + reg.body, 201, reg.status );
+		Map<String, Object> regResp = json( reg.body );
+		String clientId = (String) regResp.get( "client_id" );
+		assertNotNull( "client_id returned", clientId );
+		assertTrue( "server-generated id (mcp_cl_ prefix)", clientId.startsWith( "mcp_cl_" ) );
+		assertEquals( "client_id_issuer is the AS issuer",
+				"https://biouml2test.biouml.org/biouml/oauth", regResp.get( "client_id_issuer" ) );
+		assertEquals( "public client → token_endpoint_auth_method none", "none", regResp.get( "token_endpoint_auth_method" ) );
+
+		// The freshly-registered client must now pass authorization validation.
+		assertNull( "registered client + its exact uri validates",
+				McpOAuthConfig.checkClient( clientId, "https://claude.ai/api/mcp/oauth/callback" ) );
+		assertNotNull( "a different uri is still rejected",
+				McpOAuthConfig.checkClient( clientId, "https://evil.example/callback" ) );
+	}
+
+	/** A DCR-registered client can run the full authorize → token flow. */
+	@SuppressWarnings( "unchecked" )
+	public void testRegisteredClientRunsFullFlow() throws Exception
+	{
+		String regBody = "{\"redirect_uris\":[\"https://client.example/oauth/callback\"]}";
+		HandleResult reg = service( "/oauth/register", params( "mcpRawBody", regBody ) );
+		String clientId = (String) json( reg.body ).get( "client_id" );
+
+		HandleResult authz = service( "/oauth/authorize", params(
+				"sessionId", AUTH_SESSION, "client_id", clientId,
+				"redirect_uri", "https://client.example/oauth/callback",
+				"state", "s", "code_challenge", CHALLENGE, "code_challenge_method", "S256" ) );
+		assertEquals( "302 for a registered client", 302, authz.status );
+		String code = codeFrom( authz );
+
+		HandleResult tok = exchange( code, VERIFIER, clientId, "https://client.example/oauth/callback" );
+		assertEquals( "200 token for registered client — body=" + tok.body, 200, tok.status );
+		assertNotNull( json( tok.body ).get( "access_token" ) );
+	}
+
+	/** A registration without redirect_uris is rejected (400 invalid_redirect_uri). */
+	public void testRegisterWithoutRedirectUrisIs400() throws Exception
+	{
+		HandleResult r = service( "/oauth/register", params( "mcpRawBody", "{\"client_name\":\"x\"}" ) );
+		assertEquals( 400, r.status );
+		assertTrue( r.body.contains( "invalid_redirect_uri" ) );
+	}
+
+	/** A registration with a malformed JSON body is rejected (400 invalid_client_metadata). */
+	public void testRegisterBadJsonIs400() throws Exception
+	{
+		HandleResult r = service( "/oauth/register", params( "mcpRawBody", "{not valid json" ) );
+		assertEquals( 400, r.status );
+		assertTrue( r.body.contains( "invalid_client_metadata" ) );
+	}
+
+	/** A confidential registration echoes the secret and reports client_secret_basic. */
+	@SuppressWarnings( "unchecked" )
+	public void testRegisterConfidentialClient() throws Exception
+	{
+		String regBody = "{\"redirect_uris\":[\"https://c.example/cb\"],\"client_secret\":\"s3cret\"}";
+		HandleResult reg = service( "/oauth/register", params( "mcpRawBody", regBody ) );
+		assertEquals( 201, reg.status );
+		Map<String, Object> resp = json( reg.body );
+		assertEquals( "secret echoed", "s3cret", resp.get( "client_secret" ) );
+		assertEquals( "client_secret_basic", resp.get( "token_endpoint_auth_method" ) );
+	}
+
+	/** Redirect URIs given as a comma-separated string are also accepted. */
+	@SuppressWarnings( "unchecked" )
+	public void testRegisterRedirectUrisAsString() throws Exception
+	{
+		String regBody = "{\"redirect_uris\":\"https://a.example/cb, https://b.example/cb\"}";
+		HandleResult reg = service( "/oauth/register", params( "mcpRawBody", regBody ) );
+		assertEquals( 201, reg.status );
+		List<String> uris = (List<String>) json( reg.body ).get( "redirect_uris" );
+		assertEquals( 2, uris.size() );
+		assertEquals( "https://a.example/cb", uris.get( 0 ) );
+		assertEquals( "https://b.example/cb", uris.get( 1 ) );
 	}
 
 	// ------------------------------------------------------------------ authorize

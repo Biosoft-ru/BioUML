@@ -134,6 +134,8 @@ public class McpOAuthServlet
 				return authorize( session, p );
 			if ( "token".equals( sub ) )
 				return token( p );
+			if ( "register".equals( sub ) )
+				return register( p );
 			return new HandleResult( 404, "application/json",
 					errorJson( "invalid_request", "unknown OAuth path" ) );
 		}
@@ -168,6 +170,9 @@ public class McpOAuthServlet
 			doc.put( "issuer", issuer );
 			doc.put( "authorization_endpoint", McpOAuthConfig.authorizationEndpoint( issuer ) );
 			doc.put( "token_endpoint", McpOAuthConfig.tokenEndpoint( issuer ) );
+			// RFC 7591: advertise the registration endpoint so clients (Claude's "Register
+			// automatically") know they can self-register instead of needing a static client.
+			doc.put( "registration_endpoint", issuer + "/register" );
 			java.util.List<String> responseTypes = new java.util.ArrayList<String>();
 			responseTypes.add( "code" );
 			doc.put( "response_types_supported", responseTypes );
@@ -176,9 +181,11 @@ public class McpOAuthServlet
 			doc.put( "grant_types_supported", grantTypes );
 			java.util.List<String> methods = new java.util.ArrayList<String>();
 			methods.add( "S256" );
+			methods.add( "none" );
 			doc.put( "code_challenge_methods_supported", methods );
 			java.util.List<String> tokenAuth = new java.util.ArrayList<String>();
 			tokenAuth.add( "none" );
+			tokenAuth.add( "client_secret_basic" );
 			doc.put( "token_endpoint_auth_methods_supported", tokenAuth );
 			doc.put( "scopes_supported", new java.util.ArrayList<String>() );
 		}
@@ -264,8 +271,21 @@ public class McpOAuthServlet
 		String bad = McpOAuthConfig.checkClient( clientId, redirectUri );
 		if ( bad != null )
 			return bad;
-		if ( !challenge.isEmpty() && !challengeMethod.isEmpty() && !"S256".equals( challengeMethod ) )
-			return "code_challenge_method must be S256";
+		// PKCE: S256 (challenge required) or none (challenge must be absent). An empty method with an
+		// empty challenge is treated as "none" (no PKCE) — accepted for permissive interop.
+		if ( "S256".equals( challengeMethod ) )
+		{
+			if ( challenge.isEmpty() )
+				return "code_challenge_method=S256 requires a code_challenge";
+		}
+		else if ( "none".equals( challengeMethod ) && !challenge.isEmpty() )
+		{
+			return "code_challenge_method=none must not send a code_challenge";
+		}
+		else if ( !challengeMethod.isEmpty() && !"none".equals( challengeMethod ) )
+		{
+			return "code_challenge_method must be S256 or none";
+		}
 		if ( !resource.isEmpty() && !McpOAuthConfig.isMcpResource( resource, issuer ) )
 			return "unsupported resource";
 		return null;
@@ -283,6 +303,82 @@ public class McpOAuthServlet
 		Map<String, String> headers = new LinkedHashMap<String, String>();
 		headers.put( "Location", location );
 		return new HandleResult( 302, "text/plain", headers, "" );
+	}
+
+	// ------------------------------------------------------------------ register (RFC 7591)
+
+	/**
+	 * Dynamic Client Registration (RFC 7591). MCP clients (notably Claude's "Register automatically"
+	 * mode) register here on connect instead of a static allow-list. The request is a JSON body with
+	 * at least {@code redirect_uris}; the response (HTTP 201) is the client record — {@code client_id}
+	 * (server-generated), {@code client_secret} (echoed, for confidential clients), and
+	 * {@code client_id_issuer} (RFC 9728 §4.3, the authorization-server issuer that issued the id).
+	 */
+	private HandleResult register( Map<String, Object> p ) throws Exception
+	{
+		// The body arrives as a raw JSON string under a params key (see ConnectionServlet.getParameterMap
+		// for mcpRawBody) or as individual form fields. Prefer the raw JSON body; fall back to fields.
+		String raw = first( p.get( "mcpRawBody" ) );
+		Map<String, Object> body;
+		if ( !raw.isEmpty() )
+		{
+			try
+			{
+				body = new ObjectMapper().readValue( raw, Map.class );
+			}
+			catch ( Exception e )
+			{
+				return new HandleResult( 400, "application/json",
+						errorJson( "invalid_client_metadata", "request body is not valid JSON" ) );
+			}
+		}
+		else
+		{
+			body = new LinkedHashMap<String, Object>();
+			for ( Map.Entry<String, Object> e : p.entrySet() )
+				body.put( e.getKey(), e.getValue() );
+		}
+
+		// redirect_uris is required (RFC 7591 §3.2.1). Accept a JSON array or a comma/space-separated string.
+		Object urisObj = body.get( "redirect_uris" );
+		List<String> uris = new java.util.ArrayList<String>();
+		if ( urisObj instanceof List )
+		{
+			for ( Object o : (List<?>) urisObj )
+				if ( o != null && !o.toString().trim().isEmpty() )
+					uris.add( o.toString().trim() );
+		}
+		else if ( urisObj != null )
+		{
+			for ( String s : urisObj.toString().split( "[,\\s]+" ) )
+				if ( !s.trim().isEmpty() )
+					uris.add( s.trim() );
+		}
+		if ( uris.isEmpty() )
+			return new HandleResult( 400, "application/json",
+					errorJson( "invalid_redirect_uri", "redirect_uris is required and must be non-empty" ) );
+
+		String clientName = body.get( "client_name" ) == null ? "" : body.get( "client_name" ).toString();
+		String clientSecret = body.get( "client_secret" ) == null ? null : body.get( "client_secret" ).toString();
+		if ( clientSecret != null && clientSecret.isEmpty() )
+			clientSecret = null; // treat an empty secret as a public client
+
+		OAuthTokenStore.RegisteredClient client = OAuthTokenStore.registerClient( uris, clientName, clientSecret );
+		log.info( "MCP OAuth client registered id=" + client.clientId + " name=" + clientName
+				+ " uris=" + uris + " confidential=" + ( clientSecret != null ) );
+
+		String issuer = McpOAuthConfig.issuer( first( p.get( "Host" ) ) );
+		Map<String, Object> out = new LinkedHashMap<String, Object>();
+		out.put( "client_id", client.clientId );
+		if ( clientSecret != null )
+			out.put( "client_secret", clientSecret );
+		out.put( "client_id_issuer", issuer == null ? "" : issuer );
+		out.put( "client_name", clientName );
+		out.put( "redirect_uris", uris );
+		out.put( "grant_types", java.util.Arrays.asList( "authorization_code" ) );
+		out.put( "response_types", java.util.Arrays.asList( "code" ) );
+		out.put( "token_endpoint_auth_method", clientSecret == null ? "none" : "client_secret_basic" );
+		return new HandleResult( 201, "application/json", mapper.writeValueAsString( out ) );
 	}
 
 	// ------------------------------------------------------------------ token
@@ -309,7 +405,11 @@ public class McpOAuthServlet
 		if ( !stored.redirectUri.equals( redirectUri ) )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "redirect_uri does not match the code" ) );
-		if ( verifier.isEmpty() || !OAuthTokenStore.pkceMatches( stored.codeChallenge,
+		if ( stored.codeChallenge == null || stored.codeChallenge.isEmpty() )
+		{
+			// No PKCE was required at /authorize (method "none"); accept any (or no) verifier.
+		}
+		else if ( verifier.isEmpty() || !OAuthTokenStore.pkceMatches( stored.codeChallenge,
 				OAuthTokenStore.pkceChallenge( verifier ) ) )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "code_verifier does not satisfy the code_challenge" ) );

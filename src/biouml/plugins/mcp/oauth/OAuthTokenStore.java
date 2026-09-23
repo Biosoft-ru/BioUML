@@ -35,6 +35,14 @@ public final class OAuthTokenStore
 	/** Authorization-code lifetime (10 min) — standard OAuth bound for the code → token exchange. */
 	public static final long AUTH_CODE_TTL_MS = 10L * 60L * 1000L;
 
+	/**
+	 * Lifetime of a dynamically-registered client (RFC 7591). Clients are in-memory and the
+	 * deployment is single-JVM, so a registration is useful for as long as this process lives; 24 h
+	 * bounds how long a leaked client_id stays valid and matches the "ephemeral, re-register on
+	 * connect" model MCP clients use.
+	 */
+	public static final long CLIENT_TTL_MS = 24L * 60L * 60L * 1000L;
+
 	/** Access-token prefix: a namespace sentinel so a token can never be misread as a Basic payload. */
 	public static final String TOKEN_PREFIX = "mcp_at_";
 
@@ -44,9 +52,45 @@ public final class OAuthTokenStore
 	private static final SecureRandom RANDOM = new SecureRandom();
 	private static final ConcurrentMap<String, AuthCode> CODES = new ConcurrentHashMap<String, AuthCode>();
 	private static final ConcurrentMap<String, AccessToken> TOKENS = new ConcurrentHashMap<String, AccessToken>();
+	private static final ConcurrentMap<String, RegisteredClient> CLIENTS =
+			new ConcurrentHashMap<String, RegisteredClient>();
 
 	private OAuthTokenStore()
 	{
+	}
+
+	/**
+	 * An OAuth client registered dynamically (RFC 7591) or via the static allow-list. Holds the
+	 * exact redirect URIs the client may use (the open-redirect defense) and its authentication mode
+	 * (public/PKCE vs. confidential with a secret).
+	 */
+	public static final class RegisteredClient
+	{
+		/** The client_id (the value the client presents at {@code /authorize} and {@code /token}). */
+		public final String clientId;
+		/** The exact redirect URIs the client is allowed to use. */
+		public final java.util.List<String> redirectUris;
+		/** The human-readable client name (informational). */
+		public final String clientName;
+		/** {@code null} for a public client (PKCE auth); the secret for a confidential one. */
+		public final String clientSecret;
+		/** Epoch millis when this registration expires (DCR clients are single-JVM and ephemeral). */
+		public final long expiresAt;
+
+		RegisteredClient( String clientId, java.util.List<String> redirectUris, String clientName,
+				String clientSecret, long ttlMs )
+		{
+			this.clientId = clientId;
+			this.redirectUris = redirectUris;
+			this.clientName = clientName;
+			this.clientSecret = clientSecret;
+			this.expiresAt = System.currentTimeMillis() + ttlMs;
+		}
+
+		boolean expired()
+		{
+			return System.currentTimeMillis() > expiresAt;
+		}
 	}
 
 	/** A one-time authorization code issued by {@code /authorize}. */
@@ -233,6 +277,52 @@ public final class OAuthTokenStore
 		return diff == 0;
 	}
 
+	// ------------------------------------------------------------------ clients
+
+	/**
+	 * Register a new OAuth client (RFC 7591). The client_id is generated server-side (a
+	 * {@code mcp_cl_}-prefixed random value) — the client cannot choose its own id, which prevents
+	 * a malicious client from registering a confusingly-named id.
+	 *
+	 * @param redirectUris the exact redirect URIs the client will use (must be non-empty)
+	 * @param clientName   an optional human-readable name (informational only)
+	 * @param clientSecret an optional secret; when present the client is confidential, when absent
+	 *                     public (PKCE)
+	 * @return the new client (never {@code null})
+	 */
+	public static RegisteredClient registerClient( java.util.List<String> redirectUris, String clientName,
+			String clientSecret )
+	{
+		String clientId = "mcp_cl_" + randomToken( 24 );
+		RegisteredClient client = new RegisteredClient( clientId, redirectUris, clientName,
+				clientSecret, CLIENT_TTL_MS );
+		CLIENTS.put( clientId, client );
+		return client;
+	}
+
+	/**
+	 * Look up a registered client by id (live or, if the static allow-list has been consulted
+	 * first, already merged in by the caller). Returns {@code null} for an unknown or expired id.
+	 */
+	public static RegisteredClient findClient( String clientId )
+	{
+		if ( clientId == null )
+			return null;
+		RegisteredClient client = CLIENTS.get( clientId );
+		if ( client == null || client.expired() )
+			return null;
+		return client;
+	}
+
+	/**
+	 * Whether {@code redirectUri} is an exact member of the client's registered set (the
+	 * open-redirect defense).
+	 */
+	public static boolean clientAllowsRedirect( RegisteredClient client, String redirectUri )
+	{
+		return client != null && redirectUri != null && client.redirectUris.contains( redirectUri );
+	}
+
 	// ------------------------------------------------------------------ internals
 
 	/**
@@ -267,5 +357,6 @@ public final class OAuthTokenStore
 	{
 		CODES.clear();
 		TOKENS.clear();
+		CLIENTS.clear();
 	}
 }

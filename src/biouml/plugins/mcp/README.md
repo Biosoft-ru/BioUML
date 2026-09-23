@@ -115,11 +115,24 @@ Example (test server, Claude connector as a public client):
 -Dbiouml.mcp.oauth.clients=claude-connector=https://claude.ai/api/mcp/oauth/callback
 ```
 
+**Client registration — two modes:**
+
+- **Dynamic (RFC 7591, "Register automatically")** — the default for Claude and most MCP clients.
+  The server advertises `registration_endpoint` in the RFC 8414 metadata; the client `POST`s
+  `{"redirect_uris":[…]}` to `/biouml/oauth/register` and receives a server-generated
+  `client_id` (and `client_id_issuer`). No pre-configuration is needed — this is the path Claude's
+  *"Register automatically"* mode takes. Registrations are in-memory (single-JVM) and expire after
+  24 h; the client re-registers on connect, which is the normal MCP pattern.
+- **Static (allow-list)** — set `biouml.mcp.oauth.clients` to pre-register a known client id + its
+  exact redirect URIs. Useful when a client presents a fixed id (the UI's *"Use your own OAuth
+  client"* mode) or when you want to vet clients ahead of time. A dynamically-registered client
+  takes precedence over the allow-list if the ids happened to collide (they won't — DCR ids are
+  server-generated `mcp_cl_…`).
+
 **Claude Web setup:** *Connectors → Add custom connector* → server URL
-`https://biouml2test.biouml.org/biouml/mcp` → the UI discovers the OAuth flow from the 401 and
-lets the user sign in with their BioUML account (the `/authorize` login form). The client id to
-paste into the UI's OAuth field must match the `clientId` in the allow-list; the client is treated
-as public (PKCE), so a client secret is not required (ignored if sent).
+`https://biouml2test.biouml.org/biouml/mcp` → the UI discovers the OAuth flow from the 401,
+registers a client via DCR, and lets the user sign in with their BioUML account (the `/authorize`
+login form). With DCR there is nothing to configure on the server for Claude.
 
 **Token lifetime:** 1 hour (no refresh-token grant in v1 — re-running the flow is the renewal
 path). Tokens and codes are in-memory, so the deployment must run a single JVM (biouml2test does);
