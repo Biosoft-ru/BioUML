@@ -12,7 +12,9 @@ Require-Bundle: org.eclipse.osgi,
  one.util.streamex,
  ru.biosoft.access,
  ru.biosoft.analysiscore,
- ru.biosoft.table
+ ru.biosoft.table,
+ ru.biosoft.server.servlets,
+ ru.biosoft.workbench
 Export-Package: biouml.plugins.mcp,
  biouml.plugins.mcp.server,
  biouml.plugins.mcp.tools,

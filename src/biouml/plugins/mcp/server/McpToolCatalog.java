@@ -99,9 +99,12 @@ public class McpToolCatalog
 		{
 			env = tool.handler.handle( ex, args );
 		}
-		catch ( Exception e )
+		catch ( Throwable e )
 		{
-			// Never leak a stack trace to the client — a structured internal error only.
+			// Catch Throwable (not just Exception): a handler can fail with an *Error* (e.g.
+			// NoClassDefFoundError from a missing OSGi Require-Bundle), not only an Exception. A
+			// structured internal error is returned either way — never a stack trace, and never an
+			// empty/absent result.
 			env = McpEnvelope.error( biouml.plugins.mcp.McpConstants.CODE_INTERNAL,
 					"unexpected error in tool " + tool.name + ": " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}

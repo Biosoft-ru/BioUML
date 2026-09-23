@@ -167,8 +167,13 @@ public class McpJsonRpcDispatcher
 		{
 			env = tool.handler.handle( null, args );
 		}
-		catch ( Exception e )
+		catch ( Throwable e )
 		{
+			// Catch Throwable (not just Exception): a tool handler can fail with an *Error* rather
+			// than an Exception — most notably NoClassDefFoundError when an OSGi dependency is not
+			// wired (e.g. a missing Require-Bundle), which is not an Exception. Such an error must
+			// still produce a valid isError CallToolResult, not propagate out and turn the response
+			// into an empty 200 body (which intermediaries reject as "Invalid content from server").
 			// Never leak a stack trace — a structured internal error.
 			env = McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"unexpected error in tool " + tool.name + ": " + e.getClass().getSimpleName() + ": " + e.getMessage() );
