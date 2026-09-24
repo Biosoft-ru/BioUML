@@ -31,7 +31,7 @@ public final class AnalysisTools
 				( ex, args ) -> McpAnalysisSupport.describeMethod( str( args, "name" ) ) );
 
 		catalog.register( "biouml_analysis_run",
-				"Run an analysis. params is a flat map of bean-property values (nested keys use '/' separators; path-typed properties take repository path strings). sync=true runs inline and returns the result; otherwise it is queued and returns {taskId,status}.",
+				"ASYNC — Run an analysis. By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) repeatedly call biouml_task_status (with a short delay) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a flat map of bean-property values (nested keys use '/' separators; path-typed properties take repository path strings).",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"params\":{\"type\":\"object\"},\"originPath\":{\"type\":\"string\"},\"sync\":{\"type\":\"boolean\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> {
 					Map<String, Object> params = args.get( "params" ) instanceof Map ? (Map<String, Object>) args.get( "params" ) : new java.util.LinkedHashMap<String, Object>();
@@ -40,7 +40,7 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_task_status",
-				"Report a task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths.",
+				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action.",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.taskStatus( str( args, "taskId" ) ) );
 

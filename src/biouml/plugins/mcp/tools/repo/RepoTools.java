@@ -158,7 +158,7 @@ public final class RepoTools
 				} );
 
 		catalog.register( "biouml_repo_copy_folder",
-				"Copy a folder (its whole subtree) to a new location — the headless equivalent of the web UI's 'Copy folder'. Delegates to the platform's folder provider, which runs the copy as an async job. Returns a jobID immediately; poll biouml_repo_job_status with the jobID until it completes (a large folder copy can exceed the client's request timeout).",
+				"ASYNC — Copy a folder (its whole subtree) to a new location. This returns IMMEDIATELY with a jobID; the copy continues in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status with the jobID (with a short delay between calls) until its 'completed' field is true, (3) the copy is then done. Delegates to the platform's folder provider.",
 				"{\"type\":\"object\",\"properties\":{\"fromPath\":{\"type\":\"string\"},\"toPath\":{\"type\":\"string\"}},\"required\":[\"fromPath\",\"toPath\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "fromPath" );
@@ -171,7 +171,7 @@ public final class RepoTools
 				} );
 
 			catalog.register( "biouml_repo_job_status",
-					"Report the status of an async job started by a job-based provider (e.g. biouml_repo_copy_folder) — the headless equivalent of the web UI's progress dialog. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start action. Returns {jobID, status, progress, message, completed}; poll until completed is true.",
+					"ASYNC poll — Report the progress of a background job started by an async start-tool (e.g. biouml_repo_copy_folder, biouml_repo_run_script, biouml_repo_import). Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the work is not done until then. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start tool. Returns {jobID, status, progress, message, completed}.",
 					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "jobID" );
@@ -240,7 +240,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_run_script",
-					"Run a script (JS, R, Java, ...) inline as an async job — the headless equivalent of the web UI's 'Run script'. Delegates to the platform's script provider. script is the source text; type is the script type (one of biouml_repo_script_types). Returns {jobID} immediately; poll biouml_repo_job_status until it completes, then fetch the output with biouml_repo_script_result.",
+					"ASYNC — Run a script (JS, R, Java, ...). This returns IMMEDIATELY with a jobID; the script runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status (with a short delay) until 'completed' is true, (3) then call biouml_repo_script_result to fetch the output. Delegates to the platform's script provider. script is the source text; type is the script type (one of biouml_repo_script_types).",
 					"{\"type\":\"object\",\"properties\":{\"script\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"script\",\"type\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "script" );
@@ -253,7 +253,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_script_result",
-					"Fetch the output of a script job started by biouml_repo_run_script — the headless equivalent of the web UI's script result pane. Delegates to the platform's script provider. jobID is the id returned by biouml_repo_run_script. Returns the job's printed buffer, tables, images, and HTML.",
+					"ASYNC result — Fetch the output of a script job started by biouml_repo_run_script. Call it only AFTER biouml_repo_job_status reports 'completed' is true. Delegates to the platform's script provider. jobID is the id returned by biouml_repo_run_script. Returns the job's printed buffer, tables, images, and HTML.",
 					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "jobID" );
@@ -311,7 +311,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_import",
-					"Import a file from the server's local filesystem into a target collection — the headless equivalent of the web UI's 'Import document' menu item. Delegates to the platform's import provider, which runs the import as an async job. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension). Returns {jobID, format} immediately; poll biouml_repo_job_status with the jobID until it completes (the final status message is the path of the imported element).",
+					"ASYNC — Import a file from the server's local filesystem into a target collection. This returns IMMEDIATELY with a jobID; the import continues in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status (with a short delay) until 'completed' is true — the final status message is the path of the imported element. Delegates to the platform's import provider. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension).",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"file\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );

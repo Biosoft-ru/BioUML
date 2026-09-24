@@ -36,17 +36,17 @@ public final class SimulationTools
 				( ex, args ) -> McpSimulationSupport.listSolvers() );
 
 		catalog.register( "biouml_simulation_start",
-				"Start a diagram simulation as an async job (the provider-based counterpart of biouml_simulation_run). The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider, which runs the simulation on a background thread and returns a jobID immediately; poll biouml_simulation_status until it completes, then fetch the time series with biouml_simulation_result. Use this for large/long simulations that would exceed a client's request timeout.",
+				"ASYNC — Start a diagram simulation as a background job (the provider-based counterpart of biouml_simulation_run). This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_result to fetch the time series. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
 				( ex, args ) -> McpSimulationSupport.startSimulation( str( args, "diagramPath" ) ) );
 
 		catalog.register( "biouml_simulation_status",
-				"Poll the status of a simulation job started by biouml_simulation_start — the headless equivalent of the web UI's simulation progress. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {jobID, status, progress, completed}; poll until completed is true.",
+				"ASYNC poll — Report the progress of a simulation job started by biouml_simulation_start. Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the simulation is not done until then. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {jobID, status, progress, completed}.",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.simulationStatus( str( args, "jobID" ) ) );
 
 		catalog.register( "biouml_simulation_result",
-				"Fetch the time-series result of a completed simulation job — the headless equivalent of the web UI's result table. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results).",
+				"ASYNC result — Fetch the time-series result of a completed simulation job. Call it only AFTER biouml_simulation_status reports 'completed' is true. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results).",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.simulationResult( str( args, "jobID" ) ) );
 	}
