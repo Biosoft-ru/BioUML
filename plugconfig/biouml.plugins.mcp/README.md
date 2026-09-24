@@ -38,8 +38,51 @@ requests are refused with HTTP **401** and a structured JSON-RPC error body.
 
 ### 3. Connect an MCP client
 
-**Claude Desktop** (`claude_desktop_config.json`) — for a server you run as a local process, point
-the stdio bridge at your server; for this HTTP endpoint, use any streamable-HTTP MCP client:
+The client authenticates the same way as §2 — the `Authorization` header (or a session) is what the
+server checks. **A streamable-HTTP MCP client can't present a web-session id on its own**, so for
+Claude Code / Claude Desktop / any other static client the credential to embed is the **BioStore
+token via the `Authorization: Basic` header** (a web-session `?sessionId=` is only useful when you
+already hold a live `JSESSIONID`, e.g. reusing the UI's logged-in session in a browser or `curl`).
+
+**BioStore Basic (the static path for Claude Code / Claude Desktop).** The decoded Basic payload is
+`<username>:<password>` where the *password* is the verbatim BioStore token
+(`:token:<uuid>` — note the leading colon), so the full credential string is
+`<username>::token:<uuid>` (three colons). Example:
+
+```bash
+# build the Basic header once (note the three colons in the payload)
+CRED=$(printf '%s' '<username>::token:<uuid>' | base64 -w0)
+echo "Authorization: Basic $CRED"
+```
+
+Claude Code (`.mcp.json` / `claude mcp add`) supports a static `Authorization` header:
+
+```jsonc
+{
+  "mcpServers": {
+    "biouml": {
+      "url": "http://localhost:8080/bioumlweb/mcp",
+      "headers": {
+        "Authorization": "Basic <base64-of-username::token:uuid>"
+      }
+    }
+  }
+}
+```
+
+or:
+
+```sh
+claude mcp add --transport http --header "Authorization: Basic <base64-of-username::token:uuid>" \
+  biouml "http://localhost:8080/bioumlweb/mcp"
+```
+
+> The two-colon form `username:token:uuid` (no empty user segment) is **rejected** — the server
+> splits on the *first* `:`, so the token must be the password and the username must be present.
+
+**Web session (only when you already hold a live `JSESSIONID`).** If a browser/UI session is
+already logged in, you can point a client at the endpoint with that session id — this is the path
+`curl` and the web UI use, not the path a standalone Claude client takes:
 
 ```jsonc
 {
@@ -51,28 +94,28 @@ the stdio bridge at your server; for this HTTP endpoint, use any streamable-HTTP
 }
 ```
 
-**Claude CLI** (`claude mcp add`):
+**OAuth 2.1 (remote / Claude.ai connectors)** — see *OAuth for remote clients* below; the client
+needs no static credential, it completes the flow against the `401` challenge.
 
-```sh
-claude mcp add --transport http biouml "http://localhost:8080/bioumlweb/mcp?sessionId=<your-session-id>"
-```
-
-A minimal raw-HTTP exchange (JSON-RPC):
+A minimal raw-HTTP exchange (JSON-RPC), authenticated with a BioStore Basic header:
 
 ```bash
 # initialize
-curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
+curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
   -H 'Content-Type: application/json' \
+  -H "Authorization: Basic $CRED" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
 
 # tools/list
-curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
+curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
   -H 'Content-Type: application/json' \
+  -H "Authorization: Basic $CRED" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 
 # tools/call — list repository collections
-curl -s -X POST "http://localhost:8080/bioumlweb/mcp?sessionId=$SID" \
+curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
   -H 'Content-Type: application/json' \
+  -H "Authorization: Basic $CRED" \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"biouml_repo_collections","arguments":{}}}'
 ```
 
