@@ -267,6 +267,8 @@ function openDocument(path, noOpenBranch)
     {
         paramHash = hash;
         action.doAction(action.useOriginalPath?path:getTargetPath(path));
+        if(!noOpenBranch)
+            openBranch(path, false);
         return true;
     }
     else
