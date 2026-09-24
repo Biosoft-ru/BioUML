@@ -191,6 +191,69 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testCopyFolder()
+	{
+		// Put a file inside the projects folder so the copy has content to move.
+		File srcFile = new File( dir, "cf-src.txt" );
+		try
+		{
+			java.nio.file.Files.write( srcFile.toPath(), "copy-me".getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+		}
+		catch ( Exception e )
+		{
+			fail( "could not write temp file: " + e );
+		}
+		DataCollection<?> projects = CollectionFactory.getDataCollection( "mcpdata/projects" );
+		ru.biosoft.access.file.FileDataElement src = new ru.biosoft.access.file.FileDataElement( "cf-src.txt", projects, srcFile );
+		@SuppressWarnings( "rawtypes" )
+		DataCollection rawProjects = projects;
+		rawProjects.put( src );
+
+		// Start the async copy: must return a jobID immediately. The destination is a child of
+		// 'projects' (a FolderCollection) so createFoldersForPath can build it.
+		McpEnvelope start = McpRepositorySupport.copyFolder( "mcpdata/projects", "mcpdata/projects/cf-copy" );
+		data( start );
+		Map<String, Object> sm = (Map<String, Object>) start.getData();
+		String jobID = (String) sm.get( "jobID" );
+		assertNotNull( "jobID present", jobID );
+
+		// Poll the job until it completes (a small copy finishes quickly).
+		boolean completed = false;
+		String finalStatus = null;
+		String finalMessage = null;
+		for ( int i = 0; i < 200 && !completed; i++ )
+		{
+			McpEnvelope st = McpRepositorySupport.jobStatus( jobID );
+			data( st );
+			Map<String, Object> m = (Map<String, Object>) st.getData();
+			completed = Boolean.TRUE.equals( m.get( "completed" ) );
+			finalStatus = String.valueOf( m.get( "status" ) );
+			finalMessage = String.valueOf( m.get( "message" ) );
+			if ( !completed )
+			{
+				try
+				{
+					Thread.sleep( 50 );
+				}
+				catch ( InterruptedException ie )
+				{
+					Thread.currentThread().interrupt();
+					break;
+				}
+			}
+		}
+		assertTrue( "folder copy should complete in time (jobID=" + jobID + ", status=" + finalStatus + ", message=" + finalMessage + ")", completed );
+
+		// The copy exists at the destination. Force a fresh read of the parent's children so the
+		// background-thread copy is visible to this thread's repository view.
+		DataCollection<?> parentColl = CollectionFactory.getDataCollection( "mcpdata/projects" );
+		@SuppressWarnings( "rawtypes" )
+		DataCollection rawParent = parentColl;
+		rawParent.getNameList();
+		assertNotNull( "copied folder exists", CollectionFactory.getDataElement( "mcpdata/projects/cf-copy" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testReinitialize()
 	{
 		// The projects folder is a valid collection; reinitialize() on it must be a clean no-op.

@@ -45,6 +45,28 @@ public final class McpProviderSupport
 	public static final String KEY_DE = "de";
 
 	/**
+	 * A single shared session ID for all headless (non-servlet) MCP calls on this JVM. Async (job-based)
+	 * providers store their {@code WebJob} per-{@code WebSession} (via
+	 * {@code session.putValue("webJob/"+jobID, ...)}), so a job started in one provider call must be
+	 * polled from the <em>same</em> {@code WebSession}. Using one stable ID (instead of a fresh UUID per
+	 * call, as {@link #ensureSession} historically did) keeps the start and poll in the same session.
+	 * The ID is deliberately not a {@code node_}-prefixed id (see {@code SecurityManager.getSession},
+	 * which strips that prefix and would mismatch the cache lookup).
+	 */
+	private static final String SHARED_HEADLESS_SESSION_ID =
+			"mcp-headless-" + java.util.UUID.randomUUID();
+
+	/**
+	 * A single shared carrier for the headless {@code WebSession}. The carrier backs the
+	 * {@code WebSession}'s attribute store (via its {@code getValue}/{@code putValue} methods), which is
+	 * where {@code WebJob.attach} stores the {@code WebJob} under {@code "webJob/"+jobID}. A fresh
+	 * carrier per call would create a fresh empty attribute map, so a job started in one call would be
+	 * invisible to a later poll call — the start and poll must share <em>one</em> carrier.
+	 */
+	private static final HeadlessHttpSession SHARED_HEADLESS_CARRIER =
+			new HeadlessHttpSession( SHARED_HEADLESS_SESSION_ID );
+
+	/**
 	 * Look up a provider by its registered prefix.
 	 * @return the provider, or {@code null} if the prefix is not registered.
 	 */
@@ -98,6 +120,55 @@ public final class McpProviderSupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"provider '" + name + "' is not a WebJSONProviderSupport: " + provider.getClass().getName() );
 		return runProvider( (WebJSONProviderSupport) provider, name, action, params );
+	}
+
+	/**
+	 * Invoke a provider with a <em>pre-built</em> {@code Map<String,String>} request, bypassing
+	 * {@link #buildRequest}'s {@code path}→{@code de} promotion. Use this for providers that read a
+	 * literal {@code path} key (e.g. {@code CopyFolderProvider}), which would otherwise be rewritten
+	 * to {@code de} and lost.
+	 *
+	 * @param provider the provider to invoke (must be a {@code WebJSONProviderSupport})
+	 * @param name     the provider's prefix, used only in error messages
+	 * @param action   the provider's {@code action} value
+	 * @param request  the fully-built request map (keys exactly as the provider reads them)
+	 * @return a {@link McpEnvelope} whose data is the provider's response on success.
+	 */
+	public static McpEnvelope invokeRaw( WebProvider provider, String name, String action, Map<String, String> request )
+	{
+		if ( action == null || action.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "an action is required" );
+		if ( !( provider instanceof WebJSONProviderSupport ) )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"provider '" + name + "' is not a WebJSONProviderSupport: " + provider.getClass().getName() );
+		return runProviderRaw( (WebJSONProviderSupport) provider, name, action, request );
+	}
+
+	private static McpEnvelope runProviderRaw( WebJSONProviderSupport provider, String name, String action, Map<String, String> request )
+	{
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		boolean bound = false;
+		try
+		{
+			bound = ensureSession();
+			provider.process( new BiosoftWebRequest( request ), new JSONResponse( out ) );
+		}
+		catch ( WebException e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, e.getMessage() );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"provider '" + name + "' action '" + action + "' failed: "
+							+ e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+		finally
+		{
+			if ( bound )
+				SecurityManager.removeThreadFromSessionRecord();
+		}
+		return parseResponse( out );
 	}
 
 	private static McpEnvelope runProvider( WebJSONProviderSupport provider, String name, String action, Map<String, Object> params )
@@ -273,9 +344,8 @@ public final class McpProviderSupport
 			ensureWebSession();
 			return false;
 		}
-		// Bind a fresh session so providers that need a session (cache, WebJob) get a working one.
-		String sid = SecurityManager.generateSessionId();
-		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+		// Bind the shared headless session so providers that need a session (cache, WebJob) get a
+		// working, <em>stable</em> one (async jobs must survive across calls).
 		ensureWebSession();
 		return true;
 	}
@@ -355,10 +425,14 @@ public final class McpProviderSupport
 	 * session-dependent providers can find it. This is needed for async (job-based) providers like
 	 * {@code CopyFolderProvider}, {@code SimulationProvider}, and {@code WebScriptsProvider}.
 	 *
-	 * <p>The method creates a synthetic carrier object with a non-null {@code getId()}, registers the
-	 * current thread with that session ID, ensures a {@code SessionCache} exists, and builds the
-	 * {@code WebSession} via the real factory. After this call, {@code WebSession.getCurrentSession()}
-	 * on the same thread will return the constructed {@code WebSession}.</p>
+	 * <p>Uses a <em>single shared</em> session ID for all headless MCP calls on this JVM, so that a job
+	 * started in one provider call (e.g. {@code folder/copy}) is still visible to a later poll call
+	 * ({@code jobcontrol}) — the {@code WebJob} is stored per-{@code WebSession} via
+	 * {@code session.putValue("webJob/"+jobID, ...)}, and both calls must land in the same
+	 * {@code WebSession}. The method creates a synthetic carrier with a non-null {@code getId()},
+	 * registers the current thread with that shared ID, ensures a {@code SessionCache} exists, and
+	 * builds the {@code WebSession} via the real factory. After this call,
+	 * {@code WebSession.getCurrentSession()} on the same thread returns the shared {@code WebSession}.</p>
 	 *
 	 * @return the constructed {@code WebSession}, or {@code null} if bootstrap failed
 	 */
@@ -366,18 +440,19 @@ public final class McpProviderSupport
 	{
 		try
 		{
-			// 1. Create a synthetic carrier with a non-null getId()
-			String sid = SecurityManager.generateSessionId();
-			Object carrier = createHttpSessionCarrier( sid );
+			// A single shared carrier for all headless MCP calls, so async jobs started in one call
+			// are visible to later poll calls (the WebJob is stored in the carrier's attribute map).
+			Object carrier = SHARED_HEADLESS_CARRIER;
+			String sid = SHARED_HEADLESS_SESSION_ID;
 
-			// 2. Register THIS thread so SecurityManager.getSession() == sid
+			// Register THIS thread so SecurityManager.getSession() == sid.
 			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
 
-			// 3. Ensure a SessionCache exists for sid
+			// Ensure a SessionCache exists for sid.
 			if ( ru.biosoft.access.security.SessionCacheManager.getSessionCache( sid ) == null )
 				ru.biosoft.access.security.SessionCacheManager.addSessionCache( sid );
 
-			// 4. Build via the real factory
+			// Build via the real factory (returns the existing WebSession if one is already cached).
 			ru.biosoft.server.servlets.webservices.WebSession ws =
 					ru.biosoft.server.servlets.webservices.WebSession.getSession( carrier );
 			return ws;
@@ -389,15 +464,6 @@ public final class McpProviderSupport
 					.log( java.util.logging.Level.WARNING, "Failed to bootstrap headless WebSession", e );
 			return null;
 		}
-	}
-
-	/**
-	 * Create a synthetic carrier object that mimics a {@code javax.servlet.http.HttpSession} with a
-	 * non-null {@code getId()} method. The carrier is used to bootstrap a headless {@code WebSession}.
-	 */
-	private static Object createHttpSessionCarrier( String sessionId )
-	{
-		return new HeadlessHttpSession( sessionId );
 	}
 
 	/**

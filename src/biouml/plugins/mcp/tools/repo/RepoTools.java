@@ -158,7 +158,7 @@ public final class RepoTools
 				} );
 
 		catalog.register( "biouml_repo_copy_folder",
-				"Copy a folder (its whole subtree) to a new location — the headless equivalent of the web UI's 'Copy folder'. Runs asynchronously as a background task and returns a taskId immediately; poll biouml_task_status with the taskId until it completes (a large folder copy can exceed the client's request timeout).",
+				"Copy a folder (its whole subtree) to a new location — the headless equivalent of the web UI's 'Copy folder'. Delegates to the platform's folder provider, which runs the copy as an async job. Returns a jobID immediately; poll biouml_repo_job_status with the jobID until it completes (a large folder copy can exceed the client's request timeout).",
 				"{\"type\":\"object\",\"properties\":{\"fromPath\":{\"type\":\"string\"},\"toPath\":{\"type\":\"string\"}},\"required\":[\"fromPath\",\"toPath\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "fromPath" );
@@ -169,6 +169,16 @@ public final class RepoTools
 						return vd;
 					return McpRepositorySupport.copyFolder( McpArgs.str( args, "fromPath" ), McpArgs.str( args, "toPath" ) );
 				} );
+
+			catalog.register( "biouml_repo_job_status",
+					"Report the status of an async job started by a job-based provider (e.g. biouml_repo_copy_folder) — the headless equivalent of the web UI's progress dialog. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start action. Returns {jobID, status, progress, message, completed}; poll until completed is true.",
+					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "jobID" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.jobStatus( McpArgs.str( args, "jobID" ) );
+					} );
 
 			catalog.register( "biouml_repo_reinitialize",
 					"Re-initialize a collection that previously failed to load — the headless equivalent of the web UI's 'Retry'/'Reinitialize' menu item. Returns the path and whether it is now valid.",

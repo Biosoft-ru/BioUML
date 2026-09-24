@@ -1,16 +1,27 @@
 package biouml.plugins.mcp.support;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * A synthetic carrier object that mimics a {@code javax.servlet.http.HttpSession} with a non-null
- * {@code getId()} method. Used to bootstrap a headless {@code WebSession} for async (job-based)
- * providers like {@code CopyFolderProvider}, {@code SimulationProvider}, and {@code WebScriptsProvider}.
- *
- * <p>{@code WebSession.getSession(Object)} reflectively looks up a public no-arg {@code getId()}
- * method on the carrier and invokes it to get the session ID. This class provides that method.</p>
+ * A synthetic carrier object that mimics a {@code javax.servlet.http.HttpSession} for headless
+ * (non-servlet) use. {@code WebSession} reflectively looks up and invokes the following public
+ * methods on the carrier:
+ * <ul>
+ *   <li>{@code String getId()} — the session ID (used by {@code WebSession.getSession} and
+ *       {@code WebSession.getSessionId})</li>
+ *   <li>{@code Object getValue(String)} — read a session attribute</li>
+ *   <li>{@code void putValue(String, Object)} — write a session attribute</li>
+ *   <li>{@code boolean removeValue(String)} — remove a session attribute</li>
+ * </ul>
+ * This class provides all of them, backed by a simple in-memory map, so that async (job-based)
+ * providers like {@code CopyFolderProvider}, {@code SimulationProvider}, and {@code WebScriptsProvider}
+ * can store and retrieve their {@code WebJob} objects headlessly.
  */
 public class HeadlessHttpSession
 {
 	private final String id;
+	private final Map<String, Object> attributes = new HashMap<String, Object>();
 
 	/**
 	 * Create a carrier for the given session ID.
@@ -24,12 +35,42 @@ public class HeadlessHttpSession
 	}
 
 	/**
-	 * Return the session ID. This method is reflectively invoked by {@code WebSession.getSession}.
+	 * Return the session ID. Reflectively invoked by {@code WebSession.getSession}.
 	 * @return the session ID
 	 */
 	public String getId()
 	{
 		return id;
+	}
+
+	/**
+	 * Read a session attribute. Reflectively invoked by {@code WebSession.getValue}.
+	 * @param key the attribute name
+	 * @return the attribute value, or {@code null} if absent
+	 */
+	public Object getValue( String key )
+	{
+		return attributes.get( key );
+	}
+
+	/**
+	 * Write a session attribute. Reflectively invoked by {@code WebSession.putValue}.
+	 * @param key   the attribute name
+	 * @param value the attribute value
+	 */
+	public void putValue( String key, Object value )
+	{
+		attributes.put( key, value );
+	}
+
+	/**
+	 * Remove a session attribute. Reflectively invoked by {@code WebSession.removeValue}.
+	 * @param key the attribute name
+	 * @return {@code true} if the attribute was present and removed
+	 */
+	public boolean removeValue( String key )
+	{
+		return attributes.remove( key ) != null;
 	}
 
 	@Override
@@ -50,3 +91,4 @@ public class HeadlessHttpSession
 		return "HeadlessHttpSession[" + id + "]";
 	}
 }
+

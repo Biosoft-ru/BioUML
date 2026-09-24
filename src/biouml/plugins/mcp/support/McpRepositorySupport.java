@@ -15,6 +15,7 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.server.servlets.webservices.JSONResponse;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
@@ -416,42 +417,79 @@ public final class McpRepositorySupport
 	}
 
 	/**
-	 * Queue a folder (subtree) copy as an async analysis task — the headless equivalent of the web UI's
-	 * "Copy folder" menu item (web provider {@code folder/copy} → {@code CopyFolderAnalysis}). Returns a
-	 * taskId immediately; poll {@link #taskStatus(String)} (the generic analysis task-status tool) until it
-	 * completes, since copying a large folder can exceed a client's request timeout.
+	 * Queue a folder (subtree) copy — the headless equivalent of the web UI's "Copy folder" menu item.
+	 * Delegates to the platform's {@code folder} provider ({@code copy} action → {@code CopyFolderAnalysis}),
+	 * which runs the copy as an async job. Returns a {@code jobID} immediately; poll {@link #jobStatus(String)}
+	 * (the {@code jobcontrol} provider) until it completes, since copying a large folder can exceed a client's
+	 * request timeout.
 	 *
 	 * @param fromPath full repository path of the folder to copy
 	 * @param toPath   full repository path of the destination (parent must exist and be writable)
-	 * @return an envelope whose data is {@code {taskId, status}} on success.
+	 * @return an envelope whose data is {@code {jobID}} on success.
 	 */
 	public static McpEnvelope copyFolder( String fromPath, String toPath )
 	{
 		McpEnvelope from = resolve( fromPath );
 		if ( !from.isOk() )
 			return from;
-		McpEnvelope to = resolve( toPath );
-		if ( !to.isOk() )
-			return to;
-		try
-		{
-			ru.biosoft.analysis.CopyFolderAnalysis analysis =
-					ru.biosoft.analysiscore.AnalysisMethodRegistry.getAnalysisMethod( ru.biosoft.analysis.CopyFolderAnalysis.class );
-			ru.biosoft.analysis.CopyFolderAnalysis.CopyFolderAnalysisParameters parameters = analysis.getParameters();
-			parameters.setWriteAnalysisInfo( false );
-			parameters.setFromFolder( DataElementPath.create( fromPath ) );
-			parameters.setToFolder( DataElementPath.create( toPath ) );
-			TaskInfo info = TaskManager.getInstance().addAnalysisTask( analysis, true );
-			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "taskId", info.getName() );
-			m.put( "status", "queued" );
-			return McpEnvelope.ok( m );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"could not queue folder copy: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+		// The destination does not exist yet (we're copying TO it), so resolve its parent instead.
+		DataElementPath toDep = DataElementPath.create( toPath );
+		DataElementPath parentDep = toDep.getParentPath();
+		if ( parentDep == null || parentDep.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "toPath must include a parent folder" );
+		McpEnvelope toParent = resolve( parentDep.toString() );
+		if ( !toParent.isOk() )
+			return toParent;
+		ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "folder" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: folder" );
+		String jobID = java.util.UUID.randomUUID().toString();
+		// CopyFolderProvider reads a literal "path" key (not the "de" element-path key), so build a
+		// raw request map and bypass buildRequest's path→de promotion.
+		Map<String, String> request = new LinkedHashMap<String, String>();
+		request.put( "action", "copy" );
+		request.put( "path", fromPath );
+		request.put( "newPath", toPath );
+		request.put( "jobID", jobID );
+		McpEnvelope env = McpProviderSupport.invokeRaw( provider, "folder", "copy", request );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "jobID", jobID );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Report the status of an async job started by a job-based provider (e.g. {@link #copyFolder}) —
+	 * the headless equivalent of the web UI's progress dialog. Delegates to the {@code jobcontrol}
+	 * provider, which returns {@code {status: <int>, percent: 0-100, values: [message], results: [...]}}.
+	 * The response is re-shaped to {@code {jobID, status, progress, message, completed}}.
+	 *
+	 * @param jobID the job ID returned by the start action (e.g. {@link #copyFolder})
+	 * @return an envelope whose data is the re-shaped status.
+	 */
+	public static McpEnvelope jobStatus( String jobID )
+	{
+		ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "jobcontrol" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: jobcontrol" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "jobID", jobID );
+		Map<String, Object> resp = McpProviderSupport.responseMap( (ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport) provider, "jobcontrol", null, params );
+		if ( resp == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no job named: " + jobID );
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "jobID", jobID );
+		Object status = resp.get( JSONResponse.ATTR_STATUS );
+		m.put( "status", status instanceof Number ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
+		Object percent = resp.get( JSONResponse.ATTR_PERCENT );
+		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
+		Object values = resp.get( "values" );
+		Object message = ( values instanceof java.util.List && ! ( (java.util.List<?>) values ).isEmpty() )
+				? ( (java.util.List<?>) values ).get( 0 ) : null;
+		m.put( "message", message );
+		m.put( "completed", status instanceof Number && ( (Number) status ).intValue() == ru.biosoft.jobcontrol.JobControl.COMPLETED );
+		return McpEnvelope.ok( m );
 	}
 
 	/**
