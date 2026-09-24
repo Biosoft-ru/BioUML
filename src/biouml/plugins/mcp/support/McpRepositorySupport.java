@@ -577,6 +577,82 @@ public final class McpRepositorySupport
 	}
 
 	/**
+	 * Detect the omics type (Transcriptomics, Genomics, ...) of a data element. Delegates to the
+	 * platform's {@code omicsType} provider ({@code detect} action).
+	 * @param path full repository path of the element
+	 * @return an envelope whose data is {@code {path, omicsType}} (omicsType may be null/empty).
+	 */
+	public static McpEnvelope detectOmicsType( String path )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		McpEnvelope env = McpProviderSupport.invoke( "omicsType", "detect", oneDe( path ) );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "omicsType", env.getData() == null ? null : String.valueOf( env.getData() ) );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Set the omics type of a data element. Delegates to the {@code omicsType} provider ({@code set}
+	 * action).
+	 * @param path       full repository path of the element
+	 * @param omicsType  the omics type name (e.g. "Transcriptomics", "Genomics")
+	 * @return an envelope whose data is {@code {path, omicsType, saved: true}}.
+	 */
+	public static McpEnvelope setOmicsType( String path, String omicsType )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		Map<String, Object> params = oneDe( path );
+		params.put( "omicsType", omicsType );
+		McpEnvelope env = McpProviderSupport.invoke( "omicsType", "set", params );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "omicsType", omicsType );
+		m.put( "saved", Boolean.TRUE );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Report whether a collection has git version-control enabled (and git is available). Delegates to
+	 * the platform's {@code git} provider ({@code isEnabled} action).
+	 * @param path full repository path of the collection
+	 * @return an envelope whose data is {@code {path, enabled: bool}}.
+	 */
+	public static McpEnvelope gitEnabled( String path )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		McpEnvelope env = McpProviderSupport.invoke( "git", "isEnabled", oneDe( path ) );
+		if ( !env.isOk() )
+			return env;
+		String raw = env.getData() == null ? "" : String.valueOf( env.getData() );
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "enabled", "ok".equalsIgnoreCase( raw ) );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Read the current session's preferences. Delegates to the platform's {@code preferences} provider
+	 * (no action — it returns the preferences bean structure).
+	 * @return an envelope whose data is the preferences structure.
+	 */
+	public static McpEnvelope preferences()
+	{
+		// The provider only special-cases action "add"; any other action returns the structure.
+		return McpProviderSupport.invoke( "preferences", "get", new LinkedHashMap<String, Object>() );
+	}
+
+	/**
 	 * Export a repository element to a file on the server's local filesystem, in the given format —
 	 * the headless equivalent of the web UI's "Export" menu item ({@code ExportElementAction}, which
 	 * only wraps a file-chooser dialog around this same registry call). Mirrors the web

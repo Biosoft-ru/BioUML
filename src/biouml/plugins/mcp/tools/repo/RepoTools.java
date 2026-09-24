@@ -229,6 +229,44 @@ public final class RepoTools
 						return McpRepositorySupport.saveDocumentContent( McpArgs.str( args, "path" ), McpArgs.str( args, "content" ) );
 					} );
 
+			catalog.register( "biouml_repo_detect_omics_type",
+					"Detect the omics type (Transcriptomics, Genomics, ...) of a data element. Delegates to the platform's omicsType provider.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.detectOmicsType( McpArgs.str( args, "path" ) );
+					} );
+
+			catalog.register( "biouml_repo_set_omics_type",
+					"Set the omics type of a data element (e.g. Transcriptomics, Genomics). Delegates to the platform's omicsType provider.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"omicsType\":{\"type\":\"string\"}},\"required\":[\"path\",\"omicsType\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						McpEnvelope vt = McpArgs.requiredString( args, "omicsType" );
+						if ( vt != null )
+							return vt;
+						return McpRepositorySupport.setOmicsType( McpArgs.str( args, "path" ), McpArgs.str( args, "omicsType" ) );
+					} );
+
+			catalog.register( "biouml_repo_git_enabled",
+					"Report whether a collection has git version-control enabled (and git is available on the server). Delegates to the platform's git provider.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.gitEnabled( McpArgs.str( args, "path" ) );
+					} );
+
+			catalog.register( "biouml_repo_preferences",
+					"Read the current session's preferences. Delegates to the platform's preferences provider.",
+					"{}",
+					( ex, args ) -> McpRepositorySupport.preferences() );
+
 			catalog.register( "biouml_repo_import_formats",
 					"List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'.",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"}},\"required\":[\"parentPath\"]}",

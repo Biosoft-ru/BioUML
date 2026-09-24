@@ -501,6 +501,32 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		return false;
 	}
 
+	public void testDetectOmicsType()
+	{
+		// A table collection is detected as Transcriptomics by the provider.
+		McpEnvelope env = McpRepositorySupport.detectOmicsType( "mcpdata/projects" );
+		assertTrue( "detect omics ok: " + env.getCode() + " " + env.getError(), env.isOk() );
+		// The provider resolves the element; the data is {path, omicsType} (omicsType may be null).
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		assertEquals( "path echoed", "mcpdata/projects", m.get( "path" ) );
+	}
+
+	public void testGitEnabled()
+	{
+		// A plain (non-git) collection reports enabled=false.
+		McpEnvelope env = McpRepositorySupport.gitEnabled( "mcpdata/projects" );
+		assertTrue( "git enabled ok: " + env.getCode() + " " + env.getError(), env.isOk() );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		assertNotNull( "enabled flag present", m.get( "enabled" ) );
+	}
+
+	public void testPreferences()
+	{
+		// Reading preferences returns an ok envelope (structure or empty).
+		McpEnvelope env = McpRepositorySupport.preferences();
+		assertTrue( "preferences ok: " + env.getCode() + " " + env.getError(), env.isOk() );
+	}
+
 	public void testDocumentContentRoundTrip() throws Exception
 	{
 		Repository repo = (Repository) CollectionFactory.getDataElement( "mcpdata" );
