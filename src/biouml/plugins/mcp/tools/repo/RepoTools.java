@@ -206,6 +206,29 @@ public final class RepoTools
 						return McpRepositorySupport.export( McpArgs.str( args, "path" ), McpArgs.str( args, "format" ), McpArgs.str( args, "targetDir" ) );
 					} );
 
+			catalog.register( "biouml_repo_document_content",
+					"Read the text content of a document element (script, notebook, text file, ...). Delegates to the platform's document provider.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.documentContent( McpArgs.str( args, "path" ) );
+					} );
+
+			catalog.register( "biouml_repo_save_document_content",
+					"Write the text content of a document element (script, notebook, text file, ...). Delegates to the platform's document provider. path is the element to update; content is the new text.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"path\",\"content\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						McpEnvelope vc = McpArgs.requiredString( args, "content" );
+						if ( vc != null )
+							return vc;
+						return McpRepositorySupport.saveDocumentContent( McpArgs.str( args, "path" ), McpArgs.str( args, "content" ) );
+					} );
+
 			catalog.register( "biouml_repo_import_formats",
 					"List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'.",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"}},\"required\":[\"parentPath\"]}",

@@ -525,6 +525,58 @@ public final class McpRepositorySupport
 	}
 
 	/**
+	 * Read the text content of a document element (script, notebook, text file, ...). Delegates to
+	 * the platform's {@code doc} provider ({@code getcontent} action).
+	 * @param path full repository path of the text element
+	 * @return an envelope whose data is {@code {path, content}}.
+	 */
+	public static McpEnvelope documentContent( String path )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		McpEnvelope env = McpProviderSupport.invoke( "doc", "getcontent", oneDe( path ) );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "content", env.getData() == null ? "" : String.valueOf( env.getData() ) );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Write the text content of a document element. Delegates to the {@code doc} provider
+	 * ({@code savecontent} action).
+	 * @param path    full repository path of the text element
+	 * @param content the new content
+	 * @return an envelope whose data is {@code {path, saved: true}}.
+	 */
+	public static McpEnvelope saveDocumentContent( String path, String content )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		Map<String, Object> params = oneDe( path );
+		params.put( "newPath", path );
+		params.put( "content", content == null ? "" : content );
+		McpEnvelope env = McpProviderSupport.invoke( "doc", "savecontent", params );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "saved", Boolean.TRUE );
+		return McpEnvelope.ok( m );
+	}
+
+	/** A parameter map with a single element-path entry ({@code de}). */
+	private static Map<String, Object> oneDe( String path )
+	{
+		Map<String, Object> p = new LinkedHashMap<String, Object>();
+		p.put( McpProviderSupport.KEY_DE, path );
+		return p;
+	}
+
+	/**
 	 * Export a repository element to a file on the server's local filesystem, in the given format —
 	 * the headless equivalent of the web UI's "Export" menu item ({@code ExportElementAction}, which
 	 * only wraps a file-chooser dialog around this same registry call). Mirrors the web
@@ -730,30 +782,29 @@ public final class McpRepositorySupport
 	 */
 	public static McpEnvelope scriptTypes()
 	{
-		try
+		// Delegates to the platform's `script` provider (`types` action), which returns a
+		// {<type-id>: <type-title>} object.
+		McpEnvelope env = McpProviderSupport.invoke( "script", "types", new LinkedHashMap<String, Object>() );
+		if ( !env.isOk() )
+			return env;
+		@SuppressWarnings( "unchecked" )
+		Map<String, Object> types = (Map<String, Object>) env.getData();
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		if ( types != null )
 		{
-			Map<String, ru.biosoft.access.script.ScriptTypeRegistry.ScriptType> types =
-					ru.biosoft.access.script.ScriptTypeRegistry.getScriptTypes();
-			List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-			for ( ru.biosoft.access.script.ScriptTypeRegistry.ScriptType t : types.values() )
+			for ( Map.Entry<String, Object> e : types.entrySet() )
 			{
 				Map<String, Object> m = new LinkedHashMap<String, Object>();
-				m.put( "type", t.getType() );
-				m.put( "title", t.getTitle() );
-				m.put( "class", t.getScriptClass() == null ? null : t.getScriptClass().getCanonicalName() );
+				m.put( "type", e.getKey() );
+				m.put( "title", e.getValue() == null ? null : String.valueOf( e.getValue() ) );
 				list.add( m );
 			}
-			Collections.sort( list, ( a, b ) -> String.valueOf( a.get( "title" ) ).compareTo( String.valueOf( b.get( "title" ) ) ) );
-			Map<String, Object> result = new LinkedHashMap<String, Object>();
-			result.put( "count", Integer.valueOf( list.size() ) );
-			result.put( "types", list );
-			return McpEnvelope.ok( result );
 		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"could not list script types: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+		Collections.sort( list, ( a, b ) -> String.valueOf( a.get( "title" ) ).compareTo( String.valueOf( b.get( "title" ) ) ) );
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		result.put( "count", Integer.valueOf( list.size() ) );
+		result.put( "types", list );
+		return McpEnvelope.ok( result );
 	}
 
 	/**

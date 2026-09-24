@@ -500,4 +500,27 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 				return true;
 		return false;
 	}
+
+	public void testDocumentContentRoundTrip() throws Exception
+	{
+		Repository repo = (Repository) CollectionFactory.getDataElement( "mcpdata" );
+		// Create a script element (a TextDataElement) with initial content.
+		McpEnvelope created = McpRepositorySupport.newElement( "mcpdata/projects", "js", "mcpDoc.js", "console.log('initial');" );
+		assertTrue( "newElement ok: " + created.getCode() + " " + created.getError(), created.isOk() );
+		String path = (String) ( (Map<String, Object>) created.getData() ).get( "created" );
+		assertTrue( "script path present", path.endsWith( "mcpDoc.js" ) );
+
+		// Read the content back via the document provider.
+		McpEnvelope read = McpRepositorySupport.documentContent( path );
+		assertTrue( "document_content ok: " + read.getCode() + " " + read.getError(), read.isOk() );
+		Map<String, Object> r = (Map<String, Object>) read.getData();
+		assertEquals( "content round-trips", "console.log('initial');", r.get( "content" ) );
+
+		// Write new content and read it back.
+		McpEnvelope saved = McpRepositorySupport.saveDocumentContent( path, "console.log('updated');" );
+		assertTrue( "save_document_content ok: " + saved.getCode() + " " + saved.getError(), saved.isOk() );
+		McpEnvelope read2 = McpRepositorySupport.documentContent( path );
+		assertTrue( read2.isOk() );
+		assertEquals( "updated content", "console.log('updated');", ( (Map<String, Object>) read2.getData() ).get( "content" ) );
+	}
 }
