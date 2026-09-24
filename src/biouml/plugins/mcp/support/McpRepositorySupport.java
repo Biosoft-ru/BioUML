@@ -3,6 +3,7 @@ package biouml.plugins.mcp.support;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -718,5 +719,241 @@ public final class McpRepositorySupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"could not list import formats: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
+	}
+
+	/**
+	 * List the script types that can be created in a target collection — one row per
+	 * {@code ru.biosoft.access.scriptType} extension whose product is available on this server. The
+	 * {@code type} values are what {@link #createScript(String, String, String, String)} takes. This
+	 * is the headless equivalent of the "New JS script" / "New R script" / "New Java code" menu items
+	 * (each of which just prompts for a name and creates the matching script element).
+	 */
+	public static McpEnvelope scriptTypes()
+	{
+		try
+		{
+			Map<String, ru.biosoft.access.script.ScriptTypeRegistry.ScriptType> types =
+					ru.biosoft.access.script.ScriptTypeRegistry.getScriptTypes();
+			List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+			for ( ru.biosoft.access.script.ScriptTypeRegistry.ScriptType t : types.values() )
+			{
+				Map<String, Object> m = new LinkedHashMap<String, Object>();
+				m.put( "type", t.getType() );
+				m.put( "title", t.getTitle() );
+				m.put( "class", t.getScriptClass() == null ? null : t.getScriptClass().getCanonicalName() );
+				list.add( m );
+			}
+			Collections.sort( list, ( a, b ) -> String.valueOf( a.get( "title" ) ).compareTo( String.valueOf( b.get( "title" ) ) ) );
+			Map<String, Object> result = new LinkedHashMap<String, Object>();
+			result.put( "count", Integer.valueOf( list.size() ) );
+			result.put( "types", list );
+			return McpEnvelope.ok( result );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not list script types: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * Create a new script element (JS, R, Java, ...) in a target collection — the headless equivalent
+	 * of the web UI's "New JS script" / "New R script" / "New Java code" menu items
+	 * ({@code AddJSAction} / {@code AddRScriptAction} / {@code AddJavaElementAction}), each of which
+	 * only prompts for a name and then creates the matching element via the same
+	 * {@link ru.biosoft.access.script.ScriptTypeRegistry} this uses. Mirrors the web
+	 * {@code WebScriptsProvider.createScript}: build the element for the type, then save it.
+	 *
+	 * @param parentPath full repository path of the target collection (must be a mutable
+	 *                   {@code DataCollection})
+	 * @param type       the script type (one of {@link #scriptTypes()}); must be non-empty
+	 * @param name       name for the new element (must be non-empty; must not already exist)
+	 * @param content    initial script content (may be null/empty for a blank script)
+	 * @return an envelope whose data is {@code {created, type}} on success.
+	 */
+	public static McpEnvelope createScript( String parentPath, String type, String name, String content )
+	{
+		if ( type == null || type.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "script type must be a non-empty string" );
+		if ( name == null || name.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "script name must be a non-empty string" );
+		McpEnvelope resolved = resolve( parentPath );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement parent = (DataElement) resolved.getData();
+		if ( !( parent instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "parent is not a collection: " + parentPath );
+		DataCollection<?> dc = (DataCollection<?>) parent;
+		if ( !dc.isMutable() )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "target collection is read-only: " + parentPath );
+		DataElementPath path = DataElementPath.create( dc, name );
+		if ( path.exists() )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "an element already exists at: " + path );
+		try
+		{
+			ru.biosoft.access.script.ScriptDataElement scriptElement =
+					ru.biosoft.access.script.ScriptTypeRegistry.createScript( type, path, content == null ? "" : content );
+			if ( scriptElement == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "script type produced no element: " + type );
+			path.save( scriptElement );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "created", path.toString() );
+			m.put( "type", type );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not create script '" + name + "': " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * The kinds of element the {@link #newElement(String, String, String, String)} tool can create,
+	 * keyed by the {@code kind} string. Every one of these is the headless equivalent of a "New X"
+	 * menu item in the web UI (table, test, workflow, research, Jupyter notebook, or any script type
+	 * from {@link #scriptTypes()}).
+	 */
+	private static final String KIND_TABLE = "table";
+	private static final String KIND_TEST = "test";
+	private static final String KIND_WORKFLOW = "workflow";
+	private static final String KIND_RESEARCH = "research";
+	private static final String KIND_NOTEBOOK = "notebook";
+
+	/**
+	 * Create a new element in a target collection — the headless equivalent of the web UI's "New X"
+	 * menu items ("New table", "New test", "New workflow", "New research", "New Jupyter file", and
+	 * "New JS script"/"New R script"/"New Java code"/"New nextflow script"/"New WDL script"/"New math
+	 * script"). Each of those actions only prompts for a name and then creates the matching element;
+	 * this takes the name (and optional content) directly.
+	 *
+	 * @param parentPath full repository path of the target collection (must be a mutable
+	 *                   {@code DataCollection}; a "workflow"/"research" element additionally requires
+	 *                   the parent to be inside a research module)
+	 * @param kind       one of {@code table}, {@code test}, {@code workflow}, {@code research},
+	 *                   {@code notebook}, or a script {@code type} from {@link #scriptTypes()}
+	 *                   (e.g. {@code js}, {@code R}, {@code Java}, {@code Nextflow}, {@code WDL},
+	 *                   {@code math})
+	 * @param name       name for the new element (must be non-empty; must not already exist)
+	 * @param content    initial content for script/notebook kinds (may be null/empty); ignored for
+	 *                   table/test/workflow/research kinds
+	 * @return an envelope whose data is {@code {created, kind}} on success.
+	 */
+	public static McpEnvelope newElement( String parentPath, String kind, String name, String content )
+	{
+		if ( kind == null || kind.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "kind must be a non-empty string" );
+		if ( name == null || name.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "name must be a non-empty string" );
+		McpEnvelope resolved = resolve( parentPath );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement parent = (DataElement) resolved.getData();
+		if ( !( parent instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "parent is not a collection: " + parentPath );
+		DataCollection<?> dc = (DataCollection<?>) parent;
+		if ( !dc.isMutable() )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "target collection is read-only: " + parentPath );
+		DataElementPath path = DataElementPath.create( dc, name );
+		if ( path.exists() )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "an element already exists at: " + path );
+		try
+		{
+			DataElement created;
+			if ( KIND_TABLE.equals( kind ) )
+			{
+				created = newTable( dc, name );
+			}
+			else if ( KIND_TEST.equals( kind ) )
+			{
+				created = newTest( dc, name );
+			}
+			else if ( KIND_WORKFLOW.equals( kind ) )
+			{
+				created = newWorkflow( dc, name );
+			}
+			else if ( KIND_RESEARCH.equals( kind ) )
+			{
+				created = newResearch( dc, name );
+			}
+			else if ( KIND_NOTEBOOK.equals( kind ) )
+			{
+				created = newNotebook( dc, name, content );
+			}
+			else
+			{
+				// Treat the kind as a script type (js, R, Java, Nextflow, WDL, math, ...).
+				created = ru.biosoft.access.script.ScriptTypeRegistry.createScript( kind, path, content == null ? "" : content );
+			}
+			if ( created == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "kind '" + kind + "' produced no element" );
+			DataElementPath.create( created ).save( created );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "created", path.toString() );
+			m.put( "kind", kind );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not create " + kind + " element '" + name + "': " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/** Headless "New table": {@code TableDataCollectionUtils.createTableDataCollection}. */
+	private static DataElement newTable( DataCollection<?> parent, String name )
+	{
+		return ru.biosoft.table.TableDataCollectionUtils.createTableDataCollection( parent, name );
+	}
+
+	/** Headless "New test": a {@code TestModel} with the default (empty) options. */
+	@SuppressWarnings( "unchecked" )
+	private static DataElement newTest( DataCollection<?> parent, String name )
+	{
+		biouml.plugins.test.access.NewTestDocumentAction.TestOptions options =
+				new biouml.plugins.test.access.NewTestDocumentAction.TestOptions( name, null );
+		return new biouml.plugins.test.TestModel( (DataCollection<?>) parent, name, options.getPath() );
+	}
+
+	/** Headless "New workflow": a {@code WorkflowDiagramType} diagram. */
+	private static DataElement newWorkflow( DataCollection<?> parent, String name ) throws Exception
+	{
+		return new biouml.plugins.research.workflow.WorkflowDiagramType().createDiagram( parent, name, null );
+	}
+
+	/** Headless "New research": a {@code ResearchDiagramType} diagram. */
+	private static DataElement newResearch( DataCollection<?> parent, String name ) throws Exception
+	{
+		return new biouml.plugins.research.research.ResearchDiagramType().createDiagram( parent, name, null );
+	}
+
+	/**
+	 * Headless "New Jupyter file": an {@code IPythonElement} with an empty notebook for the kernel.
+	 * Mirrors the web {@code JupyterProvider} create action ({@code constructEmptyFile} +
+	 * {@code new IPythonElement(name, parent, content, file)}).
+	 */
+	private static DataElement newNotebook( DataCollection<?> parent, String name, String content )
+	{
+		String json = ( content == null || content.isEmpty() ) ? emptyNotebook( "python3" ) : content;
+		File file = ru.biosoft.access.DataCollectionUtils.getChildFile( parent, name );
+		return new biouml.plugins.jupyter.access.IPythonElement( name, parent, json, file.getAbsolutePath() );
+	}
+
+	/** A minimal empty Jupyter notebook (nbformat 4) for the given kernel (python3 by default). */
+	private static String emptyNotebook( String kernel )
+	{
+		StringBuilder sb = new StringBuilder( "{\"cells\":[{\"cell_type\":\"code\",\"execution_count\":null,\"metadata\":{},\"outputs\":[],\"source\":[]}]," );
+		switch ( kernel )
+		{
+			case "r":
+				sb.append( "\"metadata\":{\"kernelspec\":{\"display_name\":\"R\",\"language\":\"R\",\"name\":\"ir\"},\"language_info\":{\"codemirror_mode\":\"r\",\"file_extension\":\".r\",\"mimetype\":\"text/x-r-source\",\"name\":\"R\",\"pygments_lexer\":\"r\",\"version\":\"3.6.1\"}}," );
+				break;
+			case "python3":
+			default:
+				sb.append( "\"metadata\":{\"kernelspec\":{\"display_name\":\"Python 3\",\"language\":\"python\",\"name\":\"python3\"},\"language_info\":{\"codemirror_mode\":{\"name\":\"ipython\",\"version\":3},\"name\":\"python\"}}," );
+				break;
+		}
+		sb.append( "\"nbformat\":4,\"nbformat_minor\":2}" );
+		return sb.toString();
 	}
 }

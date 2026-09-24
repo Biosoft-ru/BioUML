@@ -234,5 +234,48 @@ public final class RepoTools
 							return vn;
 						return McpRepositorySupport.importElement( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "file" ), McpArgs.str( args, "format" ), McpArgs.str( args, "name" ) );
 					} );
+
+			catalog.register( "biouml_repo_script_types",
+					"List the script types that can be created in a collection (JS, R, Java, ...) — the headless equivalent of the 'New JS script' / 'New R script' / 'New Java code' menu items. Returns one row per type with its 'type' id (what biouml_repo_new_script takes), title, and element class. Only types whose product is available on this server are listed.",
+					"{}",
+					( ex, args ) -> McpRepositorySupport.scriptTypes() );
+
+			catalog.register( "biouml_repo_new_script",
+					"Create a new script element (JS, R, Java, ...) in a target collection — the headless equivalent of the web UI's 'New JS script' / 'New R script' / 'New Java code' menu items. parentPath is the target collection; type is one of biouml_repo_script_types; name is the new element's name; content is the initial script text (omit for a blank script). Returns {created, type}.",
+					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"type\",\"name\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
+						if ( v != null )
+							return v;
+						McpEnvelope vt = McpArgs.requiredString( args, "type" );
+						if ( vt != null )
+							return vt;
+						McpEnvelope vn = McpArgs.requiredString( args, "name" );
+						if ( vn != null )
+							return vn;
+						McpEnvelope vc = McpArgs.optionalString( args, "content" );
+						if ( vc != null )
+							return vc;
+						return McpRepositorySupport.createScript( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "type" ), McpArgs.str( args, "name" ), McpArgs.str( args, "content" ) );
+					} );
+
+			catalog.register( "biouml_repo_new_element",
+					"Create a new element in a collection — the headless equivalent of the web UI's 'New X' menu items. kind is one of: 'table', 'test', 'workflow', 'research', 'notebook' (Jupyter), or a script type from biouml_repo_script_types (e.g. 'js', 'R', 'Java', 'Nextflow', 'WDL', 'math'). parentPath is the target collection; name is the new element's name; content is optional initial content (used for scripts/notebooks, ignored otherwise). Returns {created, kind}.",
+					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"kind\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"kind\",\"name\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
+						if ( v != null )
+							return v;
+						McpEnvelope vk = McpArgs.requiredString( args, "kind" );
+						if ( vk != null )
+							return vk;
+						McpEnvelope vn = McpArgs.requiredString( args, "name" );
+						if ( vn != null )
+							return vn;
+						McpEnvelope vc = McpArgs.optionalString( args, "content" );
+						if ( vc != null )
+							return vc;
+						return McpRepositorySupport.newElement( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "kind" ), McpArgs.str( args, "name" ), McpArgs.str( args, "content" ) );
+					} );
 	}
 }

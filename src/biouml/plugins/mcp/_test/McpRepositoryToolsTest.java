@@ -327,6 +327,62 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testScriptTypes()
+	{
+		// scriptTypes must enumerate the registered script types (filtered by product availability).
+		// In this headless test environment at least the JS type should be present; the exact set
+		// depends on which plugins/products are loaded, so we assert structure, not a fixed list.
+		McpEnvelope env = McpRepositorySupport.scriptTypes();
+		data( env );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		List<Map<String, Object>> types = (List<Map<String, Object>>) m.get( "types" );
+		assertNotNull( "types list present", types );
+		assertEquals( "count matches types size",
+				( (Integer) m.get( "count" ) ).intValue(), types.size() );
+		for ( Map<String, Object> t : types )
+		{
+			assertNotNull( "each type has a 'type' id", t.get( "type" ) );
+			assertNotNull( "each type has a 'title'", t.get( "title" ) );
+		}
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testNewElement()
+	{
+		// A duplicate name is a clean error (the fixture already has 'projects').
+		McpEnvelope dup = McpRepositorySupport.newElement( "mcpdata", "table", "projects", null );
+		assertFalse( dup.isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, dup.getCode() );
+
+		// A blank name is a clean invalid_params.
+		McpEnvelope blank = McpRepositorySupport.newElement( "mcpdata/projects", "table", "", null );
+		assertFalse( blank.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, blank.getCode() );
+
+		// A path that does not start with a registered root is refused with path_escape.
+		McpEnvelope bad = McpRepositorySupport.newElement( "does/not/exist", "table", "x", null );
+		assertFalse( bad.isOk() );
+		assertEquals( McpConstants.CODE_PATH_ESCAPE, bad.getCode() );
+
+		// Creating a table into the projects folder: in this fixture either it succeeds (the table
+		// plugin is loaded) or the parent does not accept tables (a clean structured error). Either
+		// way it must not throw, and a success must leave a resolvable element behind.
+		McpEnvelope env = McpRepositorySupport.newElement( "mcpdata/projects", "table", "mytable", null );
+		assertNotNull( env );
+		if ( env.isOk() )
+		{
+			Map<String, Object> m = (Map<String, Object>) env.getData();
+			String created = (String) m.get( "created" );
+			assertNotNull( "created path present", created );
+			assertNotNull( "created element must exist", CollectionFactory.getDataElement( created ) );
+		}
+		else
+		{
+			assertNotNull( "error must carry a code", env.getCode() );
+		}
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testGetActions()
 	{
 		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );
