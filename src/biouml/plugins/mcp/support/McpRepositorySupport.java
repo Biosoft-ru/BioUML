@@ -493,6 +493,56 @@ public final class McpRepositorySupport
 	}
 
 	/**
+	 * Run a script inline (any type the script provider supports: JS, R, Java, ...) as an async job —
+	 * the headless equivalent of the web UI's "Run script". Delegates to the {@code script} provider
+	 * ({@code runInline} action). Returns a {@code jobID} immediately; poll {@link #jobStatus(String)}
+	 * until it completes, then fetch the output with {@link #scriptResult(String)}.
+	 *
+	 * @param script the script source text
+	 * @param type   the script type (one of {@link #scriptTypes})
+	 * @return an envelope whose data is {@code {jobID}} on success.
+	 */
+	public static McpEnvelope runScript( String script, String type )
+	{
+		if ( script == null || script.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "script must be a non-empty string" );
+		if ( type == null || type.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "type must be a non-empty string" );
+		ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "script" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: script" );
+		String jobID = java.util.UUID.randomUUID().toString();
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "script", script );
+		params.put( "type", type );
+		params.put( "jobID", jobID );
+		McpEnvelope env = McpProviderSupport.invoke( provider, "script", "runInline", params );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "jobID", jobID );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Fetch the output of a script job started by {@link #runScript} — the headless equivalent of the
+	 * web UI's script result pane. Delegates to the {@code script} provider ({@code environment} action),
+	 * which returns the job's printed buffer, tables, images, and HTML.
+	 *
+	 * @param jobID the job ID returned by {@link #runScript}
+	 * @return an envelope whose data is the script output structure.
+	 */
+	public static McpEnvelope scriptResult( String jobID )
+	{
+		ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "script" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: script" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "jobID", jobID );
+		return McpProviderSupport.invoke( provider, "script", "environment", params );
+	}
+
+	/**
 	 * List the top-level registered collections (roots).
 	 */
 	public static McpEnvelope collections()
@@ -785,11 +835,11 @@ public final class McpRepositorySupport
 
 		try
 		{
-			ru.biosoft.access.core.DataElementImporter importer;
+			// Resolve the format: autodetect (highest-priority importer, or a clean error if
+			// ambiguous) or an explicit format that has a registered importer.
 			String fmt;
 			if ( format == null || format.isEmpty() || ru.biosoft.access.DataElementImporterRegistry.AUTODETECT.equals( format ) )
 			{
-				// Autodetect: pick the highest-priority importer, or a clean error if ambiguous.
 				ru.biosoft.access.DataElementImporterRegistry.ImporterInfo[] infos =
 						ru.biosoft.access.DataElementImporterRegistry.getAutoDetectImporter( f, parent, false );
 				if ( infos == null || infos.length == 0 )
@@ -803,36 +853,40 @@ public final class McpRepositorySupport
 					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
 							"more than one importer matches '" + file + "'; specify format explicitly: " + candidates );
 				}
-				importer = infos[ 0 ].getImporter();
 				fmt = infos[ 0 ].getFormat();
 			}
 			else
 			{
-				importer = ru.biosoft.access.DataElementImporterRegistry.getImporter( f, format, parent );
-				if ( importer == null )
+				if ( ru.biosoft.access.DataElementImporterRegistry.getImporter( f, format, parent ) == null )
 					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
 							"no importer for format '" + format + "' into " + parentPath );
 				fmt = format;
 			}
 
-			String elementName = ( name == null || name.isEmpty() )
-					? ru.biosoft.util.ApplicationUtils.getFileNameWithoutExtension( f.getName() )
-					: name;
+			// Stage the local file into the session's upload store so the import provider's
+			// getUploadedFile(fileID) can find it (the provider is designed for multipart web uploads).
+			String staged = stageUploadFile( f );
+			if ( staged == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not stage file for import: " + file );
+			String fileID = staged;
 
-			// Guard against the importer requiring property input (the dialog would show a second
-			// modal here; headlessly we refuse cleanly instead of blocking on a Swing dialog).
-			Object properties = importer.getProperties( parent, f, elementName );
-			if ( properties instanceof com.developmentontheedge.beans.Option )
-				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
-						"importer for '" + fmt + "' requires property input, which is not available headlessly" );
-
-			ru.biosoft.jobcontrol.FunctionJobControl jc = new ru.biosoft.jobcontrol.FunctionJobControl( log );
-			DataElement imported = importer.doImport( parent, f, elementName, jc, log );
-			if ( imported == null )
-				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "import produced no element for: " + file );
-
+			ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "import" );
+			if ( provider == null )
+				return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: import" );
+			String jobID = java.util.UUID.randomUUID().toString();
+			// The import provider reads a literal "de" for the target collection; build a raw request.
+			Map<String, String> request = new LinkedHashMap<String, String>();
+			request.put( "action", "import" );
+			request.put( "de", parentPath );
+			request.put( "type", "import" );
+			request.put( "format", fmt );
+			request.put( "fileID", fileID );
+			request.put( "jobID", jobID );
+			McpEnvelope env = McpProviderSupport.invokeRaw( provider, "import", "import", request );
+			if ( !env.isOk() )
+				return env;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "imported", DataElementPath.create( imported ).toString() );
+			m.put( "jobID", jobID );
 			m.put( "format", fmt );
 			return McpEnvelope.ok( m );
 		}
@@ -840,6 +894,49 @@ public final class McpRepositorySupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"import failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * Stage a local file into the session's upload store so {@code WebServicesServlet.getUploadedFile}
+	 * can find it. Copies the file to {@code UPLOAD_DIRECTORY/upload_<sessionID>_<fileID><suffix>} and
+	 * records the original name + suffix in the current {@code WebSession}.
+	 * @return the generated {@code fileID} on success, or {@code null} on failure.
+	 */
+	private static String stageUploadFile( File f )
+	{
+		try
+		{
+			ru.biosoft.server.servlets.webservices.WebSession session =
+					ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession();
+			if ( session == null )
+				return null;
+			String sessionID = session.getSessionId();
+			String fileID = java.util.UUID.randomUUID().toString().replaceAll( "\\W", "" );
+			String suffix = f.getName().contains( "." ) ? "." + f.getName().substring( f.getName().lastIndexOf( '.' ) + 1 ) : "";
+			File destination = new File( ru.biosoft.server.servlets.webservices.WebServicesServlet.UPLOAD_DIRECTORY,
+					"upload_" + sessionID + "_" + fileID + suffix );
+			copyFile( f, destination );
+			session.putValue( "uploadedFile_" + fileID, f.getName() );
+			session.putValue( "uploadedFileSuffix_" + fileID, suffix );
+			return fileID;
+		}
+		catch ( Exception e )
+		{
+			log.log( java.util.logging.Level.WARNING, "Could not stage upload file: " + f, e );
+			return null;
+		}
+	}
+
+	private static void copyFile( File src, File dst ) throws Exception
+	{
+		try ( java.io.InputStream in = new java.io.FileInputStream( src );
+				java.io.OutputStream out = new java.io.FileOutputStream( dst ) )
+		{
+			byte[] buf = new byte[ 8192 ];
+			int n;
+			while ( ( n = in.read( buf ) ) != -1 )
+				out.write( buf, 0, n );
 		}
 	}
 

@@ -193,6 +193,34 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 			names.add( t.name );
 		assertTrue( "simulation_run registered", names.contains( "biouml_simulation_run" ) );
 		assertTrue( "simulation_list_solvers registered", names.contains( "biouml_simulation_list_solvers" ) );
+		assertTrue( "simulation_start registered", names.contains( "biouml_simulation_start" ) );
+		assertTrue( "simulation_status registered", names.contains( "biouml_simulation_status" ) );
+		assertTrue( "simulation_result registered", names.contains( "biouml_simulation_result" ) );
+	}
+
+	/**
+	 * The async simulation start: either it returns a jobID (the headless env can build a model) or
+	 * it is refused with {@code missing_dynamic_model} (same binary criterion as {@link #run}). When it
+	 * returns a jobID, the status poll must resolve (not error) for that job.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testStartSimulationAsync()
+	{
+		McpEnvelope env = McpSimulationSupport.startSimulation( dynamicPath );
+		boolean started = env.isOk();
+		boolean missingModel = !env.isOk() && McpConstants.CODE_MISSING_MODEL.equals( env.getCode() );
+		assertTrue( "exactly one of {started, missing_dynamic_model} must hold; got ok="
+				+ env.isOk() + " code=" + env.getCode() + " error=" + env.getError(),
+				started ^ missingModel );
+		if ( started )
+		{
+			Map<String, Object> m = (Map<String, Object>) env.getData();
+			String jobID = (String) m.get( "jobID" );
+			assertNotNull( "jobID present", jobID );
+			// The status poll must resolve (the WebJob exists in the shared session).
+			McpEnvelope st = McpSimulationSupport.simulationStatus( jobID );
+			assertTrue( "status poll resolves; got " + st.getCode() + " " + st.getError(), st.isOk() );
+		}
 	}
 
 	@SuppressWarnings( "unchecked" )

@@ -239,6 +239,29 @@ public final class RepoTools
 						return McpRepositorySupport.saveDocumentContent( McpArgs.str( args, "path" ), McpArgs.str( args, "content" ) );
 					} );
 
+			catalog.register( "biouml_repo_run_script",
+					"Run a script (JS, R, Java, ...) inline as an async job — the headless equivalent of the web UI's 'Run script'. Delegates to the platform's script provider. script is the source text; type is the script type (one of biouml_repo_script_types). Returns {jobID} immediately; poll biouml_repo_job_status until it completes, then fetch the output with biouml_repo_script_result.",
+					"{\"type\":\"object\",\"properties\":{\"script\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"script\",\"type\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "script" );
+						if ( v != null )
+							return v;
+						McpEnvelope vt = McpArgs.requiredString( args, "type" );
+						if ( vt != null )
+							return vt;
+						return McpRepositorySupport.runScript( McpArgs.str( args, "script" ), McpArgs.str( args, "type" ) );
+					} );
+
+			catalog.register( "biouml_repo_script_result",
+					"Fetch the output of a script job started by biouml_repo_run_script — the headless equivalent of the web UI's script result pane. Delegates to the platform's script provider. jobID is the id returned by biouml_repo_run_script. Returns the job's printed buffer, tables, images, and HTML.",
+					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "jobID" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.scriptResult( McpArgs.str( args, "jobID" ) );
+					} );
+
 			catalog.register( "biouml_repo_detect_omics_type",
 					"Detect the omics type (Transcriptomics, Genomics, ...) of a data element. Delegates to the platform's omicsType provider.",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
@@ -288,7 +311,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_import",
-					"Import a file from the server's local filesystem into a target collection — the headless equivalent of the web UI's 'Import document' menu item. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension). Returns {imported, format}. If the importer requires property input, a structured error is returned instead of blocking on a dialog.",
+					"Import a file from the server's local filesystem into a target collection — the headless equivalent of the web UI's 'Import document' menu item. Delegates to the platform's import provider, which runs the import as an async job. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension). Returns {jobID, format} immediately; poll biouml_repo_job_status with the jobID until it completes (the final status message is the path of the imported element).",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"file\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );

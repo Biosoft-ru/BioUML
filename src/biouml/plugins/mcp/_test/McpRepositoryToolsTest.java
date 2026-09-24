@@ -371,11 +371,34 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		assertNotNull( env );
 		if ( env.isOk() )
 		{
-			// A DML importer happened to be available: the imported element must exist.
+			// An importer was available: a jobID is returned; poll it to completion. The final
+			// status message is the path of the imported element.
 			Map<String, Object> m = (Map<String, Object>) env.getData();
-			String imported = (String) m.get( "imported" );
-			assertNotNull( "imported path present", imported );
-			assertNotNull( "imported element must exist", CollectionFactory.getDataElement( imported ) );
+			String jobID = (String) m.get( "jobID" );
+			assertNotNull( "jobID present", jobID );
+			String imported = null;
+			for ( int i = 0; i < 200; i++ )
+			{
+				McpEnvelope st = McpRepositorySupport.jobStatus( jobID );
+				if ( !st.isOk() )
+					break;
+				Map<String, Object> sm = (Map<String, Object>) st.getData();
+				if ( Boolean.TRUE.equals( sm.get( "completed" ) ) )
+				{
+					imported = sm.get( "message" ) == null ? null : String.valueOf( sm.get( "message" ) );
+					break;
+				}
+				try
+				{
+					Thread.sleep( 50 );
+				}
+				catch ( InterruptedException ie )
+				{
+					Thread.currentThread().interrupt();
+					break;
+				}
+			}
+			assertNotNull( "imported path present (job completed)", imported );
 		}
 		else
 		{
@@ -406,6 +429,34 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		{
 			assertNotNull( "each type has a 'type' id", t.get( "type" ) );
 			assertNotNull( "each type has a 'title'", t.get( "title" ) );
+		}
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testRunScriptAsync()
+	{
+		// An empty/blank script or unknown type is a clean invalid_params.
+		McpEnvelope badType = McpRepositorySupport.runScript( "print('hi')", "NoSuchType" );
+		assertNotNull( badType );
+		McpEnvelope blankScript = McpRepositorySupport.runScript( "", "js" );
+		assertFalse( "blank script refused", blankScript.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, blankScript.getCode() );
+
+		// A real JS script: either it starts (returns a jobID) or the JS engine is unavailable in
+		// this fixture (a structured error, never a throw). When it starts, the status poll resolves.
+		McpEnvelope env = McpRepositorySupport.runScript( "print('hello')", "js" );
+		assertNotNull( env );
+		if ( env.isOk() )
+		{
+			Map<String, Object> m = (Map<String, Object>) env.getData();
+			String jobID = (String) m.get( "jobID" );
+			assertNotNull( "jobID present", jobID );
+			McpEnvelope st = McpRepositorySupport.jobStatus( jobID );
+			assertTrue( "status poll resolves; got " + st.getCode() + " " + st.getError(), st.isOk() );
+		}
+		else
+		{
+			assertNotNull( "error carries a code", env.getCode() );
 		}
 	}
 

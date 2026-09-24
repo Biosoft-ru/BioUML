@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.LinkedHashMap;
+
 import biouml.model.Diagram;
 import biouml.model.dynamics.EModel;
 import biouml.plugins.mcp.McpConstants;
@@ -18,6 +20,8 @@ import one.util.streamex.EntryStream;
 
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
+import ru.biosoft.server.servlets.webservices.providers.WebProvider;
 
 /**
  * Shared, test-friendly helpers for the simulation MCP tools (phase 4).
@@ -219,5 +223,92 @@ public final class McpSimulationSupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"simulation failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
+	}
+
+	// ---------------------------------------------------------------- async run (provider-delegated)
+
+	/**
+	 * Start a diagram simulation as an async job — the headless equivalent of the web UI's "Simulate"
+	 * button. Delegates to the {@code simulation} provider ({@code simulate} action), which runs the
+	 * simulation on a background thread. Returns a {@code jobID} immediately; poll
+	 * {@link #simulationStatus(String)} until it completes, then fetch the time series with
+	 * {@link #simulationResult(String)}.
+	 *
+	 * <p>This is the provider-based counterpart to the synchronous {@link #run} (which runs the whole
+	 * simulation inline and returns the time series in one call). Use this for large/long simulations
+	 * that would otherwise exceed a client's request timeout.</p>
+	 *
+	 * @param path the repository path to the diagram
+	 * @return an envelope whose data is {@code {jobID, plotCount}} on success.
+	 */
+	public static McpEnvelope startSimulation( String path )
+	{
+		McpEnvelope resolved = diagramWithModel( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		WebProvider provider = McpProviderSupport.provider( "simulation" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: simulation" );
+		String jobID = java.util.UUID.randomUUID().toString();
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( McpProviderSupport.KEY_DE, path );
+		params.put( "jobID", jobID );
+		params.put( "engine", new ArrayList<Object>() ); // empty engine options (use defaults)
+		McpEnvelope env = McpProviderSupport.invoke( provider, "simulation", "simulate", params );
+		if ( !env.isOk() )
+			return env;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "jobID", jobID );
+		// The provider returns [jobID, plotCount] as its values array.
+		Object values = env.getData();
+		if ( values instanceof List && ( (List<?>) values ).size() >= 2 )
+			m.put( "plotCount", ( (List<?>) values ).get( 1 ) );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Poll the status of a simulation job started by {@link #startSimulation} — the headless
+	 * equivalent of the web UI's simulation progress. Delegates to the {@code simulation} provider
+	 * ({@code status} action). Returns {@code {jobID, status, progress, completed}}.
+	 *
+	 * @param jobID the job ID returned by {@link #startSimulation}
+	 * @return an envelope whose data is the re-shaped status.
+	 */
+	public static McpEnvelope simulationStatus( String jobID )
+	{
+		WebProvider provider = McpProviderSupport.provider( "simulation" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: simulation" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( McpProviderSupport.KEY_DE, jobID ); // the status action reads the jobID from 'de'
+		Map<String, Object> resp = McpProviderSupport.responseMap( (WebJSONProviderSupport) provider, "simulation", "status", params );
+		if ( resp == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no simulation job named: " + jobID );
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "jobID", jobID );
+		Object status = resp.get( "status" );
+		m.put( "status", status instanceof Number ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
+		Object percent = resp.get( "percent" );
+		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
+		m.put( "completed", status instanceof Number && ( (Number) status ).intValue() >= ru.biosoft.jobcontrol.JobControl.COMPLETED );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Fetch the time-series result of a completed simulation job — the headless equivalent of the web
+	 * UI's result table. Delegates to the {@code simulation} provider ({@code result} action), which
+	 * returns {@code {vars, times, values}} (and Q1/Q2/Q3 for stochastic results).
+	 *
+	 * @param jobID the job ID returned by {@link #startSimulation}
+	 * @return an envelope whose data is the time-series structure.
+	 */
+	public static McpEnvelope simulationResult( String jobID )
+	{
+		WebProvider provider = McpProviderSupport.provider( "simulation" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: simulation" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( McpProviderSupport.KEY_DE, jobID ); // the result action reads the jobID from 'de'
+		return McpProviderSupport.invoke( provider, "simulation", "result", params );
 	}
 }

@@ -34,6 +34,21 @@ public final class SimulationTools
 				"List the ODE solvers available to the simulation engine (name, type, implementation class).",
 				"{}",
 				( ex, args ) -> McpSimulationSupport.listSolvers() );
+
+		catalog.register( "biouml_simulation_start",
+				"Start a diagram simulation as an async job (the provider-based counterpart of biouml_simulation_run). The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider, which runs the simulation on a background thread and returns a jobID immediately; poll biouml_simulation_status until it completes, then fetch the time series with biouml_simulation_result. Use this for large/long simulations that would exceed a client's request timeout.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
+				( ex, args ) -> McpSimulationSupport.startSimulation( str( args, "diagramPath" ) ) );
+
+		catalog.register( "biouml_simulation_status",
+				"Poll the status of a simulation job started by biouml_simulation_start — the headless equivalent of the web UI's simulation progress. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {jobID, status, progress, completed}; poll until completed is true.",
+				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
+				( ex, args ) -> McpSimulationSupport.simulationStatus( str( args, "jobID" ) ) );
+
+		catalog.register( "biouml_simulation_result",
+				"Fetch the time-series result of a completed simulation job — the headless equivalent of the web UI's result table. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results).",
+				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
+				( ex, args ) -> McpSimulationSupport.simulationResult( str( args, "jobID" ) ) );
 	}
 
 	private static String str( Map<String, Object> args, String key )
