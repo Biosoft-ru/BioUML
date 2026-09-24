@@ -277,5 +277,39 @@ public final class RepoTools
 							return vc;
 						return McpRepositorySupport.newElement( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "kind" ), McpArgs.str( args, "name" ), McpArgs.str( args, "content" ) );
 					} );
+
+			catalog.register( "biouml_repo_filesystem_types",
+					"List the element types available for a file inside a file-system collection — the headless equivalent of the web UI's 'Change element type' menu item. path is the element. Returns {path, count, types}.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.filesystemElementTypes( McpArgs.str( args, "path" ) );
+					} );
+
+			catalog.register( "biouml_repo_set_filesystem_type",
+					"Change the element type of a file inside a file-system collection — the headless equivalent of the web UI's 'Change element type' menu item (FileSystemCollection.setElementType). path is the element; type is the target type (one of biouml_repo_filesystem_types). Returns {changed, type}.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"path\",\"type\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						McpEnvelope vt = McpArgs.requiredString( args, "type" );
+						if ( vt != null )
+							return vt;
+						return McpRepositorySupport.setFilesystemType( McpArgs.str( args, "path" ), McpArgs.str( args, "type" ) );
+					} );
+
+			catalog.register( "biouml_repo_login",
+					"Log into a credentials-protected collection — the headless equivalent of the web UI's 'Login' menu item (CredentialsCollection.processCredentialsBean). path is the collection; fields is a flat map of credential field name -> value (e.g. {\"user\":\"...\",\"password\":\"...\"}) matched case-insensitively to the collection's credentials bean. Returns {loggedIn, path}.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"fields\":{\"type\":\"object\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						Map<String, String> fields = McpArgs.stringMap( args, "fields" );
+						return McpRepositorySupport.login( McpArgs.str( args, "path" ), fields );
+					} );
 	}
 }

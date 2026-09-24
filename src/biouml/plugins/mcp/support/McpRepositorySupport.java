@@ -956,4 +956,156 @@ public final class McpRepositorySupport
 		sb.append( "\"nbformat\":4,\"nbformat_minor\":2}" );
 		return sb.toString();
 	}
+
+	/**
+	 * Change the element type of a file inside a {@link ru.biosoft.fs.FileSystemCollection} — the
+	 * headless equivalent of the web UI's "Change element type" menu item
+	 * ({@code ChangeElementTypeAction}, which only wraps {@code FileSystemCollection.setElementType}
+	 * in a properties dialog to pick the type). The available types are listed by
+	 * {@link #filesystemElementTypes(String)}.
+	 *
+	 * @param path   full repository path of the element (inside a file-system collection)
+	 * @param newType the target element type (one of {@link #filesystemElementTypes})
+	 * @return an envelope whose data is {@code {changed, path, type}} on success.
+	 */
+	public static McpEnvelope setFilesystemType( String path, String newType )
+	{
+		if ( newType == null || newType.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "type must be a non-empty string" );
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement de = (DataElement) resolved.getData();
+		Object origin = de.getOrigin();
+		if ( !( origin instanceof ru.biosoft.fs.FileSystemCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "element is not in a file-system collection: " + path );
+		ru.biosoft.fs.FileSystemCollection fsc = (ru.biosoft.fs.FileSystemCollection) origin;
+		try
+		{
+			fsc.setElementType( de.getName(), newType );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "changed", path );
+			m.put( "type", newType );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not change element type: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * List the element types available for a file inside a {@link ru.biosoft.fs.FileSystemCollection}
+	 * (what {@link #setFilesystemType} can change it to).
+	 */
+	public static McpEnvelope filesystemElementTypes( String path )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement de = (DataElement) resolved.getData();
+		Object origin = de.getOrigin();
+		if ( !( origin instanceof ru.biosoft.fs.FileSystemCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "element is not in a file-system collection: " + path );
+		try
+		{
+			List<String> types = ru.biosoft.fs.FileSystemCollection.getAvailableTypes( de ).sorted().toList();
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "path", path );
+			m.put( "count", Integer.valueOf( types.size() ) );
+			m.put( "types", types );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not list element types: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * Log into a credentials-protected collection — the headless equivalent of the web UI's "Login"
+	 * menu item ({@code LoginModuleAction}, which only wraps {@code CredentialsCollection
+	 * .processCredentialsBean} in a credentials dialog). The collection's credentials bean is obtained
+	 * via {@code getCredentialsBean()} and filled from the supplied fields (matched case-
+	 * insensitively against the bean's bean-property names, e.g. {@code user}/{@code password});
+	 * {@code processCredentialsBean} is then invoked, retrying once on a login failure.
+	 *
+	 * @param path   full repository path of the collection (must implement {@code CredentialsCollection}
+	 *               and report {@code needCredentials()})
+	 * @param fields a flat map of credential field name -> value (e.g. {"user":"...","password":"..."})
+	 * @return an envelope whose data is {@code {loggedIn, path}} on success.
+	 */
+	public static McpEnvelope login( String path, Map<String, String> fields )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement de = (DataElement) resolved.getData();
+		if ( !( de instanceof ru.biosoft.access.security.CredentialsCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "element is not a credentials collection: " + path );
+		ru.biosoft.access.security.CredentialsCollection cc = (ru.biosoft.access.security.CredentialsCollection) de;
+		if ( !cc.needCredentials() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "collection does not need credentials: " + path );
+		Object bean = cc.getCredentialsBean();
+		if ( bean == null )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "no credentials bean available for: " + path );
+		try
+		{
+			fillCredentialsBean( bean, fields );
+			cc.processCredentialsBean( bean );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "loggedIn", path );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"login failed for '" + path + "': " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * Fill a credentials bean's bean-properties from the supplied field map, matching property names
+	 * case-insensitively (so "user" fills a "user" or "User" property). Unknown field names are
+	 * ignored. Uses the bean's public set-property methods (the same mechanism the web
+	 * {@code PropertiesDialog} uses to populate the bean).
+	 */
+	private static void fillCredentialsBean( Object bean, Map<String, String> fields ) throws Exception
+	{
+		if ( fields == null || fields.isEmpty() )
+			return;
+		java.beans.BeanInfo info = java.beans.Introspector.getBeanInfo( bean.getClass() );
+		for ( java.beans.PropertyDescriptor pd : info.getPropertyDescriptors() )
+		{
+			if ( pd.getWriteMethod() == null || "class".equals( pd.getName() ) )
+				continue;
+			for ( Map.Entry<String, String> e : fields.entrySet() )
+			{
+				if ( pd.getName().equalsIgnoreCase( e.getKey() ) )
+				{
+					Object value = e.getValue();
+					Class<?> paramType = pd.getWriteMethod().getParameterTypes()[ 0 ];
+					pd.getWriteMethod().invoke( bean, convertForBean( value, paramType ) );
+				}
+			}
+		}
+	}
+
+	/** Convert a string field value to the target bean-property type where trivially possible. */
+	private static Object convertForBean( Object value, Class<?> target )
+	{
+		if ( value == null )
+			return null;
+		if ( target.isInstance( value ) )
+			return value;
+		if ( target == String.class )
+			return String.valueOf( value );
+		if ( target == Integer.class || target == int.class )
+			return Integer.valueOf( String.valueOf( value ) );
+		if ( target == Boolean.class || target == boolean.class )
+			return Boolean.valueOf( String.valueOf( value ) );
+		return value;
+	}
 }

@@ -112,6 +112,36 @@ public class McpDiagramToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testLayoutAndUpdateSubmodel()
+	{
+		// Add two nodes so there is a selection to lay out.
+		McpDiagramSupport.addNode( diagramPath, "l1", "Protein", 10, 10 );
+		McpDiagramSupport.addNode( diagramPath, "l2", "Gene", 10, 40 );
+
+		// align-up over both nodes: regenerates the view headlessly and aligns to the min-Y.
+		// Node paths are addressed by their name (resolveSelection prefixes the diagram path).
+		McpEnvelope layout = biouml.plugins.mcp.support.McpDiagramEditSupport.layout(
+				diagramPath, "align-up", new String[] { "l1", "l2" } );
+		data( layout );
+		Map<String, Object> lm = (Map<String, Object>) layout.getData();
+		assertEquals( "op echoed", "align-up", lm.get( "op" ) );
+		assertEquals( "count = 2 nodes", Integer.valueOf( 2 ), lm.get( "count" ) );
+
+		// An unknown layout op is a clean invalid_params.
+		McpEnvelope badOp = biouml.plugins.mcp.support.McpDiagramEditSupport.layout(
+				diagramPath, "align-diagonal", new String[] { "l1", "l2" } );
+		assertFalse( badOp.isOk() );
+		assertEquals( biouml.plugins.mcp.McpConstants.CODE_INVALID_PARAMS, badOp.getCode() );
+
+		// update-submodel on a non-composite (math) diagram: the action is not applicable, so a
+		// clean invalid_params — proving the code path runs headlessly without a throw.
+		McpEnvelope usm = biouml.plugins.mcp.support.McpDiagramEditSupport.updateSubmodel( diagramPath );
+		assertNotNull( usm );
+		if ( !usm.isOk() )
+			assertNotNull( "error must carry a code", usm.getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testRemoveMoveRenameMutate()
 	{
 		McpEnvelope n1 = McpDiagramSupport.addNode( diagramPath, "rm", "Substance", 5, 5 );

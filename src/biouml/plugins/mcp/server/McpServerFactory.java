@@ -1,10 +1,14 @@
 package biouml.plugins.mcp.server;
 
 import biouml.plugins.mcp.tools.analysis.AnalysisTools;
+import biouml.plugins.mcp.tools.brain.BrainTools;
+import biouml.plugins.mcp.tools.bsa.BsaTools;
+import biouml.plugins.mcp.tools.diagram.DiagramEditTools;
 import biouml.plugins.mcp.tools.diagram.DiagramTools;
 import biouml.plugins.mcp.tools.project.ProjectTools;
 import biouml.plugins.mcp.tools.repo.RepoTools;
 import biouml.plugins.mcp.tools.simulation.SimulationTools;
+import biouml.plugins.mcp.tools.table.TableTools;
 
 /**
  * Assembles the complete MCP tool catalog (repository tools from phase 2, analysis/task tools from
@@ -28,8 +32,12 @@ public final class McpServerFactory
 		RepoTools.registerAll( catalog );
 		AnalysisTools.registerAll( catalog );
 		DiagramTools.registerAll( catalog );
+		DiagramEditTools.registerAll( catalog );
 		SimulationTools.registerAll( catalog );
 		ProjectTools.registerAll( catalog );
+		TableTools.registerAll( catalog );
+		BsaTools.registerAll( catalog );
+		BrainTools.registerAll( catalog );
 		return catalog;
 	}
 
