@@ -18,7 +18,17 @@ public class VectorUtils
     public static void linearSum(double a, double[] x, double b, double[] y, double[] z)
     {
         int n = x.length;
-        for( int i = 0; i < n; i++ )
+        int i = 0;
+        // Unroll by 4: reduces loop overhead in the tightest solver loop
+        // (called from predictZ, getDky, doNewtonIteration every step).
+        for( ; i + 3 < n; i += 4 )
+        {
+            z[i]     = ( a * x[i]     ) + ( b * y[i]     );
+            z[i + 1] = ( a * x[i + 1] ) + ( b * y[i + 1] );
+            z[i + 2] = ( a * x[i + 2] ) + ( b * y[i + 2] );
+            z[i + 3] = ( a * x[i + 3] ) + ( b * y[i + 3] );
+        }
+        for( ; i < n; i++ )
             z[i] = ( a * x[i] ) + ( b * y[i] );
     }
 
@@ -364,10 +374,16 @@ public class VectorUtils
     public static void linearSum(double[] x, double[] y, double[] z)
     {
         int n = x.length;
-        for( int i = 0; i < n; i++ )
+        int i = 0;
+        for( ; i + 3 < n; i += 4 )
         {
-            z[i] = x[i] + y[i];
+            z[i]     = x[i]     + y[i];
+            z[i + 1] = x[i + 1] + y[i + 1];
+            z[i + 2] = x[i + 2] + y[i + 2];
+            z[i + 3] = x[i + 3] + y[i + 3];
         }
+        for( ; i < n; i++ )
+            z[i] = x[i] + y[i];
     }
 
     /**
@@ -489,10 +505,16 @@ public class VectorUtils
     public static void add(double[] x, double[] z)
     {
         int n = x.length;
-        for( int i = 0; i < n; i++ )
+        int i = 0;
+        for( ; i + 3 < n; i += 4 )
         {
-            z[i] += x[i];
+            z[i]     += x[i];
+            z[i + 1] += x[i + 1];
+            z[i + 2] += x[i + 2];
+            z[i + 3] += x[i + 3];
         }
+        for( ; i < n; i++ )
+            z[i] += x[i];
     }
 
 

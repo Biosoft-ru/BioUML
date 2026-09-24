@@ -343,14 +343,10 @@ public class Matrix
 
     public static void denseCopy(double[][] a, double[][] b, int m, int n)
     {
+        // Use the JVM-optimized bulk array copy instead of an
+        // element-by-element loop.
         for( int j = 0; j < n; j++ )
-        {
-            for( int i = 0; i < m; i++ )
-            {
-                b[j][i] = a[j][i];
-            }
-        }
-
+            System.arraycopy( a[j], 0, b[j], 0, m );
     }
 
     static void bandCopy(double[][] a, double[][] b, int n, int asmu, int bsmu, int copymu, int copyml)

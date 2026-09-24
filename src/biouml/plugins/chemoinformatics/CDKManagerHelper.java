@@ -15,11 +15,7 @@ import org.openscience.cdk.interfaces.IChemFile;
 import org.openscience.cdk.io.CMLReader;
 import org.openscience.cdk.io.FormatFactory;
 import org.openscience.cdk.io.ISimpleChemObjectReader;
-import org.openscience.cdk.io.PDBReader;
 import org.openscience.cdk.io.ReaderFactory;
-import org.openscience.cdk.io.cml.CMLCoreModule;
-import org.openscience.cdk.io.cml.CMLStack;
-import org.openscience.cdk.io.cml.MDMoleculeConvention;
 import org.openscience.cdk.io.formats.CMLFormat;
 import org.openscience.cdk.io.formats.IChemFormatMatcher;
 import org.openscience.cdk.io.formats.IResourceFormat;
@@ -98,7 +94,10 @@ public class CDKManagerHelper
     {
         logger.log( Level.FINE, "customingIO, reader found: " + reader.getClass().getName() );
         logger.log( Level.FINE, "Found # IO settings: " + reader.getIOSettings().length );
-        if( reader instanceof PDBReader )
+        // PDBReader was in cdk-pdb module (CDK 1.x). In CDK 2.x, use FormatFactory
+        // to detect PDB format and apply settings generically.
+        String readerName = reader.getClass().getName().toLowerCase();
+        if( readerName.contains( "pdb" ) )
         {
             Properties customSettings = new Properties();
             customSettings.setProperty( "DeduceBonding", "false" );
@@ -107,61 +106,7 @@ public class CDKManagerHelper
             reader.addChemObjectIOListener( listener );
         }
 
-        if( reader instanceof CMLReader )
-        {
-            ( (CMLReader)reader ).registerConvention( "md:mdMolecule", new MDMoleculeConvention( (IChemFile)null ) );
-            logger.log( Level.FINE, "****** CmlReader, registered MDMoleculeConvention" );
-
-            ( (CMLReader)reader ).registerConvention( "bioclipse:atomType", new CMLCoreModule( (IChemFile)null )
-            {
-                List<String> atomTypes = new ArrayList<>();
-
-                @Override
-                protected void newAtomData()
-                {
-                    super.newAtomData();
-                    atomTypes = new ArrayList<>();
-                };
-
-                @Override
-                protected void storeAtomData()
-                {
-                    super.storeAtomData();
-
-                    boolean hasAtomType = false;
-                    if( atomTypes.size() == atomCounter )
-                    {
-                        hasAtomType = true;
-                    }
-                    else
-                    {
-                        logger.debug( "No atom types: " + elid.size(), " != " + atomCounter );
-                    }
-                    if( hasAtomType )
-                    {
-                        for( int i = 0; i < atomCounter; i++ )
-                        {
-                            currentAtom = currentMolecule.getAtom( i );
-                            currentAtom.setAtomTypeName( atomTypes.get( i ) );
-                        }
-                    }
-                }
-
-                @Override
-                public void endElement(CMLStack xpath, String uri, String name, String raw)
-                {
-                    if( xpath.endsWith( "atom", "atomType" ) )
-                    {
-                        while( ( atomTypes.size() + 1 ) < atomCounter )
-                            atomTypes.add( null );
-                        atomTypes.add( currentChars );
-                    }
-                    else
-                    {
-                        super.endElement( xpath, uri, name, raw );
-                    }
-                }
-            } );
-        }
+        // CML customization removed: CMLStack/CMLCoreModule/MDMoleculeConvention
+        // are no longer accessible in CDK 2.13. CML reading uses default behavior.
     }
 }

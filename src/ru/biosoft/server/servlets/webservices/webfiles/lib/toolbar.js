@@ -736,7 +736,7 @@ function DynamicAction()
                             else
                             {
             					refreshTreeBranch(getElementPath(results[i]));
-        					    openDocument(results[i]);
+        					    openDocument(results[i], false);
                             }
         				}
         			}

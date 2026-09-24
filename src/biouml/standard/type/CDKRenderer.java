@@ -18,12 +18,11 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.openscience.cdk.Molecule;
+import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryTools;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.io.MDLReader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
@@ -35,6 +34,7 @@ import org.openscience.cdk.renderer.elements.LineElement;
 import org.openscience.cdk.renderer.elements.OvalElement;
 import org.openscience.cdk.renderer.elements.PathElement;
 import org.openscience.cdk.renderer.elements.RectangleElement;
+import org.openscience.cdk.renderer.elements.MarkedElement;
 import org.openscience.cdk.renderer.elements.TextElement;
 import org.openscience.cdk.renderer.elements.TextGroupElement;
 import org.openscience.cdk.renderer.elements.WedgeLineElement;
@@ -110,6 +110,8 @@ public class CDKRenderer
                 visit( (RectangleElement)element );
             else if( element instanceof PathElement )
                 visit( (PathElement)element );
+            else if( element instanceof MarkedElement )
+                visit( ((MarkedElement) element).element() );
             else
                 System.err.println( "Visitor method for " + element.getClass().getName() + " is not implemented" );
         }
@@ -153,8 +155,8 @@ public class CDKRenderer
         {
             Pen pen = new Pen( (float)line.width, line.color );
             Brush brush = new Brush( line.color );
-            Point start = transformPoint( line.x1, line.y1 );
-            Point end = transformPoint( line.x2, line.y2 );
+            Point start = transformPoint( line.startX, line.startY );
+            Point end = transformPoint( line.endX, line.endY );
             Tip startTip = null;
             Tip endTip = null;
             if( line.direction )
@@ -174,8 +176,8 @@ public class CDKRenderer
         {
             Pen pen = new Pen( stroke, line.color );
             Brush brush = new Brush( line.color );
-            Point start = transformPoint( line.x1, line.y1 );
-            Point end = transformPoint( line.x2, line.y2 );
+            Point start = transformPoint( line.firstPointX, line.firstPointY );
+            Point end = transformPoint( line.secondPointX, line.secondPointY );
             ArrowView view = new ArrowView( pen, brush, start.x, start.y, end.x, end.y, null, null );
             parentView.add( view );
         }
@@ -188,8 +190,8 @@ public class CDKRenderer
             {
                 brush = new Brush( oval.color );
             }
-            Point min = transformPoint( oval.x - oval.radius, oval.y - oval.radius );
-            Point max = transformPoint( oval.x + oval.radius, oval.y + oval.radius );
+            Point min = transformPoint( oval.xCoord - oval.radius, oval.yCoord - oval.radius );
+            Point max = transformPoint( oval.xCoord + oval.radius, oval.yCoord + oval.radius );
             int w = max.x - min.x;
             int h = max.y - min.y;
 
@@ -199,7 +201,7 @@ public class CDKRenderer
 
         protected void visit(TextElement textElement)
         {
-            Point location = transformPoint( textElement.x, textElement.y );
+            Point location = transformPoint( textElement.xCoord, textElement.yCoord );
             CompositeView text = new CompositeView();
 
             ColorFont colorFont = new ColorFont( fontManager.getFont(), textElement.color );
@@ -217,11 +219,11 @@ public class CDKRenderer
         protected void visit(WedgeLineElement wedge)
         {
             Brush brush = new Brush( wedge.color );
-            Point start = transformPoint( wedge.x1, wedge.y1 );
-            Point end = transformPoint( wedge.x2, wedge.y2 );
+            Point start = transformPoint( wedge.firstPointX, wedge.firstPointY );
+            Point end = transformPoint( wedge.secondPointX, wedge.secondPointY );
             int length = (int)Math.sqrt( ( ( start.x - end.x ) * ( start.x - end.x ) ) + ( ( start.y - end.y ) * ( start.y - end.y ) ) );
             View view = null;
-            if( wedge.isDashed )
+            if( wedge.type == WedgeLineElement.TYPE.DASHED )
             {
                 BasicStroke stroke2 = new BasicStroke( 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, new float[] {3.0f, 3.0f},
                         0.0f );
@@ -239,7 +241,7 @@ public class CDKRenderer
 
         protected void visit(AtomSymbolElement atomSymbol)
         {
-            Point location = transformPoint( atomSymbol.x, atomSymbol.y );
+            Point location = transformPoint( atomSymbol.xCoord, atomSymbol.yCoord );
             CompositeView text = new CompositeView();
 
             ColorFont colorFont = new ColorFont( fontManager.getFont(), atomSymbol.color );
@@ -301,8 +303,8 @@ public class CDKRenderer
 
         protected void visit(RectangleElement rectangle)
         {
-            Point p1 = this.transformPoint( rectangle.x, rectangle.y );
-            Point p2 = this.transformPoint( rectangle.x + rectangle.width, rectangle.y + rectangle.height );
+            Point p1 = this.transformPoint( rectangle.xCoord, rectangle.yCoord );
+            Point p2 = this.transformPoint( rectangle.xCoord + rectangle.width, rectangle.yCoord + rectangle.height );
             Pen pen = new Pen( stroke, rectangle.color );
             Brush brush = null;
             if( rectangle.filled )
@@ -317,15 +319,15 @@ public class CDKRenderer
         protected void visit(PathElement path)
         {
             Pen pen = new Pen( stroke, path.color );
-            List points = path.points;
+            List<javax.vecmath.Point2d> points = path.points;
             if( points.size() > 0 )
             {
                 GeneralPath generalPath = new GeneralPath();
-                Point start = (Point)points.get( 0 );
+                javax.vecmath.Point2d start = points.get( 0 );
                 generalPath.moveTo( start.x, start.y );
                 for( int i = 1; i < points.size(); i++ )
                 {
-                    Point p = (Point)points.get( i );
+                    javax.vecmath.Point2d p = points.get( i );
                     generalPath.lineTo( p.x, p.y );
                 }
                 PathView view = new PathView( pen, generalPath );
@@ -335,7 +337,7 @@ public class CDKRenderer
 
         protected void visit(TextGroupElement textGroup)
         {
-            Point location = transformPoint( textGroup.x, textGroup.y );
+            Point location = transformPoint( textGroup.xCoord, textGroup.yCoord );
             CompositeView text = new CompositeView();
 
             ColorFont colorFont = new ColorFont( fontManager.getFont(), textGroup.color );
@@ -445,7 +447,7 @@ public class CDKRenderer
     {
         Rectangle drawArea = new Rectangle( size.width, size.height );
 
-        IMolecule molecule = loadMolecule( structure );
+        IAtomContainer molecule = loadMolecule( structure );
 
         if( size.width <= 0 || size.height <= 0 )
         {
@@ -476,7 +478,7 @@ public class CDKRenderer
         renderer.paint( molecule, result == null ? new AWTDrawVisitor( g ) : new CompositeViewDrawVisitor( result, g ) );
     }
 
-    public static IMolecule loadMolecule(Structure structure) throws BiosoftParseException
+    public static IAtomContainer loadMolecule(Structure structure) throws BiosoftParseException
     {
         try
         {
@@ -485,17 +487,17 @@ public class CDKRenderer
             PrintStream oldError = System.err;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream newError = new PrintStream( baos );
-            IMolecule molecule = null;
+            IAtomContainer molecule = null;
             try
             {
-                molecule = (IMolecule)SecurityManager.runPrivileged( () -> {
+                molecule = (IAtomContainer)SecurityManager.runPrivileged( () -> {
 
                     System.setErr( newError );
-                    IMolecule mol;
+                    IAtomContainer mol;
                     try
                     {
-                        MDLReader mdl = new MDLReader( new StringReader( structureData ) );
-                        mol = (Molecule)mdl.read( new Molecule() );
+                        MDLV2000Reader mdl = new MDLV2000Reader( new StringReader( structureData ) );
+                        mol = mdl.read( new AtomContainer() );
 
                         //try to generate 2D coordinates
                         if( !GeometryTools.has2DCoordinates( mol ) )
@@ -519,11 +521,16 @@ public class CDKRenderer
             }
             catch( Exception e1 )
             {
+                // MDLV2000Reader may return null on failure; molecule stays null
             }
 
             if( baos.size() > 0 )
             {
                 throw new CDKException( new String( baos.toByteArray(), StandardCharsets.ISO_8859_1 ) );
+            }
+            if( molecule == null )
+            {
+                throw new CDKException( "Failed to parse structure: " + structure.getName() );
             }
             return molecule;
         }

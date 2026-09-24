@@ -86,50 +86,6 @@
 	<classpathentry kind="lib" path="plugins/org.semanticweb.owl_2.1.0/owlapi-rdfxmlparser.jar"/>
 	<classpathentry kind="lib" path="plugins/org.semanticweb.owl_2.1.0/owlapi-rdfxmlrenderer.jar"/>
 	<classpathentry kind="lib" path="plugins/org.semanticweb.owl_2.1.0/owlapi-util.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-annotation.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-atomtype.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-charges.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-control.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-core.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-data.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-datadebug.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-dict.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-diff.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-extra.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-fingerprint.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-forcefield.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-formula.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-inchi.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-interfaces.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-io.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-ioformats.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-ionpot.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-io-sources.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-isomorphism.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-libiocml.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-libiomd.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-log4j.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-nonotify.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-pcore.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-pdb.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-pdbcml.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qm.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsar.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsaratomic.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsarbond.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsarcml.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsarionpot.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsarmolecular.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-qsarprotein.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-reaction.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-render.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-sdg.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-smarts.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-smiles.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-smsd.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-standard.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-structgen.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.cdk_1.3.5/cdk-valencycheck.jar"/>
 	<classpathentry kind="lib" path="plugins/jtar_1.0.3.jar"/>
 	<classpathentry kind="lib" path="plugins/org.openscience.jmol_12.2.4.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.lucene_9.11.1/lucene-analysis-common-9.11.1.jar"/>
@@ -168,8 +124,6 @@
 	<classpathentry kind="lib" path="build/bin/ant-contrib.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.axis_1.1.0/jaxrpc.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.batik_1.7/batik-all.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar"/>
-	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar"/>
 	<classpathentry kind="lib" path="build/bin/junit-platform-console-standalone-1.11.0.jar"/>
 	<classpathentry kind="lib" path="plugconfig/biouml.plugins.beakerx/beakerx-kernel-base-1.0.jar"/>
 	<classpathentry kind="lib" path="plugins/ru.biosoft.bigbed-1.0.0.jar"/>
@@ -181,5 +135,29 @@
 	<classpathentry kind="lib" path="plugins/jackson-core-2.11.2.jar"/>
 	<classpathentry kind="lib" path="plugins/org.apache.commons.cli_1.9.0.jar"/>
 	<classpathentry kind="lib" path="plugins/groovy-3.0.25.jar" sourcepath="/nextflow/src/main"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-forcefield.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-structgen.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-valencycheck.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-reaction.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-dict.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-ioformats.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-smarts.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-isomorphism.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-smiles.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-atomtype.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-extra.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-silent.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-fingerprint.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-renderawt.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-renderbasic.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-render.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-sdg.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-legacy.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-io.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-data.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-core.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.cdk_2.13/cdk-interfaces.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.4.0/jchempaint-core-3.4-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="plugins/org.openscience.jchempaint_3.4.0/jchempaint-render-3.4-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="out"/>
 </classpath>

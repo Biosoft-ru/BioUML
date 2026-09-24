@@ -15,19 +15,6 @@ for jar in "${owl_jars[@]}"; do
      -DgeneratePom=true
 done
 
-cdk_jars=("interfaces" "data" "core" "extra" "io" "ioformats" "nonotify" "isomorphism" "smiles" "smarts" "pdb" "standard" "fingerprint")
-
-# Iterate over the list and execute a command for each element
-for jar in "${cdk_jars[@]}"; do
-   mvn -N install:install-file \
-     -DgroupId=org.openscience.cdk \
-     -DartifactId=cdk-$jar \
-     -Dversion=1.3.5 \
-     -Dpackaging=jar \
-     -Dfile=plugins/org.openscience.cdk_1.3.5/cdk-$jar.jar \
-     -DgeneratePom=true
-done
-
 ## it.sauronsoftware.ftp4j
 
 mvn -N install:install-file \
@@ -92,18 +79,18 @@ mvn -N install:install-file \
 
 mvn -N install:install-file \
   -DgroupId=org.openscience.jchempaint \
-  -DartifactId=jchempaint \
-  -Dversion=3.1.2 \
+  -DartifactId=jchempaint-core \
+  -Dversion=3.4-SNAPSHOT \
   -Dpackaging=jar \
-  -Dfile=plugins/org.openscience.jchempaint_3.1.2/jchempaint-3.1.2.jar \
+  -Dfile=plugins/org.openscience.jchempaint_3.4.0/jchempaint-core-3.4-SNAPSHOT.jar \
   -DgeneratePom=true
 
 mvn -N install:install-file \
   -DgroupId=org.openscience.jchempaint \
-  -DartifactId=cdk-jchempaint \
-  -Dversion=1.3.5 \
+  -DartifactId=jchempaint-render \
+  -Dversion=3.4-SNAPSHOT \
   -Dpackaging=jar \
-  -Dfile=plugins/org.openscience.jchempaint_3.1.2/cdk-jchempaint-15.jar \
+  -Dfile=plugins/org.openscience.jchempaint_3.4.0/jchempaint-render-3.4-SNAPSHOT.jar \
   -DgeneratePom=true
 
 ## smack

@@ -3,7 +3,7 @@ package biouml.standard.type;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import org.openscience.cdk.geometry.GeometryTools;
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import com.developmentontheedge.beans.annot.PropertyDescription;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -106,7 +106,7 @@ public class Structure extends Referrer implements ImageElement
     {
         try
         {
-            IMolecule molecule = CDKRenderer.loadMolecule( this );
+            IAtomContainer molecule = CDKRenderer.loadMolecule( this );
             double avgBond = GeometryTools.getBondLengthAverage( molecule );
             if(Double.isNaN( avgBond ))
             {
