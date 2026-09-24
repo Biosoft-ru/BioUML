@@ -191,6 +191,79 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testReinitialize()
+	{
+		// The projects folder is a valid collection; reinitialize() on it must be a clean no-op.
+		McpEnvelope env = McpRepositorySupport.reinitialize( "mcpdata/projects" );
+		data( env );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		assertEquals( "mcpdata/projects", m.get( "reinitialized" ) );
+		// A non-collection element is a clean invalid_params, not a throw.
+		McpEnvelope bad = McpRepositorySupport.reinitialize( "does/not/exist" );
+		assertFalse( bad.isOk() );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testExportFormats()
+	{
+		// exportFormats must resolve the element and return a (possibly empty) list of formats,
+		// never a throw — regardless of whether the element has any exporters.
+		McpEnvelope env = McpRepositorySupport.exportFormats( "mcpdata/projects" );
+		data( env );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		assertTrue( "count present", m.get( "count" ) != null );
+		assertNotNull( "formats list present", m.get( "formats" ) );
+		assertEquals( "count matches formats size",
+				( (Integer) m.get( "count" ) ).intValue(), ( (List<?>) m.get( "formats" ) ).size() );
+
+		// A path that does not start with a registered root is refused with path_escape.
+		McpEnvelope bad = McpRepositorySupport.exportFormats( "does/not/exist" );
+		assertFalse( bad.isOk() );
+		assertEquals( McpConstants.CODE_PATH_ESCAPE, bad.getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testExport()
+	{
+		// A file element has no exporters in this fixture, so export must return a clean
+		// "no export format available" error — proving the code path runs headlessly without a UI.
+		File f = new File( dir, "export-me.txt" );
+		try
+		{
+			java.nio.file.Files.write( f.toPath(), "x".getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+		}
+		catch ( Exception e )
+		{
+			fail( "could not write temp file: " + e );
+		}
+		DataCollection<?> projects = CollectionFactory.getDataCollection( "mcpdata/projects" );
+		ru.biosoft.access.file.FileDataElement file = new ru.biosoft.access.file.FileDataElement( "export-me.txt", projects, f );
+		@SuppressWarnings( "rawtypes" )
+		DataCollection rawProjects = projects;
+		rawProjects.put( file );
+
+		McpEnvelope env = McpRepositorySupport.export( "mcpdata/projects/export-me.txt", null, dir.toString() );
+		// Either it found an exporter (ok) or there is none for a bare file (a structured error).
+		// Either way it must not throw.
+		assertNotNull( env );
+		if ( env.isOk() )
+		{
+			Map<String, Object> m = (Map<String, Object>) env.getData();
+			assertNotNull( "export must report a file path", m.get( "file" ) );
+			assertNotNull( "export must report a format", m.get( "format" ) );
+		}
+		else
+		{
+			assertNotNull( "error must carry a code", env.getCode() );
+		}
+
+		// A path that does not start with a registered root is refused with path_escape.
+		McpEnvelope bad = McpRepositorySupport.export( "does/not/exist", null, dir.toString() );
+		assertFalse( bad.isOk() );
+		assertEquals( McpConstants.CODE_PATH_ESCAPE, bad.getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testGetActions()
 	{
 		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );

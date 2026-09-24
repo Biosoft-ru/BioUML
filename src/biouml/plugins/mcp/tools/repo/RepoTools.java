@@ -169,5 +169,41 @@ public final class RepoTools
 						return vd;
 					return McpRepositorySupport.copyFolder( McpArgs.str( args, "fromPath" ), McpArgs.str( args, "toPath" ) );
 				} );
+
+			catalog.register( "biouml_repo_reinitialize",
+					"Re-initialize a collection that previously failed to load — the headless equivalent of the web UI's 'Retry'/'Reinitialize' menu item. Returns the path and whether it is now valid.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.reinitialize( McpArgs.str( args, "path" ) );
+					} );
+
+			catalog.register( "biouml_repo_export_formats",
+					"List the export formats available for a repository element (in accept-priority order). Use this to discover what biouml_repo_export can produce for the element before calling it.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.exportFormats( McpArgs.str( args, "path" ) );
+					} );
+
+			catalog.register( "biouml_repo_export",
+					"Export a repository element to a file on the server's local filesystem — the headless equivalent of the web UI's 'Export' menu item. format is one of biouml_repo_export_formats (omit to use the highest-priority format); targetDir is a server-local directory (omit for the current dir) — the output file is the element name + the format suffix. Returns {file, format, bytes}.",
+					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "path" );
+						if ( v != null )
+							return v;
+						McpEnvelope vf = McpArgs.optionalString( args, "format" );
+						if ( vf != null )
+							return vf;
+						McpEnvelope vt = McpArgs.optionalString( args, "targetDir" );
+						if ( vt != null )
+							return vt;
+						return McpRepositorySupport.export( McpArgs.str( args, "path" ), McpArgs.str( args, "format" ), McpArgs.str( args, "targetDir" ) );
+					} );
 	}
 }

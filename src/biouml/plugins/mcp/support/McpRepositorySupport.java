@@ -1,5 +1,6 @@
 package biouml.plugins.mcp.support;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -474,5 +475,105 @@ public final class McpRepositorySupport
 		result.put( "count", Integer.valueOf( list.size() ) );
 		result.put( "collections", list );
 		return McpEnvelope.ok( result );
+	}
+
+	/**
+	 * Re-initialize a collection that previously failed to load — the headless equivalent of the web
+	 * UI's "Retry"/"Reinitialize" menu item ({@code ReinitializeAction}), whose perform path is just
+	 * {@code ((DataCollection)de).reinitialize()} with no UI. Useful after a transient failure (e.g. a
+	 * missing dependency at boot) to force a reload.
+	 */
+	public static McpEnvelope reinitialize( String path )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement de = (DataElement) resolved.getData();
+		if ( !( de instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "element is not a collection: " + path );
+		try
+		{
+			( (DataCollection<?>) de ).reinitialize();
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not reinitialize '" + path + "': " + e.getMessage() );
+		}
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "reinitialized", path );
+		m.put( "valid", Boolean.valueOf( ( (DataCollection<?>) de ).isValid() ) );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * List the export formats available for a repository element (in accept-priority order), so a
+	 * caller can discover what {@link #export(String, String, String)} can produce for it.
+	 */
+	public static McpEnvelope exportFormats( String path )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement de = (DataElement) resolved.getData();
+		List<String> formats = ru.biosoft.access.DataElementExporterRegistry.getExporterFormats( de );
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "count", Integer.valueOf( formats.size() ) );
+		m.put( "formats", formats );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Export a repository element to a file on the server's local filesystem, in the given format —
+	 * the headless equivalent of the web UI's "Export" menu item ({@code ExportElementAction}, which
+	 * only wraps a file-chooser dialog around this same registry call). Mirrors the web
+	 * {@code ExportProvider}: resolve the element, pick the exporter for the format, and run
+	 * {@code doExport}.
+	 *
+	 * @param path       full repository path of the element to export
+	 * @param format     the export format (one of {@link #exportFormats}); may be null/empty to use
+	 *                   the highest-priority available format
+	 * @param targetDir  server-local directory for the output file (null/empty = current dir); the
+	 *                   file name is the element name + the format's suffix
+	 * @return an envelope whose data is {@code {file, format, bytes}} on success.
+	 */
+	public static McpEnvelope export( String path, String format, String targetDir )
+	{
+		McpEnvelope resolved = resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		DataElement de = (DataElement) resolved.getData();
+		try
+		{
+			List<String> formats = ru.biosoft.access.DataElementExporterRegistry.getExporterFormats( de );
+			if ( formats.isEmpty() )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "no export format available for: " + path );
+			String fmt = ( format == null || format.isEmpty() ) ? formats.get( 0 ) : format;
+			ru.biosoft.access.DataElementExporterRegistry.ExporterInfo[] infos =
+					ru.biosoft.access.DataElementExporterRegistry.getExporterInfo( fmt, de );
+			if ( infos == null || infos.length == 0 )
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+						"format not supported for this element: " + format + " (available: " + formats + ")" );
+			ru.biosoft.access.DataElementExporterRegistry.ExporterInfo info = infos[ 0 ];
+			String suffix = info.getSuffix();
+			if ( suffix.indexOf( '.' ) == -1 )
+				suffix = "." + suffix;
+			File dir = ( targetDir == null || targetDir.isEmpty() ) ? new File( "." ) : new File( targetDir );
+			if ( !dir.isDirectory() && !dir.mkdirs() )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "target directory does not exist and could not be created: " + dir );
+			File file = new File( dir, de.getName() + suffix );
+			ru.biosoft.access.DataElementExporter exporter = info.cloneExporter();
+			exporter.doExport( de, file );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "file", file.getAbsolutePath() );
+			m.put( "format", info.getFormat() );
+			m.put( "bytes", Long.valueOf( file.length() ) );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"export failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
 	}
 }
