@@ -576,4 +576,147 @@ public final class McpRepositorySupport
 					"export failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
 	}
+
+	/**
+	 * Import a file on the server's local filesystem into a target collection — the headless equivalent
+	 * of the web UI's "Import document" menu item ({@code ImportElementAction}, which only wraps a
+	 * file-chooser + format dropdown around this same importer-registry call). Mirrors the web
+	 * {@code ImportElementDialog} minus all UI: resolve the parent, pick the importer for the format
+	 * (or autodetect), and run {@code doImport}.
+	 *
+	 * <p>Unlike the dialog, there is no property-input sub-dialog and no post-import "open in GUI".
+	 * If the chosen importer requires property input (its {@code getProperties} returns an
+	 * {@code Option} bean, which the dialog would present as a second modal), this returns a
+	 * structured {@code invalid_params} error naming the importer rather than blocking on a dialog —
+	 * most importers (DML, etc.) do not require property input, so this is usually a no-op.</p>
+	 *
+	 * @param parentPath full repository path of the target collection (must be a mutable
+	 *                   {@code DataCollection} with at least one importer available for it)
+	 * @param file       server-local path to the file to import
+	 * @param format     the import format (one of {@link #importFormats(String)}); may be null/empty
+	 *                   to autodetect. Autodetect that matches more than one importer is a clean
+	 *                   error listing the candidates (mirrors the dialog's ambiguity handling).
+	 * @param name       name for the imported element (null/empty = the file name without extension)
+	 * @return an envelope whose data is {@code {imported, format}} on success.
+	 */
+	public static McpEnvelope importElement( String parentPath, String file, String format, String name )
+	{
+		McpEnvelope pe = resolve( parentPath );
+		if ( !pe.isOk() )
+			return pe;
+		Object parentObj = pe.getData();
+		if ( !( parentObj instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "target is not a collection: " + parentPath );
+		@SuppressWarnings( "unchecked" )
+		DataCollection<?> parent = (DataCollection<?>) parentObj;
+		if ( !parent.isMutable() )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "target collection is read-only: " + parentPath );
+
+		File f = new File( file == null ? "" : file );
+		if ( !f.exists() )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no file at: " + file );
+
+		try
+		{
+			ru.biosoft.access.core.DataElementImporter importer;
+			String fmt;
+			if ( format == null || format.isEmpty() || ru.biosoft.access.DataElementImporterRegistry.AUTODETECT.equals( format ) )
+			{
+				// Autodetect: pick the highest-priority importer, or a clean error if ambiguous.
+				ru.biosoft.access.DataElementImporterRegistry.ImporterInfo[] infos =
+						ru.biosoft.access.DataElementImporterRegistry.getAutoDetectImporter( f, parent, false );
+				if ( infos == null || infos.length == 0 )
+					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+							"no importer available for '" + file + "' into " + parentPath );
+				if ( infos.length > 1 )
+				{
+					List<String> candidates = new ArrayList<String>();
+					for ( ru.biosoft.access.DataElementImporterRegistry.ImporterInfo info : infos )
+						candidates.add( info.getFormat() );
+					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+							"more than one importer matches '" + file + "'; specify format explicitly: " + candidates );
+				}
+				importer = infos[ 0 ].getImporter();
+				fmt = infos[ 0 ].getFormat();
+			}
+			else
+			{
+				importer = ru.biosoft.access.DataElementImporterRegistry.getImporter( f, format, parent );
+				if ( importer == null )
+					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+							"no importer for format '" + format + "' into " + parentPath );
+				fmt = format;
+			}
+
+			String elementName = ( name == null || name.isEmpty() )
+					? ru.biosoft.util.ApplicationUtils.getFileNameWithoutExtension( f.getName() )
+					: name;
+
+			// Guard against the importer requiring property input (the dialog would show a second
+			// modal here; headlessly we refuse cleanly instead of blocking on a Swing dialog).
+			Object properties = importer.getProperties( parent, f, elementName );
+			if ( properties instanceof com.developmentontheedge.beans.Option )
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+						"importer for '" + fmt + "' requires property input, which is not available headlessly" );
+
+			ru.biosoft.jobcontrol.FunctionJobControl jc = new ru.biosoft.jobcontrol.FunctionJobControl( log );
+			DataElement imported = importer.doImport( parent, f, elementName, jc, log );
+			if ( imported == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "import produced no element for: " + file );
+
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "imported", DataElementPath.create( imported ).toString() );
+			m.put( "format", fmt );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"import failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/**
+	 * List the import formats available for a target collection (in accept-priority order), so a
+	 * caller can discover what {@link #importElement(String, String, String, String)} can read into
+	 * it. The first entry is always {@code autodetect}.
+	 */
+	public static McpEnvelope importFormats( String parentPath )
+	{
+		McpEnvelope pe = resolve( parentPath );
+		if ( !pe.isOk() )
+			return pe;
+		Object parentObj = pe.getData();
+		if ( !( parentObj instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "target is not a collection: " + parentPath );
+		@SuppressWarnings( "unchecked" )
+		DataCollection<?> parent = (DataCollection<?>) parentObj;
+		try
+		{
+			List<String> formats = new ArrayList<String>();
+			formats.add( ru.biosoft.access.DataElementImporterRegistry.AUTODETECT );
+			for ( ru.biosoft.access.DataElementImporterRegistry.ImporterInfo info : ru.biosoft.access.DataElementImporterRegistry.importers() )
+			{
+				try
+				{
+					if ( info.getImporter().accept( parent, null ) > ru.biosoft.access.core.DataElementImporter.ACCEPT_UNSUPPORTED )
+						formats.add( info.getFormat() );
+				}
+				catch ( Exception e )
+				{
+					// A throwing importer must not break enumeration of the rest.
+				}
+			}
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "path", parentPath );
+			m.put( "count", Integer.valueOf( formats.size() ) );
+			m.put( "formats", formats );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not list import formats: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
 }

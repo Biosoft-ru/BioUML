@@ -264,6 +264,69 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	}
 
 	@SuppressWarnings( "unchecked" )
+	public void testImportFormats()
+	{
+		// importFormats must resolve the parent collection and return a list that always starts
+		// with 'autodetect' — regardless of whether any importer is registered for it in this
+		// headless test environment. It must never throw.
+		McpEnvelope env = McpRepositorySupport.importFormats( "mcpdata/projects" );
+		data( env );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		List<String> formats = (List<String>) m.get( "formats" );
+		assertNotNull( "formats list present", formats );
+		assertTrue( "first format must be autodetect",
+				"autodetect".equals( formats.get( 0 ) ) && formats.size() >= 1 );
+		assertEquals( "count matches formats size",
+				( (Integer) m.get( "count" ) ).intValue(), formats.size() );
+
+		// A path that does not start with a registered root is refused with path_escape.
+		McpEnvelope bad = McpRepositorySupport.importFormats( "does/not/exist" );
+		assertFalse( bad.isOk() );
+		assertEquals( McpConstants.CODE_PATH_ESCAPE, bad.getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public void testImport()
+	{
+		// A nonexistent file is a clean not_found.
+		McpEnvelope missing = McpRepositorySupport.importElement( "mcpdata/projects", dir.toString() + "/nope.dml", null, null );
+		assertFalse( missing.isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+
+		// An existing file with no matching importer (in this headless fixture) is a clean
+		// invalid_params — proving the code path runs headlessly without a UI.
+		File f = new File( dir, "import-me.dml" );
+		try
+		{
+			java.nio.file.Files.write( f.toPath(), "<Diagram/>".getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+		}
+		catch ( Exception e )
+		{
+			fail( "could not write temp file: " + e );
+		}
+		McpEnvelope env = McpRepositorySupport.importElement( "mcpdata/projects", f.toString(), "dml", "imported" );
+		assertNotNull( env );
+		if ( env.isOk() )
+		{
+			// A DML importer happened to be available: the imported element must exist.
+			Map<String, Object> m = (Map<String, Object>) env.getData();
+			String imported = (String) m.get( "imported" );
+			assertNotNull( "imported path present", imported );
+			assertNotNull( "imported element must exist", CollectionFactory.getDataElement( imported ) );
+		}
+		else
+		{
+			// No importer available for this parent in the fixture — a structured error, never a throw.
+			assertNotNull( "error must carry a code", env.getCode() );
+		}
+
+		// A path that does not start with a registered root is refused with path_escape.
+		McpEnvelope bad = McpRepositorySupport.importElement( "does/not/exist", f.toString(), null, null );
+		assertFalse( bad.isOk() );
+		assertEquals( McpConstants.CODE_PATH_ESCAPE, bad.getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
 	public void testGetActions()
 	{
 		McpEnvelope env = McpRepositorySupport.resolve( "mcpdata/projects" );

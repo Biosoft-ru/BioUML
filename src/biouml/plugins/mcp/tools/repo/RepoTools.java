@@ -205,5 +205,34 @@ public final class RepoTools
 							return vt;
 						return McpRepositorySupport.export( McpArgs.str( args, "path" ), McpArgs.str( args, "format" ), McpArgs.str( args, "targetDir" ) );
 					} );
+
+			catalog.register( "biouml_repo_import_formats",
+					"List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'.",
+					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"}},\"required\":[\"parentPath\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.importFormats( McpArgs.str( args, "parentPath" ) );
+					} );
+
+			catalog.register( "biouml_repo_import",
+					"Import a file from the server's local filesystem into a target collection — the headless equivalent of the web UI's 'Import document' menu item. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension). Returns {imported, format}. If the importer requires property input, a structured error is returned instead of blocking on a dialog.",
+					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"file\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
+						if ( v != null )
+							return v;
+						McpEnvelope vf = McpArgs.requiredString( args, "file" );
+						if ( vf != null )
+							return vf;
+						McpEnvelope vfmt = McpArgs.optionalString( args, "format" );
+						if ( vfmt != null )
+							return vfmt;
+						McpEnvelope vn = McpArgs.optionalString( args, "name" );
+						if ( vn != null )
+							return vn;
+						return McpRepositorySupport.importElement( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "file" ), McpArgs.str( args, "format" ), McpArgs.str( args, "name" ) );
+					} );
 	}
 }
