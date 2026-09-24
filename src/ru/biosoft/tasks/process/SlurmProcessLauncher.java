@@ -344,7 +344,7 @@ public class SlurmProcessLauncher extends AbstractProcessLauncher
         int megabytes = (int)Math.ceil( resources.getMemory()/1024.0/1024.0);
         content.append( "#SBATCH --mem " ).append( megabytes ).append( '\n' );
         
-        environ.forEach( (var,val)->content.append( var ).append( '=' ).append( '\'' ).append( val ).append( "'\n" ) );
+        environ.forEach( (var,val)->content.append("export ").append( var ).append( '=' ).append( '\'' ).append( val.replace("'", "'\"'\"'")).append( "'\n" ) );
         
         content.append( command ).append( '\n' );
         return content;
