@@ -9,6 +9,7 @@ import com.developmentontheedge.application.ApplicationUtils;
 
 import biouml.plugins.mcp.McpConstants;
 import biouml.plugins.mcp.server.McpToolCatalog;
+import biouml.plugins.mcp.support.McpDiagramEditSupport;
 import biouml.plugins.mcp.support.McpDiagramSupport;
 import biouml.plugins.mcp.support.McpEnvelope;
 import biouml.plugins.mcp.tools.diagram.DiagramTools;
@@ -135,10 +136,71 @@ public class McpDiagramToolsTest extends AbstractBioUMLTest
 
 		// update-submodel on a non-composite (math) diagram: the action is not applicable, so a
 		// clean invalid_params — proving the code path runs headlessly without a throw.
-		McpEnvelope usm = biouml.plugins.mcp.support.McpDiagramEditSupport.updateSubmodel( diagramPath );
+		McpEnvelope usm = McpDiagramEditSupport.updateSubmodel( diagramPath );
 		assertNotNull( usm );
 		if ( !usm.isOk() )
 			assertNotNull( "error must carry a code", usm.getCode() );
+	}
+
+	/**
+	 * Guard-path tests for the complex diagram model-surgery tools (split / clone-node /
+	 * change-subdiagram / change-port / merge-clone / save-subset / add-from-search). Building the
+	 * composite / pathway fixtures these need (modules, ports, variable-role nodes, a BioHub query
+	 * engine) is out of scope for a unit test, so each is exercised against a plain math diagram,
+	 * where it must be rejected with a clean structured envelope — proving the full code path runs
+	 * headlessly (resolution, applicability, parameter building) without a throw.
+	 */
+	public void testComplexEditGuardPaths()
+	{
+		// Add a couple of nodes so there is a selection to pass.
+		McpDiagramSupport.addNode( diagramPath, "s1", "Protein", 10, 10 );
+		McpDiagramSupport.addNode( diagramPath, "s2", "Gene", 40, 10 );
+
+		// split-diagram: requires a composite diagram; a math diagram is not composite.
+		McpEnvelope split = McpDiagramEditSupport.splitDiagram( diagramPath, new String[] { "s1" }, "M", null, false, false );
+		assertFalse( "split on non-composite must be rejected", split.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, split.getCode() );
+
+		// clone-node: a pathway-family node (auto-assigned VariableRole) is cloned successfully —
+		// this exercises the full headless path (resolution → applicability → parameter build → job).
+		McpEnvelope clone = McpDiagramEditSupport.cloneNode( diagramPath, "s1", "s1copy", false, new String[ 0 ] );
+		assertTrue( "clone-node on a variable-role node should succeed, got " + clone.getCode() + " " + clone.getError(), clone.isOk() );
+		@SuppressWarnings( "unchecked" )
+		Map<String, Object> cloneData = (Map<String, Object>) clone.getData();
+		assertEquals( "clone name echoed", "s1copy", cloneData.get( "clone" ) );
+
+		// change-subdiagram: the selected element must be a SubDiagram; a plain node is not, so the
+		// selection is rejected (the model-level applicability may pass for pathway-family diagrams,
+		// but the element check still rejects it cleanly).
+		McpEnvelope chgSub = McpDiagramEditSupport.changeSubdiagram( diagramPath, "mcpg/diagrams/d1/s1", "mcpg/diagrams/d1" );
+		assertFalse( "change-subdiagram on a non-subdiagram element must be rejected", chgSub.isOk() );
+		assertNotNull( "change-subdiagram rejection must carry a code", chgSub.getCode() );
+
+		// change-port: the selected element must be a port; a plain node is not.
+		McpEnvelope chgPort = McpDiagramEditSupport.changePortType( diagramPath, "s1", "input" );
+		assertFalse( "change-port on a non-port must be rejected", chgPort.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, chgPort.getCode() );
+
+		// change-port: a bad port type is rejected before any lookup.
+		McpEnvelope badPortType = McpDiagramEditSupport.changePortType( diagramPath, "s1", "sideways" );
+		assertFalse( badPortType.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, badPortType.getCode() );
+
+		// merge-clone: a plain node (no variable role) is rejected — by the selection check or the
+		// applicability check, both clean structured envelopes.
+		McpEnvelope merge = McpDiagramEditSupport.mergeClone( diagramPath, "s1" );
+		assertFalse( "merge-clone on a plain node must be rejected", merge.isOk() );
+		assertNotNull( "merge-clone rejection must carry a code", merge.getCode() );
+
+		// save-subset: a bad element selection is rejected (not_found) before any work.
+		McpEnvelope subset = McpDiagramEditSupport.saveSubset( diagramPath, new String[] { "does-not-exist" }, null, null );
+		assertFalse( "save-subset with an unknown element must be rejected", subset.isOk() );
+		assertNotNull( "must carry a code", subset.getCode() );
+
+		// add-from-search: a bad direction is rejected before any work.
+		McpEnvelope badDir = McpDiagramEditSupport.addFromSearch( diagramPath, new String[] { "s1" }, "sideways" );
+		assertFalse( "add-from-search with a bad direction must be rejected", badDir.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, badDir.getCode() );
 	}
 
 	@SuppressWarnings( "unchecked" )
