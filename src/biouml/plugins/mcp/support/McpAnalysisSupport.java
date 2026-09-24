@@ -23,6 +23,9 @@ import ru.biosoft.analysiscore.AnalysisParametersFactory;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
+import ru.biosoft.server.servlets.webservices.JSONResponse;
+import ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport;
+import ru.biosoft.server.servlets.webservices.providers.WebProvider;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.util.BeanAsMapUtil;
 
@@ -62,53 +65,49 @@ public final class McpAnalysisSupport
 		return "unknown";
 	}
 
-	// ---------------------------------------------------------------- list
-
-	/**
-	 * List all analysis methods grouped by their analyses group. Returns
-	 * {@code {groups: {<group>: [{name, displayName, description, class}]}, total: N}}.
-	 */
-	public static McpEnvelope listMethods()
+	/** Best-effort {@link JobControl} status of a task (defaults to COMPLETED if unavailable). */
+	private static int safeStatus( TaskInfo info )
 	{
 		try
 		{
-			Map<String, List<Map<String, Object>>> groups = new LinkedHashMap<String, List<Map<String, Object>>>();
-			int total = 0;
-			for ( String joined : AnalysisMethodRegistry.getAnalysisNamesWithGroup() )
+			JobControl jc = info.getJobControl();
+			return jc == null ? JobControl.COMPLETED : jc.getStatus();
+		}
+		catch ( Exception e )
+		{
+			return JobControl.COMPLETED;
+		}
+	}
+
+	// ---------------------------------------------------------------- list
+
+	/**
+	 * List all analysis methods grouped by their analyses group. This delegates to the platform's
+	 * own {@code analysis} provider ({@code list} action), which returns the flat
+	 * {@code group/name} strings; the result is re-shaped into
+	 * {@code {groups: {<group>: [{name, fullName}]}, total: N}} for discoverability.
+	 */
+	public static McpEnvelope listMethods()
+	{
+		McpEnvelope env = McpProviderSupport.invoke( "analysis", "list", new LinkedHashMap<String, Object>() );
+		if ( !env.isOk() )
+			return env;
+		// The provider returns values as a flat JSON array of "group/name" strings.
+		@SuppressWarnings( "unchecked" )
+		List<String> joined = (List<String>) env.getData();
+		Map<String, List<Map<String, Object>>> groups = new LinkedHashMap<String, List<Map<String, Object>>>();
+		int total = 0;
+		if ( joined != null )
+		{
+			for ( String entry : joined )
 			{
-				int slash = joined.indexOf( '/' );
-				String group = slash < 0 ? "" : joined.substring( 0, slash );
-				String name = slash < 0 ? joined : joined.substring( slash + 1 );
-				ru.biosoft.analysiscore.AnalysisMethodInfo info = null;
-				try
-				{
-					// getMethodInfo returns metadata only (no instantiation), so listing stays cheap
-					// and safe even for methods whose beans fail to reflect.
-					info = AnalysisMethodRegistry.getMethodInfo( joined );
-				}
-				catch ( Exception e )
-				{
-					info = null;
-				}
+				int slash = entry.indexOf( '/' );
+				String group = slash < 0 ? "" : entry.substring( 0, slash );
+				String name = slash < 0 ? entry : entry.substring( slash + 1 );
 				Map<String, Object> m = new LinkedHashMap<String, Object>();
 				m.put( "name", name );
 				m.put( "group", group );
-				m.put( "fullName", joined );
-				if ( info != null )
-				{
-					try
-					{
-						m.put( "displayName", info.getDisplayName() );
-						String desc = info.getShortDescription();
-						m.put( "description", desc != null && !desc.isEmpty() ? desc : info.getDescription() );
-						Class<?> cls = info.getAnalysisClass();
-						m.put( "class", cls == null ? null : cls.getName() );
-					}
-					catch ( Exception e )
-					{
-						// leave the basic fields
-					}
-				}
+				m.put( "fullName", entry );
 				List<Map<String, Object>> list = groups.get( group );
 				if ( list == null )
 				{
@@ -118,15 +117,11 @@ public final class McpAnalysisSupport
 				list.add( m );
 				total++;
 			}
-			Map<String, Object> result = new LinkedHashMap<String, Object>();
-			result.put( "groups", groups );
-			result.put( "total", Integer.valueOf( total ) );
-			return McpEnvelope.ok( result );
 		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "failed to list analysis methods: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		result.put( "groups", groups );
+		result.put( "total", Integer.valueOf( total ) );
+		return McpEnvelope.ok( result );
 	}
 
 	// ---------------------------------------------------------------- describe
@@ -298,6 +293,28 @@ public final class McpAnalysisSupport
 	}
 
 	/**
+	 * Queue an analysis (async) under a <em>named</em> (logged-in) session so the resulting task is
+	 * owned by that user. This mirrors production, where the MCP servlet authenticates every request,
+	 * and lets the user-gated task tools ({@link #taskStatus}/{@link #cancelTask}, which delegate to
+	 * the {@code tasks} provider) resolve the task by its owner. Sync runs are unaffected (they don't
+	 * create a tracked task).
+	 */
+	public static McpEnvelope runAnalysisAs( String user, String name, Map<String, Object> params, String originPath, boolean sync )
+	{
+		if ( sync )
+			return runAnalysis( name, params, originPath, true );
+		try
+		{
+			return McpProviderSupport.withUserSession( user,
+					() -> runAnalysis( name, params, originPath, false ) );
+		}
+		catch ( RuntimeException e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue analysis: " + e.getMessage() );
+		}
+	}
+
+	/**
 	 * Bind a flat/hierarchical map of params onto a parameters bean. Uses the same introspection
 	 * the GUI uses ({@link BeanAsMapUtil}) so nested composite params work. String values that look
 	 * like repository paths are left as-is for {@code DataElementPath} properties (converted in
@@ -375,76 +392,70 @@ public final class McpAnalysisSupport
 	// ---------------------------------------------------------------- status / cancel / list tasks
 
 	/**
-	 * Report a task's status, progress, result paths and error.
+	 * Report a task's status. Delegates to the platform's {@code tasks} provider ({@code status}
+	 * action), which returns {@code {status: <int>, percent: 0-100, values: [textStatus]}}. The
+	 * response is re-shaped to {@code {taskId, status, progress, textStatus}}.
+	 *
+	 * <p>The provider gates the action on the session user, so the call runs under a named session
+	 * (see {@link McpProviderSupport#withUserSession}).</p>
 	 */
 	public static McpEnvelope taskStatus( String taskId )
 	{
-		TaskManager tm = TaskManager.getInstance();
-		TaskInfo info = tm.getTask( taskId );
-		if ( info == null )
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "taskID", taskId );
+		WebProvider provider = McpProviderSupport.provider( "tasks" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: tasks" );
+		Map<String, Object> resp;
+		try
+		{
+			resp = McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+					() -> McpProviderSupport.responseMap( (WebJSONProviderSupport) provider, "tasks", "status", params ) );
+		}
+		catch ( RuntimeException e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not read task status: " + e.getMessage() );
+		}
+		if ( resp == null )
+		{
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no task named: " + taskId );
+		}
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
-		m.put( "taskId", info.getName() );
-		m.put( "status", statusOf( safeStatus( info ) ) );
-		try
-		{
-			m.put( "progress", Integer.valueOf( info.getJobControl() == null ? 0 : info.getJobControl().getPreparedness() ) );
-			m.put( "textStatus", info.getJobControl() == null ? null : info.getJobControl().getTextStatus() );
-		}
-		catch ( Exception e )
-		{
-			m.put( "progress", null );
-		}
-		// Result paths: resolve the analysis's existing outputs (best-effort).
-		List<String> results = new ArrayList<String>();
-		try
-		{
-			Object jc = info.getTask() == null ? null : info.getTask();
-			// The task is an AnalysisTask wrapping the analysis; recover the output paths from its
-			// journal/attributes if present. We keep this best-effort — the get_result tool is the
-			// primary way to read results by path.
-		}
-		catch ( Exception e )
-		{
-			// ignore
-		}
-		m.put( "results", results );
+		m.put( "taskId", taskId );
+		Object status = resp.get( JSONResponse.ATTR_STATUS );
+		m.put( "status", status instanceof Number ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
+		Object percent = resp.get( JSONResponse.ATTR_PERCENT );
+		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
+		Object values = resp.get( JSONResponse.ATTR_VALUES );
+		m.put( "textStatus", values instanceof java.util.List && ! ( (java.util.List<?>) values ).isEmpty() ? ( (java.util.List<?>) values ).get( 0 ) : null );
 		return McpEnvelope.ok( m );
 	}
 
-	private static int safeStatus( TaskInfo info )
-	{
-		try
-		{
-			JobControl jc = info.getJobControl();
-			return jc == null ? JobControl.COMPLETED : jc.getStatus();
-		}
-		catch ( Exception e )
-		{
-			return JobControl.COMPLETED;
-		}
-	}
-
 	/**
-	 * Cancel a queued/running task.
+	 * Cancel a queued/running task. Delegates to the {@code tasks} provider ({@code stop_rows}
+	 * action). The provider gates on the session user, so the call runs under a named session.
+	 * Returns the (possibly in-progress) status of the task after the stop request.
 	 */
 	public static McpEnvelope cancelTask( String taskId )
 	{
-		TaskManager tm = TaskManager.getInstance();
-		TaskInfo info = tm.getTask( taskId );
-		if ( info == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no task named: " + taskId );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "rows", taskId );
 		try
 		{
-			tm.stopTask( info );
+			McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+					() -> {
+						McpProviderSupport.invoke( "tasks", "stop_rows", params );
+						return null;
+					} );
 		}
-		catch ( Exception e )
+		catch ( RuntimeException e )
 		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not cancel task: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not cancel task: " + e.getMessage() );
 		}
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
-		m.put( "taskId", info.getName() );
-		m.put( "status", statusOf( safeStatus( info ) ) );
+		m.put( "taskId", taskId );
+		McpEnvelope st = taskStatus( taskId );
+		m.put( "status", st.isOk() && st.getData() instanceof Map ? ( (Map<String, Object>) st.getData() ).get( "status" ) : null );
 		m.put( "cancelled", Boolean.TRUE );
 		return McpEnvelope.ok( m );
 	}

@@ -72,6 +72,14 @@ public final class McpConstants
 	 */
 	public static final String CODE_INTERNAL = "internal_error";
 
+	/**
+	 * The username used when a tool must run under a <em>named</em> (logged-in) session so that
+	 * user-gated providers (task status/cancel, job control) can resolve an owner. In a plain test JVM a
+	 * {@code TestSecurityProvider} is installed and any login succeeds; in a real deployment the servlet
+	 * has already authenticated the caller, so this is the caller's own identity.
+	 */
+	public static final String TASK_USER = "mcp";
+
 	/** Maximum number of children returned by list tools before truncation. */
 	public static final int LIST_CHILDREN_CAP = 100;
 

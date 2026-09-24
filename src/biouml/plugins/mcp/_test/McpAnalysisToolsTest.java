@@ -180,20 +180,24 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 	@SuppressWarnings( "unchecked" )
 	public void testRunAsyncThenPoll()
 	{
-		McpEnvelope env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, params( 2 ), null, false );
+		// Queue under the same named user the delegated task_status polls as (TASK_USER), mirroring
+		// production where the servlet authenticates every request.
+		McpEnvelope env = McpAnalysisSupport.runAnalysisAs( McpConstants.TASK_USER, McpTestAnalysis.NAME, params( 2 ), null, false );
 		assertTrue( "async run should be ok, got " + env.getCode() + " " + env.getError(), env.isOk() );
 		Map<String, Object> m = (Map<String, Object>) env.getData();
 		String taskId = (String) m.get( "taskId" );
 		assertNotNull( "taskId present", taskId );
 
+		// Poll the delegated task_status until the provider reports the JobControl done status (2).
 		long deadline = System.currentTimeMillis() + 30000;
-		String status = null;
+		Integer status = null;
 		while ( System.currentTimeMillis() < deadline )
 		{
 			McpEnvelope st = McpAnalysisSupport.taskStatus( taskId );
-			assertTrue( "task_status ok", st.isOk() );
-			status = (String) ((Map<String, Object>) st.getData()).get( "status" );
-			if ( "done".equals( status ) || "error".equals( status ) )
+			assertTrue( "task_status ok: " + st.getCode() + " " + st.getError(), st.isOk() );
+			Object s = ((Map<String, Object>) st.getData()).get( "status" );
+			status = s instanceof Number ? ( (Number) s ).intValue() : null;
+			if ( status != null && status == ru.biosoft.jobcontrol.JobControl.COMPLETED )
 				break;
 			try
 			{
@@ -205,7 +209,9 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 				break;
 			}
 		}
-		assertEquals( "task should reach done, was " + status, "done", status );
+		assertNotNull( "task_status should return a status", status );
+		assertEquals( "task should reach done (JobControl.COMPLETED=2), was " + status,
+				ru.biosoft.jobcontrol.JobControl.COMPLETED, status.intValue() );
 	}
 
 	public void testBadParamListsValidKeys()
@@ -244,7 +250,7 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 	@SuppressWarnings( "unchecked" )
 	public void testCancelQueuedTask()
 	{
-		McpEnvelope env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, params( 1 ), null, false );
+		McpEnvelope env = McpAnalysisSupport.runAnalysisAs( McpConstants.TASK_USER, McpTestAnalysis.NAME, params( 1 ), null, false );
 		assertTrue( env.isOk() );
 		String taskId = (String) ((Map<String, Object>) env.getData()).get( "taskId" );
 		McpEnvelope cancel = McpAnalysisSupport.cancelTask( taskId );

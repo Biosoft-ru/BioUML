@@ -130,6 +130,49 @@ public final class McpProviderSupport
 	}
 
 	/**
+	 * Invoke a provider action and return the <em>entire</em> top-level response object (not just its
+	 * {@code values} field), so callers can read sibling keys like {@code status} and {@code percent}
+	 * that {@link JSONResponse#sendStatus} emits alongside {@code values}. Returns {@code null} on any
+	 * failure.
+	 */
+	public static Map<String, Object> responseMap( WebJSONProviderSupport provider, String name, String action, Map<String, Object> params )
+	{
+		if ( !( provider instanceof WebJSONProviderSupport ) )
+			return null;
+		Map<String, String> request = buildRequest( action, params );
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		boolean bound = false;
+		try
+		{
+			bound = ensureSession();
+			provider.process( new BiosoftWebRequest( request ), new JSONResponse( out ) );
+		}
+		catch ( Exception e )
+		{
+			return null;
+		}
+		finally
+		{
+			if ( bound )
+				SecurityManager.removeThreadFromSessionRecord();
+		}
+		byte[] bytes = out.toByteArray();
+		if ( bytes.length == 0 )
+			return new LinkedHashMap<String, Object>();
+		try
+		{
+			JsonObject obj = Json.parse( new String( bytes, java.nio.charset.StandardCharsets.UTF_8 ) ).asObject();
+			if ( obj.getInt( JSONResponse.ATTR_TYPE, JSONResponse.TYPE_OK ) == JSONResponse.TYPE_ERROR )
+				return null;
+			return (Map<String, Object>) fromJson( obj );
+		}
+		catch ( Exception e )
+		{
+			return null;
+		}
+	}
+
+	/**
 	 * Build the {@code Map<String,String>} request a provider expects: the {@code action} plus each
 	 * parameter, with complex values (maps/lists/arrays) serialised to a JSON string and the
 	 * {@code path} alias promoted to the {@code de} element-path key.
@@ -227,6 +270,76 @@ public final class McpProviderSupport
 		String sid = SecurityManager.generateSessionId();
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
 		return true;
+	}
+
+	/**
+	 * Bind a <em>named</em> (logged-in) session and log in the given user. Needed by providers that gate
+	 * actions on the session user — e.g. {@code TaskProvider} and {@code JobControlProvider} call
+	 * {@code SecurityManager.getSessionUser()} and refuse to act on a task whose owner differs from the
+	 * current user. The {@code system} session carries no user record by design, so a task created under
+	 * it is invisible to those providers; this helper establishes a real user identity for the current
+	 * thread for the duration of the block.
+	 *
+	 * <p>When a real security provider is not configured (a plain test JVM), a {@link TestSecurityProvider}
+	 * is installed so the login succeeds; under a real deployment the servlet has already logged the user
+	 * in, and this binds the thread to a live session of that user.</p>
+	 *
+	 * @param user      the username to log in as
+	 * @param body      the block to run while the named session is bound; may throw
+	 * @return the value returned by {@code body}
+	 */
+	public static <T> T withUserSession( String user, UserAction<T> body )
+	{
+		ensureSecurityProvider();
+		String sid = SecurityManager.getSession();
+		boolean fresh = ( sid == null || sid.isEmpty() || SecurityManager.SYSTEM_SESSION.equals( sid ) );
+		if ( fresh )
+			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), SecurityManager.generateSessionId() );
+		try
+		{
+			if ( fresh )
+				SecurityManager.commonLogin( user, user, "127.0.0.1", null );
+			return body.run();
+		}
+		catch ( Exception e )
+		{
+			throw ( e instanceof RuntimeException ) ? (RuntimeException) e : new RuntimeException( e );
+		}
+		finally
+		{
+			if ( fresh )
+				SecurityManager.removeThreadFromSessionRecord();
+		}
+	}
+
+	/**
+	 * Make sure a {@link SecurityProvider} is present (install the {@link TestSecurityProvider} in a plain
+	 * JVM that has none configured), so {@link #withUserSession(String, UserAction)} can log a user in.
+	 */
+	static void ensureSecurityProvider()
+	{
+		if ( SecurityManager.getSecurityProvider() == null )
+		{
+			try
+			{
+				java.lang.reflect.Field f = SecurityManager.class.getDeclaredField( "securityProvider" );
+				f.setAccessible( true );
+				ru.biosoft.access.security.TestSecurityProvider p = new ru.biosoft.access.security.TestSecurityProvider();
+				java.util.Properties props = new java.util.Properties();
+				p.init( props );
+				f.set( null, p );
+			}
+			catch ( Exception e )
+			{
+				// leave as-is; commonLogin will surface the failure
+			}
+		}
+	}
+
+	/** A block of work to run while a named session is bound (for {@link #withUserSession}). */
+	public interface UserAction<T>
+	{
+		T run() throws Exception;
 	}
 
 	/**
