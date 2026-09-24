@@ -129,4 +129,17 @@ public class McpProviderSupportTest extends TestCase
 		assertFalse( env.isOk() );
 		assertEquals( McpConstants.CODE_INTERNAL, env.getCode() );
 	}
+
+	public void testEnsureWebSessionBootstrap()
+	{
+		// Verify that ensureWebSession() successfully bootstraps a headless WebSession.
+		Object ws = McpProviderSupport.ensureWebSession();
+		assertNotNull( "WebSession bootstrap failed", ws );
+		assertTrue( "WebSession is not a WebSession instance",
+				ws instanceof ru.biosoft.server.servlets.webservices.WebSession );
+		// Verify that getCurrentSession() can now find it on this thread.
+		ru.biosoft.server.servlets.webservices.WebSession current =
+				ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession();
+		assertNotNull( "getCurrentSession() returned null after bootstrap", current );
+	}
 }

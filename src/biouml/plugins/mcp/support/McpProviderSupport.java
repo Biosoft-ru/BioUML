@@ -265,10 +265,18 @@ public final class McpProviderSupport
 	{
 		String current = SecurityManager.getSession();
 		if ( current != null && !current.isEmpty() && !SecurityManager.SYSTEM_SESSION.equals( current ) )
-			return false; // a real (non-system) session is already bound
+		{
+			// A real (non-system) session is already bound — check if a WebSession exists for it.
+			if ( ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession() != null )
+				return false; // WebSession is already registered
+			// Bind a WebSession for the existing session (needed for async providers).
+			ensureWebSession();
+			return false;
+		}
 		// Bind a fresh session so providers that need a session (cache, WebJob) get a working one.
 		String sid = SecurityManager.generateSessionId();
 		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+		ensureWebSession();
 		return true;
 	}
 
@@ -340,6 +348,56 @@ public final class McpProviderSupport
 	public interface UserAction<T>
 	{
 		T run() throws Exception;
+	}
+
+	/**
+	 * Bootstrap a headless {@code WebSession} so that {@code WebJob.getWebJob(jobID)} and other
+	 * session-dependent providers can find it. This is needed for async (job-based) providers like
+	 * {@code CopyFolderProvider}, {@code SimulationProvider}, and {@code WebScriptsProvider}.
+	 *
+	 * <p>The method creates a synthetic carrier object with a non-null {@code getId()}, registers the
+	 * current thread with that session ID, ensures a {@code SessionCache} exists, and builds the
+	 * {@code WebSession} via the real factory. After this call, {@code WebSession.getCurrentSession()}
+	 * on the same thread will return the constructed {@code WebSession}.</p>
+	 *
+	 * @return the constructed {@code WebSession}, or {@code null} if bootstrap failed
+	 */
+	public static Object ensureWebSession()
+	{
+		try
+		{
+			// 1. Create a synthetic carrier with a non-null getId()
+			String sid = SecurityManager.generateSessionId();
+			Object carrier = createHttpSessionCarrier( sid );
+
+			// 2. Register THIS thread so SecurityManager.getSession() == sid
+			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+
+			// 3. Ensure a SessionCache exists for sid
+			if ( ru.biosoft.access.security.SessionCacheManager.getSessionCache( sid ) == null )
+				ru.biosoft.access.security.SessionCacheManager.addSessionCache( sid );
+
+			// 4. Build via the real factory
+			ru.biosoft.server.servlets.webservices.WebSession ws =
+					ru.biosoft.server.servlets.webservices.WebSession.getSession( carrier );
+			return ws;
+		}
+		catch ( Exception e )
+		{
+			// Log but don't throw — the caller can check for null
+			java.util.logging.Logger.getLogger( McpProviderSupport.class.getName() )
+					.log( java.util.logging.Level.WARNING, "Failed to bootstrap headless WebSession", e );
+			return null;
+		}
+	}
+
+	/**
+	 * Create a synthetic carrier object that mimics a {@code javax.servlet.http.HttpSession} with a
+	 * non-null {@code getId()} method. The carrier is used to bootstrap a headless {@code WebSession}.
+	 */
+	private static Object createHttpSessionCarrier( String sessionId )
+	{
+		return new HeadlessHttpSession( sessionId );
 	}
 
 	/**
