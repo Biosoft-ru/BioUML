@@ -17,7 +17,6 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
         add("autoLayout");
         //add("showTasks");
         add("callBrush");
-        add("callPen");
         add("taskBrush");
         add("workflowBrush");
         add("workflowPen");
