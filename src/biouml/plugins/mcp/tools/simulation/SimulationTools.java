@@ -19,24 +19,13 @@ public final class SimulationTools
 
 	public static void registerAll( McpToolCatalog catalog )
 	{
-		catalog.register( "biouml_simulation_run",
-				"Run a headless ODE simulation of a diagram and return its time series. The diagram must have a dynamic model with at least one rate (ODE) equation; otherwise a missing_dynamic_model error is returned. Times and the solver are optional.",
-				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"initialTime\":{\"type\":\"number\"},\"completionTime\":{\"type\":\"number\"},\"timeIncrement\":{\"type\":\"number\"},\"solver\":{\"type\":\"string\"},\"maxPoints\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\"]}",
-				( ex, args ) -> McpSimulationSupport.run(
-						str( args, "diagramPath" ),
-						optNum( args, "initialTime" ),
-						optNum( args, "completionTime" ),
-						optNum( args, "timeIncrement" ),
-						str( args, "solver" ),
-						optInt( args, "maxPoints" ) ) );
-
 		catalog.register( "biouml_simulation_list_solvers",
 				"List the ODE solvers available to the simulation engine (name, type, implementation class).",
 				"{}",
 				( ex, args ) -> McpSimulationSupport.listSolvers() );
 
 		catalog.register( "biouml_simulation_start",
-				"ASYNC — Start a diagram simulation as a background job (the provider-based counterpart of biouml_simulation_run). This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_result to fetch the time series. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider.",
+				"ASYNC — Start a diagram simulation as a background job. This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_result to fetch the time series. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
 				( ex, args ) -> McpSimulationSupport.startSimulation( str( args, "diagramPath" ) ) );
 

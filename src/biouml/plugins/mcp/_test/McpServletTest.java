@@ -480,7 +480,7 @@ public class McpServletTest extends TestCase
 			assertTrue( "repo tool present", names.contains( "biouml_repo_collections" ) );
 			assertTrue( "analysis tool present", names.contains( "biouml_analysis_list" ) );
 			assertTrue( "diagram tool present", names.contains( "biouml_diagram_create" ) );
-			assertTrue( "simulation tool present", names.contains( "biouml_simulation_run" ) );
+			assertTrue( "simulation tool present", names.contains( "biouml_simulation_start" ) );
 			assertTrue( "≥10 tools, was " + names.size(), names.size() >= 10 );
 		}
 		finally

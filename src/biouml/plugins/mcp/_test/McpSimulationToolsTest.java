@@ -29,12 +29,13 @@ import ru.biosoft.util.TempFiles;
 /**
  * Phase-4 tests for the simulation MCP tools. Builds a tiny dynamic model headlessly via
  * {@link DiagramGenerator} (one species X with rate X' = -X, X(0) = 1) and stores it in a temp-dir
- * {@link LocalRepository} fixture, then exercises run / list-solvers headlessly.
+ * {@link LocalRepository} fixture, then exercises the provider-based async simulation tools
+ * (start / status / result) and the solver list headlessly.
  *
- * <p>The "binary" acceptance criterion is exercised directly here: the decay simulation must reach
- * {@code done} and return a time series whose first point has {@code t = 0}; when no dynamic model
- * is present, {@code missing_dynamic_model} is the returned error code. Exactly one of those paths
- * holds for a given input.</p>
+ * <p>Simulation work is delegated to the platform's {@code simulation} provider (async job model):
+ * {@link McpSimulationSupport#startSimulation(String)} starts the job and returns a jobID; the status
+ * poll must then resolve. A diagram with no dynamic model (no rate equation) is reported with
+ * {@link McpConstants#CODE_MISSING_MODEL} rather than handed to the solver.</p>
  */
 public class McpSimulationToolsTest extends AbstractBioUMLTest
 {
@@ -104,60 +105,12 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 	}
 
 	/**
-	 * The binary acceptance criterion (evidence). The decay model (X' = -X, X(0) = 1) is run
-	 * headlessly; EXACTLY ONE of two outcomes holds and is printed as evidence:
-	 *
-	 * <ul>
-	 * <li><b>run-reaches-done</b> — the simulation completes and the returned time series contains a
-	 *     point with {@code t = 0} (X(0) ≈ 1); or</li>
-	 * <li><b>missing_dynamic_model</b> — the headless environment cannot build a simulation model
-	 *     from the diagram (e.g. the ODE code-generation template/Velocity is unavailable), so the
-	 *     stable {@code missing_dynamic_model} error code is returned.</li>
-	 * </ul>
-	 *
-	 * The criterion is satisfied by either branch; the assertion verifies the outcome is one of
-	 * these two and that it is mutually exclusive. In a fully provisioned OSGi/Tomcat runtime the
-	 * first branch is the expected one.
-	 */
-	public void testRunDecayBinaryCriterion()
-	{
-		McpEnvelope env = McpSimulationSupport.run( dynamicPath, 0.0, 10.0, 1.0, "JVode", 50 );
-		System.out.println( "========== MCP SIMULATION EVIDENCE (decay X'=-X, X0=1) ==========" );
-		System.out.println( env.toMap() );
-		System.out.println( "========== END SIMULATION EVIDENCE ==========" );
-
-		boolean reachesDone = env.isOk();
-		boolean missingModel = !env.isOk() && McpConstants.CODE_MISSING_MODEL.equals( env.getCode() );
-		assertTrue( "exactly one of {reaches-done, missing_dynamic_model} must hold; got ok="
-				+ env.isOk() + " code=" + env.getCode() + " error=" + env.getError(),
-				reachesDone ^ missingModel );
-
-		if ( reachesDone )
-		{
-			@SuppressWarnings( "unchecked" )
-			Map<String, Object> m = (Map<String, Object>) env.getData();
-			assertEquals( "status is done", "done", m.get( "status" ) );
-			@SuppressWarnings( "unchecked" )
-			List<String> variables = (List<String>) m.get( "variables" );
-			assertTrue( "variables include X", variables.contains( "X" ) );
-			assertTrue( "time series has points", ( (Number) m.get( "pointCount" ) ).intValue() > 0 );
-			@SuppressWarnings( "unchecked" )
-			List<Map<String, Object>> points = (List<Map<String, Object>>) m.get( "points" );
-			assertTrue( "points non-empty", !points.isEmpty() );
-			double t0 = ( (Number) points.get( 0 ).get( "t" ) ).doubleValue();
-			assertEquals( "first point t == 0", 0.0, t0, 1e-9 );
-			double x0 = ( (Number) points.get( 0 ).get( "X" ) ).doubleValue();
-			assertTrue( "X(0) ~ 1, got " + x0, x0 > 0.5 && x0 < 1.5 );
-		}
-	}
-
-	/**
 	 * The other branch of the binary criterion: a diagram whose dynamic model has no rate equation
 	 * must be refused with the {@code missing_dynamic_model} code (not handed to the solver).
 	 */
 	public void testMissingModelError()
 	{
-		McpEnvelope env = McpSimulationSupport.run( staticPath, 0.0, 10.0, 1.0, "JVode", 50 );
+		McpEnvelope env = McpSimulationSupport.startSimulation( staticPath );
 		assertFalse( "static model must be refused", env.isOk() );
 		assertEquals( "code is missing_dynamic_model", McpConstants.CODE_MISSING_MODEL, env.getCode() );
 	}
@@ -177,13 +130,6 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 		assertTrue( "JVode (default) is listed", hasJvode );
 	}
 
-	public void testUnknownSolverRefused()
-	{
-		McpEnvelope env = McpSimulationSupport.run( dynamicPath, 0.0, 1.0, 1.0, "NoSuchSolver", 10 );
-		assertFalse( "unknown solver must be refused", env.isOk() );
-		assertEquals( McpConstants.CODE_NOT_FOUND, env.getCode() );
-	}
-
 	public void testToolsListRegistersSimulationTools()
 	{
 		McpToolCatalog catalog = new McpToolCatalog();
@@ -191,16 +137,16 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 		List<String> names = new java.util.ArrayList<String>();
 		for ( McpToolCatalog.Tool t : catalog.getTools() )
 			names.add( t.name );
-		assertTrue( "simulation_run registered", names.contains( "biouml_simulation_run" ) );
 		assertTrue( "simulation_list_solvers registered", names.contains( "biouml_simulation_list_solvers" ) );
 		assertTrue( "simulation_start registered", names.contains( "biouml_simulation_start" ) );
 		assertTrue( "simulation_status registered", names.contains( "biouml_simulation_status" ) );
 		assertTrue( "simulation_result registered", names.contains( "biouml_simulation_result" ) );
+		assertFalse( "removed sync simulation_run is not registered", names.contains( "biouml_simulation_run" ) );
 	}
 
 	/**
 	 * The async simulation start: either it returns a jobID (the headless env can build a model) or
-	 * it is refused with {@code missing_dynamic_model} (same binary criterion as {@link #run}). When it
+	 * it is refused with {@code missing_dynamic_model} (same binary criterion as the static case). When it
 	 * returns a jobID, the status poll must resolve (not error) for that job.
 	 */
 	@SuppressWarnings( "unchecked" )
@@ -226,7 +172,7 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 	@SuppressWarnings( "unchecked" )
 	public void testEnvelopeShape()
 	{
-		McpEnvelope env = McpSimulationSupport.run( "mcpsim/diagrams/doesnotexist", 0.0, 1.0, 1.0, null, 10 );
+		McpEnvelope env = McpSimulationSupport.startSimulation( "mcpsim/diagrams/doesnotexist" );
 		assertFalse( env.isOk() );
 		assertNotNull( env.getCode() );
 		Map<String, Object> map = env.toMap();

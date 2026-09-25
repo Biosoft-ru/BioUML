@@ -10,11 +10,7 @@ import java.util.LinkedHashMap;
 import biouml.model.Diagram;
 import biouml.model.dynamics.EModel;
 import biouml.plugins.mcp.McpConstants;
-import biouml.plugins.simulation.java.JavaSimulationEngine;
-import biouml.plugins.simulation.Model;
 import biouml.plugins.simulation.SimulatorRegistry;
-import biouml.plugins.simulation.Simulator;
-import biouml.standard.simulation.SimulationResult;
 
 import one.util.streamex.EntryStream;
 
@@ -27,7 +23,8 @@ import ru.biosoft.server.servlets.webservices.providers.WebProvider;
  * Shared, test-friendly helpers for the simulation MCP tools (phase 4).
  *
  * <p>All methods take/return plain JSON-serializable values and never throw checked exceptions —
- * failures are returned as {@link McpEnvelope} error envelopes. A diagram that has no dynamic
+ * failures are returned as {@link McpEnvelope} error envelopes. All simulation work is delegated
+ * to the platform's {@code simulation} provider (async job model): a diagram that has no dynamic
  * model (no rate equations) is reported with {@link McpConstants#CODE_MISSING_MODEL} rather than
  * being handed to the solver.</p>
  */
@@ -126,103 +123,6 @@ public final class McpSimulationSupport
 		result.put( "count", Integer.valueOf( solvers.size() ) );
 		result.put( "solvers", solvers );
 		return McpEnvelope.ok( result );
-	}
-
-	// ---------------------------------------------------------------- run
-
-	/**
-	 * Simulate a diagram headlessly and return the time series.
-	 * @param path            repository path to the diagram
-	 * @param initialTime     t0 (default 0)
-	 * @param completionTime  tf (default 100)
-	 * @param timeIncrement   step (default 1.0; 0 means auto)
-	 * @param solverName      solver name, e.g. "JVode" (default: the engine's default)
-	 * @param maxPoints       cap on the number of time-series points returned (default 50)
-	 */
-	public static McpEnvelope run( String path, Double initialTime, Double completionTime,
-			Double timeIncrement, String solverName, Integer maxPoints )
-	{
-		McpEnvelope resolved = diagramWithModel( path );
-		if ( !resolved.isOk() )
-			return resolved;
-		Diagram diagram = (Diagram) resolved.getData();
-
-		double t0 = initialTime == null ? 0.0 : initialTime.doubleValue();
-		double tf = completionTime == null ? 100.0 : completionTime.doubleValue();
-		double inc = timeIncrement == null ? 1.0 : timeIncrement.doubleValue();
-		int cap = maxPoints == null ? 50 : maxPoints.intValue();
-		if ( tf <= t0 )
-			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
-					"completionTime (" + tf + ") must be greater than initialTime (" + t0 + ")" );
-
-		JavaSimulationEngine engine = new JavaSimulationEngine();
-		try
-		{
-			// Register the diagram in the repository so the engine's model code-generation can
-			// resolve its path (a detached, never-saved diagram has no stable path and fails code-gen).
-			try
-			{
-				ru.biosoft.access.CollectionFactoryUtils.save( diagram );
-			}
-			catch ( Exception e )
-			{
-				// ignore — the diagram may already be registered
-			}
-			engine.setDiagram( diagram );
-			engine.setInitialTime( t0 );
-			engine.setCompletionTime( tf );
-			engine.setTimeIncrement( inc );
-			if ( solverName != null && !solverName.isEmpty() )
-			{
-				Simulator sim = SimulatorRegistry.getSimulator( solverName );
-				if ( sim == null )
-					return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "unknown solver: " + solverName );
-				engine.setSolver( sim );
-			}
-
-			Model model = engine.createModel();
-			if ( model == null )
-				return McpEnvelope.error( McpConstants.CODE_MISSING_MODEL,
-						"could not build a simulation model from the diagram (no dynamic equations)" );
-
-			SimulationResult result = engine.simulateSimple( model );
-			if ( result == null || result.getCount() <= 0 )
-				return McpEnvelope.error( McpConstants.CODE_MISSING_MODEL,
-						"simulation produced no time series" );
-
-			String[] variables = result.getVariables();
-			double[] times = result.getTimes();
-			int n = result.getCount();
-
-			// Build a compact, capped time series: points = [{t, var1, var2, ...}, ...]
-			List<Map<String, Object>> points = new ArrayList<Map<String, Object>>();
-			int step = Math.max( 1, n / Math.max( 1, cap ) );
-			for ( int i = 0; i < n; i += step )
-			{
-				Map<String, Object> pt = new LinkedHashMap<String, Object>();
-				pt.put( "t", Double.valueOf( times[ i ] ) );
-				for ( String v : variables )
-					pt.put( v, Double.valueOf( result.getValues( v )[ i ] ) );
-				points.add( pt );
-			}
-
-			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "status", "done" );
-			m.put( "solver", solverName == null || solverName.isEmpty() ? "JVode" : solverName );
-			m.put( "variables", new ArrayList<String>( java.util.Arrays.asList( variables ) ) );
-			m.put( "pointCount", Integer.valueOf( n ) );
-			m.put( "returnedPoints", Integer.valueOf( points.size() ) );
-			m.put( "truncated", Boolean.valueOf( points.size() < n ) );
-			m.put( "initial", result.getInitial( variables.length > 0 ? variables[ 0 ] : "" ) );
-			m.put( "final", result.getFinal( variables.length > 0 ? variables[ 0 ] : "" ) );
-			m.put( "points", points );
-			return McpEnvelope.ok( m );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"simulation failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
 	}
 
 	// ---------------------------------------------------------------- async run (provider-delegated)

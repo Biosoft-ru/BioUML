@@ -68,7 +68,7 @@ public class McpInProcessServerTest extends TestCase
 		assertTrue( "repo tool present", names.contains( "biouml_repo_collections" ) );
 		assertTrue( "analysis tool present", names.contains( "biouml_analysis_list" ) );
 		assertTrue( "diagram tool present", names.contains( "biouml_diagram_create" ) );
-		assertTrue( "simulation tool present", names.contains( "biouml_simulation_run" ) );
+		assertTrue( "simulation tool present", names.contains( "biouml_simulation_start" ) );
 		assertTrue( "project tool present", names.contains( "biouml_project_create" ) );
 		assertTrue( "project list tool present", names.contains( "biouml_project_list" ) );
 		assertTrue( "user info tool present", names.contains( "biouml_user_info" ) );

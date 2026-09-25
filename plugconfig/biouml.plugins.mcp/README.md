@@ -193,8 +193,7 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 | `biouml_diagram_merge_clone` | Merge a cloned pathway node back into its original — the headless equivalent of the web UI's 'Merge clone' menu item (MergeCloneAction). path is the pathway diagram; clone is the name of the clone node to merge away (must be a variable-role node whose variable references a different original element). Its edges are redirected to the original and the clone is removed. Returns {applied, status, merged}. |
 | `biouml_diagram_save_subset` | Save a subset of a diagram's elements to a new diagram — the headless equivalent of the web UI's 'Save subset' menu item (SaveDiagramSubsetAction). path is the source diagram; elements are the node/edge paths to keep (>=1); name is the new diagram's name (default '<source> subset'); targetCollection is the collection to create it in (default: the source's). The new diagram contains only the selected elements (plus the compartments/edges that hold them). Returns {applied, status, path, created, kept}. |
 | `biouml_diagram_add_from_search` | Add upstream/downstream neighbours from a graph search to a diagram — the headless equivalent of the web UI's 'Add upstream elements' / 'Add downstream elements' menu items (AddFromSearchUpAction / AddFromSearchDownAction). path is the diagram to add elements to; elements are the node paths to expand (>=1); direction is 'up' or 'down'. Each selected element is queried in the BioHub for linked elements in the given direction and they are added to the diagram. Requires a BioHub query engine for the element's source. Returns {applied, status, direction, count}. |
-| `biouml_simulation_run` | Run a headless ODE simulation of a diagram and return its time series. The diagram must have a dynamic model with at least one rate (ODE) equation; otherwise a missing_dynamic_model error is returned. Times and the solver are optional. |
-| `biouml_simulation_start` | ASYNC — Start a diagram simulation as a background job (the provider-based counterpart of biouml_simulation_run). This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_result to fetch the time series. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider. |
+| `biouml_simulation_start` | ASYNC — Start a diagram simulation as a background job. This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_result to fetch the time series. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider. |
 | `biouml_simulation_status` | ASYNC poll — Report the progress of a simulation job started by biouml_simulation_start. Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the simulation is not done until then. The 'message' field is the job's accumulated log up to this moment — it grows as the simulation runs, so read it on each poll to watch progress and to diagnose failures. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {jobID, status, progress, message, completed}. |
 | `biouml_simulation_result` | ASYNC result — Fetch the time-series result of a completed simulation job. Call it only AFTER biouml_simulation_status reports 'completed' is true. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results). |
 | `biouml_simulation_list_solvers` | List the ODE solvers available to the simulation engine (name, type, implementation class). |
@@ -233,7 +232,7 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 {"method":"tools/call","params":{"name":"biouml_diagram_create","arguments":{"parentPath":"mydata/diagrams","name":"decay","type":"math"}}}
 {"method":"tools/call","params":{"name":"biouml_diagram_add_node","arguments":{"diagramPath":"mydata/diagrams/decay","name":"X","nodeType":"Substance"}}}
 {"method":"tools/call","params":{"name":"biouml_diagram_save","arguments":{"diagramPath":"mydata/diagrams/decay","targetDir":"/tmp"}}}
-{"method":"tools/call","params":{"name":"biouml_simulation_run","arguments":{"diagramPath":"mydata/diagrams/decay","t0":"0","tf":"10","inc":"0.1"}}}
+{"method":"tools/call","params":{"name":"biouml_simulation_start","arguments":{"diagramPath":"mydata/diagrams/decay"}}}
 ```
 
 ## Limitations
@@ -245,10 +244,10 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 - **Async semantics** — `biouml_analysis_run` with `sync:false` queues the analysis and returns a
   task id; poll with `biouml_task_status` and read the output with `biouml_analysis_get_result`.
   There is no push/notification channel on this transport — clients poll.
-- **Headless simulation** — `biouml_simulation_run` requires the diagram to have a dynamic model
+- **Headless simulation** — `biouml_simulation_start` requires the diagram to have a dynamic model
   with at least one ODE rate equation. In a plain headless JVM the ODE code-generation (Velocity
-  template) may not be available, in which case the tool returns a `missing_dynamic_model` error
-  rather than a time series; on a provisioned OSGi/Tomcat runtime it returns the series.
+  template) may not be available, in which case the start call returns a `missing_dynamic_model`
+  error rather than a job; on a provisioned OSGi/Tomcat runtime it starts the async simulation job.
 - **Result size caps** — list/describe tools cap their output (children ≤ 100, table rows ≤ 50,
   describe payloads ≤ 200 KB) and set a `truncated:true` flag when they do.
 
