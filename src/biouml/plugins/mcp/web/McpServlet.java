@@ -152,7 +152,7 @@ public class McpServlet
 		// a preflight carries no body and must not be rejected as unauthenticated.
 		if ( params != null && isPreflight( params ) )
 		{
-			HandleResult pre = preflight( origin );
+			HandleResult pre = preflight( origin, params );
 			try
 			{
 				out.write( pre.body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
@@ -524,10 +524,13 @@ public class McpServlet
 	/**
 	 * Build the 204 CORS preflight response. Echoes the caller's {@code Origin} (never {@code *}, so the
 	 * {@code Authorization} header is allowed to be sent) and declares the headers/methods the real
-	 * request may use. The body is empty (a 204 carries none); the {@code Status} header makes the 204
-	 * real on the wire via {@code ConnectionServlet}.
+	 * request may use. The allowed-headers list is the MCP headers this endpoint reads <em>plus</em> the
+	 * headers the browser specifically requested in {@code Access-Control-Request-Headers} (echoed
+	 * verbatim) — so an arbitrary MCP client header (e.g. {@code mcp-protocol-version}) passes without
+	 * this list having to know about it in advance. The body is empty (a 204 carries none); the
+	 * {@code Status} header makes the 204 real on the wire via {@code ConnectionServlet}.
 	 */
-	private HandleResult preflight( String origin )
+	private HandleResult preflight( String origin, Map params )
 	{
 		Map<String, String> headers = new LinkedHashMap<String, String>();
 		if ( origin != null && !origin.isEmpty() )
@@ -536,11 +539,51 @@ public class McpServlet
 			headers.put( "Access-Control-Allow-Credentials", "true" );
 		}
 		headers.put( "Access-Control-Allow-Methods", "POST, OPTIONS" );
-		headers.put( "Access-Control-Allow-Headers", ALLOWED_HEADERS );
+		headers.put( "Access-Control-Allow-Headers", allowedHeaders( params ) );
 		headers.put( "Access-Control-Max-Age", "86400" );
 		headers.put( "Status", "204" ); // real 204 on the wire (ConnectionServlet reads the reserved key)
 		headers.put( "X-MCP-Status", "204" );
 		return new HandleResult( 204, "", headers, "application/json" );
+	}
+
+	/**
+	 * The {@code Access-Control-Allow-Headers} value for a preflight: the fixed set of headers the MCP
+	 * endpoint may read, unioned with (deduped, case-insensitively) whatever the browser asked for in
+	 * {@code Access-Control-Request-Headers}. Echoing the requested headers is safe: this endpoint only
+	 * ever <em>reads</em> {@code Authorization} and the JSON-RPC body, so permitting a browser to send
+	 * an extra header to it has no security consequence — and it lets any MCP client header
+	 * (e.g. {@code mcp-protocol-version}) through without hard-coding it here.
+	 */
+	private String allowedHeaders( Map params )
+	{
+		StringBuilder sb = new StringBuilder( ALLOWED_HEADERS );
+		Object achr = params.get( "Access-Control-Request-Headers" );
+		if ( achr != null )
+		{
+			String requested = first( achr ).toLowerCase( java.util.Locale.ROOT ).trim();
+			for ( String h : requested.split( "," ) )
+			{
+				h = h.trim();
+				if ( h.isEmpty() )
+					continue;
+				// Only echo header names (no tokens, commas, or other junk a hostile client might send).
+				if ( !h.matches( "[a-z0-9!#$%&'*+.^_`|~-]+" ) )
+					continue;
+				// Skip if an allowed header already covers it (case-insensitive).
+				boolean already = false;
+				for ( String a : ALLOWED_HEADERS.split( "," ) )
+				{
+					if ( a.trim().equalsIgnoreCase( h ) )
+					{
+						already = true;
+						break;
+					}
+				}
+				if ( !already )
+					sb.append( ", " ).append( h );
+			}
+		}
+		return sb.toString();
 	}
 
 	/**

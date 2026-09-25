@@ -422,6 +422,48 @@ public class McpServletTest extends TestCase
 	}
 
 	/**
+	 * A preflight that requests a custom MCP client header (e.g. {@code mcp-protocol-version}, which the
+	 * streamable-HTTP client sends on {@code notifications/initialized}) must be allowed — the allowed
+	 * headers echo whatever the browser asked for, not just the hard-coded MCP set. This is the exact
+	 * header whose absence broke the llama.cpp connection after {@code initialize} succeeded.
+	 */
+	public void testCorsPreflightAllowsRequestedCustomHeader() throws Exception
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( "Origin", new String[] { "http://llm.dote.ru:8080" } );
+		params.put( "Access-Control-Request-Method", new String[] { "POST" } );
+		// The real llama.cpp client requests these on notifications/initialized.
+		params.put( "Access-Control-Request-Headers",
+				new String[] { "authorization, content-type, accept, mcp-protocol-version" } );
+
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		servlet.service( "/mcp", null, params, out, header );
+		assertEquals( "204", header.get( "X-MCP-Status" ) );
+		String allow = header.get( "Access-Control-Allow-Headers" );
+		assertNotNull( "allow-headers present", allow );
+		// Case-insensitive containment: the browser compares header names case-insensitively.
+		String allowLower = allow.toLowerCase( java.util.Locale.ROOT );
+		assertTrue( "mcp-protocol-version is allowed — " + allow, allowLower.contains( "mcp-protocol-version" ) );
+		assertTrue( "authorization still allowed — " + allow, allowLower.contains( "authorization" ) );
+	}
+
+	/** A hostile Access-Control-Request-Headers value (token junk, not a header name) is not echoed. */
+	public void testCorsPreflightDoesNotEchoJunk() throws Exception
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( "Origin", new String[] { "https://x" } );
+		params.put( "Access-Control-Request-Method", new String[] { "POST" } );
+		params.put( "Access-Control-Request-Headers", new String[] { "authorization, not-a-header!?" } );
+
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		servlet.service( "/mcp", null, params, out, header );
+		String allow = header.get( "Access-Control-Allow-Headers" );
+		assertFalse( "junk header name not echoed — " + allow, allow.contains( "not-a-header" ) );
+	}
+
+	/**
 	 * A normal (non-preflight) request from a browser origin gets {@code Access-Control-Allow-Origin}
 	 * echoed so the browser is allowed to read the response body. A request with <em>no</em> Origin
 	 * (curl / Claude Code / in-process) gets none — CORS headers must not leak to non-browser clients.
