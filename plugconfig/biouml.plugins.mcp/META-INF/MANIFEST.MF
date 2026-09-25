@@ -14,6 +14,7 @@ Require-Bundle: org.eclipse.osgi,
  ru.biosoft.analysis,
  ru.biosoft.analysiscore,
  ru.biosoft.table,
+ ru.biosoft.graphics,
  ru.biosoft.server.servlets,
  ru.biosoft.workbench,
  ru.biosoft.jobcontrol
