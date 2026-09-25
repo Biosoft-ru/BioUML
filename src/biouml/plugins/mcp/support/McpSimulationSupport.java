@@ -277,14 +277,42 @@ public final class McpSimulationSupport
 	 */
 	public static McpEnvelope simulationStatus( String jobID )
 	{
+		// Diagnostic: a "no simulation job" for a job the agent JUST started is the signature of a
+		// session mismatch (the WebJob was registered in a different session's cache than the poll
+		// reads). Log the jobID and the session the poll is running under so the divergence is visible
+		// in the server log next to the start.
+		try
+		{
+			java.util.logging.Logger.getLogger( McpSimulationSupport.class.getName() )
+					.info( "MCP simulation_status jobID=" + jobID
+							+ " session=" + ru.biosoft.access.security.SecurityManager.getSession() );
+		}
+		catch ( Throwable t )
+		{
+			// logging must never break the status poll
+		}
 		WebProvider provider = McpProviderSupport.provider( "simulation" );
 		if ( provider == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: simulation" );
-		Map<String, Object> params = new LinkedHashMap<String, Object>();
-		params.put( McpProviderSupport.KEY_DE, jobID ); // the status action reads the jobID from 'de'
-		Map<String, Object> resp = McpProviderSupport.responseMap( (WebJSONProviderSupport) provider, "simulation", "status", params );
-		if ( resp == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no simulation job named: " + jobID );
+		if ( !( provider instanceof WebJSONProviderSupport ) )
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "simulation provider is not a WebJSONProviderSupport" );
+		// responseMap swallows provider errors into null; use the exception-preserving path so a real
+		// failure (e.g. a session mismatch or a missing WebJob) is reported verbatim, not masked as
+		// "no simulation job named".
+		String raw = invokeRaw( (WebJSONProviderSupport) provider, "simulation", "status", jobID );
+		if ( raw == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no simulation job named: " + jobID
+					+ " — the job may be in a different session; restart the simulation and poll in the same session" );
+		// Parse the provider's JSON via the shared parseResponse: an ERROR type surfaces the
+		// provider's message verbatim (a session mismatch, a missing WebJob, ...) instead of being
+		// masked as "no simulation job named". On OK, `values` holds {status, percent, message}.
+		java.io.ByteArrayOutputStream statusOut = new java.io.ByteArrayOutputStream();
+		statusOut.writeBytes( raw.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+		McpEnvelope statusEnv = McpProviderSupport.parseResponse( statusOut );
+		if ( !statusEnv.isOk() )
+			return statusEnv;
+		Object data = statusEnv.getData();
+		Map<String, Object> resp = data instanceof Map ? (Map<String, Object>) data : new LinkedHashMap<String, Object>();
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "jobID", jobID );
 		Object status = resp.get( "status" );
@@ -316,6 +344,69 @@ public final class McpSimulationSupport
 		Map<String, Object> params = new LinkedHashMap<String, Object>();
 		params.put( McpProviderSupport.KEY_DE, jobID ); // the result action reads the jobID from 'de'
 		return McpProviderSupport.invoke( provider, "simulation", "result", params );
+	}
+
+	/**
+	 * Invoke a provider action directly and return the provider's raw JSON response string
+	 * ({@code {"type":OK|ERROR,"values":...,"message":...}}), <em>preserving</em> the provider's error
+	 * message — unlike {@link McpProviderSupport#responseMap}, which swallows every failure into
+	 * {@code null}. Used by {@link #simulationStatus} so a real failure (a session mismatch, a missing
+	 * {@code WebJob}, ...) is reported verbatim rather than masked as "no simulation job named".
+	 *
+	 * @return the provider's JSON string, or {@code null} if the call could not be made or the
+	 *         response was empty / unparseable.
+	 */
+	private static String invokeRaw( WebJSONProviderSupport provider, String name, String action, String de )
+	{
+		Map<String, String> request = new LinkedHashMap<String, String>();
+		request.put( ru.biosoft.server.servlets.webservices.BiosoftWebRequest.ACTION, action );
+		request.put( McpProviderSupport.KEY_DE, de );
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		boolean bound = false;
+		try
+		{
+			// ensureSession binds the thread to a WebSession-backed session BEFORE the provider runs.
+			// This is the critical step: the status action calls WebSession.getCurrentSession().putImage(...),
+			// which NPEs if no WebSession is bound. ensureSession (McpProviderSupport) does exactly what
+			// runProvider does — for a real session it calls ensureWebSessionFor(sid) (which re-registers
+			// the thread to sid via WebSession.getSession), and for a headless call it binds the shared
+			// headless session. We replicate that binding here so the provider sees a live WebSession.
+			String currentSid = ru.biosoft.access.security.SecurityManager.getSession();
+			if ( currentSid != null && !currentSid.isEmpty()
+					&& !ru.biosoft.access.security.SecurityManager.SYSTEM_SESSION.equals( currentSid ) )
+			{
+				McpProviderSupport.ensureWebSessionFor( currentSid );
+				// ensureWebSessionFor already re-registers the thread to currentSid; we don't unbind it
+				// because the servlet will manage the thread's session lifecycle.
+			}
+			else
+			{
+				McpProviderSupport.ensureWebSession();
+				bound = true;
+			}
+			provider.process( new ru.biosoft.server.servlets.webservices.BiosoftWebRequest( request ),
+					new ru.biosoft.server.servlets.webservices.JSONResponse( out ) );
+		}
+		catch ( ru.biosoft.server.servlets.webservices.WebException e )
+		{
+			// A WebException is a *provider* error — surface its message so it isn't masked.
+			return "{\"type\":\"" + ru.biosoft.server.servlets.webservices.JSONResponse.TYPE_ERROR
+					+ "\",\"message\":" + com.eclipsesource.json.Json.value( e.getMessage() == null ? "provider error" : e.getMessage() ).toString() + "}";
+		}
+		catch ( Exception e )
+		{
+			return "{\"type\":\"" + ru.biosoft.server.servlets.webservices.JSONResponse.TYPE_ERROR
+					+ "\",\"message\":" + com.eclipsesource.json.Json.value( e.getClass().getSimpleName() + ": " + e.getMessage() ).toString() + "}";
+		}
+		finally
+		{
+			if ( bound )
+				ru.biosoft.access.security.SecurityManager.removeThreadFromSessionRecord();
+		}
+		byte[] bytes = out.toByteArray();
+		if ( bytes.length == 0 )
+			return null;
+		return new String( bytes, java.nio.charset.StandardCharsets.UTF_8 );
 	}
 
 	// ---------------------------------------------------------------- server-side plot
