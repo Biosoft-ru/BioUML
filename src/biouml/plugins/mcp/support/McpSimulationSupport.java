@@ -123,6 +123,31 @@ public final class McpSimulationSupport
 	}
 
 	/**
+	 * Drop any per-session cached copies of the element at {@code path} (and its parent collection path)
+	 * so a subsequent provider call re-reads it from the repository rather than hitting a stale cache
+	 * entry. Safe to call with no session bound (headless, or a session with no cache) — it is then a
+	 * no-op. Any failure is swallowed: clearing is best-effort and must never fail the simulation start.
+	 */
+	private static void clearSessionCacheForPath( String path )
+	{
+		try
+		{
+			ru.biosoft.access.security.SessionCache cache =
+					ru.biosoft.server.servlets.webservices.WebServicesServlet.getSessionCache();
+			if ( cache == null )
+				return;
+			cache.removeObject( path );
+			int slash = path.lastIndexOf( '/' );
+			if ( slash > 0 )
+				cache.removeObject( path.substring( 0, slash ) );
+		}
+		catch ( Throwable t )
+		{
+			// no session / no cache / not on a servlet thread — nothing to clear
+		}
+	}
+
+	/**
 	 * Heuristically decide whether a provider error is a <em>path-resolution</em> failure (worth a
 	 * retry) as opposed to a genuine client/parameter error (not worth retrying). Matches the common
 	 * "cannot find ..." / "no ... at path" shapes that the web providers emit when an element path does
@@ -191,6 +216,13 @@ public final class McpSimulationSupport
 		}
 		if ( !resolved.isOk() )
 			return resolved;
+		// The caller may be a long-lived session (e.g. a Claude Web OAuth session) that has been open
+		// across a server redeploy. Its per-session cache can then hold a <em>stale</em> copy of this
+		// diagram's element (a readObjects/changedObjects entry keyed by the path), which makes the
+		// provider's own re-resolution of the same path fail with a confusing "Cannot find Diagram"
+		// even though the path is valid (a fresh session resolves it fine). Drop any cached copy of the
+		// diagram (and its parent path) so the provider re-reads it from the repository.
+		clearSessionCacheForPath( path );
 		WebProvider provider = McpProviderSupport.provider( "simulation" );
 		if ( provider == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: simulation" );
