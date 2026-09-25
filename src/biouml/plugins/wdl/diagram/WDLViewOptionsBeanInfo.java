@@ -18,7 +18,6 @@ public class WDLViewOptionsBeanInfo extends BeanInfoEx
         add("showTasks");
         add("callBrush");
         add("taskBrush");
-        add("callPen");
         add("expressionBrush");
         add("conditionBrush");
         add("conditionalBrush");
