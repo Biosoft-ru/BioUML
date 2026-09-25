@@ -146,6 +146,48 @@ public class McpProviderSupportTest extends AbstractBioUMLTest
 	}
 
 	/**
+	 * Regression for the Bearer-token "Cannot find Diagram" bug: when a <em>real</em> (non-system)
+	 * session is bound on the thread (as the OAuth Bearer path does), a provider that calls
+	 * {@code WebSession.getCurrentSession()} must find a {@code WebSession} for THAT session — not get
+	 * "Unknown session requested" (null). Before the fix, ensureSession fell back to the shared headless
+	 * WebSession, leaving the caller's real session without one. Also asserts the carrier is stable
+	 * (a {@code WebJob} stored via the WebSession attribute map survives across two ensureWebSessionFor
+	 * calls for the same id), which is what makes async start→poll work.
+	 */
+	public void testEnsureWebSessionForRealSessionIsStableAndVisible()
+	{
+		String sid = "mcp-test-real-" + java.util.UUID.randomUUID();
+		// Bind a real (non-system) session on this thread, as the Bearer auth path does.
+		ru.biosoft.access.security.SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+		try
+		{
+			// First call: bootstrap a WebSession for the real session id.
+			Object ws1 = McpProviderSupport.ensureWebSessionFor( sid );
+			assertNotNull( "WebSession for real session bootstrapped", ws1 );
+			assertTrue( ws1 instanceof ru.biosoft.server.servlets.webservices.WebSession );
+			// The thread is bound to sid; getCurrentSession() must find it (not "Unknown session").
+			ru.biosoft.server.servlets.webservices.WebSession current =
+					ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession();
+			assertNotNull( "getCurrentSession() found the real session's WebSession (was null = 'Unknown session requested')", current );
+
+			// A WebJob is stored via the WebSession attribute map; it must survive a second bootstrap.
+			current.putValue( "probe-key", "probe-value" );
+			Object ws2 = McpProviderSupport.ensureWebSessionFor( sid );
+			ru.biosoft.server.servlets.webservices.WebSession current2 =
+					ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession();
+			assertNotNull( "second bootstrap finds a WebSession", current2 );
+			assertEquals( "attribute map is stable across calls (WebJob would persist)",
+					"probe-value", current2.getValue( "probe-key" ) );
+			// ws1 and ws2 must be the same WebSession instance (same cached carrier).
+			assertSame( "same WebSession instance reused for the session id", ws1, ws2 );
+		}
+		finally
+		{
+			ru.biosoft.access.security.SecurityManager.removeThreadFromSessionRecord();
+		}
+	}
+
+	/**
 	 * resolveElement must fall back to a URL-decoded form when the raw path does not resolve. Agents
 	 * (and the web UI's own cookies) pass paths with spaces encoded as %20; a repo element whose name
 	 * contains a space is stored with a literal space, so the raw (encoded) path misses and only the

@@ -67,6 +67,16 @@ public final class McpProviderSupport
 			new HeadlessHttpSession( SHARED_HEADLESS_SESSION_ID );
 
 	/**
+	 * One stable carrier per real session id. The carrier backs the {@code WebSession}'s attribute store
+	 * where {@code WebJob.attach} stores the job under {@code "webJob/"+jobID}; a fresh carrier per call
+	 * would create a fresh empty map and make a job started in one call invisible to a later poll call.
+	 * The shared headless carrier (above) is the same idea for the single headless session; this map
+	 * generalizes it to a caller's real (Bearer/Basic/JSESSIONID) session id.
+	 */
+	private static final java.util.concurrent.ConcurrentHashMap<String, HeadlessHttpSession> CARRIERS =
+			new java.util.concurrent.ConcurrentHashMap<String, HeadlessHttpSession>();
+
+	/**
 	 * Look up a provider by its registered prefix.
 	 * @return the provider, or {@code null} if the prefix is not registered.
 	 */
@@ -393,15 +403,18 @@ public final class McpProviderSupport
 		String current = SecurityManager.getSession();
 		if ( current != null && !current.isEmpty() && !SecurityManager.SYSTEM_SESSION.equals( current ) )
 		{
-			// A real (non-system) session is already bound — check if a WebSession exists for it.
-			if ( ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession() != null )
-				return false; // WebSession is already registered
-			// Bind a WebSession for the existing session (needed for async providers).
-			ensureWebSession();
-			return false;
+			// A real (non-system) session is already bound (Bearer token, Basic-auth login, or a
+			// JSESSIONID). If it has no WebSession yet, build one FOR THIS SESSION'S id — not the shared
+			// headless one — so providers that call WebSession.getCurrentSession() (e.g. the simulation
+			// provider re-resolving a diagram) find it. Falling back to the shared headless session here
+			// would silently re-point the thread off the caller's real session and break resolution.
+			if ( ru.biosoft.server.servlets.webservices.WebSession.getCurrentSession() == null )
+				ensureWebSessionFor( current );
+			return false; // the caller's own session stays bound
 		}
-		// Bind the shared headless session so providers that need a session (cache, WebJob) get a
-		// working, <em>stable</em> one (async jobs must survive across calls).
+		// No real session bound (a plain headless / in-process call): bind the shared headless session
+		// so providers that need a session (cache, WebJob) get a working, <em>stable</em> one (async jobs
+		// must survive across calls).
 		ensureWebSession();
 		return true;
 	}
@@ -494,30 +507,52 @@ public final class McpProviderSupport
 	 */
 	public static Object ensureWebSession()
 	{
+		return ensureWebSessionFor( SHARED_HEADLESS_SESSION_ID );
+	}
+
+	/**
+	 * Bootstrap a {@code WebSession} for a <em>specific</em> session id (the shared headless id by
+	 * default, but also the caller's real session id when that is what is bound). Constructs a carrier
+	 * whose {@code getId()} is {@code sid}, ensures a {@link ru.biosoft.access.security.SessionCache}
+	 * exists for it, and builds the {@code WebSession} via the real factory (which re-uses one already
+	 * cached for that id). After this call, {@code WebSession.getCurrentSession()} on a thread bound to
+	 * {@code sid} returns that {@code WebSession} instead of logging "Unknown session requested".
+	 *
+	 * <p>This is what the Bearer-token and (Basic / JSESSIONID) auth paths need: the OAuth token is
+	 * issued against a fresh {@link ru.biosoft.access.security.SecurityManager} session that has a
+	 * {@code SessionCache} but no {@code WebSession} object, so any provider that calls
+	 * {@code WebSession.getCurrentSession()} (e.g. the simulation provider re-resolving a diagram)
+	 * would otherwise fail. Binding the {@code WebSession} for the caller's own id — rather than
+	 * falling back to the shared headless one — keeps the request on the caller's real session.</p>
+	 *
+	 * @param sid the session id to bootstrap a {@code WebSession} for
+	 * @return the constructed {@code WebSession}, or {@code null} if bootstrap failed
+	 */
+	public static Object ensureWebSessionFor( String sid )
+	{
+		if ( sid == null || sid.isEmpty() )
+			return null;
 		try
 		{
-			// A single shared carrier for all headless MCP calls, so async jobs started in one call
-			// are visible to later poll calls (the WebJob is stored in the carrier's attribute map).
-			Object carrier = SHARED_HEADLESS_CARRIER;
-			String sid = SHARED_HEADLESS_SESSION_ID;
-
-			// Register THIS thread so SecurityManager.getSession() == sid.
-			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+			// A STABLE carrier whose getId() is the requested sid, so the factory binds the WebSession
+			// to it and — crucially — the same carrier (and its attribute map holding the WebJob) is
+			// reused across calls for that session, so a job started in one call is visible to a poll.
+			Object carrier = CARRIERS.computeIfAbsent( sid, HeadlessHttpSession::new );
 
 			// Ensure a SessionCache exists for sid.
 			if ( ru.biosoft.access.security.SessionCacheManager.getSessionCache( sid ) == null )
 				ru.biosoft.access.security.SessionCacheManager.addSessionCache( sid );
 
 			// Build via the real factory (returns the existing WebSession if one is already cached).
-			ru.biosoft.server.servlets.webservices.WebSession ws =
-					ru.biosoft.server.servlets.webservices.WebSession.getSession( carrier );
-			return ws;
+			// Note: WebSession.getSession() also re-registers this thread with sid, which is exactly
+			// what we want for the caller's real session.
+			return ru.biosoft.server.servlets.webservices.WebSession.getSession( carrier );
 		}
 		catch ( Exception e )
 		{
 			// Log but don't throw — the caller can check for null
 			java.util.logging.Logger.getLogger( McpProviderSupport.class.getName() )
-					.log( java.util.logging.Level.WARNING, "Failed to bootstrap headless WebSession", e );
+					.log( java.util.logging.Level.WARNING, "Failed to bootstrap WebSession for " + sid, e );
 			return null;
 		}
 	}
