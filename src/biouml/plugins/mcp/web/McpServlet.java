@@ -66,6 +66,18 @@ public class McpServlet
 	private final ObjectMapper mapper = new ObjectMapper();
 	private McpJsonRpcDispatcher dispatcher;
 
+	/**
+	 * Stable session id per (username, token) for the Basic-auth path. Without this, the Basic path
+	 * minted a fresh session on every request, so a simulation started in one request was invisible to
+	 * the next request's status/result/plot poll (the job's state is session-scoped). Keyed by
+	 * username+token so the same credentials reuse one session across requests. Bounded by
+	 * {@link #MAX_BASIC_SESSIONS}: when exceeded the oldest entries are dropped (their sessions expire
+	 * naturally), keeping the map from growing without bound for a client that rotates tokens.
+	 */
+	private static final java.util.concurrent.ConcurrentHashMap<String, String> BASIC_SESSIONS =
+			new java.util.concurrent.ConcurrentHashMap<String, String>();
+	private static final int MAX_BASIC_SESSIONS = 256;
+
 	// The current request's public-host hints (set at the top of handle() so unauthorized() can
 	// derive the OAuth issuer for the WWW-Authenticate challenge). One request is served per
 	// thread at a time by ConnectionServlet, so plain fields are safe here.
@@ -431,7 +443,32 @@ public class McpServlet
 		String username = decoded.substring( 0, sep );
 		String password = decoded.substring( sep + 1 );
 
-		String sessionId = SecurityManager.generateSessionId();
+		// Reuse a STABLE session for these credentials instead of minting a fresh one per request.
+		// The Basic path previously called SecurityManager.generateSessionId() every request, so a
+		// simulation started in one request was invisible to the next request's status/result/plot poll
+		// (the job's WebJob / JobControl / SimulationResult live in the session that started it). Deriving
+		// the session from the credentials makes the same agent's requests share one session across the
+		// start→status→result/plot flow. The password is the BioStore token (":token:<uuid>"), so the key
+		// is unique per credential and never changes for a live token.
+		String key = username + "|" + password;
+		String sessionId = BASIC_SESSIONS.get( key );
+		if ( sessionId == null )
+		{
+			if ( BASIC_SESSIONS.size() >= MAX_BASIC_SESSIONS )
+			{
+				// Drop the first-inserted entry (approximate LRU) to keep the map bounded.
+				String oldest = null;
+				for ( String k : BASIC_SESSIONS.keySet() )
+				{
+					oldest = k;
+					break;
+				}
+				if ( oldest != null )
+					BASIC_SESSIONS.remove( oldest );
+			}
+			sessionId = SecurityManager.generateSessionId();
+			BASIC_SESSIONS.put( key, sessionId );
+		}
 		try
 		{
 			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
