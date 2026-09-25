@@ -641,6 +641,30 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		assertTrue( "preferences ok: " + env.getCode() + " " + env.getError(), env.isOk() );
 	}
 
+	/**
+	 * The log tool is a thin provider delegation. In a plain unit-test JVM the experimental logging
+	 * feature is not initialized (and the {@code log} provider may not even be registered), so the call
+	 * must fail CLEANLY — a non-ok envelope with a code — and never throw. On a provisioned server with
+	 * logging enabled it would return {@code {log: <text>}}.
+	 */
+	public void testLogToolResolvesOrFailsCleanly()
+	{
+		McpEnvelope env = McpRepositorySupport.getLog();
+		assertNotNull( "envelope returned", env );
+		assertNotNull( "a code is always set", env.getCode() );
+		if ( env.isOk() )
+		{
+			// Logging was active: the payload carries a 'log' field.
+			Map<String, Object> m = (Map<String, Object>) env.getData();
+			assertTrue( "log field present", m.containsKey( "log" ) );
+		}
+		else
+		{
+			// Expected in a headless test JVM: a structured error, not an exception.
+			assertNotNull( "error carries a message", env.getError() );
+		}
+	}
+
 	public void testDocumentContentRoundTrip() throws Exception
 	{
 		Repository repo = (Repository) CollectionFactory.getDataElement( "mcpdata" );

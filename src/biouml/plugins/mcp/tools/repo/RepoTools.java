@@ -405,5 +405,10 @@ public final class RepoTools
 						Map<String, String> fields = McpArgs.stringMap( args, "fields" );
 						return McpRepositorySupport.login( McpArgs.str( args, "path" ), fields );
 					} );
+
+			catalog.register( "biouml_repo_log",
+					"Fetch the current session's server log tail — the headless equivalent of the web UI's 'Logs' view pane. Returns the in-memory java.util.logging capture for this session (a bounded, SEVERE-by-default buffer of everything the JVM logged under it — cross-job server output such as unhandled exceptions, NOT a single job's log). Diagnostic only: returns an error if the experimental logging feature was not enabled at server boot. Delegates to the platform's log provider.",
+					"{}",
+					( ex, args ) -> McpRepositorySupport.getLog() );
 	}
 }

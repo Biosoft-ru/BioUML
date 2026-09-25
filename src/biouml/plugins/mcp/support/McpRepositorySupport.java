@@ -493,6 +493,35 @@ public final class McpRepositorySupport
 	}
 
 	/**
+	 * Fetch the current session's server log tail — the headless equivalent of the web UI's "Logs"
+	 * view pane. Delegates to the {@code log} provider ({@code get} action), which returns the
+	 * session's in-memory {@code java.util.logging} capture (a bounded, SEVERE-by-default buffer of
+	 * everything the JVM logged under this session — not a single job's log, but cross-job server
+	 * output such as unhandled exceptions). The provider sends the text via {@code sendString}, so it
+	 * arrives under the {@code values} field of the response.
+	 *
+	 * <p>This is a diagnostic tool: the log is only populated if the experimental logging feature was
+	 * enabled at server boot ({@code WebLogProvider.initWebLogger}); otherwise the provider returns an
+	 * error ("Log is disabled"), which is surfaced as a non-ok envelope.</p>
+	 *
+	 * @return an envelope whose data is {@code {log}} (the accumulated text) on success.
+	 */
+	public static McpEnvelope getLog()
+	{
+		ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "log" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: log" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		Map<String, Object> resp = McpProviderSupport.responseMap( (ru.biosoft.server.servlets.webservices.providers.WebJSONProviderSupport) provider, "log", "get", params );
+		if ( resp == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "log is unavailable for this session (the experimental logging feature may not be enabled)" );
+		Object values = resp.get( JSONResponse.ATTR_VALUES );
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "log", values );
+		return McpEnvelope.ok( m );
+	}
+
+	/**
 	 * Run a script inline (any type the script provider supports: JS, R, Java, ...) as an async job —
 	 * the headless equivalent of the web UI's "Run script". Delegates to the {@code script} provider
 	 * ({@code runInline} action). Returns a {@code jobID} immediately; poll {@link #jobStatus(String)}
