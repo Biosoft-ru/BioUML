@@ -128,6 +128,15 @@ public class SimulationProvider extends WebJSONProviderSupport
     private boolean logInitialized = false;
     private static ConcurrentHashMap<String, StringBuffer> buffers;
     private static ConcurrentHashMap<String, SimulationWebResultHandler> job2handler;
+    /**
+     * JVM-global jobID → JobControl. The session-scoped {@link WebJob} (stored via
+     * {@code session.putValue("webJob/"+jobID, ...)}) can be lost when the status/result poll runs in a
+     * different session than the one that started the job (e.g. an OAuth Bearer session whose cache
+     * was evicted, or a session mismatch), in which case {@code WebJob.getWebJob(jobID)} returns a fresh
+     * empty {@code WebJob} whose {@code jobControl} is {@code null} → "jobControl is null". Keeping the
+     * {@code JobControl} here lets {@code status} resolve it regardless of session.
+     */
+    private static ConcurrentHashMap<String, ru.biosoft.jobcontrol.JobControl> job2jobControl;
 
     private void initLogging()
     {
@@ -139,6 +148,7 @@ public class SimulationProvider extends WebJSONProviderSupport
             if ( logInitialized )
                 return;
             job2handler = new ConcurrentHashMap<String, SimulationWebResultHandler>();
+            job2jobControl = new ConcurrentHashMap<String, ru.biosoft.jobcontrol.JobControl>();
             logInitialized = true;
         }
 
@@ -187,6 +197,11 @@ public class SimulationProvider extends WebJSONProviderSupport
         for ( ResultListener listener : swrh.getResultListeners(diagram.getCompletePath()) )
             method.addResultListenerList(listener);
         job2handler.put(jobID, swrh);
+        // Also keep the JobControl in a JVM-global map (keyed by jobID) so status can resolve it even
+        // if the status/result poll runs in a different session than the one that started the job
+        // (the session-scoped WebJob's jobControl is otherwise null → "jobControl is null").
+        if ( job2jobControl != null )
+            job2jobControl.put(jobID, method.getJobControl());
 
         final WebJob webJob = WebJob.getWebJob(jobID);
         final Logger log = webJob.getJobLogger();
@@ -260,7 +275,18 @@ public class SimulationProvider extends WebJSONProviderSupport
     private static void sendSimulationStatus(String jobId, JSONResponse response) throws IOException
     {
         WebJob webJob = WebJob.getWebJob(jobId);
+        // The session-scoped WebJob's jobControl can be null when the status poll runs in a different
+        // session than the one that started the job (WebJob.getWebJob creates a fresh empty WebJob in
+        // that case). Fall back to the JVM-global map populated by simulateDiagramWithAnalysis.
         JobControl jobControl = webJob.getJobControl();
+        if ( jobControl == null && job2jobControl != null )
+            jobControl = job2jobControl.get(jobId);
+        if ( jobControl == null )
+        {
+            response.error("No job control found for job: " + jobId
+                    + " — the job may have been started in a different session or the server restarted; restart the simulation");
+            return;
+        }
         SimulationWebResultHandler swrh = job2handler.get(jobId);
         if ( swrh != null )
         {
