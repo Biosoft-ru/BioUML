@@ -143,7 +143,33 @@ public final class McpSimulationSupport
 	 */
 	public static McpEnvelope startSimulation( String path )
 	{
+		// A diagram can briefly become unresolvable right after the repository has written to it
+		// (the FileSystemWatcher fires element-changed / luceneIndex notifications, and a concurrent
+		// read during that window can miss the element). That is transient — a short retry resolves
+		// it. Only the not-found case is retried; a genuine missing_dynamic_model / invalid_params
+		// is returned immediately.
 		McpEnvelope resolved = diagramWithModel( path );
+		if ( !resolved.isOk() && McpConstants.CODE_NOT_FOUND.equals( resolved.getCode() ) )
+		{
+			for ( int attempt = 1; attempt <= 3; attempt++ )
+			{
+				try
+				{
+					Thread.sleep( 750L * attempt );
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+					break;
+				}
+				McpEnvelope retry = diagramWithModel( path );
+				if ( retry.isOk() || !McpConstants.CODE_NOT_FOUND.equals( retry.getCode() ) )
+				{
+					resolved = retry;
+					break;
+				}
+			}
+		}
 		if ( !resolved.isOk() )
 			return resolved;
 		WebProvider provider = McpProviderSupport.provider( "simulation" );

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import biouml.plugins.mcp.McpConstants;
+import biouml.standard.simulation.SimulationResult;
+import biouml.standard.simulation.StochasticSimulationResult;
 
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentModel;
@@ -592,6 +594,59 @@ public final class McpAnalysisSupport
 			m.put( "rows", rows );
 			m.put( "truncated", Boolean.valueOf( t.getSize() > n ) );
 		}
+		else if ( de instanceof SimulationResult )
+		{
+			// A simulation result (e.g. produced by the "Simulation analysis" method) carries a
+			// variable→index map plus the time series. Return the same shape the simulation provider's
+			// `result` action emits ({vars, times, values}) so callers get the numbers directly.
+			SimulationResult sr = (SimulationResult) de;
+			m.put( "type", "simulation_result" );
+			try
+			{
+				Map<String, Integer> pathMap = sr.getVariablePathMap();
+				Map<String, Object> vars = new LinkedHashMap<String, Object>();
+				if ( pathMap != null )
+					for ( Map.Entry<String, Integer> e : pathMap.entrySet() )
+						vars.put( e.getKey(), Integer.valueOf( e.getValue() ) );
+				m.put( "vars", vars );
+				double[] times = sr.getTimes();
+				int nPoints = times == null ? 0 : times.length;
+				int nData = ( nPoints > 0 && sr.getValue( 0 ) != null ) ? sr.getValue( 0 ).length : 0;
+				List<List<Object>> timesOut = new ArrayList<List<Object>>();
+				for ( int t = 0; t < nPoints; t++ )
+					timesOut.add( java.util.Collections.singletonList( Double.valueOf( sr.getTime( t ) ) ) );
+				m.put( "times", timesOut );
+				// values is stored [point][var]; transpose to [var][point] so each variable is a row
+				// (the same layout the simulation provider's `result` action emits).
+				List<List<Object>> values = new ArrayList<List<Object>>();
+				for ( int i = 0; i < nData; i++ )
+				{
+					List<Object> row = new ArrayList<Object>();
+					for ( int t = 0; t < nPoints; t++ )
+					{
+						double[] at = sr.getValue( t );
+						if ( at != null && i < at.length )
+							row.add( Double.valueOf( at[ i ] ) );
+						else
+							row.add( null );
+					}
+					values.add( row );
+				}
+				m.put( "values", values );
+				// Stochastic results also carry the Q1/median/Q3 percentile series.
+				if ( sr instanceof StochasticSimulationResult )
+				{
+					StochasticSimulationResult ssr = (StochasticSimulationResult) sr;
+					m.put( "Q1", transposeForJson( ssr.getQ1() ) );
+					m.put( "Q2", transposeForJson( ssr.getMedian() ) );
+					m.put( "Q3", transposeForJson( ssr.getQ3() ) );
+				}
+			}
+			catch ( Exception e )
+			{
+				m.put( "error", "could not read simulation result: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			}
+		}
 		else if ( de instanceof DataCollection )
 		{
 			DataCollection<?> dc = (DataCollection<?>) de;
@@ -616,6 +671,31 @@ public final class McpAnalysisSupport
 			m.put( "type", de.getClass().getName() );
 		}
 		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * Transpose a {@code [var][point]} 2-D array (the layout of a stochastic percentile series, e.g.
+	 * Q1/median/Q3) into the {@code [var][point]} list-of-rows JSON form — each variable is a row. A
+	 * {@code null} row is passed through as a null so the shape stays rectangular.
+	 */
+	private static List<List<Object>> transposeForJson( double[][] array )
+	{
+		List<List<Object>> out = new ArrayList<List<Object>>();
+		if ( array == null )
+			return out;
+		for ( double[] row : array )
+		{
+			if ( row == null )
+			{
+				out.add( null );
+				continue;
+			}
+			List<Object> r = new ArrayList<Object>();
+			for ( double v : row )
+				r.add( Double.valueOf( v ) );
+			out.add( r );
+		}
+		return out;
 	}
 
 	/**

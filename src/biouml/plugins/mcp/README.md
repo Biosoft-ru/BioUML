@@ -244,7 +244,7 @@ a multi-node deployment needs a shared store.
 | `biouml_task_cancel` | Cancel a queued or running task. |
 | `biouml_task_list` | List active and recent tasks (id, type, status). |
 | `biouml_analysis_repeat` | Re-run a completed analysis from its stored output collection (reads the stored analysisName + parameters and runs again). |
-| `biouml_analysis_get_result` | Read an analysis output collection: for a table, column names/types and the first N rows; for a folder, its children. |
+| `biouml_analysis_get_result` | Read an analysis output: for a table, column names/types and the first N rows; for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results). |
 | `biouml_diagram_create` | Create a new diagram in a target collection. type is 'math' (default) or 'pathway'. Returns the new diagram's path. |
 | `biouml_diagram_describe` | Describe a diagram: element count, per-element summaries (id, name, kind, position, node type) and — when a dynamic model is present — its variables and equation count. |
 | `biouml_diagram_node_types` | List the node types that biouml_diagram_add_node accepts. |

@@ -177,6 +177,52 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( "columns include value", cols.contains( "value" ) );
 	}
 
+	/**
+	 * A simulation result (e.g. produced by the "Simulation analysis" method) must be readable via
+	 * biouml_analysis_get_result as a {vars, times, values} time series — not just tables/folders.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testGetResultSimulationResult() throws Exception
+	{
+		biouml.standard.simulation.SimulationResult sr =
+				new biouml.standard.simulation.SimulationResult( null, "simresult" );
+		// Two variables across two time points, values stored as [point][var]: X(t)=[1,2], Y(t)=[10,20].
+		sr.add( 0.0, new double[] { 1.0, 10.0 } );
+		sr.add( 1.0, new double[] { 2.0, 20.0 } );
+		java.util.Map<String, Integer> varMap = new java.util.LinkedHashMap<String, Integer>();
+		varMap.put( "X", Integer.valueOf( 0 ) );
+		varMap.put( "Y", Integer.valueOf( 1 ) );
+		sr.setVariableMap( varMap );
+
+		// Persist into the temp repo folder so getAnalysisResult can resolve it by path.
+		DataCollection<?> folder = (DataCollection<?>) CollectionFactory.getDataCollection( outRoot );
+		assertNotNull( "out folder exists", folder );
+		@SuppressWarnings( "unchecked" )
+		DataCollection<ru.biosoft.access.core.DataElement> p = (DataCollection<ru.biosoft.access.core.DataElement>) folder;
+		p.put( sr );
+		String simPath = outRoot + "/" + sr.getName();
+
+		McpEnvelope env = McpAnalysisSupport.getAnalysisResult( simPath );
+		assertTrue( "get_result should be ok, got " + env.getCode() + " " + env.getError(), env.isOk() );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		assertEquals( "type is simulation_result", "simulation_result", m.get( "type" ) );
+		Map<String, Object> vars = (Map<String, Object>) m.get( "vars" );
+		assertTrue( "vars include X", vars.containsKey( "X" ) );
+		assertTrue( "vars include Y", vars.containsKey( "Y" ) );
+		List<List<Object>> times = (List<List<Object>>) m.get( "times" );
+		assertEquals( "two time points", 2, times.size() );
+		List<List<Object>> values = (List<List<Object>>) m.get( "values" );
+		assertEquals( "two variables (rows)", 2, values.size() );
+		// Row 0 = variable X (index 0) over the two time points: [1, 2].
+		List<Object> xRow = values.get( 0 );
+		assertEquals( "X[0]", 1.0, ( (Number) xRow.get( 0 ) ).doubleValue(), 1e-9 );
+		assertEquals( "X[1]", 2.0, ( (Number) xRow.get( 1 ) ).doubleValue(), 1e-9 );
+		// Row 1 = variable Y: [10, 20].
+		List<Object> yRow = values.get( 1 );
+		assertEquals( "Y[0]", 10.0, ( (Number) yRow.get( 0 ) ).doubleValue(), 1e-9 );
+		assertEquals( "Y[1]", 20.0, ( (Number) yRow.get( 1 ) ).doubleValue(), 1e-9 );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testRunAsyncThenPoll()
 	{

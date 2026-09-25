@@ -63,7 +63,7 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_analysis_get_result",
-				"Read an analysis output collection: for a table, column names/types and the first N rows; for a folder, its children.",
+				"Read an analysis output: for a table, column names/types and the first N rows; for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results).",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ) ) );
 	}
