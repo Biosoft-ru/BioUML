@@ -461,11 +461,16 @@ public final class McpSimulationSupport
 			for ( String v : vars )
 				finals.put( v, Double.valueOf( result.getFinal( v ) ) );
 			m.put( "finals", finals );
-			m.put( "image", java.util.Base64.getEncoder().encodeToString( png.toByteArray() ) );
 			m.put( "imageFormat", "png" );
 			m.put( "width", Integer.valueOf( w ) );
 			m.put( "height", Integer.valueOf( h ) );
-			return McpEnvelope.ok( m );
+			// The image is NOT put in the envelope (it would be a base64 text token bomb). Instead it is
+			// carried as a side-channel byte array on the envelope; the dispatcher emits it as a separate
+			// MCP `image` content block (vision) AFTER the text block, so the model sees the picture, not
+			// ~200K base64 chars of text.
+			McpEnvelope env = McpEnvelope.ok( m );
+			env.setAttribute( "mcp.image", png.toByteArray() );
+			return env;
 		}
 		catch ( Exception e )
 		{

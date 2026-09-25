@@ -225,10 +225,12 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 		Map<String, Object> finals = (Map<String, Object>) m.get( "finals" );
 		assertEquals( 0.25, ( (Number) finals.get( "X" ) ).doubleValue(), 1e-9 );
 		assertEquals( 0.5, ( (Number) finals.get( "Y" ) ).doubleValue(), 1e-9 );
-		// The image is a real, non-trivial PNG (base64), decodable to a valid PNG byte stream.
-		String b64 = (String) m.get( "image" );
-		assertNotNull( "image present", b64 );
-		byte[] png = java.util.Base64.getDecoder().decode( b64 );
+		// The image is NOT in the envelope (it would be a base64 text token bomb); it is a side-channel
+		// byte array the dispatcher emits as a separate MCP `image` content block.
+		assertFalse( "no base64 'image' in the envelope", m.containsKey( "image" ) );
+		Object img = env.getAttribute( "mcp.image" );
+		assertTrue( "image side-channel is a byte array", img instanceof byte[] );
+		byte[] png = (byte[]) img;
 		assertTrue( "png non-trivial size", png.length > 100 );
 		assertEquals( "png magic", 0x89, png[ 0 ] & 0xff );
 		assertEquals( 'P', (char) png[ 1 ] );

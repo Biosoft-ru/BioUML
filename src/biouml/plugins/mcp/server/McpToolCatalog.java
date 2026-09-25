@@ -118,8 +118,14 @@ public class McpToolCatalog
 			json = "{\"ok\":false,\"code\":\"serialization_error\"}";
 		}
 		boolean isError = !env.isOk();
-		return new McpSchema.CallToolResult(
-				java.util.Collections.<McpSchema.Content>singletonList( new McpSchema.TextContent( json ) ),
-				Boolean.valueOf( isError ) );
+		java.util.List<McpSchema.Content> content = new java.util.ArrayList<McpSchema.Content>();
+		content.add( new McpSchema.TextContent( json ) );
+		// Mirror the HTTP dispatcher: an envelope carrying a rendered image side-channel also emits an
+		// MCP image content block (after the text block) so the in-process transport is identical.
+		Object image = env.isOk() ? env.getAttribute( "mcp.image" ) : null;
+		if ( image instanceof byte[] )
+			content.add( new McpSchema.ImageContent( null,
+					java.util.Base64.getEncoder().encodeToString( (byte[]) image ), "image/png" ) );
+		return new McpSchema.CallToolResult( content, Boolean.valueOf( isError ) );
 	}
 }

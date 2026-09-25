@@ -181,7 +181,7 @@ public class McpJsonRpcDispatcher
 		try
 		{
 			String json = mapper.writeValueAsString( env.toMap() );
-			return toolResult( json, env.isOk() );
+			return toolResult( json, env.isOk(), imageContent( env ) );
 		}
 		catch ( Exception e )
 		{
@@ -190,18 +190,46 @@ public class McpJsonRpcDispatcher
 			// Anthropic proxy reject it with "Invalid content from server" while the HTTP status is
 			// still 200. If serializing the envelope itself failed, emit a valid content array whose
 			// text is the error as a plain string (no Jackson involved, so it cannot throw again).
-			return toolResult( "{\"ok\":false,\"code\":\"serialization_error\",\"error\":\"could not serialize tool result\"}", false );
+			return toolResult( "{\"ok\":false,\"code\":\"serialization_error\",\"error\":\"could not serialize tool result\"}", false, null );
 		}
 	}
 
-	/** A valid MCP {@code CallToolResult}: a single text content item carrying {@code json}. */
-	private static Map<String, Object> toolResult( String json, boolean ok )
+	/**
+	 * The optional MCP {@code image} content block for an envelope that carries a rendered image
+	 * side-channel ({@code mcp.image} = the PNG bytes). Returned as {@code null} for every other tool,
+	 * so the content array stays a single text item. The text block is ALWAYS first, so clients that
+	 * read {@code content[0].text} (all existing MCP tests, and the default in-process server path)
+	 * still get the envelope JSON; the image block is appended after it.
+	 */
+	private static Map<String, Object> imageContent( McpEnvelope env )
 	{
+		if ( !env.isOk() )
+			return null;
+		Object image = env.getAttribute( "mcp.image" );
+		if ( !( image instanceof byte[] ) )
+			return null;
 		Map<String, Object> content = new LinkedHashMap<String, Object>();
-		content.put( "type", "text" );
-		content.put( "text", json );
+		content.put( "type", "image" );
+		content.put( "data", java.util.Base64.getEncoder().encodeToString( (byte[]) image ) );
+		content.put( "mimeType", "image/png" );
+		return content;
+	}
+
+	/**
+	 * A valid MCP {@code CallToolResult}: a text content item carrying {@code json}, optionally
+	 * followed by an {@code image} content item (see {@link #imageContent}).
+	 */
+	private static Map<String, Object> toolResult( String json, boolean ok, Map<String, Object> image )
+	{
+		Map<String, Object> text = new LinkedHashMap<String, Object>();
+		text.put( "type", "text" );
+		text.put( "text", json );
+		java.util.List<Map<String, Object>> content = new java.util.ArrayList<Map<String, Object>>();
+		content.add( text );
+		if ( image != null )
+			content.add( image );
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		result.put( "content", java.util.Collections.singletonList( content ) );
+		result.put( "content", content );
 		result.put( "isError", Boolean.valueOf( !ok ) );
 		return result;
 	}
