@@ -291,25 +291,43 @@ public class SimulationProvider extends WebJSONProviderSupport
         if ( swrh != null )
         {
             int status = jobControl.getStatus();
+            // The progress image and job log are best-effort: they depend on session-scoped state
+            // (WebSession.putImage, WebJob.getJobMessage) that can be absent when the status poll runs
+            // in a different session than the one that started the job. The status value and the
+            // completed flag come from the JVM-global job2jobControl / job2handler, so they are
+            // reliable; never let a missing image/message mask the completion signal.
             String[] imageNames = null;
-            BufferedImage[] resultImages = swrh.generateResultImage();
-            if ( resultImages != null )
+            String message = null;
+            try
             {
-                imageNames = new String[resultImages.length + 1];
-                for ( int i = 0; i < resultImages.length; i++ )
+                BufferedImage[] resultImages = swrh.generateResultImage();
+                if ( resultImages != null && resultImages.length > 0 )
                 {
-                    imageNames[i] = jobId + "_img_" + i;
-                    WebSession.getCurrentSession().putImage(imageNames[i], resultImages[i]);
+                    imageNames = new String[resultImages.length + 1];
+                    for ( int i = 0; i < resultImages.length; i++ )
+                    {
+                        imageNames[i] = jobId + "_img_" + i;
+                        WebSession.getCurrentSession().putImage(imageNames[i], resultImages[i]);
+                    }
+                    imageNames[imageNames.length - 1] = "";
                 }
-                String message = webJob.getJobMessage();
-                imageNames[imageNames.length - 1] = message;
+                message = webJob.getJobMessage();
             }
-            else
+            catch ( Exception e )
             {
-                //send only message if no image results should be generated for this simulation
-                String message = webJob.getJobMessage();
-                imageNames = new String[] { message };
+                // Session-scoped state unavailable (different session, cache evicted, etc.). The
+                // status value is still valid — drop the image/message and report the status.
+                imageNames = null;
             }
+            if ( message != null )
+            {
+                if ( imageNames != null && imageNames.length > 0 )
+                    imageNames[imageNames.length - 1] = message;
+                else
+                    imageNames = new String[] { message };
+            }
+            else if ( imageNames == null )
+                imageNames = new String[0];
 
             if ( status < JobControl.COMPLETED )
             {
@@ -324,10 +342,18 @@ public class SimulationProvider extends WebJSONProviderSupport
             else if ( status == JobControl.TERMINATED_BY_ERROR ) //ended with non-processed error in log
             {
                 //job2handler.remove(jobId);
-                String message = webJob.getJobMessage();
-                if ( message == null )
-                    message = "Can not simulate model. Error not specified.";
-                response.error(message);
+                String errorMessage = null;
+                try
+                {
+                    errorMessage = webJob.getJobMessage();
+                }
+                catch ( Exception e )
+                {
+                    // session-scoped state unavailable
+                }
+                if ( errorMessage == null )
+                    errorMessage = "Can not simulate model. Error not specified.";
+                response.error(errorMessage);
             }
         }
         else
