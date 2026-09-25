@@ -109,6 +109,10 @@ public class McpServlet
 	public String service( String localAddress, Object session, Map params, java.io.OutputStream out, Map<String, String> header )
 	{
 		String path = localAddress == null ? "/mcp" : localAddress;
+		// Surface the caller's browser Origin (set by ConnectionServlet.getParameterMap) so the CORS
+		// response headers can echo it. The preflight (OPTIONS) and header-allow-list are handled by the
+		// static helpers below; see addCorsHeaders.
+		String origin = params == null ? null : first( params.get( "Origin" ) );
 		// The request arrives in the parsed params map under distinct keys (see ConnectionServlet.getParameterMap):
 		//   sessionId     -> the caller's session (the JSESSIONID, or an explicit sessionId param)
 		//   mcpBody       -> the JSON-RPC body sent as a form field (legacy path)
@@ -142,6 +146,28 @@ public class McpServlet
 		String forwardedHost = params == null ? null : first( params.get( "X-Forwarded-Host" ) );
 		String forwardedProto = params == null ? null : first( params.get( "X-Forwarded-Proto" ) );
 
+		// CORS preflight (OPTIONS): a browser that sends a non-simple header (e.g. the `Authorization`
+		// every MCP streamable-HTTP client sets) must first receive an allowed `OPTIONS` response, or the
+		// real POST is never sent — the client fails with "Failed to fetch". Answer it here, before auth:
+		// a preflight carries no body and must not be rejected as unauthenticated.
+		if ( params != null && isPreflight( params ) )
+		{
+			HandleResult pre = preflight( origin );
+			try
+			{
+				out.write( pre.body.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+				out.flush();
+			}
+			catch ( Exception ignore )
+			{
+				// no body to write for a 204 — ignore client aborts
+			}
+			if ( header != null )
+				for ( Map.Entry<String, String> e : pre.headers.entrySet() )
+					header.put( e.getKey(), e.getValue() );
+			return pre.contentType;
+		}
+
 		HandleResult r = handle( "POST", path, query, body, session, authorization, remoteAddress,
 				hostValue, forwardedHost, forwardedProto );
 
@@ -161,6 +187,7 @@ public class McpServlet
 		if ( header != null )
 		{
 			header.put( "X-MCP-Status", String.valueOf( r.status ) ); // back-compat (tests + legacy clients)
+			addCorsHeaders( header, origin ); // Access-Control-Allow-Origin (echoed) for browser clients
 			for ( Map.Entry<String, String> e : r.headers.entrySet() )
 				header.put( e.getKey(), e.getValue() ); // e.g. WWW-Authenticate + reserved Status → real 401
 		}
@@ -469,6 +496,64 @@ public class McpServlet
 		return new HandleResult( 401, body, headers );
 	}
 
+	// =================================================================== CORS (browser clients)
+
+	/**
+	 * The request headers a browser may send to the MCP endpoint, echoed back as
+	 * {@code Access-Control-Allow-Headers} so a CORS preflight passes. The MCP streamable-HTTP client
+	 * always sends {@code Content-Type} and {@code Accept}; every remote-client transport (llama.cpp,
+	 * Open WebUI, …) sends an {@code Authorization} header, which is what forces the preflight. {@code
+	 * MCP-Session-Id} is the protocol's session header.
+	 */
+	private static final String ALLOWED_HEADERS =
+			"Content-Type, Accept, Authorization, MCP-Session-Id, X-Forwarded-Host, X-Forwarded-Proto";
+
+	/**
+	 * True if this is a CORS preflight. A browser sends {@code Access-Control-Request-Method} on — and
+	 * <em>only</em> on — a preflight (an {@code OPTIONS} probe issued before a request that carries a
+	 * non-simple header like {@code Authorization}). A real POST from the same browser carries
+	 * {@code Origin} but <em>not</em> this header, so keying on it (rather than on {@code Origin}) is what
+	 * keeps a genuine authenticated request from being misrouted to the preflight path.
+	 */
+	private boolean isPreflight( Map params )
+	{
+		Object acrm = params.get( "Access-Control-Request-Method" );
+		return acrm != null && !first( acrm ).isEmpty();
+	}
+
+	/**
+	 * Build the 204 CORS preflight response. Echoes the caller's {@code Origin} (never {@code *}, so the
+	 * {@code Authorization} header is allowed to be sent) and declares the headers/methods the real
+	 * request may use. The body is empty (a 204 carries none); the {@code Status} header makes the 204
+	 * real on the wire via {@code ConnectionServlet}.
+	 */
+	private HandleResult preflight( String origin )
+	{
+		Map<String, String> headers = new LinkedHashMap<String, String>();
+		if ( origin != null && !origin.isEmpty() )
+		{
+			headers.put( "Access-Control-Allow-Origin", origin );
+			headers.put( "Access-Control-Allow-Credentials", "true" );
+		}
+		headers.put( "Access-Control-Allow-Methods", "POST, OPTIONS" );
+		headers.put( "Access-Control-Allow-Headers", ALLOWED_HEADERS );
+		headers.put( "Access-Control-Max-Age", "86400" );
+		headers.put( "Status", "204" ); // real 204 on the wire (ConnectionServlet reads the reserved key)
+		headers.put( "X-MCP-Status", "204" );
+		return new HandleResult( 204, "", headers, "application/json" );
+	}
+
+	/**
+	 * Add {@code Access-Control-Allow-Origin} (echoing the caller's {@code Origin}) to a normal response
+	 * so a browser client that already passed the preflight is allowed to read the body. No-op when the
+	 * request carries no {@code Origin} (non-browser clients: curl, Claude Code, in-process).
+	 */
+	private static void addCorsHeaders( Map<String, String> header, String origin )
+	{
+		if ( origin != null && !origin.isEmpty() )
+			header.put( "Access-Control-Allow-Origin", origin );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	private Map<String, Object> parseBody( String body ) throws Exception
 	{
@@ -484,17 +569,25 @@ public class McpServlet
 		public final String body;
 		/** Response headers to copy onto the HTTP response (may include the reserved {@code Status} key). */
 		public final Map<String, String> headers;
+		/** The content type to return to {@code ConnectionServlet} (default {@code application/json}). */
+		public final String contentType;
 
 		public HandleResult( int status, String body )
 		{
-			this( status, body, new LinkedHashMap<String, String>() );
+			this( status, body, new LinkedHashMap<String, String>(), "application/json" );
 		}
 
 		public HandleResult( int status, String body, Map<String, String> headers )
 		{
+			this( status, body, headers, "application/json" );
+		}
+
+		public HandleResult( int status, String body, Map<String, String> headers, String contentType )
+		{
 			this.status = status;
 			this.body = body;
 			this.headers = headers;
+			this.contentType = contentType;
 		}
 	}
 }

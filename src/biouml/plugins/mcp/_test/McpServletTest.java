@@ -390,6 +390,70 @@ public class McpServletTest extends TestCase
 		assertEquals( "401", header.get( "Status" ) );
 	}
 
+	// =================================================================== CORS (browser clients)
+
+	/**
+	 * A browser preflight (OPTIONS carrying {@code Origin} + {@code Access-Control-Request-Method}) must
+	 * be answered <em>before</em> auth with a 204 that echoes the {@code Origin} and allows the
+	 * {@code Authorization} header — otherwise the real POST is never sent and the client fails with
+	 * "Failed to fetch" (the llama.cpp / Open WebUI connection error).
+	 */
+	public void testCorsPreflightIs204BeforeAuth() throws Exception
+	{
+		// No session, no Authorization: a real MCP request here would 401, but a preflight must not.
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( "Origin", new String[] { "http://llm.dote.ru:8080" } );
+		params.put( "Access-Control-Request-Method", new String[] { "POST" } );
+		params.put( "Access-Control-Request-Headers", new String[] { "authorization, content-type" } );
+
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		Map<String, String> header = new java.util.HashMap<String, String>();
+		String ct = servlet.service( "/mcp", null, params, out, header );
+		assertEquals( "application/json", ct );
+		assertEquals( "preflight → 204 (not a 401)", "204", header.get( "X-MCP-Status" ) );
+		assertEquals( "reserved Status key = 204 (real on the wire)", "204", header.get( "Status" ) );
+		// Echo the origin (never *), so the Authorization header is permitted by the browser.
+		assertEquals( "Access-Control-Allow-Origin echoes the caller", "http://llm.dote.ru:8080",
+				header.get( "Access-Control-Allow-Origin" ) );
+		assertEquals( "credentials allowed", "true", header.get( "Access-Control-Allow-Credentials" ) );
+		assertTrue( "Authorization is in the allow list",
+				header.get( "Access-Control-Allow-Headers" ).contains( "Authorization" ) );
+		assertTrue( "POST is allowed", header.get( "Access-Control-Allow-Methods" ).contains( "POST" ) );
+	}
+
+	/**
+	 * A normal (non-preflight) request from a browser origin gets {@code Access-Control-Allow-Origin}
+	 * echoed so the browser is allowed to read the response body. A request with <em>no</em> Origin
+	 * (curl / Claude Code / in-process) gets none — CORS headers must not leak to non-browser clients.
+	 */
+	public void testCorsAllowOriginOnNormalResponse() throws Exception
+	{
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		String json = "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}";
+
+		// With an Origin → the header is echoed.
+		Map<String, Object> withOrigin = new java.util.LinkedHashMap<String, Object>();
+		withOrigin.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
+		withOrigin.put( McpServlet.MCP_RAW_BODY_KEY, new String[] { json } );
+		withOrigin.put( "Origin", new String[] { "https://app.example" } );
+		java.io.ByteArrayOutputStream out1 = new java.io.ByteArrayOutputStream();
+		Map<String, String> h1 = new java.util.HashMap<String, String>();
+		servlet.service( "/mcp", null, withOrigin, out1, h1 );
+		assertEquals( "200", h1.get( "X-MCP-Status" ) );
+		assertEquals( "origin echoed on a normal response", "https://app.example",
+				h1.get( "Access-Control-Allow-Origin" ) );
+
+		// Without an Origin → no CORS header at all.
+		Map<String, Object> noOrigin = new java.util.LinkedHashMap<String, Object>();
+		noOrigin.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
+		noOrigin.put( McpServlet.MCP_RAW_BODY_KEY, new String[] { json } );
+		java.io.ByteArrayOutputStream out2 = new java.io.ByteArrayOutputStream();
+		Map<String, String> h2 = new java.util.HashMap<String, String>();
+		servlet.service( "/mcp", null, noOrigin, out2, h2 );
+		assertEquals( "200", h2.get( "X-MCP-Status" ) );
+		assertNull( "no Origin → no Access-Control-Allow-Origin", h2.get( "Access-Control-Allow-Origin" ) );
+	}
+
 	/** Swap the (private, static) SecurityProvider on SecurityManager for the duration of a test. */
 	private void setProvider( ru.biosoft.access.security.SecurityProvider provider ) throws Exception
 	{

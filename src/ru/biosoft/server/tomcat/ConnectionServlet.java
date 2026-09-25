@@ -308,6 +308,19 @@ public abstract class ConnectionServlet extends HttpServlet
         String forwardedProto = req.getHeader( "X-Forwarded-Proto" );
         if( forwardedProto != null )
             params.put( "X-Forwarded-Proto", new String[] { forwardedProto } );
+        // CORS: surface the browser's Origin and the preflight's Access-Control-Request-* headers so the
+        // MCP endpoint can echo the Origin (Access-Control-Allow-Origin) and answer OPTIONS preflights.
+        // A browser that sends an `Authorization` header (every remote MCP client does) issues an OPTIONS
+        // preflight first; without these surfaced the endpoint cannot build a CORS response.
+        String origin = req.getHeader( "Origin" );
+        if( origin != null )
+            params.put( "Origin", new String[] { origin } );
+        String acrm = req.getHeader( "Access-Control-Request-Method" );
+        if( acrm != null )
+            params.put( "Access-Control-Request-Method", new String[] { acrm } );
+        String achr = req.getHeader( "Access-Control-Request-Headers" );
+        if( achr != null )
+            params.put( "Access-Control-Request-Headers", new String[] { achr } );
         if( ServletFileUpload.isMultipartContent(req) )
         {
             try
