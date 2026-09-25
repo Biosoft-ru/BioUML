@@ -555,7 +555,7 @@ public final class McpAnalysisSupport
 	 */
 	public static McpEnvelope getAnalysisResult( String path )
 	{
-		DataElement de = CollectionFactory.getDataElement( path );
+		DataElement de = McpProviderSupport.resolveElement( path );
 		if ( de == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path );
 		Map<String, Object> m = new LinkedHashMap<String, Object>();

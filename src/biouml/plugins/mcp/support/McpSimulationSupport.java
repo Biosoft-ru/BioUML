@@ -44,15 +44,12 @@ public final class McpSimulationSupport
 	{
 		if ( path == null || path.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "path must be a non-empty string" );
-		DataElement de;
-		try
-		{
-			de = CollectionFactory.getDataElement( path );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
-		}
+		// Resolve via the shared helper: tries the raw path, then a URL-decoded form, so an
+		// agent-supplied %20-encoded path still resolves. Returns null if neither resolves.
+		DataElement de = McpProviderSupport.resolveElement( path );
+		if ( de == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND,
+					"no diagram at path: " + path + " — check that the path starts with a repository root (e.g. 'data/...') and that spaces are literal, not URL-encoded (%20)" );
 		if ( !( de instanceof Diagram ) )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
 		Diagram diagram = (Diagram) de;
@@ -125,6 +122,28 @@ public final class McpSimulationSupport
 		return McpEnvelope.ok( result );
 	}
 
+	/**
+	 * Heuristically decide whether a provider error is a <em>path-resolution</em> failure (worth a
+	 * retry) as opposed to a genuine client/parameter error (not worth retrying). Matches the common
+	 * "cannot find ..." / "no ... at path" shapes that the web providers emit when an element path does
+	 * not resolve in the provider's session view.
+	 */
+	private static boolean isResolutionFailure( McpEnvelope env )
+	{
+		if ( env == null || env.isOk() )
+			return false;
+		// A not_found envelope is, by definition, a resolution failure.
+		if ( McpConstants.CODE_NOT_FOUND.equals( env.getCode() ) )
+			return true;
+		String msg = env.getError();
+		if ( msg == null )
+			return false;
+		String lower = msg.toLowerCase();
+		return lower.contains( "cannot find" ) || lower.contains( "can not find" )
+				|| lower.contains( "no diagram" ) || lower.contains( "no element" )
+				|| lower.contains( "element not found" ) || lower.contains( "no data element" );
+	}
+
 	// ---------------------------------------------------------------- async run (provider-delegated)
 
 	/**
@@ -180,7 +199,26 @@ public final class McpSimulationSupport
 		params.put( McpProviderSupport.KEY_DE, path );
 		params.put( "jobID", jobID );
 		params.put( "engine", new ArrayList<Object>() ); // empty engine options (use defaults)
+		// The provider re-resolves the diagram from its own session view. That can transiently fail to
+		// find an element that our pre-provider check just resolved (a per-session view divergence — e.g.
+		// a stale snapshot or a re-entrant currentPaths guard). Retry the invoke a few times on a
+		// resolution-type failure; a genuine error (e.g. a real parameter problem) is returned as-is.
 		McpEnvelope env = McpProviderSupport.invoke( provider, "simulation", "simulate", params );
+		for ( int attempt = 1; !env.isOk() && isResolutionFailure( env ) && attempt <= 3; attempt++ )
+		{
+			try
+			{
+				Thread.sleep( 500L * attempt );
+			}
+			catch ( InterruptedException e )
+			{
+				Thread.currentThread().interrupt();
+				break;
+			}
+			jobID = java.util.UUID.randomUUID().toString();
+			params.put( "jobID", jobID );
+			env = McpProviderSupport.invoke( provider, "simulation", "simulate", params );
+		}
 		if ( !env.isOk() )
 			return env;
 		Map<String, Object> m = new LinkedHashMap<String, Object>();

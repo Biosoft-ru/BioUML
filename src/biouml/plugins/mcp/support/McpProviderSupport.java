@@ -83,6 +83,62 @@ public final class McpProviderSupport
 	}
 
 	/**
+	 * Resolve an element path, tolerating a URL-encoded form. Agents (and the web UI's own cookies)
+	 * frequently pass element paths with spaces encoded as {@code %20} (e.g.
+	 * {@code Westerhoff%20and%20Kolodkin}), but BioUML repository paths use <em>literal</em> spaces. To
+	 * make such paths self-correcting without ever breaking a path that already resolves, this tries the
+	 * raw path first and only falls back to the URL-decoded form when the raw path does not resolve. A
+	 * path that resolves raw is therefore returned untouched.
+	 * @param path the raw (possibly URL-encoded) element path
+	 * @return the resolved {@link ru.biosoft.access.core.DataElement}, or {@code null} if neither the raw
+	 *         nor the decoded form resolves.
+	 */
+	public static ru.biosoft.access.core.DataElement resolveElement( String path )
+	{
+		if ( path == null || path.isEmpty() )
+			return null;
+		ru.biosoft.access.core.DataElement de = tryResolve( path );
+		if ( de != null )
+			return de;
+		String decoded = urlDecodeIfEncoded( path );
+		if ( decoded != null )
+			return tryResolve( decoded );
+		return null;
+	}
+
+	private static ru.biosoft.access.core.DataElement tryResolve( String path )
+	{
+		try
+		{
+			return ru.biosoft.access.core.CollectionFactory.getDataElement( path );
+		}
+		catch ( Exception e )
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * URL-decode {@code s} if it contains a well-formed {@code %XX} escape.
+	 * @return the decoded string if it differs from the input, or {@code null} if the input has no
+	 *         {@code %XX} sequence (i.e. it should be left as-is).
+	 */
+	private static String urlDecodeIfEncoded( String s )
+	{
+		if ( s == null || s.indexOf( '%' ) < 0 || !s.matches( ".*%[0-9a-fA-F]{2}.*" ) )
+			return null;
+		try
+		{
+			String decoded = java.net.URLDecoder.decode( s, java.nio.charset.StandardCharsets.UTF_8 );
+			return decoded.equals( s ) ? null : decoded;
+		}
+		catch ( Exception e )
+		{
+			return null; // not actually URL-encoded; leave untouched
+		}
+	}
+
+	/**
 	 * Invoke a provider action with the given parameters.
 	 *
 	 * @param prefix   the provider's registered prefix (e.g. {@code "simulation"}), or {@code null}

@@ -88,15 +88,9 @@ public final class McpDiagramSupport
 	{
 		if ( path == null || path.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "path must be a non-empty string" );
-		DataElement de;
-		try
-		{
-			de = CollectionFactory.getDataElement( path );
-		}
-		catch ( Exception e )
-		{
+		DataElement de = McpProviderSupport.resolveElement( path );
+		if ( de == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
-		}
 		if ( !( de instanceof Diagram ) )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
 		return McpEnvelope.ok( de );
