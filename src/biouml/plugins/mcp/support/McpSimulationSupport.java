@@ -303,28 +303,43 @@ public final class McpSimulationSupport
 		if ( raw == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no simulation job named: " + jobID
 					+ " — the job may be in a different session; restart the simulation and poll in the same session" );
-		// Parse the provider's JSON via the shared parseResponse: an ERROR type surfaces the
-		// provider's message verbatim (a session mismatch, a missing WebJob, ...) instead of being
-		// masked as "no simulation job named". On OK, `values` holds {status, percent, message}.
-		java.io.ByteArrayOutputStream statusOut = new java.io.ByteArrayOutputStream();
-		statusOut.writeBytes( raw.getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
-		McpEnvelope statusEnv = McpProviderSupport.parseResponse( statusOut );
-		if ( !statusEnv.isOk() )
-			return statusEnv;
-		Object data = statusEnv.getData();
-		Map<String, Object> resp = data instanceof Map ? (Map<String, Object>) data : new LinkedHashMap<String, Object>();
+		// The status provider (JSONResponse.sendStatus) writes a root-level JSON object:
+		//   {"type":0, "status":N, "percent":P, "values":[...]}
+		// where status/percent are at the ROOT (not nested inside values). The shared parseResponse
+		// only extracts the "values" field, which would lose status/percent. So parse the raw JSON
+		// directly here to read all three root-level fields.
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "jobID", jobID );
-		Object status = resp.get( "status" );
-		m.put( "status", status instanceof Number ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
-		Object percent = resp.get( "percent" );
-		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
-		// The provider sends the accumulated job log as the last entry of `values`
-		// (SimulationProvider.sendStatus(..., imageNames) with the message in imageNames).
-		Object values = resp.get( "values" );
-		if ( values instanceof List && ( (List<?>) values ).size() > 0 )
-			m.put( "message", ( (List<?>) values ).get( ( (List<?>) values ).size() - 1 ) );
-		m.put( "completed", status instanceof Number && ( (Number) status ).intValue() >= ru.biosoft.jobcontrol.JobControl.COMPLETED );
+		try
+		{
+			com.eclipsesource.json.JsonObject obj = com.eclipsesource.json.Json.parse( raw ).asObject();
+			int type = obj.getInt( "type", ru.biosoft.server.servlets.webservices.JSONResponse.TYPE_OK );
+			if ( type == ru.biosoft.server.servlets.webservices.JSONResponse.TYPE_ERROR )
+			{
+				String msg = obj.getString( "message", "provider error" );
+				String code = obj.getString( "errorCode", McpConstants.CODE_INTERNAL );
+				return McpEnvelope.error( code, msg );
+			}
+			// sendStatus always writes "status" at the root; -1 means the field was absent (defensive).
+			int statusVal = obj.getInt( "status", -1 );
+			m.put( "status", statusVal );
+			com.eclipsesource.json.JsonValue percentJson = obj.get( "percent" );
+			m.put( "progress", percentJson != null && percentJson.isNumber() ? Integer.valueOf( percentJson.asInt() ) : null );
+			// The provider sends the accumulated job log as the last entry of the root-level "values" array.
+			com.eclipsesource.json.JsonValue valuesJson = obj.get( "values" );
+			if ( valuesJson != null && valuesJson.isArray() )
+			{
+				com.eclipsesource.json.JsonArray arr = valuesJson.asArray();
+				if ( arr.size() > 0 )
+					m.put( "message", arr.get( arr.size() - 1 ).asString() );
+			}
+			m.put( "completed", statusVal >= ru.biosoft.jobcontrol.JobControl.COMPLETED );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not parse simulation status response: " + e.getMessage() );
+		}
 		return McpEnvelope.ok( m );
 	}
 
