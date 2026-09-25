@@ -47,6 +47,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementDescriptor;
+import ru.biosoft.access.core.DataElementInvalidTypeException;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.FolderCollection;
 import ru.biosoft.access.core.Index;
@@ -60,7 +61,9 @@ import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.ProtectedDataCollection;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.LoggedClassNotFoundException;
+import ru.biosoft.exception.MissingParameterException;
 import ru.biosoft.journal.Journal;
 import ru.biosoft.journal.JournalRegistry;
 import ru.biosoft.server.Connection;
@@ -293,6 +296,27 @@ public class AccessService extends AccessProtocol implements Service
      */
     protected void sendFlaggedList(ServiceRequest request) throws Exception
     {
+        DataElementPath dePath = DataElementPath.create( request.get( Connection.KEY_DC ) );
+        if( dePath == null )
+        {
+            request.error( new MissingParameterException( Connection.KEY_DC ).getMessage() );
+            return;
+        }
+        DataElement de = null;
+        try
+        {
+            de = dePath.getDataElement();
+        }
+        catch (Throwable t)
+        {
+            request.error( ExceptionRegistry.log( t ) );
+            return;
+        }
+        if( !(de instanceof DataCollection) )
+        {
+            request.error( new DataElementInvalidTypeException( dePath, DataCollection.class ).getMessage() );
+            return;
+        }
         DataCollection<?> dc = request.getDataCollection();
         if( dc != null )
         {
