@@ -171,7 +171,7 @@ public final class RepoTools
 				} );
 
 			catalog.register( "biouml_repo_job_status",
-					"ASYNC poll — Report the progress of a background job started by an async start-tool (e.g. biouml_repo_copy_folder, biouml_repo_run_script, biouml_repo_import). Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the work is not done until then. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start tool. Returns {jobID, status, progress, message, completed}.",
+					"ASYNC poll — Report the progress of a background job started by an async start-tool (e.g. biouml_repo_copy_folder, biouml_repo_run_script, biouml_repo_import). Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the work is not done until then. The 'message' field is the job's accumulated log up to this moment — it grows as the job runs, so read it on each poll to watch progress and to diagnose failures. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start tool. Returns {jobID, status, progress, message, completed}.",
 					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "jobID" );

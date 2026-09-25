@@ -41,7 +41,7 @@ public final class SimulationTools
 				( ex, args ) -> McpSimulationSupport.startSimulation( str( args, "diagramPath" ) ) );
 
 		catalog.register( "biouml_simulation_status",
-				"ASYNC poll — Report the progress of a simulation job started by biouml_simulation_start. Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the simulation is not done until then. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {jobID, status, progress, completed}.",
+				"ASYNC poll — Report the progress of a simulation job started by biouml_simulation_start. Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the simulation is not done until then. The 'message' field is the job's accumulated log up to this moment — it grows as the simulation runs, so read it on each poll to watch progress and to diagnose failures. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {jobID, status, progress, message, completed}.",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.simulationStatus( str( args, "jobID" ) ) );
 

@@ -290,6 +290,11 @@ public final class McpSimulationSupport
 		m.put( "status", status instanceof Number ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
 		Object percent = resp.get( "percent" );
 		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
+		// The provider sends the accumulated job log as the last entry of `values`
+		// (SimulationProvider.sendStatus(..., imageNames) with the message in imageNames).
+		Object values = resp.get( "values" );
+		if ( values instanceof List && ( (List<?>) values ).size() > 0 )
+			m.put( "message", ( (List<?>) values ).get( ( (List<?>) values ).size() - 1 ) );
 		m.put( "completed", status instanceof Number && ( (Number) status ).intValue() >= ru.biosoft.jobcontrol.JobControl.COMPLETED );
 		return McpEnvelope.ok( m );
 	}
