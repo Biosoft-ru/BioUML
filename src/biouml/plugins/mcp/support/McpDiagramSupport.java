@@ -201,6 +201,18 @@ public final class McpDiagramSupport
 		if ( diagram.getRole() instanceof EModel )
 		{
 			EModel em = (EModel) diagram.getRole();
+			// A freshly-loaded (headless) model has variables defaulting to "Not used" until their
+			// types are detected; detectVariableTypes() is the same idempotent pass the simulation
+			// engine and model view run, so calling it here makes the reported types correct even
+			// when the reactive load hook did not fire.
+			try
+			{
+				em.detectVariableTypes();
+			}
+			catch ( Exception e )
+			{
+				// ignore — fall back to whatever types are set
+			}
 			List<Map<String, Object>> vars = new ArrayList<Map<String, Object>>();
 			try
 			{

@@ -105,6 +105,43 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 	}
 
 	/**
+	 * Regression: {@code biouml_diagram_describe} must report the correct dynamic-variable type. A
+	 * freshly-loaded (headless) model has variables defaulting to "Not used" until
+	 * {@code EModel.detectVariableTypes()} runs; describe() now invokes it, so the rate variable X of
+	 * the decay model (X' = -X) must be reported as "Differential", not "Not used".
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testDescribeReportsDifferentialType()
+	{
+		// Ensure the model's variable collection is populated with the rate variable, as the save/load
+		// sync would do for a persisted model (the in-memory test diagram skips that sync).
+		try
+		{
+			biouml.model.Diagram d = (biouml.model.Diagram) ru.biosoft.access.core.CollectionFactory.getDataElement( dynamicPath );
+			biouml.model.dynamics.EModel em = (biouml.model.dynamics.EModel) d.getRole();
+			if ( !em.getVariables().contains( "X" ) )
+				em.getVariables().put( new biouml.model.dynamics.Variable( "X", em, em.getVariables() ) );
+		}
+		catch ( Exception ignore )
+		{
+		}
+
+		McpEnvelope desc = biouml.plugins.mcp.support.McpDiagramSupport.describe( dynamicPath );
+		assertTrue( "describe ok: " + desc.getCode() + " " + desc.getError(), desc.isOk() );
+		Map<String, Object> dm = (Map<String, Object>) desc.getData();
+		Map<String, Object> dyn = (Map<String, Object>) dm.get( "dynamicModel" );
+		assertNotNull( "dynamicModel present for a rate-equation diagram", dyn );
+		List<Map<String, Object>> vars = (List<Map<String, Object>>) dyn.get( "variables" );
+		String xType = null;
+		for ( Map<String, Object> v : vars )
+			if ( "X".equals( v.get( "name" ) ) )
+				xType = (String) v.get( "type" );
+		assertNotNull( "variable X present in the dynamic model", xType );
+		assertEquals( "X (rate equation) is a Differential variable, not 'Not used'",
+				"Differential", xType );
+	}
+
+	/**
 	 * The other branch of the binary criterion: a diagram whose dynamic model has no rate equation
 	 * must be refused with the {@code missing_dynamic_model} code (not handed to the solver).
 	 */
