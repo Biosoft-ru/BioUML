@@ -123,6 +123,29 @@ public final class McpSimulationSupport
 	}
 
 	/**
+	 * Render a string's characters as readable tokens for diagnostics: printable ASCII as-is, spaces as
+	 * {@code \\u0020}, and any other (e.g. non-breaking space, control, non-ASCII) character as
+	 * {@code \\uXXXX}. Used to make invisible/whitespace differences in a caller-supplied path visible
+	 * in the server log.
+	 */
+	private static String charCodes( String s )
+	{
+		if ( s == null )
+			return "null";
+		StringBuilder sb = new StringBuilder( s.length() * 2 );
+		for ( char c : s.toCharArray() )
+		{
+			if ( c == ' ' )
+				sb.append( "\\u0020" );
+			else if ( c >= 0x20 && c <= 0x7e )
+				sb.append( c );
+			else
+				sb.append( String.format( "\\u%04x", (int) c ) );
+		}
+		return sb.toString();
+	}
+
+	/**
 	 * Heuristically decide whether a provider error is a <em>path-resolution</em> failure (worth a
 	 * retry) as opposed to a genuine client/parameter error (not worth retrying). Matches the common
 	 * "cannot find ..." / "no ... at path" shapes that the web providers emit when an element path does
@@ -162,6 +185,19 @@ public final class McpSimulationSupport
 	 */
 	public static McpEnvelope startSimulation( String path )
 	{
+		// Diagnostic: log the exact diagramPath the caller sent, with a char-code breakdown so that
+		// invisible/whitespace issues (non-breaking spaces, doubled roots, trailing junk) are visible in
+		// the server log when a start fails with "Cannot find Diagram". The path string is not secret.
+		try
+		{
+			java.util.logging.Logger.getLogger( McpSimulationSupport.class.getName() )
+					.info( "MCP simulation_start path=[" + path + "] len=" + ( path == null ? -1 : path.length() )
+							+ " chars=" + ( path == null ? "null" : charCodes( path ) ) );
+		}
+		catch ( Throwable t )
+		{
+			// logging must never break the simulation start
+		}
 		// A diagram can briefly become unresolvable right after the repository has written to it
 		// (the FileSystemWatcher fires element-changed / luceneIndex notifications, and a concurrent
 		// read during that window can miss the element). That is transient — a short retry resolves
