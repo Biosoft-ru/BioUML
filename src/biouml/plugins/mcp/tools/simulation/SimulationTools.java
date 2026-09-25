@@ -35,15 +35,42 @@ public final class SimulationTools
 				( ex, args ) -> McpSimulationSupport.simulationStatus( str( args, "jobID" ) ) );
 
 		catalog.register( "biouml_simulation_result",
-				"ASYNC result — Fetch the time-series result of a completed simulation job. Call it only AFTER biouml_simulation_status reports 'completed' is true. Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results).",
+				"ASYNC result — Fetch the <em>raw time-series</em> result of a completed simulation job. Call it only AFTER biouml_simulation_status reports 'completed' is true. WARNING: this returns the full numeric series, which for a non-trivial simulation is a LARGE amount of data that can exhaust your context — to merely <em>see</em> the result, prefer biouml_simulation_plot (a compact image + tiny metadata summary instead). Use this tool only when you specifically need the raw numbers (e.g. to compute a statistic). Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results).",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.simulationResult( str( args, "jobID" ) ) );
+
+		catalog.register( "biouml_simulation_plot",
+				"Render a PLOT of a completed simulation's result ON THE SERVER and return it as a PNG image plus a tiny metadata summary — the headless equivalent of the web UI's 'New plot' / '+' action. PREFERRED over biouml_simulation_result for simply inspecting a result: the full time series stays on the server and only an image + {variables, points, timeRange, finals} come back, so a large result does not blow your context. Call it AFTER biouml_simulation_status reports 'completed'. jobID is the id returned by biouml_simulation_start. Optionally pass 'variables' (subset of the result's variable names) and 'width'/'height' (px); by default every non-time variable is plotted. Returns {jobID, plot, variables, points, timeRange, finals, image(base64 PNG), imageFormat, width, height}.",
+				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"},\"variables\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"}},\"required\":[\"jobID\"]}",
+				( ex, args ) -> McpSimulationSupport.plotSimulationResult(
+						str( args, "jobID" ),
+						strArray( args, "variables" ),
+						optInt( args, "width" ),
+						optInt( args, "height" ) ) );
 	}
 
 	private static String str( Map<String, Object> args, String key )
 	{
 		Object v = args == null ? null : args.get( key );
 		return v == null ? null : String.valueOf( v );
+	}
+
+	private static String[] strArray( Map<String, Object> args, String key )
+	{
+		Object v = args == null ? null : args.get( key );
+		if ( v instanceof java.util.List )
+		{
+			java.util.List<?> list = (java.util.List<?>) v;
+			String[] out = new String[ list.size() ];
+			for ( int i = 0; i < list.size(); i++ )
+				out[ i ] = list.get( i ) == null ? null : String.valueOf( list.get( i ) );
+			return out;
+		}
+		if ( v instanceof String[] )
+			return (String[]) v;
+		if ( v instanceof String && ! ( (String) v ).isEmpty() )
+			return ( (String) v ).split( "," );
+		return null;
 	}
 
 	private static Double optNum( Map<String, Object> args, String key )

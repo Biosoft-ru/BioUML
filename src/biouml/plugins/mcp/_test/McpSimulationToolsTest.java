@@ -1,6 +1,7 @@
 package biouml.plugins.mcp._test;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -15,6 +16,7 @@ import biouml.plugins.mcp.support.McpSimulationSupport;
 import biouml.plugins.mcp.support.McpEnvelope;
 import biouml.plugins.mcp.tools.simulation.SimulationTools;
 import biouml.standard.diagram.DiagramGenerator;
+import biouml.standard.simulation.SimulationResult;
 
 import ru.biosoft.access.LocalRepository;
 import ru.biosoft.access.Repository;
@@ -178,7 +180,123 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 		assertTrue( "simulation_start registered", names.contains( "biouml_simulation_start" ) );
 		assertTrue( "simulation_status registered", names.contains( "biouml_simulation_status" ) );
 		assertTrue( "simulation_result registered", names.contains( "biouml_simulation_result" ) );
+		assertTrue( "simulation_plot registered", names.contains( "biouml_simulation_plot" ) );
 		assertFalse( "removed sync simulation_run is not registered", names.contains( "biouml_simulation_run" ) );
+	}
+
+	/** Build a small in-memory {@link SimulationResult} (path-less, like the engine produces). */
+	private SimulationResult syntheticResult()
+	{
+		SimulationResult r = new SimulationResult( null, "synth" );
+		r.setVariableMap( new HashMap<String, Integer>() {{ put( "X", 0 ); put( "Y", 1 ); }} );
+		r.setTimes( new double[] { 0, 1, 2 } );
+		r.setValues( new double[][] { { 1.0, 2.0 }, { 0.5, 1.0 }, { 0.25, 0.5 } } );
+		return r;
+	}
+
+	/**
+	 * The new biouml_simulation_plot renders a path-less (in-memory) {@link SimulationResult} to a PNG
+	 * on the server — the headless equivalent of the web UI's "New plot" / "+" flow. This is the core
+	 * regression for the context-blowing problem: the full time series stays server-side and only an
+	 * image + tiny metadata summary come back. The renderer must survive a headless JVM
+	 * (JFreeChart draws into an offscreen image, no display required).
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testPlotSimulationResultRendersPng() throws Exception
+	{
+		// Register the synthetic result under a jobID so plotSimulationResult can fetch it via the
+		// same job2handler lookup the live "result" action uses.
+		String jobID = "mcp-plot-test-" + java.util.UUID.randomUUID();
+		biouml.plugins.simulation.web.SimulationWebResultHandler handler =
+				new biouml.plugins.simulation.web.SimulationWebResultHandler( null );
+		injectResult( jobID, handler, syntheticResult() );
+
+		// No 'variables' -> plot every non-time variable (X and Y).
+		McpEnvelope env = McpSimulationSupport.plotSimulationResult( jobID, null, null, null );
+		assertTrue( "plot ok; got " + env.getCode() + " " + env.getError(), env.isOk() );
+		Map<String, Object> m = (Map<String, Object>) env.getData();
+		assertEquals( "jobID echoed", jobID, m.get( "jobID" ) );
+		// Both variables plotted.
+		java.util.List<String> vars = (java.util.List<String>) m.get( "variables" );
+		assertEquals( "both X and Y plotted", 2, vars.size() );
+		assertTrue( vars.contains( "X" ) && vars.contains( "Y" ) );
+		assertEquals( "point count from the result", 3, ( (Number) m.get( "points" ) ).intValue() );
+		// finals carry the last time point's values.
+		Map<String, Object> finals = (Map<String, Object>) m.get( "finals" );
+		assertEquals( 0.25, ( (Number) finals.get( "X" ) ).doubleValue(), 1e-9 );
+		assertEquals( 0.5, ( (Number) finals.get( "Y" ) ).doubleValue(), 1e-9 );
+		// The image is a real, non-trivial PNG (base64), decodable to a valid PNG byte stream.
+		String b64 = (String) m.get( "image" );
+		assertNotNull( "image present", b64 );
+		byte[] png = java.util.Base64.getDecoder().decode( b64 );
+		assertTrue( "png non-trivial size", png.length > 100 );
+		assertEquals( "png magic", 0x89, png[ 0 ] & 0xff );
+		assertEquals( 'P', (char) png[ 1 ] );
+		assertEquals( 'N', (char) png[ 2 ] );
+		assertEquals( 'G', (char) png[ 3 ] );
+		// Decode back into an image to prove it is a well-formed PNG.
+		java.awt.image.BufferedImage decoded = javax.imageio.ImageIO.read( new java.io.ByteArrayInputStream( png ) );
+		assertNotNull( "png decodes to an image", decoded );
+		assertEquals( "width honored", 700, decoded.getWidth() );
+		assertEquals( "height honored", 450, decoded.getHeight() );
+	}
+
+	/**
+	 * A variable subset is honoured, and an unknown-only subset is rejected with the available list.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testPlotSimulationResultVariableSubsetAndUnknown() throws Exception
+	{
+		String jobID = "mcp-plot-subset-" + java.util.UUID.randomUUID();
+		injectResult( jobID, new biouml.plugins.simulation.web.SimulationWebResultHandler( null ), syntheticResult() );
+
+		// Only Y.
+		McpEnvelope env = McpSimulationSupport.plotSimulationResult( jobID, new String[] { "Y" }, null, null );
+		assertTrue( "subset plot ok", env.isOk() );
+		java.util.List<String> vars = (java.util.List<String>) ( (Map<String, Object>) env.getData() ).get( "variables" );
+		assertEquals( 1, vars.size() );
+		assertEquals( "Y", vars.get( 0 ) );
+
+		// Unknown-only subset is rejected.
+		McpEnvelope bad = McpSimulationSupport.plotSimulationResult( jobID, new String[] { "nope" }, null, null );
+		assertFalse( "unknown-only subset must fail", bad.isOk() );
+		assertEquals( "invalid_params code", McpConstants.CODE_INVALID_PARAMS, bad.getCode() );
+		assertTrue( "available variables listed in the error",
+				bad.getError() != null && bad.getError().contains( "X" ) && bad.getError().contains( "Y" ) );
+	}
+
+	/** An unknown jobID is a not_found error. */
+	public void testPlotSimulationResultUnknownJob()
+	{
+		McpEnvelope env = McpSimulationSupport.plotSimulationResult( "no-such-job-" + java.util.UUID.randomUUID(), null, null, null );
+		assertFalse( env.isOk() );
+		assertEquals( "not_found code", McpConstants.CODE_NOT_FOUND, env.getCode() );
+	}
+
+	/** Put a SimulationResult into SimulationProvider's private job2handler for a jobID. */
+	private static void injectResult( String jobID,
+			biouml.plugins.simulation.web.SimulationWebResultHandler handler,
+			SimulationResult result ) throws Exception
+	{
+		// Set the result on the handler (private field, no setter) and register it under the jobID.
+		java.lang.reflect.Field rf =
+				biouml.plugins.simulation.web.SimulationWebResultHandler.class.getDeclaredField( "simulationResult" );
+		rf.setAccessible( true );
+		rf.set( handler, result );
+		java.lang.reflect.Field hf =
+				biouml.plugins.simulation.web.SimulationProvider.class.getDeclaredField( "job2handler" );
+		hf.setAccessible( true );
+		@SuppressWarnings( "unchecked" )
+		java.util.concurrent.ConcurrentHashMap<String, biouml.plugins.simulation.web.SimulationWebResultHandler> map =
+				(java.util.concurrent.ConcurrentHashMap<String, biouml.plugins.simulation.web.SimulationWebResultHandler>) hf.get( null );
+		if ( map == null )
+		{
+			// The provider's job2handler is created lazily by the instance initLogging(); in a headless
+			// test that never ran, so create it here for the injection.
+			map = new java.util.concurrent.ConcurrentHashMap<String, biouml.plugins.simulation.web.SimulationWebResultHandler>();
+			hf.set( null, map );
+		}
+		map.put( jobID, handler );
 	}
 
 	/**

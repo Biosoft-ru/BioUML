@@ -11,7 +11,8 @@ import biouml.model.Diagram;
 import biouml.model.dynamics.EModel;
 import biouml.plugins.mcp.McpConstants;
 import biouml.plugins.simulation.SimulatorRegistry;
-
+import biouml.standard.simulation.SimulationResult;
+import biouml.standard.simulation.plot.Series;
 import one.util.streamex.EntryStream;
 
 import ru.biosoft.access.core.CollectionFactory;
@@ -315,5 +316,176 @@ public final class McpSimulationSupport
 		Map<String, Object> params = new LinkedHashMap<String, Object>();
 		params.put( McpProviderSupport.KEY_DE, jobID ); // the result action reads the jobID from 'de'
 		return McpProviderSupport.invoke( provider, "simulation", "result", params );
+	}
+
+	// ---------------------------------------------------------------- server-side plot
+
+	/**
+	 * A {@link Series} that reads its data from a <em>directly-held</em> {@link SimulationResult}
+	 * rather than resolving it by repository path. A simulation result freshly produced by a job is
+	 * created in-memory by the engine with no repository path, so the stock {@link Series} (which calls
+	 * {@code source.getDataElement(SimulationResult.class)}) cannot read it; overriding the public
+	 * {@code getXValues}/{@code getYValues}/{@code getValuesCount} seams lets the same
+	 * {@code PlotPane.redrawChart} machinery draw it. The x axis is always time.
+	 */
+	private static final class ResultSeries extends Series
+	{
+		private final SimulationResult result;
+
+		ResultSeries( SimulationResult result, String yVar )
+		{
+			this.result = result;
+			setXVar( "time" );
+			setYVar( yVar );
+			setName( yVar );
+			setLegend( yVar );
+		}
+
+		@Override
+		public int getValuesCount()
+		{
+			return result.getCount();
+		}
+
+		@Override
+		public double[] getXValues()
+		{
+			return result.getTimes();
+		}
+
+		@Override
+		public double[] getYValues()
+		{
+			Integer idx = result.getVariablePathMap().get( getYVar() );
+			if ( idx == null )
+				throw new IllegalStateException( "variable not in result: " + getYVar() );
+			int size = result.getCount();
+			double[] res = new double[ size ];
+			for ( int i = 0; i < size; i++ )
+				res[ i ] = result.getValue( i )[ idx.intValue() ];
+			return res;
+		}
+	}
+
+	/**
+	 * Render a <em>plot</em> of a simulation result on the server and return it as a PNG, mirroring
+	 * the web UI's "New plot" / "+" flow ({@code PlotProvider.drawChart}: build a {@code Plot}, add a
+	 * {@code Series} per variable, draw via {@code PlotPane.redrawChart}, then
+	 * {@code chart.createBufferedImage}). The raw time series is <em>not</em> sent to the caller —
+	 * only a small metadata summary and the image — so an agent can inspect a large result without
+	 * blowing its context.
+	 *
+	 * <p>The plot is rendered transiently (not saved to the repository): the agent gets the image, and
+	 * the full-resolution data stays server-side, available through the plot on demand.</p>
+	 *
+	 * @param jobID     the job id returned by {@link #startSimulation}
+	 * @param variables optional subset of variables to plot (keys of the result's variable map); when
+	 *                  empty or {@code null}, every non-{"time"} variable is plotted
+	 * @param width     image width in pixels ({@code null} = 700)
+	 * @param height    image height in pixels ({@code null} = 450)
+	 * @return an envelope whose data is {@code {jobID, plot, variables, points, timeRange, finals,
+	 *         image}} — {@code image} is the base64 PNG and {@code plot} is a short handle for future
+	 *         per-plot retrieval.
+	 */
+	public static McpEnvelope plotSimulationResult( String jobID, String[] variables, Integer width, Integer height )
+	{
+		if ( jobID == null || jobID.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "jobID must be a non-empty string" );
+		SimulationResult result =
+				biouml.plugins.simulation.web.SimulationProvider.getSimulationResult( jobID );
+		if ( result == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND,
+					"no simulation result for job: " + jobID
+							+ " — start it with biouml_simulation_start and poll biouml_simulation_status until completed" );
+
+		// Choose which variables to plot. Default: every non-"time" variable, in a stable order.
+		java.util.List<String> vars = new java.util.ArrayList<String>();
+		if ( variables != null )
+			for ( String v : variables )
+				if ( v != null && !v.isEmpty() )
+					vars.add( v );
+		if ( vars.isEmpty() )
+			for ( String key : result.getVariablePathMap().keySet() )
+				if ( !"time".equals( key ) )
+					vars.add( key );
+		if ( vars.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+					"the simulation result has no plottable variables (job " + jobID + ")" );
+		// Drop any unknown variable names the caller passed, but fail if <em>all</em> of them were unknown.
+		java.util.Map<String, Integer> vmap = result.getVariablePathMap();
+		int before = vars.size();
+		vars.removeIf( v -> !vmap.containsKey( v ) );
+		if ( vars.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+					"none of the requested variables exist in the result (job " + jobID
+							+ "); available: " + availableVariables( vmap ) );
+
+		// Build the plot and add one series per variable (the web UI's "+" action), cycling the
+		// standard color palette.
+		biouml.standard.simulation.plot.Plot plot = new biouml.standard.simulation.plot.Plot( null, "mcp_plot_" + jobID );
+		int w = ( width == null || width <= 0 ) ? 700 : width.intValue();
+		int h = ( height == null || height <= 0 ) ? 450 : height.intValue();
+		try
+		{
+			for ( int i = 0; i < vars.size(); i++ )
+			{
+				ResultSeries s = new ResultSeries( result, vars.get( i ) );
+				java.awt.Color color = biouml.model.dynamics.plot.PlotsInfo.POSSIBLE_COLORS[i % biouml.model.dynamics.plot.PlotsInfo.POSSIBLE_COLORS.length];
+				s.setSpec( new ru.biosoft.graphics.Pen( 1.5f, color ) );
+				plot.addSeries( s );
+			}
+			org.jfree.chart.JFreeChart chart = org.jfree.chart.ChartFactory.createXYLineChart( "", "time", "value", null,
+					org.jfree.chart.plot.PlotOrientation.VERTICAL, true, true, false );
+			chart.setBackgroundPaint( java.awt.Color.white );
+			chart.getXYPlot().setBackgroundPaint( java.awt.Color.white );
+			biouml.plugins.simulation.plot.PlotPane.redrawChart( plot, chart );
+			java.awt.image.BufferedImage image = chart.createBufferedImage( w, h );
+
+			java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+			javax.imageio.ImageIO.write( image, "png", png );
+
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "jobID", jobID );
+			m.put( "plot", "mcp_plot_" + jobID );
+			m.put( "variables", vars );
+			m.put( "points", Integer.valueOf( result.getCount() ) );
+			double[] times = result.getTimes();
+			if ( times.length > 0 )
+			{
+				Map<String, Object> range = new LinkedHashMap<String, Object>();
+				range.put( "from", times[ 0 ] );
+				range.put( "to", times[ times.length - 1 ] );
+				m.put( "timeRange", range );
+			}
+			Map<String, Object> finals = new LinkedHashMap<String, Object>();
+			for ( String v : vars )
+				finals.put( v, Double.valueOf( result.getFinal( v ) ) );
+			m.put( "finals", finals );
+			m.put( "image", java.util.Base64.getEncoder().encodeToString( png.toByteArray() ) );
+			m.put( "imageFormat", "png" );
+			m.put( "width", Integer.valueOf( w ) );
+			m.put( "height", Integer.valueOf( h ) );
+			return McpEnvelope.ok( m );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+					"could not render the simulation plot: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+	}
+
+	/** A comma-joined list of the result's variable names (excluding "time"), for error messages. */
+	private static String availableVariables( java.util.Map<String, Integer> vmap )
+	{
+		StringBuilder sb = new StringBuilder();
+		for ( String key : vmap.keySet() )
+		{
+			if ( "time".equals( key ) )
+				continue;
+			if ( sb.length() > 0 )
+				sb.append( ", " );
+			sb.append( key );
+		}
+		return sb.toString();
 	}
 }

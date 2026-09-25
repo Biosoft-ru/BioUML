@@ -330,19 +330,30 @@ public class SimulationProvider extends WebJSONProviderSupport
         }
     }
     
-    private static void sendSimulationResult(String jobId, JSONResponse response) throws IOException
+    /**
+     * Resolve the {@link SimulationResult} for a simulation job: first the in-memory handler
+     * registered when the job started (the common case, before any result is saved to the
+     * repository), then the repository element (once the result has been saved under the job id
+     * path by the {@code save_result} action).
+     *
+     * <p>Exposed statically so other components (e.g. the MCP simulation tools, which render a
+     * plot of the result server-side) can obtain the same {@code SimulationResult} the
+     * {@code result} action returns, without re-implementing the lookup.</p>
+     *
+     * @param jobId the job id returned by the {@code simulate} action
+     * @return the {@code SimulationResult}, or {@code null} if it is not available
+     */
+    public static SimulationResult getSimulationResult(String jobId)
     {
         SimulationWebResultHandler swrh = job2handler.get(jobId);
-        SimulationResult simulationResult = null;
         if ( swrh != null )
-        {
-            simulationResult = swrh.getSimulationResult();
-        }
-        else
-        {
-            DataElementPath simulationResultPath = DataElementPath.create(jobId);
-            simulationResult = simulationResultPath.optDataElement( SimulationResult.class );
-        }
+            return swrh.getSimulationResult();
+        return DataElementPath.create(jobId).optDataElement( SimulationResult.class );
+    }
+
+    private static void sendSimulationResult(String jobId, JSONResponse response) throws IOException
+    {
+        SimulationResult simulationResult = getSimulationResult(jobId);
 
         if( simulationResult != null )
         {
