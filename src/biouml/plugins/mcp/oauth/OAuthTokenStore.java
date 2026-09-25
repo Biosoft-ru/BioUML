@@ -32,6 +32,15 @@ public final class OAuthTokenStore
 	/** Access-token lifetime (1 h) — chosen to match {@code UserPermissions.TIMEOUT}. */
 	public static final long ACCESS_TOKEN_TTL_MS = 60L * 60L * 1000L;
 
+	/**
+	 * Refresh-token lifetime (7 days). A refresh token lets an MCP client (e.g. Claude Web's
+	 * connector) silently exchange an expired access token for a fresh one without re-running the
+	 * authorization flow. It is long-lived by design (RFC 6749 §6: refresh tokens are typically valid
+	 * for days-to-months) and is the only way for a connected client to stay authenticated across the
+	 * 1-hour access-token window. Bounded so a leaked refresh token stops working after a week.
+	 */
+	public static final long REFRESH_TOKEN_TTL_MS = 7L * 24L * 60L * 60L * 1000L;
+
 	/** Authorization-code lifetime (10 min) — standard OAuth bound for the code → token exchange. */
 	public static final long AUTH_CODE_TTL_MS = 10L * 60L * 1000L;
 
@@ -46,12 +55,16 @@ public final class OAuthTokenStore
 	/** Access-token prefix: a namespace sentinel so a token can never be misread as a Basic payload. */
 	public static final String TOKEN_PREFIX = "mcp_at_";
 
+	/** Refresh-token prefix (namespace sentinel; refresh tokens are opaque otherwise). */
+	public static final String REFRESH_PREFIX = "mcp_rt_";
+
 	/** Authorization-code prefix (for log grepping; codes are opaque otherwise). */
 	public static final String CODE_PREFIX = "mcp_ac_";
 
 	private static final SecureRandom RANDOM = new SecureRandom();
 	private static final ConcurrentMap<String, AuthCode> CODES = new ConcurrentHashMap<String, AuthCode>();
 	private static final ConcurrentMap<String, AccessToken> TOKENS = new ConcurrentHashMap<String, AccessToken>();
+	private static final ConcurrentMap<String, RefreshToken> REFRESHES = new ConcurrentHashMap<String, RefreshToken>();
 	private static final ConcurrentMap<String, RegisteredClient> CLIENTS =
 			new ConcurrentHashMap<String, RegisteredClient>();
 
@@ -158,6 +171,40 @@ public final class OAuthTokenStore
 		}
 	}
 
+	/**
+	 * An opaque refresh token issued alongside an access token. It carries the same session/client/
+	 * user binding as the access token it was minted with, and a (much longer) lifetime. Consuming it
+	 * (the {@code refresh_token} grant) mints a fresh access token for the same session — the client
+	 * does NOT re-run the authorization flow.
+	 */
+	public static final class RefreshToken
+	{
+		/** The (opaque) token string. */
+		public final String value;
+		/** The BioUML session the refreshed access token will map to. */
+		public final String sessionId;
+		/** The client the token was issued to. */
+		public final String clientId;
+		/** The authenticated username (recorded for logging). */
+		public final String user;
+		/** Absolute expiry (epoch millis). */
+		public final long expiresAt;
+
+		RefreshToken( String value, String sessionId, String clientId, String user )
+		{
+			this.value = value;
+			this.sessionId = sessionId;
+			this.clientId = clientId;
+			this.user = user;
+			this.expiresAt = System.currentTimeMillis() + REFRESH_TOKEN_TTL_MS;
+		}
+
+		boolean expired()
+		{
+			return System.currentTimeMillis() > expiresAt;
+		}
+	}
+
 	// ------------------------------------------------------------------ codes
 
 	/**
@@ -200,12 +247,92 @@ public final class OAuthTokenStore
 	 * @param user      the authenticated username
 	 * @return the new token (never {@code null})
 	 */
+	/**
+	 * Mint an access token AND its paired refresh token, both bound to the same session (see the
+	 * class javadoc for the session coupling). The refresh token is what lets the client renew the
+	 * access token after it expires without re-authorizing (see {@link #consumeRefresh}).
+	 *
+	 * @param sessionId the fresh, already-populated session id the token maps to
+	 * @param clientId  the client the token is issued to
+	 * @param user      the authenticated username
+	 * @return the new access token (never {@code null}); its paired refresh token is retrievable via
+	 *         {@link #refreshTokenFor(String)} for the lifetime of this process.
+	 */
 	public static AccessToken issueToken( String sessionId, String clientId, String user )
 	{
 		String value = TOKEN_PREFIX + randomToken( 32 );
 		AccessToken token = new AccessToken( value, sessionId, clientId, user );
 		TOKENS.put( value, token );
+		// Pair a refresh token with the same binding so the client can renew later.
+		String rvalue = REFRESH_PREFIX + randomToken( 32 );
+		REFRESHES.put( rvalue, new RefreshToken( rvalue, sessionId, clientId, user ) );
 		return token;
+	}
+
+	/**
+	 * Mint a fresh access token paired with a SPECIFIC (already-existing) refresh token value — used
+	 * by the {@code refresh_token} grant so the client keeps the same refresh token across renewals
+	 * (no rotation) and we don't mint a redundant second refresh token.
+	 *
+	 * @param sessionId        the session the access token maps to
+	 * @param clientId         the client the token is issued to
+	 * @param user             the authenticated username
+	 * @param refreshValue     the existing refresh-token value to pair with the new access token
+	 * @return the new access token
+	 */
+	public static AccessToken reissue( String sessionId, String clientId, String user, String refreshValue )
+	{
+		String value = TOKEN_PREFIX + randomToken( 32 );
+		AccessToken token = new AccessToken( value, sessionId, clientId, user );
+		TOKENS.put( value, token );
+		return token;
+	}
+
+	/**
+	 * The refresh-token value paired with an access token (for the token response). Returns
+	 * {@code null} if the access token is unknown.
+	 */
+	public static String refreshTokenFor( String accessTokenValue )
+	{
+		AccessToken t = TOKENS.get( accessTokenValue );
+		if ( t == null )
+			return null;
+		// We mint one refresh per access token; scan for the matching binding. (Cheap: the map is
+		// small — a handful of connected clients.)
+		for ( RefreshToken r : REFRESHES.values() )
+			if ( r.sessionId.equals( t.sessionId ) && r.clientId.equals( t.clientId ) && r.user.equals( t.user ) )
+				return r.value;
+		return null;
+	}
+
+	/**
+	 * Consume a refresh token (the {@code refresh_token} grant). The token must exist, be unexpired,
+	 * and its session must still be alive (a dead session revokes it, same as the access token). On
+	 * success the refresh token is NOT removed (RFC 6749 §6 allows reuse within its lifetime) but its
+	 * session's expiry is slid forward so an actively-refreshing client keeps its session alive.
+	 *
+	 * @param value the refresh-token string
+	 * @return the refresh token's record, or {@code null} if unknown/expired/session-dead
+	 */
+	public static RefreshToken consumeRefresh( String value )
+	{
+		if ( value == null || !value.startsWith( REFRESH_PREFIX ) )
+			return null;
+		RefreshToken r = REFRESHES.get( value );
+		if ( r == null || r.expired() )
+			return null;
+		if ( SecurityManager.isSessionDead( r.sessionId ) )
+			return null;
+		return r;
+	}
+
+	/**
+	 * Drop a refresh token (e.g. after its session dies) so the store stays bounded. Idempotent.
+	 */
+	public static void revokeRefresh( String value )
+	{
+		if ( value != null )
+			REFRESHES.remove( value );
 	}
 
 	/**
@@ -222,7 +349,16 @@ public final class OAuthTokenStore
 		if ( token == null || token.expired() )
 			return null;
 		if ( SecurityManager.isSessionDead( token.sessionId ) )
+		{
+			// The session died; drop the token so the store stays bounded.
+			TOKENS.remove( value );
 			return null;
+		}
+		// Sliding window: an actively-used token keeps its backing session alive for another
+		// UserPermissions.TIMEOUT from now (see SecurityManager.touchSessionExpiry). This is what
+		// lets a connected client that keeps polling stay authenticated, independent of the fixed
+		// 1-hour access-token lifetime (which the refresh_token grant renews).
+		SecurityManager.touchSessionExpiry( token.sessionId );
 		return token;
 	}
 
@@ -348,15 +484,19 @@ public final class OAuthTokenStore
 		for ( AccessToken token : TOKENS.values() )
 			if ( token.expiresAt < now )
 				TOKENS.remove( token.value );
+		for ( RefreshToken r : REFRESHES.values() )
+			if ( r.expiresAt < now )
+				REFRESHES.remove( r.value );
 	}
 
 	/**
-	 * Clear both stores (test isolation only).
+	 * Clear all stores (test isolation only).
 	 */
 	public static void clearForTest()
 	{
 		CODES.clear();
 		TOKENS.clear();
+		REFRESHES.clear();
 		CLIENTS.clear();
 	}
 }

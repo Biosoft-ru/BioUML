@@ -267,7 +267,9 @@ public class McpOAuthServletTest extends TestCase
 		assertEquals( "https://biouml2test.biouml.org/biouml/oauth/authorize", doc.get( "authorization_endpoint" ) );
 		assertEquals( "https://biouml2test.biouml.org/biouml/oauth/token", doc.get( "token_endpoint" ) );
 		assertEquals( java.util.Collections.singletonList( "code" ), doc.get( "response_types_supported" ) );
-		assertEquals( java.util.Collections.singletonList( "authorization_code" ), doc.get( "grant_types_supported" ) );
+		assertTrue( "grant types include authorization_code + refresh_token",
+				( (java.util.List<?>) doc.get( "grant_types_supported" ) ).containsAll(
+						java.util.Arrays.asList( "authorization_code", "refresh_token" ) ) );
 		assertEquals( "registration endpoint advertised (RFC 7591)",
 				"https://biouml2test.biouml.org/biouml/oauth/register", doc.get( "registration_endpoint" ) );
 		assertEquals( java.util.Arrays.asList( "S256", "none" ), doc.get( "code_challenge_methods_supported" ) );
@@ -514,6 +516,82 @@ public class McpOAuthServletTest extends TestCase
 		OAuthTokenStore.AccessToken validated = OAuthTokenStore.validate( token );
 		assertNotNull( "minted token validates (session alive)", validated );
 		assertEquals( "anonymous-login user carried over", "alice", validated.user );
+	}
+
+	/**
+	 * The code exchange now returns a refresh token alongside the access token, so a connected MCP
+	 * client can renew the access token without re-authorizing.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testTokenExchangeReturnsRefreshToken() throws Exception
+	{
+		Map<String, Object> p = params( "sessionId", AUTH_SESSION,
+				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI,
+				"state", "st", "code_challenge", CHALLENGE, "code_challenge_method", "S256" );
+		String code = codeFrom( service( "/oauth/authorize", p ) );
+		assertNotNull( code );
+
+		HandleResult tok = exchange( code, VERIFIER, CLIENT_ID, REDIRECT_URI );
+		assertEquals( 200, tok.status );
+		Map<String, Object> body = json( tok.body );
+		assertNotNull( "refresh_token returned", body.get( "refresh_token" ) );
+		assertTrue( "refresh token is opaque with the mcp_rt_ prefix",
+				( (String) body.get( "refresh_token" ) ).startsWith( "mcp_rt_" ) );
+		assertEquals( "refresh_expires_in is the 7-day TTL in seconds",
+				OAuthTokenStore.REFRESH_TOKEN_TTL_MS / 1000L,
+				( (Number) body.get( "refresh_expires_in" ) ).longValue() );
+	}
+
+	/**
+	 * The refresh_token grant (RFC 6749 §6): a still-valid refresh token is exchanged for a FRESH
+	 * access token bound to the same session, and the SAME refresh token is echoed back (no rotation).
+	 * This is the mechanism that keeps Claude Web's connector authenticated across the 1-hour
+	 * access-token window.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testRefreshTokenGrantIssuesFreshAccessToken() throws Exception
+	{
+		Map<String, Object> p = params( "sessionId", AUTH_SESSION,
+				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI,
+				"state", "st", "code_challenge", CHALLENGE, "code_challenge_method", "S256" );
+		String code = codeFrom( service( "/oauth/authorize", p ) );
+		assertNotNull( code );
+		Map<String, Object> body = json( exchange( code, VERIFIER, CLIENT_ID, REDIRECT_URI ).body );
+		String firstAccess = (String) body.get( "access_token" );
+		String refresh = (String) body.get( "refresh_token" );
+		assertNotNull( firstAccess );
+		assertNotNull( refresh );
+
+		// Exchange the refresh token for a fresh access token.
+		Map<String, Object> rp = params( "grant_type", "refresh_token", "refresh_token", refresh,
+				"client_id", CLIENT_ID );
+		HandleResult rr = service( "/oauth/token", rp );
+		assertEquals( "200 on successful refresh — body=" + rr.body, 200, rr.status );
+		Map<String, Object> rbody = json( rr.body );
+		String newAccess = (String) rbody.get( "access_token" );
+		assertNotNull( newAccess );
+		assertTrue( "refreshed access token has the mcp_at_ prefix", newAccess.startsWith( "mcp_at_" ) );
+		assertNotSame( "a NEW access token is minted", firstAccess, newAccess );
+		assertEquals( "Bearer", rbody.get( "token_type" ) );
+		assertEquals( "same refresh token echoed back (no rotation)", refresh, rbody.get( "refresh_token" ) );
+		assertNotNull( "refreshed access token validates (same session alive)", OAuthTokenStore.validate( newAccess ) );
+	}
+
+	/** An unknown / malformed refresh token is refused with invalid_grant (400). */
+	public void testRefreshWithUnknownTokenIs400() throws Exception
+	{
+		Map<String, Object> rp = params( "grant_type", "refresh_token", "refresh_token", "mcp_rt_doesnotexist" );
+		HandleResult r = service( "/oauth/token", rp );
+		assertEquals( 400, r.status );
+		assertTrue( r.body.contains( "invalid_grant" ) );
+	}
+
+	/** A non-S256 challenge is rejected — sanity that the refresh path is only reachable with valid grants. */
+	public void testTokenUnknownGrantTypeIs400() throws Exception
+	{
+		HandleResult r = service( "/oauth/token", params( "grant_type", "password", "username", "u", "password", "p" ) );
+		assertEquals( 400, r.status );
+		assertTrue( r.body.contains( "unsupported_grant_type" ) );
 	}
 
 	/** The S256 challenge of the RFC 7636 appendix-B verifier matches the recorded digest. */

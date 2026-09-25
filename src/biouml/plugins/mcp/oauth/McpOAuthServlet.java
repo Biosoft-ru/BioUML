@@ -43,16 +43,21 @@ import ru.biosoft.access.security.SecurityManager;
  * <li>{@code GET|POST /biouml/oauth/authorize} — the user step. A request with a logged-in session
  * (or the username/password form) issues a one-time code and 302-redirects the client with
  * {@code code} + {@code state}. Without credentials it renders the login form.</li>
- * <li>{@code POST /biouml/oauth/token} — the code exchange: validates PKCE (S256), the exact
- * {@code redirect_uri}/{@code client_id}, consumes the code, copies the authorizing user's
- * permissions into a fresh session, and returns an opaque bearer access token (1 h).</li>
+ * <li>{@code POST /biouml/oauth/token} — the token endpoint. {@code grant_type=authorization_code}
+ * validates PKCE (S256), the exact {@code redirect_uri}/{@code client_id}, consumes the code, copies
+ * the authorizing user's permissions into a fresh session, and returns an opaque bearer access token
+ * (1 h) <em>plus a refresh token (7 days)</em>. {@code grant_type=refresh_token} exchanges a still-
+ * valid refresh token for a fresh access token bound to the same session (RFC 6749 §6) — this is how
+ * a connected client stays authenticated across the 1-hour access-token window without re-authorizing.</li>
  * </ul>
  *
  * <p>Security: redirect URIs must match the static allow-list ({@link McpOAuthConfig#clients})
  * <em>exactly</em> (open-redirect defense); codes are one-time (replay defense); the {@code state}
  * parameter round-trips untouched (CSRF defense); access tokens are opaque {@link java.security.SecureRandom}
- * values, single-JVM (see {@link OAuthTokenStore}). There is no refresh-token grant in v1 — the
- * renewal path is to run the authorization flow again.</p>
+ * values, single-JVM (see {@link OAuthTokenStore}). Refresh tokens are long-lived (7 days) but bound
+ * to the same platform session: if the session dies, the refresh token stops working too, and an
+ * actively-refreshing client slides its session's idle expiry forward so it stays alive for as long
+ * as it keeps refreshing within the 7-day window.</p>
  */
 public class McpOAuthServlet
 {
@@ -184,6 +189,7 @@ public class McpOAuthServlet
 			doc.put( "response_types_supported", responseTypes );
 			java.util.List<String> grantTypes = new java.util.ArrayList<String>();
 			grantTypes.add( "authorization_code" );
+			grantTypes.add( "refresh_token" );
 			doc.put( "grant_types_supported", grantTypes );
 			java.util.List<String> methods = new java.util.ArrayList<String>();
 			methods.add( "S256" );
@@ -381,7 +387,7 @@ public class McpOAuthServlet
 		out.put( "client_id_issuer", issuer == null ? "" : issuer );
 		out.put( "client_name", clientName );
 		out.put( "redirect_uris", uris );
-		out.put( "grant_types", java.util.Arrays.asList( "authorization_code" ) );
+		out.put( "grant_types", java.util.Arrays.asList( "authorization_code", "refresh_token" ) );
 		out.put( "response_types", java.util.Arrays.asList( "code" ) );
 		out.put( "token_endpoint_auth_method", clientSecret == null ? "none" : "client_secret_basic" );
 		return new HandleResult( 201, "application/json", mapper.writeValueAsString( out ) );
@@ -392,9 +398,11 @@ public class McpOAuthServlet
 	private HandleResult token( Map<String, Object> p ) throws Exception
 	{
 		String grantType = first( p.get( "grant_type" ) );
+		if ( "refresh_token".equals( grantType ) )
+			return refreshToken( p );
 		if ( !"authorization_code".equals( grantType ) )
 			return new HandleResult( 400, "application/json",
-					errorJson( "unsupported_grant_type", "only authorization_code is supported" ) );
+					errorJson( "unsupported_grant_type", "only authorization_code and refresh_token are supported" ) );
 
 		String code = first( p.get( "code" ) );
 		String clientId = first( p.get( "client_id" ) );
@@ -440,11 +448,56 @@ public class McpOAuthServlet
 					errorJson( "invalid_grant", "the authorizing session is no longer valid" ) );
 
 		OAuthTokenStore.AccessToken token = OAuthTokenStore.issueToken( newSession, stored.clientId, user );
+		String refreshToken = OAuthTokenStore.refreshTokenFor( token.value );
 		log.info( "MCP OAuth token issued user=" + user + " client=" + stored.clientId );
 		Map<String, Object> body = new LinkedHashMap<String, Object>();
 		body.put( "access_token", token.value );
 		body.put( "token_type", "Bearer" );
 		body.put( "expires_in", OAuthTokenStore.ACCESS_TOKEN_TTL_MS / 1000L );
+		if ( refreshToken != null )
+		{
+			body.put( "refresh_token", refreshToken );
+			body.put( "refresh_expires_in", OAuthTokenStore.REFRESH_TOKEN_TTL_MS / 1000L );
+		}
+		return new HandleResult( 200, "application/json", mapper.writeValueAsString( body ) );
+	}
+
+	/**
+	 * The {@code refresh_token} grant (RFC 6749 §6): exchange a still-valid refresh token for a fresh
+	 * access token bound to the same session. This is what lets a connected MCP client (e.g. Claude
+	 * Web's connector) stay authenticated across the 1-hour access-token window WITHOUT re-running
+	 * the authorization flow. The session's idle expiry is slid forward on each refresh (via
+	 * {@link SecurityManager#touchSessionExpiry}), so an actively-refreshing client keeps its session
+	 * alive for as long as it keeps refreshing within the 7-day refresh-token window.
+	 *
+	 * <p>Per the standard, a reused refresh token within its lifetime is valid (we do not rotate it).
+	 * An expired/unknown refresh token or a dead session yields {@code invalid_grant} (400).</p>
+	 */
+	private HandleResult refreshToken( Map<String, Object> p ) throws Exception
+	{
+		String refreshTokenValue = first( p.get( "refresh_token" ) );
+		String clientId = first( p.get( "client_id" ) );
+		OAuthTokenStore.RefreshToken stored = OAuthTokenStore.consumeRefresh( refreshTokenValue );
+		if ( stored == null )
+			return new HandleResult( 400, "application/json",
+					errorJson( "invalid_grant", "unknown or expired refresh token (or its session has ended)" ) );
+		if ( !clientId.isEmpty() && !stored.clientId.equals( clientId ) )
+			return new HandleResult( 400, "application/json",
+					errorJson( "invalid_grant", "client_id does not match the refresh token" ) );
+
+		// Mint a fresh access token paired with the SAME refresh token value (no rotation: the client
+		// keeps using the refresh token it was handed).
+		OAuthTokenStore.AccessToken token = OAuthTokenStore.reissue( stored.sessionId, stored.clientId,
+				stored.user, stored.value );
+		// Sliding window: keep the session alive.
+		SecurityManager.touchSessionExpiry( stored.sessionId );
+
+		log.info( "MCP OAuth token refreshed user=" + stored.user + " client=" + stored.clientId );
+		Map<String, Object> body = new LinkedHashMap<String, Object>();
+		body.put( "access_token", token.value );
+		body.put( "token_type", "Bearer" );
+		body.put( "expires_in", OAuthTokenStore.ACCESS_TOKEN_TTL_MS / 1000L );
+		body.put( "refresh_token", stored.value ); // echo the same refresh token (no rotation)
 		return new HandleResult( 200, "application/json", mapper.writeValueAsString( body ) );
 	}
 
