@@ -362,6 +362,36 @@ public final class McpSimulationSupport
 	}
 
 	/**
+	 * Persist the in-memory result of a completed simulation into the repository — the headless
+	 * equivalent of the web UI's "Save result" button (the {@code save_result} action). By default the
+	 * MCP simulation tools keep the result only in memory (the JVM-global job map), so it is gone once
+	 * the server restarts; this tool clones it to a repository element at {@code destinationPath} so it
+	 * is durable and addressable like any other {@code SimulationResult}.
+	 *
+	 * <p>{@code destinationPath} is the FULL path of the new element to create (e.g.
+	 * {@code myproject/mydiagram/result1}); its parent must exist and be writable. Call it AFTER
+	 * {@code biouml_simulation_status} reports {@code completed}.</p>
+	 *
+	 * @param jobID           the job ID returned by {@link #startSimulation}
+	 * @param destinationPath the full repository path to save the result at
+	 * @return an envelope whose data is the provider's response (usually the string {@code "ok"})
+	 */
+	public static McpEnvelope saveSimulationResult( String jobID, String destinationPath )
+	{
+		WebProvider provider = McpProviderSupport.provider( "simulation" );
+		if ( provider == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: simulation" );
+		if ( destinationPath == null || destinationPath.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+					"destinationPath is required (the full repository path of the new result element)" );
+		// The save_result action reads the destination from 'de' and the job from 'jobID'.
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( McpProviderSupport.KEY_DE, destinationPath );
+		params.put( "jobID", jobID );
+		return McpProviderSupport.invoke( provider, "simulation", "save_result", params );
+	}
+
+	/**
 	 * Invoke a provider action directly and return the provider's raw JSON response string
 	 * ({@code {"type":OK|ERROR,"values":...,"message":...}}), <em>preserving</em> the provider's error
 	 * message — unlike {@link McpProviderSupport#responseMap}, which swallows every failure into

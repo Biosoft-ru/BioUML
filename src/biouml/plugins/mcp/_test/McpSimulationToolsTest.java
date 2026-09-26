@@ -181,7 +181,25 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 		assertTrue( "simulation_status registered", names.contains( "biouml_simulation_status" ) );
 		assertTrue( "simulation_result registered", names.contains( "biouml_simulation_result" ) );
 		assertTrue( "simulation_plot registered", names.contains( "biouml_simulation_plot" ) );
+		assertTrue( "simulation_save_result registered", names.contains( "biouml_simulation_save_result" ) );
 		assertFalse( "removed sync simulation_run is not registered", names.contains( "biouml_simulation_run" ) );
+	}
+
+	/**
+	 * biouml_simulation_save_result persists the in-memory result to the repository. The full write
+	 * needs a real writable collection, so this test asserts the parameter contract: a missing
+	 * destinationPath is rejected before any provider call, and a valid destination reaches the
+	 * provider (which, for an unknown job, reports its own error rather than an MCP validation one).
+	 */
+	public void testSaveSimulationResultValidation()
+	{
+		// Missing destinationPath -> MCP-level validation error (not a provider error).
+		McpEnvelope noDest = McpSimulationSupport.saveSimulationResult( "some-job", null );
+		assertFalse( "null destination rejected", noDest.isOk() );
+		assertEquals( "invalid_params code", McpConstants.CODE_INVALID_PARAMS, noDest.getCode() );
+		McpEnvelope emptyDest = McpSimulationSupport.saveSimulationResult( "some-job", "" );
+		assertFalse( "empty destination rejected", emptyDest.isOk() );
+		assertEquals( "invalid_params code", McpConstants.CODE_INVALID_PARAMS, emptyDest.getCode() );
 	}
 
 	/** Build a small in-memory {@link SimulationResult} (path-less, like the engine produces). */

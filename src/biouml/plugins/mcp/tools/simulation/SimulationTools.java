@@ -47,6 +47,13 @@ public final class SimulationTools
 						strArray( args, "variables" ),
 						optInt( args, "width" ),
 						optInt( args, "height" ) ) );
+
+		catalog.register( "biouml_simulation_save_result",
+				"Persist the result of a completed simulation INTO THE REPOSITORY (durable, survives server restarts) — the headless equivalent of the web UI's 'Save result' button. By default MCP simulations keep their result only in memory (it is lost when the server restarts), so use this to keep it. Call it AFTER biouml_simulation_status reports 'completed'. jobID is the id returned by biouml_simulation_start. destinationPath is the FULL repository path of the new result element to create (e.g. 'myproject/mydiagram/result1'); its parent must already exist and be writable. Returns the provider's response (usually 'ok').",
+				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"},\"destinationPath\":{\"type\":\"string\"}},\"required\":[\"jobID\",\"destinationPath\"]}",
+				( ex, args ) -> McpSimulationSupport.saveSimulationResult(
+						str( args, "jobID" ),
+						str( args, "destinationPath" ) ) );
 	}
 
 	private static String str( Map<String, Object> args, String key )
