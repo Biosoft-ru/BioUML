@@ -41,8 +41,9 @@ import ru.biosoft.access.security.SecurityManager;
  * <li>{@code GET /biouml/oauth/.well-known/oauth-authorization-server} — RFC 8414 metadata
  * (endpoints + supported grant/response types; S256 PKCE; public clients only).</li>
  * <li>{@code GET|POST /biouml/oauth/authorize} — the user step. A request with a logged-in session
- * (or the username/password form) issues a one-time code and 302-redirects the client with
- * {@code code} + {@code state}. Without credentials it renders the login form.</li>
+ * renders a consent page (client + redirect host, Allow/Deny); only submitting it issues a one-time
+ * code and 302-redirects the client with {@code code} + {@code state}. Without a session it renders
+ * the login form, whose successful submission is the consent.</li>
  * <li>{@code POST /biouml/oauth/token} — the token endpoint. {@code grant_type=authorization_code}
  * validates PKCE (S256), the exact {@code redirect_uri}/{@code client_id}, consumes the code, copies
  * the authorizing user's permissions into a fresh session, and returns an opaque bearer access token
@@ -51,8 +52,10 @@ import ru.biosoft.access.security.SecurityManager;
  * a connected client stays authenticated across the 1-hour access-token window without re-authorizing.</li>
  * </ul>
  *
- * <p>Security: redirect URIs must match the static allow-list ({@link McpOAuthConfig#clients})
- * <em>exactly</em> (open-redirect defense); codes are one-time (replay defense); the {@code state}
+ * <p>Security: redirect URIs must match the registered set ({@link McpOAuthConfig#checkClient})
+ * <em>exactly</em> (open-redirect defense), and self-registered ones must be https, loopback http, or
+ * a private-use scheme ({@link #checkRedirectUri}); a code is never issued without an explicit user
+ * action on a non-frameable page (consent defense); PKCE S256 is mandatory; codes are one-time (replay defense); the {@code state}
  * parameter round-trips untouched (CSRF defense); access tokens are opaque {@link java.security.SecureRandom}
  * values, single-JVM (see {@link OAuthTokenStore}). Refresh tokens are long-lived (7 days) but bound
  * to the same platform session: if the session dies, the refresh token stops working too, and an
@@ -193,7 +196,6 @@ public class McpOAuthServlet
 			doc.put( "grant_types_supported", grantTypes );
 			java.util.List<String> methods = new java.util.ArrayList<String>();
 			methods.add( "S256" );
-			methods.add( "none" );
 			doc.put( "code_challenge_methods_supported", methods );
 			java.util.List<String> tokenAuth = new java.util.ArrayList<String>();
 			tokenAuth.add( "none" );
@@ -206,6 +208,19 @@ public class McpOAuthServlet
 
 	// ------------------------------------------------------------------ authorize
 
+	/**
+	 * The user step. Nothing here ever redirects to the client without an explicit action by the user
+	 * on a page this server rendered:
+	 * <ul>
+	 * <li>A live, logged-in session gets a <em>consent</em> page naming the client and the host it
+	 * will be redirected to. Only a submission of that page (carrying its one-time, session-bound
+	 * {@code consent_token}) issues a code. An attacker who links a logged-in victim to
+	 * {@code /authorize} with their own registered client therefore gets a page, not a code.</li>
+	 * <li>Otherwise the login form (which also names the client); submitting valid credentials there is
+	 * the consent.</li>
+	 * </ul>
+	 * Both pages are served with anti-framing headers so they cannot be clickjacked.
+	 */
 	private HandleResult authorize( Object session, Map<String, Object> p ) throws Exception
 	{
 		String clientId = first( p.get( "client_id" ) );
@@ -214,14 +229,14 @@ public class McpOAuthServlet
 		String challenge = first( p.get( "code_challenge" ) );
 		String challengeMethod = first( p.get( "code_challenge_method" ) );
 		String resource = first( p.get( "resource" ) );
+		AuthorizeRequest req = new AuthorizeRequest( clientId, redirectUri, state, challenge, challengeMethod, resource );
 
 		// Validation — every failure is an error page (no redirect: we must not bounce the user to an
 		// unvalidated URI before we know the request is sane).
 		String issuer = issuer( p );
 		String bad = validateAuthorize( clientId, redirectUri, challenge, challengeMethod, resource, issuer );
 		if ( bad != null )
-			return new HandleResult( 400, "text/html; charset=utf-8", formPage( bad, clientId, redirectUri, state,
-					challenge, challengeMethod, resource ) );
+			return htmlPage( 400, errorPage( bad ) );
 
 		// Path 1: a live, logged-in session (the browser already authenticated the user).
 		String sessionId = resolveSessionId( session, p );
@@ -240,7 +255,23 @@ public class McpOAuthServlet
 			}
 		}
 		if ( user != null && !user.isEmpty() )
-			return issueCode( clientId, redirectUri, challenge, state, sessionId, user, null );
+		{
+			String consentToken = first( p.get( "consent_token" ) );
+			if ( consentToken.isEmpty() )
+				return htmlPage( 200, consentPage( req, user, newConsent( req, sessionId, user ) ) );
+
+			OAuthTokenStore.Consent consent = OAuthTokenStore.consumeConsent( consentToken );
+			if ( consent == null || !consent.matches( sessionId, user, clientId, redirectUri, challenge ) )
+			{
+				// Stale, replayed, or minted for a different session/request: ask again.
+				log.warning( "MCP OAuth consent rejected (invalid or mismatched consent_token) user=" + user
+						+ " client=" + clientId );
+				return htmlPage( 200, consentPage( req, user, newConsent( req, sessionId, user ) ) );
+			}
+			if ( first( p.get( "approve" ) ).isEmpty() )
+				return denied( redirectUri, state );
+			return issueCode( clientId, redirectUri, challenge, state, sessionId, user );
+		}
 
 		// Path 2: the login form (username/password in this request).
 		String username = first( p.get( "username" ) );
@@ -261,21 +292,19 @@ public class McpOAuthServlet
 				loginError = "login failed";
 			}
 			if ( loginError == null && user != null && !user.isEmpty() )
-				return issueCode( clientId, redirectUri, challenge, state, fresh, user, null );
-			return new HandleResult( 200, "text/html; charset=utf-8", formPage( "login failed — check your credentials",
-					clientId, redirectUri, state, challenge, challengeMethod, resource ) );
+				return issueCode( clientId, redirectUri, challenge, state, fresh, user );
+			return htmlPage( 200, formPage( "login failed — check your credentials", req ) );
 		}
 
 		// Path 3: no credentials yet — show the form.
-		return new HandleResult( 200, "text/html; charset=utf-8",
-				formPage( null, clientId, redirectUri, state, challenge, challengeMethod, resource ) );
+		return htmlPage( 200, formPage( null, req ) );
 	}
 
 	/**
-	 * Validate the authorize request; {@code null} when valid. The {@code resource} indicator
-	 * (RFC 8707) must be absent or refer to this MCP server (see
-	 * {@link McpOAuthConfig#isMcpResource}) — a different resource would mean the code is being
-	 * requested for another server, which this AS does not serve.
+	 * Validate the authorize request; {@code null} when valid. PKCE with {@code S256} is mandatory
+	 * (OAuth 2.1 / MCP authorization spec). The {@code resource} indicator (RFC 8707) must be absent or
+	 * refer to this MCP server (see {@link McpOAuthConfig#isMcpResource}) — a different resource would
+	 * mean the code is being requested for another server, which this AS does not serve.
 	 */
 	static String validateAuthorize( String clientId, String redirectUri, String challenge,
 			String challengeMethod, String resource, String issuer )
@@ -283,38 +312,66 @@ public class McpOAuthServlet
 		String bad = McpOAuthConfig.checkClient( clientId, redirectUri );
 		if ( bad != null )
 			return bad;
-		// PKCE: S256 (challenge required) or none (challenge must be absent). An empty method with an
-		// empty challenge is treated as "none" (no PKCE) — accepted for permissive interop.
-		if ( "S256".equals( challengeMethod ) )
-		{
-			if ( challenge.isEmpty() )
-				return "code_challenge_method=S256 requires a code_challenge";
-		}
-		else if ( "none".equals( challengeMethod ) && !challenge.isEmpty() )
-		{
-			return "code_challenge_method=none must not send a code_challenge";
-		}
-		else if ( !challengeMethod.isEmpty() && !"none".equals( challengeMethod ) )
-		{
-			return "code_challenge_method must be S256 or none";
-		}
+		if ( !"S256".equals( challengeMethod ) )
+			return "PKCE is required: code_challenge_method must be S256";
+		// RFC 7636 §4.2: BASE64URL(SHA256(verifier)) is exactly 43 characters.
+		if ( !challenge.matches( "[A-Za-z0-9_-]{43}" ) )
+			return "code_challenge must be a base64url-encoded SHA-256 digest (43 characters)";
 		if ( !resource.isEmpty() && !McpOAuthConfig.isMcpResource( resource, issuer ) )
 			return "unsupported resource";
 		return null;
 	}
 
+	private static String newConsent( AuthorizeRequest req, String sessionId, String user )
+	{
+		return OAuthTokenStore.issueConsent( sessionId, user, req.clientId, req.redirectUri, req.challenge ).value;
+	}
+
 	private HandleResult issueCode( String clientId, String redirectUri, String challenge, String state,
-			String sessionId, String user, String ignored )
+			String sessionId, String user )
 	{
 		OAuthTokenStore.AuthCode code = OAuthTokenStore.issueCode( clientId, redirectUri, challenge,
 				sessionId, user );
 		log.info( "MCP OAuth code issued user=" + user + " client=" + clientId );
+		return redirect( redirectUri, "code=" + urlEncode( code.value ), state );
+	}
+
+	/** The user declined on the consent page: RFC 6749 §4.1.2.1 {@code access_denied} to the (validated) redirect URI. */
+	private HandleResult denied( String redirectUri, String state )
+	{
+		return redirect( redirectUri, "error=access_denied", state );
+	}
+
+	private static HandleResult redirect( String redirectUri, String query, String state )
+	{
 		String sep = redirectUri.indexOf( '?' ) >= 0 ? "&" : "?";
-		String location = redirectUri + sep + "code=" + urlEncode( code.value )
-				+ ( state.isEmpty() ? "" : "&state=" + urlEncode( state ) );
+		String location = redirectUri + sep + query + ( state.isEmpty() ? "" : "&state=" + urlEncode( state ) );
 		Map<String, String> headers = new LinkedHashMap<String, String>();
 		headers.put( "Location", location );
+		headers.put( "Cache-Control", "no-store" );
 		return new HandleResult( 302, "text/plain", headers, "" );
+	}
+
+	/** The validated parameters of an authorize request, carried through the login/consent pages. */
+	private static final class AuthorizeRequest
+	{
+		final String clientId;
+		final String redirectUri;
+		final String state;
+		final String challenge;
+		final String challengeMethod;
+		final String resource;
+
+		AuthorizeRequest( String clientId, String redirectUri, String state, String challenge,
+				String challengeMethod, String resource )
+		{
+			this.clientId = clientId;
+			this.redirectUri = redirectUri;
+			this.state = state;
+			this.challenge = challenge;
+			this.challengeMethod = challengeMethod;
+			this.resource = resource;
+		}
 	}
 
 	// ------------------------------------------------------------------ register (RFC 7591)
@@ -369,6 +426,16 @@ public class McpOAuthServlet
 		if ( uris.isEmpty() )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_redirect_uri", "redirect_uris is required and must be non-empty" ) );
+		if ( uris.size() > MAX_REDIRECT_URIS )
+			return new HandleResult( 400, "application/json",
+					errorJson( "invalid_redirect_uri", "at most " + MAX_REDIRECT_URIS + " redirect_uris are allowed" ) );
+		for ( String uri : uris )
+		{
+			String bad = checkRedirectUri( uri );
+			if ( bad != null )
+				return new HandleResult( 400, "application/json",
+						errorJson( "invalid_redirect_uri", bad ) ); // not echoing the URI: errorJson does not escape
+		}
 
 		String clientName = body.get( "client_name" ) == null ? "" : body.get( "client_name" ).toString();
 		String clientSecret = body.get( "client_secret" ) == null ? null : body.get( "client_secret" ).toString();
@@ -391,6 +458,56 @@ public class McpOAuthServlet
 		out.put( "response_types", java.util.Arrays.asList( "code" ) );
 		out.put( "token_endpoint_auth_method", clientSecret == null ? "none" : "client_secret_basic" );
 		return new HandleResult( 201, "application/json", mapper.writeValueAsString( out ) );
+	}
+
+	/** Upper bound on the redirect URIs one self-registered client may declare. */
+	static final int MAX_REDIRECT_URIS = 10;
+
+	/**
+	 * Validate a redirect URI offered at registration (RFC 7591 §2, RFC 8252, OAuth 2.1 §2.3.1);
+	 * {@code null} when acceptable. Allowed: {@code https} with a host; {@code http} only to a
+	 * loopback host (native clients such as Claude Code listen on localhost); and private-use schemes
+	 * in reverse-domain form ({@code com.example.app:/cb}, RFC 8252 §7.1). Rejected: fragments,
+	 * user-info, and everything else — notably {@code javascript:}, {@code data:}, {@code file:} and
+	 * plain {@code http} to a remote host, where the authorization code would leak.
+	 */
+	static String checkRedirectUri( String uri )
+	{
+		if ( uri.length() > 2048 )
+			return "redirect_uri is too long";
+		java.net.URI parsed;
+		try
+		{
+			parsed = new java.net.URI( uri );
+		}
+		catch ( java.net.URISyntaxException e )
+		{
+			return "redirect_uri is not a valid URI";
+		}
+		String scheme = parsed.getScheme() == null ? "" : parsed.getScheme().toLowerCase( java.util.Locale.ROOT );
+		if ( scheme.isEmpty() || !parsed.isAbsolute() )
+			return "redirect_uri must be an absolute URI";
+		if ( parsed.getRawFragment() != null )
+			return "redirect_uri must not contain a fragment";
+		if ( parsed.getRawUserInfo() != null )
+			return "redirect_uri must not contain user info";
+		String host = parsed.getHost();
+		if ( "https".equals( scheme ) )
+			return host == null || host.isEmpty() ? "https redirect_uri must have a host" : null;
+		if ( "http".equals( scheme ) )
+			return isLoopback( host ) ? null : "http redirect_uri is only allowed for a loopback host (use https)";
+		// RFC 8252 §7.1 private-use scheme: must contain a period (reverse domain name).
+		if ( scheme.indexOf( '.' ) > 0 && scheme.matches( "[a-z][a-z0-9+.-]*" ) )
+			return null;
+		return "unsupported redirect_uri scheme '" + scheme + "'";
+	}
+
+	private static boolean isLoopback( String host )
+	{
+		if ( host == null )
+			return false;
+		String h = host.toLowerCase( java.util.Locale.ROOT );
+		return h.equals( "localhost" ) || h.equals( "[::1]" ) || h.equals( "::1" ) || h.matches( "127(\\.\\d{1,3}){3}" );
 	}
 
 	// ------------------------------------------------------------------ token
@@ -419,12 +536,9 @@ public class McpOAuthServlet
 		if ( !stored.redirectUri.equals( redirectUri ) )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "redirect_uri does not match the code" ) );
-		if ( stored.codeChallenge == null || stored.codeChallenge.isEmpty() )
-		{
-			// No PKCE was required at /authorize (method "none"); accept any (or no) verifier.
-		}
-		else if ( verifier.isEmpty() || !OAuthTokenStore.pkceMatches( stored.codeChallenge,
-				OAuthTokenStore.pkceChallenge( verifier ) ) )
+		// PKCE is mandatory: /authorize never issues a code without an S256 challenge.
+		if ( stored.codeChallenge == null || stored.codeChallenge.isEmpty() || verifier.isEmpty()
+				|| !OAuthTokenStore.pkceMatches( stored.codeChallenge, OAuthTokenStore.pkceChallenge( verifier ) ) )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "code_verifier does not satisfy the code_challenge" ) );
 
@@ -501,42 +615,125 @@ public class McpOAuthServlet
 		return new HandleResult( 200, "application/json", mapper.writeValueAsString( body ) );
 	}
 
-	// ------------------------------------------------------------------ form
+	// ------------------------------------------------------------------ pages
+
+	/**
+	 * An HTML response with anti-framing headers (clickjacking defense for the login and consent
+	 * pages) and no caching (the consent page carries a one-time token).
+	 */
+	private static HandleResult htmlPage( int status, String body )
+	{
+		Map<String, String> headers = new LinkedHashMap<String, String>();
+		headers.put( "X-Frame-Options", "DENY" );
+		headers.put( "Content-Security-Policy", "frame-ancestors 'none'" );
+		headers.put( "Cache-Control", "no-store" );
+		headers.put( "Referrer-Policy", "no-referrer" );
+		return new HandleResult( status, "text/html; charset=utf-8", headers, body );
+	}
+
+	private static StringBuilder pageStart()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append( "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n" );
+		sb.append( "<title>Sign in to BioUML (MCP)</title>\n" );
+		sb.append( "<style>body{font-family:sans-serif;max-width:28rem;margin:3rem auto;padding:0 1rem}" );
+		sb.append( "input{width:100%;margin:0.3rem 0;padding:0.4rem;box-sizing:border-box}" );
+		sb.append( "button{margin-top:0.8rem;margin-right:0.5rem;padding:0.4rem 1rem}" );
+		sb.append( "code{word-break:break-all}</style>\n</head>\n<body>\n" );
+		sb.append( "<h2>BioUML — MCP sign-in</h2>\n" );
+		return sb;
+	}
+
+	private static String errorPage( String error )
+	{
+		StringBuilder sb = pageStart();
+		sb.append( "<p style=\"color:#a00\">" ).append( escape( error ) ).append( "</p>\n" );
+		sb.append( "</body>\n</html>\n" );
+		return sb.toString();
+	}
+
+	/**
+	 * Who is asking and where the user will be sent. The redirect host is what the user should judge
+	 * by: the client name is self-asserted at registration and can say anything.
+	 */
+	private static void appendClientInfo( StringBuilder sb, AuthorizeRequest req )
+	{
+		OAuthTokenStore.RegisteredClient dynamic = OAuthTokenStore.findClient( req.clientId );
+		String name = dynamic != null && dynamic.clientName != null && !dynamic.clientName.isEmpty()
+				? dynamic.clientName : req.clientId;
+		sb.append( "<p>The application <b>" ).append( escape( name ) ).append( "</b>" );
+		if ( dynamic != null )
+			sb.append( " (self-registered)" );
+		sb.append( " is requesting access to your BioUML account. It will be able to read, change and "
+				+ "delete your data and run analyses and scripts on your behalf.</p>\n" );
+		sb.append( "<p>After you allow it, you will be sent to <b>" ).append( escape( redirectHost( req.redirectUri ) ) )
+				.append( "</b><br><code>" ).append( escape( req.redirectUri ) ).append( "</code></p>\n" );
+		sb.append( "<p>Only continue if you started this connection yourself and recognize this address.</p>\n" );
+	}
+
+	private static String redirectHost( String redirectUri )
+	{
+		try
+		{
+			java.net.URI uri = new java.net.URI( redirectUri );
+			String host = uri.getHost();
+			return host != null ? host : uri.getScheme() + ":";
+		}
+		catch ( Exception e )
+		{
+			return redirectUri;
+		}
+	}
+
+	/** The original authorize parameters as hidden fields, so the page's POST re-validates them. */
+	private static void appendHiddenFields( StringBuilder sb, AuthorizeRequest req )
+	{
+		hidden( sb, "client_id", req.clientId );
+		hidden( sb, "redirect_uri", req.redirectUri );
+		hidden( sb, "state", req.state );
+		hidden( sb, "code_challenge", req.challenge );
+		hidden( sb, "code_challenge_method", req.challengeMethod );
+		hidden( sb, "resource", req.resource );
+	}
+
+	private static void hidden( StringBuilder sb, String name, String value )
+	{
+		if ( value == null || value.isEmpty() )
+			return;
+		sb.append( "<input type=\"hidden\" name=\"" ).append( name ).append( "\" value=\"" )
+				.append( escape( value ) ).append( "\">\n" );
+	}
 
 	/**
 	 * Render the login form. All reflected request values are HTML-escaped (they are attacker-
 	 * controlled: client_id / redirect_uri / state come from the MCP client, not the user).
 	 */
-	private String formPage( String error, String clientId, String redirectUri, String state,
-			String challenge, String challengeMethod, String resource )
+	private static String formPage( String error, AuthorizeRequest req )
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append( "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n" );
-		sb.append( "<title>Sign in to BioUML (MCP)</title>\n" );
-		sb.append( "<style>body{font-family:sans-serif;max-width:24rem;margin:3rem auto;padding:0 1rem}" );
-		sb.append( "input{width:100%;margin:0.3rem 0;padding:0.4rem;box-sizing:border-box}" );
-		sb.append( "button{margin-top:0.8rem;padding:0.4rem 1rem}</style>\n</head>\n<body>\n" );
-		sb.append( "<h2>BioUML — MCP sign-in</h2>\n" );
-		sb.append( "<p>An MCP client requested access to this BioUML server. Sign in with your BioUML " );
-		sb.append( "account to allow it.</p>\n" );
+		StringBuilder sb = pageStart();
+		appendClientInfo( sb, req );
 		if ( error != null )
 			sb.append( "<p style=\"color:#a00\">" ).append( escape( error ) ).append( "</p>\n" );
-		sb.append( "<form method=\"post\" action=\"\">" );
-		sb.append( "<input type=\"hidden\" name=\"client_id\" value=\"" ).append( escape( clientId ) ).append( "\">\n" );
-		sb.append( "<input type=\"hidden\" name=\"redirect_uri\" value=\"" ).append( escape( redirectUri ) ).append( "\">\n" );
-		if ( !state.isEmpty() )
-			sb.append( "<input type=\"hidden\" name=\"state\" value=\"" ).append( escape( state ) ).append( "\">\n" );
-		if ( !challenge.isEmpty() )
-		{
-			sb.append( "<input type=\"hidden\" name=\"code_challenge\" value=\"" ).append( escape( challenge ) ).append( "\">\n" );
-			sb.append( "<input type=\"hidden\" name=\"code_challenge_method\" value=\"" )
-					.append( escape( challengeMethod ) ).append( "\">\n" );
-		}
-		if ( resource != null && !resource.isEmpty() )
-			sb.append( "<input type=\"hidden\" name=\"resource\" value=\"" ).append( escape( resource ) ).append( "\">\n" );
+		sb.append( "<form method=\"post\" action=\"\">\n" );
+		appendHiddenFields( sb, req );
 		sb.append( "<label>Username<br><input type=\"text\" name=\"username\" autocomplete=\"username\"></label>\n" );
 		sb.append( "<label>Password<br><input type=\"password\" name=\"password\" autocomplete=\"current-password\"></label>\n" );
-		sb.append( "<button type=\"submit\">Sign in</button>\n" );
+		sb.append( "<button type=\"submit\">Sign in and allow</button>\n" );
+		sb.append( "</form>\n</body>\n</html>\n" );
+		return sb.toString();
+	}
+
+	/** The consent page for an already-signed-in user: Allow / Deny, carrying a one-time consent token. */
+	private static String consentPage( AuthorizeRequest req, String user, String consentToken )
+	{
+		StringBuilder sb = pageStart();
+		sb.append( "<p>Signed in as <b>" ).append( escape( user ) ).append( "</b>.</p>\n" );
+		appendClientInfo( sb, req );
+		sb.append( "<form method=\"post\" action=\"\">\n" );
+		appendHiddenFields( sb, req );
+		hidden( sb, "consent_token", consentToken );
+		sb.append( "<button type=\"submit\" name=\"approve\" value=\"1\">Allow</button>\n" );
+		sb.append( "<button type=\"submit\" name=\"deny\" value=\"1\">Deny</button>\n" );
 		sb.append( "</form>\n</body>\n</html>\n" );
 		return sb.toString();
 	}

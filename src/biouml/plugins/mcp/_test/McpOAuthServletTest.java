@@ -125,13 +125,37 @@ public class McpOAuthServletTest extends TestCase
 				+ "&resource=/biouml/mcp";
 	}
 
-	/** Run the /authorize step with a live logged-in session → expect a 302 carrying the code. */
+	/** Run the /authorize step with a live logged-in session and approve the consent page. */
 	private HandleResult authorizeAsSession( Map<String, Object> extra ) throws Exception
 	{
 		Map<String, Object> p = params( "sessionId", AUTH_SESSION );
 		for ( Map.Entry<String, Object> e : extra.entrySet() )
 			p.put( e.getKey(), e.getValue() );
-		return service( "/oauth/authorize", p );
+		return authorizeWithConsent( p );
+	}
+
+	/**
+	 * A signed-in /authorize request first renders the consent page (never a redirect); submitting it
+	 * with its consent_token and "approve" yields the 302. Returns that second response.
+	 */
+	private HandleResult authorizeWithConsent( Map<String, Object> p ) throws Exception
+	{
+		HandleResult page = service( "/oauth/authorize", p );
+		assertEquals( "signed-in authorize renders the consent page, not a redirect — body=" + page.body, 200, page.status );
+		assertNull( "no Location before consent", page.headers.get( "Location" ) );
+		Map<String, Object> submit = new LinkedHashMap<String, Object>( p );
+		submit.put( "consent_token", new String[] { consentToken( page ) } );
+		submit.put( "approve", new String[] { "1" } );
+		return service( "/oauth/authorize", submit );
+	}
+
+	/** Extract the hidden consent_token from a rendered consent page. */
+	private static String consentToken( HandleResult page )
+	{
+		java.util.regex.Matcher m = java.util.regex.Pattern
+				.compile( "name=\"consent_token\" value=\"([^\"]+)\"" ).matcher( page.body );
+		assertTrue( "consent page carries a consent_token — body=" + page.body, m.find() );
+		return m.group( 1 );
 	}
 
 	/** Extract {@code code=...} from a redirect Location. */
@@ -272,7 +296,7 @@ public class McpOAuthServletTest extends TestCase
 						java.util.Arrays.asList( "authorization_code", "refresh_token" ) ) );
 		assertEquals( "registration endpoint advertised (RFC 7591)",
 				"https://biouml2test.biouml.org/biouml/oauth/register", doc.get( "registration_endpoint" ) );
-		assertEquals( java.util.Arrays.asList( "S256", "none" ), doc.get( "code_challenge_methods_supported" ) );
+		assertEquals( "PKCE S256 only", java.util.Collections.singletonList( "S256" ), doc.get( "code_challenge_methods_supported" ) );
 		assertEquals( java.util.Arrays.asList( "none", "client_secret_basic" ),
 				doc.get( "token_endpoint_auth_methods_supported" ) );
 	}
@@ -346,7 +370,7 @@ public class McpOAuthServletTest extends TestCase
 		HandleResult reg = service( "/oauth/register", params( "mcpRawBody", regBody ) );
 		String clientId = (String) json( reg.body ).get( "client_id" );
 
-		HandleResult authz = service( "/oauth/authorize", params(
+		HandleResult authz = authorizeWithConsent( params(
 				"sessionId", AUTH_SESSION, "client_id", clientId,
 				"redirect_uri", "https://client.example/oauth/callback",
 				"state", "s", "code_challenge", CHALLENGE, "code_challenge_method", "S256" ) );
@@ -485,8 +509,146 @@ public class McpOAuthServletTest extends TestCase
 				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI,
 				"state", "s", "code_challenge", CHALLENGE, "code_challenge_method", "S256",
 				"resource", "https://biouml2test.biouml.org/biouml/mcp" );
-		HandleResult r = service( "/oauth/authorize", p );
+		HandleResult r = authorizeWithConsent( p );
 		assertEquals( "canonical absolute resource → 302", 302, r.status );
+	}
+
+	/** The session + standard authorize params (no consent fields). */
+	private static Map<String, Object> sessionAuthorize( String sessionId, String redirectUri )
+	{
+		return params( "sessionId", sessionId, "client_id", CLIENT_ID, "redirect_uri", redirectUri,
+				"state", "st", "code_challenge", CHALLENGE, "code_challenge_method", "S256" );
+	}
+
+	/**
+	 * The one-click takeover this guards against: a logged-in victim following an attacker's
+	 * /authorize link must get a consent page — never a redirect carrying a code.
+	 */
+	public void testSignedInAuthorizeShowsConsentNotCode() throws Exception
+	{
+		HandleResult r = service( "/oauth/authorize", sessionAuthorize( AUTH_SESSION, REDIRECT_URI ) );
+		assertEquals( 200, r.status );
+		assertNull( "no redirect without consent", r.headers.get( "Location" ) );
+		assertTrue( r.contentType.startsWith( "text/html" ) );
+		assertTrue( "names the redirect host", r.body.contains( "client.example" ) );
+		assertTrue( "names the signed-in user", r.body.contains( "alice" ) );
+		assertTrue( "has Allow", r.body.contains( "name=\"approve\"" ) );
+		assertTrue( "has Deny", r.body.contains( "name=\"deny\"" ) );
+		assertEquals( "not frameable", "DENY", r.headers.get( "X-Frame-Options" ) );
+		assertEquals( "frame-ancestors 'none'", r.headers.get( "Content-Security-Policy" ) );
+		assertEquals( "no-store", r.headers.get( "Cache-Control" ) );
+	}
+
+	/** Deny on the consent page → access_denied to the registered redirect URI, no code. */
+	public void testConsentDenyRedirectsWithAccessDenied() throws Exception
+	{
+		Map<String, Object> p = sessionAuthorize( AUTH_SESSION, REDIRECT_URI );
+		String token = consentToken( service( "/oauth/authorize", p ) );
+		p.put( "consent_token", new String[] { token } );
+		p.put( "deny", new String[] { "1" } );
+		HandleResult r = service( "/oauth/authorize", p );
+		assertEquals( 302, r.status );
+		String loc = r.headers.get( "Location" );
+		assertTrue( loc, loc.startsWith( REDIRECT_URI + "?error=access_denied" ) );
+		assertTrue( "state echoed", loc.contains( "state=st" ) );
+		assertFalse( "no code on deny", loc.contains( "code=" ) );
+	}
+
+	/** An approval with a consent_token this server never rendered is not honoured. */
+	public void testForgedConsentTokenIsRejected() throws Exception
+	{
+		Map<String, Object> p = sessionAuthorize( AUTH_SESSION, REDIRECT_URI );
+		p.put( "consent_token", new String[] { OAuthTokenStore.CONSENT_PREFIX + "forged" } );
+		p.put( "approve", new String[] { "1" } );
+		HandleResult r = service( "/oauth/authorize", p );
+		assertEquals( "re-prompts", 200, r.status );
+		assertNull( "no code for a forged consent", r.headers.get( "Location" ) );
+	}
+
+	/** A consent_token works once; replaying the approval does not mint a second code. */
+	public void testConsentTokenIsSingleUse() throws Exception
+	{
+		Map<String, Object> p = sessionAuthorize( AUTH_SESSION, REDIRECT_URI );
+		p.put( "consent_token", new String[] { consentToken( service( "/oauth/authorize", p ) ) } );
+		p.put( "approve", new String[] { "1" } );
+		assertEquals( 302, service( "/oauth/authorize", p ).status );
+		HandleResult replay = service( "/oauth/authorize", p );
+		assertEquals( 200, replay.status );
+		assertNull( replay.headers.get( "Location" ) );
+	}
+
+	/** A consent given for one redirect URI cannot be spent on another. */
+	public void testConsentTokenBoundToRequest() throws Exception
+	{
+		String token = consentToken( service( "/oauth/authorize", sessionAuthorize( AUTH_SESSION, REDIRECT_URI ) ) );
+		Map<String, Object> p = sessionAuthorize( AUTH_SESSION, REDIRECT_URI_LOCAL );
+		p.put( "consent_token", new String[] { token } );
+		p.put( "approve", new String[] { "1" } );
+		HandleResult r = service( "/oauth/authorize", p );
+		assertEquals( 200, r.status );
+		assertNull( r.headers.get( "Location" ) );
+	}
+
+	/** A consent rendered for one session cannot be approved from another session. */
+	public void testConsentTokenBoundToSession() throws Exception
+	{
+		String token = consentToken( service( "/oauth/authorize", sessionAuthorize( AUTH_SESSION, REDIRECT_URI ) ) );
+		String other = "mcp-oauth-other-session";
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), other );
+		SecurityManager.commonLogin( "bob", "pw", "127.0.0.1", null );
+		Map<String, Object> p = sessionAuthorize( other, REDIRECT_URI );
+		p.put( "consent_token", new String[] { token } );
+		p.put( "approve", new String[] { "1" } );
+		HandleResult r = service( "/oauth/authorize", p );
+		assertEquals( 200, r.status );
+		assertNull( r.headers.get( "Location" ) );
+	}
+
+	/** The login form names the client and its redirect target, and is not frameable. */
+	public void testLoginFormShowsClientAndIsNotFrameable() throws Exception
+	{
+		Map<String, Object> p = params( "client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI, "state", "s",
+				"code_challenge", CHALLENGE, "code_challenge_method", "S256" );
+		HandleResult r = service( "/oauth/authorize", p );
+		assertEquals( 200, r.status );
+		assertTrue( r.body.contains( "client.example" ) );
+		assertEquals( "DENY", r.headers.get( "X-Frame-Options" ) );
+	}
+
+	/** PKCE is mandatory: no challenge, method "none", or a malformed challenge → 400. */
+	public void testAuthorizeWithoutPkceIs400() throws Exception
+	{
+		assertEquals( "no PKCE", 400, service( "/oauth/authorize", params( "sessionId", AUTH_SESSION,
+				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI, "state", "s" ) ).status );
+		assertEquals( "method none", 400, service( "/oauth/authorize", params( "sessionId", AUTH_SESSION,
+				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI, "state", "s",
+				"code_challenge_method", "none" ) ).status );
+		assertEquals( "S256 without challenge", 400, service( "/oauth/authorize", params( "sessionId", AUTH_SESSION,
+				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI, "state", "s",
+				"code_challenge_method", "S256" ) ).status );
+		assertEquals( "malformed challenge", 400, service( "/oauth/authorize", params( "sessionId", AUTH_SESSION,
+				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI, "state", "s",
+				"code_challenge", "short", "code_challenge_method", "S256" ) ).status );
+	}
+
+	/** Self-registered redirect URIs: https, loopback http and private-use schemes only. */
+	public void testRegisterRejectsUnsafeRedirectUris() throws Exception
+	{
+		String[] bad = { "javascript:alert(1)", "data:text/html,x", "file:///etc/passwd",
+				"http://evil.example/cb", "https://client.example/cb#frag", "https://user@client.example/cb",
+				"/relative/cb", "myapp:/cb" };
+		for ( String uri : bad )
+		{
+			HandleResult r = service( "/oauth/register",
+					params( "mcpRawBody", "{\"redirect_uris\":[\"" + uri + "\"]}" ) );
+			assertEquals( "rejected: " + uri, 400, r.status );
+			assertTrue( r.body.contains( "invalid_redirect_uri" ) );
+		}
+		String[] good = { "https://claude.ai/api/mcp/auth_callback", "http://localhost:33418/callback",
+				"http://127.0.0.1:8080/cb", "http://[::1]:9000/cb", "com.example.app:/oauth/cb" };
+		for ( String uri : good )
+			assertEquals( "accepted: " + uri, 201, service( "/oauth/register",
+					params( "mcpRawBody", "{\"redirect_uris\":[\"" + uri + "\"]}" ) ).status );
 	}
 
 	// ------------------------------------------------------------------ token
@@ -498,7 +660,7 @@ public class McpOAuthServletTest extends TestCase
 		Map<String, Object> p = params( "sessionId", AUTH_SESSION,
 				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI,
 				"state", "st", "code_challenge", CHALLENGE, "code_challenge_method", "S256" );
-		HandleResult authz = service( "/oauth/authorize", p );
+		HandleResult authz = authorizeWithConsent( p );
 		assertEquals( 302, authz.status );
 		String code = codeFrom( authz );
 		assertNotNull( code );
@@ -528,7 +690,7 @@ public class McpOAuthServletTest extends TestCase
 		Map<String, Object> p = params( "sessionId", AUTH_SESSION,
 				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI,
 				"state", "st", "code_challenge", CHALLENGE, "code_challenge_method", "S256" );
-		String code = codeFrom( service( "/oauth/authorize", p ) );
+		String code = codeFrom( authorizeWithConsent( p ) );
 		assertNotNull( code );
 
 		HandleResult tok = exchange( code, VERIFIER, CLIENT_ID, REDIRECT_URI );
@@ -554,7 +716,7 @@ public class McpOAuthServletTest extends TestCase
 		Map<String, Object> p = params( "sessionId", AUTH_SESSION,
 				"client_id", CLIENT_ID, "redirect_uri", REDIRECT_URI,
 				"state", "st", "code_challenge", CHALLENGE, "code_challenge_method", "S256" );
-		String code = codeFrom( service( "/oauth/authorize", p ) );
+		String code = codeFrom( authorizeWithConsent( p ) );
 		assertNotNull( code );
 		Map<String, Object> body = json( exchange( code, VERIFIER, CLIENT_ID, REDIRECT_URI ).body );
 		String firstAccess = (String) body.get( "access_token" );
@@ -618,6 +780,22 @@ public class McpOAuthServletTest extends TestCase
 		HandleResult r = exchange( code, "wrong-verifier", CLIENT_ID, REDIRECT_URI );
 		assertEquals( 400, r.status );
 		assertTrue( r.body.contains( "invalid_grant" ) );
+	}
+
+	/** A code with no PKCE challenge (cannot come from /authorize any more) is still refused at /token. */
+	public void testTokenWithoutPkceIs400() throws Exception
+	{
+		String code = OAuthTokenStore.issueCode( CLIENT_ID, REDIRECT_URI, "", AUTH_SESSION, "alice" ).value;
+		HandleResult r = exchange( code, "", CLIENT_ID, REDIRECT_URI );
+		assertEquals( 400, r.status );
+		assertTrue( r.body.contains( "invalid_grant" ) );
+	}
+
+	/** A missing code_verifier → 400. */
+	public void testTokenMissingVerifierIs400() throws Exception
+	{
+		HandleResult r = exchange( newCode(), "", CLIENT_ID, REDIRECT_URI );
+		assertEquals( 400, r.status );
 	}
 
 	/** A code can be exchanged exactly once; the second attempt fails. */

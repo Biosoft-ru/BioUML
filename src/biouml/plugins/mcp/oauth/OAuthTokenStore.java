@@ -61,7 +61,14 @@ public final class OAuthTokenStore
 	/** Authorization-code prefix (for log grepping; codes are opaque otherwise). */
 	public static final String CODE_PREFIX = "mcp_ac_";
 
+	/** Prefix of the one-time token that ties a consent-page submission to the page this server rendered. */
+	public static final String CONSENT_PREFIX = "mcp_cs_";
+
+	/** How long a rendered consent page stays submittable. */
+	public static final long CONSENT_TTL_MS = 10L * 60L * 1000L;
+
 	private static final SecureRandom RANDOM = new SecureRandom();
+	private static final ConcurrentMap<String, Consent> CONSENTS = new ConcurrentHashMap<String, Consent>();
 	private static final ConcurrentMap<String, AuthCode> CODES = new ConcurrentHashMap<String, AuthCode>();
 	private static final ConcurrentMap<String, AccessToken> TOKENS = new ConcurrentHashMap<String, AccessToken>();
 	private static final ConcurrentMap<String, RefreshToken> REFRESHES = new ConcurrentHashMap<String, RefreshToken>();
@@ -203,6 +210,72 @@ public final class OAuthTokenStore
 		{
 			return System.currentTimeMillis() > expiresAt;
 		}
+	}
+
+	/**
+	 * A pending consent: minted when the consent page is rendered for a signed-in user and consumed
+	 * (once) when that page is submitted. It binds the approval to the session that saw the page and
+	 * to the exact client / redirect URI / PKCE challenge shown on it, so an approval cannot be forged
+	 * by a cross-site request (the token only ever appears inside the rendered page) nor replayed for
+	 * a different request.
+	 */
+	public static final class Consent
+	{
+		public final String value;
+		public final String sessionId;
+		public final String user;
+		public final String clientId;
+		public final String redirectUri;
+		public final String codeChallenge;
+		public final long expiresAt;
+
+		Consent( String value, String sessionId, String user, String clientId, String redirectUri,
+				String codeChallenge )
+		{
+			this.value = value;
+			this.sessionId = sessionId;
+			this.user = user;
+			this.clientId = clientId;
+			this.redirectUri = redirectUri;
+			this.codeChallenge = codeChallenge;
+			this.expiresAt = System.currentTimeMillis() + CONSENT_TTL_MS;
+		}
+
+		boolean expired()
+		{
+			return System.currentTimeMillis() > expiresAt;
+		}
+
+		/** True if this consent was minted for exactly this session, user and authorize request. */
+		public boolean matches( String sessionId, String user, String clientId, String redirectUri,
+				String codeChallenge )
+		{
+			return this.sessionId.equals( sessionId ) && this.user.equals( user ) && this.clientId.equals( clientId )
+					&& this.redirectUri.equals( redirectUri ) && this.codeChallenge.equals( codeChallenge );
+		}
+	}
+
+	// ------------------------------------------------------------------ consents
+
+	public static Consent issueConsent( String sessionId, String user, String clientId, String redirectUri,
+			String codeChallenge )
+	{
+		purgeExpired(); // consent pages are rendered on any signed-in GET; keep the store bounded
+		String value = CONSENT_PREFIX + randomToken( 32 );
+		Consent consent = new Consent( value, sessionId, user, clientId, redirectUri, codeChallenge );
+		CONSENTS.put( value, consent );
+		return consent;
+	}
+
+	/** Remove and return the consent (single use); {@code null} if unknown or expired. */
+	public static Consent consumeConsent( String value )
+	{
+		if ( value == null || !value.startsWith( CONSENT_PREFIX ) )
+			return null;
+		Consent consent = CONSENTS.remove( value );
+		if ( consent == null || consent.expired() )
+			return null;
+		return consent;
 	}
 
 	// ------------------------------------------------------------------ codes
@@ -478,6 +551,9 @@ public final class OAuthTokenStore
 	static void purgeExpired()
 	{
 		long now = System.currentTimeMillis();
+		for ( Consent consent : CONSENTS.values() )
+			if ( consent.expiresAt < now )
+				CONSENTS.remove( consent.value );
 		for ( AuthCode code : CODES.values() )
 			if ( code.expiresAt < now )
 				CODES.remove( code.value );
@@ -494,6 +570,7 @@ public final class OAuthTokenStore
 	 */
 	public static void clearForTest()
 	{
+		CONSENTS.clear();
 		CODES.clear();
 		TOKENS.clear();
 		REFRESHES.clear();
