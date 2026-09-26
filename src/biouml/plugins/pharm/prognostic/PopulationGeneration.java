@@ -901,7 +901,7 @@ public class PopulationGeneration extends AnalysisMethodSupport<PopulationGenera
             SimulationEngine se = (SimulationEngine)dp.getValue();
             se.setLogLevel( Level.SEVERE );
             double endTime = se.getCompletionTime();
-            double startTime = endTime - 5; //to include one complete breathing cycle
+            double startTime = endTime - 20; //to include one complete breathing cycle
             List<OptimizationConstraint> cList = initConstraintList( constr, diagram, startTime, endTime );
             optimization.getParameters().setOptimizationConstraints( cList );
 
