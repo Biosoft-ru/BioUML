@@ -24,7 +24,10 @@ import com.developmentontheedge.beans.editors.CustomEditorSupport;
  */
 public class GenericComboBoxEditor extends CustomEditorSupport implements JSONSerializable
 {
-    private JComboBox<String> comboBox = new JComboBox<>();
+    // Lazily allocated: constructing a JComboBox (and its UI) here ran on every
+    // editor instantiation, including the server-side table rendering path which
+    // never uses the component.
+    private JComboBox<String> comboBox;
     boolean refresh = false;
 
     private void setRefresh(Component parent)
