@@ -125,6 +125,20 @@ public class McpOAuthServlet
 	 */
 	public HandleResult handle( String path, Object session, Map<String, Object> params )
 	{
+		// /authorize and /token bind this (pooled) Tomcat thread to a user session; unbind it when the
+		// request ends so the next request on this thread does not inherit that identity.
+		try
+		{
+			return route( path, session, params );
+		}
+		finally
+		{
+			SecurityManager.removeThreadFromSessionRecord();
+		}
+	}
+
+	private HandleResult route( String path, Object session, Map<String, Object> params )
+	{
 		Map<String, Object> p = params == null ? new LinkedHashMap<String, Object>() : params;
 		String sub = path;
 		if ( sub.startsWith( "/oauth/" ) )

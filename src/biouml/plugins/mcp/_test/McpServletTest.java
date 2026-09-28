@@ -375,6 +375,66 @@ public class McpServletTest extends TestCase
 				www.contains( "resource_metadata=\"https://biouml2test.biouml.org/biouml/oauth/.well-known/oauth-protected-resource\"" ) );
 	}
 
+	/**
+	 * The request binds the (pooled) thread to the caller's session; that binding must not outlive the
+	 * request — on success or on a 401 — or the thread's next request would run as this caller.
+	 */
+	public void testThreadSessionUnboundAfterRequest() throws Exception
+	{
+		HandleResult ok = post( AUTH_SESSION, "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}" );
+		assertEquals( 200, ok.status );
+		assertEquals( "unbound after a successful request", SecurityManager.SYSTEM_SESSION, SecurityManager.getSession() );
+
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( McpServlet.MCP_RAW_BODY_KEY, new String[] { "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"ping\"}" } );
+		params.put( "Authorization", new String[] { "Bearer mcp_at_garbage" } );
+		assertEquals( 401, serviceWith( params ).status );
+		assertEquals( "unbound after a 401", SecurityManager.SYSTEM_SESSION, SecurityManager.getSession() );
+	}
+
+	/**
+	 * The servlet is one shared instance: concurrent requests must each get a 401 challenge built from
+	 * their own Host header (the hints were once stored in fields and could be overwritten mid-request).
+	 */
+	public void testConcurrentChallengesUseOwnHost() throws Exception
+	{
+		final java.util.concurrent.atomic.AtomicReference<String> failure = new java.util.concurrent.atomic.AtomicReference<String>();
+		final java.util.concurrent.CountDownLatch go = new java.util.concurrent.CountDownLatch( 1 );
+		Thread[] threads = new Thread[ 4 ];
+		for ( int t = 0; t < threads.length; t++ )
+		{
+			final String host = "host" + t + ".example";
+			threads[ t ] = new Thread( () -> {
+				try
+				{
+					go.await();
+					for ( int i = 0; i < 300 && failure.get() == null; i++ )
+					{
+						Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+						params.put( McpServlet.MCP_RAW_BODY_KEY, new String[] { "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"ping\"}" } );
+						params.put( "Authorization", new String[] { "Bearer mcp_at_garbage" } );
+						params.put( "Host", new String[] { host } );
+						Map<String, String> header = new java.util.HashMap<String, String>();
+						servlet.service( "/mcp", null, params, new java.io.ByteArrayOutputStream(), header );
+						String www = header.get( "WWW-Authenticate" );
+						if ( www == null || !www.contains( "https://" + host + "/biouml/oauth/" ) )
+							failure.compareAndSet( null, host + " got challenge " + www );
+					}
+				}
+				catch ( Exception e )
+				{
+					failure.compareAndSet( null, e.toString() );
+				}
+			} );
+			threads[ t ].start();
+		}
+		go.countDown();
+		for ( Thread t : threads )
+			t.join( 60000 );
+		assertNull( failure.get(), failure.get() );
+	}
+
 	/** No credentials at all → 401 with the reserved Status key (real 401 on the wire). */
 	public void testNoCredsIs401WithStatusHeader() throws Exception
 	{

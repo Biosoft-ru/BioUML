@@ -78,13 +78,6 @@ public class McpServlet
 			new java.util.concurrent.ConcurrentHashMap<String, String>();
 	private static final int MAX_BASIC_SESSIONS = 256;
 
-	// The current request's public-host hints (set at the top of handle() so unauthorized() can
-	// derive the OAuth issuer for the WWW-Authenticate challenge). One request is served per
-	// thread at a time by ConnectionServlet, so plain fields are safe here.
-	private String issuerHost;
-	private String issuerForwardedHost;
-	private String issuerForwardedProto;
-
 	/**
 	 * Called by the servlet registry at server startup (mirrors {@code WebServicesServlet.init}).
 	 * {@code args} are the repository root folders; building the dispatcher is cheap, so it happens here
@@ -307,9 +300,43 @@ public class McpServlet
 	public HandleResult handle( String method, String path, String query, String body, Object session,
 			String authorization, String remoteAddress, String host, String forwardedHost, String forwardedProto )
 	{
-		this.issuerHost = host;
-		this.issuerForwardedHost = forwardedHost;
-		this.issuerForwardedProto = forwardedProto;
+		// Every auth path binds this (pooled) Tomcat thread to the caller's session. Unbind it when the
+		// request ends — on success, 401 and exceptions alike — or the next request served by this
+		// thread would start out running as this caller. The session itself lives on (it is keyed by
+		// id in SecurityManager), so async jobs and later requests are unaffected.
+		try
+		{
+			return authenticateAndDispatch( method, path, query, body, session, authorization, remoteAddress,
+					new IssuerHints( host, forwardedHost, forwardedProto ) );
+		}
+		finally
+		{
+			SecurityManager.removeThreadFromSessionRecord();
+		}
+	}
+
+	/**
+	 * The request's public-host hints, used only to derive the OAuth issuer for a 401's
+	 * {@code WWW-Authenticate} challenge. Passed down per call — never stored on the servlet, which is
+	 * a single instance shared by all concurrent requests.
+	 */
+	private static final class IssuerHints
+	{
+		final String host;
+		final String forwardedHost;
+		final String forwardedProto;
+
+		IssuerHints( String host, String forwardedHost, String forwardedProto )
+		{
+			this.host = host;
+			this.forwardedHost = forwardedHost;
+			this.forwardedProto = forwardedProto;
+		}
+	}
+
+	private HandleResult authenticateAndDispatch( String method, String path, String query, String body, Object session,
+			String authorization, String remoteAddress, IssuerHints hints )
+	{
 		long start = System.currentTimeMillis();
 
 		// Auth path 0: an `Authorization: Bearer <token>` header — an access token minted by the
@@ -320,14 +347,14 @@ public class McpServlet
 		{
 			OAuthTokenStore.AccessToken token = OAuthTokenStore.validate( authorization.substring( "Bearer ".length() ).trim() );
 			if ( token == null )
-				return unauthorized( "invalid or expired bearer token" );
+				return unauthorized( "invalid or expired bearer token", hints );
 			try
 			{
 				SecurityManager.addThreadToSessionRecord( Thread.currentThread(), token.sessionId );
 			}
 			catch ( Exception e )
 			{
-				return unauthorized( "bearer token session unavailable" );
+				return unauthorized( "bearer token session unavailable", hints );
 			}
 			return dispatch( method, path, body, token.user, start );
 		}
@@ -337,7 +364,7 @@ public class McpServlet
 		{
 			String user = authenticateByToken( authorization, remoteAddress );
 			if ( user == null )
-				return unauthorized( "invalid or missing Authorization credential" );
+				return unauthorized( "invalid or missing Authorization credential", hints );
 			return dispatch( method, path, body, user, start );
 		}
 
@@ -346,7 +373,7 @@ public class McpServlet
 		// user. There is no privileged "system" shortcut for external requests.
 		String sessionId = resolveSessionId( query, session );
 		if ( sessionId == null )
-			return unauthorized( "no session" );
+			return unauthorized( "no session", hints );
 
 		// Bind the thread to the session so SecurityManager calls resolve the caller's identity.
 		try
@@ -355,14 +382,14 @@ public class McpServlet
 		}
 		catch ( Exception e )
 		{
-			return unauthorized( "invalid session" );
+			return unauthorized( "invalid session", hints );
 		}
 
 		String user;
 		try
 		{
 			if ( SecurityManager.isSessionDead( sessionId ) )
-				return unauthorized( "invalid session" );
+				return unauthorized( "invalid session", hints );
 			user = SecurityManager.getSessionUser();
 		}
 		catch ( Exception e )
@@ -370,7 +397,7 @@ public class McpServlet
 			user = null;
 		}
 		if ( user == null )
-			return unauthorized( "unauthenticated" );
+			return unauthorized( "unauthenticated", hints );
 
 		return dispatch( method, path, body, user, start );
 	}
@@ -520,12 +547,12 @@ public class McpServlet
 	 * authorization server and sign in, and the reserved {@code Status} key (consumed by
 	 * {@code ConnectionServlet}) makes the 401 real on the wire instead of a 200 with an error body.
 	 */
-	private HandleResult unauthorized( String reason )
+	private static HandleResult unauthorized( String reason, IssuerHints hints )
 	{
 		String body = "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":401,\"message\":\"unauthorized: " + reason
 				+ " — a BioUML session is required\"}}";
 		Map<String, String> headers = new LinkedHashMap<String, String>();
-		String issuer = McpOAuthConfig.issuer( issuerHost, issuerForwardedHost, issuerForwardedProto );
+		String issuer = McpOAuthConfig.issuer( hints.host, hints.forwardedHost, hints.forwardedProto );
 		if ( issuer != null )
 			headers.put( "WWW-Authenticate",
 					"Bearer resource_metadata=\"" + McpOAuthConfig.protectedResourceMetadataUrl( issuer ) + "\"" );
