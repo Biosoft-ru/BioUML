@@ -11,7 +11,7 @@
 		var path = getElementPath(completePath);
 		var name = getElementName(completePath);
 		if(!path || !name) return -1;
-		if( perspective && perspective.name && 'Genome Enhancer' === perspective.name )
+		if(! (typeof isGEPerspective === 'function' && isGEPerspective(perspective) ))
             return -1;
         
         var dc = getDataCollection(path);
