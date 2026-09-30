@@ -7,7 +7,7 @@
     icon: "icons/import.gif",
     visible: "function(completePath)
     {
-        if(! (typeof isGEPerspective === 'function' && isGEPerspective(perspective) ))
+        if(typeof isGEPerspective === 'function' && isGEPerspective(perspective) )
             return -1;
 		var path = getElementPath(completePath);
 		var name = getElementName(completePath);
