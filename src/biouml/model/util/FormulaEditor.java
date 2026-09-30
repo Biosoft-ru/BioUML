@@ -125,8 +125,7 @@ public class FormulaEditor extends TextButtonEditor
     public void setValue(Object value)
     {
         super.setValue(value);
-        String titledValue = value.toString();
-        titledTextField.setText(titledValue);
+        titledTextField.setText(value.toString());
     }
 
     protected Role getRole()
