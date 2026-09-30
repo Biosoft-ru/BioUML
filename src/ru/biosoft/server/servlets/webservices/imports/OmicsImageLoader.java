@@ -6,33 +6,65 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 
+import biouml.standard.type.Species;
 import ru.biosoft.util.ApplicationUtils;
 import ru.biosoft.util.CustomImageLoader;
+import ru.biosoft.util.SpeciesDrawer;
 
-public class OmicsImageLoader implements CustomImageLoader
+public class OmicsImageLoader implements CustomImageLoader, SpeciesDrawer
 {
     private OmicsType type;
     private Image omicsImage;
+    private Image omicsImageWithSpecies;
     protected OmicsImageLoader(OmicsType type)
     {
         this.type = type;
         omicsImage = new ImageIcon( getClass().getResource( "resources/" + type.abbrev + ".png" ) ).getImage();
+        omicsImageWithSpecies = new ImageIcon( getClass().getResource( "resources/" + type.abbrev + "_sp.png" ) ).getImage();
     }
     
     @Override
+    // imageId = "pluginName:resources/genes.png|species:Homo sapiens" or "pluginName:resources/genes.png"
     public ImageIcon loadImage(String imageId)
     {
-        ImageIcon icon = ApplicationUtils.getImageIcon( imageId );
-        return addOmicsLabel(icon);
+        int pipeIdx = imageId.indexOf("|species:");
+        String iconPath = (pipeIdx > 0) ? imageId.substring(0, pipeIdx) : imageId;
+        ImageIcon icon = ApplicationUtils.getImageIcon(iconPath);
+        if (icon == null) return null;
+        return addOmicsLabel( icon, imageId );
     }
 
-    private ImageIcon addOmicsLabel(ImageIcon icon)
+    private ImageIcon addOmicsLabel(ImageIcon icon, String imageId)
     {
         Image origImg = icon.getImage();
         BufferedImage image = new BufferedImage( 16, 16, BufferedImage.TYPE_INT_ARGB );
         Graphics graphics = image.getGraphics();
         graphics.drawImage( origImg, 0, 0, null );
-        graphics.drawImage( omicsImage, 0, 0, null );
+        String speciesName = getSpecies( imageId );
+        if( speciesName != null && Species.getSpecies( speciesName ) != null )
+            graphics.drawImage( omicsImageWithSpecies, 0, 0, null );
+        else
+            graphics.drawImage( omicsImage, 0, 0, null );
+        // code below draw 2 letters abbreviation in left bottom corner, but due to small icon size it is not readable
+        //        if( speciesName != null )
+        //        {
+        //            Species species = Species.getSpecies( speciesName );
+        //            if( species != null && species.getAbbreviation() != null )
+        //            {
+        //                String abbrev = species.getAbbreviation();
+        //                graphics.setFont( new Font( "Monospaced", Font.PLAIN, 8 ) );
+        //                FontMetrics fm = graphics.getFontMetrics();
+        //                int tw = fm.stringWidth( abbrev );
+        //                int th = fm.getHeight();
+        //                int x = 0;
+        //                int y = 16 - 1;
+        //                //                graphics.setColor( Color.WHITE );
+        //                //                graphics.fillRect( x - 1, y - th + 1, tw + 2, th );
+        //                graphics.setColor( Color.BLACK );
+        //                graphics.drawString( abbrev, x, y );
+        //            }
+        //        }
+
         return new ImageIcon( image  );
     }
     
@@ -88,6 +120,13 @@ public class OmicsImageLoader implements CustomImageLoader
             default:
                 throw new AssertionError();
         }
+    }
+
+    @Override
+    public String getSpecies(String imageId)
+    {
+        int pipeIdx = imageId.indexOf( "|species:" );
+        return (pipeIdx > 0) ? imageId.substring( pipeIdx + 9 ) : null;
     }
     
 }

@@ -1,0 +1,39 @@
+
+ /*
+ * Set data type as Omics action
+ */
+{
+    id: "set_species",
+        label: "Set data Species",
+        icon: "icons/species.gif",
+    multi: true,
+    visible: "function(completePath)
+    {
+		var path = getElementPath(completePath);
+		var name = getElementName(completePath);
+		if(!path || !name) return -1;
+        var dc = getDataCollection(path);
+        var type = dc.getChildClass(name);
+        if (instanceOf(type,'ru.biosoft.table.TableDataCollection') 
+        	|| instanceOf(type,'ru.biosoft.bsa.Track')
+        	|| instanceOf(type,'ru.biosoft.access.file.FileDataElement')
+        	)
+        {
+            return true;
+        }
+        return -1;
+    }",
+    action: "function(path)
+    {
+		queryBioUML('web/species', {'action':'detect','de':path}, function(data) {
+	    var specCurValue = data.values.current;
+	    var specValues = data.values.all;
+	    createSelectorDialog('Set data type', 
+        'Please, select <b>Species</b> for <b>' + getElementName(path)+'</b>:', specCurValue, specValues, function(spec){
+	    		queryBioUML('web/species', {'action':'set','de':path, 'species':spec}, function(data) {
+	    			refreshTreeBranch(getElementPath(path));
+	    		});
+	    	});
+	    }); 
+    }"
+}

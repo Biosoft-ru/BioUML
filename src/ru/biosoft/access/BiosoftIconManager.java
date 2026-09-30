@@ -10,6 +10,7 @@ import ru.biosoft.access.core.IconManager;
 import ru.biosoft.access.repository.IconFactory;
 import ru.biosoft.util.ApplicationUtils;
 import ru.biosoft.util.CustomImageLoader;
+import ru.biosoft.util.SpeciesDrawer;
 
 /**
  * Temporary interlace between ru.biosoft.access.core.IconManager used in ru.biosot.access.core.Environment 
@@ -66,6 +67,24 @@ public class BiosoftIconManager implements IconManager
             {
                 String prefix = value.substring( 0, colonIdx );
                 String suffix = value.substring( colonIdx + 1 );
+
+                // Append species parameter only for loaders that support it
+                try
+                {
+                    Class<?> loaderClass = ClassLoading.loadClass( customImageLoaderClass );
+                    if( SpeciesDrawer.class.isAssignableFrom( loaderClass ) )
+                    {
+                        String species = descr.getValue( DataCollectionUtils.SPECIES_PROPERTY );
+                        if( species != null && !species.isEmpty() && !suffix.contains( "|species:" ) )
+                        {
+                            suffix = suffix + "|species:" + species;
+                        }
+                    }
+                }
+                catch( Exception ignored )
+                {
+                }
+
                 value = prefix + ":" + customImageLoaderClass + "?" + suffix;
             }
             else

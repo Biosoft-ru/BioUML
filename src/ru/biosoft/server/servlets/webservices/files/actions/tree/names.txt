@@ -47,7 +47,8 @@ import.json:Import
 export.json
 saveas.json
 copyFolder.json
-setOmicsType.json
+setOmicsType.json:GEPerspective
+setSpecies.json:GEPerspective
 removeElement.json
 renameProject.json
 removeProject.json
