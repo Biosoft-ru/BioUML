@@ -31,6 +31,7 @@ public class AutoTest extends TestCase
         suite.addTestSuite(TestExportProvider.class);
         suite.addTestSuite(TestWebBeanProvider.class);
         suite.addTestSuite(TestPerspectivesProvider.class);
+        suite.addTestSuite(OmicsImageLoaderTest.class);
 
         return suite;
     }
