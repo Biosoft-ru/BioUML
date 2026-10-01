@@ -58,6 +58,10 @@ public class SpeciesProvider extends WebJSONProviderSupport
                 {
                     ((GenericDataCollection) primaryParent).setChildProperty( de.getName(), DataCollectionUtils.SPECIES_PROPERTY, species.getLatinName() );
                 }
+                if( de instanceof DataCollection )
+                {
+                    ((DataCollection) de).getInfo().getProperties().setProperty( DataCollectionUtils.SPECIES_PROPERTY, species.getLatinName() );
+                }
             }
             catch (Exception e)
             {
