@@ -3,6 +3,7 @@ package ru.biosoft.server.servlets.webservices.imports;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 
 import javax.swing.ImageIcon;
 
@@ -19,7 +20,9 @@ public class OmicsImageLoader implements CustomImageLoader, SpeciesDrawer
     protected OmicsImageLoader(OmicsType type)
     {
         this.type = type;
-        omicsImage = new ImageIcon( getClass().getResource( "resources/" + type.abbrev + ".png" ) ).getImage();
+        URL url = getClass().getResource( "resources/" + type.abbrev + ".png" );
+        System.out.println( url.toString() );
+        omicsImage = new ImageIcon( url ).getImage();
         omicsImageWithSpecies = new ImageIcon( getClass().getResource( "resources/" + type.abbrev + "_sp.png" ) ).getImage();
     }
     

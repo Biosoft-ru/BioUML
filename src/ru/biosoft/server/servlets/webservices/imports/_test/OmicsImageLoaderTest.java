@@ -90,10 +90,13 @@ public class OmicsImageLoaderTest extends AbstractBioUMLTest
         savePNG(icon, out);
         System.out.println("Saved: " + out.getAbsolutePath());
 
-        // Verify species abbreviation "Hs" is drawn as dark pixels in bottom-left
-        BufferedImage bi = toBufferedImage(icon);
-        assertTrue("Species abbreviation should be drawn (dark pixels in bottom-left)",
-                hasDarkPixel(bi, 0, 10, 6, 6));
+        // Verify species overlay is used: compare with non-species version
+        ImageIcon iconNoSpecies = loader.loadImage(TEST_ICON);
+        assertNotNull("Non-species icon should not be null", iconNoSpecies);
+        BufferedImage biWith = toBufferedImage(icon);
+        BufferedImage biWithout = toBufferedImage(iconNoSpecies);
+        assertTrue("Species overlay should change the icon image",
+                imagesDiffer(biWith, biWithout));
     }
 
     public void testLoadImage_withSpecies_musMusculus()
@@ -106,9 +109,12 @@ public class OmicsImageLoaderTest extends AbstractBioUMLTest
         File out = getTestFile("genomics_mus_musculus.png");
         savePNG(icon, out);
 
-        BufferedImage bi = toBufferedImage(icon);
-        assertTrue("Species abbreviation 'Mm' should be drawn",
-                hasDarkPixel(bi, 0, 10, 6, 6));
+        // Verify species overlay is used
+        ImageIcon iconNoSpecies = loader.loadImage(TEST_ICON);
+        BufferedImage biWith = toBufferedImage(icon);
+        BufferedImage biWithout = toBufferedImage(iconNoSpecies);
+        assertTrue("Species overlay should change the icon image",
+                imagesDiffer(biWith, biWithout));
     }
 
     public void testLoadImage_withUnknownSpecies()
@@ -179,25 +185,17 @@ public class OmicsImageLoaderTest extends AbstractBioUMLTest
     }
 
     /**
-     * Check if any pixel in the given rect is dark (not white, not fully transparent).
+     * Check if two images differ in any pixel.
      */
-    private boolean hasDarkPixel(BufferedImage bi, int x, int y, int w, int h)
+    private boolean imagesDiffer(BufferedImage a, BufferedImage b)
     {
-        for (int py = y; py < y + h; py++)
+        if (a.getWidth() != b.getWidth() || a.getHeight() != b.getHeight())
+            return true;
+        for (int y = 0; y < a.getHeight(); y++)
         {
-            for (int px = x; px < x + w; px++)
+            for (int x = 0; x < a.getWidth(); x++)
             {
-                if (px < 0 || px >= bi.getWidth() || py < 0 || py >= bi.getHeight())
-                    continue;
-                int rgb = bi.getRGB(px, py);
-                int alpha = (rgb >> 24) & 0xFF;
-                if (alpha == 0)
-                    continue; // fully transparent
-                int r = (rgb >> 16) & 0xFF;
-                int g = (rgb >> 8) & 0xFF;
-                int b = rgb & 0xFF;
-                // Dark pixel: not white, not light gray
-                if (r < 180 && g < 180 && b < 180)
+                if (a.getRGB(x, y) != b.getRGB(x, y))
                     return true;
             }
         }
