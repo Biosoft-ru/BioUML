@@ -5,10 +5,12 @@ import junit.framework.TestCase;
 import biouml.plugins.simulation.ode.jvode.VectorUtils;
 
 /**
- * Regression tests for the unrolled-by-4 VectorUtils hot paths. The unrolling
- * changed the loop bounds, so the lengths 0, 1, 2, 3, 4, 5, 7, 8, 9 are
- * covered explicitly (all boundary alignments of the unrolled block plus the
- * scalar remainder).
+ * Regression tests for the VectorUtils hot-path loops (linearSum, add and the
+ * elementwise transforms). These are exact, tolerance-0.0 checks of the math:
+ * every element must match the scalar expression bit-for-bit. The lengths
+ * 0, 1, 2, 3, 4, 5, 7, 8, 9, 12, 13 cover the unroll-boundary alignments the
+ * loops were written for, so any future change to a loop body is checked across
+ * every remainder alignment.
  */
 public class VectorUtilsOptimizationTest extends TestCase
 {

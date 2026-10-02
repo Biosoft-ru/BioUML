@@ -4,6 +4,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import ru.biosoft.server.servlets.webservices.imports._test.OmicsImageLoaderTest;
+
 /**
  * Only automated (not visual) tests for nightly build should be included here.
  */
