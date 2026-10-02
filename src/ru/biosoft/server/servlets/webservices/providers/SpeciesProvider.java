@@ -44,8 +44,15 @@ public class SpeciesProvider extends WebJSONProviderSupport
         DataElement de = dePath.optDataElement();
         if( de == null )
             throw new WebException( "EX_QUERY_NO_ELEMENT", dePath );
-        DataCollection<?> parentDC = dePath.getParentCollection();
         String speciesStr = arguments.get( "species" );
+        setSpecies( de, speciesStr );
+        response.sendString( "ok" );
+    }
+
+    public static void setSpecies(DataElement de, String speciesStr)
+    {
+        DataElementPath dePath = de.getCompletePath();
+        DataCollection<?> parentDC = dePath.getParentCollection();
         Species species = speciesStr == null ? null : Species.getSpecies( speciesStr );
         if( species != null )
         {
@@ -67,7 +74,6 @@ public class SpeciesProvider extends WebJSONProviderSupport
             {
             }
         }
-        response.sendString( "ok" );
     }
 
     private void processDetectSpecies(BiosoftWebRequest arguments, JSONResponse response) throws IOException, WebException
