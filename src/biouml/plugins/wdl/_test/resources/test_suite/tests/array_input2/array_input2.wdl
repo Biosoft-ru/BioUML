@@ -30,7 +30,7 @@ task process_files {
   }
 }
 
-workflow main {
+workflow mainWorkflow {
 
   call generate_file {}
 

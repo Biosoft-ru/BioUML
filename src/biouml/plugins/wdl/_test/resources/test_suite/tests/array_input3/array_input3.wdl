@@ -33,7 +33,7 @@ task process_files {
   }
 }
 
-workflow main {
+workflow mainWorkflow {
 
   scatter (i in [0,1,2]) {
     call generate_file  {
