@@ -128,7 +128,7 @@ def getDefault(value, defaultValue)
 def toChannel(arr) 
 {
     if (arr instanceof java.util.List)
-        return Channel.of(arr).flatten()
+        return Channel.fromList(arr)
      else 
         return arr
 }
@@ -350,9 +350,23 @@ def glob_wdl(pattern, workDir)
     return result.sort { a, b -> a.toString() <=> b.toString() }
 }
 
+def read_file(filePath)
+{
+   def file
+
+    if (filePath instanceof java.nio.file.Path)
+        file = filePath.toFile()
+    else if (filePath instanceof File)
+        file = filePath
+    else
+        file = new File(filePath.toString())
+    
+    return file
+}
+
 def read_int_wdl(filePath)
 {
-    return new File(filePath).text.trim() as Integer
+    return read_file(filePath).text.trim() as Integer
 }
 
 def read_lines_bash(filePath) 
@@ -382,12 +396,12 @@ def read_boolean_bash(filePath)
 
 def read_float_wdl(filePath) 
 {
-    return new File(filePath).text.trim() as Float
+    return read_file(filePath).text.trim() as Float
 }
 
 def read_boolean_wdl(filePath) 
 {
-    def text = new File(filePath).text.trim().toLowerCase(Locale.ROOT)
+    def text = read_file(filePath).text.trim().toLowerCase(Locale.ROOT)
 
     if (text == 'true')
         return true
@@ -434,12 +448,35 @@ def toArray(inputs)
     return result.map { box -> box.items }
 }
 
-def combineAll(inputs) 
+def combineAll(inputs)
 {
     if (inputs.size() == 0)
         return Channel.empty()
-    
-    return inputs.drop(1).inject(toChannel(inputs[0])) { result, input -> result.combine(toChannel(input)) }
+
+    if (inputs.every { it instanceof java.util.List })
+    {
+        def result = [[]]
+
+        inputs.each { input ->
+            def next = []
+
+            result.each { prefix ->
+                input.each { value ->
+                    next.add(prefix + [value])
+                }
+            }
+
+            result = next
+        }
+
+        return Channel.fromList(result)
+    }
+
+    return inputs.drop(1).inject(toChannel(inputs[0])) { result, input ->
+        result.combine(
+            input instanceof java.util.List ? input : toChannel(input)
+        )
+    }
 }
 
 def wdl_to_string(value) 
@@ -1441,7 +1478,7 @@ def serializeOutputValue(
     boolean isWSL
 )
 {
-    if (value == null)
+    if (value == null || value == "NO_VALUE")
         return null
 
     if (value instanceof java.nio.file.Path)
@@ -1517,4 +1554,257 @@ def serializeOutputValue(
         return value
 
     return value.toString()
+}
+
+
+
+def addValues2(context, values)
+{
+    if (values == null || values.size() == 0)
+        return context
+    return mergeAll( [context] + values ).map { row -> row[0] + row[1..-1] }
+}
+
+
+def addScatter(context, scatter)
+{
+    return mergeAll([ context, scatter ]).flatMap { values ->
+
+        def ctx = values[0]
+        def scatter_values = values[1]
+
+        scatter_values.collect { scatter_v -> ctx + [scatter_v] }
+    }
+}
+
+def collectScatter(values, scatters)
+{
+    if (scatters == null || scatters.size() == 0)
+        return values.collect()
+
+    def inputs = [ values.collect() ]
+
+    scatters.each { scatter ->
+        inputs.add( scatter.map { value -> value.size() }.collect() )
+    }
+
+    return mergeAll(inputs).map { data ->
+        collectScatterValues(
+            data[0],
+            data[1..-1]
+        )
+    }
+}
+
+def collectScatterValues(values, sizes)
+{
+    if (sizes == null || sizes.size() == 0)
+        return values
+
+    def valueIndex = [0]
+    def sizeIndexes = sizes.collect { 0 }
+
+    return collectScatterLevel( values, sizes, 0, valueIndex, sizeIndexes)
+}
+
+
+def collectScatterLevel( values, sizes, level, valueIndex, sizeIndexes)
+{
+    def currentSizes = sizes[level]
+
+    if (level == 0)
+    {
+        def result = []
+
+        currentSizes.each { size ->
+
+            if (level == sizes.size() - 1)
+            {
+                def group = []
+
+                size.times {
+                    group.add(values[valueIndex[0]])
+                    valueIndex[0] = valueIndex[0] + 1
+                }
+
+                result.add(group)
+            }
+            else
+            {
+                result.add( collectScatterGroup( values, sizes, level + 1, size, valueIndex, sizeIndexes ) )
+            }
+        }
+
+        return result
+    }
+
+    return null
+}
+
+
+def collectScatterGroup( values, sizes, level, count, valueIndex, sizeIndexes)
+{
+    def result = []
+
+    count.times {
+
+        def size = sizes[level][sizeIndexes[level]]
+        sizeIndexes[level] = sizeIndexes[level] + 1
+
+        if (level == sizes.size() - 1)
+        {
+            def group = []
+
+            size.times {
+                group.add(values[valueIndex[0]])
+                valueIndex[0] = valueIndex[0] + 1
+            }
+            result.add(group)
+        }
+        else
+        {
+            result.add( collectScatterGroup( values, sizes, level + 1, size, valueIndex, sizeIndexes) )
+        }
+    }
+
+    return result
+}
+
+def mergeAll(inputs)
+{
+    if (inputs.size() == 0)
+        return Channel.empty()
+
+    if (inputs.size() == 1)
+        return toChannel(inputs[0]).map { value -> [value] }
+
+    def result = toChannel(inputs[0])
+        .map { value -> [value] }
+
+    inputs.drop(1).each { input ->
+
+        def next = toChannel(input)
+            .map { value -> [value] }
+
+        result = result.merge(next)
+    }
+    return result
+}
+
+def addValue(context, valueChannel)
+{
+    return mergeAll([context, valueChannel]).map { values ->
+        values[0] + [values[1]]
+    }
+}
+
+
+def addValues(context, valueChannels)
+{
+    def inputs = [context]
+
+    valueChannels.each { valueChannel ->
+        inputs.add(valueChannel)
+    }
+
+    return mergeAll(inputs).map { values ->
+        def result = new ArrayList(values[0])
+
+        values.drop(1).each { value ->
+            result.add(value)
+        }
+
+        return result
+    }
+}
+
+def addConditionalValue(context, valueChannel, conditionalContext)
+{
+    return addConditionalValues(context, [valueChannel], conditionalContext)
+}
+
+def addConditionalValues(context, valueChannels, conditionalContext)
+{
+    def inputs = [
+        context.map { value -> [value: value] }.collect(),
+        conditionalContext.map { value -> [value: value] }.collect()
+    ]
+
+    valueChannels.each { valueChannel ->
+        inputs.add(valueChannel.collect())
+    }
+
+    def collected = mergeAll(inputs)
+
+    def result = collected.map { data ->
+        def contexts = data.get(0)
+        def conditionalContexts = data.get(1)
+        def outputValues = data.drop(2)
+        def conditionalIndex = [0]
+        def rows = []
+
+        contexts.each { contextEntry ->
+            def contextValue = contextEntry.value
+            def accepted = false
+
+            if (conditionalIndex[0] < conditionalContexts.size())
+            {
+                def conditionalContextValue = conditionalContexts.get(conditionalIndex[0]).value
+                accepted = contextValue == conditionalContextValue
+            }
+
+            def newContext = new ArrayList(contextValue)
+
+            outputValues.each { values ->
+                if (accepted)
+                    newContext.add(values.get(conditionalIndex[0]))
+                else
+                    newContext.add("NO_VALUE")
+            }
+
+            if (accepted)
+                conditionalIndex[0] = conditionalIndex[0] + 1
+
+            rows.add(newContext)
+        }
+
+        return rows
+    }
+
+    return result.flatMap { rows -> rows }
+}
+
+def callContext(closure, values)
+{
+    def result = closure
+    values.each { value -> result = result.curry(value) }
+    return result.call()
+}
+
+def createScatter(values)
+{
+    return toChannel(values).map { value -> [value] }
+}
+
+def calcInScatter(context, mapper)
+{
+    if (mapper.maximumNumberOfParameters == 1)
+    {
+        return context.map { values -> mapper.call(values[0]) }
+    }
+    return context.map(mapper)
+}
+
+def condition(context, predicate)
+{
+    if (predicate.maximumNumberOfParameters == 1)
+    {
+        return context.filter { values -> predicate.call(values[0]) }
+    }
+    return context.filter(predicate)
+}
+
+def contextValue(context, index)
+{
+    return context.map { values ->  values.get(index) }
 }
