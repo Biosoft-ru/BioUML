@@ -169,6 +169,47 @@ When optimizing, follow these patterns (in order of impact):
 - Follow the existing idiom (check nearby code)
 - Add a comment explaining *why* the optimization was made
 
+**⚠️ Do NOT hand-unroll tight elementwise loops / do not fight the JIT.**
+C2's auto-vectorizer (SuperWord) already turns tight scalar loops
+(`z[i] = a*x[i] + b[i]`, `x[i] *= c`, `z[i] += x[i]`, …) into SIMD code.
+A manual unroll-by-N **defeats** that and measures *slower* — on JDK 21 the
+unrolled VectorUtils loops measured **~3× slower** than the scalar form on two
+independent machines (AVX2 and AVX-512). Do not "optimize" a hot loop by
+unrolling it, rewriting it to "reduce loop overhead," or otherwise restructuring
+it in a way that changes what C2 can vectorize. The profiler shows *where*
+samples land, not that a transform will help. For reductions that are genuinely
+add-chain latency-bound (e.g. a norm), the real lever is a few independent
+partial sums — and that is *not* bit-identical, so it needs its own
+justification. See "Do Not: manual loop unrolling" in
+`references/profile_analysis.md`.
+
+### Step 4.5: Prove the optimization (benchmark before you claim a win)
+
+**A profiler profile is not evidence that a change is faster.** It tells you
+*where* time goes; it does not tell you that your transform will reduce that
+time. Before you claim a performance win in a PR, measure it:
+
+1. **Microbenchmark** the specific method(s) before vs. after, on the **same
+   JDK and CPU** the server runs, at the **real vector sizes** the workload
+   has (for BioUML models: often tens to a few hundred — try n = 24/150/512).
+   A JMH harness for the JVode `VectorUtils` loops lives in `benchmarks/`
+   (see its `README.md`); adapt it for other methods.
+2. **Prefer the `benchmarks/` harness over one-off loops.** Run
+   `benchmarks/Verify` to confirm bit-identity when the change should be
+   bit-identical, and the JMH A/B to confirm the timing.
+3. **If you can't benchmark it, don't ship it as a perf change.** Either
+   benchmark it, or mark the PR honestly ("kept pending a benchmark;
+   correctness-preserving") — do *not* merge a perf claim on profiler
+   location alone. This is exactly what happened with the VectorUtils
+   unroll (PR #39 merged pending a benchmark, PR #43 extended it; the
+   benchmark showed a ~3× *regression* and they were reverted in PR #44).
+4. **Only merge the methods that show a measurable win.** Don't bundle
+   speculative "optimizations" with the ones you proved.
+
+Gate the PR on this: the benchmark number belongs in the PR body, next to the
+profiler sample counts. "N samples in the profile" is not a result; "N ns/op
+before → M ns/op after, 9/9 sizes faster" is.
+
 ### Step 5: Verify Build and Tests
 
 After making changes, verify **both** build systems compile:
