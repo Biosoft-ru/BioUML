@@ -44,3 +44,8 @@ mvn -pl src test -Dtest=DiagramXmlReaderTest
 - **Java 21** required (compiler target/release)
 - **MySQL** for data repository (`docker-compose.yaml` brings up `bioumlsupport2`)
 - No lint/typecheck tools configured
+
+## Performance / profiling
+
+- **Do not hand-unroll tight elementwise numeric loops** (e.g. `z[i] = a*x[i] + b[i]`, `x[i] *= c`). C2's auto-vectorizer (SuperWord) already SIMD-vectorizes them; a manual unroll-by-N *defeats* it and measured ~3× **slower** on JDK 21 (JVode `VectorUtils` loops — PR #39/#43/#44).
+- A profiler sample count is **not** proof a change is faster. Benchmark loop "optimizations" with the JMH harness in `benchmarks/` (same JDK/CPU as the server, at real vector sizes) before claiming a win.
