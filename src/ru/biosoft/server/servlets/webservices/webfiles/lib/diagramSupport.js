@@ -681,6 +681,8 @@ DiagramSupport.prototype.getDiagramPortParameters = function (callback)
 DiagramSupport.prototype.dataCollectionChanged = function()
 {
     var _this = this;
+    if(!_this.loaded)
+        return;
     queryBioUML("web/diagram/refresh",
     {
         de: this.completeName,
