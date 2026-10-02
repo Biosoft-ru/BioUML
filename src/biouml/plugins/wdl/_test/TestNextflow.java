@@ -52,16 +52,17 @@ public class TestNextflow
     private WorkflowReportGenerator workflowReportGenerator = new WorkflowReportGenerator();
     private List<TestResult> testResults = new ArrayList<>();
     private File yamlFile = null;
-    private int limit = 800; //number of tests to execute
+    private int limit = 666; //number of tests to execute
     //stdout_as_output
-    private Set<String> selected = null;//Set.of("read_lines");;//"null_optional_vs_default_subworkflows" - publish dir ext workflow;
+    private Set<String> selected = null;//Set.of("two_calls_if_cycle")        ;//"null_optional_vs_default_subworkflows" - publish dir ext workflow;
     private Set<String> excluded = null;//
             File suiteDir = null;
     
             public static void main(String ... args) throws Exception
             {
-                testWDL( "resources/test_suite" );
+                testWDL( "resources/test_suite", "test.yaml" );
                 testWDL( "resources/wdl-conformance-tests", "conformance.yaml" );
+//                convert("C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/_test/resources/candidades/double_scatter2.wdl");
             }
 
     
@@ -91,6 +92,12 @@ public class TestNextflow
     {
         TestNextflow tester = new TestNextflow();
         tester.init( TestNextflow.class.getResource( path ), null );
+//        tester.test( "double_scatter" );
+//        tester.test( "double_condition");
+//        tester.test( "conditional_call");
+//        tester.test( "multiple_outputs");
+//        tester.test( "outer_call");
+//        tester.test( "outer_expression");
         tester.testAll();
         tester.generateStatistics( tester.testResults );
     }
@@ -252,7 +259,8 @@ public class TestNextflow
             Map<Object, Object> inputsMap = (Map<Object, Object>)inputs;
             String testPath = inputsMap.get( "dir" ).toString();
             String testName = inputsMap.get( "wdl" ).toString();
-            String testJSON = inputsMap.get( "json" ).toString();
+            
+            String testJSON = (inputsMap.containsKey( "json" ))? inputsMap.get( "json" ).toString(): null;
 
             Object outputs = testMap.get( "outputs" );
             Map<Object, Object> outputsMap = (Map<Object, Object>)outputs;
@@ -393,7 +401,8 @@ public class TestNextflow
                 {
                     try
                     {
-                        String nextFlowExecuted = runNextFlow( suiteDir, testDir, resultDir, name, nextflow, additionalNextflow, new File( testDir, jsonName ).exists()? jsonName: null);
+                        String json = ( jsonName != null && new File( testDir, jsonName ).exists() ) ? jsonName : null;
+                        String nextFlowExecuted = runNextFlow( suiteDir, testDir, resultDir, name, nextflow, additionalNextflow, json );
                         testResult.setNextflowExecuted( nextFlowExecuted );
                     }
                     catch( Exception ex )
@@ -448,6 +457,32 @@ public class TestNextflow
         //        saveInput( name, originalWDL, nextflow );
         testResults.add( testResult );
         //        System.out.println( generatedWDL );
+    }
+    
+    private static void convert(String path)
+    {
+        try
+        {
+            File wdlFile = new File(path);
+            String id = wdlFile.getName().substring( 0, wdlFile.getName().lastIndexOf( "." ) );
+            String originalWDL = ApplicationUtils.readAsString( wdlFile );
+            WDLImporter importer = new WDLImporter();
+            importer.setScriptLoader( new FileScriptLoader( ScriptLoader.WDL_TYPE, wdlFile.getParentFile() ) );
+            ScriptInfo info = importer.readScript( id, originalWDL );
+            DiagramGenerator generator = new DiagramGenerator();
+            Diagram diagram = generator.generateDiagram( info, null, id );
+            NextFlowGenerator nextFlowGenerator = new NextFlowGenerator();
+            nextFlowGenerator.setNextflowSettings( settings );
+            nextFlowGenerator.setResultPath( "results/" + diagram.getName() + "/output/" );
+            String nextflow = nextFlowGenerator.generate( diagram );
+            File result = new File( wdlFile.getParentFile(), id + ".nf" );
+            ApplicationUtils.writeString( result, nextflow );
+            System.out.println( nextflow );
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
     }
 
     private void copyFiles(File source, File target) throws Exception
