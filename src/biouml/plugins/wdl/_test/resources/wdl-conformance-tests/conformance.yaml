@@ -1230,7 +1230,7 @@
                 basename: b.txt
     directoryWorkflow.out_log:
       type: File
-      value: {regex: "testdir/\n.*testdir/a.txt\n.*testdir/subdir\n.*testdir/subdir/b.txt"}
+      value: {regex: ".*testdir\n.*testdir/a.txt\n.*testdir/subdir\n.*testdir/subdir/b.txt"}
 - description: |
     Test that sibling directories are kept in the same directory when downloaded, and siblings of their files are in the right place
   versions: ["1.2", "development"]
