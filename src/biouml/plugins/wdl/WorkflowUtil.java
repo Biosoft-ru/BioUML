@@ -142,7 +142,7 @@ public class WorkflowUtil
     public static Compartment getParentCycle(Node c)
     {
         Compartment parent = c.getCompartment();
-        while( parent != null )
+        while( parent != null  && !(parent instanceof Diagram))
         {
             if( isCycle( parent ) )
                 return parent;

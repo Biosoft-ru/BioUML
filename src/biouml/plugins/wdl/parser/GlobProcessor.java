@@ -37,12 +37,9 @@ public class GlobProcessor
     {
         if( "glob".equals( node.toString() ) )
         {
-            AstText arg = NextFlowPreprocessor.hasOneArgument( node );
-//            if( arg != null )
-//            {
-                SimpleNode parent = (SimpleNode)node.jjtGetParent();
-                ParserUtil.replaceChild( parent, node, arg );
-//            }
+            Node arg = NextFlowPreprocessor.hasOneArgument( node );
+            SimpleNode parent = (SimpleNode)node.jjtGetParent();
+            ParserUtil.replaceChild( parent, node, arg );
         }
     }
 }
