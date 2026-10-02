@@ -6,6 +6,12 @@ import one.util.streamex.DoubleStreamEx;
 
 public class VectorUtils
 {
+    /*
+     * Keep the elementwise loops in this class as plain scalar loops. HotSpot C2
+     * auto-vectorizes them (SuperWord); hand-unrolling defeats that and measured
+     * several times slower on JDK 21 (see the revert of PR #39, PR #44). Benchmark
+     * any change to these loops with JMH before merging.
+     */
 
     private VectorUtils()
     {
@@ -18,17 +24,9 @@ public class VectorUtils
     public static void linearSum(double a, double[] x, double b, double[] y, double[] z)
     {
         int n = x.length;
-        int i = 0;
-        // Unroll by 4: reduces loop overhead in the tightest solver loop
-        // (called from predictZ, getDky, doNewtonIteration every step).
-        for( ; i + 3 < n; i += 4 )
-        {
-            z[i]     = ( a * x[i]     ) + ( b * y[i]     );
-            z[i + 1] = ( a * x[i + 1] ) + ( b * y[i + 1] );
-            z[i + 2] = ( a * x[i + 2] ) + ( b * y[i + 2] );
-            z[i + 3] = ( a * x[i + 3] ) + ( b * y[i + 3] );
-        }
-        for( ; i < n; i++ )
+        // Called from predictZ, getDky, doNewtonIteration every step. Left scalar
+        // on purpose: C2 auto-vectorizes this; a hand-unroll is several times slower.
+        for( int i = 0; i < n; i++ )
             z[i] = ( a * x[i] ) + ( b * y[i] );
     }
 
@@ -374,15 +372,8 @@ public class VectorUtils
     public static void linearSum(double[] x, double[] y, double[] z)
     {
         int n = x.length;
-        int i = 0;
-        for( ; i + 3 < n; i += 4 )
-        {
-            z[i]     = x[i]     + y[i];
-            z[i + 1] = x[i + 1] + y[i + 1];
-            z[i + 2] = x[i + 2] + y[i + 2];
-            z[i + 3] = x[i + 3] + y[i + 3];
-        }
-        for( ; i < n; i++ )
+        // Scalar on purpose: C2 auto-vectorizes this; a hand-unroll is several times slower.
+        for( int i = 0; i < n; i++ )
             z[i] = x[i] + y[i];
     }
 
@@ -505,15 +496,8 @@ public class VectorUtils
     public static void add(double[] x, double[] z)
     {
         int n = x.length;
-        int i = 0;
-        for( ; i + 3 < n; i += 4 )
-        {
-            z[i]     += x[i];
-            z[i + 1] += x[i + 1];
-            z[i + 2] += x[i + 2];
-            z[i + 3] += x[i + 3];
-        }
-        for( ; i < n; i++ )
+        // Scalar on purpose: C2 auto-vectorizes this; a hand-unroll is several times slower.
+        for( int i = 0; i < n; i++ )
             z[i] += x[i];
     }
 
