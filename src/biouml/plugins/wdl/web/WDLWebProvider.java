@@ -10,6 +10,8 @@ import org.json.JSONObject;
 import biouml.model.Diagram;
 import biouml.plugins.wdl.cwl.CWLGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.RepositoryScriptLoader;
+import biouml.plugins.wdl.ScriptLoader;
 import biouml.plugins.wdl.WDLGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowRunner;
 import biouml.plugins.wdl.WorkflowSettings;
@@ -64,6 +66,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             Diagram diagram = WebDiagramsProvider.getDiagram( diagramPath.toString(), false );
             String text = arguments.get( "wdl" );
             WDLImporter wdlImporter = new WDLImporter();
+            wdlImporter.setScriptLoader( new RepositoryScriptLoader( ScriptLoader.WDL_TYPE, diagram.getOrigin().getCompletePath() ) );
             diagram = wdlImporter.generateDiagram( text, diagram );
             diagramPath.save( diagram );
             OutputStream out = response.getOutputStream();
