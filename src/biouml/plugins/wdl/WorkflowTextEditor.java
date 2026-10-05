@@ -379,6 +379,7 @@ public class WorkflowTextEditor extends EditorPartSupport
                 }
                 else
                 {
+                    wdlImporter.setScriptLoader( new RepositoryScriptLoader( ScriptLoader.WDL_TYPE, diagram.getOrigin().getCompletePath() ) );
                     diagram = wdlImporter.generateDiagram( getWDL(), diagram );
                     setDiagram( diagram );
                     reloadNextflow();
