@@ -298,6 +298,8 @@ public class WebTablesProvider extends WebProviderSupport
                 root.put( "sEcho", sEcho );
                 root.put( "iTotalRecords", tableModel.getRowCount() );
                 root.put( "iTotalDisplayRecords", tableModel.getRowCount() );
+                if( Boolean.parseBoolean( arguments.get( "includeColumnMaximums" ) ) )
+                    root.put( "columnMaximums", getColumnMaximums() );
                 root.put( "aaData", aaData );
 
                 try (OutputStreamWriter writer = new OutputStreamWriter( out, StandardCharsets.UTF_8 ))
@@ -312,6 +314,33 @@ public class WebTablesProvider extends WebProviderSupport
             }
         }
 
+        /**
+         * Method used for MATCh Suite results' view
+         */
+        private JSONArray getColumnMaximums()
+        {
+            JSONArray maximums = new JSONArray();
+            for( int column = 0; column < tableModel.getColumnCount(); column++ )
+            {
+                Double maximum = null;
+                for( int row = 0; row < tableModel.getRowCount(); row++ )
+                {
+                    Object value = tableModel.getRealValue( row, column );
+                    if( value instanceof Number )
+                    {
+                        double numericValue = ( (Number)value ).doubleValue();
+                        if( !Double.isNaN( numericValue ) && !Double.isInfinite( numericValue )
+                                && ( maximum == null || numericValue > maximum ) )
+                        {
+                            maximum = numericValue;
+                        }
+                    }
+                }
+                maximums.put( maximum == null ? JSONObject.NULL : maximum );
+            }
+            return maximums;
+        }
+        
         /**
          * Generate and send JSON with table data in "dataTables" format
          * @throws IOException, WebException
