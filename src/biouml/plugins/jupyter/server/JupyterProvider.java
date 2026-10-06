@@ -547,11 +547,34 @@ public class JupyterProvider extends WebProviderSupport
                 log.info( "Linking '" + sourceFilePath + "' to '" + dirPath + "/" + linkName + "'" );
                 Files.createLink( Paths.get( dirPath + "/" + linkName ), Paths.get( sourceFilePath ) );
             }
+            catch( java.nio.file.FileSystemException e )
+            {
+                if ( e.getMessage() != null && e.getMessage().contains( "Invalid cross-device link" ) )
+                {
+                    try
+                    {
+                        Path linkPath = Paths.get( dirPath + "/" + linkName );
+                        log.info( "Hard link failed (cross-device), using symbolic link: '" + sourceFilePath + "' -> '" + linkPath + "'" );
+                        Files.createSymbolicLink( linkPath, Paths.get( sourceFilePath ) );
+                    }
+                    catch ( Exception e2 )
+                    {
+                        log.log( Level.SEVERE, "Cannot create symbolic link", e2 );
+                        return "";
+                    }
+                }
+                else
+                {
+                    log.log( Level.SEVERE, "Cannot create link", e );
+                    return "";
+                }
+            }
             catch( Exception e )
             {
                 log.log( Level.SEVERE, "Cannot create link", e );
                 return "";
             }
+
             return linkName;
         }
 
