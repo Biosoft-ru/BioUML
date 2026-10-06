@@ -12,7 +12,9 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.PosixFileAttributeView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -167,9 +169,10 @@ public class JupyterProvider extends WebProviderSupport
             String filePath = element.getFilePath();
             log.info( "Got filePath = '" + filePath + "'." );
             if( !jupyterConf.useLocalNotebook() )
-            {  
+            {
                 try
                 {
+                    fixPathPermissions( filePath );
                     updatePermissions( filePath, jupyterConf.getFilePermissionsMask() );
                 }
                 catch( IOException e )
@@ -480,7 +483,84 @@ public class JupyterProvider extends WebProviderSupport
         else
         {
             log.log( Level.SEVERE, "Unable to find group principal for: " + nbGroup );
-        } 
+        }
+    }
+
+    /**
+     * Ensure all parent directories in the given file path are traversable (r-x for others)
+     * so that the Jupyter container's jovyan user (UID 1000) can access the file.
+     * Also ensures the file itself is readable and writable.
+     */
+    private void fixPathPermissions( String filePath ) throws IOException
+    {
+        Path file = Paths.get( filePath );
+        Path parent = file.getParent();
+
+        // Make all parent directories traversable (r-x for others)
+        if( parent != null && Files.exists( parent ) )
+        {
+            // Find the root of the path
+            Path root = parent;
+            while( root != null && Files.exists( root ) )
+            {
+                root = root.getParent();
+            }
+            // Walk from parent up to root, then fix from root down to parent
+            List<Path> dirs = new ArrayList<>();
+            Path p = parent;
+            while( p != null && ( root == null || p.startsWith( root ) ) )
+            {
+                dirs.add( p );
+                p = p.getParent();
+            }
+            // Fix from root down to parent (reverse order)
+            for( int i = dirs.size() - 1; i >= 0; i-- )
+            {
+                Path dir = dirs.get( i );
+                try
+                {
+                    java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView( dir, java.nio.file.attribute.PosixFileAttributeView.class );
+                    if( view != null )
+                    {
+                        Set<java.nio.file.attribute.PosixFilePermission> perms = new HashSet<>();
+                        perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_READ );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_WRITE );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_READ );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_WRITE );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_READ );
+                        perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE );
+                        view.setPermissions( perms );
+                    }
+                }
+                catch( IOException e )
+                {
+                    log.log( Level.FINE, "Cannot fix permissions on directory '" + dir + "': " + e.getMessage() );
+                }
+            }
+        }
+
+        // Make the notebook file itself readable and writable by others
+        try
+        {
+            java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView( file, java.nio.file.attribute.PosixFileAttributeView.class );
+            if( view != null )
+            {
+                Set<java.nio.file.attribute.PosixFilePermission> perms = new HashSet<>();
+                perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_READ );
+                perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_WRITE );
+                perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_READ );
+                perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_WRITE );
+                perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_READ );
+                perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE );
+                view.setPermissions( perms );
+            }
+        }
+        catch( IOException e )
+        {
+            log.log( Level.FINE, "Cannot fix permissions on file '" + file + "': " + e.getMessage() );
+        }
     }
 
     private class JupyterFileLink
