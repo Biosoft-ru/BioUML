@@ -13,8 +13,9 @@
             <property name="ApplicationName" type="java.lang.String" value="BioUML" display-name="ApplicationName" short-description="ApplicationName"/> 
             <property name="ApplicationTitle" type="java.lang.String" value="BioUML workbench" display-name="ApplicationTitle" short-description="ApplicationTitle"/> 
             <property name="ApplicationVersion" type="java.lang.String" value="0.9.6" display-name="ApplicationVersion" short-description="ApplicationVersion"/> 
-            <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/> 
-            <!--property name="HistoryDiagrams" type="java.lang.String" value="history/diagrams" display-name="HistoryDiagrams" short-description="HistoryDiagrams"/--> 
+            <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/>
+            <property name="RepositoryExcludeNames" type="java.lang.String" value="luceneIndex;.git" display-name="Exclude names" short-description="Semicolon-separated directory names hidden from all repository projects (e.g. luceneIndex;.git)"/>
+            <!--property name="HistoryDiagrams" type="java.lang.String" value="history/diagrams" display-name="HistoryDiagrams" short-description="HistoryDiagrams"/-->
         </dynamicPropertySet> 
     </property> 
 </dynamicPropertySet> 
