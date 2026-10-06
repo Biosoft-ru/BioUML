@@ -88,11 +88,13 @@ public class ExpressionFormatter
 
     protected void processContainer(AstContainerElement node)
     {
-        result.append( node.toString() );
-        result.append( "[" );
-        for( Node child : node.children )
-            processNode( child );
-        result.append( "]" );
+        processNode( node.children[0] );
+        for( int i = 1; i < node.children.length; i++ )
+        {
+            result.append( "[" );
+            processNode( node.children[i] );
+            result.append( "]" );
+        }
     }
 
     protected void processFunction(AstFunction node)

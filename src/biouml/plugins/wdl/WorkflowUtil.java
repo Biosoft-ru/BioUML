@@ -142,7 +142,7 @@ public class WorkflowUtil
     public static Compartment getParentCycle(Node c)
     {
         Compartment parent = c.getCompartment();
-        while( parent != null )
+        while( parent != null  && !(parent instanceof Diagram))
         {
             if( isCycle( parent ) )
                 return parent;
@@ -150,7 +150,26 @@ public class WorkflowUtil
         }
         return null;
     }
+    
+    /**
+     * @return all conditional parents for given node before first enclosing cycle
+     */
+    public static List<Compartment> getParentIfs(Node c)
+    {
+        List<Compartment> result = new ArrayList<>();
+        Compartment parent = c.getCompartment();
+        while( !isCycle ( parent  ) && !(parent instanceof Diagram))
+        {
+            if( isConditional( parent ) )
+                result.add( parent );
+            parent = parent.getCompartment();
+        }
+        return result;
+    }
 
+    /**
+     * @return all cycle parents for given node
+     */
     public static List<Compartment> getParentCycles(Node c)
     {
         List<Compartment> result = new ArrayList<>();
@@ -421,6 +440,17 @@ public class WorkflowUtil
     {
         return n.getAttributes().getValueAsString( WDLConstants.TYPE_ATTR );
     }
+    
+    public static String getDefaultValue(Node n)
+    {
+        if( n.getAttributes().hasProperty( WDLConstants.DEFAULT_VALUE_ATTR ) )
+            return n.getAttributes().getValueAsString( WDLConstants.DEFAULT_VALUE_ATTR );
+        return null;
+    }
+    public static void setDefaultValue(Node n, String value)
+    {
+        n.getAttributes().add( new DynamicProperty( WDLConstants.DEFAULT_VALUE_ATTR, String.class, value ) );
+    }
 
     public static String getCallName(Compartment n)
     {
@@ -481,6 +511,15 @@ public class WorkflowUtil
         return result;
     }
 
+    public static String getQualifiedName(Node n)
+    {
+        if( isOutput( n ) && isCall( n.getCompartment() ) )
+        {
+            return getCallName( n.getCompartment() ) + "." + getName( n );
+        }
+        return getName(n);
+    }
+
     public static String getName(Node n)
     {
         try
@@ -510,6 +549,11 @@ public class WorkflowUtil
         n.getAttributes().add( new DynamicProperty( WDLConstants.NAME_ATTR, String.class, name ) );
     }
 
+    public static void setWDLVersion(Diagram diagram, String version)
+    {
+        diagram.getAttributes().add( new DynamicProperty( WDLConstants.WDL_VERSION_ATTR, String.class, version ) );
+    }
+    
     public static void setVersion(Diagram diagram, String version)
     {
         diagram.getAttributes().add( new DynamicProperty( WDLConstants.VERSION_ATTR, String.class, version ) );
@@ -734,6 +778,11 @@ public class WorkflowUtil
         return parent.stream( Node.class ).filter( n -> isInput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
     }
     
+    public static Node findExternalParameter(String name, Compartment parent)
+    {
+        return parent.stream( Node.class ).filter( n -> isExternalParameter( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
+    }
+
     public static Node findOutput(String name, Compartment parent)
     {
         return parent.stream( Node.class ).filter( n -> isOutput( n ) && getName( n ).equals( name ) ).findAny().orElse( null );
@@ -788,6 +837,12 @@ public class WorkflowUtil
         return c.recursiveStream().select( Node.class )
                 .filter( n -> ( isExternalParameter( n ) || isExpression( n ) || isCycleVariable( n ) ) )
                 .filter( n -> name.equals( getName( n ) ) ).toSet();
+    }
+
+    public static Node findExpressionNode(Compartment c, String expression)
+    {
+        return c.recursiveStream().select( Node.class ).filter( n -> isExpression( n ) && getExpression( n ).equals( expression ) )
+                .findAny().orElse( null );
     }
 
     public static <T> List<T> findChild(biouml.plugins.wdl.parser.Node node, Class<T> c)
@@ -883,8 +938,17 @@ public class WorkflowUtil
             }
             for( Node c : added )
                 previousSteps.remove( c );
+//            print(previousSteps);
         }
         return result;
+    }
+    
+    public static void print(Map<Node, Set<Node>> prevs)
+    {
+        for (Entry<Node, Set<Node>> prev: prevs.entrySet())
+        {
+            System.out.println(  prev.getKey().getName() +"  "+ StreamEx.of(prev.getValue()).map( n->n.getName() ).joining(", "));
+        }
     }
 
     public static Set<Node> getPreviousSteps(Node n, Compartment threshold)
@@ -931,7 +995,7 @@ public class WorkflowUtil
         return node;
     }
 
-    private static boolean isInside(Node node, Compartment c)
+    public static boolean isInside(Node node, Compartment c)
     {
         Compartment parent = node.getCompartment();
         while( true )
@@ -1127,6 +1191,9 @@ public class WorkflowUtil
         return getSources( node ).anyMatch( n -> isCall( n.getCompartment() ) );
     }
 
+    /**
+     * @return true if node is inside given compartment (maybe sveral levels deep)
+     */
     public static boolean isInside(Compartment c, Node node)
     {
         Compartment parent = node.getCompartment();
@@ -1146,6 +1213,9 @@ public class WorkflowUtil
         WorkflowUtil.setRuntime( process, runTime );
     }
     
+    /**
+     * Returns true if workflow diagram have only task definitions
+     */
     public static boolean hasOnlyTasks(Diagram diagram)
     {
        return !diagram.stream(Node.class).anyMatch(n -> !isTask(n));
@@ -1160,5 +1230,34 @@ public class WorkflowUtil
                 return name;
         }
         return c.getName();
+    }
+    
+    /**
+     * Infer type of call result executed in cycles and conditional blocks
+     * i.e. if result type of call is TYPE 
+     * call(x) => TYPE
+     * then:
+     * - for (i in array) call(i) => Array[TYPE]
+     * - if ( condition ) call(x) => TYPE?
+     * - for ( i in array ) if (condition ) call(i) => Array[TYPE?]
+     * - if ( condition ) for ( i in array ) call(i) => Array[TYPE]?
+     * @param output
+     * @return
+     */
+    public static String inferType(Node output)
+    {
+        Compartment call = output.getCompartment();
+        String baseType = getType(output);
+        
+        Compartment parent = call.getCompartment();
+        while( ! ( parent instanceof Diagram ) )
+        {
+            if( isConditional( parent ) && !baseType.endsWith( "?" ))
+                baseType = baseType + "?";
+            else if( isCycle( parent ) )            
+                baseType = "Array[" + baseType + "]";
+            parent = parent.getCompartment();
+        }
+        return baseType;
     }
 }

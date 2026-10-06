@@ -32,7 +32,8 @@ import ru.biosoft.graphics.CompositeView;
 public class TestUtil
 {
     public static final String TEST_OK = "Ok";
-
+    public static final String TEST_FAILED_OK = "Ok (Failed)";
+    
     public static Diagram generateDiagram(String name, String wdl) throws Exception
     {
         WDLImporter importer = new WDLImporter();
@@ -75,7 +76,6 @@ public class TestUtil
 
     public static void exportImage(File imageFile, Diagram diagram) throws Exception
     {
-        new WDLLayouter().layout( diagram );
         ImageExporter imageWriter = new ImageExporter();
         //        File file = new File( imagesDir, diagram.getName() + ".png" );
         Properties properties = new Properties();

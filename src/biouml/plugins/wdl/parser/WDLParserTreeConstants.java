@@ -39,9 +39,9 @@ public interface WDLParserTreeConstants
   public int JJTTERNARY = 33;
   public int JJTTHEN = 34;
   public int JJTELSE = 35;
-  public int JJTEXPRESSION = 36;
-  public int JJTNONE = 37;
-  public int JJTCONTAINERELEMENT = 38;
+  public int JJTCONTAINERELEMENT = 36;
+  public int JJTEXPRESSION = 37;
+  public int JJTNONE = 38;
   public int JJTCONSTRUCTOR = 39;
   public int JJTIMPORT = 40;
   public int JJTALIAS = 41;
@@ -88,9 +88,9 @@ public interface WDLParserTreeConstants
     "Ternary",
     "Then",
     "Else",
+    "ContainerElement",
     "Expression",
     "None",
-    "ContainerElement",
     "Constructor",
     "Import",
     "Alias",
@@ -100,4 +100,4 @@ public interface WDLParserTreeConstants
     "Pair",
   };
 }
-/* JavaCC - OriginalChecksum=d97bf88a34f1d67514fa8d3d2f4745b4 (do not edit this line) */
+/* JavaCC - OriginalChecksum=971808158852fec7709e75ee11b27788 (do not edit this line) */

@@ -2,7 +2,6 @@ package biouml.plugins.wdl;
 
 import biouml.model.Diagram;
 import biouml.plugins.wdl.model.ScriptInfo;
-import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import ru.biosoft.access.core.DataElementPath;
 
 public class RepositoryScriptLoader extends ScriptLoader
@@ -20,8 +19,8 @@ public class RepositoryScriptLoader extends ScriptLoader
     {
         DataElementPath scriptPath = DataElementPath.create( rootPath.toString(), path );
         Diagram scriptDiagram = scriptPath.getDataElement( Diagram.class );     
-        String nextflow = new NextFlowGenerator(  ).generate( scriptDiagram );
-        ScriptInfo importedScript = this.readScript( scriptDiagram.getName(), nextflow );
+        String wdl = new WDLGenerator(  ).generate( scriptDiagram );
+        ScriptInfo importedScript = this.readScript( scriptDiagram.getName(), wdl );
         return importedScript;
     }
 }

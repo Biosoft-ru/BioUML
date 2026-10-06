@@ -25,7 +25,7 @@ public class WorkflowOutputProperties extends ExpressionProperties
     }
     
     @Override
-    public DiagramElementGroup createElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
+    public DiagramElementGroup doCreateElements(Compartment parent, Point location, ViewEditorPane viewPane) throws Exception
     {
         if( name.isEmpty() )
             throw new Exception( "Empty workflow output name!" );

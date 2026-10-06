@@ -46,6 +46,7 @@ public class WDLConstants
     public static final String EXTERNAL_DIAGRAM = "EXTERNAL_DIAGRAM";
 
     public static final String IMPORTS_ATTR = "IMPORTS_ATTR";
+    public static final String DEFAULT_VALUE_ATTR = "DEFAULT_VAL_ATTR";
     public static final String POSITION_ATTR = "position";
     public static final String SETTINGS_ATTR = "Settings";
 

@@ -65,6 +65,7 @@ public class ExpressionInfo implements Cloneable
             }
             catch (ParseException e)
             {
+                setAST(null);
             }
         }
     }

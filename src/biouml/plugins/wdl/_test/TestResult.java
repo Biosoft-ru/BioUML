@@ -6,6 +6,7 @@ public class TestResult
     private String wdlPath;
     private String title = null;
     private String description = "";
+    private String tags = "";
     private String wdlGenerated = "Failed";
     private String wdlValidated = "N/A";
     private String diagramGenerated = "Failed";
@@ -51,6 +52,15 @@ public class TestResult
     public String getDescription()
     {
         return description;
+    }
+    
+    public void setTags(String tags)
+    {
+        this.tags = tags;
+    }
+    public String getTags()
+    {
+        return tags;
     }
 
     public String getDiagramGenerated()
@@ -124,5 +134,12 @@ public class TestResult
     public void setError(String error)
     {
         this.error = error;
+    }
+    
+    public String printHTML(String result)
+    {
+        if( result.equals( TestUtil.TEST_OK ) || result.equals( TestUtil.TEST_FAILED_OK ) )
+            return "<p style=\"color: green;\">" + result + "</p>";
+        return "<p style=\"color: red;\">" + result + "</p>";
     }
 }

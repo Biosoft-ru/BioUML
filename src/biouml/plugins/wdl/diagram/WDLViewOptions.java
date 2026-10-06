@@ -21,9 +21,10 @@ public class WDLViewOptions extends DiagramViewOptions
     private Brush outputBrush = new Brush(new Color(255, 173, 142), new Color(255, 200, 200));
     private Pen outputPen = new Pen();
     private Brush structBrush = new Brush(Color.white);
-    protected Brush deBrush;
     protected Brush callBrush  = new Brush(new Color(146, 223, 253), new Color(205, 241, 253));
-    protected Brush taskBrush;
+    protected Brush taskBrush = new Brush(new Color(180, 180, 180), new Color(230, 230, 230)); 
+    protected Pen taskPen = new Pen(1, new Color(140, 140, 140));
+    protected Pen structPen = new Pen();
     protected Brush expressionBrush = new Brush(new Color(146, 223, 253), new Color(205, 241, 253));
     protected Brush conditionBrush =  new Brush(new Color(224, 238, 245));//new Brush(new Color(128, 64, 128), new Color(196, 98, 196));
     protected Brush conditionalBrush =   new Brush(new Color(224, 238, 245));//new Brush(new Color(200, 128, 200), new Color(250, 125, 250));
@@ -36,7 +37,7 @@ public class WDLViewOptions extends DiagramViewOptions
     protected Brush parameterBrush =  new Brush(new Color(178, 242, 227), new Color(200, 242, 250));
     protected Pen parameterPen = new Pen();
     protected Pen expressionPen = new Pen(1, new Color(83, 180, 222));
-    protected Pen analysisPen = new Pen(1, new Color(83, 180, 222));
+    protected Pen callPen = new Pen(1, new Color(83, 180, 222));
 
     private boolean clampInputs = false;
     public static String labeledTags = "labeld tags";
@@ -55,7 +56,6 @@ public class WDLViewOptions extends DiagramViewOptions
 //        setOutputBrush( new Brush(new Color(248, 190, 133), new Color(250, 210, 200))) ;
         setOutputPen( new Pen(1, new Color(160, 60, 6)) );
 //        setExpressionFont( new ColorFont("Arial", Font.PLAIN, 12, Color.black)  );
-        setDeBrush( new Brush(new Color(176, 196, 222)) );
         setTaskBrush( new Brush(new Color(96, 96, 96), new Color(186, 186, 186)) );
 //        setCallBrush( new Brush(new Color(146, 223, 253), new Color(205, 241, 253)) );
 //        setAnalysisPen( new Pen(1, new Color(83, 180, 222)) );
@@ -72,22 +72,24 @@ public class WDLViewOptions extends DiagramViewOptions
     {
         return structBrush;
     }
-    public void setSmallFont(Brush structBrush)
+    public void setStructBrush(Brush structBrush)
     {
         Brush oldValue = this.structBrush;
         this.structBrush = structBrush;
         firePropertyChange("structBrush", oldValue, structBrush);
     }
 
-    public Brush getDeBrush()
+    @PropertyName("Task pen")
+    @PropertyDescription("Pen to outline struct")
+    public Pen getStructPen()
     {
-        return deBrush;
+        return structPen;
     }
-    public void setDeBrush(Brush deBrush)
+    public void setStructPen(Pen structPen)
     {
-        Brush oldValue = this.deBrush;
-        this.deBrush = deBrush;
-        firePropertyChange("deBrush", oldValue, deBrush);
+        Pen oldValue = this.structPen;
+        this.structPen = structPen;
+        firePropertyChange("structPen", oldValue, structPen);
     }
 
     @PropertyName("Call brush")
@@ -114,6 +116,19 @@ public class WDLViewOptions extends DiagramViewOptions
         Brush oldValue = this.taskBrush;
         this.taskBrush = brush;
         firePropertyChange("taskBrush", oldValue, taskBrush);
+    }
+    
+    @PropertyName("Task pen")
+    @PropertyDescription("Brush to fill task boxes")
+    public Pen getTaskPen()
+    {
+        return taskPen;
+    }
+    public void setTaskPen(Pen pen)
+    {
+        Pen oldValue = this.taskPen;
+        this.taskPen = pen;
+        firePropertyChange("taskBrush", oldValue, taskPen);
     }
 
     @PropertyName("Expression brush")
@@ -182,17 +197,17 @@ public class WDLViewOptions extends DiagramViewOptions
         firePropertyChange("parameterBrush", oldValue, parameterBrush);
     }
 
-    @PropertyName("Analysis pen")
-    @PropertyDescription("Outline of analysis boxes")
-    public Pen getAnalysisPen()
+    @PropertyName("Call pen")
+    @PropertyDescription("Outline of call boxes")
+    public Pen getCallPen()
     {
-        return analysisPen;
+        return callPen;
     }
-    public void setAnalysisPen(Pen analysisPen)
+    public void setCallPen(Pen callPen)
     {
-        Object oldValue = this.analysisPen;
-        this.analysisPen = analysisPen;
-        firePropertyChange("analysisPen", oldValue, analysisPen);
+        Object oldValue = this.callPen;
+        this.callPen = callPen;
+        firePropertyChange("callPen", oldValue, callPen);
     }
 
     @PropertyName("Parameter pen")

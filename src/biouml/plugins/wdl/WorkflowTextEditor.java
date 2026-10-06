@@ -33,7 +33,6 @@ import biouml.plugins.wdl.cwl.CWLParser;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.diagram.WDLDiagramType;
 import biouml.plugins.wdl.diagram.WDLImporter;
-import biouml.plugins.wdl.diagram.WDLLayouter;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
 import biouml.plugins.wdl.nextflow.NextFlowImporter;
 import biouml.plugins.wdl.nextflow.NextFlowRunner;
@@ -366,14 +365,12 @@ public class WorkflowTextEditor extends EditorPartSupport
                     importer.importNextflow( getNextFlow(), diagram );
                     reloadCWL();
                     reloadWDL();
-                    new WDLLayouter().layout( diagram );
                     setDiagram( diagram );
                     diagram.save();
                 }
                 else if( tabbedPane.getSelectedIndex() == CWL_TAB_INDEX )
                 {
                     diagram = new CWLParser().loadDiagram( getCWL(), diagram );
-                    new WDLLayouter().layout( diagram );
                     setDiagram( diagram );
                     reloadNextflow();
                     reloadWDL();
@@ -382,8 +379,8 @@ public class WorkflowTextEditor extends EditorPartSupport
                 }
                 else
                 {
+                    wdlImporter.setScriptLoader( new RepositoryScriptLoader( ScriptLoader.WDL_TYPE, diagram.getOrigin().getCompletePath() ) );
                     diagram = wdlImporter.generateDiagram( getWDL(), diagram );
-                    new WDLLayouter().layout( diagram );
                     setDiagram( diagram );
                     reloadNextflow();
                     reloadNextflow();

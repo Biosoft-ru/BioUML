@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Dual build system** — both Maven and Ant must compile successfully. Always verify with both after changes.
   - **Maven** multi-module (root `pom.xml`, ~100 modules under `plugconfig/`, plus `src/`, `tomcat-embedded/`, `war-build/`).
   - **Ant** legacy build (`src/build.xml` with `src/build-tasks.xml`). Compiles all Java in a single flat pass, then packages plugin JARs via the `<create.plugin>` macro.
+- **Do not hand-unroll tight elementwise numeric loops.** C2's auto-vectorizer (SuperWord) already turns loops like `z[i] = a*x[i] + b[i]` / `x[i] *= c` / `z[i] += x[i]` into SIMD; a manual unroll-by-N *defeats* it and measured ~3× **slower** on JDK 21 (VectorUtils JVode loops — see PR #39/#43/#44). Benchmark any loop "optimization" with the JMH harness in `benchmarks/` before claiming a win; a profiler's sample count is *not* proof a change is faster.
 - Runtime is **Eclipse Equinox OSGi** — modules under `plugconfig/<bundle>/` are real OSGi bundles with `META-INF/MANIFEST.MF` (`Bundle-SymbolicName`, `Require-Bundle`, `Export-Package`) and `plugin.xml` extension declarations. The Maven build only packages them; bundle wiring at runtime is OSGi.
 - The same modules are also declared as Eclipse projects (`.project`, `.classpath` at the root) so the workspace can be opened directly in Eclipse.
 

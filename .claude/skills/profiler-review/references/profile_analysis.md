@@ -55,6 +55,36 @@ Look for:
 - Use fixed-point arithmetic where precision allows
 - Batch state updates to reduce lock contention
 
+#### Do Not: manual loop unrolling (learned the hard way — PR #39/#43/#44)
+
+The hottest leaves in the JVode solver profile are the `VectorUtils`
+elementwise loops (`linearSum`, `linearDiff`, `add`, `scale`, `wrmsNorm`, …)
+in `src/biouml/plugins/simulation/ode/jvode/VectorUtils.java`. They are prime
+candidates for C2's **SuperWord auto-vectorizer**, which turns the scalar
+`z[i] = a*x[i] + b[i]` / `x[i] *= c` / `z[i] += x[i]` forms into SIMD (AVX2/
+AVX-512) code. **Hand-unrolling them by 4 makes them ~3× *slower*, not faster**
+— measured on JDK 21 on two independent machines (Intel Core i7-12700H/AVX2 and
+an AVX-512 cloud VM): 9/9 (or 28/30) size pairs slower, geometric-mean ~3.2–3.3×.
+The unroll changes the loop shape so C2 no longer vectorizes it; the scalar
+form stays fast.
+
+- **Do not** "reduce loop overhead" by unrolling, peeling, or restructuring a
+  tight elementwise loop. The JIT already does the unrolling/vectorizing.
+- **Do not** trust the profiler's sample count as proof a transform helps. The
+  profile says *where* time goes; it does not say your change removes it.
+- **Prove it** with the JMH harness in `benchmarks/` (A/B scalar vs. candidate,
+  at real n, on the server's JDK/CPU) before claiming a win. `Verify` in that
+  harness checks bit-identity for changes that should be bit-identical.
+- For a genuinely add-chain-bound reduction (e.g. `wrmsNorm`), the real lever
+  is 2–4 independent partial sums combined at the end — but that is **not**
+  bit-identical (a few ULP of difference) and changes accept/reject decisions
+  in principle, so it needs its own explicit justification, not a
+  "bit-identical refactor" label.
+- History: PR #39 (2026-09) unrolled three of these loops, merged *pending a
+  benchmark*; PR #43 extended the pattern to ten more; the benchmark (this
+  lesson) showed a ~3× regression; the three merged loops were reverted in PR
+  #44 and #43 closed. The JMH harness is now committed at `benchmarks/`.
+
 ### 3. Data Access (`ru.biosoft.access`, `ru.biosoft.table`)
 
 Look for:
@@ -84,6 +114,9 @@ Look for:
 ```
 High sample count in function?
 ├── Function called in tight loop?
+│   ├── Is it a tight elementwise numeric loop? → DON'T hand-unroll it (C2
+│   │   already SIMD-vectorizes it; unrolling defeats that and is ~3x slower).
+│   │   See "Do Not: manual loop unrolling". Look for a different lever instead.
 │   ├── Can result be cached? → Memoize / add field cache
 │   ├── Can loop be eliminated? → Batch / vectorize
 │   └── Can allocation be moved out? → Pre-allocate

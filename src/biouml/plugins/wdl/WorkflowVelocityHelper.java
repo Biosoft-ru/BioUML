@@ -13,12 +13,12 @@ import biouml.plugins.wdl.model.ExpressionInfo;
 public class WorkflowVelocityHelper
 {
     protected Diagram diagram;
-    protected List<Node> orderedCalls;
+//    protected List<Node> orderedCalls;
     
     public WorkflowVelocityHelper(Diagram diagram)
     {
         this.diagram = diagram;
-        orderedCalls = WorkflowUtil.orderCallsScatters( diagram );
+//        orderedCalls = WorkflowUtil.orderCallsScatters( diagram );
     }
 
     /**
@@ -241,7 +241,7 @@ public class WorkflowVelocityHelper
         return WorkflowUtil.isCycle( node );
     }
     
-    public boolean isInsideCycle(Node call)
+    public static boolean isInsideCycle(Node call)
     {
         return ! ( call instanceof Diagram ) && WorkflowUtil.isCycle( call.getCompartment() );
     }
