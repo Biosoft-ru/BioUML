@@ -16,8 +16,9 @@
             <property name="ApplicationVersion" type="java.lang.String" value="0.9.4" display-name="ApplicationVersion" short-description="ApplicationVersion"/> 
             <property name="HistoryDiagrams" type="java.lang.String" value="history/diagrams" display-name="HistoryDiagrams" short-description="HistoryDiagrams"/> 
             <property name="NotationPath" type="java.lang.String" value="databases/Utils/Diagrams/graphic notations" display-name="NotationPath" short-description="NotationPath"/> 
-            <property name="ServerPath" type="java.lang.String" value="http://localhost:22317/biouml" display-name="ServerPath" short-description="ServerPath"/> 
-            <property name="ServerSession" type="java.lang.String" value="dbefffe3-34f8-4f0c-ae6d-71fd4152e86e" display-name="ServerSession" short-description="ServerSession"/> 
+            <property name="ServerPath" type="java.lang.String" value="http://localhost:22317/biouml" display-name="ServerPath" short-description="ServerPath"/>
+            <property name="ServerSession" type="java.lang.String" value="dbefffe3-34f8-4f0c-ae6d-71fd4152e86e" display-name="ServerSession" short-description="ServerSession"/>
+            <property name="RepositoryExcludeNames" type="java.lang.String" value="luceneIndex;.git" display-name="Exclude names" short-description="Semicolon-separated directory names hidden from all repository projects (e.g. luceneIndex;.git)"/>
         </dynamicPropertySet> 
     </property> 
     <property name="GridOptions" type="com.developmentontheedge.beans.Preferences" display-name="Grid options" short-description="Diagram editor grid options" ordered="true">
