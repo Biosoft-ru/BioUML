@@ -12,7 +12,9 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.PosixFileAttributeView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -167,9 +169,10 @@ public class JupyterProvider extends WebProviderSupport
             String filePath = element.getFilePath();
             log.info( "Got filePath = '" + filePath + "'." );
             if( !jupyterConf.useLocalNotebook() )
-            {  
+            {
                 try
                 {
+                    fixPathPermissions( filePath );
                     updatePermissions( filePath, jupyterConf.getFilePermissionsMask() );
                 }
                 catch( IOException e )
@@ -480,7 +483,90 @@ public class JupyterProvider extends WebProviderSupport
         else
         {
             log.log( Level.SEVERE, "Unable to find group principal for: " + nbGroup );
-        } 
+        }
+    }
+
+    /**
+     * Ensure parent directories up to (and including) the 'Collaboration' or 'Projects'
+     * base folder are traversable so the Jupyter container's jovyan user (UID 1000)
+     * can access the file. Does NOT modify permissions above that boundary.
+     * Also ensures the notebook file itself is readable and writable.
+     */
+    private void fixPathPermissions( String filePath ) throws IOException
+    {
+        Path file = Paths.get( filePath );
+
+        // Make the notebook file itself readable and writable
+        try
+        {
+            java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView( file, java.nio.file.attribute.PosixFileAttributeView.class );
+            if( view != null )
+            {
+                Set<java.nio.file.attribute.PosixFilePermission> perms = new HashSet<>();
+                perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_READ );
+                perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_WRITE );
+                perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_READ );
+                perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_WRITE );
+                perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_READ );
+                perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE );
+                view.setPermissions( perms );
+            }
+        }
+        catch( IOException e )
+        {
+            log.log( Level.FINE, "Cannot fix permissions on file '" + file + "': " + e.getMessage() );
+        }
+
+        // Walk up from the file's parent directory toward root.
+        // Stop when we reach a directory named 'Collaboration' or 'Projects'
+        // (those directories themselves ARE fixed), or when we run out of path.
+        Path parent = file.getParent();
+        if( parent == null || !Files.exists( parent ) )
+        {
+            return;
+        }
+
+        // Collect directories from file's parent up to (and including) the boundary
+        List<Path> dirs = new ArrayList<>();
+        Path p = parent;
+        while( p != null )
+        {
+            String name = p.getFileName().toString();
+            dirs.add( p );
+            if( "Collaboration".equals( name ) || "Projects".equals( name ) )
+            {
+                // Include this directory and stop (do not go higher)
+                break;
+            }
+            p = p.getParent();
+        }
+
+        // Fix permissions from the boundary down to the file's parent (reverse order)
+        for( int i = dirs.size() - 1; i >= 0; i-- )
+        {
+            Path dir = dirs.get( i );
+            try
+            {
+                java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView( dir, java.nio.file.attribute.PosixFileAttributeView.class );
+                if( view != null )
+                {
+                    Set<java.nio.file.attribute.PosixFilePermission> perms = new HashSet<>();
+                    perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_READ );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_WRITE );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_READ );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_WRITE );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_READ );
+                    perms.add( java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE );
+                    view.setPermissions( perms );
+                }
+            }
+            catch( IOException e )
+            {
+                log.log( Level.FINE, "Cannot fix permissions on directory '" + dir + "': " + e.getMessage() );
+            }
+        }
     }
 
     private class JupyterFileLink
@@ -547,11 +633,34 @@ public class JupyterProvider extends WebProviderSupport
                 log.info( "Linking '" + sourceFilePath + "' to '" + dirPath + "/" + linkName + "'" );
                 Files.createLink( Paths.get( dirPath + "/" + linkName ), Paths.get( sourceFilePath ) );
             }
+            catch( java.nio.file.FileSystemException e )
+            {
+                if ( e.getMessage() != null && e.getMessage().contains( "Invalid cross-device link" ) )
+                {
+                    try
+                    {
+                        Path linkPath = Paths.get( dirPath + "/" + linkName );
+                        log.info( "Hard link failed (cross-device), using symbolic link: '" + sourceFilePath + "' -> '" + linkPath + "'" );
+                        Files.createSymbolicLink( linkPath, Paths.get( sourceFilePath ) );
+                    }
+                    catch ( Exception e2 )
+                    {
+                        log.log( Level.SEVERE, "Cannot create symbolic link", e2 );
+                        return "";
+                    }
+                }
+                else
+                {
+                    log.log( Level.SEVERE, "Cannot create link", e );
+                    return "";
+                }
+            }
             catch( Exception e )
             {
                 log.log( Level.SEVERE, "Cannot create link", e );
                 return "";
             }
+
             return linkName;
         }
 
