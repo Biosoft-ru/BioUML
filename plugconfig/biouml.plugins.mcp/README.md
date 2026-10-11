@@ -175,11 +175,14 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 | `biouml_analysis_repeat` | Re-run a completed analysis from its stored output collection (reads the stored analysisName + parameters and runs again). |
 | `biouml_analysis_get_result` | Read an analysis output collection: for a table, column names/types and the first N rows; for a folder, its children. |
 | `biouml_diagram_create` | Create a new diagram in a target collection. type is 'math' (default) or 'pathway'. Returns the new diagram's path. |
-| `biouml_diagram_describe` | Describe a diagram: element count, per-element summaries (id, name, kind, position, node type) and — when a dynamic model is present — its variables and equation count. |
+| `biouml_diagram_describe` | Describe a diagram: element count, per-element summaries for every element including those nested in compartments (id, path, name, kind, position, node type; the variable of a species; the formula of a reaction or equation; source/target/role of an edge) and — when a dynamic model is present — its variables and equation count. |
 | `biouml_diagram_node_types` | List the node types that biouml_diagram_add_node accepts. |
-| `biouml_diagram_add_node` | Add a node to a diagram. Returns the assigned element id. nodeType is one of the keys from biouml_diagram_node_types (default 'Stub'). |
-| `biouml_diagram_add_edge` | Add an edge between two nodes. Returns the assigned edge id. |
-| `biouml_diagram_remove_element` | Remove an element (node or edge) from a diagram by its id. |
+| `biouml_diagram_add_node` | Add a node to a diagram. Returns {id, path} and, for a species or compartment of a model, its variable. name may be qualified by a compartment ('default/V' creates V inside compartment default). nodeType is one of the keys from biouml_diagram_node_types (default 'Stub'). In a diagram with a mathematical model (e.g. any SBML model) species (Species/Substance/Protein/Gene/RNA), compartments and reactions are created by the diagram type, with their model variables and rate equations; a reaction created this way has no participants and rate 0 — prefer biouml_diagram_add_reaction. A failed add is undone, so the diagram stays saveable. |
+| `biouml_diagram_add_edge` | Add an edge between two nodes (ids are names or paths such as 'default.s1'). Between a reaction and a species of a model the edge makes the species a participant of the reaction: edgeType is its role — reactant, product or modifier (default: reactant for species -> reaction, product for reaction -> species) — and the participant's rate equation is created. Otherwise a plain relation edge is added. Returns the assigned edge id. |
+| `biouml_diagram_add_reaction` | Add a reaction to a model diagram in one step: the reaction node, its participant edges, the $$rate_<name> variable and the participants' rate equations, as the diagram editor does. formula is the kinetic law (species as variables, e.g. 'k1*$default.s1'); reactants/products/modifiers are species given as 's1', '2*s1' or '2 s1' (stoichiometry 2) by name, path or variable; name defaults to a generated one; compartment defaults to the first participant's; parameters is an object {name: value} that declares or sets the parameters of the formula. Any other undeclared identifier in the formula is declared with value 0 and listed in declaredParameters. Returns {id, path, rateVariable, participants}. |
+| `biouml_diagram_add_equation` | Add an equation to a model diagram: type 'scalar' (assignment rule, default), 'rate' (rate rule), 'algebraic' or 'initial assignment'. variable is the target — a parameter (declared if missing) or a species by name, path or variable; formula is the right-hand side; parameters is an object {name: value} that declares or sets parameters of the formula. Any other undeclared identifier in the formula is declared with value 0 and listed in declaredParameters. Returns {id, type, variable, formula}. |
+| `biouml_diagram_set_parameters` | Set initial values of model variables: parameters is an object {name: value}; names are parameters (declared if missing) or species by name, path or variable. constant (optional) marks them constant or not. Returns {set}. |
+| `biouml_diagram_remove_element` | Remove an element (node or edge) from a diagram by its id (a name or a path such as 'default.s1'), with the edges and reaction participants that depend on it. |
 | `biouml_diagram_move_element` | Move a node to a new (x, y) position. |
 | `biouml_diagram_rename_element` | Rename an element's display title. |
 | `biouml_diagram_save` | Save a diagram to a DML file on disk (in targetDir, or the current directory). Returns the file path and size. |
@@ -237,6 +240,29 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 {"method":"tools/call","params":{"name":"biouml_diagram_save","arguments":{"diagramPath":"mydata/diagrams/decay","targetDir":"/tmp"}}}
 {"method":"tools/call","params":{"name":"biouml_simulation_start","arguments":{"diagramPath":"mydata/diagrams/decay"}}}
 ```
+
+## Example: extend an SBML model
+
+SBML models are stored as SBGN diagrams and written back to SBML on every save, so model elements
+must carry their model roles. `add_reaction`, `add_equation` and `set_parameters` create them the way
+the diagram editor does; each call saves the diagram, and a call that fails is undone.
+
+```jsonc
+// copy first, then edit the copy
+{"method":"tools/call","params":{"name":"biouml_repo_copy_element","arguments":{"srcPath":"data/Examples/model","destPath":"data/Collaboration/My project/Data/model v2"}}}
+// a new species V in compartment "default" (its variable is $default.V)
+{"method":"tools/call","params":{"name":"biouml_diagram_add_node","arguments":{"diagramPath":"data/Collaboration/My project/Data/model v2","name":"default/V","nodeType":"Species"}}}
+// S -> V with mass action; k_vac is declared with value 0.006
+{"method":"tools/call","params":{"name":"biouml_diagram_add_reaction","arguments":{"diagramPath":"data/Collaboration/My project/Data/model v2","name":"vaccination","formula":"k_vac*$default.S","reactants":["S"],"products":["V"],"parameters":{"k_vac":0.006}}}}
+// an assignment rule
+{"method":"tools/call","params":{"name":"biouml_diagram_add_equation","arguments":{"diagramPath":"data/Collaboration/My project/Data/model v2","variable":"Total","formula":"$default.S + $default.V"}}}
+```
+
+In scripts (`biouml_repo_run_script`, type `js`) the `model` host object does the same:
+`model.addSpecies(diagram, "default/V", 0)`, `model.addReaction(diagram, "vaccination", "k_vac*$default.S",
+[model.createSpecieReference(diagram, "S", "reactant"), model.createSpecieReference(diagram, "V", "product")])`,
+`model.addEquation(diagram, "scalar", "Total", "$default.S + $default.V")`; they throw on bad input and
+change the diagram in memory only — finish with `diagram.save()`.
 
 ## Limitations
 

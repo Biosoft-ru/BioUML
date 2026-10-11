@@ -2,6 +2,7 @@ package biouml.model.javascript;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,14 +41,15 @@ import biouml.model.dynamics.VariableRole;
 import biouml.standard.diagram.BusProperties;
 import biouml.standard.diagram.CompositeDiagramType;
 import biouml.standard.diagram.DiagramUtility;
+import biouml.standard.diagram.ModelElementFactory;
 import biouml.standard.diagram.PortProperties;
 import biouml.standard.diagram.SplitDiagramAction;
 import biouml.standard.diagram.SplitDiagramAction.SplitDiagramActionParameters;
 import biouml.standard.diagram.SubDiagramProperties;
 import biouml.standard.diagram.Util;
 import biouml.standard.type.DiagramInfo;
-import biouml.standard.type.KineticLaw;
 import biouml.standard.type.Reaction;
+import biouml.standard.type.Specie;
 import biouml.standard.type.SpecieReference;
 import biouml.standard.type.Stub;
 import biouml.standard.type.Stub.ConnectionPort;
@@ -520,19 +522,21 @@ public class JavaScriptModel extends JavaScriptHostObjectBase
     }
 
     /**
-     * Adds equation of <b>type</b> corresponding to <b>variable</b> with <b>formula</b> to <b>diagram</b>
+     * Adds equation of <b>type</b> corresponding to <b>variable</b> with <b>formula</b> to <b>diagram</b>.
+     * If the variable is not declared yet, it is declared as a parameter with initial value 0.
+     * The diagram is changed in memory only, call <code>diagram.save()</code> to store it.
      * @param diagram the diagram to add equation to.
      * @param type the type of the equation: 'algebraic', 'rate', 'scalar' or 'initial assignment'.
      * @param variable the identifier of the diagram parameter or variable which value will be calculated by formula.
      * @param formula the formula for calculation the variable value.
+     * @return the created equation.
+     * @throws IllegalArgumentException if the equation can not be created (e.g. unknown type or species).
      */
-    public void addEquation(Diagram diagram, String type, String variable, String formula)
+    public Equation addEquation(Diagram diagram, String type, String variable, String formula)
     {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("formula", formula);
-        properties.put("variable", variable);
-        properties.put("type", type);
-        add(diagram, new Point(0, 0), Equation.class, properties);
+        if( diagram == null )
+            throw new IllegalArgumentException("Diagram is null.");
+        return ModelElementFactory.addEquation(diagram, type, variable, formula, null).getRole(Equation.class);
     }
     
     public void addSubDiagram(Diagram diagram, String subDiagramPath, String name)
@@ -664,38 +668,18 @@ public class JavaScriptModel extends JavaScriptHostObjectBase
      * Creates a participant to produce a chemical reaction in a diagram.
      *
      * @param diagram the diagram containing the specie to create the reaction involving it.
-     * @param variable the identifier of the specie in the diagram.
+     * @param variable the identifier of the specie in the diagram: its name ('s1'), path ('default.s1') or variable ('$default.s1').
      * @param role the role of the specie in the reaction: 'reactant', 'product' or 'modifier'.
      * @param stoichiometry the stoichiometric coefficient representing the degree to which the specie participates in the reaction.
-     * @return created SpecieReference on success or null otherwise.
-     * @throws Exception
+     * @return created SpecieReference.
+     * @throws IllegalArgumentException if there is no such species or the role is unknown.
      */
     public SpecieReference createSpecieReference(Diagram diagram, String variable, String role, double stoichiometry)
     {
-        try
-        {
-            Node node = diagram.findNode(variable);
-            if( node == null )
-            {
-                log.log(Level.SEVERE, "Diagram '" + diagram.getName() + "' has no variable '" + variable + "'.");
-                return null;
-            }
-            if( !role.equals(SpecieReference.PRODUCT) && !role.equals(SpecieReference.REACTANT) && !role.equals(SpecieReference.MODIFIER) )
-            {
-                log.log(Level.SEVERE, "Unknown role of the specie. Possible values are: " + SpecieReference.REACTANT + "', '" + SpecieReference.PRODUCT
-                        + "', '" + SpecieReference.MODIFIER + "'.");
-                return null;
-            }
-            SpecieReference specieReference = new SpecieReference(null, variable, role);
-            specieReference.setStoichiometry(Double.toString(stoichiometry));
-            specieReference.setSpecie(variable);
-            return specieReference;
-        }
-        catch( Exception e )
-        {
-            log.log(Level.SEVERE, "Can not create specie reference.", e);
-        }
-        return null;
+        if( diagram == null )
+            throw new IllegalArgumentException("Diagram is null.");
+        String value = stoichiometry == Math.rint(stoichiometry) ? Long.toString((long)stoichiometry) : Double.toString(stoichiometry);
+        return ModelElementFactory.createSpecieReference(diagram, variable, role, value);
     }
 
     /**
@@ -738,87 +722,99 @@ public class JavaScriptModel extends JavaScriptHostObjectBase
 
     /**
      * Adds reaction to the diagram.
+     * The diagram is changed in memory only, call <code>diagram.save()</code> to store it.
      *
      * @param diagram the diagram to add reaction to.
      * @param formula the formula of the reaction kinetic law.
      * @param fast whether the reaction is fast or not.
      * @param specieReferences an array of the reaction participants. For further details see 'createSpecieReference' function.
+     * @return the created reaction.
+     * @throws IllegalArgumentException if the reaction can not be created (e.g. a participant is unknown).
      */
-    public void addReaction(Diagram diagram, String formula, boolean fast, SpecieReference[] specieReferences)
+    public Reaction addReaction(Diagram diagram, String formula, boolean fast, SpecieReference[] specieReferences) throws Exception
     {
-        try
-        {
-            Map<String, Object> properties = new HashMap<>();
-            KineticLaw kineticLaw = new KineticLaw();
-            kineticLaw.setFormula(formula);
-            properties.put("kineticLaw", kineticLaw);
-            properties.put("fast", fast);
-            properties.put("specieReferences", specieReferences);
-            add(diagram, new Point(0, 0), Reaction.class, properties);
-        }
-        catch( Exception e )
-        {
-            log.log(Level.SEVERE, "Can not add the reaction.", e);
-        }
+        Reaction reaction = addReaction(diagram, null, formula, specieReferences);
+        reaction.setFast(fast);
+        return reaction;
     }
 
-    public void addReaction(Diagram diagram, String formula, SpecieReference[] specieReferences)
+    public Reaction addReaction(Diagram diagram, String formula, SpecieReference[] specieReferences) throws Exception
     {
-        this.addReaction(diagram, formula, false, specieReferences);
+        return addReaction(diagram, null, formula, specieReferences);
+    }
+
+    /**
+     * Adds reaction with the given name to the diagram. The reaction node is put into the compartment of its first participant.
+     * The diagram is changed in memory only, call <code>diagram.save()</code> to store it.
+     *
+     * @param diagram the diagram to add reaction to.
+     * @param name the name of the reaction, null to generate it.
+     * @param formula the formula of the reaction kinetic law.
+     * @param specieReferences an array of the reaction participants. For further details see 'createSpecieReference' function.
+     * @return the created reaction.
+     * @throws IllegalArgumentException if the reaction can not be created (e.g. a participant is unknown).
+     */
+    public Reaction addReaction(Diagram diagram, String name, String formula, SpecieReference[] specieReferences) throws Exception
+    {
+        if( diagram == null )
+            throw new IllegalArgumentException("Diagram is null.");
+        List<SpecieReference> components = specieReferences == null ? new ArrayList<>() : Arrays.asList(specieReferences);
+        Compartment parent = diagram;
+        if( !components.isEmpty() && components.get(0) != null )
+        {
+            SpecieReference first = components.get(0);
+            Node node = ModelElementFactory.findVariableNode(diagram, first.getSpecie() != null ? first.getSpecie() : first.getName());
+            if( node.getOrigin() instanceof Compartment && ! ( node.getCompartment().getKernel() instanceof Specie ) )
+                parent = node.getCompartment();
+        }
+        return (Reaction)ModelElementFactory.addReaction(parent, name, formula, components, null).getKernel();
     }
 
     /**
      * Adds new specie to the diagram.
+     * The diagram is changed in memory only, call <code>diagram.save()</code> to store it.
      *
      * @param diagram the diagram to add specie to.
-     * @param dataElementPath the path to the data element corresponding to some specie in BioUML repository or the name of the specie.
+     * @param dataElementPath the name of the species, optionally prefixed by its compartment ('default/V'),
+     * or the path to the data element corresponding to some specie in BioUML repository.
      * @param initialValue initial value of the specie.
+     * @return the variable of the created species.
+     * @throws IllegalArgumentException if the species can not be created.
      */
-    public void addSpecies(Diagram diagram, String dataElementPath, double initialValue)
+    public VariableRole addSpecies(Diagram diagram, String dataElementPath, double initialValue)
     {
-        try
-        {
-            if( diagram == null )
-            {
-                throw new IllegalArgumentException("Diagram is null.");
-            }
-            if( dataElementPath == null )
-            {
-                log.log(Level.SEVERE, "Incorrect data element path.");
-            }
+        if( diagram == null )
+            throw new IllegalArgumentException("Diagram is null.");
+        if( dataElementPath == null || dataElementPath.isEmpty() )
+            throw new IllegalArgumentException("Species name is empty.");
 
+        String[] parts = ModelElementFactory.splitQualifiedName(dataElementPath);
+        DiagramElement parent = parts[0].isEmpty() ? diagram : diagram.findDiagramElement(parts[0].replace('/', '.'));
+        Node node;
+        if( parent instanceof Compartment )
+        {
+            node = ModelElementFactory.addSpecies(ModelElementFactory.findCompartment(diagram, parts[0]), parts[1], null, initialValue, null);
+        }
+        else
+        {
+            //the path of a data element in repository: the species is created with the type of that element
             DataElementPath path = DataElementPath.create(dataElementPath);
             DataCollection<?> origin = path.optParentCollection();
-            Object type;
-            if( origin != null )
-            {
-                type = origin.getDataElementType();
-            }
-            else
-            {
-                //SBML model case
-                type = "entity";
-            }
-
-            DiagramElement node = createElement(diagram, new Point(0, 0), type, null);
-
-            if( node != null )
-            {
-                String name = path.getName();
-                DiagramElement newNode = node.clone((Compartment)node.getOrigin(), name);
-
-                newNode.setTitle(newNode.getName());
-
-                if( putElement(diagram, newNode) )
-                {
-                    setInitialValue(diagram, name, initialValue);
-                }
-            }
+            if( origin == null )
+                throw new IllegalArgumentException("No compartment '" + parts[0] + "' in diagram '" + diagram.getName() + "'");
+            DiagramElement element = createElement(diagram, new Point(0, 0), origin.getDataElementType(), null);
+            if( element == null )
+                throw new IllegalArgumentException("Can not create species of type " + origin.getDataElementType().getSimpleName()
+                        + " in diagram '" + diagram.getName() + "'");
+            String name = path.getName();
+            DiagramElement newNode = element.clone((Compartment)element.getOrigin(), name);
+            newNode.setTitle(newNode.getName());
+            if( !putElement(diagram, newNode) )
+                throw new IllegalArgumentException("Can not add species '" + name + "' to diagram '" + diagram.getName() + "'");
+            setInitialValue(diagram, name, initialValue);
+            node = (Node)newNode;
         }
-        catch( Exception e )
-        {
-            log.log(Level.SEVERE, "Can not add specie.", e);
-        }
+        return node.getRole() instanceof VariableRole ? node.getRole(VariableRole.class) : null;
     }
 
     public static void addBuses(Diagram diagram) throws Exception

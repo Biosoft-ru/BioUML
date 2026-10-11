@@ -1,26 +1,33 @@
 package biouml.plugins.mcp.support;
 
+import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.Edge;
 import biouml.model.Node;
 import biouml.model.dynamics.EModel;
+import biouml.model.dynamics.Equation;
+import biouml.model.dynamics.VariableRole;
 import biouml.model.util.DiagramDMLExporter;
 import biouml.model.util.DiagramDMLImporter;
 import biouml.plugins.mcp.McpConstants;
 import biouml.standard.diagram.MathDiagramType;
+import biouml.standard.diagram.ModelElementFactory;
 import biouml.standard.diagram.PathwayDiagramType;
 import biouml.standard.type.Gene;
 import biouml.standard.type.Protein;
 import biouml.standard.type.RNA;
 import biouml.standard.type.Reaction;
 import biouml.standard.type.SemanticRelation;
+import biouml.standard.type.SpecieReference;
 import biouml.standard.type.Stub;
 import biouml.standard.type.Substance;
 
@@ -42,6 +49,8 @@ import ru.biosoft.access.core.RepositoryException;
  */
 public final class McpDiagramSupport
 {
+	private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger( McpDiagramSupport.class.getName() );
+
 	private McpDiagramSupport()
 	{
 	}
@@ -55,7 +64,7 @@ public final class McpDiagramSupport
 			return new Gene( null, name );
 		if ( "RNA".equalsIgnoreCase( type ) )
 			return new RNA( null, name );
-		if ( "Substance".equalsIgnoreCase( type ) )
+		if ( "Substance".equalsIgnoreCase( type ) || "Species".equalsIgnoreCase( type ) )
 			return new Substance( null, name );
 		if ( "Reaction".equalsIgnoreCase( type ) )
 			return new Reaction( null, name );
@@ -73,6 +82,8 @@ public final class McpDiagramSupport
 		t.add( "Gene" );
 		t.add( "RNA" );
 		t.add( "Substance" );
+		t.add( "Species" );
+		t.add( "Compartment" );
 		t.add( "Reaction" );
 		t.add( "SemanticRelation" );
 		t.add( "Stub" );
@@ -156,8 +167,10 @@ public final class McpDiagramSupport
 	// ---------------------------------------------------------------- describe
 
 	/**
-	 * Describe a diagram: element count, element summaries (id, name, kind, position, node-type),
-	 * and a dynamic-model summary (variables + equation count) when an {@link EModel} role is present.
+	 * Describe a diagram: element count, element summaries (id, path, name, kind, position, node-type,
+	 * plus the variable of a species and the formula of a reaction or equation) for every element
+	 * including those nested in compartments, and a dynamic-model summary (variables + equation count)
+	 * when an {@link EModel} role is present.
 	 */
 	public static McpEnvelope describe( String path )
 	{
@@ -167,29 +180,9 @@ public final class McpDiagramSupport
 		Diagram diagram = (Diagram) d.getData();
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "path", path );
-		m.put( "elementCount", Integer.valueOf( diagram.getSize() ) );
 		List<Map<String, Object>> elements = new ArrayList<Map<String, Object>>();
-		for ( DiagramElement el : diagram )
-		{
-			Map<String, Object> em = new LinkedHashMap<String, Object>();
-			em.put( "id", el.getName() );
-			em.put( "name", el.getTitle() );
-			em.put( "kind", el instanceof Node ? ( el instanceof Edge ? "edge" : "node" ) : el.getClass().getSimpleName() );
-			if ( el instanceof Node )
-			{
-				Node n = (Node) el;
-				java.awt.Point p = n.getLocation();
-				if ( p != null )
-				{
-					em.put( "x", Integer.valueOf( p.x ) );
-					em.put( "y", Integer.valueOf( p.y ) );
-				}
-				biouml.standard.type.Base kernel = n.getKernel();
-				if ( kernel != null )
-					em.put( "nodeType", kernel.getType() );
-			}
-			elements.add( em );
-		}
+		diagram.recursiveStream().skip( 1 ).forEach( el -> elements.add( summary( el ) ) );
+		m.put( "elementCount", Integer.valueOf( elements.size() ) );
 		m.put( "elements", elements );
 		// Dynamic model summary.
 		if ( diagram.getRole() instanceof EModel )
@@ -240,143 +233,525 @@ public final class McpDiagramSupport
 		return McpEnvelope.ok( m );
 	}
 
+	private static Map<String, Object> summary( DiagramElement el )
+	{
+		Map<String, Object> em = new LinkedHashMap<String, Object>();
+		em.put( "id", el.getName() );
+		em.put( "path", el.getCompleteNameInDiagram() );
+		em.put( "name", el.getTitle() );
+		em.put( "kind", el instanceof Edge ? "edge" : el instanceof Compartment ? "compartment" : "node" );
+		if ( el instanceof Node )
+		{
+			Node n = (Node) el;
+			java.awt.Point p = n.getLocation();
+			if ( p != null )
+			{
+				em.put( "x", Integer.valueOf( p.x ) );
+				em.put( "y", Integer.valueOf( p.y ) );
+			}
+		}
+		biouml.standard.type.Base kernel = el.getKernel();
+		if ( kernel != null )
+			em.put( "nodeType", kernel.getType() );
+		if ( el.getRole() instanceof VariableRole )
+			em.put( "variable", el.getRole( VariableRole.class ).getName() );
+		if ( kernel instanceof Reaction )
+			em.put( "formula", ( (Reaction) kernel ).getFormula() );
+		else if ( el instanceof Node && el.getRole() instanceof Equation )
+		{
+			Equation eq = el.getRole( Equation.class );
+			em.put( "equationType", eq.getType() );
+			em.put( "variable", eq.getVariable() );
+			em.put( "formula", eq.getFormula() );
+		}
+		if ( el instanceof Edge )
+		{
+			Edge e = (Edge) el;
+			em.put( "source", e.getInput().getName() );
+			em.put( "target", e.getOutput().getName() );
+			if ( kernel instanceof SpecieReference )
+			{
+				em.put( "role", ( (SpecieReference) kernel ).getRole() );
+				em.put( "stoichiometry", ( (SpecieReference) kernel ).getStoichiometry() );
+			}
+		}
+		return em;
+	}
+
 	// ---------------------------------------------------------------- add / mutate
 
 	/**
-	 * Add a node. Returns the assigned element id.
+	 * State of a diagram before an edit, to undo the edit when it fails half-way or the edited diagram
+	 * can not be saved. Without it a failed edit stays in the cached diagram and breaks every later save.
 	 */
-	public static McpEnvelope addNode( String diagramPath, String name, String nodeType, Integer x, Integer y )
+	private static final class Snapshot
 	{
-		McpEnvelope d = diagram( diagramPath );
-		if ( !d.isOk() )
-			return d;
-		Diagram diagram = (Diagram) d.getData();
-		if ( name == null || name.isEmpty() )
-			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "name must be a non-empty string" );
-		try
+		private final Set<DiagramElement> elements = java.util.Collections.newSetFromMap( new java.util.IdentityHashMap<DiagramElement, Boolean>() );
+		private final Map<String, Double> values = new LinkedHashMap<String, Double>();
+
+		Snapshot( Diagram diagram )
 		{
-			Node node = new Node( diagram, name, makeNodeKernel( nodeType == null ? "Stub" : nodeType, name ) );
-			if ( x != null && y != null )
-				node.setLocation( x, y );
-			diagram.put( node );
-			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
-			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "id", node.getName() );
-			return McpEnvelope.ok( m );
+			diagram.recursiveStream().forEach( elements::add );
+			if ( diagram.getRole() instanceof EModel )
+				for ( biouml.model.dynamics.Variable v : diagram.getRole( EModel.class ).getVariables() )
+					values.put( v.getName(), Double.valueOf( v.getInitialValue() ) );
 		}
-		catch ( Exception e )
+
+		/** Names of the parameters (non-species variables) declared since the snapshot. */
+		List<String> newParameters( Diagram diagram )
 		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "addNode failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			List<String> result = new ArrayList<String>();
+			if ( diagram.getRole() instanceof EModel )
+				for ( biouml.model.dynamics.Variable v : diagram.getRole( EModel.class ).getVariables() )
+					if ( !values.containsKey( v.getName() ) && !v.getName().startsWith( "$" ) )
+						result.add( v.getName() );
+			return result;
 		}
+
+		void restore( Diagram diagram )
+		{
+			List<DiagramElement> added = diagram.recursiveStream().filter( de -> !elements.contains( de ) ).toList();
+			for ( DiagramElement de : added )
+			{
+				if ( ! ( de instanceof Edge ) )
+					continue;
+				try
+				{
+					if ( de.getKernel() instanceof SpecieReference && de.getKernel().getOrigin() instanceof Reaction )
+						( (Reaction) de.getKernel().getOrigin() ).remove( de.getKernel().getName() );
+					de.getOrigin().remove( de.getName() );
+				}
+				catch ( Exception e )
+				{
+					log.log( java.util.logging.Level.WARNING, "Can not undo edge " + de.getName(), e );
+				}
+			}
+			java.util.Collections.reverse( added ); // nested elements first
+			for ( DiagramElement de : added )
+			{
+				try
+				{
+					if ( ! ( de instanceof Edge ) && de.getOrigin() != null && ( (DataCollection<?>) de.getOrigin() ).contains( de.getName() ) )
+						de.getOrigin().remove( de.getName() );
+				}
+				catch ( Exception e )
+				{
+					log.log( java.util.logging.Level.WARNING, "Can not undo element " + de.getName(), e );
+				}
+			}
+			if ( diagram.getRole() instanceof EModel )
+			{
+				DataCollection<biouml.model.dynamics.Variable> variables = diagram.getRole( EModel.class ).getVariables();
+				for ( String name : variables.names().filter( n -> !values.containsKey( n ) ).toArray( String[]::new ) )
+				{
+					try
+					{
+						variables.remove( name );
+					}
+					catch ( Exception e )
+					{
+						log.log( java.util.logging.Level.WARNING, "Can not undo variable " + name, e );
+					}
+				}
+				EModel emodel = diagram.getRole( EModel.class );
+				for ( Map.Entry<String, Double> e : values.entrySet() )
+				{
+					biouml.model.dynamics.Variable v = emodel.getVariable( e.getKey() );
+					if ( v != null && v.getInitialValue() != e.getValue().doubleValue() )
+						v.setInitialValue( e.getValue().doubleValue() );
+				}
+			}
+		}
+	}
+
+	/** An element named in the request is missing: reported as {@code not_found}. */
+	private static final class NotFoundException extends IllegalArgumentException
+	{
+		private static final long serialVersionUID = 1L;
+
+		NotFoundException( String message )
+		{
+			super( message );
+		}
+	}
+
+	/** A diagram edit: changes the diagram in memory and returns the result data. */
+	@FunctionalInterface
+	private interface Edit
+	{
+		Map<String, Object> apply( Diagram diagram ) throws Exception;
 	}
 
 	/**
-	 * Add an edge between two nodes. Returns the assigned edge id.
+	 * Apply an edit and save the diagram. If the edit or the save fails, the edit is undone in the
+	 * cached diagram, so the diagram stays saveable, and the error names the root cause.
+	 */
+	private static McpEnvelope edit( String diagramPath, String what, Edit edit )
+	{
+		McpEnvelope d = diagram( diagramPath );
+		if ( !d.isOk() )
+			return d;
+		Diagram diagram = (Diagram) d.getData();
+		Snapshot snapshot = new Snapshot( diagram );
+		Map<String, Object> result;
+		try
+		{
+			result = edit.apply( diagram );
+		}
+		catch ( IllegalArgumentException e )
+		{
+			snapshot.restore( diagram );
+			return McpEnvelope.error( e instanceof NotFoundException ? McpConstants.CODE_NOT_FOUND : McpConstants.CODE_INVALID_PARAMS,
+					what + " failed: " + e.getMessage() );
+		}
+		catch ( Exception e )
+		{
+			snapshot.restore( diagram );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, what + " failed: " + describeError( e ) );
+		}
+		try
+		{
+			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
+		}
+		catch ( Exception e )
+		{
+			snapshot.restore( diagram );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, what + " failed, the change was undone: " + describeError( e ) );
+		}
+		List<String> declared = snapshot.newParameters( diagram );
+		if ( !declared.isEmpty() && !result.containsKey( "declaredParameters" ) )
+			result.put( "declaredParameters", declared );
+		return McpEnvelope.ok( result );
+	}
+
+	/** An exception with its chain of causes, e.g. "DataElementPutException: Cannot save ... <- NullPointerException: ...". */
+	static String describeError( Throwable t )
+	{
+		StringBuilder sb = new StringBuilder();
+		java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap( new java.util.IdentityHashMap<Throwable, Boolean>() );
+		for ( Throwable c = t; c != null && seen.add( c ); c = c.getCause() )
+		{
+			if ( sb.length() > 0 )
+				sb.append( " <- " );
+			sb.append( c.getClass().getSimpleName() ).append( ": " ).append( c.getMessage() );
+			StackTraceElement[] trace = c.getStackTrace();
+			if ( c.getCause() == null && trace.length > 0 )
+				sb.append( " at " ).append( trace[ 0 ] );
+		}
+		return sb.toString();
+	}
+
+	private static Point point( Integer x, Integer y )
+	{
+		return x != null && y != null ? new Point( x.intValue(), y.intValue() ) : null;
+	}
+
+	/**
+	 * Add a node. name may be qualified by a compartment ("default/V"); the node is then created
+	 * inside that compartment. In a diagram with a mathematical model (e.g. any SBML model) species,
+	 * compartments and reactions are created by the diagram type's semantic controller, so they get
+	 * their model variables and equations. Returns the assigned element id (and the variable, if any).
+	 */
+	public static McpEnvelope addNode( String diagramPath, String name, String nodeType, Integer x, Integer y )
+	{
+		if ( name == null || name.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "name must be a non-empty string" );
+		String type = nodeType == null || nodeType.isEmpty() ? "Stub" : nodeType;
+		if ( !nodeTypes().stream().anyMatch( type::equalsIgnoreCase ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "unknown nodeType '" + type + "', expected one of " + nodeTypes() );
+		return edit( diagramPath, "addNode", diagram -> {
+			String[] parts = ModelElementFactory.splitQualifiedName( name );
+			Compartment parent = ModelElementFactory.findCompartment( diagram, parts[ 0 ] );
+			String id = parts[ 1 ];
+			Point location = point( x, y );
+			boolean reactionModel = isReactionModel( diagram );
+			Node node;
+			if ( reactionModel && "Reaction".equalsIgnoreCase( type ) )
+				node = ModelElementFactory.addReaction( parent, id, null, null, location );
+			else if ( "Compartment".equalsIgnoreCase( type ) )
+				node = ModelElementFactory.addCompartment( parent, id, location, null );
+			else if ( reactionModel && isSpeciesType( type ) )
+				node = ModelElementFactory.addSpecies( parent, id, makeNodeKernel( type, id ), 0.0, location );
+			else
+			{
+				if ( diagram.containsRecursively( id ) )
+					throw new IllegalArgumentException( "diagram already contains an element named '" + id + "'" );
+				node = new Node( parent, id, makeNodeKernel( type, id ) );
+				if ( location != null )
+					node.setLocation( location );
+				parent.put( node );
+			}
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", node.getName() );
+			m.put( "path", node.getCompleteNameInDiagram() );
+			if ( node.getRole() instanceof VariableRole )
+				m.put( "variable", node.getRole( VariableRole.class ).getName() );
+			return m;
+		} );
+	}
+
+	/**
+	 * Whether the diagram is a reaction-based mathematical model (SBML/SBGN, pathway simulation), whose
+	 * species and reactions must carry model roles. Other diagrams (plain math, pathway) get plain nodes.
+	 */
+	private static boolean isReactionModel( Diagram diagram )
+	{
+		return diagram.getRole() instanceof EModel && java.util.Arrays.asList( diagram.getType().getNodeTypes() ).contains( Reaction.class );
+	}
+
+	private static boolean isSpeciesType( String type )
+	{
+		return "Species".equalsIgnoreCase( type ) || "Substance".equalsIgnoreCase( type ) || "Protein".equalsIgnoreCase( type )
+				|| "Gene".equalsIgnoreCase( type ) || "RNA".equalsIgnoreCase( type );
+	}
+
+	/**
+	 * Add an edge between two nodes. When one end is a reaction and the other a species of the
+	 * model, the edge makes the species a participant of the reaction: edgeType is its role
+	 * (reactant, product or modifier; by default reactant for species -> reaction and product for
+	 * reaction -> species). Otherwise a plain relation edge is added. Returns the assigned edge id.
 	 */
 	public static McpEnvelope addEdge( String diagramPath, String sourceId, String targetId, String edgeType, String label )
 	{
-		McpEnvelope d = diagram( diagramPath );
-		if ( !d.isOk() )
-			return d;
-		Diagram diagram = (Diagram) d.getData();
-		Node source = diagram.findNode( sourceId );
-		Node target = diagram.findNode( targetId );
-		if ( source == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no node with id: " + sourceId );
-		if ( target == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no node with id: " + targetId );
-		try
-		{
-			Edge edge = new Edge( diagram, Edge.getUniqEdgeName( diagram, new SemanticRelation( null, "edge" ), source, target ),
-					new SemanticRelation( null, "edge" ), source, target );
+		return edit( diagramPath, "addEdge", diagram -> {
+			Node source = ModelElementFactory.findNode( diagram, sourceId );
+			Node target = ModelElementFactory.findNode( diagram, targetId );
+			if ( source == null )
+				throw new NotFoundException( "no node with id: " + sourceId );
+			if ( target == null )
+				throw new NotFoundException( "no node with id: " + targetId );
+			Edge edge;
+			boolean sourceIsReaction = source.getKernel() instanceof Reaction;
+			boolean targetIsReaction = target.getKernel() instanceof Reaction;
+			if ( sourceIsReaction != targetIsReaction && ( sourceIsReaction ? target : source ).getRole() instanceof VariableRole )
+			{
+				String role = edgeType == null || edgeType.isEmpty() ? ( sourceIsReaction ? SpecieReference.PRODUCT : SpecieReference.REACTANT ) : edgeType;
+				edge = sourceIsReaction ? ModelElementFactory.addReactionParticipant( source, target, role, null )
+						: ModelElementFactory.addReactionParticipant( target, source, role, null );
+			}
+			else
+			{
+				SemanticRelation relation = new SemanticRelation( null, "edge" );
+				edge = new Edge( Edge.getUniqEdgeName( diagram, relation, source, target ), relation, source, target );
+				edge.getOrigin().put( edge );
+			}
 			if ( label != null && !label.isEmpty() )
 				edge.setTitle( label );
-			diagram.put( edge );
-			source.addEdge( edge );
-			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "id", edge.getName() );
-			return McpEnvelope.ok( m );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "addEdge failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+			if ( edge.getKernel() instanceof SpecieReference )
+				m.put( "role", ( (SpecieReference) edge.getKernel() ).getRole() );
+			return m;
+		} );
 	}
 
-	/** Remove an element by id. */
+	/**
+	 * Parse a reaction participant: "s1", "2*s1" or "2 s1" (stoichiometry 2).
+	 * @return {stoichiometry or null, species}
+	 */
+	private static String[] participant( String spec )
+	{
+		String s = spec == null ? "" : spec.trim();
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile( "^([0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)\\s*(?:\\*|\\s)\\s*(\\S+)$" ).matcher( s );
+		if ( m.matches() )
+			return new String[] { m.group( 1 ), m.group( 2 ) };
+		return new String[] { null, s };
+	}
+
+	/** Parse parameter values, rejecting non-numbers before anything is changed. */
+	private static Map<String, Double> parameterValues( Map<String, String> parameters )
+	{
+		Map<String, Double> values = new LinkedHashMap<String, Double>();
+		if ( parameters == null )
+			return values;
+		for ( Map.Entry<String, String> e : parameters.entrySet() )
+		{
+			try
+			{
+				values.put( e.getKey(), Double.valueOf( Double.parseDouble( e.getValue().trim() ) ) );
+			}
+			catch ( Exception ex )
+			{
+				throw new IllegalArgumentException( "value of parameter '" + e.getKey() + "' is not a number: " + e.getValue() );
+			}
+		}
+		return values;
+	}
+
+	/** Set initial values of model variables, declaring the missing ones as parameters. */
+	private static List<String> applyParameters( Diagram diagram, Map<String, Double> values )
+	{
+		List<String> set = new ArrayList<String>();
+		if ( values.isEmpty() )
+			return set;
+		if ( ! ( diagram.getRole() instanceof EModel ) )
+			throw new IllegalArgumentException( "diagram has no mathematical model" );
+		EModel emodel = diagram.getRole( EModel.class );
+		for ( Map.Entry<String, Double> e : values.entrySet() )
+		{
+			String name = ModelElementFactory.resolveVariableName( diagram, e.getKey() );
+			if ( name == null )
+			{
+				if ( !e.getKey().matches( "[_a-zA-Z]\\w*" ) )
+					throw new IllegalArgumentException( "no variable '" + e.getKey() + "' and it is not a valid parameter name" );
+				emodel.declareVariable( e.getKey(), e.getValue() );
+				name = e.getKey();
+			}
+			else
+				emodel.getVariable( name ).setInitialValue( e.getValue().doubleValue() );
+			set.add( name );
+		}
+		return set;
+	}
+
+	/**
+	 * Add a reaction with its participants and kinetic law in one step: the reaction node, its edges,
+	 * the {@code $$rate_<name>} variable and the participants' rate equations. Participants are given
+	 * as "s1", "2*s1" or "2 s1" (stoichiometry 2), by species name, path ("default.s1") or variable.
+	 * parameters declares (or sets) parameter values used by the formula; any other undeclared
+	 * identifier in the formula is declared with value 0 and reported in declaredParameters.
+	 */
+	public static McpEnvelope addReaction( String diagramPath, String name, String formula, String[] reactants, String[] products,
+			String[] modifiers, String compartment, Map<String, String> parameters, Integer x, Integer y )
+	{
+		if ( formula == null || formula.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "formula (the kinetic law) must be a non-empty string" );
+		return edit( diagramPath, "addReaction", diagram -> {
+			Map<String, Double> values = parameterValues( parameters );
+			List<SpecieReference> components = new ArrayList<SpecieReference>();
+			String[][] groups = { reactants, products, modifiers };
+			String[] roles = { SpecieReference.REACTANT, SpecieReference.PRODUCT, SpecieReference.MODIFIER };
+			for ( int g = 0; g < groups.length; g++ )
+				if ( groups[ g ] != null )
+					for ( String spec : groups[ g ] )
+					{
+						String[] p = participant( spec );
+						components.add( ModelElementFactory.createSpecieReference( diagram, p[ 1 ], roles[ g ], p[ 0 ] ) );
+					}
+			Compartment parent = diagram;
+			if ( compartment != null && !compartment.isEmpty() )
+				parent = ModelElementFactory.findCompartment( diagram, compartment );
+			else if ( !components.isEmpty() )
+			{
+				Node first = ModelElementFactory.findVariableNode( diagram, components.get( 0 ).getSpecie() );
+				if ( ! ( first.getCompartment().getKernel() instanceof biouml.standard.type.Specie ) )
+					parent = first.getCompartment();
+			}
+			if ( name != null && name.contains( "/" ) )
+				throw new IllegalArgumentException( "name must not contain '/': use the compartment argument" );
+			Node node = ModelElementFactory.addReaction( parent, name == null || name.isEmpty() ? null : name, formula, components, point( x, y ) );
+			List<String> set = applyParameters( diagram, values );
+			ModelElementFactory.declareFormulaParameters( diagram, formula, node.getRole() );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", node.getName() );
+			m.put( "path", node.getCompleteNameInDiagram() );
+			m.put( "rateVariable", node.getRole() instanceof Equation ? node.getRole( Equation.class ).getVariable() : null );
+			m.put( "participants", Integer.valueOf( components.size() ) );
+			if ( !set.isEmpty() )
+				m.put( "parametersSet", set );
+			return m;
+		} );
+	}
+
+	/**
+	 * Add an equation: an assignment rule ('scalar', the default), a rate rule ('rate'), an
+	 * algebraic rule ('algebraic') or an initial assignment ('initial assignment'). variable is a
+	 * parameter, or a species by name, path or variable; a missing parameter is declared.
+	 * parameters declares (or sets) parameter values used by the formula.
+	 */
+	public static McpEnvelope addEquation( String diagramPath, String type, String variable, String formula,
+			Map<String, String> parameters, Integer x, Integer y )
+	{
+		return edit( diagramPath, "addEquation", diagram -> {
+			Map<String, Double> values = parameterValues( parameters );
+			Node node = ModelElementFactory.addEquation( diagram, type, variable, formula, point( x, y ) );
+			List<String> set = applyParameters( diagram, values );
+			Equation eq = node.getRole( Equation.class );
+			ModelElementFactory.declareFormulaParameters( diagram, formula, eq );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", node.getName() );
+			m.put( "type", eq.getType() );
+			m.put( "variable", eq.getVariable() );
+			m.put( "formula", eq.getFormula() );
+			if ( !set.isEmpty() )
+				m.put( "parametersSet", set );
+			return m;
+		} );
+	}
+
+	/**
+	 * Set initial values of model variables — parameters by name, species by name, path or variable;
+	 * a missing parameter is declared. Optionally marks them constant / not constant.
+	 */
+	public static McpEnvelope setParameters( String diagramPath, Map<String, String> parameters, Boolean constant )
+	{
+		if ( parameters == null || parameters.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "parameters must be a non-empty object {name: value}" );
+		return edit( diagramPath, "setParameters", diagram -> {
+			List<String> set = applyParameters( diagram, parameterValues( parameters ) );
+			if ( constant != null )
+				for ( String name : set )
+					diagram.getRole( EModel.class ).getVariable( name ).setConstant( constant.booleanValue() );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "set", set );
+			return m;
+		} );
+	}
+
+	/** Find an element by its id: a name ("s1") or a path in the diagram ("default.s1" or "default/s1"). */
+	private static DiagramElement findElement( Diagram diagram, String elementId )
+	{
+		if ( elementId == null || elementId.isEmpty() )
+			return null;
+		return diagram.findDiagramElement( elementId.replace( '/', '.' ) );
+	}
+
+	/** Remove an element by id, with the elements that depend on it (edges, reaction participants). */
 	public static McpEnvelope removeElement( String diagramPath, String elementId )
 	{
-		McpEnvelope d = diagram( diagramPath );
-		if ( !d.isOk() )
-			return d;
-		Diagram diagram = (Diagram) d.getData();
-		DiagramElement el = diagram.get( elementId );
-		if ( el == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element with id: " + elementId );
-		try
-		{
-			diagram.remove( elementId );
-			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
+		return edit( diagramPath, "removeElement", diagram -> {
+			DiagramElement el = findElement( diagram, elementId );
+			if ( el == null || el == diagram )
+				throw new NotFoundException( "no element with id: " + elementId );
+			if ( el instanceof Edge && el.getKernel() instanceof SpecieReference && el.getKernel().getOrigin() instanceof Reaction )
+				( (Reaction) el.getKernel().getOrigin() ).remove( el.getKernel().getName() );
+			if ( !diagram.getType().getSemanticController().remove( el ) && el.getOrigin() != null )
+				el.getOrigin().remove( el.getName() );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "removed", elementId );
-			return McpEnvelope.ok( m );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "removeElement failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+			return m;
+		} );
 	}
 
 	/** Move an element to (x, y). */
 	public static McpEnvelope moveElement( String diagramPath, String elementId, int x, int y )
 	{
-		McpEnvelope d = diagram( diagramPath );
-		if ( !d.isOk() )
-			return d;
-		Diagram diagram = (Diagram) d.getData();
-		DiagramElement el = diagram.get( elementId );
-		if ( !( el instanceof Node ) )
-			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "element is not a node: " + elementId );
-		try
-		{
+		return edit( diagramPath, "moveElement", diagram -> {
+			DiagramElement el = findElement( diagram, elementId );
+			if ( !( el instanceof Node ) || el == diagram )
+				throw new IllegalArgumentException( "element is not a node: " + elementId );
 			( (Node) el ).setLocation( x, y );
-			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "id", elementId );
 			m.put( "x", Integer.valueOf( x ) );
 			m.put( "y", Integer.valueOf( y ) );
-			return McpEnvelope.ok( m );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "moveElement failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+			return m;
+		} );
 	}
 
 	/** Rename an element's display title. */
 	public static McpEnvelope renameElement( String diagramPath, String elementId, String newName )
 	{
-		McpEnvelope d = diagram( diagramPath );
-		if ( !d.isOk() )
-			return d;
-		Diagram diagram = (Diagram) d.getData();
-		DiagramElement el = diagram.get( elementId );
-		if ( el == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element with id: " + elementId );
-		try
-		{
+		return edit( diagramPath, "renameElement", diagram -> {
+			DiagramElement el = findElement( diagram, elementId );
+			if ( el == null || el == diagram )
+				throw new NotFoundException( "no element with id: " + elementId );
 			el.setTitle( newName );
-			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "id", elementId );
 			m.put( "name", newName );
-			return McpEnvelope.ok( m );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "renameElement failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
-		}
+			return m;
+		} );
 	}
 
 	// ---------------------------------------------------------------- save / import / export

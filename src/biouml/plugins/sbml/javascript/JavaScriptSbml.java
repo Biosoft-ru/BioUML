@@ -251,12 +251,12 @@ public class JavaScriptSbml extends JavaScriptHostObjectBase
     
     public Reaction addReaction(Diagram diagram, SpecieReference[] specieReferences)
     {
-        return addReaction(diagram, specieReferences);
+        return addReaction(diagram, null, null, specieReferences);
     }
     
     public Reaction addReaction(Diagram diagram, String name, SpecieReference[] specieReferences)
     {
-        return addReaction(diagram, name, specieReferences);
+        return addReaction(diagram, name, null, specieReferences);
     }
     
     public Reaction addReaction(Diagram diagram, String name, String formula, SpecieReference[] specieReferences)
