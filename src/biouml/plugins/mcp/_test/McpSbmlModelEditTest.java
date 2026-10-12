@@ -553,6 +553,33 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		assertFalse( "changes with the tools", before.equals( catalog.fingerprint() ) );
 	}
 
+	/** move_element / move_elements move like the editor: a compartment takes its content along, once. */
+	@SuppressWarnings( "unchecked" )
+	public void testMoveElements() throws Exception
+	{
+		data( McpDiagramSupport.addReaction( diagramPath, "r1", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, 150, 60 ) );
+		java.awt.Point s1 = diagram().findNode( "s1" ).getLocation();
+		java.awt.Point s2 = diagram().findNode( "s2" ).getLocation();
+		java.awt.Point def = diagram().findNode( "default" ).getLocation();
+
+		Map<String, Object> m = data( McpDiagramSupport.moveElements( diagramPath, new String[] { "s1", "s2" }, 10, 20 ) );
+		assertEquals( java.util.Arrays.asList( "s1", "s2" ), m.get( "moved" ) );
+		assertEquals( new java.awt.Point( s1.x + 10, s1.y + 20 ), diagram().findNode( "s1" ).getLocation() );
+
+		m = data( McpDiagramSupport.moveElements( diagramPath, new String[] { "default", "s1" }, 100, 0 ) );
+		assertEquals( java.util.Arrays.asList( "default" ), m.get( "moved" ) );
+		assertEquals( java.util.Arrays.asList( "s1" ), m.get( "movedWithCompartment" ) );
+
+		data( McpDiagramSupport.moveElement( diagramPath, "default", def.x + 100, def.y + 50 ) ); // +0, +50 more
+
+		Diagram d = reload();
+		assertEquals( new java.awt.Point( def.x + 100, def.y + 50 ), d.findNode( "default" ).getLocation() );
+		assertEquals( "moved once with its compartment", new java.awt.Point( s1.x + 110, s1.y + 70 ), d.findNode( "s1" ).getLocation() );
+		assertEquals( new java.awt.Point( s2.x + 110, s2.y + 70 ), d.findNode( "s2" ).getLocation() );
+		assertEquals( new java.awt.Point( 250, 110 ), d.findNode( "r1" ).getLocation() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, McpDiagramSupport.moveElements( diagramPath, new String[] { "nope" }, 1, 1 ).getCode() );
+	}
+
 	/** biouml_diagram_image returns the rendered diagram as a PNG. */
 	public void testDiagramImage() throws Exception
 	{

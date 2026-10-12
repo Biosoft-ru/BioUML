@@ -895,20 +895,83 @@ public final class McpDiagramSupport
 		} );
 	}
 
-	/** Move an element to (x, y). */
+	/**
+	 * Move an element to (x, y) the way the diagram editor does: a compartment takes its content along,
+	 * and the attached edges are re-routed.
+	 */
 	public static McpEnvelope moveElement( String diagramPath, String elementId, int x, int y )
 	{
 		return edit( diagramPath, "moveElement", diagram -> {
 			DiagramElement el = findElement( diagram, elementId );
 			if ( !( el instanceof Node ) || el == diagram )
 				throw new IllegalArgumentException( "element is not a node: " + elementId );
-			( (Node) el ).setLocation( x, y );
+			Node node = (Node) el;
+			Point location = node.getLocation();
+			move( diagram, node, x - location.x, y - location.y );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "id", elementId );
 			m.put( "x", Integer.valueOf( x ) );
 			m.put( "y", Integer.valueOf( y ) );
 			return m;
 		} );
+	}
+
+	/**
+	 * Shift several nodes by (dx, dy) in one step. A compartment takes its content along; elements inside
+	 * a compartment that is moved too are moved with it (once).
+	 */
+	public static McpEnvelope moveElements( String diagramPath, String[] elementIds, int dx, int dy )
+	{
+		if ( elementIds == null || elementIds.length == 0 )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "elements must be a non-empty list of node ids" );
+		return edit( diagramPath, "moveElements", diagram -> {
+			List<Node> nodes = new ArrayList<Node>();
+			for ( String id : elementIds )
+			{
+				DiagramElement el = findElement( diagram, id );
+				if ( el == null || el == diagram )
+					throw new NotFoundException( "no element with id: " + id );
+				if ( !( el instanceof Node ) )
+					throw new IllegalArgumentException( "element is not a node: " + id );
+				if ( !nodes.contains( el ) )
+					nodes.add( (Node) el );
+			}
+			List<String> moved = new ArrayList<String>();
+			List<String> withCompartment = new ArrayList<String>();
+			for ( Node node : nodes )
+			{
+				if ( nodes.stream().anyMatch( other -> other != node && other instanceof Compartment && isInside( node, (Compartment) other ) ) )
+				{
+					withCompartment.add( node.getName() );
+					continue;
+				}
+				move( diagram, node, dx, dy );
+				moved.add( node.getName() );
+			}
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "moved", moved );
+			if ( !withCompartment.isEmpty() )
+				m.put( "movedWithCompartment", withCompartment );
+			m.put( "dx", Integer.valueOf( dx ) );
+			m.put( "dy", Integer.valueOf( dy ) );
+			return m;
+		} );
+	}
+
+	private static boolean isInside( Node node, Compartment compartment )
+	{
+		for ( Object origin = node.getOrigin(); origin instanceof DiagramElement; origin = ( (DiagramElement) origin ).getOrigin() )
+			if ( origin == compartment )
+				return true;
+		return false;
+	}
+
+	/** Move a node by an offset through the diagram's semantic controller, keeping its compartment. */
+	private static void move( Diagram diagram, Node node, int dx, int dy ) throws Exception
+	{
+		if ( dx == 0 && dy == 0 )
+			return;
+		diagram.getType().getSemanticController().move( node, node.getCompartment(), new java.awt.Dimension( dx, dy ), null );
 	}
 
 	/** Resize a node (e.g. enlarge a compartment to make room for new elements). */

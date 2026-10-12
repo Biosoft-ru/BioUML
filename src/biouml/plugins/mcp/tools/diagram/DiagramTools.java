@@ -125,7 +125,7 @@ public final class DiagramTools
 				( ex, args ) -> McpDiagramSupport.removeElement( str( args, "diagramPath" ), str( args, "elementId" ) ) );
 
 		catalog.register( "biouml_diagram_move_element",
-				"Move a node to a new (x, y) position.",
+				"Move a node to a new (x, y) position, as the diagram editor does: a compartment takes its content along and the attached edges are re-routed.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementId\",\"x\",\"y\"]}",
 				( ex, args ) -> {
 					Integer x = optInt( args, "x" );
@@ -133,6 +133,22 @@ public final class DiagramTools
 					if ( x == null || y == null )
 						return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "x and y must be integers" );
 					return McpDiagramSupport.moveElement( str( args, "diagramPath" ), str( args, "elementId" ), x, y );
+				} );
+
+		catalog.register( "biouml_diagram_move_elements",
+				"Shift several nodes by (dx, dy) in one call, e.g. a column of equations or a group of species. elements are node ids (names or paths such as 'default.s1'). A compartment takes its content along; listed elements inside a listed compartment move with it, once. Edges are re-routed. Returns {moved, movedWithCompartment, dx, dy}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"dx\":{\"type\":\"integer\"},\"dy\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elements\",\"dx\",\"dy\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
+					if ( v == null )
+						v = McpArgs.stringArray( args, "elements" );
+					if ( v != null )
+						return v;
+					Integer dx = optInt( args, "dx" );
+					Integer dy = optInt( args, "dy" );
+					if ( dx == null || dy == null )
+						return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "dx and dy must be integers" );
+					return McpDiagramSupport.moveElements( str( args, "diagramPath" ), McpArgs.strArray( args, "elements" ), dx.intValue(), dy.intValue() );
 				} );
 
 		catalog.register( "biouml_diagram_resize_element",
