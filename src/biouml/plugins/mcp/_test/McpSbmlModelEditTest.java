@@ -17,6 +17,7 @@ import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.Equation;
 import biouml.model.dynamics.VariableRole;
 import biouml.model.javascript.JavaScriptModel;
+import biouml.plugins.mcp.support.McpDiagramEditSupport;
 import biouml.plugins.mcp.support.McpDiagramSupport;
 import biouml.plugins.mcp.support.McpEnvelope;
 import biouml.plugins.sbgn.SbgnDiagramType;
@@ -299,6 +300,41 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		for ( List<String> list : map.values() )
 			java.util.Collections.sort( list );
 		return map;
+	}
+
+	/** No edge of a node may point elsewhere: a stale edge breaks the next clone (getOtherEnd throws). */
+	private static void assertEdgesConnected( Node node )
+	{
+		for ( Edge e : node.getEdges() )
+			assertTrue( node.getName() + " still lists edge " + e.getName() + " of " + e.getInput().getName() + " -> " + e.getOutput().getName(),
+					e.getInput() == node || e.getOutput() == node );
+	}
+
+	/** Cloning the same species twice (and merging a clone back) keeps the edge lists consistent. */
+	public void testCloneSameNodeTwice() throws Exception
+	{
+		data( McpDiagramSupport.addReaction( diagramPath, "r1", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, null, null ) );
+		data( McpDiagramSupport.addReaction( diagramPath, "r2", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, null, null ) );
+
+		data( McpDiagramEditSupport.cloneNode( diagramPath, "s1", "s1_a", false, new String[] { "r1" } ) );
+		Node s1 = diagram().findNode( "s1" );
+		assertEdgesConnected( s1 );
+		assertEquals( "only r2 left on the original", 1, s1.getEdges().length );
+		assertEdgesConnected( diagram().findNode( "s1_a" ) );
+
+		data( McpDiagramEditSupport.cloneNode( diagramPath, "s1", "s1_b", false, new String[] { "r2" } ) );
+		assertEquals( 0, s1.getEdges().length );
+		assertEdgesConnected( diagram().findNode( "s1_b" ) );
+
+		data( McpDiagramEditSupport.mergeClone( diagramPath, "s1_a" ) );
+		assertNull( diagram().findNode( "s1_a" ) );
+		assertEdgesConnected( s1 );
+		assertEquals( "r1 back on the original", 1, s1.getEdges().length );
+
+		folder.put( diagram() );
+		Diagram reloaded = reload();
+		for ( String r : new String[] { "r1", "r2" } )
+			assertEquals( r + " keeps its participants", 2, ( (Reaction) reloaded.findNode( r ).getKernel() ).getSize() );
 	}
 
 	// ------------------------------------------------------------------ model host object
