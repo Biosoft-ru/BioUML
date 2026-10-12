@@ -12,6 +12,8 @@ Use this skill when the user wants to simulate a BioUML diagram, look at its res
 1. **Never edit the original.** Copy first with `biouml_repo_copy_element(srcPath, destPath)`. When the user asks for a new version, copy the previous version to a new name and edit the copy.
 2. **To reset a broken copy**, `biouml_repo_remove(path)` and copy again. Do not try to patch a corrupted diagram.
 3. **Never call `engine.preprocess(diagram)` on the stored diagram.** Preprocessing mutates it in place (adds `RATE_OF_*` rules etc.); after saving, the model fails to compile with errors like `Duplicate assignment rules for variable RATE_OF_default_s9`. If you need to validate, only do it without saving afterwards, or better, just run the simulation.
+4. **Prefer the MCP diagram tools for edits** (section 5). Each call saves the diagram; a call that fails is undone (or the diagram is re-read from its last saved version), so it never leaves a half-made element behind. Scripts change the diagram in memory only and must end with `diagram.save()`.
+5. **Check `declaredParameters`** in the result of `add_reaction` / `add_equation`: identifiers of the formula that were not model variables are declared there with value 0. A species written without `$` that ends up in that list is a typo; a genuine parameter needs a value (`parameters` argument or `biouml_diagram_set_parameters`).
 
 ## 2. Running a simulation
 
@@ -30,7 +32,8 @@ Use this skill when the user wants to simulate a BioUML diagram, look at its res
 function step(name, fn){ try { fn(); print("[OK] " + name); } catch(e){ print("[FAIL] " + name + " -> " + e); } }
 ```
 
-- Host objects: `data` (repository: `data.get(path)`) and `model` (read helpers). `Packages.*` gives full Java access.
+- Host objects: `data` (repository: `data.get(path)`), `model` (read and edit helpers, section 5) and `sbml`. `Packages.*` gives full Java access; it is rarely needed now.
+- The `model.add*` functions throw on bad input (unknown species, unknown equation type); `step()` prints the message.
 - Rhino gotchas:
   - Java strings are not JS strings: wrap in `String(x)` before `===`, `indexOf`, or using as object keys.
   - Java arrays use `.length`; Java collections use `.size()` / `.get(i)` / `.iterator()`.
@@ -38,6 +41,8 @@ function step(name, fn){ try { fn(); print("[OK] " + name); } catch(e){ print("[
   - Reflection is the fastest way to discover an API: list `obj.getClass().getMethods()` with names and `getParameterTypes()`.
 
 ## 4. Inspecting a model
+
+`biouml_diagram_describe(path)` lists every element, including those inside compartments: `id`, `path` (e.g. `default.s6`), kind, position, the `variable` of a species, the `formula` of a reaction or equation, and `source`/`target`/`role`/`stoichiometry` of reaction edges, plus all model variables with initial values. Use it first; use a script for anything it does not show (events, simulation options).
 
 ```js
 var diagram = data.get(path);
@@ -54,88 +59,67 @@ em.getVariable("Name").getInitialValue();  // isConstant(), setConstant(), setIn
 
 Node layout: iterate `diagram.getNameList()` and `comp.getNameList()`; each node has `getLocation()`, `getShapeSize()`, `getKernel().getType()` (`reaction`, `math-equation`, `math-event`, ...). Skip `Packages.biouml.model.Edge` instances.
 
-Reaction anatomy (needed to build new ones correctly):
+Reaction anatomy (what `add_reaction` / `model.addReaction` build; useful when a model does not behave):
 - Node in the compartment, kernel `biouml.standard.type.Reaction` with a `KineticLaw` formula, role `Equation` of type `scalar` for variable `$$rate_<reactionName>`.
 - Each participant: a `SpecieReference` (role `reactant`/`product`, `setSpecie("default.s6")`) plus an `Edge` whose role is an `Equation` of type `rate` for `$default.s6` with formula `-$$rate_<name>` (reactant) or `$$rate_<name>` (product). **Without these edge equations the species ODEs ignore the reaction**: the model compiles but nothing flows.
 - In formulas: species as `$default.s6`, parameters by bare name, time as `time`.
 
 ## 5. Editing recipes
 
-All snippets assume `P = Packages`, `diagram`, `comp`, `em` from section 4, and end with a save:
+### With the MCP tools (preferred)
+
+Ids are element names (`s6`) or paths in the diagram (`default.s6`); a new element goes into a compartment when its name is qualified (`default/V`). Species are referred to in formulas as `$default.s6`.
+
+| Change | Tool and arguments |
+|---|---|
+| New species | `biouml_diagram_add_node(diagramPath, name="default/V", nodeType="Species", x, y)` — returns its `variable` (`$default.V`) |
+| Initial value or parameter value | `biouml_diagram_set_parameters(diagramPath, parameters={"V": 100, "Vaccination_rate": 0.006})` — species by name, missing parameters are declared; `constant=true/false` applies to every name in the call |
+| New reaction | `biouml_diagram_add_reaction(diagramPath, name="re_vaccination", formula="Vaccination_rate*$default.s6", reactants=["s6"], products=["V"], parameters={"Vaccination_rate": 0.006}, x, y)` — stoichiometry as `"2*s6"`; `modifiers` for catalysts |
+| Participant of an existing reaction | `biouml_diagram_add_edge(diagramPath, sourceId="s6", targetId="re8", edgeType="reactant")` (`product` for reaction -> species, `modifier`) |
+| Assignment rule / rate rule / initial assignment | `biouml_diagram_add_equation(diagramPath, type="scalar", variable="Population", formula="$default.s1 + $default.s2")` — a missing target parameter is declared |
+| Remove an element | `biouml_diagram_remove_element(diagramPath, elementId)` — also removes its edges and reaction participants |
+| Clone / merge a species | `biouml_diagram_clone_node`, `biouml_diagram_merge_clone` |
+| Move / align | `biouml_diagram_move_element`, `biouml_diagram_layout` |
+
+`add_reaction` creates everything the simulator needs: the node, the participant edges, the `$$rate_<name>` variable and the participants' rate equations. Do not build reactions from `add_node` + `add_edge` unless you are extending an existing reaction.
+
+### With a script
+
+There is no MCP tool for events, simulation options or editing an existing formula; use `biouml_repo_run_script`. The `model` functions create elements the same way the tools do. Always end with a save:
 
 ```js
-diagram.getOrigin().put(diagram);   // the working save; data.save(...) returned false here
-```
+var diagram = data.get(path);
+var em = diagram.getRole();
 
-### Parameters
-
-```js
-if (!em.containsVariable("Vaccination_rate")) em.declareVariable("Vaccination_rate", 0.006);
+// parameters: model.addReaction / addEvent do not declare them; do it first
+var params = {Vaccination_rate: 0.006, Vaccination_start_day: 30, Vaccination_on: 0};
+for (var name in params)
+  if (!em.containsVariable(name)) em.declareVariable(name, params[name]);
 em.getVariable("Vaccination_rate").setConstant(true);
+
+model.addSpecies(diagram, "default/V", 0);                 // returns the variable $default.V
+model.addReaction(diagram, "re_vaccination", "Vaccination_rate*$default.s6", [
+  model.createSpecieReference(diagram, "s6", "reactant"),
+  model.createSpecieReference(diagram, "V", "product")      // optional 4th argument: stoichiometry
+]);
+model.addEquation(diagram, "scalar", "Population", "$default.s1 + $default.V");
+model.addEvent(diagram, "time >= Vaccination_start_day", 0,
+  [model.createAssignment(diagram, "Vaccination_on", "1")]);
+
+diagram.save();                                            // data.save(dc, path) expects the parent folder's path
 ```
 
-A constant variable cannot be changed by an event. If an event must switch a value, declare a separate non-constant variable (e.g. `Variant_factor = 1`) and multiply it into the formula.
+A constant variable cannot be changed by an event. If an event must switch a value, declare a separate non-constant variable (e.g. `Variant_factor = 1`) and multiply it into the formula. If the model has a total such as `Population = sum of compartments`, add new species to that formula.
 
-### New species
-
-```js
-var sp = new P.biouml.standard.type.Specie(null, "V");
-sp.setTitle("Vaccinated");
-var node = new P.biouml.model.Node(comp, sp);
-node.setLocation(new P.java.awt.Point(380, 545));
-node.setShapeSize(new P.java.awt.Dimension(70, 40));
-node.setRole(new P.biouml.model.dynamics.VariableRole(node, 0.0)); // initial value
-comp.put(node);                     // variable becomes $default.V
-```
-
-If the model has a total such as `Population = sum of compartments`, add the new species to that formula.
-
-### New reaction (reactant -> product)
-
-```js
-function addReaction(name, formula, reactId, prodId, x, y){
-  var rx = new P.biouml.standard.type.Reaction(null, name);
-  rx.setKineticLaw(new P.biouml.standard.type.KineticLaw(formula));
-  var rn = new P.biouml.model.Node(comp, rx);
-  rn.setLocation(new P.java.awt.Point(x, y));
-  rn.setShapeSize(new P.java.awt.Dimension(15, 15));
-  var r1 = new P.biouml.standard.type.SpecieReference(rx, name + "__" + reactId + "_as_reactant", "reactant");
-  r1.setSpecie("default." + reactId);
-  var r2 = new P.biouml.standard.type.SpecieReference(rx, name + "__" + prodId + "_as_product", "product");
-  r2.setSpecie("default." + prodId);
-  rx.put(r1); rx.put(r2);
-  rn.setRole(new P.biouml.model.dynamics.Equation(rn, "scalar", "$$rate_" + name, formula));
-  comp.put(rn);
-  var e1 = new P.biouml.model.Edge(r1, comp.get(reactId), rn);
-  e1.setRole(new P.biouml.model.dynamics.Equation(e1, "rate", "$default." + reactId, "-$$rate_" + name));
-  var e2 = new P.biouml.model.Edge(r2, rn, comp.get(prodId));
-  e2.setRole(new P.biouml.model.dynamics.Equation(e2, "rate", "$default." + prodId, "$$rate_" + name));
-  comp.put(e1); comp.put(e2);
-  var vn = "$$rate_" + name;         // must be declared explicitly, or generation fails with a null pointer
-  if (em.getVariable(vn) == null) {
-    var v = new P.biouml.model.dynamics.Variable(vn, em, em.getVariables());
-    v.setInitialValue(0.0); em.put(v);
-  }
-}
-addReaction("re_vaccination", "Vaccination_rate*$default.s6", "s6", "V", 280, 530);
-```
-
-After adding reactions, check that every equation's variable exists:
-
-```js
-var it = em.getEquations().iterator(), miss = [];
-while (it.hasNext()) { var q = it.next(); if (em.getVariable(q.getVariable()) == null) miss.push(q.getVariable()); }
-print("missing vars: " + (miss.join(",") || "none"));
-```
+If `biouml_diagram_add_reaction` is not in the tool list, the server runs an older build whose `model.add*` functions and `add_node` do not create working model elements: ask for the server to be updated rather than building elements by hand.
 
 ### Change an existing reaction rate
 
-Update both the kinetic law and the node's equation:
+The reaction's rate equation reads its formula from the kinetic law, so updating the kinetic law is enough:
 
 ```js
-var n = comp.get("re8");
-n.getKernel().getKineticLaw().setFormula(f);
-n.getRole().setFormula(f);
+diagram.findNode("re8").getKernel().getKineticLaw().setFormula(f);
+diagram.save();
 ```
 
 ### Change an assignment rule / algebraic formula
@@ -143,26 +127,12 @@ n.getRole().setFormula(f);
 ```js
 var it = em.getEquations().iterator();
 while (it.hasNext()) { var eq = it.next(); if (String(eq.getVariable()) === "Population") eq.setFormula("..."); }
-```
-
-### New event
-
-Events are top-level diagram nodes (not in the compartment):
-
-```js
-var stub = new P.biouml.standard.type.Stub(null, "vaccination_start", "math-event");
-var node = new P.biouml.model.Node(diagram, stub);
-node.setLocation(new P.java.awt.Point(40, 1385));
-var a = new P.biouml.model.dynamics.Assignment("Vaccination_on", "1.0");
-node.setRole(new P.biouml.model.dynamics.Event(node, "time >= Vaccination_start_day", "0", [a]));
-diagram.put(node);
+diagram.save();
 ```
 
 ### Remove an element
 
-```js
-diagram.remove("end_of_epidemic");   // or comp.remove(name) for nodes inside the compartment
-```
+`biouml_diagram_remove_element`, or in a script `diagram.remove("end_of_epidemic")` (`comp.remove(name)` for nodes inside a compartment) followed by `diagram.save()`.
 
 Before removing an event or rule, understand what it does: some models contain irreversible switches (e.g. an event that zeroes transmission forever) that block the dynamics you are adding.
 
@@ -172,6 +142,7 @@ Before removing an event or rule, understand what it does: some models contain i
 var so = diagram.getAttributes().getValue("simulationOptions");
 so.setCompletionTime(730.0);
 so.setTimeIncrement(0.1);
+diagram.save();
 ```
 
 ## 6. Layout: keep new elements readable
@@ -179,7 +150,7 @@ so.setTimeIncrement(0.1);
 New nodes default to overlapping existing ones. Before placing anything, list the positions of all nodes (section 4) and follow the existing layout:
 
 - **Equations and events** (`math-equation`, `math-event` top-level nodes) usually sit in a column below the reaction scheme. Put new ones in the same column, continuing the existing vertical spacing below the last one.
-- **New species and reactions** go inside the compartment. If there is no free space, enlarge it (`comp.setShapeSize(new P.java.awt.Dimension(w, newH))`) and place them in a new row below the existing scheme, near the species they connect to.
+- **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it in a script (`comp.setShapeSize(new Packages.java.awt.Dimension(w, newH))`) and place them in a new row below the existing scheme, near the species they connect to.
 - After moving nodes, reset the attached edges so the editor redraws them: for each `Edge` whose `getInput()` or `getOutput()` was moved, call `e.setPath(null)`.
 - Layout changes do not affect the math, but re-run the simulation once to confirm the diagram still loads and compiles.
 
@@ -189,14 +160,14 @@ New nodes default to overlapping existing ones. Before placing anything, list th
 2. Copy to the user's project. Confirm the destination folder exists with `biouml_repo_list`.
 3. Inspect: reactions and formulas, equations, events, constants, node positions.
 4. Look up current literature values for any new parameters with web search, and note which values are assumptions.
-5. Apply all edits in one script with `step()` logging, then save.
-6. Simulate; on `Model was not generated!` read the reason, fix (usually an undeclared `$$rate_*` variable, a missing edge equation, or a preprocessed diagram), and retry. If the diagram is corrupted, remove and re-copy.
+5. Apply the edits with the MCP tools (section 5); put what they cannot do (events, simulation span, formula changes) in one script with `step()` logging that ends with `diagram.save()`.
+6. Simulate; on `Model was not generated!` read the reason, fix (usually a parameter left at 0 or undeclared, a typo in a formula, or a preprocessed diagram), and retry. If the diagram is corrupted, remove and re-copy.
 7. Plot before/after with the same variable list; save the result with `biouml_simulation_save_result` if the user wants it kept.
 8. Report what changed, the key numbers, and the model's remaining limitations.
 
 ## 8. Worked example: modernising a 2020 COVID-19 SEIR model
 
-A model built with this procedure (`Westerhoff and Kolodkin improved v2`) added:
+A model built this way (`Westerhoff and Kolodkin improved v2`; it was built with hand-made reactions, today each reaction row is one `biouml_diagram_add_reaction` call) added:
 
 | Change | Implementation | Value used |
 |---|---|---|

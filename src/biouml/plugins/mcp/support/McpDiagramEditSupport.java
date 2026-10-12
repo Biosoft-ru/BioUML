@@ -35,6 +35,8 @@ import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.subaction.BackgroundDynamicAction;
 import ru.biosoft.jobcontrol.JobControl;
+import ru.biosoft.jobcontrol.JobControlEvent;
+import ru.biosoft.jobcontrol.JobControlListenerAdapter;
 
 /**
  * Shared, test-friendly helpers for the headless diagram-editing MCP tools.
@@ -80,10 +82,14 @@ public final class McpDiagramEditSupport
 		if ( elementPaths == null || elementPaths.length == 0 )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "a non-empty selection (list of element paths) is required" );
 		List<DataElement> items = new ArrayList<DataElement>();
+		DataElement diagram = CollectionFactory.getDataElement( diagramPath );
 		for ( String p : elementPaths )
 		{
 			String full = p.startsWith( diagramPath + "/" ) ? p : ( diagramPath.contains( p ) ? p : diagramPath + "/" + p );
 			DataElement de = CollectionFactory.getDataElement( full );
+			// an element nested in a compartment may also be given by its name ("s1") or diagram path ("default.s1")
+			if ( de == null && diagram instanceof Diagram && !p.startsWith( diagramPath + "/" ) )
+				de = ( (Diagram) diagram ).findDiagramElement( p.replace( '/', '.' ) );
 			if ( de == null )
 				return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + full );
 			items.add( de );
@@ -131,22 +137,26 @@ public final class McpDiagramEditSupport
 		}
 		if ( !action.isApplicable( diagram ) )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "layout is not applicable to this diagram: " + diagramPath );
+		@SuppressWarnings( "unchecked" )
+		List<DataElement> items = (List<DataElement>) sel.getData();
+		JobControl jc;
 		try
 		{
-			@SuppressWarnings( "unchecked" )
-			List<DataElement> items = (List<DataElement>) sel.getData();
-			action.getJobControl( diagram, items, null ).run();
-			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "applied", diagramPath );
-			m.put( "op", op );
-			m.put( "count", Integer.valueOf( items.size() ) );
-			return McpEnvelope.ok( m );
+			jc = action.getJobControl( diagram, items, null );
 		}
 		catch ( Exception e )
 		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"layout '" + op + "' failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "layout '" + op + "' failed: " + McpDiagramSupport.describeError( e ) );
 		}
+		McpEnvelope failed = runEdit( diagram, jc, true, "layout '" + op + "'" );
+		if ( failed != null )
+			return failed;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "applied", diagramPath );
+		m.put( "op", op );
+		m.put( "count", Integer.valueOf( items.size() ) );
+		m.put( "saved", Boolean.TRUE );
+		return McpEnvelope.ok( m );
 	}
 
 	/**
@@ -181,41 +191,81 @@ public final class McpDiagramEditSupport
 			if ( !action.isApplicable( diagram ) )
 				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "update-submodel is not applicable to this diagram: " + diagramPath );
 			JobControl jc = action.getJobControl( diagram, new ArrayList<DataElement>(), null );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, true, "update-submodel" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
+			m.put( "saved", Boolean.TRUE );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"update-submodel failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "update-submodel failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
 	/**
-	 * Run a {@link BackgroundDynamicAction} against a diagram's semantic controller. The diagram
-	 * must pass the action's model-level {@code isApplicable}; otherwise a clean {@code invalid_params}
-	 * envelope is returned.
+	 * Run an action that edits the diagram, then save the diagram (when {@code save} is set). If the
+	 * action fails or the diagram can not be saved, the edited diagram is dropped from the cache, so it
+	 * is re-read from its last saved version: a half-done or unsaveable edit must not stay in memory,
+	 * where it would break every later save of the diagram.
+	 *
+	 * @return null on success, otherwise the error envelope to return
 	 */
-	private static McpEnvelope runDiagramAction( Diagram diagram, BackgroundDynamicAction action, String what )
+	private static McpEnvelope runEdit( Diagram diagram, JobControl jc, boolean save, String what )
 	{
-		if ( !action.isApplicable( diagram ) )
-			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, what + " is not applicable to this diagram: " + DataElementPath.create( diagram ) );
+		String[] error = new String[ 1 ];
+		jc.addListener( new JobControlListenerAdapter()
+		{
+			@Override
+			public void jobTerminated( JobControlEvent event )
+			{
+				if ( event.getException() != null )
+					error[ 0 ] = McpDiagramSupport.describeError( event.getException() );
+			}
+		} );
 		try
 		{
-			JobControl jc = action.getJobControl( diagram, new ArrayList<DataElement>(), null );
 			jc.run();
-			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "applied", DataElementPath.create( diagram ).toString() );
-			m.put( "status", statusString( jc ) );
-			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					what + " failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			error[ 0 ] = McpDiagramSupport.describeError( e );
+		}
+		if ( error[ 0 ] != null || jc.getStatus() == JobControl.TERMINATED_BY_ERROR )
+		{
+			discard( diagram );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, what + " failed, the diagram is re-read from its last saved version: "
+					+ ( error[ 0 ] != null ? error[ 0 ] : "see the server log" ) );
+		}
+		if ( !save )
+			return null;
+		try
+		{
+			ru.biosoft.access.CollectionFactoryUtils.save( diagram );
+			return null;
+		}
+		catch ( Exception e )
+		{
+			discard( diagram );
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, what + " was applied but the diagram could not be saved, so the change was"
+					+ " discarded and the diagram is re-read from its last saved version: " + McpDiagramSupport.describeError( e ) );
+		}
+	}
+
+	/** Drop an edited diagram from its collection's cache: the next access re-reads the saved version. */
+	private static void discard( Diagram diagram )
+	{
+		try
+		{
+			if ( diagram.getOrigin() != null )
+				diagram.getOrigin().release( diagram.getName() );
+		}
+		catch ( Exception e )
+		{
+			log.log( java.util.logging.Level.WARNING, "Can not discard changes of diagram " + diagram.getName(), e );
 		}
 	}
 
@@ -265,10 +315,13 @@ public final class McpDiagramEditSupport
 			@SuppressWarnings( "unchecked" )
 			List<DataElement> items = (List<DataElement>) sel.getData();
 			JobControl jc = action.getJobControl( diagram, items, params );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, addModule, "split-diagram" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
+			m.put( "saved", Boolean.valueOf( addModule ) );
 			String resultPath = params.getResultPath() != null ? params.getResultPath().toString() : null;
 			if ( resultPath != null )
 				m.put( "path", resultPath );
@@ -278,7 +331,7 @@ public final class McpDiagramEditSupport
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"split-diagram failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+					"split-diagram failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
@@ -326,17 +379,20 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, params );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, true, "clone-node" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
 			m.put( "clone", params.getNodeName() );
+			m.put( "saved", Boolean.TRUE );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"clone-node failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+					"clone-node failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
@@ -382,18 +438,21 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, params );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, true, "change-subdiagram" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
 			m.put( "subdiagram", subdiagramPath );
+			m.put( "saved", Boolean.TRUE );
 			m.put( "target", targetPath );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"change-subdiagram failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+					"change-subdiagram failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
@@ -433,18 +492,21 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, params );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, true, "change-port" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
 			m.put( "port", portName );
+			m.put( "saved", Boolean.TRUE );
 			m.put( "portType", portType );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"change-port failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+					"change-port failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
@@ -479,17 +541,20 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, null );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, true, "merge-clone" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
 			m.put( "merged", cloneName );
+			m.put( "saved", Boolean.TRUE );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"merge-clone failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+					"merge-clone failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
@@ -583,18 +648,21 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, null );
-			jc.run();
+			McpEnvelope failed = runEdit( diagram, jc, true, "add-from-search" );
+			if ( failed != null )
+				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "applied", diagramPath );
 			m.put( "status", statusString( jc ) );
 			m.put( "direction", direction );
+			m.put( "saved", Boolean.TRUE );
 			m.put( "count", Integer.valueOf( items.size() ) );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-					"add-from-search failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+					"add-from-search failed: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 }

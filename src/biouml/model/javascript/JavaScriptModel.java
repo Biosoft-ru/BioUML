@@ -634,34 +634,38 @@ public class JavaScriptModel extends JavaScriptHostObjectBase
     
     /**
      * Adds event with trigger <b>trigger</b>, delay <b>delay</b> and assignments <b>actions</b> to diagram <b>diagram</b>.
+     * The diagram is changed in memory only, call <code>diagram.save()</code> to store it.
      *
      * @param diagram the diagram to add an event to.
      * @param trigger boolean expression triggering the event.
      * @param delay double number representing time of the event delay.
      * @param actions array of assignments performed after the event triggering.
+     * @return the created event.
+     * @throws IllegalArgumentException if the event can not be created (e.g. an assignment variable is unknown).
      */
-    public void addEvent(Diagram diagram, String trigger, double delay, Assignment[] actions)
+    public Event addEvent(Diagram diagram, String trigger, double delay, Assignment[] actions)
     {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("trigger", trigger);
-        properties.put("delay", Double.toString(delay));
-        properties.put("eventAssignment", actions);
-        add(diagram, new Point(0, 0), Event.class, properties);
+        if( diagram == null )
+            throw new IllegalArgumentException("Diagram is null.");
+        String delayValue = delay == Math.rint(delay) ? Long.toString((long)delay) : Double.toString(delay);
+        return ModelElementFactory.addEvent(diagram, trigger, delayValue, actions, null).getRole(Event.class);
     }
 
     /**
      * Creates assignment to perform after triggering of a diagram event.
      *
      * @param diagram the diagram for which the assignment is created.
-     * @param variable the identifier of the diagram parameter or variable which value will be changed after triggering of the event.
+     * @param variable the identifier of the diagram parameter or variable which value will be changed after triggering of the event;
+     * a species may be given by its name, path ('default.s1') or variable ('$default.s1').
      * @param math the formula for calculation the new value of the variable after the event triggering.
      * @return created Assignment on success or null otherwise.
      */
     public Assignment createAssignment(Diagram diagram, String variable, String math)
     {
-        if( diagram.getRole(EModel.class).getVariable(variable) == null )
+        String name = ModelElementFactory.resolveVariableName(diagram, variable);
+        if( name == null )
             throw new IllegalArgumentException("Diagram " + diagram.getName() + " has no variable " + variable);
-        return new Assignment(variable, math);
+        return new Assignment(name, math);
     }
 
     /**

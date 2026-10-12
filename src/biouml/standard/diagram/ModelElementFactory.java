@@ -20,8 +20,10 @@ import biouml.model.Module;
 import biouml.model.Node;
 import biouml.model.Role;
 import biouml.model.SemanticController;
+import biouml.model.dynamics.Assignment;
 import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.Equation;
+import biouml.model.dynamics.Event;
 import biouml.model.dynamics.Variable;
 import biouml.model.dynamics.VariableRole;
 import biouml.standard.type.Base;
@@ -455,6 +457,56 @@ public class ModelElementFactory
             node.setShowTitle( false );
         }
         node.setRole( new Equation( node, type, variableName, formula ) );
+        if( location != null )
+            node.setLocation( location );
+        put( parent, node );
+        return node;
+    }
+
+    /**
+     * Adds an event: when <b>trigger</b> becomes true, after <b>delay</b>, the assignments are performed.
+     * Assignment variables may be given by model name or as species name/path; they must exist.
+     *
+     * @param parent compartment to put the event node into (normally the diagram)
+     * @return the event node
+     */
+    public static @Nonnull Node addEvent(@Nonnull Compartment parent, String trigger, String delay, Assignment[] assignments, Point location)
+    {
+        Diagram diagram = Diagram.getDiagram( parent );
+        getEModel( diagram );
+        if( trigger == null || trigger.isEmpty() )
+            throw new IllegalArgumentException( "Event trigger is empty" );
+        List<Assignment> actions = new ArrayList<>();
+        if( assignments != null )
+        {
+            for( int i = 0; i < assignments.length; i++ )
+            {
+                Assignment a = assignments[i];
+                if( a == null )
+                    throw new IllegalArgumentException( "Event assignment #" + ( i + 1 ) + " is null" );
+                String variable = resolveVariableName( diagram, a.getVariable() );
+                if( variable == null )
+                    throw new IllegalArgumentException( "No variable '" + a.getVariable() + "' in diagram '" + diagram.getName() + "'" );
+                actions.add( new Assignment( variable, a.getMath() ) );
+            }
+        }
+
+        SemanticController controller = diagram.getType().getSemanticController();
+        Node node = null;
+        try
+        {
+            DiagramElement de = controller.createInstance( parent, Event.class, location == null ? new Point() : location, (Object)null )
+                    .getElement();
+            if( de instanceof Node && de.getRole() instanceof Event )
+                node = (Node)de;
+        }
+        catch( RuntimeException e )
+        {
+            // the diagram type does not create events headlessly: create the node below
+        }
+        if( node == null )
+            node = new Node( parent, new Stub( null, DefaultSemanticController.generateUniqueNodeName( parent, "event" ), Type.MATH_EVENT ) );
+        node.setRole( new Event( node, trigger, delay == null || delay.isEmpty() ? "0" : delay, actions.toArray( new Assignment[0] ) ) );
         if( location != null )
             node.setLocation( location );
         put( parent, node );

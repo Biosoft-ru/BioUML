@@ -316,7 +316,9 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		data( McpDiagramSupport.addReaction( diagramPath, "r1", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, null, null ) );
 		data( McpDiagramSupport.addReaction( diagramPath, "r2", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, null, null ) );
 
-		data( McpDiagramEditSupport.cloneNode( diagramPath, "s1", "s1_a", false, new String[] { "r1" } ) );
+		Map<String, Object> cloned = data( McpDiagramEditSupport.cloneNode( diagramPath, "s1", "s1_a", false, new String[] { "r1" } ) );
+		assertEquals( Boolean.TRUE, cloned.get( "saved" ) );
+		assertNotNull( "clone saved", reload().findNode( "s1_a" ) );
 		Node s1 = diagram().findNode( "s1" );
 		assertEdgesConnected( s1 );
 		assertEquals( "only r2 left on the original", 1, s1.getEdges().length );
@@ -331,10 +333,49 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		assertEdgesConnected( s1 );
 		assertEquals( "r1 back on the original", 1, s1.getEdges().length );
 
-		folder.put( diagram() );
 		Diagram reloaded = reload();
+		assertNull( "merge saved", reloaded.findNode( "s1_a" ) );
+		assertNotNull( reloaded.findNode( "s1_b" ) );
 		for ( String r : new String[] { "r1", "r2" } )
 			assertEquals( r + " keeps its participants", 2, ( (Reaction) reloaded.findNode( r ).getKernel() ).getSize() );
+	}
+
+	/**
+	 * Edit tools save the diagram; one that can not save it discards the in-memory change, so the next
+	 * access re-reads the saved version and a broken element can not block later saves.
+	 */
+	public void testUnsaveableEditIsDiscarded() throws Exception
+	{
+		Map<String, Object> m = data( McpDiagramEditSupport.layout( diagramPath, "align-up", new String[] { "s1", "s2" } ) );
+		assertEquals( Boolean.TRUE, m.get( "saved" ) );
+
+		// the action fails (the view builder trips over the broken element)
+		Diagram before = breakDiagram();
+		McpEnvelope env = McpDiagramEditSupport.layout( diagramPath, "align-left", new String[] { "s1", "s2" } );
+		assertFalse( "layout must fail", env.isOk() );
+		assertTrue( env.getError(), env.getError().contains( "re-read from its last saved version" ) );
+		assertNotSame( "cached diagram dropped", before, diagram() );
+		assertNull( "broken element discarded", diagram().findNode( "broken" ) );
+
+		// the action succeeds but the SBML writer fails on the broken element
+		before = breakDiagram();
+		env = McpDiagramEditSupport.cloneNode( diagramPath, "s1", "s1_c", false, null );
+		assertFalse( "save must fail", env.isOk() );
+		assertTrue( env.getError(), env.getError().contains( "could not be saved" ) );
+		assertNotSame( "cached diagram dropped", before, diagram() );
+		assertNull( "clone discarded", diagram().findNode( "s1_c" ) );
+		assertNull( "broken element discarded", diagram().findNode( "broken" ) );
+
+		data( McpDiagramSupport.addNode( diagramPath, "default/s3", "Species", 10, 10 ) ); // later edits save again
+	}
+
+	/** Put an element with an untyped kernel into the cached diagram: nothing can render or save it. */
+	private Diagram breakDiagram() throws Exception
+	{
+		Diagram d = diagram();
+		Compartment def = (Compartment) d.get( "default" );
+		def.put( new Node( def, new biouml.standard.type.Stub( null, "broken", null ) ) );
+		return d;
 	}
 
 	// ------------------------------------------------------------------ model host object
@@ -362,9 +403,20 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		assertEquals( "$default.s1 + $default.V", eq.getFormula() );
 		assertNotNull( "assignment target declared", d.getRole( EModel.class ).getVariable( "Total" ) );
 
+		biouml.model.dynamics.Event ev = model.addEvent( d, "time > 5", 1, new biouml.model.dynamics.Assignment[] { model.createAssignment( d, "V", "0" ) } );
+		assertEquals( "time > 5", ev.getTrigger() );
+		assertEquals( "1", ev.getDelay() );
+		assertEquals( "$default.V", ev.getEventAssignment()[ 0 ].getVariable() );
+
 		d.save();
 		Diagram reloaded = reload();
 		assertNotNull( reloaded.findNode( "V" ) );
+		boolean eventSaved = false;
+		for ( DiagramElement de : reloaded.recursiveStream().toList() )
+			if ( de.getRole() instanceof biouml.model.dynamics.Event
+					&& ( (biouml.model.dynamics.Event) de.getRole() ).getTrigger().matches( "time > 5(\\.0)?" ) ) // MathML writes 5 as 5.0
+				eventSaved = "$default.V".equals( ( (biouml.model.dynamics.Event) de.getRole() ).getEventAssignment()[ 0 ].getVariable() );
+		assertTrue( "event persisted in SBML", eventSaved );
 		Reaction rr = (Reaction) reloaded.findNode( r.getName() ).getKernel();
 		assertEquals( 2, rr.getSize() );
 		boolean found = false;
@@ -372,6 +424,72 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 			if ( de.getRole() instanceof Equation && "Total".equals( ( (Equation) de.getRole() ).getVariable() ) )
 				found = true;
 		assertTrue( "assignment rule persisted", found );
+	}
+
+	/** The script recipe of the biouml-model-editing skill, run through Rhino with the real host objects. */
+	public void testSkillScriptRecipe() throws Exception
+	{
+		String script = String.join( "\n",
+				"var diagram = data.get('" + diagramPath + "');",
+				"var em = diagram.getRole();",
+				"var params = {k_vac: 0.006, start_day: 30, vac_on: 0};",
+				"for (var name in params)",
+				"  if (!em.containsVariable(name)) em.declareVariable(name, params[name]);",
+				"em.getVariable('k_vac').setConstant(true);",
+				"model.addSpecies(diagram, 'default/V', 0);",
+				"model.addReaction(diagram, 're_vac', 'k_vac*vac_on*$default.s1', [",
+				"  model.createSpecieReference(diagram, 's1', 'reactant'),",
+				"  model.createSpecieReference(diagram, 'V', 'product')",
+				"]);",
+				"model.addEquation(diagram, 'scalar', 'Population', '$default.s1 + $default.V');",
+				"model.addEvent(diagram, 'time >= start_day', 0, [model.createAssignment(diagram, 'vac_on', '1')]);",
+				"diagram.findNode('re_vac').getKernel().getKineticLaw().setFormula('2*k_vac*vac_on*$default.s1');",
+				"diagram.save();",
+				"print('recipe done');" );
+		StringBuilder out = new StringBuilder();
+		ru.biosoft.access.script.ScriptEnvironment env = new ru.biosoft.access.script.NullScriptEnvironment()
+		{
+			@Override
+			public void print( String msg )
+			{
+				out.append( msg ).append( '\n' );
+			}
+
+			@Override
+			public void error( String msg )
+			{
+				out.append( "ERROR: " ).append( msg ).append( '\n' );
+			}
+		};
+		if ( ru.biosoft.plugins.javascript.JScriptVisiblePlugin.getInstance() == null ) // the server starts it at boot: it defines data, model, ...
+		{
+			Properties js = new Properties();
+			js.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, "JavaScript" );
+			new ru.biosoft.plugins.javascript.JScriptVisiblePlugin( null, js ).startup();
+		}
+		ru.biosoft.access.script.ScriptTypeRegistry.createScript( "js", null, script ).execute( script, env, false );
+		assertTrue( out.toString(), out.toString().contains( "recipe done" ) );
+
+		Diagram d = reload();
+		EModel em = d.getRole( EModel.class );
+		assertNotNull( em.getVariable( "$default.V" ) );
+		assertTrue( em.getVariable( "k_vac" ).isConstant() );
+		assertEquals( 30.0, em.getVariable( "start_day" ).getInitialValue() );
+		Reaction r = (Reaction) d.findNode( "re_vac" ).getKernel();
+		assertEquals( 2, r.getSize() );
+		assertEquals( "2*k_vac*vac_on*$default.s1", r.getFormula().replace( "2.0*", "2*" ) ); // MathML writes 2 as 2.0
+		assertEquals( "rate equation follows the kinetic law", r.getFormula(), d.findNode( "re_vac" ).getRole( Equation.class ).getFormula() );
+		boolean rule = false, event = false;
+		for ( DiagramElement de : d.recursiveStream().toList() )
+		{
+			if ( de.getRole() instanceof Equation && "Population".equals( ( (Equation) de.getRole() ).getVariable() ) )
+				rule = true;
+			if ( de.getRole() instanceof biouml.model.dynamics.Event
+					&& "vac_on".equals( ( (biouml.model.dynamics.Event) de.getRole() ).getEventAssignment()[ 0 ].getVariable() ) )
+				event = true;
+		}
+		assertTrue( "assignment rule saved", rule );
+		assertTrue( "event saved", event );
 	}
 
 	public void testScriptModelReportsBadInput()
