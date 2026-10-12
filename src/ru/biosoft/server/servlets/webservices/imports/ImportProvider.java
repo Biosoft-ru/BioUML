@@ -732,9 +732,10 @@ public class ImportProvider extends WebJSONProviderSupport
         {
             String realName = rec.getDEName() == null ? rec.getTargetElementName() : rec.getDEName();
             DataElementPath targetElementPath = rec.getTargetFolder().getChildPath( realName );
+            DataElementPath realPath = targetElementPath.getTargetPath();
             targetElementPath.remove();
             JSONObject remove = new JSONObject();
-            remove.put( "path", targetElementPath.toString() );
+            remove.put( "path", realPath.toString() );
             resp.sendJSON( remove );
             return;
         }
