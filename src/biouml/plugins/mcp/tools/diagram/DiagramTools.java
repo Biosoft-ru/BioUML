@@ -39,10 +39,11 @@ public final class DiagramTools
 				( ex, args ) -> McpEnvelope.ok( McpDiagramSupport.nodeTypes() ) );
 
 		catalog.register( "biouml_diagram_add_node",
-				"Add a node to a diagram. Returns {id, path, title} and, for a species or compartment of a model, its variable. name may be qualified by a compartment ('default/V' creates V inside compartment default); title is the displayed label (default: the name); width/height set the node size. nodeType is one of the keys from biouml_diagram_node_types (default 'Stub'). In a diagram with a mathematical model (e.g. any SBML model) species, compartments and reactions are created by the diagram type, with their model variables and rate equations; for SBML models the species may be given its SBGN entity type ('unspecified', 'simple chemical', 'macromolecule', 'nucleic acid feature', 'perturbing agent', 'complex'; 'Species' is a macromolecule). A reaction created this way has no participants and rate 0 — prefer biouml_diagram_add_reaction. A failed add is undone, so the diagram stays saveable.",
-				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"nodeType\":{\"type\":\"string\"},\"title\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"name\"]}",
+				"Add a node to a diagram. Returns {id, path, title} and, for a species or compartment of a model, its variable. name may be qualified by a compartment ('default/V' creates V inside compartment default); title is the displayed label (default: the name); width/height set the node size; styleFrom copies the look (fill, border, font) of an existing node, e.g. a neighbouring species; fillColor sets the fill, e.g. '#c8e6ff'. nodeType is one of the keys from biouml_diagram_node_types (default 'Stub'). In a diagram with a mathematical model (e.g. any SBML model) species, compartments and reactions are created by the diagram type, with their model variables and rate equations; for SBML models the species may be given its SBGN entity type ('unspecified', 'simple chemical', 'macromolecule', 'nucleic acid feature', 'perturbing agent', 'complex'; 'Species' is a macromolecule). A reaction created this way has no participants and rate 0 — prefer biouml_diagram_add_reaction. A failed add is undone, so the diagram stays saveable.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"nodeType\":{\"type\":\"string\"},\"title\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"},\"styleFrom\":{\"type\":\"string\"},\"fillColor\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"name\"]}",
 				( ex, args ) -> McpDiagramSupport.addNode( str( args, "diagramPath" ), str( args, "name" ), str( args, "nodeType" ),
-						optInt( args, "x" ), optInt( args, "y" ), str( args, "title" ), optInt( args, "width" ), optInt( args, "height" ) ) );
+						optInt( args, "x" ), optInt( args, "y" ), str( args, "title" ), optInt( args, "width" ), optInt( args, "height" ),
+						str( args, "styleFrom" ), str( args, "fillColor" ) ) );
 
 		catalog.register( "biouml_diagram_add_edge",
 				"Add an edge between two nodes (ids are names or paths such as 'default.s1'). Between a reaction and a species of a model the edge makes the species a participant of the reaction: edgeType is its role — reactant, product or modifier (default: reactant for species -> reaction, product for reaction -> species) — and the participant's rate equation is created. Otherwise a plain relation edge is added. Returns the assigned edge id.",
@@ -84,16 +85,25 @@ public final class DiagramTools
 				} );
 
 		catalog.register( "biouml_diagram_add_event",
-				"Add an event to a model diagram: when trigger (a boolean formula, e.g. 'time >= t_start') becomes true, after delay (a formula, default 0), the assignments are performed in order. assignments is an object {variable: formula} — variables are parameters or species by name, path or variable and must exist (declare new parameters through parameters, an object {name: value} applied first); name is the node id (default generated); x, y place the node. Any other undeclared identifier is declared with value 0 and listed in declaredParameters. Returns {id, trigger, delay, assignments}.",
-				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"trigger\":{\"type\":\"string\"},\"delay\":{\"type\":\"string\"},\"assignments\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"string\"}},\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"number\"}},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"trigger\",\"assignments\"]}",
+				"Add an event to a model diagram: when trigger (a boolean formula, e.g. 'time >= t_start') becomes true, after delay (a formula, default 0), the assignments are performed in the given order. assignments is a list of 'variable = formula' strings, e.g. ['Vaccination_on = 1', '$default.s4 = 0'] (an object {variable: formula} is accepted too, but clients may reorder its keys) — variables are parameters or species by name, path or variable and must exist (declare new parameters through parameters, an object {name: value} applied first); name is the node id (default generated); x, y place the node. Any other undeclared identifier is declared with value 0 and listed in declaredParameters. Returns {id, trigger, delay, assignments}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"trigger\":{\"type\":\"string\"},\"delay\":{\"type\":\"string\"},\"assignments\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"number\"}},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"trigger\",\"assignments\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
 					if ( v == null )
 						v = McpArgs.requiredString( args, "trigger" );
 					if ( v != null )
 						return v;
+					Map<String, String> assignments;
+					try
+					{
+						assignments = assignments( args.get( "assignments" ) );
+					}
+					catch ( IllegalArgumentException e )
+					{
+						return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, e.getMessage() );
+					}
 					return McpDiagramSupport.addEvent( str( args, "diagramPath" ), str( args, "name" ), str( args, "trigger" ), str( args, "delay" ),
-							McpArgs.stringMap( args, "assignments" ), McpArgs.stringMap( args, "parameters" ), optInt( args, "x" ), optInt( args, "y" ) );
+							assignments, McpArgs.stringMap( args, "parameters" ), optInt( args, "x" ), optInt( args, "y" ) );
 				} );
 
 		catalog.register( "biouml_diagram_set_parameters",
@@ -167,6 +177,35 @@ public final class DiagramTools
 				"Import a diagram file (DML by default) into a target collection. Returns the new element's path.",
 				"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"file\"]}",
 				( ex, args ) -> McpDiagramSupport.importDiagram( str( args, "parentPath" ), str( args, "file" ), str( args, "format" ), str( args, "name" ) ) );
+	}
+
+	/**
+	 * Event assignments in their order: a list of "variable = formula" strings, or (order as received)
+	 * an object {variable: formula}.
+	 */
+	@SuppressWarnings( "unchecked" )
+	static Map<String, String> assignments( Object value )
+	{
+		Map<String, String> result = new java.util.LinkedHashMap<String, String>();
+		if ( value instanceof java.util.List )
+		{
+			for ( Object item : (java.util.List<Object>) value )
+			{
+				String text = item == null ? "" : String.valueOf( item );
+				int eq = text.indexOf( '=' );
+				if ( eq <= 0 || eq == text.length() - 1 || text.charAt( eq + 1 ) == '=' )
+					throw new IllegalArgumentException( "assignment must look like 'variable = formula', got: " + text );
+				result.put( text.substring( 0, eq ).trim(), text.substring( eq + 1 ).trim() );
+			}
+		}
+		else if ( value instanceof Map )
+		{
+			for ( Map.Entry<Object, Object> e : ( (Map<Object, Object>) value ).entrySet() )
+				result.put( String.valueOf( e.getKey() ), e.getValue() == null ? null : String.valueOf( e.getValue() ) );
+		}
+		else if ( value != null )
+			throw new IllegalArgumentException( "assignments must be a list of 'variable = formula' strings" );
+		return result;
 	}
 
 	private static String str( Map<String, Object> args, String key )

@@ -462,13 +462,32 @@ public final class McpDiagramSupport
 		return addNode( diagramPath, name, nodeType, x, y, null, null, null );
 	}
 
+	public static McpEnvelope addNode( String diagramPath, String name, String nodeType, Integer x, Integer y, String title, Integer width,
+			Integer height )
+	{
+		return addNode( diagramPath, name, nodeType, x, y, title, width, height, null, null );
+	}
+
 	/**
 	 * Add a node with an optional display title and size (width and height in pixels). For SBML models
 	 * nodeType may also be an SBGN entity type ("unspecified", "simple chemical", ...).
 	 */
 	public static McpEnvelope addNode( String diagramPath, String name, String nodeType, Integer x, Integer y, String title, Integer width,
-			Integer height )
+			Integer height, String styleFrom, String fillColor )
 	{
+		java.awt.Color fill = null;
+		if ( fillColor != null && !fillColor.isEmpty() )
+		{
+			try
+			{
+				fill = java.awt.Color.decode( fillColor.trim() );
+			}
+			catch ( NumberFormatException e )
+			{
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "fillColor must be a color like #c8e6ff, got: " + fillColor );
+			}
+		}
+		final java.awt.Color fillPaint = fill;
 		if ( name == null || name.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "name must be a non-empty string" );
 		String type = nodeType == null || nodeType.isEmpty() ? "Stub" : nodeType;
@@ -500,6 +519,20 @@ public final class McpDiagramSupport
 				node.setTitle( title );
 			if ( width != null && height != null )
 				node.setShapeSize( new java.awt.Dimension( width.intValue(), height.intValue() ) );
+			if ( styleFrom != null && !styleFrom.isEmpty() )
+			{
+				Node source = ModelElementFactory.findNode( diagram, styleFrom );
+				if ( source == null )
+					throw new NotFoundException( "no node to take the style from: " + styleFrom );
+				copyStyle( source, node );
+			}
+			if ( fillPaint != null )
+			{
+				biouml.model.DiagramElementStyle style = node.isStylePredefined() ? node.getCustomStyle().clone() : node.getCustomStyle();
+				style.setBrush( new ru.biosoft.graphics.Brush( fillPaint ) );
+				node.setPredefinedStyle( biouml.model.DiagramElementStyle.STYLE_NOT_SELECTED );
+				node.setCustomStyle( style );
+			}
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "id", node.getName() );
 			m.put( "path", node.getCompleteNameInDiagram() );
@@ -508,6 +541,19 @@ public final class McpDiagramSupport
 				m.put( "variable", node.getRole( VariableRole.class ).getName() );
 			return m;
 		} );
+	}
+
+	/** Give a node the look of another one: its predefined style, or a copy of its custom style. */
+	private static void copyStyle( Node source, Node node )
+	{
+		String predefined = source.getPredefinedStyle();
+		if ( biouml.model.DiagramElementStyle.STYLE_NOT_SELECTED.equals( predefined ) )
+		{
+			node.setPredefinedStyle( predefined );
+			node.setCustomStyle( source.getCustomStyle().clone() );
+		}
+		else
+			node.setPredefinedStyle( predefined );
 	}
 
 	/**

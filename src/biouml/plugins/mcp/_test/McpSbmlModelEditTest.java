@@ -17,9 +17,12 @@ import biouml.model.dynamics.EModel;
 import biouml.model.dynamics.Equation;
 import biouml.model.dynamics.VariableRole;
 import biouml.model.javascript.JavaScriptModel;
+import biouml.plugins.mcp.McpConstants;
+import biouml.plugins.mcp.server.McpToolCatalog;
 import biouml.plugins.mcp.support.McpDiagramEditSupport;
 import biouml.plugins.mcp.support.McpDiagramSupport;
 import biouml.plugins.mcp.support.McpEnvelope;
+import biouml.plugins.mcp.tools.diagram.DiagramTools;
 import biouml.plugins.sbgn.SbgnDiagramType;
 import biouml.plugins.sbml.converters.SBGNConverterNew;
 import biouml.standard.diagram.CreatorElementWithName;
@@ -433,10 +436,14 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		Diagram d = reload();
 		Node event = d.findNode( "vaccination_start" );
 		assertNotNull( "event saved under its name", event );
+		assertEquals( "label follows the name", "vaccination_start", event.getTitle() );
+		assertEquals( "population_rule", d.findNode( "population_rule" ).getTitle() );
 		assertEquals( new java.awt.Point( 40, 400 ), event.getLocation() );
 		biouml.model.dynamics.Event e = event.getRole( biouml.model.dynamics.Event.class );
 		assertTrue( e.getTrigger(), e.getTrigger().matches( "time >= t0" ) );
 		assertEquals( 2, e.getEventAssignment().length );
+		assertEquals( "order kept through SBML", "vac_on", e.getEventAssignment()[ 0 ].getVariable() );
+		assertEquals( "$default.s2", e.getEventAssignment()[ 1 ].getVariable() );
 		assertEquals( 30.0, d.getRole( EModel.class ).getVariable( "t0" ).getInitialValue() );
 		assertEquals( "Total", d.findNode( "population_rule" ).getRole( Equation.class ).getVariable() );
 
@@ -444,7 +451,54 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		biouml.model.dynamics.Event named = model.addEvent( d, "stop", "time > 50", 0,
 				new biouml.model.dynamics.Assignment[] { model.createAssignment( d, "vac_on", "0" ) } );
 		assertEquals( "stop", named.getDiagramElement().getName() );
+		assertEquals( "stop", named.getDiagramElement().getTitle() );
 		assertEquals( "rule_2", model.addEquation( d, "rule_2", "scalar", "Total2", "2*$default.s1" ).getDiagramElement().getName() );
+	}
+
+	/** Assignments given as a list keep their order (a JSON object's keys may be reordered by the client). */
+	@SuppressWarnings( "unchecked" )
+	public void testEventAssignmentsAsOrderedList() throws Exception
+	{
+		McpToolCatalog catalog = new McpToolCatalog();
+		DiagramTools.registerAll( catalog );
+		McpToolCatalog.Tool tool = catalog.getTools().stream().filter( t -> t.name.equals( "biouml_diagram_add_event" ) ).findFirst().get();
+		assertTrue( "published as a list", tool.inputSchema.contains( "\"assignments\":{\"type\":\"array\"" ) );
+
+		Map<String, Object> args = new java.util.HashMap<String, Object>();
+		args.put( "diagramPath", diagramPath );
+		args.put( "name", "switch" );
+		args.put( "trigger", "time > 10" );
+		args.put( "assignments", java.util.Arrays.asList( "$default.s2 = $default.s1", "s1 = 0" ) );
+		Map<String, Object> m = data( tool.handler.handle( null, args ) );
+		assertEquals( "{$default.s2=$default.s1, $default.s1=0}", m.get( "assignments" ).toString() );
+
+		args.put( "name", "bad" );
+		args.put( "assignments", java.util.Arrays.asList( "s1 == 0" ) );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, tool.handler.handle( null, args ).getCode() );
+
+		biouml.model.dynamics.Assignment[] saved = reload().findNode( "switch" ).getRole( biouml.model.dynamics.Event.class ).getEventAssignment();
+		assertEquals( "$default.s2", saved[ 0 ].getVariable() );
+		assertEquals( "$default.s1", saved[ 1 ].getVariable() );
+	}
+
+	/** add_node can copy the look of an existing node or set a fill color. */
+	public void testAddNodeStyle() throws Exception
+	{
+		Node s1 = diagram().findNode( "s1" );
+		s1.setPredefinedStyle( biouml.model.DiagramElementStyle.STYLE_NOT_SELECTED );
+		s1.getCustomStyle().setBrush( new ru.biosoft.graphics.Brush( new java.awt.Color( 200, 230, 255 ) ) );
+		diagram().save();
+
+		data( McpDiagramSupport.addNode( diagramPath, "default/A", "unspecified", 10, 200, null, null, null, "s1", null ) );
+		data( McpDiagramSupport.addNode( diagramPath, "default/B", "unspecified", 110, 200, null, null, null, null, "#ff8800" ) );
+		assertFalse( McpDiagramSupport.addNode( diagramPath, "default/C", "unspecified", 10, 10, null, null, null, null, "orange-ish" ).isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND,
+				McpDiagramSupport.addNode( diagramPath, "default/D", "unspecified", 10, 10, null, null, null, "nope", null ).getCode() );
+
+		Diagram d = reload();
+		assertEquals( new java.awt.Color( 200, 230, 255 ), d.findNode( "A" ).getCustomStyle().getBrush().getPaint() );
+		assertEquals( new java.awt.Color( 0xff, 0x88, 0x00 ), d.findNode( "B" ).getCustomStyle().getBrush().getPaint() );
+		assertNull( "failed add undone", d.findNode( "C" ) );
 	}
 
 	/** biouml_diagram_image returns the rendered diagram as a PNG. */

@@ -262,12 +262,16 @@ public class ModelElementFactory
             node.setShapeSize( new Dimension( 70, 40 ) );
     }
 
-    /** Gives a node created by the diagram type the requested name (before it is put into the diagram). */
+    /** Gives a node created by the diagram type the requested name, and that name as its label (before it is put into the diagram). */
     private static Node named(Compartment parent, Node node, String name)
     {
         if( name == null || name.isEmpty() || name.equals( node.getName() ) )
             return node;
-        return node.clone( parent, name, true );
+        String title = node.getTitle();
+        Node renamed = node.clone( parent, name, true );
+        if( title == null || title.isEmpty() || title.equals( node.getName() ) )
+            renamed.setTitle( name );
+        return renamed;
     }
 
     /**
