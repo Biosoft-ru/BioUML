@@ -24,6 +24,7 @@ import java.util.logging.Level;
 
 import javax.annotation.Nonnull;
 
+import com.developmentontheedge.application.Application;
 import one.util.streamex.EntryStream;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.AbstractDataCollection;
@@ -131,6 +132,12 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
 
     //TODO: move property to DataCollectionConfigConstants
     public static final String EXCLUDE_NAMES = "exclude-names";
+    /**
+     * Name of the global exclude-names property stored under the "Global" set of preferences.xml.
+     * Values listed here are hidden from all repository projects, in addition to any per-folder
+     * {@link #EXCLUDE_NAMES} defined in a folder's own config.
+     */
+    public static final String GLOBAL_EXCLUDE_NAMES = "RepositoryExcludeNames";
     private volatile boolean isInit = false;
     private Map<String, String> remapping;
 
@@ -159,6 +166,11 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
             Set<String> excludeNames = new HashSet<>();
             if( getInfo().getProperties().containsKey( EXCLUDE_NAMES ) )
                 StreamEx.split( getInfo().getProperties().getProperty( EXCLUDE_NAMES ), ';' ).map( String::trim ).filter( TextUtil2::nonEmpty ).forEach( excludeNames::add );
+            // merge the global exclude-names defined under the "Global" set of preferences.xml, so that
+            // the same directory names are hidden in every repository project
+            String globalExclude = Application.getGlobalValue( GLOBAL_EXCLUDE_NAMES );
+            if( TextUtil2.nonEmpty( globalExclude ) )
+                StreamEx.split( globalExclude, ';' ).map( String::trim ).filter( TextUtil2::nonEmpty ).forEach( excludeNames::add );
 
             // Initialize primary collection in privileged mode
             try
@@ -178,6 +190,10 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
 
                     for( PluginEntry file : files )
                     {
+                        // directories whose name matches a (global or per-folder) exclude name are hidden
+                        // entirely: they are not registered as children (with or without a config file)
+                        if( file.isDirectory() && excludeNames.contains( file.getName() ) )
+                            continue;
 
                         PluginEntry propertiesFile = null;
 
@@ -214,7 +230,7 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
                                 }
                             }
                         }
-                        else if( file.isDirectory() && !excludeNames.contains( file.getName() ) )
+                        else if( file.isDirectory() )
                         {
                             //Directory without inner config file is treated as GenericFileDataCollection
                             elementsNoConfigs.put( file.getName(), file );
