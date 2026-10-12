@@ -186,8 +186,12 @@ public class PathwaySimulationDiagramViewBuilder extends PathwayDiagramViewBuild
                     AstFunNode funNode = (AstFunNode)start.jjtGetChild(0);
                     funNode.setFunction(new PredefinedFunction("(0) =", PredefinedFunction.ASSIGNMENT_PRIORITY, -1));
                 }
-                formulaViewBuilder.setMultiplySign( options.getMultiplySign() );
-                return formulaViewBuilder.createView( start, g );
+                // the builder keeps per-call state (current font, offsets) and is shared by all views of the diagram
+                synchronized( formulaViewBuilder )
+                {
+                    formulaViewBuilder.setMultiplySign( options.getMultiplySign() );
+                    return formulaViewBuilder.createView( start, g );
+                }
             }
             catch( Throwable t )
             {
