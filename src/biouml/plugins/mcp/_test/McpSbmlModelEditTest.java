@@ -501,6 +501,58 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		assertNull( "failed add undone", d.findNode( "C" ) );
 	}
 
+	/** resize_element, set_formula and set_simulation_options: the edits that needed a script. */
+	@SuppressWarnings( "unchecked" )
+	public void testResizeSetFormulaSimulationOptions() throws Exception
+	{
+		data( McpDiagramSupport.resizeElement( diagramPath, "default", 640, 480 ) );
+
+		data( McpDiagramSupport.addReaction( diagramPath, "r1", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, null, null ) );
+		Map<String, String> k1 = new java.util.HashMap<String, String>();
+		k1.put( "k1", "0.3" );
+		Map<String, Object> m = data( McpDiagramSupport.setFormula( diagramPath, "r1", null, "k1*$default.s1", k1 ) );
+		assertEquals( "reaction", m.get( "kind" ) );
+		assertEquals( "1", m.get( "oldFormula" ) );
+
+		data( McpDiagramSupport.addEquation( diagramPath, "total_rule", null, "Total", "$default.s1 + $default.s2", null, null, null ) );
+		m = data( McpDiagramSupport.setFormula( diagramPath, null, "Total", "2*$default.s1", null ) );
+		assertEquals( "total_rule", m.get( "id" ) );
+		assertEquals( "equation", m.get( "kind" ) );
+
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, McpDiagramSupport.setFormula( diagramPath, "r1", "Total", "1", null ).getCode() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, McpDiagramSupport.setFormula( diagramPath, "nope", null, "1", null ).getCode() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, McpDiagramSupport.setFormula( diagramPath, "s1", null, "1", null ).getCode() );
+
+		m = data( McpDiagramSupport.setSimulationOptions( diagramPath, null, 730.0, 0.1 ) );
+		assertEquals( 730.0, m.get( "completionTime" ) );
+		assertFalse( McpDiagramSupport.setSimulationOptions( diagramPath, 800.0, null, null ).isOk() );
+
+		Diagram d = reload();
+		assertEquals( new java.awt.Dimension( 640, 480 ), d.findNode( "default" ).getShapeSize() );
+		Node r1 = d.findNode( "r1" );
+		assertEquals( "k1*$default.s1", ( (Reaction) r1.getKernel() ).getFormula() );
+		assertEquals( "rate equation follows", "k1*$default.s1", r1.getRole( Equation.class ).getFormula() );
+		assertEquals( 0.3, d.getRole( EModel.class ).getVariable( "k1" ).getInitialValue() );
+		String rule = d.findNode( "total_rule" ).getRole( Equation.class ).getFormula();
+		assertTrue( rule, rule.matches( "2(\\.0)?\\*\\$default\\.s1" ) ); // MathML writes 2 as 2.0
+		Map<String, Object> options = (Map<String, Object>) data( McpDiagramSupport.describe( diagramPath ) ).get( "simulationOptions" );
+		assertNotNull( "simulation options saved", options );
+		assertEquals( 730.0, options.get( "completionTime" ) );
+		assertEquals( 0.1, options.get( "timeIncrement" ) );
+	}
+
+	/** The server version changes with the tool list, so clients caching tool definitions refresh them after a deploy. */
+	public void testCatalogFingerprint()
+	{
+		McpToolCatalog catalog = new McpToolCatalog();
+		DiagramTools.registerAll( catalog );
+		String before = catalog.fingerprint();
+		assertEquals( "stable", before, catalog.fingerprint() );
+		assertEquals( 8, before.length() );
+		catalog.register( "biouml_extra", "an extra tool", "{}", ( ex, args ) -> null );
+		assertFalse( "changes with the tools", before.equals( catalog.fingerprint() ) );
+	}
+
 	/** biouml_diagram_image returns the rendered diagram as a PNG. */
 	public void testDiagramImage() throws Exception
 	{

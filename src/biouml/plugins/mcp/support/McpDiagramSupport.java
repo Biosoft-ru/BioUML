@@ -234,6 +234,9 @@ public final class McpDiagramSupport
 			dyn.put( "variables", vars );
 			dyn.put( "equationCount", Integer.valueOf( eqCount ) );
 			m.put( "dynamicModel", dyn );
+			biouml.plugins.simulation.SimulationEngine engine = biouml.standard.diagram.DiagramUtility.getPreferredEngine( diagram );
+			if ( engine != null )
+				m.put( "simulationOptions", simulationOptions( engine ) );
 		}
 		return McpEnvelope.ok( m );
 	}
@@ -906,6 +909,136 @@ public final class McpDiagramSupport
 			m.put( "y", Integer.valueOf( y ) );
 			return m;
 		} );
+	}
+
+	/** Resize a node (e.g. enlarge a compartment to make room for new elements). */
+	public static McpEnvelope resizeElement( String diagramPath, String elementId, int width, int height )
+	{
+		if ( width <= 0 || height <= 0 )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "width and height must be positive" );
+		return edit( diagramPath, "resizeElement", diagram -> {
+			DiagramElement el = findElement( diagram, elementId );
+			if ( el == null || el == diagram )
+				throw new NotFoundException( "no element with id: " + elementId );
+			if ( !( el instanceof Node ) )
+				throw new IllegalArgumentException( "element is not a node: " + elementId );
+			( (Node) el ).setShapeSize( new java.awt.Dimension( width, height ) );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", el.getName() );
+			m.put( "width", Integer.valueOf( width ) );
+			m.put( "height", Integer.valueOf( height ) );
+			return m;
+		} );
+	}
+
+	/**
+	 * Change the formula of an existing reaction (its kinetic law) or equation. The element is given
+	 * by its id, or — for a rule — by the variable it defines (e.g. "Population"). parameters declares
+	 * or sets parameters of the formula.
+	 */
+	public static McpEnvelope setFormula( String diagramPath, String elementId, String variable, String formula, Map<String, String> parameters )
+	{
+		if ( formula == null || formula.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "formula must be a non-empty string" );
+		if ( ( elementId == null || elementId.isEmpty() ) == ( variable == null || variable.isEmpty() ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "give either elementId (a reaction or equation) or variable (the variable a rule defines)" );
+		return edit( diagramPath, "setFormula", diagram -> {
+			Map<String, Double> values = parameterValues( parameters );
+			DiagramElement el;
+			if ( elementId != null && !elementId.isEmpty() )
+			{
+				el = findElement( diagram, elementId );
+				if ( el == null || el == diagram )
+					throw new NotFoundException( "no element with id: " + elementId );
+			}
+			else
+			{
+				String name = ModelElementFactory.resolveVariableName( diagram, variable );
+				if ( name == null )
+					throw new NotFoundException( "no variable: " + variable );
+				List<DiagramElement> defining = diagram.recursiveStream()
+						.filter( de -> de instanceof Node && de.getRole() instanceof Equation && name.equals( de.getRole( Equation.class ).getVariable() ) )
+						.toList();
+				if ( defining.isEmpty() )
+					throw new NotFoundException( "no equation defines " + name );
+				if ( defining.size() > 1 )
+					throw new IllegalArgumentException( "several equations define " + name + ": give elementId, one of "
+							+ defining.stream().map( DiagramElement::getName ).collect( java.util.stream.Collectors.toList() ) );
+				el = defining.get( 0 );
+			}
+			String kind;
+			String oldFormula;
+			if ( el.getKernel() instanceof Reaction )
+			{
+				Reaction reaction = (Reaction) el.getKernel();
+				kind = "reaction";
+				oldFormula = reaction.getFormula();
+				reaction.setFormula( formula ); // the rate equation reads the kinetic law
+			}
+			else if ( el instanceof Node && el.getRole() instanceof Equation )
+			{
+				Equation eq = el.getRole( Equation.class );
+				kind = "equation";
+				oldFormula = eq.getFormula();
+				eq.setFormula( formula );
+			}
+			else
+				throw new IllegalArgumentException( "element " + el.getName() + " is neither a reaction nor an equation" );
+			List<String> set = applyParameters( diagram, values );
+			ModelElementFactory.declareFormulaParameters( diagram, formula, el.getRole() );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", el.getName() );
+			m.put( "kind", kind );
+			if ( el.getRole() instanceof Equation )
+				m.put( "variable", el.getRole( Equation.class ).getVariable() );
+			m.put( "oldFormula", oldFormula );
+			m.put( "formula", formula );
+			if ( !set.isEmpty() )
+				m.put( "parametersSet", set );
+			return m;
+		} );
+	}
+
+	/**
+	 * Set the simulation time span and step stored with the diagram (what a simulation of the diagram
+	 * uses). Values left null are kept.
+	 */
+	public static McpEnvelope setSimulationOptions( String diagramPath, Double initialTime, Double completionTime, Double timeIncrement )
+	{
+		if ( initialTime == null && completionTime == null && timeIncrement == null )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "give at least one of initialTime, completionTime, timeIncrement" );
+		if ( timeIncrement != null && timeIncrement.doubleValue() <= 0 )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "timeIncrement must be positive" );
+		return edit( diagramPath, "setSimulationOptions", diagram -> {
+			biouml.plugins.simulation.SimulationEngine engine = biouml.standard.diagram.DiagramUtility.getPreferredEngine( diagram );
+			if ( engine == null )
+			{
+				engine = biouml.standard.diagram.DiagramUtility.getEngine( diagram );
+				if ( engine == null )
+					throw new IllegalArgumentException( "no simulation engine for this diagram" );
+				engine.setDiagram( diagram );
+				biouml.standard.diagram.DiagramUtility.setPreferredEngine( diagram, engine );
+			}
+			double start = initialTime != null ? initialTime.doubleValue() : engine.getInitialTime();
+			double end = completionTime != null ? completionTime.doubleValue() : engine.getCompletionTime();
+			if ( end <= start )
+				throw new IllegalArgumentException( "completionTime (" + end + ") must be after initialTime (" + start + ")" );
+			engine.setInitialTime( start );
+			engine.setCompletionTime( end );
+			if ( timeIncrement != null )
+				engine.setTimeIncrement( timeIncrement.doubleValue() );
+			return simulationOptions( engine );
+		} );
+	}
+
+	private static Map<String, Object> simulationOptions( biouml.plugins.simulation.SimulationEngine engine )
+	{
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "engine", engine.getClass().getSimpleName() );
+		m.put( "initialTime", Double.valueOf( engine.getInitialTime() ) );
+		m.put( "completionTime", Double.valueOf( engine.getCompletionTime() ) );
+		m.put( "timeIncrement", Double.valueOf( engine.getTimeIncrement() ) );
+		return m;
 	}
 
 	/** Rename an element's display title. */

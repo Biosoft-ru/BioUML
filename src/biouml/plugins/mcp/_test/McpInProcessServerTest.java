@@ -57,6 +57,9 @@ public class McpInProcessServerTest extends TestCase
 		Map<String, Object> info = (Map<String, Object>) initResult.get( "serverInfo" );
 		assertEquals( "server name", "biouml", info.get( "name" ) );
 		assertNotNull( "server version", info.get( "version" ) );
+		assertEquals( "version carries the tool catalog's fingerprint",
+				biouml.plugins.mcp.McpConstants.SERVER_VERSION + "+" + biouml.plugins.mcp.server.McpServerFactory.createCatalog().fingerprint(),
+				info.get( "version" ) );
 
 		// 2) notifications/initialized (no response)
 		String notif = server.handle( parse( "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\",\"params\":{}}" ) );

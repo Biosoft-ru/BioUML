@@ -135,6 +135,56 @@ public final class DiagramTools
 					return McpDiagramSupport.moveElement( str( args, "diagramPath" ), str( args, "elementId" ), x, y );
 				} );
 
+		catalog.register( "biouml_diagram_resize_element",
+				"Resize a node, e.g. enlarge a compartment to make room for new species and reactions. elementId is a name or a path such as 'default'; width and height are in pixels. Returns {id, width, height}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementId\",\"width\",\"height\"]}",
+				( ex, args ) -> {
+					Integer w = optInt( args, "width" );
+					Integer h = optInt( args, "height" );
+					if ( w == null || h == null )
+						return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "width and height must be integers" );
+					return McpDiagramSupport.resizeElement( str( args, "diagramPath" ), str( args, "elementId" ), w.intValue(), h.intValue() );
+				} );
+
+		catalog.register( "biouml_diagram_set_formula",
+				"Change the formula of an existing reaction (its kinetic law; the rate equation follows) or equation (assignment rule, rate rule, ...). Give elementId (the reaction or equation node) or variable (the variable a rule defines, e.g. 'Population'). parameters is an object {name: value} that declares or sets parameters of the formula; any other undeclared identifier is declared with value 0 and listed in declaredParameters. Returns {id, kind, variable, oldFormula, formula}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"variable\":{\"type\":\"string\"},\"formula\":{\"type\":\"string\"},\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"number\"}}},\"required\":[\"diagramPath\",\"formula\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
+					if ( v == null )
+						v = McpArgs.requiredString( args, "formula" );
+					if ( v != null )
+						return v;
+					return McpDiagramSupport.setFormula( str( args, "diagramPath" ), str( args, "elementId" ), str( args, "variable" ),
+							str( args, "formula" ), McpArgs.stringMap( args, "parameters" ) );
+				} );
+
+		catalog.register( "biouml_diagram_set_simulation_options",
+				"Set the simulation time span and step stored with a model diagram (used when the diagram is simulated): initialTime, completionTime and timeIncrement; values not given are kept. biouml_diagram_describe shows the current ones. Returns {engine, initialTime, completionTime, timeIncrement}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"initialTime\":{\"type\":\"number\"},\"completionTime\":{\"type\":\"number\"},\"timeIncrement\":{\"type\":\"number\"}},\"required\":[\"diagramPath\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
+					if ( v != null )
+						return v;
+					Double[] values = new Double[ 3 ];
+					String[] keys = { "initialTime", "completionTime", "timeIncrement" };
+					for ( int i = 0; i < keys.length; i++ )
+					{
+						Object value = args.get( keys[ i ] );
+						if ( value == null )
+							continue;
+						try
+						{
+							values[ i ] = Double.valueOf( Double.parseDouble( String.valueOf( value ) ) );
+						}
+						catch ( NumberFormatException e )
+						{
+							return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, keys[ i ] + " must be a number" );
+						}
+					}
+					return McpDiagramSupport.setSimulationOptions( str( args, "diagramPath" ), values[ 0 ], values[ 1 ], values[ 2 ] );
+				} );
+
 		catalog.register( "biouml_diagram_rename_element",
 				"Rename an element's display title.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"newName\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"elementId\",\"newName\"]}",

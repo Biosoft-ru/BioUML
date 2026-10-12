@@ -66,6 +66,33 @@ public class McpToolCatalog
 	}
 
 	/**
+	 * A short hash of the tools' names, descriptions and input schemas. It changes exactly when the
+	 * tool list changes, so it is part of the server version: clients that cache tool definitions per
+	 * server version then fetch the new list after a deploy.
+	 */
+	public String fingerprint()
+	{
+		try
+		{
+			java.security.MessageDigest digest = java.security.MessageDigest.getInstance( "SHA-256" );
+			for ( Tool tool : tools )
+				for ( String part : new String[] { tool.name, tool.description, tool.inputSchema } )
+				{
+					digest.update( String.valueOf( part ).getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+					digest.update( (byte) 0 );
+				}
+			StringBuilder hex = new StringBuilder();
+			for ( byte b : java.util.Arrays.copyOf( digest.digest(), 4 ) )
+				hex.append( String.format( "%02x", Integer.valueOf( b & 0xff ) ) );
+			return hex.toString();
+		}
+		catch ( java.security.NoSuchAlgorithmException e )
+		{
+			return Integer.toHexString( tools.size() );
+		}
+	}
+
+	/**
 	 * Convert the catalog into SDK tool specifications for the MCP server.
 	 */
 	public List<McpServerFeatures.SyncToolSpecification> toSpecs()

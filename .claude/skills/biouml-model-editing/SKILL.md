@@ -12,7 +12,7 @@ Use this skill when the user wants to simulate a BioUML diagram, look at its res
 1. **Never edit the original.** Copy first with `biouml_repo_copy_element(srcPath, destPath)`. When the user asks for a new version, copy the previous version to a new name and edit the copy.
 2. **To reset a broken copy**, `biouml_repo_remove(path)` and copy again. Do not try to patch a corrupted diagram.
 3. **Never call `engine.preprocess(diagram)` on the stored diagram.** Preprocessing mutates it in place (adds `RATE_OF_*` rules etc.); after saving, the model fails to compile with errors like `Duplicate assignment rules for variable RATE_OF_default_s9`. If you need to validate, only do it without saving afterwards, or better, just run the simulation.
-4. **Prefer the MCP diagram tools for edits** (section 5). Each call saves the diagram; a call that fails is undone (or the diagram is re-read from its last saved version), so it never leaves a half-made element behind. Scripts change the diagram in memory only and must end with `diagram.save()`.
+4. **Prefer the MCP diagram tools for edits** (section 5). A conversation keeps the tool list it got when it started: after the server is updated, start a new conversation to see new tools and parameters. Each call saves the diagram; a call that fails is undone (or the diagram is re-read from its last saved version), so it never leaves a half-made element behind. Scripts change the diagram in memory only and must end with `diagram.save()`.
 5. **Check `declaredParameters`** in the result of `add_reaction` / `add_equation`: identifiers of the formula that were not model variables are declared there with value 0. A species written without `$` that ends up in that list is a typo; a genuine parameter needs a value (`parameters` argument or `biouml_diagram_set_parameters`).
 
 ## 2. Running a simulation
@@ -80,14 +80,16 @@ Ids are element names (`s6`) or paths in the diagram (`default.s6`); a new eleme
 | Event | `biouml_diagram_add_event(diagramPath, name="vaccination_start", trigger="time >= Vaccination_start_day", assignments=["Vaccination_on = 1"], parameters={"Vaccination_start_day": 30, "Vaccination_on": 0}, x, y)` — `delay` optional; assignments is a list and runs in its order |
 | Remove an element | `biouml_diagram_remove_element(diagramPath, elementId)` — also removes its edges, reaction participants and the rate variables of removed reactions |
 | Clone / merge a species | `biouml_diagram_clone_node`, `biouml_diagram_merge_clone` |
-| Move / align | `biouml_diagram_move_element`, `biouml_diagram_layout` |
+| Change a kinetic law or a rule | `biouml_diagram_set_formula(diagramPath, elementId="re8", formula="k*$default.s6", parameters={"k": 0.1})`, or `variable="Population"` instead of `elementId` for the rule that defines it |
+| Simulation span and step | `biouml_diagram_set_simulation_options(diagramPath, completionTime=730, timeIncrement=0.1)` — `describe` shows the current values |
+| Move / align / resize | `biouml_diagram_move_element`, `biouml_diagram_layout`, `biouml_diagram_resize_element` (e.g. enlarge a compartment) |
 | Look at the diagram | `biouml_diagram_image(path, scale, maxWidth, maxHeight)` — returns the rendered diagram as a picture |
 
 `add_reaction` creates everything the simulator needs: the node, the participant edges, the `$$rate_<name>` variable and the participants' rate equations. Do not build reactions from `add_node` + `add_edge` unless you are extending an existing reaction.
 
 ### With a script
 
-There is no MCP tool for simulation options or editing an existing formula; use `biouml_repo_run_script`. The `model` functions create elements the same way the tools do. Always end with a save:
+Every edit above can also be scripted with `biouml_repo_run_script` (e.g. many similar edits in one call). The `model` functions create elements the same way the tools do. Always end with a save:
 
 ```js
 var diagram = data.get(path);
@@ -118,7 +120,7 @@ If `biouml_diagram_add_reaction` is not in the tool list, the server runs an old
 
 ### Change an existing reaction rate
 
-The reaction's rate equation reads its formula from the kinetic law, so updating the kinetic law is enough:
+Use `biouml_diagram_set_formula`. In a script: the reaction's rate equation reads its formula from the kinetic law, so updating the kinetic law is enough:
 
 ```js
 diagram.findNode("re8").getKernel().getKineticLaw().setFormula(f);
@@ -126,6 +128,8 @@ diagram.save();
 ```
 
 ### Change an assignment rule / algebraic formula
+
+Use `biouml_diagram_set_formula(..., variable="Population", ...)`. In a script:
 
 ```js
 var it = em.getEquations().iterator();
@@ -141,6 +145,8 @@ Before removing an event or rule, understand what it does: some models contain i
 
 ### Simulation span and step
 
+Use `biouml_diagram_set_simulation_options`. In a script:
+
 ```js
 var so = diagram.getAttributes().getValue("simulationOptions");
 so.setCompletionTime(730.0);
@@ -154,7 +160,7 @@ New nodes default to overlapping existing ones. Before placing anything, list th
 
 - **Equations and events** (`math-equation`, `math-event` top-level nodes) usually sit in a column below the reaction scheme. Put new ones in the same column, continuing the existing vertical spacing below the last one.
 - **Match the existing species**: same `nodeType` (glyph), size and look (`styleFrom` a neighbouring species) as the species around them, a readable `title`.
-- **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it in a script (`comp.setShapeSize(new Packages.java.awt.Dimension(w, newH))`) and place them in a new row below the existing scheme, near the species they connect to.
+- **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it with `biouml_diagram_resize_element` and place them in a new row below the existing scheme, near the species they connect to.
 - After moving nodes, reset the attached edges so the editor redraws them: for each `Edge` whose `getInput()` or `getOutput()` was moved, call `e.setPath(null)`.
 - Layout changes do not affect the math, but re-run the simulation once to confirm the diagram still loads and compiles.
 
@@ -164,7 +170,7 @@ New nodes default to overlapping existing ones. Before placing anything, list th
 2. Copy to the user's project. Confirm the destination folder exists with `biouml_repo_list`.
 3. Inspect: reactions and formulas, equations, events, constants, node positions.
 4. Look up current literature values for any new parameters with web search, and note which values are assumptions.
-5. Apply the edits with the MCP tools (section 5); put what they cannot do (events, simulation span, formula changes) in one script with `step()` logging that ends with `diagram.save()`.
+5. Apply the edits with the MCP tools (section 5). A script (with `step()` logging, ending with `diagram.save()`) is only worth it for many similar edits.
 6. Simulate; on `Model was not generated!` read the reason, fix (usually a parameter left at 0 or undeclared, a typo in a formula, or a preprocessed diagram), and retry. If the diagram is corrupted, remove and re-copy.
 7. Plot before/after with the same variable list; save the result with `biouml_simulation_save_result` if the user wants it kept.
 8. Report what changed, the key numbers, and the model's remaining limitations.

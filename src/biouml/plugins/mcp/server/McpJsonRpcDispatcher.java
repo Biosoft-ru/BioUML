@@ -110,7 +110,8 @@ public class McpJsonRpcDispatcher
 		result.put( "protocolVersion", PROTOCOL_VERSION );
 		Map<String, Object> serverInfo = new LinkedHashMap<String, Object>();
 		serverInfo.put( "name", McpConstants.SERVER_NAME );
-		serverInfo.put( "version", McpConstants.SERVER_VERSION );
+		// the tool catalog's fingerprint changes with every change of the tools: clients caching tool definitions refresh them
+		serverInfo.put( "version", McpConstants.SERVER_VERSION + "+" + catalog.fingerprint() );
 		result.put( "serverInfo", serverInfo );
 		Map<String, Object> caps = new LinkedHashMap<String, Object>();
 		Map<String, Object> toolsCap = new LinkedHashMap<String, Object>();
