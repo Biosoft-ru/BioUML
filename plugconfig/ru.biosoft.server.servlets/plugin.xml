@@ -37,6 +37,7 @@
         <provider prefix="oasys" class="ru.biosoft.server.servlets.webservices.providers.OASYSWebProvider"/>
         <provider prefix="log" class="ru.biosoft.server.servlets.webservices.providers.WebLogProvider"/>
         <provider prefix="video" class="ru.biosoft.server.servlets.webservices.providers.VideoProvider"/>
+        <provider prefix="species" class="ru.biosoft.server.servlets.webservices.providers.SpeciesProvider"/>
     </extension>    
 
     <extension id="Ubiprot" point="ru.biosoft.server.servlet"> 
