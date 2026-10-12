@@ -179,9 +179,34 @@ public final class McpDiagramSupport
 	 */
 	public static McpEnvelope describe( String path )
 	{
+		return describe( path, false );
+	}
+
+	/**
+	 * @param reload drop the in-memory copies of the diagram first (the server session's working copy
+	 *            included), so the diagram is re-read from storage and the description shows what is saved
+	 */
+	public static McpEnvelope describe( String path, boolean reload )
+	{
 		McpEnvelope d = diagram( path );
 		if ( !d.isOk() )
 			return d;
+		if ( reload )
+		{
+			try
+			{
+				ru.biosoft.access.CollectionFactoryUtils.releaseCachedCopies( DataElementPath.create( (Diagram) d.getData() ) );
+				// the path asked for may lead to the diagram through another collection than its origin
+				ru.biosoft.access.CollectionFactoryUtils.releaseCachedCopies( DataElementPath.create( path ) );
+			}
+			catch ( Exception e )
+			{
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "can not re-read the diagram from storage: " + describeError( e ) );
+			}
+			d = diagram( path );
+			if ( !d.isOk() )
+				return d;
+		}
 		Diagram diagram = (Diagram) d.getData();
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "path", path );
@@ -912,6 +937,7 @@ public final class McpDiagramSupport
 			m.put( "id", elementId );
 			m.put( "x", Integer.valueOf( x ) );
 			m.put( "y", Integer.valueOf( y ) );
+			putOffCanvasWarnings( m, java.util.Collections.singletonList( node ) );
 			return m;
 		} );
 	}
@@ -938,6 +964,7 @@ public final class McpDiagramSupport
 			}
 			List<String> moved = new ArrayList<String>();
 			List<String> withCompartment = new ArrayList<String>();
+			List<Node> movedNodes = new ArrayList<Node>();
 			for ( Node node : nodes )
 			{
 				if ( nodes.stream().anyMatch( other -> other != node && other instanceof Compartment && isInside( node, (Compartment) other ) ) )
@@ -947,6 +974,7 @@ public final class McpDiagramSupport
 				}
 				move( diagram, node, dx, dy );
 				moved.add( node.getName() );
+				movedNodes.add( node );
 			}
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "moved", moved );
@@ -954,8 +982,28 @@ public final class McpDiagramSupport
 				m.put( "movedWithCompartment", withCompartment );
 			m.put( "dx", Integer.valueOf( dx ) );
 			m.put( "dy", Integer.valueOf( dy ) );
+			putOffCanvasWarnings( m, movedNodes );
 			return m;
 		} );
+	}
+
+	/**
+	 * Put a "warnings" list into a move result when a moved node, or a node carried along inside a moved
+	 * compartment, ended up at a negative coordinate: it is then partly or fully beyond the left or top
+	 * edge of the canvas, where the diagram view does not show it.
+	 */
+	private static void putOffCanvasWarnings( Map<String, Object> result, List<Node> movedNodes )
+	{
+		List<String> warnings = new ArrayList<String>();
+		movedNodes.stream().flatMap( node -> node.recursiveStream().select( Node.class ) ).distinct().forEach( node -> {
+			Point p = node.getLocation();
+			if ( p == null || ( p.x >= 0 && p.y >= 0 ) )
+				return;
+			String edge = p.x < 0 && p.y < 0 ? "left and top edges" : p.x < 0 ? "left edge" : "top edge";
+			warnings.add( node.getCompleteNameInDiagram() + " is at (" + p.x + ", " + p.y + "), beyond the " + edge + " of the canvas" );
+		} );
+		if ( !warnings.isEmpty() )
+			result.put( "warnings", warnings );
 	}
 
 	private static boolean isInside( Node node, Compartment compartment )

@@ -347,6 +347,11 @@
             <returns type="ru.biosoft.access.core.DataElement" description="DataElement. If class name is specified then element must exist and be an instance of the given class (otherwise an exception will be thrown). If class name is not specified, method returns null in case of any error."/>              
         </function>
 		
+		<function name="reload" description="re-reads DataElement from its storage: drops the copies kept in memory (the collection cache and, on a server, the working copy of the current session) and returns the element as it is saved. Unsaved changes of the element are lost.">
+			<argument name="path" type="String" obligatory="true" description="path for DataElement"/>
+            <returns type="ru.biosoft.access.core.DataElement" description="the re-read DataElement, null if there is no element at the path"/>
+        </function>
+		
 		<function name="createFile" description="creates FileDataElement in given FileCollection and returns it">
 			<argument name="parent" type="FileCollection" obligatory="true" description="Parent FileCollection to create FileDataElement in"/>
 			<argument name="name" type="String" obligatory="true" description="Name of the file to create"/>

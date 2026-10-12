@@ -34,6 +34,8 @@ import ru.biosoft.access.core.Transformer;
 import ru.biosoft.access.core.VectorDataCollection;
 import ru.biosoft.access.exception.DataElementExistsException;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SessionCache;
+import ru.biosoft.access.security.SessionCacheManager;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.TempFiles;
 
@@ -388,5 +390,33 @@ public class CollectionFactoryUtils
     public static void save(@Nonnull DataElement de) throws DataElementPutException
     {
         DataElementPath.create( de ).save( de );
+    }
+
+    /**
+     * Drops the in-memory copies of the element at the given path, so the next <code>get</code> re-reads
+     * it from its storage. The element is released from its parent collection's cache and the working copy
+     * kept for the current session is dropped too: on a server, a project folder
+     * ({@link ru.biosoft.access.security.NetworkDataCollection}) hands each session its own copy of an
+     * editable element and keeps serving that copy, unsaved changes included, until the element is saved
+     * or removed, so releasing the collection cache alone is not enough. Unsaved changes are lost.
+     */
+    public static void releaseCachedCopies(@Nonnull DataElementPath path)
+    {
+        DataCollection<?> parent = path.optParentCollection();
+        try
+        {
+            if( parent != null )
+                parent.release( path.getName() );
+        }
+        finally
+        {
+            SessionCache sessionCache = SessionCacheManager.getSessionCache( SecurityManager.getSession() );
+            if( sessionCache != null )
+            {
+                sessionCache.removeObject( path.toString() );
+                if( parent != null )
+                    sessionCache.removeObject( DataElementPath.create( parent, path.getName() ).toString() );
+            }
+        }
     }
 }

@@ -580,6 +580,116 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		assertEquals( McpConstants.CODE_NOT_FOUND, McpDiagramSupport.moveElements( diagramPath, new String[] { "nope" }, 1, 1 ).getCode() );
 	}
 
+	/** The move tools warn about nodes that end up beyond the left or top edge of the canvas. */
+	@SuppressWarnings( "unchecked" )
+	public void testMoveWarnsAboutNegativeCoordinates() throws Exception
+	{
+		Map<String, Object> m = data( McpDiagramSupport.moveElements( diagramPath, new String[] { "s1", "s2" }, 10, 0 ) );
+		assertNull( m.get( "warnings" ) );
+		m = data( McpDiagramSupport.moveElement( diagramPath, "s2", 300, 40 ) );
+		assertNull( m.get( "warnings" ) );
+
+		m = data( McpDiagramSupport.moveElement( diagramPath, "s1", -20, 30 ) );
+		assertEquals( java.util.Arrays.asList( "default.s1 is at (-20, 30), beyond the left edge of the canvas" ), m.get( "warnings" ) );
+
+		// a compartment carries its content along: the content is checked too
+		java.awt.Point def = diagram().findNode( "default" ).getLocation();
+		m = data( McpDiagramSupport.moveElements( diagramPath, new String[] { "default" }, -def.x - 5, -def.y - 30 ) );
+		List<String> warnings = (List<String>) m.get( "warnings" );
+		assertNotNull( warnings );
+		assertEquals( warnings.toString(), "default is at (-5, -30), beyond the left and top edges of the canvas", warnings.get( 0 ) );
+		assertTrue( warnings.toString(), warnings.contains( "default.s1 is at (" + ( -20 - def.x - 5 ) + ", " + ( 30 - def.y - 30 ) + "), beyond the left edge of the canvas" ) );
+		assertTrue( warnings.toString(), warnings.stream().noneMatch( w -> w.startsWith( "default.s2 " ) ) );
+		assertEquals( "moves are saved", new java.awt.Point( -5, -30 ), reload().findNode( "default" ).getLocation() );
+	}
+
+	/**
+	 * describe with reload re-reads the saved diagram: the in-memory copy, a server session's working copy
+	 * included, is dropped together with its unsaved changes.
+	 */
+	public void testDescribeReloadDropsUnsavedChanges() throws Exception
+	{
+		Diagram cached = diagram();
+		cached.findNode( "s1" ).setLocation( 333, 77 ); // a change that was never saved
+		String key = ru.biosoft.access.core.DataElementPath.create( cached ).toString();
+		ru.biosoft.access.security.SessionCache session = ru.biosoft.access.security.SessionCacheManager
+				.getSessionCache( ru.biosoft.access.security.SecurityManager.getSession() );
+		session.addObject( key, cached, false ); // a project folder on a server keeps a working copy per session
+
+		assertEquals( Integer.valueOf( 333 ), element( data( McpDiagramSupport.describe( diagramPath ) ), "s1" ).get( "x" ) );
+		Map<String, Object> s1 = element( data( McpDiagramSupport.describe( diagramPath, true ) ), "s1" );
+		assertEquals( Integer.valueOf( 30 ), s1.get( "x" ) );
+		assertEquals( Integer.valueOf( 60 ), s1.get( "y" ) );
+		assertNull( "session copy dropped", session.getObject( key ) );
+		assertNotSame( cached, diagram() );
+		assertEquals( new java.awt.Point( 30, 60 ), diagram().findNode( "s1" ).getLocation() );
+	}
+
+	/**
+	 * A project folder on a server (NetworkDataCollection) hands the session its own working copy of a
+	 * diagram and keeps serving it, unsaved changes included, after the folder is released: reload and the
+	 * discard of a failed edit must drop that copy too.
+	 */
+	public void testReloadFromServerProjectFolder() throws Exception
+	{
+		Properties p = new Properties();
+		p.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, "mcpnet" );
+		p.setProperty( DataCollectionConfigConstants.CLASS_PROPERTY, ru.biosoft.access.security.ProtectedDataCollection.class.getName() );
+		p.put( DataCollectionConfigConstants.PRIMARY_COLLECTION, folder );
+		ru.biosoft.access.security.NetworkDataCollection project = new ru.biosoft.access.security.NetworkDataCollection( null, p );
+		CollectionFactory.registerRoot( project );
+		String path = "mcpnet/m1";
+		try
+		{
+			Diagram copy = (Diagram) project.get( "m1" );
+			copy.findNode( "s1" ).setLocation( 333, 77 ); // never saved
+			project.release( "m1" );
+			assertSame( "the session copy outlives a release", copy, project.get( "m1" ) );
+
+			Map<String, Object> s1 = element( data( McpDiagramSupport.describe( path, true ) ), "s1" );
+			assertEquals( Integer.valueOf( 30 ), s1.get( "x" ) );
+			Diagram fresh = (Diagram) project.get( "m1" );
+			assertNotSame( copy, fresh );
+			assertEquals( new java.awt.Point( 30, 60 ), fresh.findNode( "s1" ).getLocation() );
+
+			// a failed edit drops the session copy, so the broken element does not stick
+			Compartment def = (Compartment) fresh.get( "default" );
+			def.put( new Node( def, new biouml.standard.type.Stub( null, "broken", null ) ) );
+			assertFalse( McpDiagramEditSupport.layout( path, "align-left", new String[] { "s1", "s2" } ).isOk() );
+			assertNotSame( fresh, project.get( "m1" ) );
+			assertNull( "broken element discarded", ( (Diagram) project.get( "m1" ) ).findNode( "broken" ) );
+		}
+		finally
+		{
+			CollectionFactory.unregisterRoot( project );
+			ru.biosoft.access.security.SessionCacheManager.getSessionCache( ru.biosoft.access.security.SecurityManager.getSession() )
+					.removeObject( path );
+		}
+	}
+
+	/** data.reload(path) re-reads an element from storage in a script. */
+	public void testScriptDataReload() throws Exception
+	{
+		String out = runScript( String.join( "\n",
+				"var d = data.get('" + diagramPath + "');",
+				"d.findNode('s1').setLocation(new java.awt.Point(333, 77));",
+				"var fresh = data.reload('" + diagramPath + "');",
+				"print('same=' + (fresh == d) + ' x=' + fresh.findNode('s1').getLocation().x);",
+				"print('again=' + (data.get('" + diagramPath + "') == fresh));" ) );
+		assertTrue( out, out.contains( "same=false x=30" ) );
+		assertTrue( out, out.contains( "again=true" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private static Map<String, Object> element( Map<String, Object> description, String id )
+	{
+		for ( Map<String, Object> e : (List<Map<String, Object>>) description.get( "elements" ) )
+			if ( id.equals( e.get( "id" ) ) )
+				return e;
+		fail( "no element " + id + " in " + description.get( "elements" ) );
+		return null;
+	}
+
 	/** biouml_diagram_image returns the rendered diagram as a PNG. */
 	public void testDiagramImage() throws Exception
 	{
@@ -664,29 +774,8 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 				"diagram.findNode('re_vac').getKernel().getKineticLaw().setFormula('2*k_vac*vac_on*$default.s1');",
 				"diagram.save();",
 				"print('recipe done');" );
-		StringBuilder out = new StringBuilder();
-		ru.biosoft.access.script.ScriptEnvironment env = new ru.biosoft.access.script.NullScriptEnvironment()
-		{
-			@Override
-			public void print( String msg )
-			{
-				out.append( msg ).append( '\n' );
-			}
-
-			@Override
-			public void error( String msg )
-			{
-				out.append( "ERROR: " ).append( msg ).append( '\n' );
-			}
-		};
-		if ( ru.biosoft.plugins.javascript.JScriptVisiblePlugin.getInstance() == null ) // the server starts it at boot: it defines data, model, ...
-		{
-			Properties js = new Properties();
-			js.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, "JavaScript" );
-			new ru.biosoft.plugins.javascript.JScriptVisiblePlugin( null, js ).startup();
-		}
-		ru.biosoft.access.script.ScriptTypeRegistry.createScript( "js", null, script ).execute( script, env, false );
-		assertTrue( out.toString(), out.toString().contains( "recipe done" ) );
+		String out = runScript( script );
+		assertTrue( out, out.contains( "recipe done" ) );
 
 		Diagram d = reload();
 		EModel em = d.getRole( EModel.class );
@@ -710,6 +799,34 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		assertTrue( "event saved", event );
 		assertNotNull( d.findNode( "population_rule" ) );
 		assertEquals( new java.awt.Point( 40, 385 ), d.findNode( "vaccination_start" ).getLocation() );
+	}
+
+	/** Run a JavaScript script the way the server does; returns what it printed (errors prefixed with ERROR:). */
+	private static String runScript( String script ) throws Exception
+	{
+		StringBuilder out = new StringBuilder();
+		ru.biosoft.access.script.ScriptEnvironment env = new ru.biosoft.access.script.NullScriptEnvironment()
+		{
+			@Override
+			public void print( String msg )
+			{
+				out.append( msg ).append( '\n' );
+			}
+
+			@Override
+			public void error( String msg )
+			{
+				out.append( "ERROR: " ).append( msg ).append( '\n' );
+			}
+		};
+		if ( ru.biosoft.plugins.javascript.JScriptVisiblePlugin.getInstance() == null ) // the server starts it at boot: it defines data, model, ...
+		{
+			Properties js = new Properties();
+			js.setProperty( DataCollectionConfigConstants.NAME_PROPERTY, "JavaScript" );
+			new ru.biosoft.plugins.javascript.JScriptVisiblePlugin( null, js ).startup();
+		}
+		ru.biosoft.access.script.ScriptTypeRegistry.createScript( "js", null, script ).execute( script, env, false );
+		return out.toString();
 	}
 
 	public void testScriptModelReportsBadInput()

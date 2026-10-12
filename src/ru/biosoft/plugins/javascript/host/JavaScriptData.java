@@ -23,6 +23,7 @@ import com.developmentontheedge.beans.model.Property;
 import biouml.plugins.server.access.ClientDataCollection;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.ClassLoading;
+import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataElementExporter;
 import ru.biosoft.access.DataElementExporterRegistry;
 import ru.biosoft.access.DataElementExporterRegistry.ExporterInfo;
@@ -93,6 +94,20 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         Assert.notNull( "path", path );
         Assert.notNull( "className", className );
         return DataElementPath.create( path ).getDataElement( ClassLoading.loadSubClass( className, DataElement.class ) );
+    }
+
+    /**
+     * Re-reads a data element from its storage: drops the copies kept in memory (the collection cache and,
+     * on a server, the working copy of the current session) and returns the element as it is saved.
+     * Unsaved changes of the element are lost.
+     */
+    public DataElement reload(String path)
+    {
+        beforeFunctionCall();
+
+        DataElementPath dePath = DataElementPath.create( path );
+        CollectionFactoryUtils.releaseCachedCopies( dePath );
+        return dePath.optDataElement();
     }
 
     public DataElement get2(DataCollection dc, String path)

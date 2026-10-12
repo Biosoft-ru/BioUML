@@ -148,7 +148,7 @@ public final class McpDiagramEditSupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "layout '" + op + "' failed: " + McpDiagramSupport.describeError( e ) );
 		}
-		McpEnvelope failed = runEdit( diagram, jc, true, "layout '" + op + "'" );
+		McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "layout '" + op + "'" );
 		if ( failed != null )
 			return failed;
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -191,7 +191,7 @@ public final class McpDiagramEditSupport
 			if ( !action.isApplicable( diagram ) )
 				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "update-submodel is not applicable to this diagram: " + diagramPath );
 			JobControl jc = action.getJobControl( diagram, new ArrayList<DataElement>(), null );
-			McpEnvelope failed = runEdit( diagram, jc, true, "update-submodel" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "update-submodel" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -214,7 +214,7 @@ public final class McpDiagramEditSupport
 	 *
 	 * @return null on success, otherwise the error envelope to return
 	 */
-	private static McpEnvelope runEdit( Diagram diagram, JobControl jc, boolean save, String what )
+	private static McpEnvelope runEdit( String diagramPath, Diagram diagram, JobControl jc, boolean save, String what )
 	{
 		String[] error = new String[ 1 ];
 		jc.addListener( new JobControlListenerAdapter()
@@ -236,7 +236,7 @@ public final class McpDiagramEditSupport
 		}
 		if ( error[ 0 ] != null || jc.getStatus() == JobControl.TERMINATED_BY_ERROR )
 		{
-			discard( diagram );
+			discard( diagramPath, diagram );
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, what + " failed, the diagram is re-read from its last saved version: "
 					+ ( error[ 0 ] != null ? error[ 0 ] : "see the server log" ) );
 		}
@@ -249,23 +249,33 @@ public final class McpDiagramEditSupport
 		}
 		catch ( Exception e )
 		{
-			discard( diagram );
+			discard( diagramPath, diagram );
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, what + " was applied but the diagram could not be saved, so the change was"
 					+ " discarded and the diagram is re-read from its last saved version: " + McpDiagramSupport.describeError( e ) );
 		}
 	}
 
-	/** Drop an edited diagram from its collection's cache: the next access re-reads the saved version. */
-	private static void discard( Diagram diagram )
+	/**
+	 * Drop an edited diagram from the caches, the server session's working copy included: the next access
+	 * re-reads the saved version.
+	 */
+	private static void discard( String diagramPath, Diagram diagram )
 	{
-		try
+		List<DataElementPath> paths = new ArrayList<DataElementPath>();
+		if ( diagram.getOrigin() != null )
+			paths.add( DataElementPath.create( diagram ) );
+		// the path the diagram was asked by may lead to it through another collection than its origin
+		paths.add( DataElementPath.create( diagramPath ) );
+		for ( DataElementPath path : paths )
 		{
-			if ( diagram.getOrigin() != null )
-				diagram.getOrigin().release( diagram.getName() );
-		}
-		catch ( Exception e )
-		{
-			log.log( java.util.logging.Level.WARNING, "Can not discard changes of diagram " + diagram.getName(), e );
+			try
+			{
+				ru.biosoft.access.CollectionFactoryUtils.releaseCachedCopies( path );
+			}
+			catch ( Exception e )
+			{
+				log.log( java.util.logging.Level.WARNING, "Can not discard changes of diagram " + path, e );
+			}
 		}
 	}
 
@@ -315,7 +325,7 @@ public final class McpDiagramEditSupport
 			@SuppressWarnings( "unchecked" )
 			List<DataElement> items = (List<DataElement>) sel.getData();
 			JobControl jc = action.getJobControl( diagram, items, params );
-			McpEnvelope failed = runEdit( diagram, jc, addModule, "split-diagram" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, addModule, "split-diagram" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -379,7 +389,7 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, params );
-			McpEnvelope failed = runEdit( diagram, jc, true, "clone-node" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "clone-node" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -438,7 +448,7 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, params );
-			McpEnvelope failed = runEdit( diagram, jc, true, "change-subdiagram" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "change-subdiagram" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -492,7 +502,7 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, params );
-			McpEnvelope failed = runEdit( diagram, jc, true, "change-port" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "change-port" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -541,7 +551,7 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, null );
-			McpEnvelope failed = runEdit( diagram, jc, true, "merge-clone" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "merge-clone" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -648,7 +658,7 @@ public final class McpDiagramEditSupport
 		try
 		{
 			JobControl jc = action.getJobControl( diagram, items, null );
-			McpEnvelope failed = runEdit( diagram, jc, true, "add-from-search" );
+			McpEnvelope failed = runEdit( diagramPath, diagram, jc, true, "add-from-search" );
 			if ( failed != null )
 				return failed;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();

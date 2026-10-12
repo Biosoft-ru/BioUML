@@ -29,9 +29,9 @@ public final class DiagramTools
 				( ex, args ) -> McpDiagramSupport.create( str( args, "parentPath" ), str( args, "name" ), str( args, "type" ) ) );
 
 		catalog.register( "biouml_diagram_describe",
-				"Describe a diagram: element count, per-element summaries for every element including those nested in compartments (id, path, name, kind, position, node type; the variable of a species; the formula of a reaction or equation; source/target/role of an edge) and — when a dynamic model is present — its variables and equation count.",
-				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
-				( ex, args ) -> McpDiagramSupport.describe( str( args, "path" ) ) );
+				"Describe a diagram: element count, per-element summaries for every element including those nested in compartments (id, path, name, kind, position, node type; the variable of a species; the formula of a reaction or equation; source/target/role of an edge) and — when a dynamic model is present — its variables and equation count. reload=true first drops the copy the server keeps in memory for this session and re-reads the diagram from storage, i.e. describes what is actually saved (unsaved changes made by a script are lost).",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"reload\":{\"type\":\"boolean\"}},\"required\":[\"path\"]}",
+				( ex, args ) -> McpDiagramSupport.describe( str( args, "path" ), McpArgs.bool( args, "reload", false ) ) );
 
 		catalog.register( "biouml_diagram_node_types",
 				"List the node types that biouml_diagram_add_node accepts.",
@@ -125,7 +125,7 @@ public final class DiagramTools
 				( ex, args ) -> McpDiagramSupport.removeElement( str( args, "diagramPath" ), str( args, "elementId" ) ) );
 
 		catalog.register( "biouml_diagram_move_element",
-				"Move a node to a new (x, y) position, as the diagram editor does: a compartment takes its content along and the attached edges are re-routed.",
+				"Move a node to a new (x, y) position, as the diagram editor does: a compartment takes its content along and the attached edges are re-routed. Returns {id, x, y}, plus warnings when the node or a node of a moved compartment ends up at a negative x or y, i.e. beyond the left or top edge of the canvas.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementId\",\"x\",\"y\"]}",
 				( ex, args ) -> {
 					Integer x = optInt( args, "x" );
@@ -136,7 +136,7 @@ public final class DiagramTools
 				} );
 
 		catalog.register( "biouml_diagram_move_elements",
-				"Shift several nodes by (dx, dy) in one call, e.g. a column of equations or a group of species. elements are node ids (names or paths such as 'default.s1'). A compartment takes its content along; listed elements inside a listed compartment move with it, once. Edges are re-routed. Returns {moved, movedWithCompartment, dx, dy}.",
+				"Shift several nodes by (dx, dy) in one call, e.g. a column of equations or a group of species. elements are node ids (names or paths such as 'default.s1'). A compartment takes its content along; listed elements inside a listed compartment move with it, once. Edges are re-routed. Returns {moved, movedWithCompartment, dx, dy}, plus warnings when a moved node (or a node of a moved compartment) ends up at a negative x or y, i.e. beyond the left or top edge of the canvas.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"dx\":{\"type\":\"integer\"},\"dy\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elements\",\"dx\",\"dy\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );

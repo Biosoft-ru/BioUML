@@ -44,6 +44,8 @@ function step(name, fn){ try { fn(); print("[OK] " + name); } catch(e){ print("[
 
 `biouml_diagram_describe(path)` lists every element, including those inside compartments: `id`, `path` (e.g. `default.s6`), kind, position, the `variable` of a species, the `formula` of a reaction or equation, and `source`/`target`/`role`/`stoichiometry` of reaction edges, plus all model variables with initial values. Use it first; use a script for anything it does not show (events, simulation options).
 
+The server keeps an in-memory working copy of a diagram per session, and `data.get` returns that copy, unsaved script changes included (releasing the folder does not drop it). To see what is actually saved, call `biouml_diagram_describe(path, reload=true)`, or `data.reload(path)` in a script: both drop the copy and re-read the diagram from storage, discarding unsaved changes.
+
 ```js
 var diagram = data.get(path);
 var comp = diagram.get("default");        // main compartment (name may differ)
@@ -82,7 +84,7 @@ Ids are element names (`s6`) or paths in the diagram (`default.s6`); a new eleme
 | Clone / merge a species | `biouml_diagram_clone_node`, `biouml_diagram_merge_clone` |
 | Change a kinetic law or a rule | `biouml_diagram_set_formula(diagramPath, elementId="re8", formula="k*$default.s6", parameters={"k": 0.1})`, or `variable="Population"` instead of `elementId` for the rule that defines it |
 | Simulation span and step | `biouml_diagram_set_simulation_options(diagramPath, completionTime=730, timeIncrement=0.1)` — `describe` shows the current values |
-| Move / align / resize | `biouml_diagram_move_element` (one node to x, y), `biouml_diagram_move_elements(diagramPath, elements=[...], dx, dy)` (shift a group in one call), `biouml_diagram_layout`, `biouml_diagram_resize_element` (e.g. enlarge a compartment). A moved compartment takes its content along; edges are re-routed |
+| Move / align / resize | `biouml_diagram_move_element` (one node to x, y), `biouml_diagram_move_elements(diagramPath, elements=[...], dx, dy)` (shift a group in one call), `biouml_diagram_layout`, `biouml_diagram_resize_element` (e.g. enlarge a compartment). A moved compartment takes its content along; edges are re-routed. The result has `warnings` when a node lands at a negative x or y (off the left or top edge): move it back |
 | Look at the diagram | `biouml_diagram_image(path, scale, maxWidth, maxHeight)` — returns the rendered diagram as a picture |
 
 `add_reaction` creates everything the simulator needs: the node, the participant edges, the `$$rate_<name>` variable and the participants' rate equations. Do not build reactions from `add_node` + `add_edge` unless you are extending an existing reaction.
@@ -161,7 +163,7 @@ New nodes default to overlapping existing ones. Before placing anything, list th
 - **Equations and events** (`math-equation`, `math-event` top-level nodes) usually sit in a column below the reaction scheme. Put new ones in the same column, continuing the existing vertical spacing below the last one.
 - **Match the existing species**: same `nodeType` (glyph), size and look (`styleFrom` a neighbouring species) as the species around them, a readable `title`.
 - **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it with `biouml_diagram_resize_element` and place them in a new row below the existing scheme, near the species they connect to.
-- Edges follow moved nodes: the move tools re-route them, and SBML models re-route edges when the diagram is drawn, so no path reset is needed. To shift a column of equations or a group of species, use one `biouml_diagram_move_elements` call.
+- Edges follow moved nodes: the move tools re-route them, and SBML models re-route edges when the diagram is drawn, so no path reset is needed. To shift a column of equations or a group of species, use one `biouml_diagram_move_elements` call. Keep coordinates non-negative: a move result with `warnings` names the nodes that left the canvas.
 - Layout changes do not affect the math, but re-run the simulation once to confirm the diagram still loads and compiles.
 
 ## 7. Typical workflow
