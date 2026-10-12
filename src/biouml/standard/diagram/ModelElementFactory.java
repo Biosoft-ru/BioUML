@@ -10,12 +10,16 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import com.developmentontheedge.beans.model.ComponentFactory;
+import com.developmentontheedge.beans.model.Property;
+
 import biouml.model.Compartment;
 import biouml.model.DefaultSemanticController;
 import biouml.model.Diagram;
 import biouml.model.DiagramElement;
 import biouml.model.DiagramElementGroup;
 import biouml.model.Edge;
+import biouml.model.InitialElementProperties;
 import biouml.model.Module;
 import biouml.model.Node;
 import biouml.model.Role;
@@ -35,6 +39,7 @@ import biouml.standard.type.Stub;
 import biouml.standard.type.Substance;
 import biouml.standard.type.Type;
 import ru.biosoft.access.core.CollectionFactory;
+import ru.biosoft.access.core.DataCollection;
 
 /**
  * Headless creation of the elements of a mathematical model — species, compartments, reactions and
@@ -206,8 +211,63 @@ public class ModelElementFactory
             node.setLocation( location );
         if( node.getRole() instanceof VariableRole )
             node.getRole( VariableRole.class ).setInitialValue( initialValue );
+        setDefaultSize( node );
         put( parent, node );
         return node;
+    }
+
+    /**
+     * Adds a species of the given type of the diagram type, created the way the diagram editor creates it
+     * (e.g. for SBML/SBGN models an entity pool: "macromolecule", "simple chemical", "unspecified",
+     * "nucleic acid feature", "perturbing agent" or "complex").
+     *
+     * @param type species type of the diagram type; null or empty for the default species
+     * @see #addSpecies(Compartment, String, Base, double, Point)
+     */
+    public static @Nonnull Node addSpecies(@Nonnull Compartment parent, String name, String type, Base kernel, double initialValue,
+            Point location) throws Exception
+    {
+        if( type == null || type.isEmpty() )
+            return addSpecies( parent, name, kernel, initialValue, location );
+        checkNewName( parent, name );
+        Diagram diagram = Diagram.getDiagram( parent );
+        Point point = location == null ? new Point() : location;
+        Object properties = diagram.getType().getSemanticController().getPropertiesByType( parent, type, point );
+        if( ! ( properties instanceof InitialElementProperties ) )
+            throw new IllegalArgumentException( "'" + type + "' is not a species type of diagram '" + diagram.getName() + "'" );
+        Property nameProperty = ComponentFactory.getModel( properties ).findProperty( "name" );
+        if( nameProperty != null )
+            nameProperty.setValue( name );
+        DiagramElementGroup elements = ( (InitialElementProperties)properties ).createElements( parent, point, null );
+        Node node = elements.nodesStream().findFirst( n -> n.getRole() instanceof VariableRole && name.equals( n.getName() ) ).orElse( null );
+        if( node == null )
+        {
+            for( DiagramElement de : elements.getElements() )
+                if( de.getOrigin() != null )
+                    de.getOrigin().remove( de.getName() );
+            throw new IllegalArgumentException( "'" + type + "' is not a species type of diagram '" + diagram.getName() + "'" );
+        }
+        if( location != null )
+            node.setLocation( location );
+        node.getRole( VariableRole.class ).setInitialValue( initialValue );
+        setDefaultSize( node );
+        return node;
+    }
+
+    /** A new SBGN entity pool has no size until it is drawn; give it the size the view builder would. */
+    private static void setDefaultSize(Node node)
+    {
+        Dimension size = node.getShapeSize();
+        if( node instanceof Compartment && node.getKernel() instanceof Specie && ( size == null || size.width <= 0 || size.height <= 0 ) )
+            node.setShapeSize( new Dimension( 70, 40 ) );
+    }
+
+    /** Gives a node created by the diagram type the requested name (before it is put into the diagram). */
+    private static Node named(Compartment parent, Node node, String name)
+    {
+        if( name == null || name.isEmpty() || name.equals( node.getName() ) )
+            return node;
+        return node.clone( parent, name, true );
     }
 
     /**
@@ -414,6 +474,18 @@ public class ModelElementFactory
      */
     public static @Nonnull Node addEquation(@Nonnull Compartment parent, String type, String variable, String formula, Point location)
     {
+        return addEquation( parent, null, type, variable, formula, location );
+    }
+
+    /**
+     * Adds an equation with the given node name (null to generate one).
+     * @see #addEquation(Compartment, String, String, String, Point)
+     */
+    public static @Nonnull Node addEquation(@Nonnull Compartment parent, String name, String type, String variable, String formula,
+            Point location)
+    {
+        if( name != null && !name.isEmpty() )
+            checkNewName( parent, name );
         Diagram diagram = Diagram.getDiagram( parent );
         EModel emodel = getEModel( diagram );
         if( type == null || type.isEmpty() )
@@ -453,9 +525,11 @@ public class ModelElementFactory
         }
         if( node == null )
         {
-            node = new Node( parent, new Stub( null, DefaultSemanticController.generateUniqueNodeName( parent, "equation" ), Type.MATH_EQUATION ) );
+            node = new Node( parent, new Stub( null, name != null && !name.isEmpty() ? name
+                    : DefaultSemanticController.generateUniqueNodeName( parent, "equation" ), Type.MATH_EQUATION ) );
             node.setShowTitle( false );
         }
+        node = named( parent, node, name );
         node.setRole( new Equation( node, type, variableName, formula ) );
         if( location != null )
             node.setLocation( location );
@@ -472,6 +546,18 @@ public class ModelElementFactory
      */
     public static @Nonnull Node addEvent(@Nonnull Compartment parent, String trigger, String delay, Assignment[] assignments, Point location)
     {
+        return addEvent( parent, null, trigger, delay, assignments, location );
+    }
+
+    /**
+     * Adds an event with the given node name (null to generate one).
+     * @see #addEvent(Compartment, String, String, Assignment[], Point)
+     */
+    public static @Nonnull Node addEvent(@Nonnull Compartment parent, String name, String trigger, String delay, Assignment[] assignments,
+            Point location)
+    {
+        if( name != null && !name.isEmpty() )
+            checkNewName( parent, name );
         Diagram diagram = Diagram.getDiagram( parent );
         getEModel( diagram );
         if( trigger == null || trigger.isEmpty() )
@@ -505,12 +591,43 @@ public class ModelElementFactory
             // the diagram type does not create events headlessly: create the node below
         }
         if( node == null )
-            node = new Node( parent, new Stub( null, DefaultSemanticController.generateUniqueNodeName( parent, "event" ), Type.MATH_EVENT ) );
+            node = new Node( parent, new Stub( null, name != null && !name.isEmpty() ? name
+                    : DefaultSemanticController.generateUniqueNodeName( parent, "event" ), Type.MATH_EVENT ) );
+        node = named( parent, node, name );
         node.setRole( new Event( node, trigger, delay == null || delay.isEmpty() ? "0" : delay, actions.toArray( new Assignment[0] ) ) );
         if( location != null )
             node.setLocation( location );
         put( parent, node );
         return node;
+    }
+
+    /**
+     * Removes the rate variables ({@code $$rate_<reaction>}) that no reaction equation defines any more,
+     * e.g. after reactions were removed.
+     *
+     * @return names of the removed variables
+     */
+    public static List<String> removeUnusedRateVariables(@Nonnull Diagram diagram)
+    {
+        List<String> removed = new ArrayList<>();
+        if( ! ( diagram.getRole() instanceof EModel ) )
+            return removed;
+        DataCollection<Variable> variables = diagram.getRole( EModel.class ).getVariables();
+        Set<String> defined = diagram.recursiveStream().map( DiagramElement::getRole ).select( Equation.class ).map( Equation::getVariable )
+                .toSet();
+        for( String name : variables.names().filter( n -> n.startsWith( "$$rate_" ) && !defined.contains( n ) ).collect( Collectors.toList() ) )
+        {
+            try
+            {
+                variables.remove( name );
+                removed.add( name );
+            }
+            catch( Exception e )
+            {
+                throw new IllegalStateException( "Can not remove variable " + name + ": " + e.getMessage(), e );
+            }
+        }
+        return removed;
     }
 
     // ---------------------------------------------------------------- parameters

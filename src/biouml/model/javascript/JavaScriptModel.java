@@ -534,9 +534,17 @@ public class JavaScriptModel extends JavaScriptHostObjectBase
      */
     public Equation addEquation(Diagram diagram, String type, String variable, String formula)
     {
+        return addEquation(diagram, null, type, variable, formula);
+    }
+
+    /**
+     * Adds equation with the node name <b>name</b>; see {@link #addEquation(Diagram, String, String, String)}.
+     */
+    public Equation addEquation(Diagram diagram, String name, String type, String variable, String formula)
+    {
         if( diagram == null )
             throw new IllegalArgumentException("Diagram is null.");
-        return ModelElementFactory.addEquation(diagram, type, variable, formula, null).getRole(Equation.class);
+        return ModelElementFactory.addEquation(diagram, name, type, variable, formula, null).getRole(Equation.class);
     }
     
     public void addSubDiagram(Diagram diagram, String subDiagramPath, String name)
@@ -645,10 +653,19 @@ public class JavaScriptModel extends JavaScriptHostObjectBase
      */
     public Event addEvent(Diagram diagram, String trigger, double delay, Assignment[] actions)
     {
+        return addEvent(diagram, null, trigger, delay, actions);
+    }
+
+    /**
+     * Adds event with the node name <b>name</b>; see {@link #addEvent(Diagram, String, double, Assignment[])}.
+     * The node can be placed with <code>event.getDiagramElement().setLocation(...)</code>.
+     */
+    public Event addEvent(Diagram diagram, String name, String trigger, double delay, Assignment[] actions)
+    {
         if( diagram == null )
             throw new IllegalArgumentException("Diagram is null.");
         String delayValue = delay == Math.rint(delay) ? Long.toString((long)delay) : Double.toString(delay);
-        return ModelElementFactory.addEvent(diagram, trigger, delayValue, actions, null).getRole(Event.class);
+        return ModelElementFactory.addEvent(diagram, name, trigger, delayValue, actions, null).getRole(Event.class);
     }
 
     /**

@@ -72,20 +72,22 @@ Ids are element names (`s6`) or paths in the diagram (`default.s6`); a new eleme
 
 | Change | Tool and arguments |
 |---|---|
-| New species | `biouml_diagram_add_node(diagramPath, name="default/V", nodeType="Species", x, y)` — returns its `variable` (`$default.V`) |
+| New species | `biouml_diagram_add_node(diagramPath, name="default/V", nodeType="unspecified", title="Vaccinated", x, y)` — returns its `variable` (`$default.V`). `nodeType` is the SBGN glyph: `unspecified`, `simple chemical`, `macromolecule` (= `Species`), `nucleic acid feature`, `perturbing agent`, `complex`; use the type of the model's existing species. `width`/`height` default to 70×40 |
 | Initial value or parameter value | `biouml_diagram_set_parameters(diagramPath, parameters={"V": 100, "Vaccination_rate": 0.006})` — species by name, missing parameters are declared; `constant=true/false` applies to every name in the call |
 | New reaction | `biouml_diagram_add_reaction(diagramPath, name="re_vaccination", formula="Vaccination_rate*$default.s6", reactants=["s6"], products=["V"], parameters={"Vaccination_rate": 0.006}, x, y)` — stoichiometry as `"2*s6"`; `modifiers` for catalysts |
 | Participant of an existing reaction | `biouml_diagram_add_edge(diagramPath, sourceId="s6", targetId="re8", edgeType="reactant")` (`product` for reaction -> species, `modifier`) |
-| Assignment rule / rate rule / initial assignment | `biouml_diagram_add_equation(diagramPath, type="scalar", variable="Population", formula="$default.s1 + $default.s2")` — a missing target parameter is declared |
-| Remove an element | `biouml_diagram_remove_element(diagramPath, elementId)` — also removes its edges and reaction participants |
+| Assignment rule / rate rule / initial assignment | `biouml_diagram_add_equation(diagramPath, name="population_rule", type="scalar", variable="Population", formula="$default.s1 + $default.s2", x, y)` — a missing target parameter is declared |
+| Event | `biouml_diagram_add_event(diagramPath, name="vaccination_start", trigger="time >= Vaccination_start_day", assignments={"Vaccination_on": "1"}, parameters={"Vaccination_start_day": 30, "Vaccination_on": 0}, x, y)` — `delay` optional; assignments run in the given order |
+| Remove an element | `biouml_diagram_remove_element(diagramPath, elementId)` — also removes its edges, reaction participants and the rate variables of removed reactions |
 | Clone / merge a species | `biouml_diagram_clone_node`, `biouml_diagram_merge_clone` |
 | Move / align | `biouml_diagram_move_element`, `biouml_diagram_layout` |
+| Look at the diagram | `biouml_diagram_image(path, scale, maxWidth, maxHeight)` — returns the rendered diagram as a picture |
 
 `add_reaction` creates everything the simulator needs: the node, the participant edges, the `$$rate_<name>` variable and the participants' rate equations. Do not build reactions from `add_node` + `add_edge` unless you are extending an existing reaction.
 
 ### With a script
 
-There is no MCP tool for events, simulation options or editing an existing formula; use `biouml_repo_run_script`. The `model` functions create elements the same way the tools do. Always end with a save:
+There is no MCP tool for simulation options or editing an existing formula; use `biouml_repo_run_script`. The `model` functions create elements the same way the tools do. Always end with a save:
 
 ```js
 var diagram = data.get(path);
@@ -102,9 +104,10 @@ model.addReaction(diagram, "re_vaccination", "Vaccination_rate*$default.s6", [
   model.createSpecieReference(diagram, "s6", "reactant"),
   model.createSpecieReference(diagram, "V", "product")      // optional 4th argument: stoichiometry
 ]);
-model.addEquation(diagram, "scalar", "Population", "$default.s1 + $default.V");
-model.addEvent(diagram, "time >= Vaccination_start_day", 0,
+model.addEquation(diagram, "population_rule", "scalar", "Population", "$default.s1 + $default.V");   // the name is optional
+var ev = model.addEvent(diagram, "vaccination_start", "time >= Vaccination_start_day", 0,   // the name is optional
   [model.createAssignment(diagram, "Vaccination_on", "1")]);
+ev.getDiagramElement().setLocation(new java.awt.Point(40, 1385));
 
 diagram.save();                                            // data.save(dc, path) expects the parent folder's path
 ```
@@ -147,9 +150,10 @@ diagram.save();
 
 ## 6. Layout: keep new elements readable
 
-New nodes default to overlapping existing ones. Before placing anything, list the positions of all nodes (section 4) and follow the existing layout:
+New nodes default to overlapping existing ones. Before placing anything, list the positions of all nodes (section 4) and follow the existing layout; afterwards check the result with `biouml_diagram_image`:
 
 - **Equations and events** (`math-equation`, `math-event` top-level nodes) usually sit in a column below the reaction scheme. Put new ones in the same column, continuing the existing vertical spacing below the last one.
+- **Match the existing species**: same `nodeType` (glyph) and size as the species around them, a readable `title`.
 - **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it in a script (`comp.setShapeSize(new Packages.java.awt.Dimension(w, newH))`) and place them in a new row below the existing scheme, near the species they connect to.
 - After moving nodes, reset the attached edges so the editor redraws them: for each `Edge` whose `getInput()` or `getOutput()` was moved, call `e.setPath(null)`.
 - Layout changes do not affect the math, but re-run the simulation once to confirm the diagram still loads and compiles.

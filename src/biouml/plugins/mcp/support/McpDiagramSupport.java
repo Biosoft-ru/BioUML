@@ -74,6 +74,10 @@ public final class McpDiagramSupport
 		return new Stub( null, name );
 	}
 
+	/** Species types of SBML models (SBGN entity pools); "Species" gives the default, a macromolecule. */
+	private static final List<String> SBGN_ENTITY_TYPES = java.util.Arrays.asList( "macromolecule", "simple chemical", "unspecified",
+			"nucleic acid feature", "perturbing agent", "complex" );
+
 	/** The allowed node-type keys, for {@code biouml_diagram_node_types}. */
 	public static List<String> nodeTypes()
 	{
@@ -85,6 +89,7 @@ public final class McpDiagramSupport
 		t.add( "Species" );
 		t.add( "Compartment" );
 		t.add( "Reaction" );
+		t.addAll( SBGN_ENTITY_TYPES );
 		t.add( "SemanticRelation" );
 		t.add( "Stub" );
 		return t;
@@ -454,6 +459,16 @@ public final class McpDiagramSupport
 	 */
 	public static McpEnvelope addNode( String diagramPath, String name, String nodeType, Integer x, Integer y )
 	{
+		return addNode( diagramPath, name, nodeType, x, y, null, null, null );
+	}
+
+	/**
+	 * Add a node with an optional display title and size (width and height in pixels). For SBML models
+	 * nodeType may also be an SBGN entity type ("unspecified", "simple chemical", ...).
+	 */
+	public static McpEnvelope addNode( String diagramPath, String name, String nodeType, Integer x, Integer y, String title, Integer width,
+			Integer height )
+	{
 		if ( name == null || name.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "name must be a non-empty string" );
 		String type = nodeType == null || nodeType.isEmpty() ? "Stub" : nodeType;
@@ -471,7 +486,7 @@ public final class McpDiagramSupport
 			else if ( "Compartment".equalsIgnoreCase( type ) )
 				node = ModelElementFactory.addCompartment( parent, id, location, null );
 			else if ( reactionModel && isSpeciesType( type ) )
-				node = ModelElementFactory.addSpecies( parent, id, makeNodeKernel( type, id ), 0.0, location );
+				node = ModelElementFactory.addSpecies( parent, id, entityType( type ), makeNodeKernel( type, id ), 0.0, location );
 			else
 			{
 				if ( diagram.containsRecursively( id ) )
@@ -481,9 +496,14 @@ public final class McpDiagramSupport
 					node.setLocation( location );
 				parent.put( node );
 			}
+			if ( title != null && !title.isEmpty() )
+				node.setTitle( title );
+			if ( width != null && height != null )
+				node.setShapeSize( new java.awt.Dimension( width.intValue(), height.intValue() ) );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "id", node.getName() );
 			m.put( "path", node.getCompleteNameInDiagram() );
+			m.put( "title", node.getTitle() );
 			if ( node.getRole() instanceof VariableRole )
 				m.put( "variable", node.getRole( VariableRole.class ).getName() );
 			return m;
@@ -502,7 +522,13 @@ public final class McpDiagramSupport
 	private static boolean isSpeciesType( String type )
 	{
 		return "Species".equalsIgnoreCase( type ) || "Substance".equalsIgnoreCase( type ) || "Protein".equalsIgnoreCase( type )
-				|| "Gene".equalsIgnoreCase( type ) || "RNA".equalsIgnoreCase( type );
+				|| "Gene".equalsIgnoreCase( type ) || "RNA".equalsIgnoreCase( type ) || entityType( type ) != null;
+	}
+
+	/** The SBGN entity type named by a node type, or null. */
+	private static String entityType( String type )
+	{
+		return SBGN_ENTITY_TYPES.stream().filter( type::equalsIgnoreCase ).findFirst().orElse( null );
 	}
 
 	/**
@@ -662,9 +688,16 @@ public final class McpDiagramSupport
 	public static McpEnvelope addEquation( String diagramPath, String type, String variable, String formula,
 			Map<String, String> parameters, Integer x, Integer y )
 	{
+		return addEquation( diagramPath, null, type, variable, formula, parameters, x, y );
+	}
+
+	/** Add an equation with the given node name (null: generated). */
+	public static McpEnvelope addEquation( String diagramPath, String name, String type, String variable, String formula,
+			Map<String, String> parameters, Integer x, Integer y )
+	{
 		return edit( diagramPath, "addEquation", diagram -> {
 			Map<String, Double> values = parameterValues( parameters );
-			Node node = ModelElementFactory.addEquation( diagram, type, variable, formula, point( x, y ) );
+			Node node = ModelElementFactory.addEquation( diagram, name, type, variable, formula, point( x, y ) );
 			List<String> set = applyParameters( diagram, values );
 			Equation eq = node.getRole( Equation.class );
 			ModelElementFactory.declareFormulaParameters( diagram, formula, eq );
@@ -677,6 +710,93 @@ public final class McpDiagramSupport
 				m.put( "parametersSet", set );
 			return m;
 		} );
+	}
+
+	/**
+	 * Add an event: when trigger becomes true (after delay), each assignment {variable: formula} is
+	 * performed in order. Variables are parameters or species (by name, path or variable); parameters
+	 * declares or sets parameter values first, so assignments may target new parameters.
+	 */
+	public static McpEnvelope addEvent( String diagramPath, String name, String trigger, String delay, Map<String, String> assignments,
+			Map<String, String> parameters, Integer x, Integer y )
+	{
+		if ( trigger == null || trigger.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "trigger must be a non-empty string" );
+		if ( assignments == null || assignments.isEmpty() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "assignments must be a non-empty object {variable: formula}" );
+		return edit( diagramPath, "addEvent", diagram -> {
+			List<String> set = applyParameters( diagram, parameterValues( parameters ) );
+			List<biouml.model.dynamics.Assignment> actions = new ArrayList<biouml.model.dynamics.Assignment>();
+			for ( Map.Entry<String, String> a : assignments.entrySet() )
+				actions.add( new biouml.model.dynamics.Assignment( a.getKey(), a.getValue() ) );
+			Node node = ModelElementFactory.addEvent( diagram, name, trigger, delay, actions.toArray( new biouml.model.dynamics.Assignment[ 0 ] ),
+					point( x, y ) );
+			biouml.model.dynamics.Event event = node.getRole( biouml.model.dynamics.Event.class );
+			ModelElementFactory.declareFormulaParameters( diagram, trigger, event );
+			Map<String, Object> done = new LinkedHashMap<String, Object>();
+			for ( biouml.model.dynamics.Assignment a : event.getEventAssignment() )
+			{
+				ModelElementFactory.declareFormulaParameters( diagram, a.getMath(), event );
+				done.put( a.getVariable(), a.getMath() );
+			}
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", node.getName() );
+			m.put( "trigger", event.getTrigger() );
+			m.put( "delay", event.getDelay() );
+			m.put( "assignments", done );
+			if ( !set.isEmpty() )
+				m.put( "parametersSet", set );
+			return m;
+		} );
+	}
+
+	/**
+	 * Render a diagram as a PNG image, returned as an MCP image content block (like
+	 * biouml_simulation_plot). The view is built afresh, so it shows the current state of the diagram.
+	 *
+	 * @param scale     zoom factor (default 1)
+	 * @param maxWidth  the image is scaled down to fit (default 1600)
+	 * @param maxHeight the image is scaled down to fit (default 1600)
+	 */
+	public static McpEnvelope diagramImage( String path, Double scale, Integer maxWidth, Integer maxHeight )
+	{
+		McpEnvelope d = diagram( path );
+		if ( !d.isOk() )
+			return d;
+		Diagram diagram = (Diagram) d.getData();
+		try
+		{
+			java.awt.Graphics g = com.developmentontheedge.application.ApplicationUtils.getGraphics();
+			ru.biosoft.graphics.View view;
+			synchronized ( diagram )
+			{
+				view = diagram.getType().getDiagramViewBuilder().createDiagramView( diagram, g );
+			}
+			java.awt.Rectangle bounds = view.getBounds();
+			if ( bounds.width <= 0 || bounds.height <= 0 )
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "diagram is empty: " + path );
+			int maxW = maxWidth == null || maxWidth.intValue() <= 0 ? 1600 : maxWidth.intValue();
+			int maxH = maxHeight == null || maxHeight.intValue() <= 0 ? 1600 : maxHeight.intValue();
+			double k = scale == null || scale.doubleValue() <= 0 ? 1 : scale.doubleValue();
+			k = Math.min( k, Math.min( (double) maxW / ( bounds.width + 20 ), (double) maxH / ( bounds.height + 20 ) ) );
+			view.setLocation( 10, 10 );
+			java.awt.image.BufferedImage image = ru.biosoft.graphics.ImageGenerator.generateImage( view, k, true );
+			java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+			javax.imageio.ImageIO.write( image, "png", png );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "path", path );
+			m.put( "imageFormat", "png" );
+			m.put( "width", Integer.valueOf( image.getWidth() ) );
+			m.put( "height", Integer.valueOf( image.getHeight() ) );
+			m.put( "scale", Double.valueOf( k ) );
+			McpEnvelope env = McpEnvelope.ok( m );
+			env.setAttribute( "mcp.image", png.toByteArray() );
+			return env;
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not render the diagram: " + describeError( e ) );
+		}
 	}
 
 	/**
@@ -717,8 +837,11 @@ public final class McpDiagramSupport
 				( (Reaction) el.getKernel().getOrigin() ).remove( el.getKernel().getName() );
 			if ( !diagram.getType().getSemanticController().remove( el ) && el.getOrigin() != null )
 				el.getOrigin().remove( el.getName() );
+			List<String> variables = ModelElementFactory.removeUnusedRateVariables( diagram );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "removed", elementId );
+			if ( !variables.isEmpty() )
+				m.put( "removedVariables", variables );
 			return m;
 		} );
 	}

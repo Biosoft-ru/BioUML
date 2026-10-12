@@ -452,6 +452,7 @@
 				</function>
 				<function name="addEvent" description="Adds an event to the specified diagram. The diagram is changed in memory only: call diagram.save() to store it.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add an event to." />
+					<argument name="name" type="String" obligatory="false" description="the name of the event node (when given, it precedes the trigger), by default it is generated." />
 					<argument name="trigger" type="String" obligatory="true" description="boolean expression triggering the event." />
 					<argument name="delay" type="Double" obligatory="true" description="double number representing time of the event delay." />
 					<argument name="actions" type="Assignment[]" obligatory="true" description="array of assignments performed after the event triggering, see 'createAssignment'." />
@@ -459,6 +460,7 @@
 				</function>
 				<function name="addEquation" description="Adds an equation to the specified diagram. A missing parameter variable is declared with initial value 0. The diagram is changed in memory only: call diagram.save() to store it.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add equation to." />
+					<argument name="name" type="String" obligatory="false" description="the name of the equation node (when given, it precedes the type), by default it is generated." />
 					<argument name="type" type="String" obligatory="true" description="the type of the equation: 'algebraic', 'rate', 'scalar' or 'initial assignment'." />
 					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be calculated by formula; a species may be given by its name, path ('default.s1') or variable ('$default.s1')." />
 					<argument name="formula" type="String" obligatory="true" description="the formula for calculation of variable value." />

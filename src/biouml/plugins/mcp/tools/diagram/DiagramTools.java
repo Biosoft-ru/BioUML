@@ -39,10 +39,10 @@ public final class DiagramTools
 				( ex, args ) -> McpEnvelope.ok( McpDiagramSupport.nodeTypes() ) );
 
 		catalog.register( "biouml_diagram_add_node",
-				"Add a node to a diagram. Returns {id, path} and, for a species or compartment of a model, its variable. name may be qualified by a compartment ('default/V' creates V inside compartment default). nodeType is one of the keys from biouml_diagram_node_types (default 'Stub'). In a diagram with a mathematical model (e.g. any SBML model) species (Species/Substance/Protein/Gene/RNA), compartments and reactions are created by the diagram type, with their model variables and rate equations; a reaction created this way has no participants and rate 0 — prefer biouml_diagram_add_reaction. A failed add is undone, so the diagram stays saveable.",
-				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"nodeType\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"name\"]}",
+				"Add a node to a diagram. Returns {id, path, title} and, for a species or compartment of a model, its variable. name may be qualified by a compartment ('default/V' creates V inside compartment default); title is the displayed label (default: the name); width/height set the node size. nodeType is one of the keys from biouml_diagram_node_types (default 'Stub'). In a diagram with a mathematical model (e.g. any SBML model) species, compartments and reactions are created by the diagram type, with their model variables and rate equations; for SBML models the species may be given its SBGN entity type ('unspecified', 'simple chemical', 'macromolecule', 'nucleic acid feature', 'perturbing agent', 'complex'; 'Species' is a macromolecule). A reaction created this way has no participants and rate 0 — prefer biouml_diagram_add_reaction. A failed add is undone, so the diagram stays saveable.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"nodeType\":{\"type\":\"string\"},\"title\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"name\"]}",
 				( ex, args ) -> McpDiagramSupport.addNode( str( args, "diagramPath" ), str( args, "name" ), str( args, "nodeType" ),
-						optInt( args, "x" ), optInt( args, "y" ) ) );
+						optInt( args, "x" ), optInt( args, "y" ), str( args, "title" ), optInt( args, "width" ), optInt( args, "height" ) ) );
 
 		catalog.register( "biouml_diagram_add_edge",
 				"Add an edge between two nodes (ids are names or paths such as 'default.s1'). Between a reaction and a species of a model the edge makes the species a participant of the reaction: edgeType is its role — reactant, product or modifier (default: reactant for species -> reaction, product for reaction -> species) — and the participant's rate equation is created. Otherwise a plain relation edge is added. Returns the assigned edge id.",
@@ -71,16 +71,29 @@ public final class DiagramTools
 				} );
 
 		catalog.register( "biouml_diagram_add_equation",
-				"Add an equation to a model diagram: type 'scalar' (assignment rule, default), 'rate' (rate rule), 'algebraic' or 'initial assignment'. variable is the target — a parameter (declared if missing) or a species by name, path or variable; formula is the right-hand side; parameters is an object {name: value} that declares or sets parameters of the formula. Any other undeclared identifier in the formula is declared with value 0 and listed in declaredParameters. Returns {id, type, variable, formula}.",
-				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"variable\":{\"type\":\"string\"},\"formula\":{\"type\":\"string\"},\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"number\"}},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"formula\"]}",
+				"Add an equation to a model diagram: type 'scalar' (assignment rule, default), 'rate' (rate rule), 'algebraic' or 'initial assignment'. variable is the target — a parameter (declared if missing) or a species by name, path or variable; formula is the right-hand side; name is the node id (default generated); parameters is an object {name: value} that declares or sets parameters of the formula. Any other undeclared identifier in the formula is declared with value 0 and listed in declaredParameters. Returns {id, type, variable, formula}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"variable\":{\"type\":\"string\"},\"formula\":{\"type\":\"string\"},\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"number\"}},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"formula\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
 					if ( v == null )
 						v = McpArgs.requiredString( args, "formula" );
 					if ( v != null )
 						return v;
-					return McpDiagramSupport.addEquation( str( args, "diagramPath" ), str( args, "type" ), str( args, "variable" ), str( args, "formula" ),
-							McpArgs.stringMap( args, "parameters" ), optInt( args, "x" ), optInt( args, "y" ) );
+					return McpDiagramSupport.addEquation( str( args, "diagramPath" ), str( args, "name" ), str( args, "type" ), str( args, "variable" ),
+							str( args, "formula" ), McpArgs.stringMap( args, "parameters" ), optInt( args, "x" ), optInt( args, "y" ) );
+				} );
+
+		catalog.register( "biouml_diagram_add_event",
+				"Add an event to a model diagram: when trigger (a boolean formula, e.g. 'time >= t_start') becomes true, after delay (a formula, default 0), the assignments are performed in order. assignments is an object {variable: formula} — variables are parameters or species by name, path or variable and must exist (declare new parameters through parameters, an object {name: value} applied first); name is the node id (default generated); x, y place the node. Any other undeclared identifier is declared with value 0 and listed in declaredParameters. Returns {id, trigger, delay, assignments}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"trigger\":{\"type\":\"string\"},\"delay\":{\"type\":\"string\"},\"assignments\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"string\"}},\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"number\"}},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"trigger\",\"assignments\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
+					if ( v == null )
+						v = McpArgs.requiredString( args, "trigger" );
+					if ( v != null )
+						return v;
+					return McpDiagramSupport.addEvent( str( args, "diagramPath" ), str( args, "name" ), str( args, "trigger" ), str( args, "delay" ),
+							McpArgs.stringMap( args, "assignments" ), McpArgs.stringMap( args, "parameters" ), optInt( args, "x" ), optInt( args, "y" ) );
 				} );
 
 		catalog.register( "biouml_diagram_set_parameters",
@@ -97,7 +110,7 @@ public final class DiagramTools
 				} );
 
 		catalog.register( "biouml_diagram_remove_element",
-				"Remove an element (node or edge) from a diagram by its id (a name or a path such as 'default.s1'), with the edges and reaction participants that depend on it.",
+				"Remove an element (node or edge) from a diagram by its id (a name or a path such as 'default.s1'), with the edges and reaction participants that depend on it; the rate variables of removed reactions are removed too (listed in removedVariables).",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"elementId\"]}",
 				( ex, args ) -> McpDiagramSupport.removeElement( str( args, "diagramPath" ), str( args, "elementId" ) ) );
 
@@ -116,6 +129,29 @@ public final class DiagramTools
 				"Rename an element's display title.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"newName\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"elementId\",\"newName\"]}",
 				( ex, args ) -> McpDiagramSupport.renameElement( str( args, "diagramPath" ), str( args, "elementId" ), str( args, "newName" ) ) );
+
+		catalog.register( "biouml_diagram_image",
+				"Render a diagram as a PNG picture returned to the caller (an MCP image block, like biouml_simulation_plot), to check the layout. The view is built from the current state of the diagram. scale is the zoom factor (default 1); the picture is scaled down to fit maxWidth x maxHeight pixels (default 1600 x 1600). Returns {width, height, scale} plus the image.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"scale\":{\"type\":\"number\"},\"maxWidth\":{\"type\":\"integer\"},\"maxHeight\":{\"type\":\"integer\"}},\"required\":[\"path\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "path" );
+					if ( v != null )
+						return v;
+					Object scale = args.get( "scale" );
+					Double k = null;
+					if ( scale != null )
+					{
+						try
+						{
+							k = Double.valueOf( Double.parseDouble( String.valueOf( scale ) ) );
+						}
+						catch ( NumberFormatException e )
+						{
+							return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "scale must be a number" );
+						}
+					}
+					return McpDiagramSupport.diagramImage( str( args, "path" ), k, optInt( args, "maxWidth" ), optInt( args, "maxHeight" ) );
+				} );
 
 		catalog.register( "biouml_diagram_save",
 				"Save a diagram to a DML file on disk (in targetDir, or the current directory). Returns the file path and size.",

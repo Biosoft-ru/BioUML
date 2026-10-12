@@ -77,6 +77,8 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		def.setShapeSize( new java.awt.Dimension( 400, 300 ) );
 		controller.createInstance( def, Specie.class, "s1", new Point( 20, 20 ), null ).putToCompartment();
 		controller.createInstance( def, Specie.class, "s2", new Point( 200, 20 ), null ).putToCompartment();
+		( (Node) def.get( "s1" ) ).setLocation( 30, 60 ); // the SBGN controller ignores the point
+		( (Node) def.get( "s2" ) ).setLocation( 260, 60 );
 		diagram.getRole( EModel.class ).getVariable( "$default.s1" ).setInitialValue( 10 );
 		folder.put( diagram );
 		diagramPath = "mcps/models/m1";
@@ -378,6 +380,88 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		return d;
 	}
 
+	/** add_node creates SBGN entity pools of a given type, with a title and a drawable size. */
+	public void testAddNodeEntityTypeTitleSize() throws Exception
+	{
+		Map<String, Object> m = data( McpDiagramSupport.addNode( diagramPath, "default/U", "unspecified", 50, 150, "Unvaccinated", null, null ) );
+		assertEquals( "$default.U", m.get( "variable" ) );
+		data( McpDiagramSupport.addNode( diagramPath, "default/G", "simple chemical", 150, 150, null, 60, 30 ) );
+		data( McpDiagramSupport.addNode( diagramPath, "default/M", "Species", 250, 150 ) );
+
+		Diagram d = reload();
+		Node u = d.findNode( "U" );
+		assertEquals( "unspecified", u.getKernel().getType() );
+		assertEquals( "Unvaccinated", u.getTitle() );
+		assertEquals( new java.awt.Dimension( 70, 40 ), u.getShapeSize() );
+		assertTrue( u.getRole() instanceof VariableRole );
+		Node g = d.findNode( "G" );
+		assertEquals( "simple chemical", g.getKernel().getType() );
+		assertEquals( new java.awt.Dimension( 60, 30 ), g.getShapeSize() );
+		assertEquals( "macromolecule", d.findNode( "M" ).getKernel().getType() );
+		assertEquals( new java.awt.Dimension( 70, 40 ), d.findNode( "M" ).getShapeSize() );
+	}
+
+	/** Removing a reaction also removes its $$rate_ variable. */
+	@SuppressWarnings( "unchecked" )
+	public void testRemoveReactionRemovesRateVariable() throws Exception
+	{
+		data( McpDiagramSupport.addReaction( diagramPath, "r1", "1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, null, null ) );
+		assertNotNull( diagram().getRole( EModel.class ).getVariable( "$$rate_r1" ) );
+		Map<String, Object> m = data( McpDiagramSupport.removeElement( diagramPath, "r1" ) );
+		assertEquals( java.util.Arrays.asList( "$$rate_r1" ), m.get( "removedVariables" ) );
+		assertNull( diagram().getRole( EModel.class ).getVariable( "$$rate_r1" ) );
+		assertNull( reload().getRole( EModel.class ).getVariable( "$$rate_r1" ) );
+	}
+
+	/** Events and equations can be given their node names (and positions) when they are created. */
+	@SuppressWarnings( "unchecked" )
+	public void testAddNamedEventAndEquation() throws Exception
+	{
+		Map<String, String> assignments = new java.util.LinkedHashMap<String, String>();
+		assignments.put( "vac_on", "1" );
+		assignments.put( "s2", "0" );
+		Map<String, String> parameters = new java.util.HashMap<String, String>();
+		parameters.put( "t0", "30" );
+		parameters.put( "vac_on", "0" );
+		Map<String, Object> m = data( McpDiagramSupport.addEvent( diagramPath, "vaccination_start", "time >= t0", null, assignments, parameters, 40, 400 ) );
+		assertEquals( "vaccination_start", m.get( "id" ) );
+		assertEquals( "{vac_on=1, $default.s2=0}", m.get( "assignments" ).toString() );
+		data( McpDiagramSupport.addEquation( diagramPath, "population_rule", null, "Total", "$default.s1 + $default.s2", null, 40, 500 ) );
+		assertFalse( "unknown assignment variable", McpDiagramSupport.addEvent( diagramPath, null, "time > 1", null,
+				java.util.Collections.singletonMap( "nope", "1" ), null, null, null ).isOk() );
+
+		Diagram d = reload();
+		Node event = d.findNode( "vaccination_start" );
+		assertNotNull( "event saved under its name", event );
+		assertEquals( new java.awt.Point( 40, 400 ), event.getLocation() );
+		biouml.model.dynamics.Event e = event.getRole( biouml.model.dynamics.Event.class );
+		assertTrue( e.getTrigger(), e.getTrigger().matches( "time >= t0" ) );
+		assertEquals( 2, e.getEventAssignment().length );
+		assertEquals( 30.0, d.getRole( EModel.class ).getVariable( "t0" ).getInitialValue() );
+		assertEquals( "Total", d.findNode( "population_rule" ).getRole( Equation.class ).getVariable() );
+
+		JavaScriptModel model = new JavaScriptModel();
+		biouml.model.dynamics.Event named = model.addEvent( d, "stop", "time > 50", 0,
+				new biouml.model.dynamics.Assignment[] { model.createAssignment( d, "vac_on", "0" ) } );
+		assertEquals( "stop", named.getDiagramElement().getName() );
+		assertEquals( "rule_2", model.addEquation( d, "rule_2", "scalar", "Total2", "2*$default.s1" ).getDiagramElement().getName() );
+	}
+
+	/** biouml_diagram_image returns the rendered diagram as a PNG. */
+	public void testDiagramImage() throws Exception
+	{
+		data( McpDiagramSupport.addReaction( diagramPath, "r1", "k*$default.s1", new String[] { "s1" }, new String[] { "s2" }, null, null, null, 100, 40 ) );
+		McpEnvelope env = McpDiagramSupport.diagramImage( diagramPath, null, 300, 300 );
+		Map<String, Object> m = data( env );
+		byte[] png = (byte[]) env.getAttribute( "mcp.image" );
+		assertNotNull( "image attached", png );
+		java.awt.image.BufferedImage image = javax.imageio.ImageIO.read( new java.io.ByteArrayInputStream( png ) );
+		assertNotNull( "valid PNG", image );
+		assertTrue( "fits the limit: " + m, image.getWidth() <= 300 && image.getHeight() <= 300 );
+		assertEquals( m.get( "width" ), Integer.valueOf( image.getWidth() ) );
+		assertFalse( McpDiagramSupport.diagramImage( "mcps/models/nope", null, null, null ).isOk() );
+	}
+
 	// ------------------------------------------------------------------ model host object
 
 	public void testScriptModelAddSpeciesReactionEquation() throws Exception
@@ -441,8 +525,9 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 				"  model.createSpecieReference(diagram, 's1', 'reactant'),",
 				"  model.createSpecieReference(diagram, 'V', 'product')",
 				"]);",
-				"model.addEquation(diagram, 'scalar', 'Population', '$default.s1 + $default.V');",
-				"model.addEvent(diagram, 'time >= start_day', 0, [model.createAssignment(diagram, 'vac_on', '1')]);",
+				"model.addEquation(diagram, 'population_rule', 'scalar', 'Population', '$default.s1 + $default.V');",
+				"var ev = model.addEvent(diagram, 'vaccination_start', 'time >= start_day', 0, [model.createAssignment(diagram, 'vac_on', '1')]);",
+				"ev.getDiagramElement().setLocation(new java.awt.Point(40, 385));",
 				"diagram.findNode('re_vac').getKernel().getKineticLaw().setFormula('2*k_vac*vac_on*$default.s1');",
 				"diagram.save();",
 				"print('recipe done');" );
@@ -490,6 +575,8 @@ public class McpSbmlModelEditTest extends AbstractBioUMLTest
 		}
 		assertTrue( "assignment rule saved", rule );
 		assertTrue( "event saved", event );
+		assertNotNull( d.findNode( "population_rule" ) );
+		assertEquals( new java.awt.Point( 40, 385 ), d.findNode( "vaccination_start" ).getLocation() );
 	}
 
 	public void testScriptModelReportsBadInput()
