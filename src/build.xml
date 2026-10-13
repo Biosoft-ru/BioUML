@@ -969,10 +969,6 @@
         <create.plugin plugin="biouml.plugins.node" source="biouml/plugins/node"/>
     </target>
 
-    <target name="plugin.servermonitor" depends="compile">
-        <create.plugin plugin="biouml.plugins.servermonitor" source="biouml/plugins/servermonitor"/>
-    </target>
-
     <target name="plugin.mcp" depends="compile">
         <create.plugin plugin="biouml.plugins.mcp" source="biouml/plugins/mcp"/>
     </target>
