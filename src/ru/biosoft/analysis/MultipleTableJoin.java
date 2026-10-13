@@ -221,25 +221,25 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
         else if( isInnerJoin && numEmpty > 0 ) //inner join with empty table
             return result;
 
-        String[] keys = getAllKeys(inputs);
+        KeysResult kr = getAllKeysWithSets( inputs );
         int i = 0;
         ColumnModel columnModel = result.getColumnModel();
         int numColumns = columnModel.getColumnCount();
 
-        while( i < keys.length )
+        while ( i < kr.keys.length )
         {
             Object[] rowBuffer = new Object[numColumns];
             setBufferToNulls(rowBuffer);
             String key = null;
             int columnShift = 0;
-            for( TableJoinObject tjo : inputs )
+            for ( int j = 0; j < inputs.size(); j++ )
             {
-                TableDataCollection t = tjo.table;
-
+                TableDataCollection t = inputs.get( j ).table;
                 if( t.getSize() > 0 )
                 {
-                    key = keys[i];
-                    if( t.contains(key) )
+                    key = kr.keys[i];
+                    boolean inTable = (kr.namesSets[j] != null && kr.namesSets[j].contains( key ));
+                    if( inTable )
                     {
                         Object[] values = TableDataCollectionUtils.getRowValues(t, key);
                         if( isMergeColumns && mergeColumns.size() > 0 ) //we have merging columns, so will need to copy value by value
@@ -269,7 +269,7 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
                         break;
                     }
                 }
-                columnShift += tjo.columnNames.length;
+                columnShift += inputs.get( j ).columnNames.length;
             }
 
             if( key != null )
@@ -322,16 +322,42 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
                 TableDataCollectionUtils.addRow(result, key, rowBuffer, true);
             }
             i++;
-            jobControl.setPreparedness(2 + i * 95 / keys.length);
+            jobControl.setPreparedness( 2 + i * 95 / kr.keys.length );
         }
         result.finalizeAddition();
-        ReferenceTypeRegistry.setCollectionReferenceType(result, ReferenceTypeRegistry.detectReferenceType(keys));
+        ReferenceTypeRegistry.setCollectionReferenceType( result, ReferenceTypeRegistry.detectReferenceType( kr.keys ) );
         return result;
     }
 
     private void setBufferToNulls(Object[] rowBuffer)
     {
         Arrays.fill( rowBuffer, null );
+    }
+
+    private static class KeysResult
+    {
+        String[] keys;
+        Set<String>[] namesSets;
+
+        KeysResult(String[] keys, Set<String>[] namesSets)
+        {
+            this.keys = keys;
+            this.namesSets = namesSets;
+        }
+    }
+
+    private KeysResult getAllKeysWithSets(List<TableJoinObject> inputs)
+    {
+        Set<String> allKeys = new HashSet<>();
+        Set<String>[] namesSets = new Set[inputs.size()];
+        for ( int i = 0; i < inputs.size(); i++ )
+        {
+            TableDataCollection tdc = inputs.get( i ).table;
+            namesSets[i] = new HashSet<>( tdc.names().toList() );
+            allKeys.addAll( namesSets[i] );
+        }
+        String[] keys = allKeys.stream().sorted().toArray( String[]::new );
+        return new KeysResult( keys, namesSets );
     }
 
     private String[] getAllKeys(List<TableJoinObject> inputs)
