@@ -46,7 +46,7 @@
         <!--dependency>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>javax.servlet.jsp-api</artifactId>
-            <version>2.3.3</version> 
+            <version>2.3.3</version>
             <scope>provided</scope>
         </dependency-->
 
@@ -91,6 +91,33 @@
                             <goal>java</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>run-forked</id>
+                        <!--phase>package</phase-->
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Включаем запуск в forked JVM -->
+                            <fork>true</fork>
+                            <environmentVariables>
+                               <CATALINA_HOME>${rootDir}/target/tomcat</CATALINA_HOME>
+                            </environmentVariables>
+                            <executable>java</executable>
+                            <arguments>
+                              <argument>--add-opens</argument>
+                              <argument>java.base/java.net=ALL-UNNAMED</argument>
+                              <argument>-Djava.security.policy=${rootDir}/target/biouml.policy</argument>
+                              <argument>-Dcatalina.home=${rootDir}/target/tomcat</argument>
+                              <argument>-Dbiouml.war=${biouml.war}</argument>
+                              <argument>-Dbioumlweb.war=${bioumlweb.war}</argument>
+                              <argument>-Dbiouml.http.port=8080</argument>
+                              <argument>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n</argument>
+                              <argument>-jar</argument>
+                              <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-2025.2-jar-with-dependencies.jar</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
                     <mainClass>org.biouml.tomcat.Embedded</mainClass>
@@ -121,41 +148,6 @@
                     </systemProperties>
                 </configuration>
             </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>3.4.1</version>
-            <executions>
-              <execution>
-                <id>run-forked</id>
-                <!--phase>package</phase-->
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <!-- Включаем запуск в forked JVM -->
-                  <fork>true</fork>
-                  <environmentVariables>
-                     <CATALINA_HOME>${rootDir}/target/tomcat</CATALINA_HOME>
-                  </environmentVariables>
-                  <executable>java</executable>
-                  <arguments>
-                    <argument>--add-opens</argument>
-                    <argument>java.base/java.net=ALL-UNNAMED</argument>
-                    <argument>-Djava.security.policy=${rootDir}/target/biouml.policy</argument>
-                    <argument>-Dcatalina.home=${rootDir}/target/tomcat</argument>
-                    <argument>-Dbiouml.war=${biouml.war}</argument>
-                    <argument>-Dbioumlweb.war=${bioumlweb.war}</argument>
-                    <argument>-Dbiouml.http.port=8080</argument>
-                    <argument>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n</argument>
-                    <argument>-jar</argument>
-                    <argument>${rootDir}/tomcat-embedded/target/tomcat-embedded-2025.2-jar-with-dependencies.jar</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
 
         </plugins>
     </build>
