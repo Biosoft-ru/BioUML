@@ -4,18 +4,22 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataElementPath;
-import ru.biosoft.access.core.ClassIcon;
-import ru.biosoft.analysiscore.AnalysisJobControl;
-import ru.biosoft.analysiscore.AnalysisMethodSupport;
+import com.developmentontheedge.log.ThreadFilter;
+
 import biouml.model.Diagram;
 import biouml.model.dynamics.EModel;
 import biouml.plugins.simulation.java.JavaSimulationEngine;
 import biouml.standard.simulation.ResultListener;
 import biouml.standard.simulation.SimulationResult;
+import ru.biosoft.access.core.ClassIcon;
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.analysiscore.AnalysisJobControl;
+import ru.biosoft.analysiscore.AnalysisMethodSupport;
 
 /**
  * @author anna
@@ -79,88 +83,128 @@ public class SimulationAnalysis extends AnalysisMethodSupport<SimulationAnalysis
     @Override
     public SimulationResult justAnalyzeAndPut() throws Exception
     {
-        validateParameters();
-        SimulationAnalysisParameters params = getParameters();
-
-        //        double outputStartTime = params.getOutputStartTime();
-        //        int skipPoints = params.getSkipPoints();
-
-        SimulationEngine engine = params.getSimulationEngine();
-        engine.setTerminated(false);
-        Model model = engine.createModel();
-
-        if( model == null )
-        {
-            engine.log.error( "Model was not generated!" );
-            return null;
-        }
-        List<ResultListener> listeners = new ArrayList<>();
-        listeners.add(jobControl);
-        DataElementPath resultPath = params.getSimulationResultPath();
-
-        int skipPoints = params.getSkipPoints();
-        if(params.getOutputStartTime() > engine.getInitialTime() && engine instanceof JavaSimulationEngine)
-        {
-            UniformSpan span = new UniformSpan( params.getOutputStartTime(), engine.getCompletionTime(), engine.getTimeIncrement() );
-            span.addPoints( new double[]{ engine.getInitialTime() } );
-            ( (JavaSimulationEngine)engine ).setSpan( span );
-            skipPoints++;
-        }
-
-        SimulationResult result;
-        ResultWriter writer = null;
-        jobControl.setPreparedness(5);
-        if( resultPath != null )
-        {
-            result = new SimulationResult(resultPath.optParentCollection(), resultPath.getName());
-            writer = new ResultWriter(result);
-            writer.setSkipPoints( skipPoints );
-            engine.initSimulationResult( result );
-            listeners.add(writer);
-            writer.start(model);
-            for( PropertyChangeListener l : listenersList )
-            {
-                listeners.add(new ResultListenerAdapter(l, result));
-            }
-        }
-
-        jobControl.pushProgress(10, 95);
-        jobControl.setPercentStep(100.0 / (engine.getCompletionTime() - engine.getInitialTime()));
-        listeners.addAll(resultListenerList);
+        setThreadLogging();
         try
         {
-            if( !engine.isTerminated() )
-                engine.simulate(model, listeners.toArray(new ResultListener[listeners.size()]));
-        }
-        catch( Exception e )
-        {
-            engine.log.error("ERROR_SIMULATION", new String[] {engine.getDiagram().getName(), e.toString()}, e);
+            validateParameters();
+            SimulationAnalysisParameters params = getParameters();
+
+            //        double outputStartTime = params.getOutputStartTime();
+            //        int skipPoints = params.getSkipPoints();
+
+            SimulationEngine engine = params.getSimulationEngine();
+
+            engine.setTerminated(false);
+            Model model = engine.createModel();
+
+            if( model == null )
+            {
+                engine.log.error( "Model was not generated!" );
+                return null;
+            }
+            List<ResultListener> listeners = new ArrayList<>();
+            listeners.add(jobControl);
+            DataElementPath resultPath = params.getSimulationResultPath();
+
+            int skipPoints = params.getSkipPoints();
+            if(params.getOutputStartTime() > engine.getInitialTime() && engine instanceof JavaSimulationEngine)
+            {
+                UniformSpan span = new UniformSpan( params.getOutputStartTime(), engine.getCompletionTime(), engine.getTimeIncrement() );
+                span.addPoints( new double[]{ engine.getInitialTime() } );
+                ( (JavaSimulationEngine)engine ).setSpan( span );
+                skipPoints++;
+            }
+
+            SimulationResult result;
+            ResultWriter writer = null;
+            jobControl.setPreparedness(5);
+            if( resultPath != null )
+            {
+                result = new SimulationResult(resultPath.optParentCollection(), resultPath.getName());
+                writer = new ResultWriter(result);
+                writer.setSkipPoints( skipPoints );
+                engine.initSimulationResult( result );
+                listeners.add(writer);
+                writer.start(model);
+                for( PropertyChangeListener l : listenersList )
+                {
+                    listeners.add(new ResultListenerAdapter(l, result));
+                }
+            }
+
+            jobControl.pushProgress(10, 95);
+            jobControl.setPercentStep(100.0 / (engine.getCompletionTime() - engine.getInitialTime()));
+            listeners.addAll(resultListenerList);
+            try
+            {
+                if( !engine.isTerminated() )
+                    engine.simulate(model, listeners.toArray(new ResultListener[listeners.size()]));
+            }
+            catch( Exception e )
+            {
+                engine.log.error("ERROR_SIMULATION", new String[] {engine.getDiagram().getName(), e.toString()}, e);
+                return null;
+            }
+
+            jobControl.popProgress();
+            if( resultPath != null && writer != null )
+            {
+                result = writer.getResults();
+                resultPath.save(result);
+
+                for( PropertyChangeListener l : listenersList )
+                {
+                    PropertyChangeEvent evt = new PropertyChangeEvent(this, "end", null, result);
+                    l.propertyChange(evt);
+                }
+                return result;
+            }
+            else
+            {
+                for( ResultListener l : resultListenerList )
+                {
+                    if( l instanceof ResultWriter )
+                        return ( (ResultWriter)l ).getResults();
+                }
+            }
+
+
             return null;
         }
-
-        jobControl.popProgress();
-        if( resultPath != null && writer != null )
+        finally
         {
-            result = writer.getResults();
-            resultPath.save(result);
-
-            for( PropertyChangeListener l : listenersList )
-            {
-                PropertyChangeEvent evt = new PropertyChangeEvent(this, "end", null, result);
-                l.propertyChange(evt);
-            }
-            return result;
+            removeThreadLogging();
         }
-        else
+    }
+
+    private void setThreadLogging()
+    {
+        Thread currentThread = Thread.currentThread();
+        for ( Handler h : log.getHandlers() )
         {
-            for( ResultListener l : resultListenerList )
+            if( h instanceof SimulationLogWriterHandler )
             {
-                if( l instanceof ResultWriter )
-                    return ( (ResultWriter)l ).getResults();
+                Logger cat = Logger.getLogger( "biouml.plugins.simulation" );
+                cat.setLevel( Level.ALL ); //level will be set for all possible loggers
+                h.setFilter( new ThreadFilter( currentThread ) );
+                cat.addHandler( h );
+                break;
             }
         }
 
-        return null;
+    }
+
+    private void removeThreadLogging()
+    {
+        Logger cat = Logger.getLogger( "biouml.plugins.simulation" );
+        for ( Handler h : log.getHandlers() )
+        {
+            if( h instanceof SimulationLogWriterHandler )
+            {
+                cat.removeHandler( h );
+                break;
+            }
+        }
     }
 
     //TODO: remove adapter, rewrite ResultListener
