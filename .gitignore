@@ -40,3 +40,4 @@ data_resources/profiler_analysis/*
 # Secrets
 .env
 .env-*
+.mcp.json

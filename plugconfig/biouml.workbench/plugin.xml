@@ -446,39 +446,46 @@
 				</function>
 				<function name="createAssignment" description="Creates assignment to perform after triggering of a diagram event.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram for which the assignment is created." />
-					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be changed after triggering of the event." />
+					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be changed after triggering of the event; a species may be given by its name, path ('default.s1') or variable ('$default.s1')." />
 					<argument name="math" type="String" obligatory="true" description="the formula for calculation the new value of the variable after the event triggering." />
 					<returns type="Assignment" description="created Assignment on success or null otherwise." />
 				</function>
-				<function name="addEvent" description="Adds an event to the specified diagram.">
+				<function name="addEvent" description="Adds an event to the specified diagram. The diagram is changed in memory only: call diagram.save() to store it.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add an event to." />
+					<argument name="name" type="String" obligatory="false" description="the name of the event node (when given, it precedes the trigger), by default it is generated." />
 					<argument name="trigger" type="String" obligatory="true" description="boolean expression triggering the event." />
 					<argument name="delay" type="Double" obligatory="true" description="double number representing time of the event delay." />
-					<argument name="actions" type="Assignment[]" obligatory="true" description="array of assignments performed after the event triggering." />
+					<argument name="actions" type="Assignment[]" obligatory="true" description="array of assignments performed after the event triggering, see 'createAssignment'." />
+					<returns type="Event" description="the created event; an error is thrown if it can not be created." />
 				</function>
-				<function name="addEquation" description="Adds an equation to the specified diagram.">
+				<function name="addEquation" description="Adds an equation to the specified diagram. A missing parameter variable is declared with initial value 0. The diagram is changed in memory only: call diagram.save() to store it.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add equation to." />
+					<argument name="name" type="String" obligatory="false" description="the name of the equation node (when given, it precedes the type), by default it is generated." />
 					<argument name="type" type="String" obligatory="true" description="the type of the equation: 'algebraic', 'rate', 'scalar' or 'initial assignment'." />
-					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be calculated by formula." />
+					<argument name="variable" type="String" obligatory="true" description="the identifier of the diagram parameter or variable which value will be calculated by formula; a species may be given by its name, path ('default.s1') or variable ('$default.s1')." />
 					<argument name="formula" type="String" obligatory="true" description="the formula for calculation of variable value." />
+					<returns type="Equation" description="the created equation; an error is thrown if it can not be created." />
 				</function>
 				<function name="createSpecieReference" description="Creates a participant to produce a chemical reaction in a diagram.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram containing the specie to create the reaction involving it." />
-					<argument name="variable" type="String" obligatory="true" description="the identifier of the specie in the diagram." />
+					<argument name="variable" type="String" obligatory="true" description="the identifier of the specie in the diagram: its name ('s1'), path ('default.s1') or variable ('$default.s1')." />
 					<argument name="role" type="String" obligatory="true" description="the role of the specie in the reaction: 'reactant', 'product' or 'modifier'." />
 					<argument name="stoichiometry" type="Double" obligatory="false" description="the stoichiometric coefficient representing the degree to which the specie participates in the reaction, by default is equal to '1.0'." />
-					<returns type="SpecieReference" description="created SpecieReference on success or null otherwise." />
+					<returns type="SpecieReference" description="created SpecieReference; an error is thrown if there is no such species or the role is unknown." />
 				</function>
-				<function name="addReaction" description="Adds reaction to the diagram.">
+				<function name="addReaction" description="Adds reaction to the diagram, with its participant edges, rate variable $$rate_name and rate equations. The reaction is put into the compartment of its first participant. The diagram is changed in memory only: call diagram.save() to store it.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add reaction to." />
+					<argument name="name" type="String" obligatory="false" description="the name of the reaction (when given, it precedes the formula), by default it is generated." />
 					<argument name="formula" type="String" obligatory="true" description="the formula of the reaction kinetic law." />
-					<argument name="faste" type="Boolean" obligatory="false" description="whether the reaction is fast or not, by default is 'false'." />
-					<argument name="specieReferences" type="Double" obligatory="true" description="an array of the reaction participants. For futher details see 'createSpecieReference' function." />
+					<argument name="fast" type="Boolean" obligatory="false" description="whether the reaction is fast or not, by default is 'false' (not combined with name)." />
+					<argument name="specieReferences" type="SpecieReference[]" obligatory="true" description="an array of the reaction participants. For futher details see 'createSpecieReference' function." />
+					<returns type="Reaction" description="the created reaction; an error is thrown if it can not be created." />
 				</function>
-				<function name="addSpecies" description="Adds new species to the diagram.">
+				<function name="addSpecies" description="Adds new species to the diagram. The diagram is changed in memory only: call diagram.save() to store it.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="the diagram to add specie to." />
-					<argument name="dataElementPath" type="String" obligatory="true" description="the path to the data element corresponding to some specie in BioUML repository or the name of the specie." />
+					<argument name="dataElementPath" type="String" obligatory="true" description="the name of the specie, optionally prefixed by its compartment ('default/V'), or the path to the data element corresponding to some specie in BioUML repository." />
 					<argument name="initialValue" type="Double" obligatory="false" description="initial value of the specie." />
+					<returns type="VariableRole" description="the variable of the created specie (e.g. $default.V); an error is thrown if it can not be created." />
 				</function>
 				<function name="split" description="Split diagram into modules.">
 					<argument name="diagram" type="Diagram" obligatory="true" description="Diagram to split." />

@@ -596,7 +596,11 @@ public class SBGNConverterNew extends SBGNConverterSupport
                 Node reactionNode = new Node( compartment, newReaction );
                 newReaction.setParent(reactionNode);
                 reactionNode.setTitle( de.getTitle() );
-                reactionNode.setRole( de.getRole().clone( reactionNode ) );
+                //a reaction without role (e.g. added by a script) still has its kinetic law: do not let it block saving of the whole diagram
+                if( de.getRole() != null )
+                    reactionNode.setRole( de.getRole().clone( reactionNode ) );
+                else
+                    log.warning( "Reaction " + de.getCompleteNameInDiagram() + " has no rate equation" );
                 reactionNode.setLocation( ( (Node)de ).getLocation() );
                 reactionNode.setVisible( ( (Node)de ).isVisible() );
                 reactionNode.setComment(de.getComment());

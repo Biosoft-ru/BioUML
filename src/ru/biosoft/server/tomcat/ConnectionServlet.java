@@ -273,6 +273,54 @@ public abstract class ConnectionServlet extends HttpServlet
         }
         if (req.getHeader(RANGE) != null)
             params.put(RANGE, new String[] { req.getHeader(RANGE) });
+        // The MCP endpoint authenticates via an `Authorization: Basic <base64>` header (a BioStore token)
+        // and receives the JSON-RPC request as a raw `application/json` body. Extension servlets have no
+        // direct access to the request headers or the raw stream through the `service(...)` overloads, so
+        // surface both here: the header under its own key, and the JSON body (which Tomcat's form parsing
+        // would otherwise discard) under `mcpRawBody`. Neither key is read by the other extension servlets.
+        String authorization = req.getHeader( "Authorization" );
+        if( authorization != null )
+            params.put( "Authorization", new String[] { authorization } );
+        String contentType = req.getContentType();
+        if( contentType != null && contentType.toLowerCase( java.util.Locale.ROOT ).startsWith( "application/json" ) )
+        {
+            try
+            {
+                String rawBody = readRequestBody( req.getInputStream() );
+                if( rawBody != null && !rawBody.isEmpty() )
+                    params.put( "mcpRawBody", new String[] { rawBody } );
+            }
+            catch( Exception e )
+            {
+                // could not open/read the body stream — leave mcpRawBody absent (the MCP endpoint 400s)
+            }
+        }
+        // The MCP OAuth server builds its discovery URLs (issuer, authorization/token endpoints)
+        // request-relative; the public hostname tells it which deployment it is answering for. A
+        // reverse proxy typically rewrites Host to the internal backend, so X-Forwarded-Host /
+        // X-Forwarded-Proto (the original public values) are surfaced too and take precedence.
+        String host = req.getHeader( "Host" );
+        if( host != null )
+            params.put( "Host", new String[] { host } );
+        String forwardedHost = req.getHeader( "X-Forwarded-Host" );
+        if( forwardedHost != null )
+            params.put( "X-Forwarded-Host", new String[] { forwardedHost } );
+        String forwardedProto = req.getHeader( "X-Forwarded-Proto" );
+        if( forwardedProto != null )
+            params.put( "X-Forwarded-Proto", new String[] { forwardedProto } );
+        // CORS: surface the browser's Origin and the preflight's Access-Control-Request-* headers so the
+        // MCP endpoint can echo the Origin (Access-Control-Allow-Origin) and answer OPTIONS preflights.
+        // A browser that sends an `Authorization` header (every remote MCP client does) issues an OPTIONS
+        // preflight first; without these surfaced the endpoint cannot build a CORS response.
+        String origin = req.getHeader( "Origin" );
+        if( origin != null )
+            params.put( "Origin", new String[] { origin } );
+        String acrm = req.getHeader( "Access-Control-Request-Method" );
+        if( acrm != null )
+            params.put( "Access-Control-Request-Method", new String[] { acrm } );
+        String achr = req.getHeader( "Access-Control-Request-Headers" );
+        if( achr != null )
+            params.put( "Access-Control-Request-Headers", new String[] { achr } );
         if( ServletFileUpload.isMultipartContent(req) )
         {
             try
@@ -328,6 +376,36 @@ public abstract class ConnectionServlet extends HttpServlet
             }
         }
         return params;
+    }
+
+    /**
+     * Read an (already form-parse-decided-not-to-consume) request body fully as UTF-8, bounded so a
+     * hostile/oversized body cannot exhaust memory. Used to recover the raw {@code application/json}
+     * body for the MCP endpoint. Returns {@code null} if the body exceeds the bound (the caller treats a
+     * {@code null}/empty result as "no body" → the MCP endpoint answers with a 400 parse error).
+     */
+    private static String readRequestBody( java.io.InputStream in )
+    {
+        final int bound = 16 * 1024 * 1024;
+        try
+        {
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[ 8192 ];
+            int total = 0;
+            int n;
+            while( ( n = in.read( chunk ) ) != -1 )
+            {
+                total += n;
+                if( total > bound )
+                    return null;
+                buffer.write( chunk, 0, n );
+            }
+            return new String( buffer.toByteArray(), java.nio.charset.StandardCharsets.UTF_8 );
+        }
+        catch( java.io.IOException e )
+        {
+            return null;
+        }
     }
 
     protected boolean executeQueryWithExtensionServlet(HttpServletRequest req, HttpServletResponse resp)
@@ -418,6 +496,22 @@ public abstract class ConnectionServlet extends HttpServlet
                 String contentType = (String)service.invoke(servlet, new Object[] {path, req.getSession(), getParameterMap(req, servlet),
                         result, header});
 
+                // A servlet may carry the logical HTTP status in the header map under the reserved
+                // "Status" key (e.g. the MCP endpoint's 401 challenges). This branch never calls
+                // setStatus otherwise, so the wire status would stay 200. The body is fully buffered
+                // above, so the status can still be set before the response is committed. `remove`
+                // also keeps the reserved key from leaking to the client as a bogus "Status" header.
+                String status = header.remove( "Status" );
+                if( status != null )
+                {
+                    try
+                    {
+                        resp.setStatus( Integer.parseInt( status ) );
+                    }
+                    catch( NumberFormatException ignore )
+                    {
+                    }
+                }
                 if(contentType.equals("logout"))
                 {
                     resp.setContentType("text/html");

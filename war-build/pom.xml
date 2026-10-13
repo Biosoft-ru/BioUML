@@ -54,7 +54,7 @@
                                         <exclude name="icons/large/**"/>
                                         <exclude name="css/large/**"/>
                                     </fileset>
-                                    <classes dir="${rootDir}/src/target/classes"> 
+                                    <classes dir="${rootDir}/src/target/classes">
                                         <include name="ru/biosoft/server/tomcat/CacheControlFilter.class" />
                                         <include name="ru/biosoft/server/tomcat/DataElementServlet.class" />
                                     </classes>

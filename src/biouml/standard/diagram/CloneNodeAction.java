@@ -116,13 +116,13 @@ public class CloneNodeAction extends BackgroundDynamicAction
     {
         if( e.getInput() == oldNode )
         {
-//            oldNode.removeEdge(e);
+            oldNode.removeEdge(e);
             e.setInput(newNode);
             newNode.addEdge(e);
         }
         else if( e.getOutput() == oldNode )
         {
-//            oldNode.removeEdge(e);
+            oldNode.removeEdge(e);
             e.setOutput(newNode);
             newNode.addEdge(e);
         }
@@ -181,7 +181,9 @@ public class CloneNodeAction extends BackgroundDynamicAction
         {
             Node node = (Node)elements.get(0);
             nodeName = DefaultSemanticController.generateUniqueNodeName(node.getCompartment(), node.getName());
-            availableReactions = node.edges().map(e -> e.getOtherEnd(node)).filter(Util::isReaction).toMap(n->n.getName(), n->n);
+            //skip edges that no longer end at this node (left over by earlier clones before swapNode removed them)
+            availableReactions = node.edges().filter(e -> e.getInput() == node || e.getOutput() == node).map(e -> e.getOtherEnd(node))
+                    .filter(Util::isReaction).distinct().toMap(n->n.getName(), n->n);
         }
     }
 

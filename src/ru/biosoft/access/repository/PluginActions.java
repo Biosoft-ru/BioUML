@@ -67,7 +67,10 @@ public class PluginActions implements ActionsProvider, RepositoryListener
             Collections.sort(elementActionList, Comparator.comparingInt( priorities::get ).reversed());
             for(Action action: elementActionList)
             {
-                String key = action.getValue(Action.ACTION_COMMAND_KEY).toString();
+                Object keyObj = action.getValue(Action.ACTION_COMMAND_KEY);
+                if( keyObj == null )
+                    continue;
+                String key = keyObj.toString();
                 if(!actionKeys.contains(key))
                 {
                     actionKeys.add(key);
@@ -78,12 +81,26 @@ public class PluginActions implements ActionsProvider, RepositoryListener
 
         for( ActionsProvider provider: actionProviders )
         {
-            Action[] actions = provider.getActions(bean);
+            // Guard: a provider may throw when its backing framework is unavailable (e.g. the
+            // Lucene provider needs a live ActionManager). One failing provider must not break
+            // enumeration of the remaining providers' actions.
+            Action[] actions;
+            try
+            {
+                actions = provider.getActions(bean);
+            }
+            catch ( Throwable t )
+            {
+                continue;
+            }
             if( actions != null )
             {
                 for( Action action : actions )
                 {
-                    String key = action.getValue(Action.ACTION_COMMAND_KEY).toString();
+                    Object keyObj = action.getValue(Action.ACTION_COMMAND_KEY);
+                    if( keyObj == null )
+                        continue;
+                    String key = keyObj.toString();
                     if(!actionKeys.contains(key))
                     {
                         actionList.add(action);

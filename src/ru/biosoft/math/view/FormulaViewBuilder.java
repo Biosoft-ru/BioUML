@@ -170,9 +170,7 @@ public class FormulaViewBuilder
             String next = tokensDot.nextToken();
             StringTokenizer tokens = new StringTokenizer( next, "_" );
             int i = 0;
-            Font originalFont = font.getFont();
-            Font subscriptFont = originalFont.deriveFont( (int) ( originalFont.getSize() * this.subscriptScale ) );
-            int offset = (int) ( originalFont.getSize() * this.subscriptRelativeOffset );
+            int offset = (int) ( font.getFont().getSize() * this.subscriptRelativeOffset );
             int yOffset = offset;
             while( tokens.hasMoreTokens() )
             {
@@ -183,9 +181,9 @@ public class FormulaViewBuilder
                 }
                 else
                 {
-                    font.setFont( subscriptFont );
+                    // The font must not be changed here, even temporarily: it is shared by all views of the
+                    // diagram, and a change resets its cached JSON while another request may serialize it.
                     TextView innerView = new TextView( tokens.nextToken(), font, g );
-                    font.setFont( originalFont );
                     view.add( innerView, CompositeView.X_RL | CompositeView.Y_UN, new Point( 1, yOffset ) );
                     yOffset += offset;
                 }

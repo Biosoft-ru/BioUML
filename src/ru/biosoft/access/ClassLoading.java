@@ -39,6 +39,18 @@ public class ClassLoading
 
     private static final Map<String, Bundle> packageToBundle = new ConcurrentHashMap<>();
 
+    // Cache for plugin ID lookup by class name to avoid repeated expensive lookups
+    // Only successful resolutions are cached (null values are not stored)
+    private static final Map<String, String> classNameToPlugin = new ConcurrentHashMap<>();
+
+    // Cache for negative class loading results to avoid repeated ClassNotFoundException
+    // stack trace generation (identified by profiler as a hot path consuming ~4% of CPU)
+    private static final Set<String> classNotFoundCache = ConcurrentHashMap.newKeySet();
+
+    // Package names a script engine asked for as classes (Rhino resolves "java.awt.Point" segment by segment,
+    // trying "java.awt" as a class first): they are not classes, and need not be looked up again
+    private static final Set<String> scriptPackageNames = ConcurrentHashMap.newKeySet();
+
     static {
         initBundles();
         initMovedClasses();
@@ -214,6 +226,13 @@ public class ClassLoading
 
     private static Class<?> loadClassFromPlugin(String className, String pluginId)
     {
+
+        // Check negative cache to avoid expensive ClassNotFoundException stack trace generation
+        String cacheKey = className + "@" + pluginId;
+        if( classNotFoundCache.contains( cacheKey ) )
+        {
+            return null;
+        }
         try
         {
             Bundle bundle = Platform.getBundle(pluginId);
@@ -229,6 +248,7 @@ public class ClassLoading
         }
         catch( ClassNotFoundException | NoClassDefFoundError e )
         {
+            classNotFoundCache.add( cacheKey );
             // just try another plugin
         }
         catch( Throwable t )
@@ -239,6 +259,14 @@ public class ClassLoading
     }
 
     private static Class<?> tryLoad(String className, String pluginId)
+    {
+        return tryLoad( className, pluginId, false );
+    }
+
+    /**
+     * @param quiet do not log a class that is not found (an expected miss, e.g. a script engine probing a package name)
+     */
+    private static Class<?> tryLoad(String className, String pluginId, boolean quiet)
     {
         if( pluginId == null )
         {
@@ -263,7 +291,17 @@ public class ClassLoading
                 }
                 catch( ClassNotFoundException e )
                 {
-                    log.log(Level.SEVERE, "Class '" + className + "' not found in " + pluginId + ", reason = " + e.getMessage(), e );
+                    String cacheKey = className + "@" + pluginId;
+                    // Avoid logging stack traces for common not-found cases
+                    if( quiet || classNotFoundCache.contains( cacheKey ) )
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        classNotFoundCache.add( cacheKey );
+                        log.log( Level.SEVERE, "Class '" + className + "' not found in " + pluginId + ", reason = " + e.getMessage(), e );
+                    }
                 }
             }
         }
@@ -359,6 +397,14 @@ public class ClassLoading
     {
         // First try plugins which names are package name substring
         Assert.notNull("className", className);
+
+        // Fast path: check the cache for previously resolved class names
+        String cachedPlugin = classNameToPlugin.get( className );
+        if( cachedPlugin != null )
+            return cachedPlugin;
+        if( scriptPackageNames.contains( className ) )
+            return null;
+
         int pos = className.lastIndexOf( '.' );
         if(pos == -1)
         {
@@ -380,34 +426,49 @@ public class ClassLoading
         String packageName = className.substring( 0, pos );
         Bundle b = packageToBundle.get( packageName );
         if(b != null)
+        {
+            classNameToPlugin.put( className, b.getSymbolicName() );
             return b.getSymbolicName();
+        }
         if(SecurityManager.isTestMode()) // no bundles in tests
             return null;
-        //TODO: think about better solution.
-        // We do not log warning, since java.lang classes are loaded automatically
-        if( !packageName.startsWith( "java.lang" ) )
-        {   
-            //log.log( Level.WARNING, "Unable to find cached bundle for class " + className + " using old path", new Exception() );
+        // A script engine resolving a qualified name probes each prefix ("biouml.model") as a class: a miss is expected
+        boolean probe = isScriptPackageProbe();
+        // JDK classes (java.lang, java.awt, ...) are in no bundle: they are found below through the bundles' boot delegation
+        if( !probe && !packageName.equals( "java" ) && !packageName.startsWith( "java." ) )
             log.log( Level.WARNING, "Unable to find cached bundle for class " + className + " using old path" );
-        }
         String pluginId = className;
         int pluginNameEnd;
         while( ( pluginNameEnd = pluginId.lastIndexOf(".") ) != -1 )
         {
             pluginId = pluginId.substring(0, pluginNameEnd);
-            if(tryLoad(className, pluginId) != null)
+            if(tryLoad(className, pluginId, probe) != null)
+            {
+                classNameToPlugin.put( className, pluginId );
                 return pluginId;
+            }
         }
-        if(className.startsWith("ru.biosoft") && tryLoad(className, "ru.biosoft.workbench") != null)
+        if(className.startsWith("ru.biosoft") && tryLoad(className, "ru.biosoft.workbench", probe) != null)
         {
+            classNameToPlugin.put( className, "ru.biosoft.workbench" );
             return "ru.biosoft.workbench";
         }
         //Then try biouml.workbench plugin
-        if(tryLoad(className, "biouml.workbench") != null)
+        if(tryLoad(className, "biouml.workbench", probe) != null)
         {
+            classNameToPlugin.put( className, "biouml.workbench" );
             return "biouml.workbench";
         }
+        if( probe )
+            scriptPackageNames.add( className );
         return null;
+    }
+
+    /** Whether the class is requested by Rhino resolving a package name of a script (e.g. "biouml.model" of Packages.biouml.model.Node). */
+    private static boolean isScriptPackageProbe()
+    {
+        return StackWalker.getInstance().walk( frames -> frames.anyMatch( f -> "getPkgProperty".equals( f.getMethodName() )
+                && "org.mozilla.javascript.NativeJavaPackage".equals( f.getClassName() ) ) );
     }
 
     /**

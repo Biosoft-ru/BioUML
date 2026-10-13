@@ -666,6 +666,24 @@ public class SecurityManager
     }
 
     /**
+     * Slide a session's expiration forward by {@link UserPermissions#TIMEOUT} from now — the same
+     * "user activity prolongs the session" mechanism {@code UserPermissions.updateExpirationTime()}
+     * provides, exposed for callers (e.g. the MCP OAuth bearer-token path) that observe activity
+     * without going through the normal permission-resolution entry points. A no-op if the session is
+     * unknown or the security provider is unset (test mode).
+     *
+     * @param sessionId the session to touch
+     */
+    public static void touchSessionExpiry(String sessionId)
+    {
+        if ( sessionId == null || isTestMode() || securityProvider == null )
+            return;
+        UserPermissions userPermissions = sessionToPermission.get( sessionId );
+        if ( userPermissions != null )
+            userPermissions.updateExpirationTime();
+    }
+
+    /**
      * @return true if currently logged in user is server administrator
      */
     public static boolean isAdmin()

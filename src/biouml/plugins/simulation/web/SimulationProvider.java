@@ -128,6 +128,15 @@ public class SimulationProvider extends WebJSONProviderSupport
     private boolean logInitialized = false;
     private static ConcurrentHashMap<String, StringBuffer> buffers;
     private static ConcurrentHashMap<String, SimulationWebResultHandler> job2handler;
+    /**
+     * JVM-global jobID → JobControl. The session-scoped {@link WebJob} (stored via
+     * {@code session.putValue("webJob/"+jobID, ...)}) can be lost when the status/result poll runs in a
+     * different session than the one that started the job (e.g. an OAuth Bearer session whose cache
+     * was evicted, or a session mismatch), in which case {@code WebJob.getWebJob(jobID)} returns a fresh
+     * empty {@code WebJob} whose {@code jobControl} is {@code null} → "jobControl is null". Keeping the
+     * {@code JobControl} here lets {@code status} resolve it regardless of session.
+     */
+    private static ConcurrentHashMap<String, ru.biosoft.jobcontrol.JobControl> job2jobControl;
 
     private void initLogging()
     {
@@ -139,6 +148,7 @@ public class SimulationProvider extends WebJSONProviderSupport
             if ( logInitialized )
                 return;
             job2handler = new ConcurrentHashMap<String, SimulationWebResultHandler>();
+            job2jobControl = new ConcurrentHashMap<String, ru.biosoft.jobcontrol.JobControl>();
             logInitialized = true;
         }
 
@@ -187,6 +197,11 @@ public class SimulationProvider extends WebJSONProviderSupport
         for ( ResultListener listener : swrh.getResultListeners(diagram.getCompletePath()) )
             method.addResultListenerList(listener);
         job2handler.put(jobID, swrh);
+        // Also keep the JobControl in a JVM-global map (keyed by jobID) so status can resolve it even
+        // if the status/result poll runs in a different session than the one that started the job
+        // (the session-scoped WebJob's jobControl is otherwise null → "jobControl is null").
+        if ( job2jobControl != null )
+            job2jobControl.put(jobID, method.getJobControl());
 
         final WebJob webJob = WebJob.getWebJob(jobID);
         final Logger log = webJob.getJobLogger();
@@ -256,30 +271,59 @@ public class SimulationProvider extends WebJSONProviderSupport
     private static void sendSimulationStatus(String jobId, JSONResponse response) throws IOException
     {
         WebJob webJob = WebJob.getWebJob(jobId);
+        // The session-scoped WebJob's jobControl can be null when the status poll runs in a different
+        // session than the one that started the job (WebJob.getWebJob creates a fresh empty WebJob in
+        // that case). Fall back to the JVM-global map populated by simulateDiagramWithAnalysis.
         JobControl jobControl = webJob.getJobControl();
+        if ( jobControl == null && job2jobControl != null )
+            jobControl = job2jobControl.get(jobId);
+        if ( jobControl == null )
+        {
+            response.error("No job control found for job: " + jobId
+                    + " — the job may have been started in a different session or the server restarted; restart the simulation");
+            return;
+        }
         SimulationWebResultHandler swrh = job2handler.get(jobId);
         if ( swrh != null )
         {
             int status = jobControl.getStatus();
+            // The progress image and job log are best-effort: they depend on session-scoped state
+            // (WebSession.putImage, WebJob.getJobMessage) that can be absent when the status poll runs
+            // in a different session than the one that started the job. The status value and the
+            // completed flag come from the JVM-global job2jobControl / job2handler, so they are
+            // reliable; never let a missing image/message mask the completion signal.
             String[] imageNames = null;
-            BufferedImage[] resultImages = swrh.generateResultImage();
-            if ( resultImages != null )
+            String message = null;
+            try
             {
-                imageNames = new String[resultImages.length + 1];
-                for ( int i = 0; i < resultImages.length; i++ )
+                BufferedImage[] resultImages = swrh.generateResultImage();
+                if ( resultImages != null && resultImages.length > 0 )
                 {
-                    imageNames[i] = jobId + "_img_" + i;
-                    WebSession.getCurrentSession().putImage(imageNames[i], resultImages[i]);
+                    imageNames = new String[resultImages.length + 1];
+                    for ( int i = 0; i < resultImages.length; i++ )
+                    {
+                        imageNames[i] = jobId + "_img_" + i;
+                        WebSession.getCurrentSession().putImage(imageNames[i], resultImages[i]);
+                    }
+                    imageNames[imageNames.length - 1] = "";
                 }
-                String message = webJob.getJobMessage();
-                imageNames[imageNames.length - 1] = message;
+                message = webJob.getJobMessage();
             }
-            else
+            catch ( Exception e )
             {
-                //send only message if no image results should be generated for this simulation
-                String message = webJob.getJobMessage();
-                imageNames = new String[] { message };
+                // Session-scoped state unavailable (different session, cache evicted, etc.). The
+                // status value is still valid — drop the image/message and report the status.
+                imageNames = null;
             }
+            if ( message != null )
+            {
+                if ( imageNames != null && imageNames.length > 0 )
+                    imageNames[imageNames.length - 1] = message;
+                else
+                    imageNames = new String[] { message };
+            }
+            else if ( imageNames == null )
+                imageNames = new String[0];
 
             if ( status < JobControl.COMPLETED )
             {
@@ -294,10 +338,18 @@ public class SimulationProvider extends WebJSONProviderSupport
             else if ( status == JobControl.TERMINATED_BY_ERROR ) //ended with non-processed error in log
             {
                 //job2handler.remove(jobId);
-                String message = webJob.getJobMessage();
-                if ( message == null )
-                    message = "Can not simulate model. Error not specified.";
-                response.error(message);
+                String errorMessage = null;
+                try
+                {
+                    errorMessage = webJob.getJobMessage();
+                }
+                catch ( Exception e )
+                {
+                    // session-scoped state unavailable
+                }
+                if ( errorMessage == null )
+                    errorMessage = "Can not simulate model. Error not specified.";
+                response.error(errorMessage);
             }
         }
         else
@@ -326,19 +378,30 @@ public class SimulationProvider extends WebJSONProviderSupport
         }
     }
     
-    private static void sendSimulationResult(String jobId, JSONResponse response) throws IOException
+    /**
+     * Resolve the {@link SimulationResult} for a simulation job: first the in-memory handler
+     * registered when the job started (the common case, before any result is saved to the
+     * repository), then the repository element (once the result has been saved under the job id
+     * path by the {@code save_result} action).
+     *
+     * <p>Exposed statically so other components (e.g. the MCP simulation tools, which render a
+     * plot of the result server-side) can obtain the same {@code SimulationResult} the
+     * {@code result} action returns, without re-implementing the lookup.</p>
+     *
+     * @param jobId the job id returned by the {@code simulate} action
+     * @return the {@code SimulationResult}, or {@code null} if it is not available
+     */
+    public static SimulationResult getSimulationResult(String jobId)
     {
         SimulationWebResultHandler swrh = job2handler.get(jobId);
-        SimulationResult simulationResult = null;
         if ( swrh != null )
-        {
-            simulationResult = swrh.getSimulationResult();
-        }
-        else
-        {
-            DataElementPath simulationResultPath = DataElementPath.create(jobId);
-            simulationResult = simulationResultPath.optDataElement( SimulationResult.class );
-        }
+            return swrh.getSimulationResult();
+        return DataElementPath.create(jobId).optDataElement( SimulationResult.class );
+    }
+
+    private static void sendSimulationResult(String jobId, JSONResponse response) throws IOException
+    {
+        SimulationResult simulationResult = getSimulationResult(jobId);
 
         if( simulationResult != null )
         {
