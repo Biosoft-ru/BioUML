@@ -638,10 +638,6 @@
         </create.plugin>
     </target>
 
-    <target name="plugin.servermonitor" depends="compile">
-        <create.plugin plugin="biouml.plugins.servermonitor" source="biouml/plugins/servermonitor"/>
-    </target>
-
     <target name="plugin.tomcat" depends="compile">
         <echo message="Making ru.biosoft.server.tomcat_${VERSION}/tomcatserver.jar" />
         <jar jarfile="${PLUGIN_DIR}/ru.biosoft.server.tomcat_${VERSION}/tomcatserver.jar" compress="true">
@@ -967,6 +963,10 @@
     
     <target name="plugin.node" depends="compile">
         <create.plugin plugin="biouml.plugins.node" source="biouml/plugins/node"/>
+    </target>
+
+    <target name="plugin.servermonitor" depends="compile">
+        <create.plugin plugin="biouml.plugins.servermonitor" source="biouml/plugins/servermonitor"/>
     </target>
 
     <target name="plugin.mcp" depends="compile">
