@@ -345,20 +345,76 @@ public final class McpAnalysisSupport
 				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
 						"unknown parameter '" + key + "'. Valid keys: " + validKeys );
 		}
+		Map<String, Object> flat = normalizeIndexKeys( params );
+		Map<String, Object> nested;
+		// Coerce path-typed leaves, then bind. readBeanFromHierarchicalMap expects a *nested* map
+		// (composite property -> sub-map, array property -> list), so expand the caller's flat
+		// '/'-joined keys into that shape first.
+		coercePaths( bean, flat );
 		try
 		{
-			// Coerce path-typed leaves, then bind. readBeanFromHierarchicalMap expects a *nested*
-			// map (composite property -> sub-map), so expand the caller's flat '/'-joined keys
-			// into that shape first.
-			coercePaths( bean, params );
-			Map<String, Object> nested = BeanAsMapUtil.expandMap( new LinkedHashMap<String, Object>( params ) );
-			BeanAsMapUtil.readBeanFromHierarchicalMap( nested, bean );
+			nested = BeanAsMapUtil.expandMap( flat );
 		}
 		catch ( Exception e )
 		{
-			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "could not bind parameter: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "could not bind parameters " + flat.keySet()
+					+ ": conflicting keys (e.g. both 'name' and 'name/...')" + causeOf( e ) );
+		}
+		// Bind one top-level property at a time, in the bean's own property order (a structure-changing
+		// property may recreate its siblings), so a failure names the offending parameter.
+		for ( int i = 0; i < model.getPropertyCount(); i++ )
+		{
+			Property p = model.getPropertyAt( i );
+			if ( !nested.containsKey( p.getName() ) )
+				continue;
+			Map<String, Object> single = new LinkedHashMap<String, Object>();
+			single.put( p.getName(), nested.get( p.getName() ) );
+			try
+			{
+				BeanAsMapUtil.readBeanFromHierarchicalMap( single, bean );
+			}
+			catch ( Exception e )
+			{
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
+						"could not bind parameter '" + p.getName() + "'" + expectedShape( p ) + causeOf( e ) );
+			}
 		}
 		return McpEnvelope.ok( null );
+	}
+
+	/**
+	 * Accept bare numeric path segments as array indices: {@code conditions/0/condition} is rewritten
+	 * to {@code conditions/[0]/condition}, the subscript form {@link BeanAsMapUtil#expandMap} expects
+	 * (a bare {@code 0} would make {@code conditions} a map, which an array property rejects). The
+	 * first segment is always a property name and is left as is.
+	 */
+	private static Map<String, Object> normalizeIndexKeys( Map<String, Object> params )
+	{
+		Map<String, Object> out = new LinkedHashMap<String, Object>();
+		for ( Map.Entry<String, Object> e : params.entrySet() )
+		{
+			String[] parts = e.getKey().split( "/", -1 );
+			for ( int i = 1; i < parts.length; i++ )
+				if ( !parts[ i ].isEmpty() && parts[ i ].chars().allMatch( Character::isDigit ) )
+					parts[ i ] = "[" + parts[ i ] + "]";
+			out.put( String.join( "/", parts ), e.getValue() );
+		}
+		return out;
+	}
+
+	/** A hint on the value shape an array or nested-bean property expects, for binding errors. */
+	private static String expectedShape( Property p )
+	{
+		if ( BeanAsMapUtil.isArrayProperty( p ) )
+			return " (an array: pass a JSON list, e.g. \"" + p.getName() + "\": [{...}], or keys like '" + p.getName() + "/0/<field>')";
+		if ( BeanAsMapUtil.isCompositeProperty( p ) )
+			return " (a nested bean: pass a JSON object, e.g. \"" + p.getName() + "\": {...}, or keys like '" + p.getName() + "/<field>')";
+		return "";
+	}
+
+	private static String causeOf( Exception e )
+	{
+		return e.getMessage() == null ? "" : ": " + e.getMessage();
 	}
 
 	/**
@@ -373,7 +429,15 @@ public final class McpAnalysisSupport
 		ComponentModel model = ComponentFactory.getModel( bean, ComponentFactory.Policy.DEFAULT, true );
 		for ( Map.Entry<String, Object> e : params.entrySet() )
 		{
-			Property p = model.findProperty( e.getKey() );
+			Property p;
+			try
+			{
+				p = model.findProperty( e.getKey() );
+			}
+			catch ( Exception ex )
+			{
+				p = null; // e.g. an array subscript the model cannot resolve yet; bound as text later
+			}
 			if ( p == null )
 				continue;
 			Object val = e.getValue();

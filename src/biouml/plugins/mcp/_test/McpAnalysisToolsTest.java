@@ -271,6 +271,48 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( "error must list a valid key ('rows')", env.getError() != null && env.getError().contains( "rows" ) );
 	}
 
+	/** Array-of-bean params bind from both the 'name/0/field' key form and a JSON list of objects. */
+	public void testArrayOfBeanParams()
+	{
+		Map<String, Object> p = params( 1 );
+		p.put( "output", outRoot + "/conditionsKeys" );
+		p.put( "conditions/0/condition", "Experiment: rosacea" );
+		p.put( "conditions/1/condition", "Control" );
+		McpEnvelope env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, p, null, true );
+		assertTrue( "index-key form should bind, got " + env.getError(), env.isOk() );
+		assertConditions( "Experiment: rosacea", "Control" );
+
+		p = params( 1 );
+		Map<String, Object> c = new LinkedHashMap<String, Object>();
+		c.put( "condition", "Experiment: rosacea" );
+		p.put( "output", outRoot + "/conditionsList" );
+		p.put( "conditions", java.util.Collections.singletonList( c ) );
+		env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, p, null, true );
+		assertTrue( "list form should bind, got " + env.getError(), env.isOk() );
+		assertConditions( "Experiment: rosacea" );
+	}
+
+	/** A wrongly shaped value names the parameter and the expected shape. */
+	public void testWrongShapeNamesParameter()
+	{
+		Map<String, Object> p = params( 1 );
+		p.put( "conditions", "Experiment: rosacea" );
+		McpEnvelope env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, p, null, true );
+		assertFalse( "a string for an array must be refused", env.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
+		assertTrue( "error names the parameter: " + env.getError(), env.getError().contains( "'conditions'" ) );
+		assertTrue( "error hints the array shape: " + env.getError(), env.getError().contains( "an array" ) );
+	}
+
+	private static void assertConditions( String... expected )
+	{
+		McpTestAnalysis.Condition[] actual = McpTestAnalysis.lastConditions;
+		assertNotNull( "conditions bound", actual );
+		assertEquals( "condition count", expected.length, actual.length );
+		for ( int i = 0; i < expected.length; i++ )
+			assertEquals( "condition " + i, expected[ i ], actual[ i ].getCondition() );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testListTasks()
 	{
