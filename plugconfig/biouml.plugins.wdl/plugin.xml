@@ -16,6 +16,14 @@
 			description="WDL Importer"
 			 />
    </extension>
+   
+   <extension id="WDLArchiveImporter" point="ru.biosoft.access.import">
+        <import 
+            format="WDL archive (*.gz, *.tar.gz, *.zip)" 
+            importer="biouml.plugins.wdl.diagram.WDLArchiveImporter" 
+            description="WDL archive Importer"
+             />
+   </extension>
   
    <extension id="WDL" point="biouml.workbench.diagramViewPart">
 	  <diagramViewPart
