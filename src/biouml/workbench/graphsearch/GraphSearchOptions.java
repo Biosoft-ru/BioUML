@@ -1,5 +1,8 @@
 package biouml.workbench.graphsearch;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import biouml.standard.type.Species;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
@@ -28,6 +31,14 @@ public class GraphSearchOptions
     private String searchType;
     private Species species = Species.getDefaultSpecies( null );
 
+    /**
+     * Cache for query engine names by collection path.
+     * Query engines for a given collection don't change frequently,
+     * so we can cache the expensive lookForQueryEngines() result.
+     * Key: collection path, Value: array of query engine names
+     */
+    private static final Map<String, String[]> queryEngineNamesCache = new ConcurrentHashMap<>();
+
     public GraphSearchOptions(DataCollection<DataCollection<?>> databaseCollection)
     {
         this.queryOptions = new QueryOptions();
@@ -37,8 +48,19 @@ public class GraphSearchOptions
             CollectionRecord[] records = databaseCollection.stream( ru.biosoft.access.core.DataCollection.class )
                     .filter( dc -> Boolean.parseBoolean( dc.getInfo().getProperty( DataCollectionUtils.GRAPH_SEARCH ) ) )
                     .map( ru.biosoft.access.core.DataCollection::getCompletePath )
-                    .map( path -> new CollectionRecord( path, false, QueryEngineRegistry
-                            .lookForQueryEngines( new CollectionRecord( path, true ) ).keySet().stream().toArray( String[]::new ) ) )
+                    .map( path -> {
+                        // Use cached query engine names if available
+                        String pathStr = path.toString();
+                        String[] engineNames = queryEngineNamesCache.get(pathStr);
+                        if( engineNames == null )
+                        {
+                            engineNames = QueryEngineRegistry
+                                    .lookForQueryEngines( new CollectionRecord( path, true ) )
+                                    .keySet().stream().toArray( String[]::new );
+                            queryEngineNamesCache.put(pathStr, engineNames);
+                        }
+                        return new CollectionRecord( path, false, engineNames );
+                    })
                     .toArray( CollectionRecord[]::new );
             this.targetOptions = new TargetOptions(records);
         }
