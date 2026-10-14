@@ -9,6 +9,7 @@ import biouml.plugins.wdl.parser.AstExpression;
 import biouml.plugins.wdl.parser.AstFunction;
 import biouml.plugins.wdl.parser.AstKeyValue;
 import biouml.plugins.wdl.parser.AstMap;
+import biouml.plugins.wdl.parser.AstNone;
 import biouml.plugins.wdl.parser.AstPair;
 import biouml.plugins.wdl.parser.AstRegularFormulaElement;
 import biouml.plugins.wdl.parser.AstSubSymbol;
@@ -61,6 +62,8 @@ public class WDLNextflowFormatter extends ExpressionFormatter
             processFormulaElement((AstRegularFormulaElement)node);
         else if (node instanceof AstKeyValue)
             processKey((AstKeyValue)node);
+        else if (node instanceof AstNone)
+            processNone((AstNone) node);
         else if( node instanceof AstExpression )
         {
             for( Node child : ((AstExpression)node).getChildren() )
@@ -160,6 +163,11 @@ public class WDLNextflowFormatter extends ExpressionFormatter
         {
             processNode(child);
         }
+    }
+    
+    private void processNone(AstNone astNone)
+    {
+        result.append( "\"NO_VALUE\"" );
     }
 
     private void processMap(AstMap astMap)
