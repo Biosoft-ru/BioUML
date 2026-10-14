@@ -40,6 +40,7 @@
                      <include>**/_test/resources/*</include>
                      <include>**/simulation/resources/*</include>
                      <include>**/physicell/resources/*</include>
+                     <include>**/webservices/imports/resources/*</include>
                  </includes>
                  <excludes>
                       <exclude>target/**</exclude>
