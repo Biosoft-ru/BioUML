@@ -199,18 +199,22 @@ public final class McpAnalysisSupport
 				// ignore
 			}
 			pm.put( "readOnly", Boolean.valueOf( p.isReadOnly() ) );
-			try
-			{
-				pm.put( "default", p.getValue() );
-			}
-			catch ( Exception e )
-			{
-				pm.put( "default", null );
-			}
-			// A composite property (nested bean) — recurse to expose the leaves.
+			// A composite property (nested bean) — recurse to expose the leaves. Its own default is the
+			// whole bean, which is not JSON-friendly; the leaves carry the defaults instead.
 			if ( p instanceof ComponentModel && out.size() < McpConstants.PAYLOAD_BYTES_CAP )
 			{
 				collectProperties( (ComponentModel) p, key, out );
+			}
+			else
+			{
+				try
+				{
+					pm.put( "default", McpJsonSafe.toJsonSafe( p.getValue() ) );
+				}
+				catch ( Exception e )
+				{
+					pm.put( "default", null );
+				}
 			}
 			out.add( pm );
 		}
@@ -582,7 +586,7 @@ public final class McpAnalysisSupport
 				{
 					try
 					{
-						row.add( t.getValueAt( r, c ) );
+						row.add( McpJsonSafe.toJsonSafe( t.getValueAt( r, c ) ) );
 					}
 					catch ( Exception e )
 					{
@@ -754,6 +758,6 @@ public final class McpAnalysisSupport
 				out.add( describeResult( o, originName ) );
 			return out;
 		}
-		return result;
+		return McpJsonSafe.toJsonSafe( result );
 	}
 }

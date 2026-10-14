@@ -3,11 +3,14 @@ package biouml.plugins.mcp.server;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import biouml.plugins.mcp.McpConstants;
 import biouml.plugins.mcp.support.McpEnvelope;
+import biouml.plugins.mcp.support.McpJsonSafe;
 
 /**
  * A self-contained MCP JSON-RPC dispatcher shared by the HTTP servlet and the in-process server.
@@ -42,6 +45,8 @@ public class McpJsonRpcDispatcher
 	public static final int ERROR_INVALID_PARAMS = -32602;
 	/** JSON-RPC error: internal error (a handler threw). */
 	public static final int ERROR_INTERNAL = -32603;
+
+	private static final Logger log = Logger.getLogger( McpJsonRpcDispatcher.class.getName() );
 
 	private final McpToolCatalog catalog;
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -186,12 +191,43 @@ public class McpJsonRpcDispatcher
 		}
 		catch ( Exception e )
 		{
+			// A tool put a raw domain object into its payload (Jackson walks all its getters and fails).
+			// Log it so the offending tool can be fixed, then retry with the payload reduced to plain
+			// JSON values.
+			log.log( Level.WARNING, "MCP tool " + tool.name + ": could not serialize result, retrying with sanitized payload", e );
+			try
+			{
+				String json = mapper.writeValueAsString( McpJsonSafe.toJsonSafe( env.toMap() ) );
+				return toolResult( json, env.isOk(), imageContent( env ) );
+			}
+			catch ( Exception e2 )
+			{
+				log.log( Level.SEVERE, "MCP tool " + tool.name + ": could not serialize sanitized result", e2 );
+			}
 			// Never return null: a `tools/call` response whose `result` is null (or missing a
 			// `content` array) is not a valid MCP CallToolResult, and intermediaries such as the
 			// Anthropic proxy reject it with "Invalid content from server" while the HTTP status is
 			// still 200. If serializing the envelope itself failed, emit a valid content array whose
-			// text is the error as a plain string (no Jackson involved, so it cannot throw again).
-			return toolResult( "{\"ok\":false,\"code\":\"serialization_error\",\"error\":\"could not serialize tool result\"}", false, null );
+			// text is the error (serialized from plain strings only, so it cannot fail again).
+			return toolResult( serializationError( tool.name, e ), false, null );
+		}
+	}
+
+	/** The {@code serialization_error} envelope JSON, naming the tool and the cause. */
+	private String serializationError( String toolName, Exception cause )
+	{
+		Map<String, Object> err = new LinkedHashMap<String, Object>();
+		err.put( "ok", Boolean.FALSE );
+		err.put( "code", "serialization_error" );
+		err.put( "error", "could not serialize result of tool " + toolName + ": " + cause.getClass().getSimpleName() + ": "
+				+ String.valueOf( cause.getMessage() ) );
+		try
+		{
+			return mapper.writeValueAsString( err );
+		}
+		catch ( Exception e )
+		{
+			return "{\"ok\":false,\"code\":\"serialization_error\",\"error\":\"could not serialize tool result\"}";
 		}
 	}
 
