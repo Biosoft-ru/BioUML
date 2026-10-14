@@ -33,9 +33,15 @@ public class GraphSearchOptions
 
     /**
      * Cache for query engine names by collection path.
-     * Query engines for a given collection don't change frequently,
-     * so we can cache the expensive lookForQueryEngines() result.
-     * Key: collection path, Value: array of query engine names
+     * Query engines are registered via extension point and don't change
+     * after initial registration, so we cache the expensive
+     * lookForQueryEngines() result for the lifetime of the JVM.
+     *
+     * Note: If the query engine registry is reinitialized at runtime,
+     * this cache would need to be cleared. Currently no such mechanism
+     * exists in the codebase.
+     *
+     * Key: collection path string, Value: array of query engine names
      */
     private static final Map<String, String[]> queryEngineNamesCache = new ConcurrentHashMap<>();
 
@@ -49,17 +55,14 @@ public class GraphSearchOptions
                     .filter( dc -> Boolean.parseBoolean( dc.getInfo().getProperty( DataCollectionUtils.GRAPH_SEARCH ) ) )
                     .map( ru.biosoft.access.core.DataCollection::getCompletePath )
                     .map( path -> {
-                        // Use cached query engine names if available
-                        String pathStr = path.toString();
-                        String[] engineNames = queryEngineNamesCache.get(pathStr);
-                        if( engineNames == null )
-                        {
-                            engineNames = QueryEngineRegistry
-                                    .lookForQueryEngines( new CollectionRecord( path, true ) )
-                                    .keySet().stream().toArray( String[]::new );
-                            queryEngineNamesCache.put(pathStr, engineNames);
-                        }
-                        return new CollectionRecord( path, false, engineNames );
+                        // Use computeIfAbsent for atomic cache population
+                        String[] engineNames = queryEngineNamesCache.computeIfAbsent(
+                                path.toString(),
+                                pathStr -> QueryEngineRegistry
+                                        .lookForQueryEngines( new CollectionRecord( path, true ) )
+                                        .keySet().stream().toArray( String[]::new ) );
+                        // Clone to protect cached array from downstream mutation
+                        return new CollectionRecord( path, false, engineNames.clone() );
                     })
                     .toArray( CollectionRecord[]::new );
             this.targetOptions = new TargetOptions(records);
