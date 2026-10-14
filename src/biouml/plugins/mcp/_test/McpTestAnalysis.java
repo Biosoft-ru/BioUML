@@ -22,6 +22,9 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 {
 	public static final String NAME = "mcp.test";
 
+	/** The conditions bound for the last run (lets tests check array-of-bean binding). */
+	public static volatile Condition[] lastConditions;
+
 	public McpTestAnalysis( DataCollection<?> origin, String name )
 	{
 		super( origin, name, new Parameters() );
@@ -43,6 +46,7 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 	@Override
 	public Object justAnalyzeAndPut() throws Exception
 	{
+		lastConditions = parameters.getConditions();
 		DataElementPath outPath = parameters.getOutput();
 		if ( outPath == null )
 			outPath = DataElementPath.create( getOrigin(), "mcpTestResult" );
@@ -97,6 +101,33 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 			this.output = output;
 			firePropertyChange( "output", oldValue, output );
 		}
+
+		private Condition[] conditions = new Condition[0];
+		@PropertyName( "Conditions" )
+		public Condition[] getConditions()
+		{
+			return conditions;
+		}
+		public void setConditions( Condition[] conditions )
+		{
+			Condition[] oldValue = this.conditions;
+			this.conditions = conditions;
+			firePropertyChange( "conditions", oldValue, conditions );
+		}
+	}
+
+	/** An array item bean (like geneXplain's condition beans), to exercise array-of-bean binding. */
+	public static class Condition
+	{
+		private String condition;
+		public String getCondition()
+		{
+			return condition;
+		}
+		public void setCondition( String condition )
+		{
+			this.condition = condition;
+		}
 	}
 
 	public static class ParametersBeanInfo extends BeanInfoEx2<Parameters>
@@ -116,6 +147,7 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 			// table is created inside justAnalyzeAndPut() at a path under the origin (or a sensible
 			// default) instead.
 			add( "output" );
+			add( "conditions" );
 		}
 	}
 }
