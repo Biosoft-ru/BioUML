@@ -33,13 +33,14 @@ public class GraphSearchOptions
 
     /**
      * Cache for query engine names by collection path.
-     * Query engines are registered via extension point and don't change
-     * after initial registration, so we cache the expensive
-     * lookForQueryEngines() result for the lifetime of the JVM.
      *
-     * Note: If the query engine registry is reinitialized at runtime,
-     * this cache would need to be cleared. Currently no such mechanism
-     * exists in the codebase.
+     * Query engines are registered via the extension point
+     * "biouml.workbench.queryEngine". The ExtensionRegistrySupport
+     * initializes the registry once during the first access using
+     * double-checked locking and never reinitializes it afterward.
+     * The extensions list is immutable after initialization, so we
+     * can safely cache the expensive lookForQueryEngines() result
+     * for the lifetime of the JVM.
      *
      * Key: collection path string, Value: array of query engine names
      */
