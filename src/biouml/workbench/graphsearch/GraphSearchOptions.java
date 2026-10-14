@@ -1,5 +1,8 @@
 package biouml.workbench.graphsearch;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import biouml.standard.type.Species;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.DataCollectionUtils;
@@ -28,6 +31,21 @@ public class GraphSearchOptions
     private String searchType;
     private Species species = Species.getDefaultSpecies( null );
 
+    /**
+     * Cache for query engine names by collection path.
+     *
+     * Query engines are registered via the extension point
+     * "biouml.workbench.queryEngine". The ExtensionRegistrySupport
+     * initializes the registry once during the first access using
+     * double-checked locking and never reinitializes it afterward.
+     * The extensions list is immutable after initialization, so we
+     * can safely cache the expensive lookForQueryEngines() result
+     * for the lifetime of the JVM.
+     *
+     * Key: collection path string, Value: array of query engine names
+     */
+    private static final Map<String, String[]> queryEngineNamesCache = new ConcurrentHashMap<>();
+
     public GraphSearchOptions(DataCollection<DataCollection<?>> databaseCollection)
     {
         this.queryOptions = new QueryOptions();
@@ -37,8 +55,16 @@ public class GraphSearchOptions
             CollectionRecord[] records = databaseCollection.stream( ru.biosoft.access.core.DataCollection.class )
                     .filter( dc -> Boolean.parseBoolean( dc.getInfo().getProperty( DataCollectionUtils.GRAPH_SEARCH ) ) )
                     .map( ru.biosoft.access.core.DataCollection::getCompletePath )
-                    .map( path -> new CollectionRecord( path, false, QueryEngineRegistry
-                            .lookForQueryEngines( new CollectionRecord( path, true ) ).keySet().stream().toArray( String[]::new ) ) )
+                    .map( path -> {
+                        // Use computeIfAbsent for atomic cache population
+                        String[] engineNames = queryEngineNamesCache.computeIfAbsent(
+                                path.toString(),
+                                pathStr -> QueryEngineRegistry
+                                        .lookForQueryEngines( new CollectionRecord( path, true ) )
+                                        .keySet().stream().toArray( String[]::new ) );
+                        // Clone to protect cached array from downstream mutation
+                        return new CollectionRecord( path, false, engineNames.clone() );
+                    })
                     .toArray( CollectionRecord[]::new );
             this.targetOptions = new TargetOptions(records);
         }
