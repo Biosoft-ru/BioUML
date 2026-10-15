@@ -65,21 +65,25 @@ public class OmicsTypeProvider extends WebJSONProviderSupport
         {
             if( de instanceof TableDataCollection )
                 omicsType = OmicsType.Transcriptomics;
-            //Dirty code to remove dependency of server.servlets on bsa
-            else
-            {
-                try
-                {
-                    Class<?> trackClass = Class.forName( "ru.biosoft.bsa.Track" );
-                    if( trackClass.isAssignableFrom( de.getClass() ) )
-                        omicsType = OmicsType.Genomics;
-                }
-                catch( ClassNotFoundException e )
-                {
-                }
-            }
+            // Tracks are genomics. Checked by name to avoid a dependency of server.servlets on bsa: under OSGi
+            // Class.forName( "ru.biosoft.bsa.Track" ) fails here, as this bundle cannot see bsa classes.
+            else if( implementsInterface( de.getClass(), "ru.biosoft.bsa.Track" ) )
+                omicsType = OmicsType.Genomics;
         }
         return omicsType;
+    }
+
+    private static boolean implementsInterface(Class<?> clazz, String interfaceName)
+    {
+        for( Class<?> c = clazz; c != null; c = c.getSuperclass() )
+        {
+            if( c.getName().equals( interfaceName ) )
+                return true;
+            for( Class<?> i : c.getInterfaces() )
+                if( implementsInterface( i, interfaceName ) )
+                    return true;
+        }
+        return false;
     }
 
     private void processSetOmicsType(BiosoftWebRequest args, JSONResponse resp) throws WebException, IOException

@@ -26,12 +26,12 @@ public final class AnalysisTools
 				( ex, args ) -> McpAnalysisSupport.listMethods() );
 
 		catalog.register( "biouml_analysis_describe",
-				"Describe an analysis method: its parameter input schema (name, type, default, description), input names, and output names.",
+				"Describe an analysis method: its parameter input schema (name, type, default, description, and for choice parameters allowedValues — at most 200, with allowedValuesCount when there are more), input names, and output names.",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> McpAnalysisSupport.describeMethod( str( args, "name" ) ) );
 
 		catalog.register( "biouml_analysis_run",
-				"ASYNC — Run an analysis. By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) repeatedly call biouml_task_status (with a short delay) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a map of bean-property values: nested keys use '/' separators (or pass a JSON object), array items are addressed by index ('conditions/0/condition') or passed as a JSON list ('conditions': [{'condition': '...'}]); path-typed properties take repository path strings.",
+				"ASYNC — Run an analysis. By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) repeatedly call biouml_task_status (with a short delay) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a map of bean-property values: nested keys use '/' separators (or pass a JSON object), array items are addressed by index ('conditions/0/condition') or passed as a JSON list ('conditions': [{'condition': '...'}]); path-typed properties take repository path strings. Choice parameters list their accepted values in biouml_analysis_describe (allowedValues).",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"params\":{\"type\":\"object\"},\"originPath\":{\"type\":\"string\"},\"sync\":{\"type\":\"boolean\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> {
 					Map<String, Object> params = args.get( "params" ) instanceof Map ? (Map<String, Object>) args.get( "params" ) : new java.util.LinkedHashMap<String, Object>();
@@ -40,7 +40,7 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_task_status",
-				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action.",
+				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. Also returns the task log's latest warnings/errors (problems, e.g. skipped workflow steps) and its last lines (logTail).",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.taskStatus( str( args, "taskId" ) ) );
 

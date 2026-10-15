@@ -211,4 +211,119 @@ public class TrackUtils
         }
         return result;
     }
+
+    /** Child property of a generic folder that holds the omics type of an element (see the web import). */
+    public static final String OMICS_TYPE_PROPERTY = "omicsType";
+
+    private static final String[][] GENOME_BUILD_ALIASES = {
+            // order matters: longer / more specific patterns first
+            {"grch38", "hg38"}, {"hg38", "hg38"}, {"hs38", "hg38"},
+            {"grch37", "hg19"}, {"hg19", "hg19"}, {"hs37", "hg19"}, {"b37", "hg19"}, {"g1k_v37", "hg19"},
+            {"ncbi36", "hg18"}, {"hg18", "hg18"}, {"ncbi35", "hg17"}, {"hg17", "hg17"}, {"ncbi34", "hg16"}, {"hg16", "hg16"},
+            {"grcm39", "mm39"}, {"mm39", "mm39"}, {"grcm38", "mm10"}, {"mm10", "mm10"}, {"ncbim37", "mm9"}, {"mm9", "mm9"},
+            {"rnor_6", "rn6"}, {"rn6", "rn6"}, {"mratbn7", "rn7"}, {"rn7", "rn7"}};
+
+    /**
+     * Genome build id (hg19, hg38, mm10, ...) named by a free-text reference, e.g. a VCF {@code ##reference}
+     * value such as "GRCh37", "hg19" or "file:///ref/human_g1k_v37.fasta". Returns null if none is recognized.
+     */
+    public static String normalizeGenomeBuild(String reference)
+    {
+        if( reference == null )
+            return null;
+        String lower = reference.toLowerCase( java.util.Locale.ENGLISH );
+        for( String[] alias : GENOME_BUILD_ALIASES )
+        {
+            // whole token only: "hg19" must not match inside "hg190", nor "b37" inside "ab37"
+            for( int pos = lower.indexOf( alias[0] ); pos >= 0; pos = lower.indexOf( alias[0], pos + 1 ) )
+            {
+                int end = pos + alias[0].length();
+                if( ( pos == 0 || !Character.isLetterOrDigit( lower.charAt( pos - 1 ) ) )
+                        && ( end == lower.length() || !Character.isDigit( lower.charAt( end ) ) ) )
+                    return alias[1];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Genome build declared in a VCF header ({@code ##reference=}, {@code ##assembly=}, or the {@code assembly}
+     * of a {@code ##contig} line), normalized by {@link #normalizeGenomeBuild}; null if the header names none.
+     */
+    public static String detectVcfGenomeBuild(java.io.File file)
+    {
+        try (java.io.BufferedReader reader = new java.io.BufferedReader( new java.io.InputStreamReader(
+                new java.io.FileInputStream( file ), java.nio.charset.StandardCharsets.UTF_8 ) ))
+        {
+            String line;
+            String fromContig = null;
+            while( ( line = reader.readLine() ) != null && line.startsWith( "##" ) )
+            {
+                String lower = line.toLowerCase( java.util.Locale.ENGLISH );
+                if( lower.startsWith( "##reference=" ) || lower.startsWith( "##assembly=" ) )
+                {
+                    String build = normalizeGenomeBuild( line.substring( line.indexOf( '=' ) + 1 ) );
+                    if( build != null )
+                        return build;
+                }
+                else if( fromContig == null && lower.startsWith( "##contig=<" ) )
+                {
+                    int pos = lower.indexOf( "assembly=" );
+                    if( pos >= 0 )
+                        fromContig = normalizeGenomeBuild( line.substring( pos + "assembly=".length() ).split( "[,>]" )[0] );
+                }
+            }
+            return fromContig;
+        }
+        catch( Exception e )
+        {
+            return null;
+        }
+    }
+
+    /** Omics type ("Genomics", ...) recorded for an element in its generic parent folder, or null. */
+    public static String getOmicsType(DataElement de)
+    {
+        try
+        {
+            ru.biosoft.access.generic.GenericDataCollection parent = getGenericParent( de );
+            return parent == null ? null : parent.getChildProperty( de.getName(), OMICS_TYPE_PROPERTY );
+        }
+        catch( Exception e )
+        {
+            return null;
+        }
+    }
+
+    /** Record the omics type of an element in its generic parent folder (no-op for other parents). */
+    public static void setOmicsType(DataElement de, String omicsType)
+    {
+        try
+        {
+            ru.biosoft.access.generic.GenericDataCollection parent = getGenericParent( de );
+            if( parent != null && omicsType != null )
+                parent.setChildProperty( de.getName(), OMICS_TYPE_PROPERTY, omicsType );
+        }
+        catch( Exception e )
+        {
+        }
+    }
+
+    /** Give {@code to} the omics type of {@code from}, when {@code from} has one and {@code to} has none. */
+    public static void copyOmicsType(DataElement from, DataElement to)
+    {
+        String omicsType = getOmicsType( from );
+        if( omicsType != null && getOmicsType( to ) == null )
+            setOmicsType( to, omicsType );
+    }
+
+    private static ru.biosoft.access.generic.GenericDataCollection getGenericParent(DataElement de) throws Exception
+    {
+        DataCollection<?> origin = de == null ? null : de.getOrigin();
+        if( origin == null )
+            return null;
+        Object primary = ru.biosoft.access.security.SecurityManager
+                .runPrivileged( () -> ru.biosoft.access.DataCollectionUtils.fetchPrimaryCollectionPrivileged( origin ) );
+        return primary instanceof ru.biosoft.access.generic.GenericDataCollection ? (ru.biosoft.access.generic.GenericDataCollection)primary : null;
+    }
 }

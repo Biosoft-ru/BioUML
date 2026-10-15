@@ -22,8 +22,11 @@ import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
 import ru.biosoft.bsa.SiteType;
 import ru.biosoft.bsa.StrandType;
+import ru.biosoft.bsa.TrackUtils;
 import ru.biosoft.bsa.VCFSqlTrack;
 import ru.biosoft.bsa.WritableTrack;
+import ru.biosoft.bsa.access.SequencesDatabaseInfo;
+import ru.biosoft.bsa.access.SequencesDatabaseInfoSelector;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.util.TextUtil2;
 
@@ -63,9 +66,55 @@ public class VCFTrackImporter extends TrackImporter
             Logger log) throws Exception
     {
         curFile = parent.getCompletePath().toString() + ru.biosoft.access.core.DataElementPath.PATH_SEPARATOR + elementName;
-        DataElement result = super.doImport( parent, file, elementName, jobControl, log );
-        curFile = "";
+        boolean detected = detectGenome( file, log );
+        DataElement result;
+        try
+        {
+            result = super.doImport( parent, file, elementName, jobControl, log );
+        }
+        finally
+        {
+            curFile = "";
+            if( detected )
+            {
+                // the importer (and its properties) may be reused for the next file: forget this file's genome
+                getProperties().setDbSelector( SequencesDatabaseInfoSelector.getNullDatabase() );
+                getProperties().setGenomeId( null );
+            }
+        }
+        if( result != null && TrackUtils.getOmicsType( result ) == null )
+            TrackUtils.setOmicsType( result, "Genomics" );
         return result;
+    }
+
+    /**
+     * When no genome was chosen, take it from the VCF header ({@code ##reference=hg19} etc.): the matching
+     * sequences database if one is installed, otherwise just the genome id. Without it, consumers that convert
+     * between builds (e.g. a liftover to hg38) cannot tell which build the positions are in.
+     */
+    private boolean detectGenome(File file, Logger log)
+    {
+        TrackImportProperties properties = getProperties();
+        if( !TextUtil2.isEmpty( properties.getGenomeId() ) || properties.getSequenceCollectionPath() != null )
+            return false;
+        String build = TrackUtils.detectVcfGenomeBuild( file );
+        if( build == null )
+            return false;
+        SequencesDatabaseInfo db = SequencesDatabaseInfoSelector.getDatabaseByGenomeBuild( build );
+        if( db != null )
+        {
+            properties.setDbSelector( db );
+        }
+        else
+        {
+            properties.setDbSelector( SequencesDatabaseInfo.CUSTOM_SEQUENCES );
+            properties.setGenomeId( build );
+        }
+        String message = "Genome " + build + " taken from the VCF header" + ( db == null ? " (no sequences database installed for it)" : ": " + db.getName() );
+        if( log != null )
+            log.info( message );
+        VCFTrackImporter.log.info( message + ", file " + file.getName() );
+        return true;
     }
 
     @Override
