@@ -900,6 +900,47 @@ public final class McpDiagramSupport
 		return diagram.findDiagramElement( elementId.replace( '/', '.' ) );
 	}
 
+	/**
+	 * Add a repository element (a track, table, diagram, ...) to a diagram, optionally into a compartment —
+	 * the headless equivalent of dragging it from the repository tree onto the diagram in the web UI
+	 * ({@code WebDiagramsProvider.addDroppedDiagramElement}). The diagram type decides what node it becomes,
+	 * e.g. a data node that refers to the track.
+	 */
+	public static McpEnvelope addDataElement( String diagramPath, String elementPath, String compartmentId, Integer x, Integer y )
+	{
+		DataElementPath path = DataElementPath.create( elementPath );
+		if ( path == null || path.optDataElement() == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at: " + elementPath );
+		return edit( diagramPath, "addDataElement", diagram -> {
+			Compartment target = diagram;
+			if ( compartmentId != null && !compartmentId.isEmpty() )
+			{
+				DiagramElement el = findElement( diagram, compartmentId );
+				if ( el == null )
+					throw new NotFoundException( "no compartment with id: " + compartmentId );
+				if ( !( el instanceof Compartment ) )
+					throw new IllegalArgumentException( "not a compartment: " + compartmentId );
+				target = (Compartment) el;
+			}
+			Point location = point( x, y );
+			if ( location == null && target != diagram && target.getLocation() != null )
+				location = new Point( target.getLocation().x + 10, target.getLocation().y + 30 );
+			Set<DiagramElement> before = java.util.Collections.newSetFromMap( new java.util.IdentityHashMap<DiagramElement, Boolean>() );
+			diagram.recursiveStream().forEach( before::add );
+			ru.biosoft.access.biohub.Element element = new ru.biosoft.access.biohub.Element( path );
+			biouml.model.util.AddElementsUtils.addElements( target, new ru.biosoft.access.biohub.Element[] { element }, location );
+			List<Map<String, Object>> added = new ArrayList<Map<String, Object>>();
+			diagram.recursiveStream().filter( de -> !before.contains( de ) ).forEach( de -> added.add( summary( de ) ) );
+			if ( added.isEmpty() )
+				throw new IllegalArgumentException( "the diagram did not accept " + elementPath
+						+ ( target == diagram ? "" : " in compartment " + compartmentId ) + " (or it is already there)" );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "element", elementPath );
+			m.put( "added", added );
+			return m;
+		} );
+	}
+
 	/** Remove an element by id, with the elements that depend on it (edges, reaction participants). */
 	public static McpEnvelope removeElement( String diagramPath, String elementId )
 	{

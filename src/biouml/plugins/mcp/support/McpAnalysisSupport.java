@@ -176,6 +176,44 @@ public final class McpAnalysisSupport
 		return McpEnvelope.ok( m );
 	}
 
+	/** At most this many allowed values are listed per property (the total is reported beside them). */
+	private static final int ALLOWED_VALUES_CAP = 200;
+
+	/**
+	 * The values a choice property accepts — the tags of its property editor, i.e. what the GUI shows in the
+	 * drop-down — or null for a free-form property.
+	 */
+	private static String[] allowedValues( Property p )
+	{
+		try
+		{
+			Class<?> editorClass = p.getPropertyEditorClass();
+			if ( editorClass == null )
+				return null;
+			java.beans.PropertyEditor editor = (java.beans.PropertyEditor) editorClass.getDeclaredConstructor().newInstance();
+			if ( editor instanceof com.developmentontheedge.beans.editors.PropertyEditorEx )
+			{
+				com.developmentontheedge.beans.editors.PropertyEditorEx editorEx = (com.developmentontheedge.beans.editors.PropertyEditorEx) editor;
+				editorEx.setBean( p.getOwner() );
+				editorEx.setDescriptor( p.getDescriptor() );
+			}
+			try
+			{
+				editor.setValue( p.getValue() );
+			}
+			catch ( Exception e )
+			{
+				// some editors need no current value to list their tags
+			}
+			String[] tags = editor.getTags();
+			return tags == null || tags.length == 0 ? null : tags;
+		}
+		catch ( Throwable e )
+		{
+			return null;
+		}
+	}
+
 	/** Recursively flatten a {@link ComponentModel} into a list of property descriptors. */
 	private static void collectProperties( ComponentModel model, String prefix, List<Map<String, Object>> out )
 	{
@@ -199,6 +237,13 @@ public final class McpAnalysisSupport
 				// ignore
 			}
 			pm.put( "readOnly", Boolean.valueOf( p.isReadOnly() ) );
+			String[] allowed = allowedValues( p );
+			if ( allowed != null )
+			{
+				pm.put( "allowedValues", new ArrayList<String>( java.util.Arrays.asList( allowed ).subList( 0, Math.min( allowed.length, ALLOWED_VALUES_CAP ) ) ) );
+				if ( allowed.length > ALLOWED_VALUES_CAP )
+					pm.put( "allowedValuesCount", Integer.valueOf( allowed.length ) );
+			}
 			// A composite property (nested bean) — recurse to expose the leaves. Its own default is the
 			// whole bean, which is not JSON-friendly; the leaves carry the defaults instead.
 			if ( p instanceof ComponentModel && out.size() < McpConstants.PAYLOAD_BYTES_CAP )
@@ -498,7 +543,60 @@ public final class McpAnalysisSupport
 		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
 		Object values = resp.get( JSONResponse.ATTR_VALUES );
 		m.put( "textStatus", values instanceof java.util.List && ! ( (java.util.List<?>) values ).isEmpty() ? ( (java.util.List<?>) values ).get( 0 ) : null );
+		putLog( m, taskId );
 		return McpEnvelope.ok( m );
+	}
+
+	private static final java.util.regex.Pattern PROBLEM_LINE = java.util.regex.Pattern
+			.compile( "ERROR|SEVERE|WARN|Exception|Skip failed|failed", java.util.regex.Pattern.CASE_INSENSITIVE );
+	private static final int LOG_PROBLEMS_CAP = 20, LOG_TAIL_LINES = 10, LOG_LINE_CHARS = 300;
+
+	/**
+	 * Add the task log's warnings/errors ({@code problems}, the latest ones) and its last lines ({@code logTail}),
+	 * so a caller can follow a long run (and see e.g. skipped workflow steps) without reading the log by script.
+	 */
+	private static void putLog( Map<String, Object> m, String taskId )
+	{
+		String log;
+		try
+		{
+			TaskInfo info = TaskManager.getInstance().getTask( taskId );
+			log = info == null ? null : info.getLogInfo();
+		}
+		catch ( Exception e )
+		{
+			return;
+		}
+		if ( log == null || log.isEmpty() )
+			return;
+		String[] lines = log.split( "\\r?\\n" );
+		java.util.LinkedList<String> problems = new java.util.LinkedList<String>();
+		int problemCount = 0;
+		for ( String line : lines )
+		{
+			if ( PROBLEM_LINE.matcher( line ).find() )
+			{
+				problemCount++;
+				problems.add( clip( line ) );
+				if ( problems.size() > LOG_PROBLEMS_CAP )
+					problems.removeFirst();
+			}
+		}
+		if ( problemCount > 0 )
+		{
+			m.put( "problems", new ArrayList<String>( problems ) );
+			if ( problemCount > problems.size() )
+				m.put( "problemCount", Integer.valueOf( problemCount ) );
+		}
+		List<String> tail = new ArrayList<String>();
+		for ( int i = Math.max( 0, lines.length - LOG_TAIL_LINES ); i < lines.length; i++ )
+			tail.add( clip( lines[ i ] ) );
+		m.put( "logTail", tail );
+	}
+
+	private static String clip( String line )
+	{
+		return line.length() <= LOG_LINE_CHARS ? line : line.substring( 0, LOG_LINE_CHARS ) + "…";
 	}
 
 	/**

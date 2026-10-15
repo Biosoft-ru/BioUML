@@ -102,6 +102,19 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 			firePropertyChange( "output", oldValue, output );
 		}
 
+		private String mode = "fast";
+		@PropertyName( "Mode" )
+		public String getMode()
+		{
+			return mode;
+		}
+		public void setMode( String mode )
+		{
+			String oldValue = this.mode;
+			this.mode = mode;
+			firePropertyChange( "mode", oldValue, mode );
+		}
+
 		private Condition[] conditions = new Condition[0];
 		@PropertyName( "Conditions" )
 		public Condition[] getConditions()
@@ -148,6 +161,7 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 			// default) instead.
 			add( "output" );
 			add( "conditions" );
+			property( "mode" ).tags( "fast", "exact" ).add();
 		}
 	}
 }

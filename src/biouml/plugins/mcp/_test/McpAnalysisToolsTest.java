@@ -271,6 +271,25 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( "error must list a valid key ('rows')", env.getError() != null && env.getError().contains( "rows" ) );
 	}
 
+	/** A choice parameter lists its accepted values; a free-form one does not. */
+	@SuppressWarnings( "unchecked" )
+	public void testDescribeListsAllowedValues()
+	{
+		McpEnvelope env = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME );
+		assertTrue( env.isOk() );
+		Map<String, Object> mode = null, rows = null;
+		for ( Map<String, Object> p : (List<Map<String, Object>>) ( (Map<String, Object>) env.getData() ).get( "properties" ) )
+		{
+			if ( "mode".equals( p.get( "name" ) ) )
+				mode = p;
+			if ( "rows".equals( p.get( "name" ) ) )
+				rows = p;
+		}
+		assertNotNull( "mode described", mode );
+		assertEquals( java.util.Arrays.asList( "fast", "exact" ), mode.get( "allowedValues" ) );
+		assertFalse( "free-form int has no allowed values", rows.containsKey( "allowedValues" ) );
+	}
+
 	/** Array-of-bean params bind from both the 'name/0/field' key form and a JSON list of objects. */
 	public void testArrayOfBeanParams()
 	{

@@ -162,6 +162,28 @@ public class SequencesDatabaseInfoSelector extends GenericComboBoxEditor
         return StreamEx.of( filterDatabasesForUser( databasesWithNull ) ).findFirst( db -> db.getName().equals( title ) ).orElse( null );
     }
 
+    /**
+     * The sequences database available to the current user for a genome build (e.g. "hg19"), or null.
+     * Several matches (e.g. two Ensembl releases on GRCh38) resolve to an Ensembl one, then to the latest version.
+     */
+    public static SequencesDatabaseInfo getDatabaseByGenomeBuild(String genomeBuild)
+    {
+        if( genomeBuild == null )
+            return null;
+        init();
+        return StreamEx.of( filterDatabasesForUser( databases ) )
+                .filter( db -> genomeBuild.equalsIgnoreCase( db.getGenomeBuild() ) )
+                .max( Comparator.<SequencesDatabaseInfo, Boolean> comparing( SequencesDatabaseInfoSelector::isEnsembl )
+                        .thenComparing( SequencesDatabaseInfo::getVersion, new DatabaseVersionComparator() ) )
+                .orElse( null );
+    }
+
+    private static boolean isEnsembl(SequencesDatabaseInfo db)
+    {
+        DataCollection<?> dc = db.getBasePath().optDataCollection();
+        return dc != null && "Ensembl".equals( dc.getInfo().getProperties().getProperty( "database", "" ) );
+    }
+
     public static List<SequencesDatabaseInfo> getDatabases()
     {
         init();

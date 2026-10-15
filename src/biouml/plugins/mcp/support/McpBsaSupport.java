@@ -13,6 +13,9 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.bsa.Track;
+import ru.biosoft.bsa.TrackUtils;
+import ru.biosoft.bsa.access.SequencesDatabaseInfo;
+import ru.biosoft.bsa.access.SequencesDatabaseInfoSelector;
 import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.transformer.SiteModelTransformer;
@@ -138,5 +141,102 @@ public final class McpBsaSupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"could not save track selection: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
+	}
+
+	/**
+	 * Report or set the genome (build id + sequences collection) of a track — the headless equivalent of
+	 * the "Genome (sequences collection)" field in the track's properties. Analyses that convert between
+	 * builds (e.g. a liftover to hg38) decide from it which build the positions are in.
+	 *
+	 * @param path   full repository path of the track
+	 * @param genome null/empty to only report; otherwise a genome build id or alias ("hg19", "GRCh37",
+	 *               "hg38", ...), or the path of a sequences collection
+	 * @return {@code {path, genomeId, sequences, availableGenomes}}; when set, also {@code changed: true}.
+	 */
+	public static McpEnvelope trackGenome( String path, String genome )
+	{
+		McpEnvelope resolved = McpRepositorySupport.resolve( path );
+		if ( !resolved.isOk() )
+			return resolved;
+		if ( !( resolved.getData() instanceof Track ) || !( resolved.getData() instanceof DataCollection ) )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "not a track: " + path );
+		Track track = (Track) resolved.getData();
+		boolean changed = false;
+		if ( genome != null && !genome.trim().isEmpty() )
+		{
+			genome = genome.trim();
+			SequencesDatabaseInfo db;
+			String genomeId;
+			if ( genome.contains( "/" ) )
+			{
+				DataElementPath sequences = DataElementPath.create( genome );
+				if ( sequences.optDataCollection() == null )
+					return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no sequences collection at: " + genome );
+				db = SequencesDatabaseInfoSelector.getDatabase( sequences );
+				genomeId = db == SequencesDatabaseInfo.CUSTOM_SEQUENCES ? null : db.getGenomeBuild();
+				setTrackGenome( track, sequences, genomeId );
+			}
+			else
+			{
+				genomeId = TrackUtils.normalizeGenomeBuild( genome );
+				if ( genomeId == null )
+					genomeId = genome;
+				db = SequencesDatabaseInfoSelector.getDatabaseByGenomeBuild( genomeId );
+				setTrackGenome( track, db == null ? null : db.getChromosomePath(), genomeId );
+			}
+			changed = true;
+			// The loaded track keeps a genome selector built from the old properties: drop it from the
+			// collection cache so the next read builds a fresh one.
+			DataCollection<?> origin = track.getOrigin();
+			if ( origin != null )
+			{
+				try
+				{
+					origin.release( track.getName() );
+				}
+				catch ( Exception e )
+				{
+					log.log( java.util.logging.Level.WARNING, "could not release " + path + " from cache", e );
+				}
+				DataElement reloaded = DataElementPath.create( path ).optDataElement();
+				if ( reloaded instanceof Track )
+					track = (Track) reloaded;
+			}
+		}
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "path", path );
+		m.put( "genomeId", TrackUtils.getGenomeId( track ) );
+		String sequences = ( (DataCollection<?>) track ).getInfo().getProperty( Track.SEQUENCES_COLLECTION_PROPERTY );
+		m.put( "sequences", sequences );
+		if ( changed )
+			m.put( "changed", Boolean.TRUE );
+		List<Map<String, Object>> available = new ArrayList<Map<String, Object>>();
+		for ( SequencesDatabaseInfo db : SequencesDatabaseInfoSelector.getDatabases() )
+		{
+			if ( db == SequencesDatabaseInfo.CUSTOM_SEQUENCES || db == SequencesDatabaseInfo.NULL_SEQUENCES
+					|| db.getBasePath().optDataCollection() == null )
+				continue;
+			Map<String, Object> g = new LinkedHashMap<String, Object>();
+			g.put( "genomeId", db.getGenomeBuild() );
+			g.put( "name", db.getName() );
+			g.put( "sequences", db.getChromosomePath().toString() );
+			available.add( g );
+		}
+		m.put( "availableGenomes", available );
+		return McpEnvelope.ok( m );
+	}
+
+	private static void setTrackGenome( Track track, DataElementPath sequences, String genomeId )
+	{
+		java.util.Properties properties = ( (DataCollection<?>) track ).getInfo().getProperties();
+		if ( sequences != null )
+			properties.setProperty( Track.SEQUENCES_COLLECTION_PROPERTY, sequences.toString() );
+		else
+			properties.remove( Track.SEQUENCES_COLLECTION_PROPERTY );
+		if ( genomeId != null )
+			properties.setProperty( Track.GENOME_ID_PROPERTY, genomeId );
+		else
+			properties.remove( Track.GENOME_ID_PROPERTY );
+		ru.biosoft.access.CollectionFactoryUtils.save( track );
 	}
 }

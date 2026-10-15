@@ -262,8 +262,14 @@ public class FileDownloader
         }
     }
 
-    private static List<URLConversion> urlConversions = Arrays.asList( new URLConversion( "GEO page",
-            "http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi\\?acc=(.+)", "http://www.ncbi.nlm.nih.gov/geosuppl/?acc=$1" ) );
+    private static final String GOOGLE_DRIVE_DOWNLOAD = "https://drive.usercontent.google.com/download?id=$1&export=download&confirm=t";
+
+    private static List<URLConversion> urlConversions = Arrays.asList(
+            new URLConversion( "GEO page", "http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi\\?acc=(.+)",
+                    "http://www.ncbi.nlm.nih.gov/geosuppl/?acc=$1" ),
+            // a shared Google Drive file: the page link, not the file; the download link skips the virus-scan page
+            new URLConversion( "Google Drive file", "https?://drive\\.google\\.com/file/d/([\\w-]+)(/.*)?", GOOGLE_DRIVE_DOWNLOAD ),
+            new URLConversion( "Google Drive file", "https?://drive\\.google\\.com/(?:open|uc)\\?(?:.*&)?id=([\\w-]+)(&.*)?", GOOGLE_DRIVE_DOWNLOAD ) );
 
     public static URL convertURL(URL url, Appendable messages) throws Exception
     {

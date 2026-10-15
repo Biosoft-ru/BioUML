@@ -119,6 +119,12 @@ public final class DiagramTools
 					return McpDiagramSupport.setParameters( str( args, "diagramPath" ), McpArgs.stringMap( args, "parameters" ), constant );
 				} );
 
+		catalog.register( "biouml_diagram_add_data_element",
+				"Add a repository element (a track, table, diagram, ...) to a diagram — the headless equivalent of dragging it from the repository tree onto the diagram in the web UI. The diagram type decides what node it becomes. E.g. to give a diagram that describes an analysis' input data a new track, drop the track into the compartment for the data and into each other compartment it belongs to; remove the nodes of the old track with biouml_diagram_remove_element. diagramPath is the diagram; elementPath is the repository path of the element; compartment (optional) is the id of the compartment to drop it into; x/y (optional) the drop point. Returns {element, added[{id, path, name, kind, ...}]}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementPath\":{\"type\":\"string\"},\"compartment\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementPath\"]}",
+				( ex, args ) -> McpDiagramSupport.addDataElement( str( args, "diagramPath" ), str( args, "elementPath" ), str( args, "compartment" ),
+						optInt( args, "x" ), optInt( args, "y" ) ) );
+
 		catalog.register( "biouml_diagram_remove_element",
 				"Remove an element (node or edge) from a diagram by its id (a name or a path such as 'default.s1'), with the edges and reaction participants that depend on it; the rate variables of removed reactions are removed too (listed in removedVariables).",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"elementId\"]}",

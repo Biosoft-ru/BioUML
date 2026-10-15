@@ -23,7 +23,9 @@ import ru.biosoft.jobcontrol.JobControl;
 
 /**
  * Filter VCF track by Genotype. Use Format_GT property of track sites. Create separate track for each sample.
- * heterozygote - 0/1 , homozygote - 1/1 only, both - 0/1 and 1/1.  0/0 and other values are ignored.
+ * heterozygote - two different alleles, at least one non-reference (0/1, 1|0, 1/2); homozygote - all alleles the
+ * same non-reference one, including haploid calls on chrX/chrY/chrM (1/1, 1|1, 1); both - either of them.
+ * Reference-only (0/0, 0), missing (./., 0/.) and other values are ignored.
  * @author anna
  *
  */
@@ -71,10 +73,7 @@ public class FilterVCFAnalysis extends AnalysisMethodSupport<FilterVCFAnalysisPa
                 DynamicPropertySet dps = element.getProperties();
                 for( String propertyName : results.keySet() )
                 {
-                    String val = dps.getValueAsString( propertyName );
-                    if( mode.equals( FilterVCFAnalysisParameters.MODE_HETEROZYGOTE ) && val.equals( "0/1" )
-                            || mode.equals( FilterVCFAnalysisParameters.MODE_HOMOZYGOTE ) && val.equals( "1/1" )
-                            || mode.equals( FilterVCFAnalysisParameters.MODE_BOTH ) && ( val.equals( "0/1" ) || val.equals( "1/1" ) ) )
+                    if( matches( mode, dps.getValueAsString( propertyName ) ) )
                     {
                         results.get( propertyName ).addSite( element );
                     }
@@ -99,7 +98,48 @@ public class FilterVCFAnalysis extends AnalysisMethodSupport<FilterVCFAnalysisPa
         {
             result.finalizeAddition();
             CollectionFactoryUtils.save( result );
+            // the omics type lives in the input's folder, not in the track: carry it over to the new folder
+            TrackUtils.copyOmicsType( input, result );
         }
         return resultsFolder;
+    }
+
+    /** Genotype classes, see the class comment. */
+    public static final int GT_OTHER = 0, GT_HETEROZYGOTE = 1, GT_HOMOZYGOTE = 2;
+
+    public static int classifyGenotype(String gt)
+    {
+        if( gt == null || gt.isEmpty() )
+            return GT_OTHER;
+        String[] alleles = gt.split( "[/|]" );
+        boolean nonReference = false;
+        for( String allele : alleles )
+        {
+            if( allele.isEmpty() || allele.equals( "." ) )
+                return GT_OTHER;
+            for( int i = 0; i < allele.length(); i++ )
+                if( !Character.isDigit( allele.charAt( i ) ) )
+                    return GT_OTHER;
+            if( Integer.parseInt( allele ) != 0 )
+                nonReference = true;
+        }
+        if( !nonReference )
+            return GT_OTHER;
+        for( String allele : alleles )
+            if( Integer.parseInt( allele ) != Integer.parseInt( alleles[0] ) )
+                return GT_HETEROZYGOTE;
+        return GT_HOMOZYGOTE;
+    }
+
+    public static boolean matches(String mode, String gt)
+    {
+        int type = classifyGenotype( gt );
+        if( FilterVCFAnalysisParameters.MODE_HETEROZYGOTE.equals( mode ) )
+            return type == GT_HETEROZYGOTE;
+        if( FilterVCFAnalysisParameters.MODE_HOMOZYGOTE.equals( mode ) )
+            return type == GT_HOMOZYGOTE;
+        if( FilterVCFAnalysisParameters.MODE_BOTH.equals( mode ) )
+            return type != GT_OTHER;
+        return false;
     }
 }

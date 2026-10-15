@@ -59,6 +59,7 @@ import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.jobcontrol.JobControlEvent;
 import ru.biosoft.jobcontrol.JobControlListener;
 import ru.biosoft.journal.JournalRegistry;
+import ru.biosoft.journal.ProjectUtils;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.BeanAsMapUtil;
@@ -795,7 +796,7 @@ public class WorkflowEngine implements JobControlListener
                     {
                         try
                         {
-                            getTmpCollection().getChildPath(property.getValue().toString()).remove();
+                            getTmpCollection(de).getChildPath(property.getValue().toString()).remove();
                         }
                         catch( Exception e )
                         {
@@ -903,7 +904,7 @@ public class WorkflowEngine implements JobControlListener
                         DPSUtils.makeTransient(property);
                         edge.getAttributes().add(property);
                     }
-                    value = getTmpCollection().getChildPath(property.getValue().toString());
+                    value = getTmpCollection(n).getChildPath(property.getValue().toString());
                 }
                 Object edgeAnalysisPropertyObj = edge.getAttributes().getValue(WorkflowSemanticController.EDGE_ANALYSIS_PROPERTY);
                 if(edgeAnalysisPropertyObj == null)
@@ -950,9 +951,19 @@ public class WorkflowEngine implements JobControlListener
         return newParameters;
     }
 
-    private static DataElementPath getTmpCollection()
+    /**
+     * Folder for intermediate results: "tmp" of the current project. A session without a current project
+     * (e.g. an MCP or other headless client) falls back to the project the workflow diagram itself is in.
+     */
+    private static DataElementPath getTmpCollection(DiagramElement context)
     {
         DataElementPath projectPath = JournalRegistry.getProjectPath();
+        if( projectPath == null && context != null )
+        {
+            Diagram diagram = Diagram.optDiagram( context );
+            if( diagram != null && diagram.getOrigin() != null )
+                projectPath = ProjectUtils.getProjectPath( diagram.getCompletePath() );
+        }
         if(projectPath == null)
             return tmpCollectionPath;
         return projectPath.getRelativePath("tmp/");
