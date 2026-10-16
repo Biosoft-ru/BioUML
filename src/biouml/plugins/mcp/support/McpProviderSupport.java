@@ -483,6 +483,26 @@ public final class McpProviderSupport
 		}
 	}
 
+	/**
+	 * Run a block under the same session binding a provider call gets (see {@link #invoke}): the caller's
+	 * own session when one is bound, otherwise the shared headless session. Use it for direct platform
+	 * calls that read per-session state (the session cache, preferences), so they see what provider calls
+	 * stored there.
+	 */
+	public static <T> T inSession( UserAction<T> body ) throws Exception
+	{
+		boolean bound = ensureSession();
+		try
+		{
+			return body.run();
+		}
+		finally
+		{
+			if ( bound )
+				SecurityManager.removeThreadFromSessionRecord();
+		}
+	}
+
 	/** A block of work to run while a named session is bound (for {@link #withUserSession}). */
 	public interface UserAction<T>
 	{
@@ -589,7 +609,7 @@ public final class McpProviderSupport
 
 	/** Convert a JSON value into a plain JSON-serializable Java structure (maps/lists/scalars). */
 	@SuppressWarnings( "unchecked" )
-	private static Object fromJson( JsonValue v )
+	public static Object fromJson( JsonValue v )
 	{
 		if ( v == null || v.isNull() )
 			return null;

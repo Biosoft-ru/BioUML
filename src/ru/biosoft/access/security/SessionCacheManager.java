@@ -52,6 +52,14 @@ public class SessionCacheManager
     }
 
     /**
+     * Set cache for session, e.g. to keep the session state when the same user logs in to the session again
+     */
+    public static void setSessionCache(String sessionID, SessionCache cache)
+    {
+        sessionCacheMap.put(sessionID, cache);
+    }
+
+    /**
      * Remove cache for session. Is used at the end of request
      */
     public static synchronized void removeSessionCache(String sessionID)

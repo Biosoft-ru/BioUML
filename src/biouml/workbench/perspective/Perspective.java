@@ -1,5 +1,6 @@
 package biouml.workbench.perspective;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.eclipsesource.json.JsonObject;
@@ -21,9 +22,25 @@ public interface Perspective
     public int getPriority();
 
     /**
+     * @return short description of what the perspective is for, or null
+     */
+    public default String getDescription()
+    {
+        return null;
+    }
+
+    /**
      * @return unmodifiable list of repository tabs
      */
     public List<RepositoryTabInfo> getRepositoryTabs();
+
+    /**
+     * @return unmodifiable list of elements (analyses, workflows, collections) the work in this perspective usually starts from
+     */
+    public default List<EntryPointInfo> getEntryPoints()
+    {
+        return Collections.emptyList();
+    }
 
     /**
      * @param viewPartId identifier of the viewPart

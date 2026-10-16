@@ -40,9 +40,18 @@
   
   <extension point="biouml.workbench.perspective">
   	<perspective name="ChIPMunk" priority="30" intro="intro-chipmunk">
+  		<description>Motif discovery in ChIP-seq data with ChIPMunk: mono- and di-nucleotide motifs from reads or peaks supplied as BED files.</description>
   		<repository>
   			<tab title="ChIPMunk" path="ChIPMunk"/>
   		</repository>
+  		<entryPoints>
+  			<entry path="ChIPMunk/Workflows/Reads to matrices" title="Construct a matrix by the reads" description="Reads are supplied as BED files (output of Bowtie, etc.)"/>
+  			<entry path="ChIPMunk/Workflows/Peaks to matrices" title="Construct a matrix by the peaks" description="Peaks are supplied as a BED file (output of MACS, etc.)"/>
+  			<entry path="ChIPMunk/Analyses/ChIPMunk" title="ChIPMunk" description="Create motifs from ChIP-seq data"/>
+  			<entry path="ChIPMunk/Analyses/DiChIPMunk" title="DiChIPMunk" description="Create di-nucleotide motifs from ChIP-seq data"/>
+  			<entry path="ChIPMunk/Analyses/ChIPHorde" title="ChIPHorde" description="Discover multiple significant motifs"/>
+  			<entry path="ChIPMunk/Analyses/DiChIPHorde" title="DiChIPHorde" description="Discover multiple significant di-nucleotide motifs"/>
+  		</entryPoints>
   		<viewparts>
   			<deny id="search.graph"/>
   			<deny id="common.clipboard"/>
@@ -64,9 +73,17 @@
   
   <extension point="biouml.workbench.perspective">
   	<perspective name="HOCOMOCO" priority="30" intro="intro-hocomoco">
+  		<description>HOCOMOCO transcription factor binding models: search TF binding sites in a track or sequences and build profiles from site model tables.</description>
   		<repository>
   			<tab title="HOCOMOCO" path="HOCOMOCO"/>
   		</repository>
+  		<entryPoints>
+  			<entry path="analyses/Methods/TF binding site search/Site search on track" title="Site search on track" description="Search TF binding sites with a HOCOMOCO profile in a track or a sequence collection"/>
+  			<entry path="analyses/Methods/TF binding site search/Create profile from site model table" title="Create profile from site model table"/>
+  			<entry path="HOCOMOCO/Matrices and profiles" title="Matrices and profiles" description="HOCOMOCO binding models and site search profiles"/>
+  			<entry path="HOCOMOCO/Public datasets" title="Public datasets" description="Example input tracks"/>
+  			<entry path="HOCOMOCO/User data" title="User data" description="Folder for imported data and results"/>
+  		</entryPoints>
   		<viewparts>
   			<deny id="*"/>
             <allow id="table.filters"/>

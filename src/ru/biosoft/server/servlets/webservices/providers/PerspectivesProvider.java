@@ -2,7 +2,10 @@ package ru.biosoft.server.servlets.webservices.providers;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import one.util.streamex.StreamEx;
 
 import com.developmentontheedge.application.Application;
 import com.eclipsesource.json.JsonObject;
@@ -27,24 +30,45 @@ import ru.biosoft.tasks.TaskInfo;
  */
 public class PerspectivesProvider extends WebJSONProviderSupport
 {
+    private static final Logger log = Logger.getLogger( PerspectivesProvider.class.getName() );
+
+    /**
+     * Value of the "scope" parameter which selects the perspective for the current session only,
+     * leaving the user's perspective preference unchanged
+     */
+    public static final String SCOPE_SESSION = "session";
+
+    /**
+     * @return titles of the perspectives the current user may open, in registry order
+     */
+    public static Set<String> getAvailablePerspectives()
+    {
+        StreamEx<Perspective> perspectives = PerspectiveRegistry.perspectives();
+        if(SecurityManager.isProductAvailable( "Perspectives" ))
+        {
+            perspectives = perspectives.filter( perspective -> {
+                Permission permissions = SecurityManager.getPermissions( DataElementPath.create( "perspectives/" + perspective.getTitle() ) );
+                return permissions.isReadAllowed();
+            });
+        }
+        return perspectives.map( Perspective::getTitle ).toCollection( LinkedHashSet::new );
+    }
+
+    /**
+     * @param availablePerspectives non-empty result of {@link #getAvailablePerspectives()}
+     * @return title of the perspective in effect for the current session if it is available, otherwise of the first available one
+     */
+    public static String getCurrentPerspective(Set<String> availablePerspectives)
+    {
+        String defaultPerspective = availablePerspectives.iterator().next();
+        String perspectiveName = PerspectiveRegistry.getCurrentPerspectiveName( defaultPerspective );
+        return availablePerspectives.contains( perspectiveName ) ? perspectiveName : defaultPerspective;
+    }
+
     @Override
     public void process(BiosoftWebRequest arguments, JSONResponse response) throws Exception
     {
-        Set<String> availablePerspectives = new LinkedHashSet<>();
-
-        if(SecurityManager.isProductAvailable( "Perspectives" ))
-        {
-            availablePerspectives = PerspectiveRegistry.perspectives().filter( perspective -> {
-                Permission permissions = SecurityManager.getPermissions( DataElementPath.create( "perspectives/" + perspective.getTitle() ) );
-                return permissions.isReadAllowed();
-            }).map( Perspective::getTitle ).collect( Collectors.toCollection( LinkedHashSet::new ) );
-        }
-        else
-        {
-            availablePerspectives = PerspectiveRegistry.perspectives()
-                    .map( Perspective::getTitle )
-                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
-        }
+        Set<String> availablePerspectives = getAvailablePerspectives();
 
         if(availablePerspectives.isEmpty())
         {
@@ -54,14 +78,16 @@ public class PerspectivesProvider extends WebJSONProviderSupport
 
         boolean ignoreIfSame = arguments.getBoolean( "ignoreIfSame" );
         boolean ignore = false;
+        boolean sessionOnly = SCOPE_SESSION.equals( arguments.get( "scope" ) );
         String perspectiveName = arguments.get("name");
+        boolean store = perspectiveName != null;
         if(perspectiveName == null)
         {
-            perspectiveName = Application.getPreferences().getStringValue("Perspective", availablePerspectives.iterator().next());
+            perspectiveName = PerspectiveRegistry.getCurrentPerspectiveName( availablePerspectives.iterator().next() );
+            sessionOnly = PerspectiveRegistry.getSessionPerspective() != null;
         }
         else
         {
-            Application.getPreferences().addValue( "Perspective", perspectiveName );
             ignore = ignoreIfSame;
         }
 
@@ -69,18 +95,42 @@ public class PerspectivesProvider extends WebJSONProviderSupport
         {
             //rather than falling with error, allow user to login with default perspective
             perspectiveName = availablePerspectives.iterator().next();
-            Application.getPreferences().addValue("Perspective", perspectiveName);
+            store = true;
+        }
+
+        if(store)
+        {
+            if(sessionOnly)
+            {
+                if(!PerspectiveRegistry.setSessionPerspective( perspectiveName ))
+                {
+                    response.error( "Cannot select perspective for the current session: session is not initialized" );
+                    return;
+                }
+            }
+            else
+            {
+                PerspectiveRegistry.setSessionPerspective( null );
+                Application.getPreferences().addValue( PerspectiveRegistry.PERSPECTIVE_PREFERENCE, perspectiveName );
+            }
         }
 
         String prevPerspective = ( String )WebSession.getCurrentSession().getValue( "currentPerspective" );
 
         if( prevPerspective == null || !prevPerspective.equals( perspectiveName ) )
-        {             
-            TasksSqlTransformer.logTaskRecord( SecurityManager.getSessionUser(), TaskInfo.generateName( null ),
-            new java.sql.Timestamp( System.currentTimeMillis() ), new java.sql.Timestamp( System.currentTimeMillis() ),
-                TaskInfo.PERSPECTIVE, perspectiveName, (String)null, 
-                "SESSION=" + WebSession.getCurrentSession().getSessionId(), 
-                true );
+        {
+            try
+            {
+                TasksSqlTransformer.logTaskRecord( SecurityManager.getSessionUser(), TaskInfo.generateName( null ),
+                new java.sql.Timestamp( System.currentTimeMillis() ), new java.sql.Timestamp( System.currentTimeMillis() ),
+                    TaskInfo.PERSPECTIVE, perspectiveName, (String)null,
+                    "SESSION=" + WebSession.getCurrentSession().getSessionId(),
+                    true );
+            }
+            catch( Exception e )
+            {
+                log.log( Level.WARNING, "Cannot log the change of perspective to " + perspectiveName, e );
+            }
 
             WebSession.getCurrentSession().putValue( "currentPerspective", perspectiveName );
         }
@@ -89,8 +139,6 @@ public class PerspectivesProvider extends WebJSONProviderSupport
         response.sendJSON(new JsonObject()
             .add( "perspective", perspective.toJSON() )
             .add( "ignore", ignore )
-            .add( "names", PerspectiveRegistry.perspectives().map( Perspective::getTitle )
-                    .filter( availablePerspectives::contains )
-                    .map( JsonValue::valueOf ).collect(JsonUtils.toArray())));
+            .add( "names", StreamEx.of( availablePerspectives ).map( JsonValue::valueOf ).collect(JsonUtils.toArray())));
     }
 }

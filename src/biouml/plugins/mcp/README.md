@@ -196,6 +196,8 @@ a multi-node deployment needs a shared store.
      table's row count equals the live catalog. Regenerate by running that test. -->
 | Tool | Description |
 |------|-------------|
+| `biouml_perspective_list` | List the perspectives available to the current user — BioUML's task-oriented entry points (e.g. GTRD, Microbiome, Regulatory mutations) — and the one in effect for this session. Each has a description (declared, or taken from the perspective's start page), its repository roots, and entry points: the analyses, workflows and collections work in that perspective usually starts from (pass their paths to biouml_analysis_describe or biouml_repo_describe). The perspective in effect decides which import/export formats are offered; switch it with biouml_perspective_select. |
+| `biouml_perspective_select` | Switch the perspective for this MCP session only (the user's saved web-UI perspective is not changed). name is one of biouml_perspective_list. From then on biouml_repo_import_formats, biouml_repo_export_formats and import autodetection follow the perspective's importer/exporter rules. Returns the perspective's description, repository roots, entry points and allow/deny rules, and — when the web UI files are found on the server — an intro block with what the perspective's start page offers users: more entry points (with an exists flag), analysisPresets (analysis path + parameter values to pass to biouml_analysis_run), importTargets (folders the page imports into), help links and a page summary. |
 | `biouml_repo_collections` | List the top-level registered repository collections (databases, data, analyses, ...). |
 | `biouml_repo_list` | List the children of a repository collection. |
 | `biouml_repo_describe` | Describe a repository element (name, class, child count, children). |
@@ -210,9 +212,9 @@ a multi-node deployment needs a shared store.
 | `biouml_repo_copy_folder` | ASYNC — Copy a folder (its whole subtree) to a new location. This returns IMMEDIATELY with a jobID; the copy continues in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status with the jobID (with a short delay between calls) until its 'completed' field is true, (3) the copy is then done. Delegates to the platform's folder provider. |
 | `biouml_repo_job_status` | ASYNC poll — Report the progress of a background job started by an async start-tool (e.g. biouml_repo_copy_folder, biouml_repo_run_script, biouml_repo_import). Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the work is not done until then. The 'message' field is the job's accumulated log up to this moment — it grows as the job runs, so read it on each poll to watch progress and to diagnose failures. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start tool. Returns {jobID, status, progress, message, completed}. |
 | `biouml_repo_reinitialize` | Re-initialize a collection that previously failed to load — the headless equivalent of the web UI's 'Retry'/'Reinitialize' menu item. Returns the path and whether it is now valid. |
-| `biouml_repo_export_formats` | List the export formats available for a repository element (in accept-priority order). Use this to discover what biouml_repo_export can produce for the element before calling it. |
+| `biouml_repo_export_formats` | List the export formats available for a repository element (in accept-priority order). Use this to discover what biouml_repo_export can produce for the element before calling it. The list follows the exporter rules of the perspective in effect (biouml_perspective_list / biouml_perspective_select). |
 | `biouml_repo_export` | Export a repository element to a file on the server's local filesystem — the headless equivalent of the web UI's 'Export' menu item. format is one of biouml_repo_export_formats (omit to use the highest-priority format); targetDir is a server-local directory (omit for the current dir) — the output file is the element name + the format suffix. Returns {file, format, bytes}. |
-| `biouml_repo_import_formats` | List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'. |
+| `biouml_repo_import_formats` | List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'. The list (and autodetection in biouml_repo_import) follows the importer rules of the perspective in effect (biouml_perspective_list / biouml_perspective_select). |
 | `biouml_repo_import` | ASYNC — Import a file from the server's local filesystem into a target collection. This returns IMMEDIATELY with a jobID; the import continues in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status (with a short delay) until 'completed' is true — the final status message is the path of the imported element. Delegates to the platform's import provider. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension). |
 | `biouml_repo_script_types` | List the script types that can be created in a collection (JS, R, Java, ...) — the headless equivalent of the 'New JS script' / 'New R script' / 'New Java code' menu items. Returns one row per type with its 'type' id (what biouml_repo_new_script takes), title, and element class. Only types whose product is available on this server are listed. |
 | `biouml_repo_new_script` | Create a new script element (JS, R, Java, ...) in a target collection — the headless equivalent of the web UI's 'New JS script' / 'New R script' / 'New Java code' menu items. parentPath is the target collection; type is one of biouml_repo_script_types; name is the new element's name; content is the initial script text (omit for a blank script). Returns {created, type}. |
@@ -290,6 +292,48 @@ a multi-node deployment needs a shared store.
 | `biouml_user_change_password` | Change the current user's password. Requires the current (old) password and a new one. |
 | `biouml_user_change_info` | Update the current user's profile fields (e.g. name, email) in the security provider. Pass a flat object of field name -> value. |
 <!-- END GENERATED TOOL TABLE -->
+
+## Perspectives (task-oriented entry points)
+
+Perspectives are the entry points users choose in the web UI (Default, GTRD, Microbiome, Regulatory
+mutations, …; plugins contribute more). `biouml_perspective_list` tells an agent which perspectives the
+user may open and, for each, its description, repository roots and *entry points* — the analyses,
+workflows and collections work usually starts from. Pass an entry point's path to
+`biouml_analysis_describe` (analyses, workflows) or `biouml_repo_describe` (collections).
+
+The perspective in effect filters importers and exporters (its `importers`/`exporters` rules), so it changes
+what `biouml_repo_import_formats`, `biouml_repo_export_formats` and import autodetection offer. Until
+`biouml_perspective_select` is called, that is the perspective the user last chose in the web UI.
+`biouml_perspective_select` switches it **for the MCP session only**; the user's saved perspective is not
+changed. When the client authenticates with the web UI's own `JSESSIONID`, the MCP session *is* that
+browser session, so the selection applies there too until the user picks a perspective in the UI.
+
+`biouml_perspective_select` also reads the perspective's intro page (the start page the web UI shows) when
+the web UI files are deployed next to the server, and returns what it offers users as an `intro` block:
+further entry points (each with an `exists` flag), `analysisPresets` (an analysis path plus the parameter
+values the page fills in — pass them to `biouml_analysis_run`), `importTargets`, `help` links and a page
+`summary`. Perspectives without a declared description are described by the page's heading and first
+paragraph. Pages are parsed statically (links and string literals in their scripts; scripts are not run), and
+pages they embed with an iframe or jQuery `.load()` are followed. The web UI is found at the `-Dbiouml.web.path`
+location (a directory or `.war`) if set, otherwise from the embedded Tomcat's `bioumlweb.war`, otherwise at
+`webapps/bioumlweb` (directory, then `.war`) under `catalina.base` — e.g. `/var/lib/tomcat9/webapps/bioumlweb`
+on a Debian `tomcat9` install — or under `<biouml.server.path>/tomcat`. Without it there is no `intro` block.
+
+A perspective declares its description and entry points in `plugin.xml` (both optional; `title` defaults to
+the element name). Declared entry points come first and are reported even where the web UI files are not
+deployed:
+
+```xml
+<perspective name="Microbiome" priority="99" intro="intro-microbiome">
+  <description>Microbial genome assembly from NGS reads: ...</description>
+  <repository>...</repository>
+  <entryPoints>
+    <entry path="analyses/Workflows/Microbiome/Assembly basic" title="Basic assembly workflow"
+           description="Reads are supplied as FASTQ files, adapters as FASTA"/>
+  </entryPoints>
+  ...
+</perspective>
+```
 
 ## Running an analysis (list → describe → run → poll → get_result)
 
